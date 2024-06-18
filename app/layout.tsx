@@ -6,9 +6,16 @@ import './globals.css';
 import StyledJsxRegistry from '../providers/registry';
 import { Suspense } from 'react';
 import { PostHogPageview } from '@/providers/analytics-provider';
-import { IUserInfo } from '@/types/shared.types';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import dynamic from 'next/dynamic';
 
 const inter = Inter({ subsets: ['latin'] });
+
+// dynamic components:
+const Loader = dynamic(() => import('./components/core/loader'));
+const AuthBox = dynamic(() => import('@/components/core/login/auth-box'));
+const Toaster = dynamic(() => import('./components/core/toaster'));
+const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'));
 
 export const metadata: Metadata = {
   title: 'Protocol Labs Network',
@@ -32,16 +39,8 @@ export const metadata: Metadata = {
   },
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const isLoggedIn: boolean = true;
-  const userInfo: IUserInfo = {
-    isFirstTimeLogin: false,
-    name: 'john',
-    email: 'john@yopmail.com',
-    profileImageUrl: '',
-    uid: '',
-    roles: [],
-    leadingTeams: [],
-  };
+  const { userInfo, isLoggedIn } = getCookiesFromHeaders();
+
   return (
     <html>
       <body className={`${inter.className} layout`}>
@@ -53,15 +52,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} />
           </header>
           <main className="layout__main">{children}</main>
-          {/* <Loader/> */}
-          <ToastContainer
-            position="top-right"
-            theme="dark"
-            bodyClassName="layout__toast__body"
-            className="layout__toast__class"
-            toastClassName="layout__toast__toaster"
-            progressClassName="layout__toast_progress"
-          />
+          <Loader />
+          <AuthBox />
+          <Toaster />
+          <BroadCastChannel />
         </StyledJsxRegistry>
       </body>
     </html>

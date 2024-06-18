@@ -1,10 +1,8 @@
 :root {
- 
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-   
   }
 }
 
@@ -35,6 +33,23 @@ body {
   min-height: calc(100vh - 80px);
 }
 
+.toast__body {
+  font-size: 14px;
+}
+
+.toast_progress {
+  background-color: #30c593;
+}
+
+.toast__toaster {
+  border-radius: 8px;
+  background-color: #1e293b;
+}
+
+.toast__class {
+  margin-top: 60px;
+}
+
 body {
 }
 
@@ -43,6 +58,10 @@ a {
   text-decoration: none;
 }
 
+button {
+  cursor: pointer;
+  border: unset;
+}
+
 @media (prefers-color-scheme: dark) {
-  
 }

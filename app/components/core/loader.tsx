@@ -1,18 +1,14 @@
-"use client";
-import { EVENTS } from "@/utils/constants";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
-interface ITriggerEvent extends Event {
-  detail: boolean;
-}
+'use client';
+import { EVENTS } from '@/utils/constants';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const Loader = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    document.addEventListener(EVENTS.TRIGGER_LOADER, (e: any) => loadingHandler(e?.detail));
+    document.addEventListener(EVENTS.TRIGGER_LOADER, ((e: CustomEvent) => loadingHandler(e?.detail)) as EventListener);
     document.removeEventListener(EVENTS.TRIGGER_LOADER, () => {});
   }, []);
 
@@ -20,19 +16,25 @@ const Loader = () => {
     if (loadingStatus) {
       setIsLoading(loadingStatus);
     } else {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     setIsLoading(false);
-  }, [router])
+  }, [router]);
   return (
     <>
       {isLoading && (
         <div className="loaderc">
           <div className="loaderc__lo">
-            <svg aria-hidden="true" className="loaderc__lo__spinner" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              aria-hidden="true"
+              className="loaderc__lo__spinner"
+              viewBox="0 0 100 101"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
                 fill="currentColor"
@@ -62,7 +64,6 @@ const Loader = () => {
             align-items: center;
             color: #000;
             animation: fadeIn 0.5s ease-in-out;
-            
           }
 
           @keyframes fadeIn {
@@ -82,7 +83,7 @@ const Loader = () => {
               opacity: 0;
             }
           }
-          
+
           .fade-out {
             animation: fadeOut 1s ease-in-out;
           }
@@ -102,6 +103,15 @@ const Loader = () => {
             fill: blue;
             color: gray;
             animation: spin 1s linear infinite;
+          }
+
+          @keyframes spin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
           }
         `}
       </style>

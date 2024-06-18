@@ -1,15 +1,16 @@
 'use client';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
-import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS } from '@/utils/constants';
-import { getAnalyticsUserInfo, triggerLoader } from '@/utils/helper';
+import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
+import { getAnalyticsUserInfo } from '@/utils/helper';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import JoinNetwork from './join-network';
 import MobileNavDrawer from './mobile-nav-drawer';
 import UserProfile from './userProfile';
 import { useRef } from 'react';
 import { IUserInfo } from '@/types/shared.types';
+import LoginBtn from './login-btn';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -27,11 +28,8 @@ export default function Navbar(props: Readonly<INavbar>) {
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
-      triggerLoader(true);
     }
   };
-
-  const onLoginClickHandler = () => {};
 
   const onHelpClickHandler = () => {
     analytics.onNavItemClicked('get-help', getAnalyticsUserInfo(userInfo));
@@ -112,15 +110,13 @@ export default function Navbar(props: Readonly<INavbar>) {
             </div>
           </div>
           <button className="nb__right__drawerandprofile__drawerbtn" onClick={onNavDrawerIconClickHandler}>
-              <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
-            </button>
-            {isLoggedIn && <UserProfile userInfo={userInfo} />}
+            <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
+          </button>
+          {isLoggedIn && <UserProfile userInfo={userInfo} />}
           {!isLoggedIn && (
             <div className="nb__right__lgandjoin">
               <JoinNetwork />
-              <button className="nb__right__lgandjoin__lgnbtn" onClick={onLoginClickHandler}>
-                Login
-              </button>
+              <LoginBtn/>
             </div>
           )}
         </div>
@@ -236,7 +232,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             color: #475569;
             font-size: 15px;
             font-weight: 600;
-                       background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+            background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
             box-shadow: 0px 1px 1px 0px #07080829;
             padding: 8px 24px;
             color: #ffffff;
@@ -284,7 +280,8 @@ export default function Navbar(props: Readonly<INavbar>) {
             }
 
             .nb__right__drawerandprofile__drawerbtn {
-            display: none;}
+              display: none;
+            }
 
             .nb__right__lgandjoin {
               display: flex;

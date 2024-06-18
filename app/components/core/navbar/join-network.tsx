@@ -1,20 +1,29 @@
-import { useRef, useState } from "react";
-import useClickedOutside from "@/hooks/useClickedOutside";
-import { JOIN_NETWORK_MENUS } from "@/utils/constants";
-import { useCommonAnalytics } from "@/analytics/common.analytics";
+import { useRef, useState } from 'react';
+import useClickedOutside from '@/hooks/useClickedOutside';
+import { JOIN_NETWORK_MENUS, TOAST_MESSAGES } from '@/utils/constants';
+import { useCommonAnalytics } from '@/analytics/common.analytics';
+import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
+import { useRouter } from 'next/navigation';
 
 export default function JoinNetwork() {
   const [isOpen, setIsOpen] = useState(false);
 
   const joinNetworkRef = useRef<HTMLUListElement | null>(null);
   const analytics = useCommonAnalytics();
-
+  const router = useRouter();
 
   useClickedOutside({ callback: () => setIsOpen(false), ref: joinNetworkRef });
 
   const onJoinNetworkClick = () => {
-    analytics.onNavJoinNetworkClicked(!isOpen);
-    setIsOpen(!isOpen);
+    const userInfo = Cookies.get('userInfo');
+    if (userInfo) {
+      toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
+      router.refresh();
+    } else {
+      analytics.onNavJoinNetworkClicked(!isOpen);
+      setIsOpen(!isOpen);
+    }
   };
 
   const onJoinNetworkListClick = (name: string) => {

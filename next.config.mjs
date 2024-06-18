@@ -14,6 +14,17 @@ const nextConfig = {
     POSTHOG_HOST: process.env.POSTHOG_HOST,
     PROTOSPHERE_URL: process.env.PROTOSPHERE_URL,
     GET_SUPPORT_URL: process.env.GET_SUPPORT_URL,
+    LOGIN_BANNER_URL: process.env.LOGIN_BANNER_URL,
+    PRIVY_AUTH_ID: process.env.PRIVY_AUTH_ID,
+    WEB_API_BASE_URL: process.env.WEB_API_BASE_URL,
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
   },
 };
 

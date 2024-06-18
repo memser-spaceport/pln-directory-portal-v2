@@ -1,5 +1,5 @@
-import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS } from '@/utils/constants';
-import { getAnalyticsUserInfo, triggerLoader } from '@/utils/helper';
+import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
+import { getAnalyticsUserInfo } from '@/utils/helper';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -8,6 +8,10 @@ import JoinNetwork from './join-network';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import useClickedOutside from '@/hooks/useClickedOutside';
+import { clearAllAuthCookies } from '@/utils/third-party.helper';
+import { toast } from 'react-toastify';
+import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
+import LoginBtn from './login-btn';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
@@ -19,14 +23,13 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   const isLoggedIn = props.isLoggedIn;
   const pathName = usePathname();
   const settingsUrl = '';
-  
+
   const analytics = useCommonAnalytics();
-  
+
   const drawerRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
 
   useClickedOutside({ callback: () => setIsOpen(false), ref: drawerRef });
-
 
   useEffect(() => {
     document.addEventListener(EVENTS.TRIGGER_MOBILE_NAV, (e: any) => setIsOpen(e.detail));
@@ -39,11 +42,9 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
 
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
-        analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo) );
-      triggerLoader(true);
+      analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
   };
-
 
   const onHelpItemClickHandler = (name: string) => {
     analytics.onNavGetHelpItemClicked(name, getAnalyticsUserInfo(userInfo));
@@ -54,7 +55,11 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   };
 
   const onLogoutClickHandler = () => {
-    onAccountOptionClickHandler("logout");
+    onAccountOptionClickHandler('logout');
+    clearAllAuthCookies();
+    document.dispatchEvent(new CustomEvent('init-privy-logout'));
+    toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+    createLogoutChannel().postMessage('logout');
   };
 
   return (
@@ -107,7 +112,12 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
               <div className="md__container__bdy__supandset">
                 <h2 className="md__container__bdy__supandset__tle">SUPPORT & SETTINGS</h2>
                 {HELPER_MENU_OPTIONS.map((helperMenu, index) => (
-                  <Link onClick={() => onHelpItemClickHandler(helperMenu.name)} target="_blank" href={helperMenu.url ?? ''} key={`${helperMenu} + ${index}`}>
+                  <Link
+                    onClick={() => onHelpItemClickHandler(helperMenu.name)}
+                    target="_blank"
+                    href={helperMenu.url ?? ''}
+                    key={`${helperMenu} + ${index}`}
+                  >
                     <li className="md__container__bdy__supandset__optn">
                       <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
                       <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
@@ -116,7 +126,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
                 ))}
 
                 {isLoggedIn && (
-                  <Link href={settingsUrl} onClick={() => onAccountOptionClickHandler("settings")}>
+                  <Link href={settingsUrl} onClick={() => onAccountOptionClickHandler('settings')}>
                     <li className="md__container__bdy__supandset__optn">
                       <Image width={16} height={16} alt={'Setting'} src="/icons/settings.svg" />
                       <div className="nb__right__helpc__opts__optn__name">Settings</div>
@@ -130,9 +140,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             <div className="md__container__bdy__footer">
               {!isLoggedIn && (
                 <div className="md__container__bdy__footer__lgnop">
-                  <button className="md__container__bdy__footer__lgnop__lgnbt" onClick={() => {}}>
-                    Login
-                  </button>
+                  <LoginBtn />
                   <JoinNetwork />
                 </div>
               )}
@@ -140,7 +148,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
               {isLoggedIn && (
                 <div className="md__container__bdy__footer__usrop">
                   <div className="md__container__bdy__footer__usrop__profilesec">
-                    <Image
+                    <img
                       className="md__container__bdy__footer__usrop__profilesec__profile"
                       src={userInfo?.profileImageUrl || '/icons/default_profile.svg'}
                       alt="profile"
@@ -186,7 +194,6 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             width: 320px;
             background: white;
           }
-
 
           .md__container__bdy {
             display: flex;

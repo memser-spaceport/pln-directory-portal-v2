@@ -3,12 +3,14 @@
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { IUserInfo } from '@/types/shared.types';
-import { EVENTS } from '@/utils/constants';
+import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { getAnalyticsUserInfo } from '@/utils/helper';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { Tooltip } from '../tooltip/tooltip';
+import { toast } from 'react-toastify';
+import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 
 interface IProfile {
   userInfo: IUserInfo;
@@ -31,6 +33,9 @@ export default function UserProfile(props: Readonly<IProfile>) {
   const onLogoutHandler = () => {
     setIsDropdown(false);
     clearAllAuthCookies();
+    document.dispatchEvent(new CustomEvent('init-privy-logout'));
+    toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+    createLogoutChannel().postMessage('logout');
   };
 
   const onAccountOptionsClickHandler = (name: string) => {
@@ -40,13 +45,13 @@ export default function UserProfile(props: Readonly<IProfile>) {
   return (
     <div className="profile">
       <div className="profile__profileimgsection">
-        <Image
+        <img
           loading="lazy"
-          className="profile__profileimagesection__img"
           src={userInfo?.profileImageUrl || '/icons/default_profile.svg'}
           alt="profile"
           height={40}
           width={40}
+          className="profile__profileimagesection__img"
         />
         <button className="profile__profileimgsection__dropdownbtn" onClick={onDrodownClick}>
           <Image height={20} width={20} loading="lazy" src="/icons/dropdown.svg" alt="dropdown" />
@@ -105,11 +110,14 @@ export default function UserProfile(props: Readonly<IProfile>) {
           .profile__profileimgsection {
             display: flex;
             align-items: center;
+            justify-content: center;
           }
 
           .profile__profileimagesection__img {
-            border-radius: 40px;
             border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            height: 40px;
+            width: 40px;
           }
 
           .profile__profileimgsection__dropdownbtn {

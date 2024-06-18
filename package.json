@@ -11,6 +11,8 @@
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.0.7",
     "js-cookie": "^3.0.5",
+    "@privy-io/react-auth": "^1.71.0",
+    "jsonwebtoken": "^9.0.2",
     "next": "14.2.3",
     "posthog-js": "^1.139.2",
     "react": "^18",
@@ -18,6 +20,8 @@
     "react-toastify": "^10.0.5"
   },
   "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

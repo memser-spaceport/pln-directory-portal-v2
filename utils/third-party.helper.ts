@@ -8,4 +8,9 @@ export const clearAllAuthCookies = () => {
     Cookies.remove("refreshToken", { path: "/", domain: process.env.COOKIE_DOMAIN || "" });
     Cookies.remove("userInfo", { path: "/", domain: process.env.COOKIE_DOMAIN || "" });
     Cookies.remove("page_params", { path: "/", domain: process.env.COOKIE_DOMAIN || "" });
+    Cookies.remove('privy-token');
+    Cookies.remove('privy-session');
+    Cookies.remove('authLinkedAccounts');
+    Cookies.remove('privy-refresh-token');
+    localStorage.clear();
   };

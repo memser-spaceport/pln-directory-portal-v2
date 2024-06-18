@@ -1,3 +1,9 @@
+import Loader from "../components/core/loader";
+
 export default function MemberList() {
-    return <></>
+    return <>
+    <div style={{height: ""}}>
+
+    </div>
+          </>
    }

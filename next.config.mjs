@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    DIRECTORY_API_URL: process.env.DIRECTORY_API_URL,
+  },
   async redirects() {
     return [
       {

@@ -21,6 +21,14 @@
   height: 100%;
  }
 
+html,
+body {
+  max-width: 100vw;
+  min-height: 100vh;
+  height: 100%;
+  overflow-x: hidden;
+}
+
 .layout__header {
   height: 80px;
   width: 100%;
@@ -53,6 +61,11 @@
 }
 
 body {
+  overflow-y: auto;
+}
+
+body:has(dialog[open]) {
+  overflow: hidden !important; /* Disable scrolling when dialog is open */
 }
 
 a {
@@ -65,7 +78,18 @@ button {
   border: unset;
 }
 
+::backdrop {
+  background: black;
+  display: flex;
+  align-items: center;
+  opacity: 0.6;
+}
+
+.list {
+  height: 4000px;
+}
 @media (prefers-color-scheme: dark) {
+  
 }
 
 ::-webkit-scrollbar {

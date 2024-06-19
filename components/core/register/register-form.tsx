@@ -173,7 +173,8 @@ function RegisterForm(props) {
           }
           .rf__form {
             padding: 24px 32px;
-            height: fit-content;
+            height: calc(100% - 70px);
+            overflow-y:auto;
           }
           .form {
             height: 100%;
@@ -182,7 +183,7 @@ function RegisterForm(props) {
 
           .rf__actions {
             position: sticky;
-            bottom: 0;
+            bottom:0;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -215,7 +216,7 @@ function RegisterForm(props) {
           }
           @media (min-width: 1200px) {
             .rf__form {
-              height: calc(100% - 70px);
+              
               overflow-y: auto;
             }
             .rf__actions {

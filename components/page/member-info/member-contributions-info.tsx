@@ -2,11 +2,11 @@
 import { useState } from 'react';
 import ContributionForm from './contributions/contribution-form';
 
-function MemberContributionInfo(props) {
+function MemberContributionInfo(props: any) {
   const [contributionInfos, setContributionInfos] = useState(props.projectContributions ?? []);
   const showAddProject = props.showAddProject ?? false;
   const errors = props.contributionErrors ?? [];
-  const currentProjectsCount = contributionInfos.filter((v) => v.currentProject === true).length;
+  const currentProjectsCount = contributionInfos.filter((v: any) => v.currentProject === true).length;
   const onChange = props.onChange;
   const initialValues = props?.initialValues?.projectContributions ?? [];
   const intialProjectContributions = [...initialValues];
@@ -25,7 +25,7 @@ function MemberContributionInfo(props) {
     endDate: new Date(),
   };
 
-  const onToggleExpansion = (index) => {
+  const onToggleExpansion = (index: number) => {
     setExpandedId((v) => {
       if (v === index) {
         return -1;
@@ -42,7 +42,7 @@ function MemberContributionInfo(props) {
     setContributionInfos([...newExp]);
   };
 
-  const onDeleteContribution = (index) => {
+  const onDeleteContribution = (index: number) => {
     if (index === expandedId) {
       setExpandedId(-1);
     }
@@ -51,7 +51,7 @@ function MemberContributionInfo(props) {
     setContributionInfos([...newExp]);
   };
 
-  const onItemChange = (index, key, value) => {
+  const onItemChange = (index: number, key: string, value:any) => {
     const newExp = [...contributionInfos];
     newExp[index][key] = value;
     if (key === 'currentProject' && value === false) {
@@ -85,7 +85,7 @@ function MemberContributionInfo(props) {
                 <p className="pc__list__info">(Max 20 contributions)</p>
               </div>
             )}
-            {contributionInfos.map((contributionInfo, index) => (
+            {contributionInfos.map((contributionInfo: any, index: number) => (
               <div className="pc__list__item" key={`member-skills-team-info-${index}`}>
                 <ContributionForm
                   showAddProject={showAddProject}

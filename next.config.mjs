@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: {
-    DIRECTORY_API_URL: process.env.DIRECTORY_API_URL,
-  },
   async redirects() {
     return [
       {
@@ -15,6 +12,7 @@ const nextConfig = {
   env: {
     POSTHOG_KEY: process.env.POSTHOG_KEY,
     POSTHOG_HOST: process.env.POSTHOG_HOST,
+    DIRECTORY_API_URL: process.env.DIRECTORY_API_URL,
     PROTOSPHERE_URL: process.env.PROTOSPHERE_URL,
     GET_SUPPORT_URL: process.env.GET_SUPPORT_URL,
     LOGIN_BANNER_URL: process.env.LOGIN_BANNER_URL,

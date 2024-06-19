@@ -26,8 +26,12 @@ export default function JoinNetwork() {
     }
   };
 
-  const onJoinNetworkListClick = (name: string) => {
-    analytics.onNavJoinNetworkOptionClicked(name);
+  const onJoinNetworkListClick = (item) => {
+    analytics.onNavJoinNetworkOptionClicked(item.name);
+    if(item.key === 'member') {
+      document.dispatchEvent(new CustomEvent('open-member-register-dialog'));
+    }
+    setIsOpen(false)
   };
 
   return (
@@ -40,7 +44,7 @@ export default function JoinNetwork() {
         {isOpen && (
           <ul ref={joinNetworkRef} className="jn__options">
             {JOIN_NETWORK_MENUS.map((item) => (
-              <li key={item.name} className="jn__options__item" onClick={() => onJoinNetworkListClick(item.name)}>
+              <li key={item.name} className="jn__options__item" onClick={() => onJoinNetworkListClick(item)}>
                 <div className="jn__options__item__cn">
                   <img loading="lazy" className="jn__options__item__cn__img" src={item.logo} alt={item.name} />
                   <span className="jn__options__item__cn__txt">{item.name}</span>

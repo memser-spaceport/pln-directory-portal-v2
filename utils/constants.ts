@@ -53,8 +53,8 @@ export const HELPER_MENU_OPTIONS = [
 ];
 
 export const JOIN_NETWORK_MENUS = [
-  { name: 'As a Member', logo: '/icons/join-member.svg' },
-  { name: 'As a Team', logo: '/icons/join-team.svg' },
+  { name: 'As a Member', key: 'member', logo: '/icons/join-member.svg' },
+  { name: 'As a Team', key: 'team', logo: '/icons/join-team.svg' },
 ];
 
 export const COMMON_ANALYTICS_EVENTS = {

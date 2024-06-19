@@ -8,17 +8,14 @@ import { Suspense } from 'react';
 import { PostHogPageview } from '@/providers/analytics-provider';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
+import './globals.css';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'));
 const AuthBox = dynamic(() => import('@/components/core/login/auth-box'));
 const Toaster = dynamic(() => import('../components/core/toaster'));
 const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'));
-import './globals.css';
-import MemberRegisterDialog from '@/components/core/register/member-register-dialog';
-import AppHeader from '@/components/core/app-header';
-
-
+const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'))
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {

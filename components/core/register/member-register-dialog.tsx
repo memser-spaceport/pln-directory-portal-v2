@@ -6,9 +6,11 @@ import RegisterForm from './register-form';
 import RegisterInfo from './register-info';
 import StepsIndicatorDesktop from './steps-indicator-desktop';
 import StepsIndicatorMobile from './steps-indicator-mobile';
+import useStepsIndicator from '@/hooks/useStepsIndicator';
 
 function MemberRegisterDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const { currentStep } = useStepsIndicator({ steps: ['basic', 'skills', 'contributions', 'social'], defaultStep: 'basic', uniqueKey: 'register' });
 
   const onCloseRegister = () => {
     if (dialogRef.current) {
@@ -18,10 +20,8 @@ function MemberRegisterDialog() {
 
   useEffect(() => {
     function dialogHandler(e) {
-      console.log('on handler', e)
       if (dialogRef.current) {
-        console.log('on dialog')
-        dialogRef.current.showModal()
+        dialogRef.current.showModal();
       }
     }
     document.addEventListener('open-member-register-dialog', dialogHandler);
@@ -34,12 +34,20 @@ function MemberRegisterDialog() {
     <>
       <dialog ref={dialogRef} className="register">
         <div className="register__cn">
-          <StepsIndicatorMobile />
+          <div className="register__cn__mobile">
+            <StepsIndicatorMobile />
+          </div>
           <aside className="register__cn__desktopinfo">
             <RegisterInfo />
             <StepsIndicatorDesktop />
           </aside>
           <section className="register__cn__content">
+           {/*  {currentStep === 'basic' && (
+              <div className="register__cn__bannermobile">
+                <RegisterInfo />
+              </div>
+            )} */}
+
             <RegisterForm onCloseForm={onCloseRegister} />
           </section>
         </div>
@@ -64,7 +72,10 @@ function MemberRegisterDialog() {
             width: 100%;
             height: 100%;
             flex-direction: column;
-            overflow-y: scroll;
+            overflow: hidden;
+          }
+          .register__cn__mobile {
+            display: flex;
           }
           .register__close {
             display: none;
@@ -72,7 +83,13 @@ function MemberRegisterDialog() {
           .register__cn__desktopinfo {
             width: 100%;
             height: fit-content;
-
+            display: none;
+            background-image: linear-gradient(rgba(30, 58, 138, 1), rgba(29, 78, 216, 1));
+          }
+          .register__cn__bannermobile {
+            display: block;
+            height: 109px;
+            overflow: hidden;
             background-image: linear-gradient(rgba(30, 58, 138, 1), rgba(29, 78, 216, 1));
           }
           .register__cn__desktopinfo__steps {
@@ -81,15 +98,22 @@ function MemberRegisterDialog() {
 
           .register__cn__content {
             height: 100%;
-
             flex: 1;
+            overflow: hidden;
           }
           @media (min-width: 1200px) {
             .register__cn {
               flex-direction: row;
               overflow-y: hidden;
             }
+            .register__cn__mobile {
+              display: none;
+            }
+            .register__cn__bannermobile {
+              display: none;
+            }
             .register__cn__desktopinfo {
+              display: block;
               width: 300px;
             }
             .register__cn__desktopinfo {

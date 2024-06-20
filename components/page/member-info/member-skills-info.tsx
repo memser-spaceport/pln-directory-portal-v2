@@ -22,6 +22,7 @@ interface SkillsOptions {
 function MemberSkillsInfo(props) {
   const teamOptions = props.teamsOptions;
   const skillsOptions = props.skillsOptions;
+  const errors = props.errors;
   const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>([{ teamTitle: '', role: '', teamUid: '' }]);
   const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>([]);
 
@@ -86,6 +87,12 @@ function MemberSkillsInfo(props) {
   return (
     <>
       <div className="msf">
+        {/**************  ERRORS  ************/}
+        <ul className="msf__errors">
+          {errors.map((error: string, index: number) => (
+            <li key={`member-error-${index}`}>{error}</li>
+          ))}
+        </ul>
         {/**************  TEAMS & ROLES UI  *****************/}
         <div className="msf__tr">
           <div className="msf__tr__head">
@@ -97,6 +104,7 @@ function MemberSkillsInfo(props) {
               <div key={`teams-role-${index}`} className="msf__tr__content__cn">
                 <div className="msf__tr__content__cn__teams">
                   <SearchableSingleSelect
+                    id="members-register-team-info"
                     isMandatory={true}
                     placeholder="Search by team name"
                     displayKey="teamTitle"
@@ -170,6 +178,11 @@ function MemberSkillsInfo(props) {
             display: flex;
             flex-direction: column;
             gap: 4px;
+          }
+        .msf__errors {
+            color: red;
+            font-size: 12px;
+            padding: 0 16px 16px 16px;
           }
           .msf__tr__head {
             display: flex;

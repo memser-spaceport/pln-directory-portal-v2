@@ -1,7 +1,8 @@
 import TextArea from "@/components/form/text-area"
 import TextField from "@/components/form/text-field"
 
-function MemberSocialInfo() {
+function MemberSocialInfo(props) {
+    const errors = props.errors ?? []
     return <>
      <div className="memberinfo__form">
         <div className="memberinfo__form__item">

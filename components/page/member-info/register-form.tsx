@@ -4,13 +4,20 @@ import MemberContributionInfo from '@/components/page/member-info/member-contrib
 import MemberSkillsInfo from '@/components/page/member-info/member-skills-info';
 import MemberSocialInfo from '@/components/page/member-info/member-social-info';
 import useStepsIndicator from '@/hooks/useStepsIndicator';
+import { TeamAndSkillsInfoSchema, basicInfoSchema } from '@/schema/member-forms';
 import { useEffect, useRef, useState } from 'react';
+import { z } from 'zod';
 
 function RegisterForm(props) {
   const onCloseForm = props.onCloseForm;
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'skills', 'contributions', 'social'], defaultStep: 'basic', uniqueKey: 'register' });
   const formRef = useRef<HTMLFormElement>(null);
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
+
+  const [basicErrors, setBasicErrors] = useState<string[]>([]);
+  const [contributionErrors, setContributionErrors] = useState<string[]>([]);
+  const [skillsErrors, setSkillsErrors] = useState<string[]>([]);
+  const [socialErrors, setSocialErrors] = useState<string[]>([]);
 
   const onFormSubmit = async (e) => {
     e.preventDefault();
@@ -21,9 +28,29 @@ function RegisterForm(props) {
   };
 
   const onNextClicked = () => {
-    if(currentStep === 'basic') {
-
+    if (!formRef.current) {
+      return;
     }
+    const formData = new FormData(formRef.current);
+    const formattedData = transformObject(Object.fromEntries(formData));
+    console.log(formattedData);
+    if (currentStep === 'basic') {
+      const result = basicInfoSchema.safeParse(formattedData);
+      if (!result.success) {
+        setBasicErrors(result.error.errors.map((v) => v.message));
+        return;
+      }
+      setBasicErrors([]);
+    } else if (currentStep === 'skills') {
+      const result = TeamAndSkillsInfoSchema.safeParse(formattedData);
+      if (!result.success) {
+        console.log(result.error.errors);
+        setSkillsErrors(result.error.errors.map((v) => v.message));
+        return;
+      }
+      setSkillsErrors([]);
+    }
+
     goToNextStep();
   };
 
@@ -33,8 +60,8 @@ function RegisterForm(props) {
 
   function transformObject(obj: any) {
     const result: any = {};
-    const teams: any = {};
-    const contrubutions: any = {};
+    const teamAndRoles: any = {};
+    const projectContributions: any = {};
     const skills: any = {};
 
     for (const key in obj) {
@@ -42,22 +69,19 @@ function RegisterForm(props) {
         const [teamInfo, subKey] = key.split('-');
         const teamIndex = teamInfo.match(/\d+$/)[0];
 
-        if (!teams[teamIndex]) {
-          teams[teamIndex] = {};
+        if (!teamAndRoles[teamIndex]) {
+          teamAndRoles[teamIndex] = {};
         }
 
-        const subKeyName = subKey.replace(/^team/, '');
-        teams[teamIndex][subKeyName] = obj[key];
+        teamAndRoles[teamIndex][subKey] = obj[key];
       } else if (key.startsWith('contributionInfo')) {
         const [contributionInfo, subKey] = key.split('-');
         const contributionIndex = contributionInfo.match(/\d+$/)[0];
 
-        if (!contrubutions[contributionIndex]) {
-          contrubutions[contributionIndex] = {};
+        if (!projectContributions[contributionIndex]) {
+          projectContributions[contributionIndex] = {};
         }
-
-        const subKeyName = subKey.replace(/^contribution/, '');
-        contrubutions[contributionIndex][subKeyName] = obj[key];
+        projectContributions[contributionIndex][subKey] = obj[key];
       } else if (key.startsWith('skillsInfo')) {
         const [skillInfo, subKey] = key.split('-');
         const skillIndex = skillInfo.match(/\d+$/)[0];
@@ -74,8 +98,8 @@ function RegisterForm(props) {
       }
     }
 
-    result.teams = Object.values(teams);
-    result.contributions = Object.values(contrubutions);
+    result.teamAndRoles = Object.values(teamAndRoles);
+    result.projectContributions = Object.values(projectContributions);
     result.skills = Object.values(skills);
     return result;
   }
@@ -128,16 +152,16 @@ function RegisterForm(props) {
       <form className="rf" onSubmit={onFormSubmit} ref={formRef}>
         <div className="rf__form">
           <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
-            <MemberBasicInfo />
+            <MemberBasicInfo errors={basicErrors} />
           </div>
           <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
-            <MemberContributionInfo />
+            <MemberContributionInfo projectOptions={allData.projects} errors={contributionErrors} />
           </div>
           <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
-            <MemberSocialInfo />
+            <MemberSocialInfo errors={socialErrors} />
           </div>
           <div className={currentStep !== 'skills' ? 'hidden' : 'form'}>
-            <MemberSkillsInfo teamsOptions={allData.teams} skillsOptions={allData.skills} />
+            <MemberSkillsInfo errors={skillsErrors} teamsOptions={allData.teams} skillsOptions={allData.skills} />
           </div>
         </div>
         <div className="rf__actions">
@@ -178,7 +202,7 @@ function RegisterForm(props) {
           .rf__form {
             padding: 24px;
             height: calc(100% - 70px);
-            overflow-y:auto;
+            overflow-y: auto;
           }
           .form {
             height: 100%;
@@ -187,7 +211,7 @@ function RegisterForm(props) {
 
           .rf__actions {
             position: sticky;
-            bottom:0;
+            bottom: 0;
             display: flex;
             align-items: center;
             justify-content: space-between;

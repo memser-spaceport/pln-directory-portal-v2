@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import { useEffect, useRef } from 'react';
-import RegisterForm from './register-form';
-import RegisterInfo from './register-info';
+import RegisterForm from '../../page/member-info/register-form';
+import RegisterInfo from '../../page/member-info/register-info';
 import StepsIndicatorDesktop from './steps-indicator-desktop';
 import StepsIndicatorMobile from './steps-indicator-mobile';
 import useStepsIndicator from '@/hooks/useStepsIndicator';
@@ -36,17 +36,15 @@ function MemberRegisterDialog() {
           <div className="register__cn__mobile">
             <StepsIndicatorMobile steps={steps} />
           </div>
-          <aside className="register__cn__desktopinfo">
-            <RegisterInfo />
+          <aside className="register__cn__desktop">
+            <div className="register__cn__desktop__info">
+              <h2 className="register__cn__desktop__info__title">Join the Protocol Labs Network</h2>
+              <p className="register__cn__desktop__info__desc">Tell us about yourself</p>
+              <div className="register__cn__desktop__info__sep"></div>
+            </div>
             <StepsIndicatorDesktop steps={steps} />
           </aside>
           <section className="register__cn__content">
-           {/*  {currentStep === 'basic' && (
-              <div className="register__cn__bannermobile">
-                <RegisterInfo />
-              </div>
-            )} */}
-
             <RegisterForm onCloseForm={onCloseRegister} />
           </section>
         </div>
@@ -79,20 +77,11 @@ function MemberRegisterDialog() {
           .register__close {
             display: none;
           }
-          .register__cn__desktopinfo {
+          .register__cn__desktop {
             width: 100%;
             height: fit-content;
             display: none;
             background-image: linear-gradient(rgba(30, 58, 138, 1), rgba(29, 78, 216, 1));
-          }
-          .register__cn__bannermobile {
-            display: block;
-            height: 109px;
-            overflow: hidden;
-            background-image: linear-gradient(rgba(30, 58, 138, 1), rgba(29, 78, 216, 1));
-          }
-          .register__cn__desktopinfo__steps {
-            padding: 24px 0;
           }
 
           .register__cn__content {
@@ -105,28 +94,49 @@ function MemberRegisterDialog() {
               flex-direction: row;
               overflow-y: hidden;
             }
-            .register__cn__mobile {
-              display: none;
-            }
-            .register__cn__bannermobile {
-              display: none;
-            }
-            .register__cn__desktopinfo {
-              display: block;
-              width: 300px;
-            }
-            .register__cn__desktopinfo {
-              height: 100%;
-            }
-            .register__cn__content {
-              overflow-y: auto;
-            }
             .register__close {
               display: block;
               cursor: pointer;
               position: absolute;
               top: 16px;
               right: 16px;
+            }
+            .register__cn__mobile {
+              display: none;
+            }
+            .register__cn__desktop {
+              display: block;
+              width: 300px;
+              height: 100%;
+            }
+
+            .register__cn__content {
+              overflow-y: auto;
+            }
+            .register__cn__desktop__info {
+              padding: 24px 22px;
+              display: flex;
+              flex-direction: column;
+              gap: 20px;
+            }
+            .register__cn__desktop__info__title {
+              font-weight: 700;
+              font-size: 24px;
+              color: white;
+              line-height: 24px;
+            }
+            .register__cn__desktop__info__desc {
+              font-size: 14px;
+              font-weight: 400;
+              color: white;
+              opacity: 0.8;
+            }
+            .register__cn__desktop__info__sep {
+              height: 1px;
+              width: 100%;
+              background: white;
+              opacity: 0.2;
+             
             }
           }
         `}

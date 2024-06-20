@@ -14,8 +14,10 @@ interface SearchableSingleSelectProps {
   uniqueKey: string;
   displayKey: string;
   placeholder?: string;
-  isMandatory?:boolean;
+  isMandatory?: boolean;
   arrowImgUrl?: string;
+  label?: string;
+  id: string;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -27,7 +29,9 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   displayKey,
   placeholder = 'Search....',
   isMandatory = false,
-  arrowImgUrl
+  arrowImgUrl,
+  label = '',
+  id,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -47,8 +51,8 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   const onSearch = (e: ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value;
     if (showOptions) {
-      if(selectedOption && selectedOption[uniqueKey]) {
-        onClear()
+      if (selectedOption && selectedOption[uniqueKey]) {
+        onClear();
       }
       if (searchTerm === '') {
         setFilteredOptions(options);
@@ -88,43 +92,90 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   return (
     <>
       <div className="select" ref={containerRef}>
+        {label !== '' && <label className='select__label' htmlFor={id}>{label}</label>}
         <input
-          className={`select__search ${(isMandatory && !selectedOption?.[uniqueKey]) ? 'select__search--error': '' }`}
+          id={id}
+          className={`select__search ${isMandatory && !selectedOption?.[uniqueKey] ? 'select__search--error' : ''}`}
           ref={searchRef}
           defaultValue={defaultSelectedValue}
           onChange={onSearch}
           onFocus={onSearchFocus}
           placeholder={placeholder}
         />
-        {arrowImgUrl && <img onClick={onSearchFocus} className='select__arrowimg' src={arrowImgUrl} width="10" height="7" alt="arrow down"/>}
+        {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
         {showOptions && (
           <ul className="select__options">
             {filteredOptions.map((option) => (
-              <li
-                key={option[uniqueKey]}
-                onClick={() => handleOptionClick(option)}
-                className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}
-              >
+              <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
                 {option[displayKey]}
               </li>
             ))}
-            {filteredOptions.length === 0 && <p className='select__options__noresults'>No Results found</p>}
+            {filteredOptions.length === 0 && <p className="select__options__noresults">No Results found</p>}
           </ul>
         )}
       </div>
       <style jsx>
-        {
-            `
-            .select {width: 100%; position: relative; }
-            .select__arrowimg {position: absolute; top: 13px; cursor: pointer; right: 8px;}
-            .select__search {padding: 8px 12px; padding-right: 22px; width: 100%; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid lightgrey;}
-            .select__search:focus-visible, .select__search:focus {outline:none;}
-            .select__search--error {border: 1px solid red;}
-            .select__options {width: 100%; list-style-type: none; border-radius: 8px; padding: 8px; box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px; z-index: 2; overflow-y: auto; max-height: 150px; position: absolute; background: white; border: 1px solid lightgrey; top: 35px;  left:0; right:0;}
-            .select__options__item {cursor: pointer; font-size: 14px;  padding: 4px 8px;}
-            .select__options__noresults {cursor: pointer; font-size: 15px; padding: 4px 8px;}
-            `
-        }
+        {`
+          .select {
+            width: 100%;
+            position: relative;
+          }
+          .select__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: block;
+          }
+          .select__arrowimg {
+            position: absolute;
+            bottom: calc(50% - 4px);
+            cursor: pointer;
+            right: 8px;
+          }
+          .select__search {
+            padding: 8px 12px;
+            padding-right: 22px;
+            min-height: 40px;
+            width: 100%;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1px solid lightgrey;
+          }
+          .select__search:focus-visible,
+          .select__search:focus {
+            outline: none;
+          }
+          .select__search--error {
+            border: 1px solid red;
+          }
+          .select__options {
+            width: 100%;
+            list-style-type: none;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+            z-index: 2;
+            overflow-y: auto;
+            max-height: 150px;
+            position: absolute;
+            background: white;
+            border: 1px solid lightgrey;
+            top: 35px;
+            left: 0;
+            right: 0;
+          }
+          .select__options__item {
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+          }
+          .select__options__noresults {
+            cursor: pointer;
+            font-size: 15px;
+            padding: 4px 8px;
+          }
+        `}
       </style>
     </>
   );

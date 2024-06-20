@@ -16,6 +16,8 @@ const AuthBox = dynamic(() => import('@/components/core/login/auth-box'));
 const Toaster = dynamic(() => import('../components/core/toaster'));
 const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'));
 const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'))
+const TeamRegisterDialog = dynamic(()=>import('@/components/page/team-form-info/team-register-dialog'))
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -58,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Toaster />
           <BroadCastChannel />
           <MemberRegisterDialog/>
+          <TeamRegisterDialog/>
         </StyledJsxRegistry>
       </body>
     </html>

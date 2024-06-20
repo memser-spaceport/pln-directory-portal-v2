@@ -9,9 +9,10 @@ interface TextAreaProps {
   name: string;
   id: string;
   defaultValue?: string;
+  maxLength?: number;
 }
 
-const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, type }) => {
+const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, type, maxLength }) => {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [inputValue, setInputValue] = useState<string>('');
   const onTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -33,6 +34,7 @@ const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '',
           className={`tf__input ${(inputValue === '' && isMandatory) ? 'tf__input--error': ''}`}
           defaultValue={defaultValue}
           required={isMandatory}
+          maxLength={maxLength}
         />
       </div>
       <style jsx>

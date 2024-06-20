@@ -24,15 +24,14 @@ export async function middleware(req: NextRequest) {
   const response = NextResponse.next();
 
   try {
-   
     const authToken = authTokenFromCookie?.value.replace(/"/g, '');
     const isValidAuthToken = await checkIsValidToken(authToken as string);
 
-    if(isValidAuthToken) {
+    if (isValidAuthToken) {
       response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
       response.headers.set('authToken', authTokenFromCookie?.value as string);
       response.headers.set('userInfo', userInfo?.value as string);
-      response.headers.set('isLoggedIn', "true");
+      response.headers.set('isLoggedIn', 'true');
       return response;
     }
 
@@ -51,11 +50,14 @@ export async function middleware(req: NextRequest) {
           maxAge: calculateExpiry(accessTokenExpiry?.exp),
           domain: process.env.COOKIE_DOMAIN,
         });
-        response.cookies.set('userInfo', JSON.stringify(userInfo), { domain: process.env.COOKIE_DOMAIN });
+        response.cookies.set('userInfo', JSON.stringify(userInfo), {
+          maxAge: calculateExpiry(accessTokenExpiry?.exp),
+          domain: process.env.COOKIE_DOMAIN,
+        });
         response.headers.set('refreshToken', JSON.stringify(refreshToken));
         response.headers.set('authToken', JSON.stringify(accessToken));
         response.headers.set('userInfo', JSON.stringify(userInfo));
-        response.headers.set('isLoggedIn', "true");
+        response.headers.set('isLoggedIn', 'true');
         return response;
       }
     } else {

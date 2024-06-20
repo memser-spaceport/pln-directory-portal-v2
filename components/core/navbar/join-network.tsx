@@ -30,6 +30,8 @@ export default function JoinNetwork() {
     analytics.onNavJoinNetworkOptionClicked(item.name);
     if(item.key === 'member') {
       document.dispatchEvent(new CustomEvent('open-member-register-dialog'));
+    } else if(item.key === 'team') {
+      document.dispatchEvent(new CustomEvent('open-team-register-dialog'));
     }
     setIsOpen(false)
   };

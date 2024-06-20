@@ -10,9 +10,10 @@ interface TextFieldProps {
   name: string;
   id: string;
   defaultValue?: string;
+  maxLength?:number;
 }
 
-const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, type }) => {
+const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, type, maxLength }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [inputValue, setInputValue] = useState<string>('');
   const onTextChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -35,6 +36,7 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '
           type={type}
           defaultValue={defaultValue}
           required={isMandatory}
+          maxLength={maxLength}
         />
       </div>
       <style jsx>
@@ -54,6 +56,7 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '
             padding: 8px 12px;
             border: 1px solid lightgrey;
             border-radius: 8px;
+            min-height:40px;
           }
           .tf__input--error {
             border: 1px solid red;

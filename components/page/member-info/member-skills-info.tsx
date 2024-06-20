@@ -139,7 +139,6 @@ function MemberSkillsInfo(props) {
 
         {/**************  SKILLS UI  *****************/}
         <div className="msf__ps">
-          <p className="msf__ps__head">Professional Skills*</p>
           <MultiSelect
             options={skillsOptions}
             selectedOptions={selectedSkills}
@@ -147,6 +146,7 @@ function MemberSkillsInfo(props) {
             onRemove={onRemoveSkill}
             uniqueKey="id"
             displayKey="name"
+            label="Professional Skills*"
             placeholder="Search options..."
             isMandatory={false}
             closeImgUrl="/icons/close.svg"

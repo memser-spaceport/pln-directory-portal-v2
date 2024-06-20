@@ -17,6 +17,7 @@ interface MultiSelectProps {
   isMandatory?: boolean;
   arrowImgUrl?: string;
   closeImgUrl: string;
+  label?: string;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -30,6 +31,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   isMandatory = false,
   arrowImgUrl,
   closeImgUrl,
+  label = ''
 }) => {
   const [showOptions, setShowOptions] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -67,6 +69,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   return (
     <>
       <div className="select" ref={containerRef}>
+        {label !== '' && <label className='select__label'>{label}</label>}
         <div className={`select__selectedoptions ${selectedOptions.length === 0 ? 'select__selectedoptions--error': ''}`} onClick={toggleOptions}>
           {selectedOptions.length === 0 && <span className="select__placeholder">{placeholder}</span>}
           {selectedOptions.map((option) => (
@@ -108,6 +111,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           .select {
             width: 100%;
             position: relative;
+          }
+          .select__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: block;
           }
           .select__selectedoptions {
             display: flex;

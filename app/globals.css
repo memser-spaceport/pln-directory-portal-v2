@@ -85,6 +85,15 @@ button {
   opacity: 0.6;
 }
 
+::placeholder {
+  color: #aab0b8;
+}
+
+@media (prefers-color-scheme: dark) {
+
+}
+
+
 .list {
   height: 4000px;
 }

@@ -116,8 +116,8 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
         {
             `
             .select {width: 100%; position: relative; }
-            .select__arrowimg {position: absolute; top: 13px; cursor: pointer; right: 16px;}
-            .select__search {padding: 8px 12px; width: 100%; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid lightgrey;}
+            .select__arrowimg {position: absolute; top: 13px; cursor: pointer; right: 8px;}
+            .select__search {padding: 8px 12px; padding-right: 22px; width: 100%; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid lightgrey;}
             .select__search:focus-visible, .select__search:focus {outline:none;}
             .select__search--error {border: 1px solid red;}
             .select__options {width: 100%; list-style-type: none; border-radius: 8px; padding: 8px; box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px; z-index: 2; overflow-y: auto; max-height: 150px; position: absolute; background: white; border: 1px solid lightgrey; top: 35px;  left:0; right:0;}

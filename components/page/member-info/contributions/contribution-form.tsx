@@ -178,8 +178,18 @@ function ContributionForm(props) {
 
         .cb__content__fieldgroup {
           display: flex;
-          gap: 20px;
-          margin: 20px;
+          gap: 10px;
+          flex-direction: column;
+          margin: 20px 0;
+          width: 100%;
+
+        }
+
+        @media(min-width: 1200px) {
+          .cb__content__fieldgroup {
+            flex-direction: row;
+             gap: 20px;
+          }
         }
       `}</style>
     </>

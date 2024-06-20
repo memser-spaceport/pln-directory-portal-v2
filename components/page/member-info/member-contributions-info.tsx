@@ -51,7 +51,7 @@ function MemberContributionInfo(props: any) {
     setContributionInfos([...newExp]);
   };
 
-  const onItemChange = (index: number, key: string, value:any) => {
+  const onItemChange = (index: number, key: string, value: any) => {
     const newExp = [...contributionInfos];
     newExp[index][key] = value;
     if (key === 'currentProject' && value === false) {
@@ -136,13 +136,14 @@ function MemberContributionInfo(props: any) {
 
           .pc__list {
             width: 100%;
-            padding-top: 32px;
+           
           }
           .pc__list__add {
             display: flex;
             align-items: center;
             justify-content: flex-end;
             gap: 8px;
+            margin-bottom: 12px;
           }
           .pc__list__add__btn {
             color: #156ff7;
@@ -164,6 +165,11 @@ function MemberContributionInfo(props: any) {
             display: flex;
             flex-direction: column;
             width: 100%;
+          }
+          @media (min-width: 1200px) {
+            .pc__list {
+              padding-top: 32px;
+            }
           }
         `}
       </style>

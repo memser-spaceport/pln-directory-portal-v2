@@ -3,6 +3,7 @@ import { useState } from 'react';
 import ContributionForm from './contributions/contribution-form';
 
 function MemberContributionInfo(props: any) {
+  const projects = props.projects ?? [];
   const [contributionInfos, setContributionInfos] = useState(props.projectContributions ?? []);
   const showAddProject = props.showAddProject ?? false;
   const errors = props.contributionErrors ?? [];
@@ -99,6 +100,7 @@ function MemberContributionInfo(props: any) {
                   exp={contributionInfo}
                   contributionIndex={index}
                   onItemChange={onItemChange}
+                  projects={projects}
                   contributions={contributionInfos}
                 />
               </div>

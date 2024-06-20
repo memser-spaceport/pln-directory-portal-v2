@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ProjectSelection from './project-selection';
 import TextField from '@/components/form/text-field';
 import MonthYearField from '@/components/form/month-year-field';
 import TextArea from '@/components/form/text-area';
+import SearchableSingleSelect from '@/components/form/searchable-single-select';
 
 function ContributionForm(props) {
+  const projects = props.projects ?? [];
   const showAddProject = props.showAddProject;
   const currentProjectsCount = props.currentProjectsCount;
   const onItemChange = props.onItemChange;
@@ -33,7 +35,31 @@ function ContributionForm(props) {
   const endMonthIndex = monthNames.indexOf(new Date(exp.endDate).toLocaleDateString(undefined, { month: 'long' }));
   const selectedStartYear = { label: `${new Date(exp.startDate).getFullYear()}`, value: `${new Date(exp.startDate).getFullYear()}` };
   const selectedEndyear = { label: `${new Date(exp.endDate).getFullYear()}`, value: `${new Date(exp.endDate).getFullYear()}` };
+  const [contriinfo, setContriInfo] = useState<any[]>([{ teamTitle: '', role: '', teamUid: '' }]);
+ 
 
+  const onAddTeam = () => {
+    setTeamsInfo((v) => {
+      const nv = structuredClone(v);
+      nv.push({ teamTitle: '', role: '', teamUid: '' });
+      return nv;
+    });
+  };
+
+  const onDeleteTeam = (index: number) => {
+    setTeamsInfo((old) => {
+      const newItem = [...old];
+      newItem.splice(index, 1);
+      return newItem;
+    });
+  };
+
+  const onClearTeamSearch = (index: number) => {
+    setTeamsInfo((old) => {
+      old[index] = { teamTitle: '', role: '', teamUid: '' };
+      return [...old];
+    });
+  };
   const getMonths = () => {
     return [...monthNames].map((m) => {
       return { label: m, value: m };
@@ -111,14 +137,20 @@ function ContributionForm(props) {
 
             {/*   LOGO & PROJECT NAME   */}
             <div className="cb__content__fieldgroup">
-              <TextField
-                type="text"
-                isMandatory={true}
-                placeholder="Search projects by name"
-                label="Project Name*"
-                id="member-contribution-projectname"
-                name={`contribution${contributionIndex}-projectName`}
-              />
+              {/* <SearchableSingleSelect
+               label="Project Name*"
+               id="member-contribution-projectname"
+             //  name={`contribution${contributionIndex}-projectName`}
+                    isMandatory={true}
+                    placeholder="Search projects by name"
+                    displayKey="teamTitle"
+                    options={getAvailableTeamOptions()}
+                    selectedOption={contriinfo}
+                    uniqueKey="teamUid"
+                    onClear={() => onClearTeamSearch(contributionIndex)}
+                    onChange={(item) => onTeamSelectionChanged(index, item)}
+                    arrowImgUrl="/icons/arrow-down.svg"
+                  /> */}
             </div>
 
             {/*  ROLE  */}
@@ -128,8 +160,8 @@ function ContributionForm(props) {
 
             {/*   DATES  */}
             <div className="cb__content__fieldgroup">
-              <MonthYearField defaultValue='min' label="From*" />
-              <MonthYearField defaultValue='max' label="To*" />
+              <MonthYearField defaultValue="min" label="From*" />
+              <MonthYearField defaultValue="max" label="To*" />
             </div>
 
             {/********************************   DESCRIPTION   ***********************************/}
@@ -182,13 +214,12 @@ function ContributionForm(props) {
           flex-direction: column;
           margin: 20px 0;
           width: 100%;
-
         }
 
-        @media(min-width: 1200px) {
+        @media (min-width: 1200px) {
           .cb__content__fieldgroup {
             flex-direction: row;
-             gap: 20px;
+            gap: 20px;
           }
         }
       `}</style>

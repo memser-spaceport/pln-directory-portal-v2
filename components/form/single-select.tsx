@@ -1,157 +1,195 @@
+'use client';
 
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
+interface Option {
+  [key: string]: any;
+}
 
-export interface SingleSelectProps {
-  buttonContent?: React.ReactNode;
-  initialOption?: ISingleSelectOption;
-  onChange?: (value: ISingleSelectOption, name?: string) => void;
+interface SingleSelectProps {
+  options: Option[];
+  selectedOptions: Option[];
+  onAdd: (selectedOptions: Option) => void;
+  onRemove: (selectedOptions: Option) => void;
+  uniqueKey: string;
+  displayKey: string;
   placeholder?: string;
-  options: ISingleSelectOption[];
-  value?: ISingleSelectOption;
-  name?: string;
-  required?: boolean;
-  disabled?: boolean;
-  className?: string;
-  validateBeforeChange?: boolean;
-  validationFn?: (selected: ISingleSelectOption) => boolean;
-  confirmationMessage?: string;
+  isMandatory?: boolean;
+  arrowImgUrl?: string;
+  closeImgUrl: string;
+  label?: string;
 }
 
-export interface ISingleSelectOption {
-  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>> | string;
-  label: string;
-  value?: string;
-}
+const SingleSelect: React.FC<SingleSelectProps> = ({
+  options,
+  selectedOptions,
+  onAdd,
+  onRemove,
+  uniqueKey,
+  displayKey,
+  placeholder = 'Select options...',
+  isMandatory = false,
+  arrowImgUrl,
+  closeImgUrl,
+  label = ''
+}) => {
+  const [showOptions, setShowOptions] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const selectedOptionsIds = [...selectedOptions].map((v) => v[uniqueKey]);
+  const remainingOptions: Option[] = [...options].filter((v) => !selectedOptionsIds.includes(v[uniqueKey]));
 
-export function SingleSelect({
-  options = [],
-  onChange,
-  initialOption = options?.[0],
-  buttonContent,
-  name,
-  value,
-  required = false,
-  disabled = false,
-  placeholder = 'Select a value',
-  className = '',
-}: SingleSelectProps): JSX.Element {
-  const [selectedOption, setSelectedOption] = useState(initialOption);
-  const requiredIndicator =
-    required && !selectedOption?.value ? 'border custom-red' : '';
+  const handleOptionClick = (option: Option) => {
+    console.log(option);
+    onAdd(option);
+  };
 
-  function onChangeHandler(value: string) {
-    const selectedDropdownOption = options.find(
-      (option) => option.value === value
-    );
+  const handleRemoveOption = (e, optionToRemove: Option) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onRemove(optionToRemove);
+  };
 
-    if (selectedDropdownOption) {
-      changeOption(selectedDropdownOption, name);
-    }
-  }
-
-  const changeOption = (selectedDropdownOption : ISingleSelectOption, name : string | undefined)=> {
-    setSelectedOption(selectedDropdownOption);
-    onChange && onChange(selectedDropdownOption, name);
-  }
+  const toggleOptions = () => {
+    setShowOptions(!showOptions);
+  };
 
   useEffect(() => {
-    if (value !== undefined) setSelectedOption(value);
-  }, [setSelectedOption, value]);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowOptions(false);
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <>
-      <Listbox
-        as="div"
-        name={name}
-        value={selectedOption?.value}
-        onChange={onChangeHandler}
-        placeholder="Enter value"
-        className="w-full text-sm"
-        disabled={disabled}
-      >
-
-        {({ open }) => (
-          <div className="relative">
-            <Listbox.Button
-              className={`on-focus flex h-10 w-full items-center rounded-lg border border-[#CBD5E1] bg-white px-3 transition duration-150 ease-in-out active:border-blue-600 active:ring-2 active:ring-blue-300 disabled:bg-slate-100 ${open ? 'border-blue-600 ring-2 ring-blue-300' : ''
-                } ${className} ${requiredIndicator}`}
-              data-testid="dropdown__button"
-            >
-              {buttonContent ? (
-                buttonContent
-              ) : selectedOption?.label ? (
-                <div className="text-left leading-6 flex">
-                    <span className='relative'>{selectedOption?.label}</span></div>
-              ) : (
-                <div className="text-sm text-slate-600 opacity-50">
-                  {placeholder}
-                </div>
-              )}
-              <div className="absolute right-4 text-slate-500">
-                <ArrowIcon />
-              </div>
-            </Listbox.Button>
-
-            <Listbox.Options
-              as="div"
-              className="absolute slim-scroll z-20 mt-2 h-auto max-h-[150px] border-solid rounded-[2px] border-[#CBD5E1] border-[1px] w-full space-y-1 overflow-y-auto bg-white p-2 leading-6 focus:outline-none"
-            >
-              {options?.length ? (
-                options.map((option) => {
-                  return (
-                    <Listbox.Option as={Fragment} key={option.value} value={option.value} >
-                      {({ active, selected }) => (
-                        <div
-                          className={`${selected
-                            ? 'border-blue-600 bg-blue-600 text-white'
-                            : 'border-white bg-white'
-                            } ${!selected && active
-                              ? 'border-slate-100 bg-slate-200 active:border-blue-600 active:bg-white active:ring-2 active:ring-blue-300'
-                              : ''
-                            }
-                      relative cursor-pointer select-none overflow-hidden rounded-lg border py-1 px-[8px] text-[12px] transition duration-150 ease-in-out`}
-                        >
-
-                          <span>{option.label}</span>
-                        </div>
-                      )}
-                    </Listbox.Option>
-                  );
-                })
-              ) : (
-                <span className="p-2 text-gray-500">No options available</span>
-              )}
-            </Listbox.Options>
-          </div>
+      <div className="select" ref={containerRef}>
+        {label !== '' && <label className='select__label'>{label}</label>}
+        <div className={`select__selectedoptions ${selectedOptions.length === 0 ? 'select__selectedoptions--error': ''}`} onClick={toggleOptions}>
+          {selectedOptions.length === 0 && <span className="select__placeholder">{placeholder}</span>}
+          {selectedOptions.map((option) => (
+            <div key={option[uniqueKey]} className="select__selectedoptions__item">
+              {option[displayKey]}
+              <img
+                width="16"
+                height="16"
+                alt="close tag"
+                src={closeImgUrl}
+                className="select__remove-option"
+                onClick={(e) => handleRemoveOption(e, option)}
+              />
+            </div>
+          ))}
+          {arrowImgUrl && <img className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+        </div>
+        {showOptions && (
+          <ul className="select__options">
+            {remainingOptions.map((option) => (
+              <li
+                key={option[uniqueKey]}
+                onClick={() => handleOptionClick(option)}
+                className={`select__options__item ${
+                  selectedOptions.some((selectedOption) => selectedOption[uniqueKey] === option[uniqueKey])
+                    ? 'select__options__item--selected'
+                    : ''
+                }`}
+              >
+                {option[displayKey]}
+              </li>
+            ))}
+            {remainingOptions.length === 0 && <p className="select__options__noresult">No data available</p>}
+          </ul>
         )}
-      </Listbox>
-      <style jsx global>
-        {
-          `
-          ::-webkit-scrollbar {
-            width: 6px;
-            background: #f7f7f7;
+      </div>
+      <style jsx>
+        {`
+          .select {
+            width: 100%;
+            position: relative;
           }
-
-          ::-webkit-scrollbar-track {
-            background: transparent;
-
-
+          .select__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: block;
           }
-
-          ::-webkit-scrollbar-thumb {
-            background-color: rgba(155, 155, 155, 0.5);
-
-            border: transparent;
-
-
+          .select__selectedoptions {
+            display: flex;
+            font-size: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1px solid lightgrey;
+            border-radius: 8px;
+            cursor: pointer;
+            align-items: center;
           }
-
-          `
-        }
+          .select__selectedoptions--error {
+            border: 1px solid red;
+          }
+          .select__arrowimg {
+            margin-left: auto;
+            cursor: pointer;
+          }
+          .select__placeholder {
+            color: grey;
+          }
+          .select__selectedoptions__item {
+            border: 1px solid #cbd5e1;
+            padding: 5px 12px;
+            border-radius: 24px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+          }
+          .select__remove-option {
+            margin-left: 5px;
+            cursor: pointer;
+          }
+          .select__options {
+            width: 100%;
+            list-style-type: none;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+            z-index: 2;
+            overflow-y: auto;
+            max-height: 150px;
+            position: absolute;
+            background: white;
+            border: 1px solid lightgrey;
+            top: 100%;
+            left: 0;
+          }
+          .select__options__item {
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+          }
+          .select__options__item--selected {
+            background-color: #e0e0e0;
+          }
+          .select__options__noresult {
+            padding: 16px;
+            font-size: 14px;
+            width: 90%;
+            overflow-x: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px;
+          }
+        `}
       </style>
     </>
   );
-}
+};
+
+export default SingleSelect;

@@ -10,8 +10,7 @@ import useStepsIndicator from '@/hooks/useStepsIndicator';
 
 function MemberRegisterDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const { currentStep } = useStepsIndicator({ steps: ['basic', 'skills', 'contributions', 'social'], defaultStep: 'basic', uniqueKey: 'register' });
-
+  const steps = ['basic', 'skills', 'contributions', 'social'];
   const onCloseRegister = () => {
     if (dialogRef.current) {
       dialogRef.current.close();
@@ -35,11 +34,11 @@ function MemberRegisterDialog() {
       <dialog ref={dialogRef} className="register">
         <div className="register__cn">
           <div className="register__cn__mobile">
-            <StepsIndicatorMobile />
+            <StepsIndicatorMobile steps={steps} />
           </div>
           <aside className="register__cn__desktopinfo">
             <RegisterInfo />
-            <StepsIndicatorDesktop />
+            <StepsIndicatorDesktop steps={steps} />
           </aside>
           <section className="register__cn__content">
            {/*  {currentStep === 'basic' && (

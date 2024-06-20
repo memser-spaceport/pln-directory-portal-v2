@@ -3,9 +3,6 @@
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 
 function RegisterInfo() {
-  const steps = ['basic', 'skills', 'contributions', 'social'];
-  const { currentStep, setCurrentStep } = useStepsIndicator({ steps, defaultStep: 'basic', uniqueKey: 'register' });
-  const currentStepIndex = steps.findIndex((v) => v === currentStep);
   return (
     <>
       <div className="mri">

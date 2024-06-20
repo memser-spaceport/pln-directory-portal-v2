@@ -2,9 +2,9 @@
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 
-function StepsIndicatorMobile() {
-  const steps = ['basic', 'skills', 'contributions', 'social'];
-  const { currentStep, setCurrentStep } = useStepsIndicator({ steps, defaultStep: 'basic', uniqueKey: 'register' });
+function StepsIndicatorMobile(props) {
+  const steps = props.steps ?? [];
+  const { currentStep } = useStepsIndicator({ steps, defaultStep: 'basic', uniqueKey: 'register' });
   const currentStepIndex = steps.findIndex((v) => v === currentStep);
   return (
     <>

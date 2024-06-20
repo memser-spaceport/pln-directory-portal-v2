@@ -2,17 +2,16 @@
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 
-function StepsIndicatorDesktop() {
-  const steps = ['basic', 'skills', 'contributions', 'social'];
-  const { currentStep, setCurrentStep } = useStepsIndicator({ steps, defaultStep: 'basic', uniqueKey: 'register' });
-  const currentStepIndex = steps.findIndex((v) => v === currentStep);
+function StepsIndicatorDesktop(props) {
+  const steps = props.steps ?? []
+  const { currentStep } = useStepsIndicator({ steps, defaultStep: 'basic', uniqueKey: 'register' });
   return (
     <>
       <div className="mri">
         <div className="mri__stepsm"></div>
         <ul className="mri__stepsd">
           {steps.map((step, index) => (
-            <li className={`mri__stepsd__item`} onClick={() => setCurrentStep(step)} key={`register-step-desktop-${index}`}>
+            <li className={`mri__stepsd__item`} key={`register-step-desktop-${index}`}>
               <div className="mri__stepsd__item__icon">
                 <div className="mri__stepsd__item__icon__hexagon"></div>
                 <p className="mri__stepsd__item__hexagon__step">{index + 1}</p>

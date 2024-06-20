@@ -11,6 +11,7 @@ function RegisterForm(props) {
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'skills', 'contributions', 'social'], defaultStep: 'basic', uniqueKey: 'register' });
   const formRef = useRef<HTMLFormElement>(null);
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
+
   const onFormSubmit = async (e) => {
     e.preventDefault();
     if (formRef.current) {
@@ -20,6 +21,9 @@ function RegisterForm(props) {
   };
 
   const onNextClicked = () => {
+    if(currentStep === 'basic') {
+
+    }
     goToNextStep();
   };
 
@@ -172,7 +176,7 @@ function RegisterForm(props) {
             height: 100%;
           }
           .rf__form {
-            padding: 24px 32px;
+            padding: 24px;
             height: calc(100% - 70px);
             overflow-y:auto;
           }
@@ -216,7 +220,7 @@ function RegisterForm(props) {
           }
           @media (min-width: 1200px) {
             .rf__form {
-              
+              padding: 24px 32px;
               overflow-y: auto;
             }
             .rf__actions {

@@ -55,7 +55,6 @@ const TagContainer = (props: ITagContainer) => {
 
   const onLoginClickHandler = () => {
     // analytics.onLogInClicked(props?.page, "filter section")
-    triggerLoader(true);
   };
 
   return (

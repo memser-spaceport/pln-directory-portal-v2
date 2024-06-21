@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import FilterCount from '../../ui/filter-count';
 import Toggle from '../../ui/toogle';
 import TagContainer from '../tag-container';
-import { getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
+import { getFilterCount, getQuery } from '@/utils/common.utils';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import Image from 'next/image';
 import FocusAreaFilter from '../../core/focus-area-filter/focus-area-filter';
@@ -94,7 +94,6 @@ const Filter = (props: ITeamFilterWeb) => {
       const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
-          triggerLoader(true);
           current.delete(query);
         }
       });

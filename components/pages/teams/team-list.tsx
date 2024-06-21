@@ -37,7 +37,6 @@ const TeamsList = (props: ITeamList) => {
 
    const onTeamClickHandler = (team: ITeam) => {
     // analytics.onTeamClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team))
-    triggerLoader(true);
     // router.push(`${PAGE_ROUTES.TEAMS}/${team?.id}`)
    }
 

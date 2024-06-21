@@ -111,11 +111,11 @@ function MemberSkillsInfo(props) {
                     options={getAvailableTeamOptions()}
                     selectedOption={teaminfo}
                     uniqueKey="teamUid"
+                    name={`teamInfo${index}-teamTitle`}
                     onClear={() => onClearTeamSearch(index)}
                     onChange={(item) => onTeamSelectionChanged(index, item)}
                     arrowImgUrl="/icons/arrow-down.svg"
                   />
-                  <HiddenField value={teaminfo.teamTitle} defaultValue="" name={`teamInfo${index}-teamTitle`} />
                   <HiddenField value={teaminfo.teamUid} defaultValue="" name={`teamInfo${index}-teamUid`} />
                 </div>
                 <div className="msf__tr__content__cn__role">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, ChangeEvent, FocusEvent } from 'react';
+import React, { useEffect, useRef, useState, ChangeEvent, FocusEvent, PointerEventHandler } from 'react';
 
 interface Option {
   [key: string]: any;
@@ -13,11 +13,13 @@ interface SearchableSingleSelectProps {
   onClear: () => void;
   uniqueKey: string;
   displayKey: string;
+  formKey: string;
   placeholder?: string;
   isMandatory?: boolean;
   arrowImgUrl?: string;
   label?: string;
   id: string;
+  name: string;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -27,10 +29,12 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   onClear,
   uniqueKey,
   displayKey,
+  formKey,
   placeholder = 'Search....',
   isMandatory = false,
   arrowImgUrl,
   label = '',
+  name,
   id,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
@@ -66,6 +70,10 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
     setShowOptions(true);
   };
 
+  const onInputBlur = (e: PointerEventHandler<HTMLDivElement>) => {
+    setShowOptions(false)
+  }
+
   useEffect(() => {
     setFilteredOptions(options);
   }, [options]);
@@ -91,28 +99,36 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
 
   return (
     <>
-      <div className="select" ref={containerRef}>
-        {label !== '' && <label className='select__label' htmlFor={id}>{label}</label>}
-        <input
-          id={id}
-          className={`select__search ${isMandatory && !selectedOption?.[uniqueKey] ? 'select__search--error' : ''}`}
-          ref={searchRef}
-          defaultValue={defaultSelectedValue}
-          onChange={onSearch}
-          onFocus={onSearchFocus}
-          placeholder={placeholder}
-        />
-        {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
-        {showOptions && (
-          <ul className="select__options">
-            {filteredOptions.map((option) => (
-              <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
-                {option[displayKey]}
-              </li>
-            ))}
-            {filteredOptions.length === 0 && <p className="select__options__noresults">No Results found</p>}
-          </ul>
+      <div className="select">
+        {label !== '' && (
+          <label className="select__label" htmlFor={id}>
+            {label}
+          </label>
         )}
+        <div ref={containerRef}>
+          <input
+            id={id}
+            className={`select__search ${isMandatory && !selectedOption?.[uniqueKey] ? 'select__search--error' : ''}`}
+            ref={searchRef}
+            defaultValue={defaultSelectedValue}
+            onChange={onSearch}
+            name={name}
+            onFocus={onSearchFocus}
+            placeholder={placeholder}
+          />
+
+          {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+          {showOptions && (
+            <ul className="select__options">
+              {filteredOptions.map((option) => (
+                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
+                  {option[displayKey]}
+                </li>
+              ))}
+              {filteredOptions.length === 0 && <p className="select__options__noresults">No Results found</p>}
+            </ul>
+          )}
+        </div>
       </div>
       <style jsx>
         {`
@@ -161,7 +177,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             position: absolute;
             background: white;
             border: 1px solid lightgrey;
-            top: 35px;
+            top: ${label === '' ? '42px' : '72px'};
             left: 0;
             right: 0;
           }

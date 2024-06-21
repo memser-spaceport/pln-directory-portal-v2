@@ -12,9 +12,10 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    console.log("fff", file)
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onload = () => {
         setProfileImage(reader.result as string);
       };
       reader.readAsDataURL(file);
@@ -57,7 +58,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                   </span>
                 )}
               </label>
-              <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
+              <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name='teamImage' hidden type="file" accept="image/png, image/jpeg" />
               {profileImage && <input hidden name="profileimage" value={profileImage} />}
             </div>
             <div className="teaminfo__form__item">

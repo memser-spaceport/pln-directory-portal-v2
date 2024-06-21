@@ -4,7 +4,7 @@ import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import TeamBasicInfo from './team-basic-info';
 import { basicInfoSchema, projectDetailsSchema, socialSchema } from '@/schema/team-forms';
-import { getTeamsFormOptions } from '@/services/registration.service';
+import { getTeamsFormOptions, saveRegistrationImage } from '@/services/registration.service';
 import TeamProjectsInfo from './team-projects-info';
 import TeamSocialInfo from './team-social-info';
 
@@ -33,7 +33,11 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           return;
         }
         setSocialErrors([]);
-        console.log('final', formattedData);
+        let image: any;
+        try {
+          // const imgResponse = await saveRegistrationImage(formattedData?.teamImage);
+          // image = imgResponse?.data?.image;
+        } catch (err) {}
       }
     }
   };

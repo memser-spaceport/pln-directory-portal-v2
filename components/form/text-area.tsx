@@ -17,21 +17,25 @@ const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '',
   const [inputValue, setInputValue] = useState<string>('');
   const onTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
-    if(onChange) {
-        onChange(e)
+    if (onChange) {
+      onChange(e);
     }
-  }
+  };
   return (
     <>
       <div className="tf">
-        {label && <label htmlFor={id} className="tf__label">{label}</label>}
+        {label && (
+          <label htmlFor={id} className="tf__label">
+            {label}
+          </label>
+        )}
         <textarea
           ref={inputRef}
           name={name}
           id={id}
           placeholder={placeholder}
           onChange={onTextChange}
-          className={`tf__input ${(inputValue === '' && isMandatory) ? 'tf__input--error': ''}`}
+          className={`tf__input ${inputValue === '' && isMandatory ? 'tf__input--error' : ''}`}
           defaultValue={defaultValue}
           required={isMandatory}
           maxLength={maxLength}
@@ -54,6 +58,9 @@ const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '',
             padding: 8px 12px;
             border: 1px solid lightgrey;
             border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            line-height: 24px;
           }
           .tf__input--error {
             border: 1px solid red;
@@ -62,6 +69,14 @@ const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '',
           .tf__input:focus-visible,
           .tf__input:focus {
             outline: none;
+          }
+
+          .tf__input::placeholder {
+            color: #0f172a;
+            opacity: 40%;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 24px;
           }
         `}
       </style>

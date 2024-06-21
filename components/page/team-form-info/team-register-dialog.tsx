@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import StepsIndicatorMobile from '../../core/register/steps-indicator-mobile';
 import StepsIndicatorDesktop from '../../core/register/steps-indicator-desktop';
 import TeamRegisterInfo from './team-register-info';
@@ -10,6 +10,7 @@ import TeamRegisterForm from './team-register-form';
 function TeamRegisterDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const steps = ['basic', 'project details', 'social'];
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const onCloseRegister = () => {
     if (dialogRef.current) {
@@ -47,6 +48,13 @@ function TeamRegisterDialog() {
               </div>
             )} */}
             <TeamRegisterForm onCloseForm={onCloseRegister} />
+            {isSubmitted && (
+              <div className="teamReg__cn__content__submit">
+                <p className="teamReg__cn__content__submit__ttl">Thank You for Submitting</p>
+                <p className="teamReg__cn__content__submit__desc">Our team will review your request shortly and get back</p>
+                <button className="teamReg__cn__content__submit__cls">Close</button>
+              </div>
+            )}
           </section>
         </div>
         <div onClick={onCloseRegister} className="teamReg__close">
@@ -96,6 +104,45 @@ function TeamRegisterDialog() {
           height: 100%;
           flex: 1;
           overflow: hidden;
+        }
+
+        .teamReg__cn__content__submit {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          margin: auto;
+        }
+
+        .teamReg__cn__content__submit__ttl {
+          font-size: 24px;
+          font-weight: 700;
+          line-height: 32px;
+          color: #0f172a;
+        }
+
+        .teamReg__cn__content__submit__desc {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 20px;
+          color: #0f172a;
+          margin: 8px 0px 0px 0px;
+        }
+
+        .teamReg__cn__content__submit__cls {
+          width: 86px;
+          height: 40px;
+          padding: 10px 24px 10px 24px;
+          gap: 8px;
+          border-radius: 8px;
+          border: 1px 0px 0px 0px;
+          background: #156ff7;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          color: #ffffff;
+          margin: 18px 0px 0px 0px;
         }
 
         @media (min-width: 1200px) {

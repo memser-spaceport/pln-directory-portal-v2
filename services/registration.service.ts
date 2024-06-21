@@ -31,3 +31,19 @@ export const getTeamsFormOptions = async () => {
 
   return { technologies: formattedTechnologies, fundingStage: formattedFundingStages, membershipSources: formattedMembershipResources, industryTags: formattedIndustryTags };
 };
+
+export const saveRegistrationImage = async (payload: any) => {
+  const formData = new FormData();
+  formData.append('file', payload);
+  console.log("in",payload)
+  const requestOptions = {
+    method: 'POST',
+    body: formData,
+  };
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/images`, requestOptions);
+  if (!response?.ok) {
+    throw new Error(response?.statusText, { cause: { response } });
+  }
+  const result = await response?.json();
+  return result;
+};

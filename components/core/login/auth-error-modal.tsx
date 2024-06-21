@@ -1,5 +1,5 @@
 import { createStateUid } from '@/services/auth.service';
-import { triggerLoader } from '@/utils/helper';
+import { triggerLoader } from '@/utils/common.utils';
 import { useEffect, useState } from 'react';
 
 export function AuthErrorModal() {

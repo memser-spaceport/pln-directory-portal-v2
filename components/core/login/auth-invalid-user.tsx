@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { VerifyEmailModal } from './verify-email-modal';
-import { triggerLoader } from '@/utils/helper';
+import { triggerLoader } from '@/utils/common.utils';
 
 function AuthInvalidUser() {
   const [isOpen, setIsModalOpen] = useState(false);

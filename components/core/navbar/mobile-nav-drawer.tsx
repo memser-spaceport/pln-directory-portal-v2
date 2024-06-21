@@ -1,5 +1,4 @@
 import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
-import { getAnalyticsUserInfo } from '@/utils/helper';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -12,6 +11,7 @@ import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from 'react-toastify';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 import LoginBtn from './login-btn';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;

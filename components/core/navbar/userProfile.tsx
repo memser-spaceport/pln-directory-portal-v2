@@ -4,13 +4,13 @@ import { useCommonAnalytics } from '@/analytics/common.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { IUserInfo } from '@/types/shared.types';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import { getAnalyticsUserInfo } from '@/utils/helper';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { Tooltip } from '../tooltip/tooltip';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
-import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
+import { createLogoutChannel } from '../login/broadcast-channel';
 
 interface IProfile {
   userInfo: IUserInfo;

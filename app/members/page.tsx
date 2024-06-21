@@ -1,4 +1,4 @@
-import Loader from "../components/core/loader";
+import Loader from "../../components/core/loader";
 
 export default function MemberList() {
     return <>

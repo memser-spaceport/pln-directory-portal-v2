@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ToastContainer } from 'react-toastify';
-import Navbar from './components/core/navbar/nav-bar';
+import Navbar from '../components/core/navbar/nav-bar';
 import './globals.css';
 import StyledJsxRegistry from '../providers/registry';
 import { Suspense } from 'react';
@@ -12,9 +12,9 @@ import dynamic from 'next/dynamic';
 const inter = Inter({ subsets: ['latin'] });
 
 // dynamic components:
-const Loader = dynamic(() => import('./components/core/loader'));
+const Loader = dynamic(() => import('../components/core/loader'));
 const AuthBox = dynamic(() => import('@/components/core/login/auth-box'));
-const Toaster = dynamic(() => import('./components/core/toaster'));
+const Toaster = dynamic(() => import('../components/core/toaster'));
 const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'));
 
 export const metadata: Metadata = {

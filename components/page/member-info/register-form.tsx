@@ -117,7 +117,7 @@ function RegisterForm(props) {
     const teamsData = await teamsInfo.json();
     const projectsData = await projectsInfo.json();
     const skillsData = await skillsInfo.json();
-
+    console.log(projectsData)
     return {
       teams: teamsData.map((d) => {
         return {
@@ -132,8 +132,15 @@ function RegisterForm(props) {
           name: d.title,
         };
       }),
-      projects: projectsData,
+      projects: projectsData.map(d => {
+        return {
+          projectUid: d.uid,
+          projectName: d.name,
+          projectLogo: d.logo
+        }
+      }),
     };
+    
   };
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { PointerEvent, useEffect, useRef, useState } from 'react';
 
 interface Option {
   [key: string]: any;
@@ -31,7 +31,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   isMandatory = false,
   arrowImgUrl,
   closeImgUrl,
-  label = ''
+  label = '',
 }) => {
   const [showOptions, setShowOptions] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -43,7 +43,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     onAdd(option);
   };
 
-  const handleRemoveOption = (e, optionToRemove: Option) => {
+  const handleRemoveOption = (e: PointerEvent<HTMLImageElement>, optionToRemove: Option) => {
     e.preventDefault();
     e.stopPropagation();
     onRemove(optionToRemove);
@@ -68,49 +68,43 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
   return (
     <>
-      <div className="select" ref={containerRef}>
-        {label !== '' && <label className='select__label'>{label}</label>}
-        <div className={`select__selectedoptions ${selectedOptions.length === 0 ? 'select__selectedoptions--error': ''}`} onClick={toggleOptions}>
-          {selectedOptions.length === 0 && <span className="select__placeholder">{placeholder}</span>}
-          {selectedOptions.map((option) => (
-            <div key={option[uniqueKey]} className="select__selectedoptions__item">
-              {option[displayKey]}
-              <img
-                width="16"
-                height="16"
-                alt="close tag"
-                src={closeImgUrl}
-                className="select__remove-option"
-                onClick={(e) => handleRemoveOption(e, option)}
-              />
-            </div>
-          ))}
-          {arrowImgUrl && <img className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
-        </div>
-        {showOptions && (
-          <ul className="select__options">
-            {remainingOptions.map((option) => (
-              <li
-                key={option[uniqueKey]}
-                onClick={() => handleOptionClick(option)}
-                className={`select__options__item ${
-                  selectedOptions.some((selectedOption) => selectedOption[uniqueKey] === option[uniqueKey])
-                    ? 'select__options__item--selected'
-                    : ''
-                }`}
-              >
+      <div className="select">
+        {label !== '' && <label className="select__label">{label}</label>}
+        <div className='select__content' ref={containerRef}>
+          <div className={`select__selectedoptions ${(selectedOptions.length === 0 && isMandatory) ? 'select__selectedoptions--error' : ''}`} onClick={toggleOptions}>
+            {selectedOptions.length === 0 && <span className="select__placeholder">{placeholder}</span>}
+            {selectedOptions.map((option) => (
+              <div key={option[uniqueKey]} className="select__selectedoptions__item">
                 {option[displayKey]}
-              </li>
+                <img width="16" height="16" alt="close tag" src={closeImgUrl} className="select__remove-option" onPointerDown={(e) => handleRemoveOption(e, option)} />
+              </div>
             ))}
-            {remainingOptions.length === 0 && <p className="select__options__noresult">No data available</p>}
-          </ul>
-        )}
+            {arrowImgUrl && <img className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+          </div>
+          {showOptions && (
+            <ul className="select__options">
+              {remainingOptions.map((option) => (
+                <li
+                  key={option[uniqueKey]}
+                  onClick={() => handleOptionClick(option)}
+                  className={`select__options__item ${selectedOptions.some((selectedOption) => selectedOption[uniqueKey] === option[uniqueKey]) ? 'select__options__item--selected' : ''}`}
+                >
+                  {option[displayKey]}
+                </li>
+              ))}
+              {remainingOptions.length === 0 && <p className="select__options__noresult">No data available</p>}
+            </ul>
+          )}
+        </div>
       </div>
       <style jsx>
         {`
           .select {
             width: 100%;
             position: relative;
+          }
+
+          .select__content {
           }
           .select__label {
             font-weight: 600;
@@ -128,6 +122,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             border-radius: 8px;
             cursor: pointer;
             align-items: center;
+            min-height: 40px;
           }
           .select__selectedoptions--error {
             border: 1px solid red;

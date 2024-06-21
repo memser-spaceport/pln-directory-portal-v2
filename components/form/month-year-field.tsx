@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function MonthYearField(props) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const getYears = () => {
     const currentYear = new Date().getFullYear();
     const start = currentYear - 50;
@@ -17,19 +18,26 @@ function MonthYearField(props) {
   const defaultValue = props.defaultValue ?? 'min';
   const defaultYear = defaultValue === 'min' ? yearValues[0] : yearValues[yearValues.length - 1];
   const defaultMonth = defaultValue === 'min' ? 0 : 11;
-  const defaultDate = `${defaultMonth}/01/${defaultYear}`;
+
   const name = props.name;
   const id = props.id;
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [isMonthDpActive, setMonthDpStatus] = useState(false);
   const [isYearDpActive, setYearDpStatus] = useState(false);
-
+  const defaultDate = defaultValue === 'min' ? new Date(defaultYear, defaultMonth) : new Date(defaultYear, defaultMonth + 1, 0);
   const onMonthSelected = (e, index) => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedMonth(index);
     setMonthDpStatus(false);
+  };
+
+  const formatDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Ensure two digits
+    const day = date.getDate().toString().padStart(2, '0'); // Ensure two digits
+    return `${year}-${month}-${day}`;
   };
 
   const onYearSelected = (e, index) => {
@@ -39,10 +47,18 @@ function MonthYearField(props) {
     setYearDpStatus(false);
   };
 
+  useEffect(() => {
+    const selectedDateValue = defaultValue === 'min' ? new Date(selectedYear, selectedMonth) : new Date(selectedYear, selectedMonth + 1, 0);
+    if (inputRef.current) {
+      inputRef.current.value = formatDate(selectedDateValue);
+    }
+  }, [selectedYear, selectedMonth]);
+
   return (
     <>
       <div className="myf">
         <label className="myf__title">{label}</label>
+        <input name={name} ref={inputRef} type="date" hidden readOnly defaultValue={formatDate(defaultDate)} />
         <div className="myf__cn">
           <div onClick={() => setMonthDpStatus((v) => !v)} className="myf__cn__dp myf__cn__dp--month">
             <p>{monthNames[selectedMonth]}</p>
@@ -87,12 +103,11 @@ function MonthYearField(props) {
           .myf__cn {
             display: flex;
             gap: 8px;
-             margin-top: 12px;
+            margin-top: 12px;
           }
           .myf__title {
             font-weight: 600;
             font-size: 14px;
-           
           }
           .myf__cn__dp {
             padding: 8px 12px;

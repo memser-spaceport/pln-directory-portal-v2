@@ -8,9 +8,9 @@ import { TOAST_MESSAGES } from '@/utils/constants';
 import { User } from '@privy-io/react-auth';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createLogoutChannel } from './broadcast-channel';
-import { triggerLoader } from '@/utils/helper';
 import "react-toastify/dist/ReactToastify.css";
 import { deletePrivyUser } from '@/services/auth.service';
+import { triggerLoader } from '@/utils/common.utils';
 
 function PrivyModals() {
   const {

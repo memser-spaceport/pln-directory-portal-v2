@@ -1,7 +1,6 @@
 'use client';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
-import { getAnalyticsUserInfo } from '@/utils/helper';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -11,6 +10,7 @@ import UserProfile from './userProfile';
 import { useRef } from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import LoginBtn from './login-btn';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface INavbar {
   userInfo: IUserInfo;

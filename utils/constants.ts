@@ -25,10 +25,11 @@ export const NAV_OPTIONS = [
   },
 ];
 
-export const EVENTS = {
-  TRIGGER_LOADER: 'TRIGGER_LOADER',
-  TRIGGER_MOBILE_NAV: 'TRIGGER_MOBILE_NAV',
-};
+  export const EVENTS = {
+    TRIGGER_LOADER: "TRIGGER_LOADER",
+    TRIGGER_MOBILE_NAV: "TRIGGER_MOBILE_NAV",
+    SHOW_FILTER: "SHOW_FILTER",
+  };
 
 export const HELPER_MENU_OPTIONS = [
   {
@@ -84,3 +85,58 @@ export const AUTH_ANALYTICS = {
   AUTH_PRIVY_LINK_ERROR: 'AUTH_PRIVY_LINK_ERROR',
   AUTH_SETTINGS_PRIVY_ACCOUNT_LINK: 'AUTH_SETTINGS_PRIVY_ACCOUNT_LINK',
 };
+
+  export const TEAMS_ANALYTICS_EVENTS = {
+    TEAM_OFFICE_HOURS_FILTER_SELECTED: 'team-office-hours-filter-selected',
+    TEAM_FRIENDS_OF_PROTOCOL_FILTER_SELECTED: 'team-friends-of-protocol-filter-selected',
+    FILTERS_APPLIED: 'filters-applied',
+    TEAM_CLEAR_ALL_FILTERS_APPLIED: 'team-clears-all-filters-applied',
+    TEAM_VIEW_FILTER_RESULT_CLICKED: 'team-view-filter-result-clicked',
+    TEAM_CLOSE_FILTER_PANEL_CLICKED: 'team-close-filter-panel-clicked'
+  }
+
+  export const PAGE_ROUTES = {
+    MEMBERS: "/members",
+    TEAMS: "/teams",
+    SETTINGS: "/settings",
+    PROJECTS: "/projects",
+    IRL: "/irl"
+  };
+
+  export const SORT_OPTIONS = {
+    ASCENDING: "Name,asc",
+    DESCENDING: "Name,desc",
+  };
+
+  export const URL_QUERY_VALUE_SEPARATOR = "|";
+
+  export const PRIVATE_FILTERS = ["region", "country", "metroArea"];
+
+  export const VIEW_TYPE_OPTIONS = {
+    GRID: "Grid View",
+    LIST: "List View",
+  };
+
+
+  export const SORT_ICONS = [
+    {
+      name: "Name,asc",
+      label: "Ascending",
+      selectedIcon: "/icons/ascending-selected.svg",
+      deselectIcon: "/icons/ascending-black.svg",
+    },
+    {
+      name: "Name,desc",
+      label: "Descending",
+      selectedIcon: "/icons/descending-selected.svg",
+      deselectIcon: "/icons/descending-black.svg",
+    },
+  ];
+
+  export const FOCUS_AREAS_FILTER_KEYS = {
+    projects: "projectAncestorFocusAreas",
+    teams: "teamAncestorFocusAreas"
+  }
+
+  
+  export const ITEMS_PER_PAGE = 40;

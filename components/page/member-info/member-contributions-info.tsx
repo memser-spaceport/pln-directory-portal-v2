@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ContributionForm from './contributions/contribution-form';
 import AddContribution from './contributions/add-contribution';
 import ContributionHead from './contributions/contribution-head';
@@ -7,18 +7,15 @@ import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import TextField from '@/components/form/text-field';
 import MonthYearField from '@/components/form/month-year-field';
 import TextArea from '@/components/form/text-area';
+import HiddenField from '@/components/form/hidden-field';
+import ContributionFormErrors from './contributions/contribution-form-errors';
 
 function MemberContributionInfo(props: any) {
-  const projects = props.projectOptions ?? [];
-  console.log(projects);
-  const [contributionInfos, setContributionInfos] = useState(props.projectContributions ?? []);
-  const showAddProject = props.showAddProject ?? false;
-  const errors = props.contributionErrors ?? [];
+  const initialValues = props.initialValues;
+  const projectsOptions = props.projectOptions ?? [];
+  const [contributionInfos, setContributionInfos] = useState(initialValues.contributions);
+  const errors = props.errors ?? {};
   const currentProjectsCount = contributionInfos.filter((v: any) => v.currentProject === true).length;
-  const onChange = props.onChange;
-  const initialValues = props?.initialValues?.projectContributions ?? [];
-  const intialProjectContributions = [...initialValues];
-
   const [expandedId, setExpandedId] = useState(-1);
 
   const defaultValues = {
@@ -28,8 +25,8 @@ function MemberContributionInfo(props: any) {
     currentProject: false,
     description: '',
     role: '',
-    startDate: new Date(1990, 0),
-    endDate: new Date(),
+    startDate: '1990-01-01',
+    endDate: `${new Date().getFullYear()}-12-31`,
   };
 
   const onToggleExpansion = (index: number) => {
@@ -58,9 +55,31 @@ function MemberContributionInfo(props: any) {
     setContributionInfos([...newExp]);
   };
 
+  /* const onAddContribution = () => {
+    setContributionInfos((v) => {
+      const nv = structuredClone(v);
+      nv.push({...defaultValues});
+      return nv;
+    });
+  };
+
+  
+
+  const onDeleteContribution = (index: number) => {
+    if (index === expandedId) {
+      setExpandedId(-1);
+    }
+    setContributionInfos((old) => {
+      const newItem = [...old];
+      newItem.splice(index, 1);
+      return newItem;
+    });
+  }; */
+
+
   const onClearProjectSearch = (index: number) => {
     setContributionInfos((old) => {
-      old[index] = { projectUid: '', projectName: '', projectLogo: '', currentProject: false };
+      old[index] = { ...old[index], projectUid: '', projectName: '', projectLogo: '', currentProject: false };
       return [...old];
     });
   };
@@ -76,9 +95,29 @@ function MemberContributionInfo(props: any) {
     });
   };
 
+  const onProjectDetailsChanged = (index: number, value: string, key: string) => {
+    setContributionInfos((old) => {
+      const newV = structuredClone(old);
+      newV[index][key] = value;
+      return [...newV];
+    });
+  };
+
+  
+  useEffect(() => {
+    function resetHandler() {
+      setContributionInfos(initialValues.contributions)
+    }
+    document.addEventListener('reset-member-register-form', resetHandler);
+    return function () {
+      document.removeEventListener('reset-member-register-form', resetHandler);
+    };
+  }, [initialValues]);
+
   return (
     <>
       <div className="pc">
+       
         {contributionInfos.length === 0 && (
           <div onClick={onAddContribution} className="pc__new">
             <img alt="add contribution" src="/icons/add-contribution.svg" width="36" height="36" />
@@ -88,6 +127,7 @@ function MemberContributionInfo(props: any) {
 
         {contributionInfos.length > 0 && (
           <div className="pc__list">
+             {Object.keys(errors).length > 0 && <p className='error'>There are fields that require your attention. Please review the fields below.</p>}
             <AddContribution onAddContribution={onAddContribution} />
             {contributionInfos.map((contributionInfo: any, index: number) => (
               <div className="pc__list__item" key={`member-skills-team-info-${index}`}>
@@ -99,17 +139,20 @@ function MemberContributionInfo(props: any) {
                   onDeleteContribution={onDeleteContribution}
                   onToggleExpansion={onToggleExpansion}
                 />
-                {expandedId === index && (
-                  <div className="pc__list__item__form">
+              
+                  <div className={`pc__list__item__form ${expandedId !== index ? 'hidden': ''}`}>
+                    {errors[index] && <ul className='error'>{errors[index].map((error: string) => <li>{error}</li>)}</ul>}
                     <div className="pc__list__item__form__item">
                       <SearchableSingleSelect
                         placeholder="Search projects by name"
                         label="Project Name*"
                         uniqueKey="projectUid"
+                        formKey='projectUid'
                         isMandatory={true}
-                        name={`contributionInfo${index}-projectName`}
+                        isFormElement={true}
+                        name={`contributionInfo${index}-projectUid`}
                         onClear={() => onClearProjectSearch(index)}
-                        options={projects}
+                        options={projectsOptions}
                         selectedOption={contributionInfo}
                         displayKey="projectName"
                         id={`member-contribution-project-${index}`}
@@ -117,17 +160,17 @@ function MemberContributionInfo(props: any) {
                       />
                     </div>
                     <div className="pc__list__item__form__item">
-                      <TextField placeholder="Ex: Senior Architect" type="text" isMandatory={true} label="Role*" id={`member-contribution-role-${index}`} name={`contributionInfo${index}-role`} />
+                      <TextField defaultValue={contributionInfo.role} onChange={(e) => onProjectDetailsChanged(index, e.target.value, 'role')} placeholder="Ex: Senior Architect" type="text" isMandatory={true} label="Role*" id={`member-contribution-role-${index}`} name={`contributionInfo${index}-role`} />
                     </div>
                     <div className="pc__list__item__form__item">
-                      <MonthYearField name={`contributionInfo${index}-startDate`} defaultValue="min" label="From*" />
-                      <MonthYearField name={`contributionInfo${index}-endDate`} defaultValue="max" label="To*" />
+                      <MonthYearField id={`member-contribution-startDate-${index}`} onChange={(e) => onProjectDetailsChanged(index, e, 'startDate')} name={`contributionInfo${index}-startDate`} defaultValue="min" label="From*" />
+                      <MonthYearField id={`member-contribution-endDate-${index}`} onChange={(e) => onProjectDetailsChanged(index, e, 'endDate')} name={`contributionInfo${index}-endDate`} defaultValue="max" label="To*" />
                     </div>
                     <div className="pc__list__item__form__item">
                       <TextArea label="Description" placeholder="Enter Project Contribution.." id={`member-contribution-description-${index}`} name={`contributionInfo${index}-description`} />
                     </div>
                   </div>
-                )}
+               
               </div>
             ))}
           </div>
@@ -143,6 +186,8 @@ function MemberContributionInfo(props: any) {
             align-items: flex-start;
             justify-content: center;
           }
+
+        
 
           .pc__new {
             border: 1px dotted #156ff7;
@@ -175,12 +220,15 @@ function MemberContributionInfo(props: any) {
             display: flex;
             flex-direction: column;
             gap: 20px;
+            height: auto;
           }
+          .hidden {visibility: hidden; height: 0; margin: 0;}
           .pc__list__item__form__item {
             width: 100%;
             display: flex;
             gap: 8px;
           }
+            .error {color: #ef4444; font-size: 12px; display: flex; flex-direction: column; gap: 8px; margin: 16px;}
           @media (min-width: 1200px) {
             .pc__list {
               padding-top: 32px;

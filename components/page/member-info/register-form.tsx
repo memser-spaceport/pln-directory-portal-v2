@@ -4,7 +4,8 @@ import MemberContributionInfo from '@/components/page/member-info/member-contrib
 import MemberSkillsInfo from '@/components/page/member-info/member-skills-info';
 import MemberSocialInfo from '@/components/page/member-info/member-social-info';
 import useStepsIndicator from '@/hooks/useStepsIndicator';
-import { TeamAndSkillsInfoSchema, basicInfoSchema } from '@/schema/member-forms';
+import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
+import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 
@@ -15,40 +16,133 @@ function RegisterForm(props) {
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
 
   const [basicErrors, setBasicErrors] = useState<string[]>([]);
-  const [contributionErrors, setContributionErrors] = useState<string[]>([]);
+  const [contributionErrors, setContributionErrors] = useState<any>({});
   const [skillsErrors, setSkillsErrors] = useState<string[]>([]);
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
+  const formContainerRef = useRef<HTMLDivElement | null>(null);
+  const initialValues = {
+    skillsInfo: {
+      teamsAndRoles: [{ teamTitle: '', role: '', teamUid: '' }],
+      skills: [],
+    },
+    contributionInfo: {
+      contributions: []
+    },
+    basicInfo: {
+      name: '',
+      email: '',
+      imageFile: '',
+      plnStartDate: '',
+      city: '',
+      region: '',
+      country: '',
+    },
+    socialInfo: {
+      linkedinHandler: '',
+      discordHandler: '',
+      twitterHandler: '',
+      githubHandler: '',
+      telegramHandler: '',
+      officeHours: '',
+      comments: '',
+    },
+  };
 
   const onFormSubmit = async (e) => {
     e.preventDefault();
     if (formRef.current) {
       const formData = new FormData(formRef.current);
-      console.log(JSON.stringify(transformObject(Object.fromEntries(formData))));
+      const formValues = transformObject(Object.fromEntries(formData));
+      console.log(formValues);
+
+      const bodyData = {
+        participantType: 'MEMBER',
+        status: 'PENDING',
+        requesterEmailId: formValues.email,
+        uniqueIdentifier: formValues.email,
+        newData: { ...formValues },
+      };
+      const tokenResult = await fetch(`${process.env.DIRECTORY_API_URL}/token`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const output = await tokenResult.json();
+      const token = output.token;
+      const formResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request`, {
+        method: 'POST',
+        body: JSON.stringify(bodyData),
+        credentials: 'include',
+        headers: {
+          'csrf-token': token,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (formResult.ok) {
+      } else {
+        console.log(await formResult.json());
+      }
     }
   };
 
-  const onNextClicked = () => {
+  const scrollToTop = () => {
+    if (formContainerRef.current) {
+      formContainerRef.current.scrollTop = 0;
+    }
+  };
+
+  const onNextClicked = async () => {
     if (!formRef.current) {
       return;
     }
     const formData = new FormData(formRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
-    console.log(formattedData);
+    console.log(Object.fromEntries(formData), formattedData);
     if (currentStep === 'basic') {
       const result = basicInfoSchema.safeParse(formattedData);
       if (!result.success) {
         setBasicErrors(result.error.errors.map((v) => v.message));
+        scrollToTop();
         return;
       }
+      const emailVerification = await validatePariticipantsEmail(formattedData.email, 'MEMBER');
+      if (!emailVerification.isValid) {
+        setBasicErrors(['Email already exist. Please enter another email']);
+        scrollToTop();
+        return;
+      }
+
       setBasicErrors([]);
     } else if (currentStep === 'skills') {
       const result = TeamAndSkillsInfoSchema.safeParse(formattedData);
       if (!result.success) {
         console.log(result.error.errors);
         setSkillsErrors(result.error.errors.map((v) => v.message));
+        scrollToTop();
         return;
       }
       setSkillsErrors([]);
+    } else if (currentStep === 'contributions') {
+      const result = projectContributionSchema.safeParse(formattedData);
+      if (!result.success) {
+        const formatted = result.error.errors.reduce((acc, error) => {
+          const [name, index, key] = error.path;
+          if (!acc[index]) {
+            acc[index] = [error.message];
+          } else {
+            acc[index].push(error.message);
+          }
+          return acc;
+        }, {});
+        console.log(formatted);
+        setContributionErrors(formatted);
+        scrollToTop();
+        return;
+      }
+      setContributionErrors({});
     }
 
     goToNextStep();
@@ -81,7 +175,11 @@ function RegisterForm(props) {
         if (!projectContributions[contributionIndex]) {
           projectContributions[contributionIndex] = {};
         }
-        projectContributions[contributionIndex][subKey] = obj[key];
+        if (subKey === 'currentProject') {
+          projectContributions[contributionIndex][subKey] = (obj[key] && obj[key]) === 'on' ? true : false;
+        } else {
+          projectContributions[contributionIndex][subKey] = obj[key];
+        }
       } else if (key.startsWith('skillsInfo')) {
         const [skillInfo, subKey] = key.split('-');
         const skillIndex = skillInfo.match(/\d+$/)[0];
@@ -89,9 +187,7 @@ function RegisterForm(props) {
         if (!skills[skillIndex]) {
           skills[skillIndex] = {};
         }
-
-        const subKeyName = subKey.replace(/^contribution/, '');
-        skills[skillIndex][subKeyName] = obj[key];
+        skills[skillIndex][subKey] = obj[key];
       } else {
         //contributionInfo
         result[key] = obj[key];
@@ -101,6 +197,18 @@ function RegisterForm(props) {
     result.teamAndRoles = Object.values(teamAndRoles);
     result.projectContributions = Object.values(projectContributions);
     result.skills = Object.values(skills);
+
+    result.projectContributions = result.projectContributions.map((v) => {
+      if (!v.currentProject) {
+        v['currentProject'] = false;
+      }
+      v['startDate'] = new Date(v.startDate).toISOString();
+      v['endDate'] = new Date(v.endDate).toISOString();
+      return v;
+    });
+    if (result['plnStartDate']) {
+      result['plnStartDate'] = new Date(result['plnStartDate']).toISOString();
+    }
     return result;
   }
 
@@ -117,7 +225,7 @@ function RegisterForm(props) {
     const teamsData = await teamsInfo.json();
     const projectsData = await projectsInfo.json();
     const skillsData = await skillsInfo.json();
-    console.log(projectsData)
+    console.log(projectsData);
     return {
       teams: teamsData.map((d) => {
         return {
@@ -132,15 +240,14 @@ function RegisterForm(props) {
           name: d.title,
         };
       }),
-      projects: projectsData.map(d => {
+      projects: projectsData.map((d) => {
         return {
           projectUid: d.uid,
           projectName: d.name,
-          projectLogo: d.logo
-        }
+          projectLogo: d.logo,
+        };
       }),
     };
-    
   };
 
   useEffect(() => {
@@ -154,21 +261,34 @@ function RegisterForm(props) {
       .catch((e) => console.error(e));
   }, []);
 
+  useEffect(() => {
+    function resetHandler() {
+      if (formRef.current) {
+        formRef.current.reset();
+        setCurrentStep('basic');
+      }
+    }
+    document.addEventListener('reset-member-register-form', resetHandler);
+    return function() {
+      document.removeEventListener('reset-member-register-form', resetHandler);
+    }
+  }, []);
+
   return (
     <>
       <form className="rf" onSubmit={onFormSubmit} ref={formRef}>
-        <div className="rf__form">
+        <div ref={formContainerRef} className="rf__form">
           <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
-            <MemberBasicInfo errors={basicErrors} />
+            <MemberBasicInfo initialValues={initialValues.basicInfo} errors={basicErrors} />
           </div>
           <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
-            <MemberContributionInfo projectOptions={allData.projects} errors={contributionErrors} />
+            <MemberContributionInfo initialValues={initialValues.contributionInfo} projectOptions={allData.projects} errors={contributionErrors} />
           </div>
           <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
-            <MemberSocialInfo errors={socialErrors} />
+            <MemberSocialInfo initialValues={initialValues.socialInfo} errors={socialErrors} />
           </div>
           <div className={currentStep !== 'skills' ? 'hidden' : 'form'}>
-            <MemberSkillsInfo errors={skillsErrors} teamsOptions={allData.teams} skillsOptions={allData.skills} />
+            <MemberSkillsInfo initialValues={initialValues.skillsInfo} errors={skillsErrors} teamsOptions={allData.teams} skillsOptions={allData.skills} />
           </div>
         </div>
         <div className="rf__actions">

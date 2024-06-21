@@ -1,10 +1,17 @@
 import TextField from '@/components/form/text-field';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-function MemberBasicInfo(props) {
+interface MemberBasicInfoProps {
+  errors: string[];
+  initialValues: any;
+}
+
+function MemberBasicInfo(props: MemberBasicInfoProps) {
   const errors = props.errors;
+  const initialValues = props.initialValues;
   const uploadImageRef = useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string>('');
+  const [profileImage, setProfileImage] = useState<string>(initialValues.imageFile);
+
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -16,11 +23,27 @@ function MemberBasicInfo(props) {
     }
   };
 
-  const onDeleteImage = (e: React.ChangeEvent<HTMLImageElement>) => {
+  const onDeleteImage = (e: React.PointerEvent<HTMLImageElement>) => {
     e.stopPropagation();
     e.preventDefault();
     setProfileImage('');
+    if (uploadImageRef.current) {
+      uploadImageRef.current.value = '';
+    }
   };
+
+  useEffect(() => {
+    function resetHandler() {
+      if (uploadImageRef.current) {
+        uploadImageRef.current.value = '';
+        setProfileImage(initialValues.imageFile)
+      }
+    }
+    document.addEventListener('reset-member-register-form', resetHandler);
+    return function () {
+      document.removeEventListener('reset-member-register-form', resetHandler);
+    };
+  }, [initialValues]);
 
   return (
     <>
@@ -39,27 +62,27 @@ function MemberBasicInfo(props) {
               {profileImage && (
                 <span className="memberinfo__form__user__profile__actions">
                   <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                  <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                  <img onPointerDown={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
                 </span>
               )}
             </label>
             <input onChange={onImageUpload} id="member-image-upload" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
             {profileImage && <input hidden name="profileimage" value={profileImage} />}
             <div className="memberinfo__form__item">
-              <TextField isMandatory={true} id="register-member-name" label="Name*" name="name" type="text" placeholder="Enter your full name" />
+              <TextField isMandatory={true} id="register-member-name" label="Name*" defaultValue={initialValues.name} name="name" type="text" placeholder="Enter your full name" />
             </div>
           </div>
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
           <div className="memberinfo__form__item">
-            <TextField isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" />
+            <TextField defaultValue={initialValues.email} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" />
           </div>
           <div className="memberinfo__form__item">
-            <TextField id="register-member-startDate" label="PLN Join Date" name="plnStartDate" type="date" placeholder="Enter Start Date" />
+            <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="PLN Join Date" name="plnStartDate" type="date" placeholder="Enter Start Date" />
           </div>
           <div className="memberinfo__form__item">
-            <TextField id="register-member-city" label="City" name="city" type="text" placeholder="Enter your city" />
+            <TextField defaultValue={initialValues.city} id="register-member-city" label="City" name="city" type="text" placeholder="Enter your city" />
             <p className="info">
               <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
               <span className="info__text">Please share location details to receive invitations for the network events happening in your area.</span>
@@ -68,8 +91,8 @@ function MemberBasicInfo(props) {
 
           <div className="memberinfo__form__item">
             <div className="memberinfo__form__item__cn">
-              <TextField id="register-member-state" label="State or Province" name="region" type="text" placeholder="Enter state or province" />
-              <TextField id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" />
+              <TextField defaultValue={initialValues.state} id="register-member-state" label="State or Province" name="region" type="text" placeholder="Enter state or province" />
+              <TextField defaultValue={initialValues.country} id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" />
             </div>
           </div>
         </div>

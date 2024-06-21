@@ -18,6 +18,7 @@ interface SearchableSingleSelectProps {
   isMandatory?: boolean;
   arrowImgUrl?: string;
   label?: string;
+  isFormElement?: boolean;
   id: string;
   name: string;
 }
@@ -34,12 +35,14 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   isMandatory = false,
   arrowImgUrl,
   label = '',
+  isFormElement = false,
   name,
   id,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const defaultSelectedValue = selectedOption ? selectedOption[displayKey] : '';
 
@@ -82,6 +85,9 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
     if (searchRef.current && selectedOption) {
       searchRef.current.value = selectedOption[displayKey];
     }
+    if(inputRef.current && selectedOption) {
+      inputRef.current.value = selectedOption[formKey];
+    }
   }, [selectedOption, displayKey]);
 
   useEffect(() => {
@@ -112,10 +118,10 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             ref={searchRef}
             defaultValue={defaultSelectedValue}
             onChange={onSearch}
-            name={name}
             onFocus={onSearchFocus}
             placeholder={placeholder}
           />
+          <input ref={inputRef} type='text' hidden defaultValue={defaultSelectedValue} name={name}/>
 
           {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
           {showOptions && (

@@ -1,12 +1,12 @@
-import Toggle from "@/components/form/toggle";
+import Toggle from '@/components/form/toggle';
 
 interface ContributionHeadProps {
-    expandedId: number,
-    contributionIndex: number,
-    onDeleteContribution: (index: number) => void,
-    currentProjectsCount: number,
-    contribution: any,
-    onToggleExpansion: (index: number) => void
+  expandedId: number;
+  contributionIndex: number;
+  onDeleteContribution: (index: number) => void;
+  currentProjectsCount: number;
+  contribution: any;
+  onToggleExpansion: (index: number) => void;
 }
 
 function ContributionHead(props: ContributionHeadProps) {
@@ -28,7 +28,7 @@ function ContributionHead(props: ContributionHeadProps) {
         {contribution?.projectName.trim() !== '' && <h2 className="cb__name">{`${contribution?.projectName.trim()}`}</h2>}
         <div className="cb__projects">
           <div title={`${contribution.currentProject === false && currentProjectsCount === 5 ? 'Max 5 projects can be set as current' : 'On/Off'} `}>
-          <Toggle id={`member-register-contribution-currentproject-${contributionIndex}`}/>
+            <Toggle name={`contributionInfo${contributionIndex}-currentProject`} id={`member-register-contribution-currentproject-${contributionIndex}`} />
             {/* <Switch
                   nonEditable={exp.currentProject === false && currentProjectsCount === 5}
                   initialValue={exp.currentProject}
@@ -41,7 +41,7 @@ function ContributionHead(props: ContributionHeadProps) {
       </div>
       <style>
         {`
-             .cb {
+        .cb {
           border-radius: 4px;
           background: #f1f5f9;
           height: 32px;

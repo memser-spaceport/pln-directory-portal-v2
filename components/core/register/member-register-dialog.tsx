@@ -11,6 +11,10 @@ import useStepsIndicator from '@/hooks/useStepsIndicator';
 function MemberRegisterDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const steps = ['basic', 'skills', 'contributions', 'social'];
+
+  const onDialogClose = () => {
+    document.dispatchEvent(new CustomEvent('reset-member-register-form'))
+  }
   const onCloseRegister = () => {
     if (dialogRef.current) {
       dialogRef.current.close();
@@ -31,14 +35,14 @@ function MemberRegisterDialog() {
 
   return (
     <>
-      <dialog ref={dialogRef} className="register">
+      <dialog onClose={onDialogClose} ref={dialogRef} className="register">
         <div className="register__cn">
           <div className="register__cn__mobile">
             <StepsIndicatorMobile steps={steps} />
           </div>
           <aside className="register__cn__desktop">
             <div className="register__cn__desktop__info">
-              <h2 className="register__cn__desktop__info__title">Join the Protocol Labs Network</h2>
+              <h2 className="register__cn__desktop__info__title">Join the Protocol Labs</h2>
               <p className="register__cn__desktop__info__desc">Tell us about yourself</p>
               <div className="register__cn__desktop__info__sep"></div>
             </div>

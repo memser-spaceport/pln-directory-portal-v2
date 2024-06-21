@@ -27,7 +27,7 @@ function StepsIndicatorDesktop(props) {
           {steps.map((step: string, index: number) => (
             <li className={`mri__stepsd__item`} key={`register-step-desktop-${index}`}>
               <div className="mri__stepsd__item__icon">
-                <img className="mri__stepsd__item__icon__img" src={getStepImageSrc(index)} alt="step icon" width="36" height="36" />
+                <img className="mri__stepsd__item__icon__img" src={getStepImageSrc(index)} alt="step icon" width="24" height="24" />
                 {currentStepIndex <= index && <p className="mri__stepsd__item__icon__text">{index + 1}</p>}
               </div>
               <p className="mri__stepsd__item__text">{step}</p>
@@ -58,8 +58,8 @@ function StepsIndicatorDesktop(props) {
           }
           .mri__stepsd__item__icon {
             position: relative;
-            height: 36px;
-            width: 36px;
+            height: 24px;
+            width: 24px;
           }
           .mri__stepsd__item__icon__img {
             display: inline-block;
@@ -68,7 +68,7 @@ function StepsIndicatorDesktop(props) {
             position: absolute;
             top: 50%;
             left: 50%;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             color: white;
             transform: translate(-50%, -50%);

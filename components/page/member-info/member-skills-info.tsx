@@ -6,7 +6,7 @@ import SearchableMultiSelect from '@/components/form/searchable-multi-select';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import TextField from '@/components/form/text-field';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface TeamAndRoleOptions {
   teamTitle: string;
@@ -23,8 +23,9 @@ function MemberSkillsInfo(props) {
   const teamOptions = props.teamsOptions;
   const skillsOptions = props.skillsOptions;
   const errors = props.errors;
-  const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>([{ teamTitle: '', role: '', teamUid: '' }]);
-  const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>([]);
+  const initialValues = props.initialValues
+  const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>(initialValues.teamsAndRoles);
+  const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>(initialValues.skills);
 
   const onAddTeam = () => {
     setTeamsInfo((v) => {
@@ -84,6 +85,17 @@ function MemberSkillsInfo(props) {
     });
   };
 
+  useEffect(() => {
+    function resetHandler() {
+      setTeamsInfo(initialValues.teamsAndRoles);
+      setSelectedSkills(initialValues.skills)
+    }
+    document.addEventListener('reset-member-register-form', resetHandler);
+    return function () {
+      document.removeEventListener('reset-member-register-form', resetHandler);
+    };
+  }, [initialValues]);
+
   return (
     <>
       <div className="msf">
@@ -111,6 +123,7 @@ function MemberSkillsInfo(props) {
                     options={getAvailableTeamOptions()}
                     selectedOption={teaminfo}
                     uniqueKey="teamUid"
+                    formKey="teamTitle"
                     name={`teamInfo${index}-teamTitle`}
                     onClear={() => onClearTeamSearch(index)}
                     onChange={(item) => onTeamSelectionChanged(index, item)}

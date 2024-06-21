@@ -1,36 +1,60 @@
-import TextArea from "@/components/form/text-area"
-import TextField from "@/components/form/text-field"
+import TextArea from '@/components/form/text-area';
+import TextField from '@/components/form/text-field';
 
 function MemberSocialInfo(props) {
-    const errors = props.errors ?? []
-    return <>
-     <div className="memberinfo__form">
+  const errors = props.errors ?? [];
+  return (
+    <>
+      <div className="memberinfo__form">
         <div className="memberinfo__form__item">
-          <TextField type="text" id="register-member-linkedin" name="linkedinHandler" label="LinkedIn" placeholder="eg.,https://linkedin.com/in/jbenetcs"/>
+          <TextField type="text" id="register-member-linkedin" name="linkedinHandler" label="LinkedIn" placeholder="eg.,https://linkedin.com/in/jbenetcs" />
         </div>
         <div className="memberinfo__form__item">
-          <TextField type="text" id="register-member-discord" name="discordHandler" label="Discord" placeholder="eg.,name#1234"/>
+          <TextField type="text" id="register-member-discord" name="discordHandler" label="Discord" placeholder="eg.,name#1234" />
+          <p className="info">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="info__text">This will help us tag you with permissions to access the best Discord channels for you.</span>
+          </p>
         </div>
         <div className="memberinfo__form__item">
-          <TextField type="text" id="register-member-twitter" name="twitterHandler" label="Twitter" placeholder="eg.,@protocollabs"/>
+          <TextField type="text" id="register-member-twitter" name="twitterHandler" label="Twitter" placeholder="eg.,@protocollabs" />
         </div>
         <div className="memberinfo__form__item">
-          <TextField type="text" id="register-member-github" name="githubHandler" label="Github" placeholder="Enter Github handle"/>
+          <TextField type="text" id="register-member-github" name="githubHandler" label="Github" placeholder="Enter Github handle" />
         </div>
         <div className="memberinfo__form__item">
-          <TextField type="text" id="register-member-telegram" name="telegramHandler" label="Telegram" placeholder="Telegram"/>
+          <TextField type="text" id="register-member-telegram" name="telegramHandler" label="Telegram" placeholder="Telegram" />
         </div>
         <div className="memberinfo__form__item">
-          <TextField type="text" id="register-member-officehours" name="officeHours" label="Office hours link" placeholder="enter office hours"/>
+          <TextField type="text" id="register-member-officehours" name="officeHours" label="Office hours link" placeholder="enter office hours" />
+          <p className="info">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="info__text">
+              Drop your calendar link here so others can get in touch with you at a time that is convenient. We recommend 15-min meetings scheduled via Calendly or Google Calendar appointments.
+            </span>
+          </p>
         </div>
         <div className="memberinfo__form__item">
-          <TextArea id="register-member-comments" name="comments" label="Did we miss something?" placeholder="Enter details here"/>
+          <TextArea id="register-member-comments" name="comments" label="Did we miss something?" placeholder="Enter details here" />
+          <p className="info">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="info__text">Let us know what else you would like to share and wish others would share to make it easier to locate and contact each other!</span>
+          </p>
         </div>
       </div>
       <style jsx>
         {`
-          .info {display: flex; gap: 4px; align-items: center; margin: 14px 0;}
-          .info__text {text-align: left; font-size: 13px; color: grey;}
+          .info {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            margin-top: 12px;
+          }
+          .info__text {
+            text-align: left;
+            font-size: 13px;
+            opacity: 0.4;
+          }
           .memberinfo__form {
             display: flex;
             flex-direction: column;
@@ -42,6 +66,7 @@ function MemberSocialInfo(props) {
         `}
       </style>
     </>
+  );
 }
 
-export default MemberSocialInfo
+export default MemberSocialInfo;

@@ -8,7 +8,6 @@ const EmptyResult = () => {
   const pathname = usePathname();
 
   const onClearAllClickHandler = () => {
-    triggerLoader(true);
     router.push(pathname);
   };
   return (

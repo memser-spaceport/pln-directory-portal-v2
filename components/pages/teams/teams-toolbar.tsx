@@ -47,7 +47,6 @@ const TeamsToolbar = (props: IToolbar) => {
     if (view === type) {
       return;
     }
-    triggerLoader(true);
     // analytics.onViewTypeClicked(getAnalyticsUserInfo(userInfo), type);
     if (type !== VIEW_TYPE_OPTIONS.GRID) {
       updateQueryParams("viewType", type, searchParams);
@@ -63,7 +62,6 @@ const TeamsToolbar = (props: IToolbar) => {
   const onSubmitHandler = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (searchBy.trim() !== searchInput.trim()) {
-      triggerLoader(true);
     }
     // analytics.onTeamsSearchClicked(searchInput, getAnalyticsUserInfo(userInfo));
     if(searchParams?.page) {
@@ -87,12 +85,7 @@ const TeamsToolbar = (props: IToolbar) => {
   };
 
   const onSortOptionClickHandler = (option: string) => {
-    triggerLoader(true);
     setIsSortBy(false);
-    if (option === sortBy) {
-      triggerLoader(false);
-      return;
-    }
     // analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.ASCENDING);
     updateQueryParams("sort", option, searchParams);
   };

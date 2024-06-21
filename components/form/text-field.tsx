@@ -15,7 +15,7 @@ interface TextFieldProps {
 
 const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, type, maxLength }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [inputValue, setInputValue] = useState<string>('');
+  const [inputValue, setInputValue] = useState<string>(defaultValue);
   const onTextChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
     if(onChange) {

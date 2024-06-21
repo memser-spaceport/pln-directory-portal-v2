@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
-function MonthYearField(props) {
+interface MonthYearFieldProps {
+  label: string;
+  defaultValue: string;
+  id: string
+  name: string;
+  onChange: (dateString: string) => void;
+}
+
+function MonthYearField(props: MonthYearFieldProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const getYears = () => {
     const currentYear = new Date().getFullYear();
@@ -11,7 +19,6 @@ function MonthYearField(props) {
     }
     return years;
   };
-  const initDate = props.initDate;
   const label = props.label ?? '';
   const yearValues = getYears();
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -51,6 +58,7 @@ function MonthYearField(props) {
     const selectedDateValue = defaultValue === 'min' ? new Date(selectedYear, selectedMonth) : new Date(selectedYear, selectedMonth + 1, 0);
     if (inputRef.current) {
       inputRef.current.value = formatDate(selectedDateValue);
+      props.onChange(formatDate(selectedDateValue))
     }
   }, [selectedYear, selectedMonth]);
 

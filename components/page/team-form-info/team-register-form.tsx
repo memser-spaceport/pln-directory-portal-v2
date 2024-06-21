@@ -1,39 +1,73 @@
 'use client';
+
 import useStepsIndicator from '@/hooks/useStepsIndicator';
-import { useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import TeamBasicInfo from './team-basic-info';
-import { basicInfoSchema } from '@/schema/team-forms';
+import { basicInfoSchema, projectDetailsSchema, socialSchema } from '@/schema/team-forms';
+import { getTeamsFormOptions } from '@/services/registration.service';
+import TeamProjectsInfo from './team-projects-info';
+import TeamSocialInfo from './team-social-info';
 
-function TeamRegisterForm(props: any) {
+interface ITeamRegisterForm {
+  onCloseForm: () => void;
+}
+
+function TeamRegisterForm(props: ITeamRegisterForm) {
   const onCloseForm = props.onCloseForm;
-  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'skills', 'contributions', 'social'], defaultStep: 'basic', uniqueKey: 'register' });
+  const { currentStep, goToNextStep, goToPreviousStep } = useStepsIndicator({ steps: ['basic', 'project details', 'social'], defaultStep: 'basic', uniqueKey: 'register' });
   const formRef = useRef<HTMLFormElement>(null);
-  const [allData, setAllData] = useState({ protocals: [], isError: false });
+  const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
   const [basicErrors, setBasicErrors] = useState([]);
+  const [projectDetailsErrors, setProjectDetailsErrors] = useState([]);
+  const [socialErrors, setSocialErrors] = useState([]);
 
-  const onFormSubmit = async (e) => {
+  const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formRef.current) {
       const formData = new FormData(formRef.current);
-      console.log(JSON.stringify(transformObject(Object.fromEntries(formData))));
+      const formattedData = transformObject(Object.fromEntries(formData));
+      if (currentStep === 'social') {
+        const validationResponse = validateForm(socialSchema, formattedData);
+        if (!validationResponse?.success) {
+          setSocialErrors(validationResponse.errors);
+          return;
+        }
+        setSocialErrors([]);
+        console.log('final', formattedData);
+      }
     }
+  };
+
+  const validateForm = (schema: any, data: any) => {
+    const validationResponse = schema.safeParse(data);
+    if (!validationResponse.success) {
+      const formattedErrors = validationResponse.error.errors.map((error: any) => ({
+        key: error.path[0],
+        message: error.message,
+      }));
+      return { success: false, errors: formattedErrors };
+    }
+    return { success: true, errors: [] };
   };
 
   const onNextClicked = () => {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
-      const stringifiedData = transformObject(Object.fromEntries(formData));
+      const formattedData = transformObject(Object.fromEntries(formData));
       if (currentStep === 'basic') {
-        const validationResponse = basicInfoSchema.safeParse(stringifiedData);
+        const validationResponse = validateForm(basicInfoSchema, formattedData);
         if (!validationResponse.success) {
-          const formattedErrors = validationResponse.error.errors.reduce((acc, error) => {
-            acc.push({ key: error.path[0], message: error.message });
-            return acc;
-          }, []);
-          setBasicErrors(formattedErrors);
+          setBasicErrors(validationResponse.errors);
           return;
         }
         setBasicErrors([]);
+      } else if (currentStep === 'project details') {
+        const validationResponse = validateForm(projectDetailsSchema, formattedData);
+        if (!validationResponse.success) {
+          setProjectDetailsErrors(validationResponse.errors);
+          return;
+        }
+        setProjectDetailsErrors([]);
       }
       goToNextStep();
     }
@@ -45,55 +79,65 @@ function TeamRegisterForm(props: any) {
 
   function transformObject(obj: any) {
     const result: any = {};
-    const teams: any = {};
-    const contrubutions: any = {};
-    const skills: any = {};
+    const fundingStage: any = {};
+    const technologies: any = {};
+    const membershipResources: any = {};
+    const industryTags: any = {};
 
     for (const key in obj) {
-      if (key.startsWith('teamInfo')) {
-        const [teamInfo, subKey] = key.split('-');
-        const teamIndex = teamInfo.match(/\d+$/)[0];
-
-        if (!teams[teamIndex]) {
-          teams[teamIndex] = {};
+      if (key.startsWith('fundingStage')) {
+        const subKey = key.split('-')[1];
+        fundingStage[subKey] = obj[key];
+      } else if (key.startsWith('technology')) {
+        const [technology, subKey] = key.split('-');
+        const technologyIndexMatch = technology?.match(/\d+$/);
+        if (technologyIndexMatch) {
+          const technologyIndex = technologyIndexMatch[0];
+          if (!technologies[technologyIndex]) {
+            technologies[technologyIndex] = {};
+          }
+          technologies[technologyIndex][subKey] = obj[key];
         }
-
-        const subKeyName = subKey.replace(/^team/, '');
-        teams[teamIndex][subKeyName] = obj[key];
-      } else if (key.startsWith('contributionInfo')) {
-        const [contributionInfo, subKey] = key.split('-');
-        const contributionIndex = contributionInfo.match(/\d+$/)[0];
-
-        if (!contrubutions[contributionIndex]) {
-          contrubutions[contributionIndex] = {};
+      } else if (key.startsWith('membershipResource')) {
+        const [membershipResource, subKey] = key.split('-');
+        const membershipResourceIndexMatch = membershipResource.match(/\d+$/);
+        if (membershipResourceIndexMatch) {
+          const membershipResourceIndex = membershipResourceIndexMatch[0];
+          if (!membershipResources[membershipResourceIndex]) {
+            membershipResources[membershipResourceIndex] = {};
+          }
+          membershipResources[membershipResourceIndex][subKey] = obj[key];
         }
-
-        const subKeyName = subKey.replace(/^contribution/, '');
-        contrubutions[contributionIndex][subKeyName] = obj[key];
-      } else if (key.startsWith('skillsInfo')) {
-        const [skillInfo, subKey] = key.split('-');
-        const skillIndex = skillInfo.match(/\d+$/)[0];
-
-        if (!skills[skillIndex]) {
-          skills[skillIndex] = {};
+      } else if (key.startsWith('industryTag')) {
+        const [industryTag, subKey] = key.split('-');
+        const industryTagIndexMatch = industryTag.match(/\d+$/);
+        if (industryTagIndexMatch) {
+          const industryTagIndex = industryTagIndexMatch[0];
+          if (!industryTags[industryTagIndex]) {
+            industryTags[industryTagIndex] = {};
+          }
+          industryTags[industryTagIndex][subKey] = obj[key];
         }
-
-        const subKeyName = subKey.replace(/^contribution/, '');
-        skills[skillIndex][subKeyName] = obj[key];
       } else {
-        //contributionInfo
         result[key] = obj[key];
       }
     }
 
-    result.teams = Object.values(teams);
-    result.contributions = Object.values(contrubutions);
-    result.skills = Object.values(skills);
+    result.fundingStage = fundingStage;
+    result.technologies = Object.values(technologies);
+    result.membershipResources = Object.values(membershipResources);
+    result.industryTags = Object.values(industryTags);
     return result;
   }
 
   useEffect(() => {
-    // getTeamsFormOptions();
+    getTeamsFormOptions()
+      .then((d) => {
+        if (!d.isError) {
+          setAllData(d as any);
+        }
+      })
+      .catch((e) => console.error(e));
   }, []);
 
   return (
@@ -103,18 +147,18 @@ function TeamRegisterForm(props: any) {
           <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
             <TeamBasicInfo errors={basicErrors} />
           </div>
-          <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
-            {/* <TeamProjectsInfo /> */}
-          </div>
-          {/* <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
-            <MemberContributionInfo />
+          <div className={currentStep !== 'project details' ? 'hidden' : 'form'}>
+            <TeamProjectsInfo
+              errors={projectDetailsErrors}
+              protocolOptions={allData?.technologies}
+              fundingStageOptions={allData?.fundingStage}
+              membershipResourceOptions={allData?.membershipSources}
+              industryTagOptions={allData?.industryTags}
+            />
           </div>
           <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
-            <MemberSocialInfo />
+            <TeamSocialInfo errors={socialErrors} />
           </div>
-          <div className={currentStep !== 'skills' ? 'hidden' : 'form'}>
-            <MemberSkillsInfo teamsOptions={allData.teams} skillsOptions={allData.skills} />
-          </div> */}
         </div>
         <div className="rf__actions">
           {currentStep === 'basic' && (

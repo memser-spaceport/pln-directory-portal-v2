@@ -1,5 +1,5 @@
 export const getTeamsFormOptions = async () => {
-  const [membershipSourcesResponse, fundingTagsresponse, industryTagsResponse, protocalsResponse] = await Promise.all([
+  const [membershipSourcesResponse, fundingTagsresponse, industryTagsResponse, technologiesResponse] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/membership-sources`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/funding-stages?pagination=false`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/industry-tags?pagination=false`, { method: 'GET' }),
@@ -9,9 +9,25 @@ export const getTeamsFormOptions = async () => {
   const membershipSources = await membershipSourcesResponse.json();
   const fundingTags = await fundingTagsresponse.json();
   const industryTags = await industryTagsResponse.json();
-  const protocals = await protocalsResponse.json();
+  const technologies = await technologiesResponse.json();
 
-  console.log(membershipSources,fundingTags, industryTags, protocals)
+  if (!membershipSourcesResponse.ok || !fundingTagsresponse.ok || !industryTagsResponse.ok || !technologiesResponse.ok) {
+    return { isError: true };
+  }
 
-  return { technologies: '', fundingStage: '', membershipSources: '', industryTags: '' };
+  const formattedTechnologies = technologies?.map((technology) => ({
+    id: technology?.uid,
+    name: technology?.title,
+  }));
+
+  const formattedFundingStages = fundingTags.map((tag) => ({ id: tag?.uid, name: tag?.title }));
+
+  const formattedMembershipResources = membershipSources?.map((source) => ({
+    id: source?.uid,
+    name: source?.title,
+  }));
+
+  const formattedIndustryTags = industryTags.map((tag) => ({ id: tag?.uid, name: tag?.title }));
+
+  return { technologies: formattedTechnologies, fundingStage: formattedFundingStages, membershipSources: formattedMembershipResources, industryTags: formattedIndustryTags };
 };

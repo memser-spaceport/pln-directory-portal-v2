@@ -46,7 +46,6 @@ function TeamRegisterDialog() {
                 <RegisterInfo />
               </div>
             )} */}
-
             <TeamRegisterForm onCloseForm={onCloseRegister} />
           </section>
         </div>

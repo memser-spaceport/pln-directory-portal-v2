@@ -1,25 +1,195 @@
+import HiddenField from '@/components/form/hidden-field';
 import MultiSelect from '@/components/form/multi-select';
+import SingleSelect from '@/components/form/single-select';
+import { useState } from 'react';
 
-const TeamProjectsInfo = (props: any) => {
+interface ICommonProperties {
+  id: string;
+  name: string;
+}
+
+interface IProtocolOptions extends ICommonProperties {}
+interface IFundingStage extends ICommonProperties {}
+interface IMembershipResourceOptions extends ICommonProperties {}
+interface IIndustryTagsOptions extends ICommonProperties {}
+interface ITeamProjectsInfo {
+  protocolOptions: IProtocolOptions[];
+  fundingStageOptions: IFundingStage[];
+  membershipResourceOptions: IMembershipResourceOptions[];
+  industryTagOptions: IIndustryTagsOptions[];
+  errors: { key: string; message: string }[];
+}
+
+const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
+  const protocolOptions = props?.protocolOptions;
+  const fundingStageOptions = props?.fundingStageOptions;
+  const membershipResourceOptions = props?.membershipResourceOptions;
+  const industryTagOptions = props?.industryTagOptions;
+  const errors = props?.errors;
+  const [selectedProtocols, setSelectedProtocols] = useState<IProtocolOptions[]>([]);
+  const [selectedMembershipResources, setSelectedMembershipResources] = useState<IMembershipResourceOptions[]>([]);
+  const [selectedIndustryTags, setSelectedIndustryTags] = useState<IProtocolOptions[]>([]);
+  const [selectedFundingStage, setSelectedFundingStage] = useState<IFundingStage>({ id: '', name: '' });
+
+  const addItem = (setState: React.Dispatch<React.SetStateAction<any[]>>, itemToAdd: any) => {
+    setState((prevItems: any[]) => {
+      return [...prevItems, itemToAdd];
+    });
+  };
+
+  const removeItem = (setState: React.Dispatch<React.SetStateAction<any[]>>, itemToRemove: any) => {
+    setState((prevItems: any[]) => {
+      const newItems = prevItems.filter((item) => item.id !== itemToRemove.id);
+      return newItems;
+    });
+  };
+
+  const onTeamSelectionChanged = (item: any) => {
+    setSelectedFundingStage(item);
+  };
+
   return (
     <>
-      <div>
-        <MultiSelect
-          options={skillsOptions}
-          selectedOptions={selectedSkills}
-          onAdd={onAddSkill}
-          onRemove={onRemoveSkill}
-          uniqueKey="id"
-          displayKey="name"
-          label="Professional Skills*"
-          placeholder="Search options..."
-          isMandatory={false}
-          closeImgUrl="/icons/close.svg"
-          arrowImgUrl="/icons/arrow-down.svg"
-        />
+      <div className="teamProject__form">
+        {errors.length > 0 && (
+          <ul className="teamProject__form__errs">
+            {errors.map((error: { key: string; message: string }, index: number) => {
+              return (
+                <li className="teamProject__form__errs__err" key={`${error.key}-${index}`}>
+                  {error?.message}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <div className="teamProject__form__item">
+          <MultiSelect
+            options={protocolOptions}
+            selectedOptions={selectedProtocols}
+            onAdd={(itemToAdd) => addItem(setSelectedProtocols, itemToAdd)}
+            onRemove={(itemToRemove) => removeItem(setSelectedProtocols, itemToRemove)}
+            uniqueKey="id"
+            displayKey="name"
+            label="Protocol"
+            placeholder="Search Protocol(s)"
+            isMandatory={false}
+            closeImgUrl="/icons/close.svg"
+            arrowImgUrl="/icons/arrow-down.svg"
+          />
+          <div className="info">
+            <img src="/icons/info.svg" />
+            <p>Does your team/project use any of these protocol(s)?</p>
+          </div>
+          <div className="hidden">
+            {selectedProtocols.map((protocol, index) => (
+              <div key={`team-technologies-${index}`}>
+                <HiddenField value={protocol.name} defaultValue="" name={`technology${index}-title`} />
+                <HiddenField value={protocol.id} defaultValue="" name={`technology${index}-uid`} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <SingleSelect
+            id="teams-fundingstage"
+            isMandatory={true}
+            placeholder="Select a Stage"
+            uniqueKey="id"
+            displayKey="name"
+            options={fundingStageOptions}
+            selectedOption={selectedFundingStage}
+            onItemSelect={(item) => onTeamSelectionChanged(item)}
+            arrowImgUrl="/icons/arrow-down.svg"
+            label="Funding Stage*"
+          />
+          <HiddenField value={selectedFundingStage?.id} defaultValue="" name="fundingStage-uid" />
+          <HiddenField value={selectedFundingStage?.name} defaultValue="" name="fundingStage-title" />
+        </div>
+        <div className="teamProject__form__item">
+          <MultiSelect
+            options={membershipResourceOptions}
+            selectedOptions={selectedMembershipResources}
+            onAdd={(itemToAdd) => addItem(setSelectedMembershipResources, itemToAdd)}
+            onRemove={(itemToRemove) => removeItem(setSelectedMembershipResources, itemToRemove)}
+            uniqueKey="id"
+            displayKey="name"
+            label="Membership Source"
+            placeholder="Select the Membership Sources"
+            isMandatory={false}
+            closeImgUrl="/icons/close.svg"
+            arrowImgUrl="/icons/arrow-down.svg"
+          />
+          <div className="hidden">
+            {selectedMembershipResources.map((source, index) => (
+              <div key={`team-membershipResource-${index}`}>
+                <HiddenField value={source.name} defaultValue="" name={`membershipResource${index}-title`} />
+                <HiddenField value={source.id} defaultValue="" name={`membershipResource${index}-uid`} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="teamProject__form__item">
+          <MultiSelect
+            options={industryTagOptions}
+            selectedOptions={selectedIndustryTags}
+            onAdd={(itemToAdd) => addItem(setSelectedIndustryTags, itemToAdd)}
+            onRemove={(itemToRemove) => removeItem(setSelectedIndustryTags, itemToRemove)}
+            uniqueKey="id"
+            displayKey="name"
+            label="Industry Tags*"
+            placeholder="Search the Industry Tags"
+            isMandatory
+            closeImgUrl="/icons/close.svg"
+            arrowImgUrl="/icons/arrow-down.svg"
+          />
+          <div className="info">
+            <img src="/icons/info.svg" />
+            <p>Add industries that you had worked in. This will make it easier for people to find & connect based on shared professional interests.</p>
+          </div>
+          <div className="hidden">
+            {selectedIndustryTags.map((tag, index) => (
+              <div key={`team-industryTags-${index}`}>
+                <HiddenField value={tag.name} defaultValue="" name={`industryTag${index}-title`} />
+                <HiddenField value={tag.id} defaultValue="" name={`industryTag${index}-uid`} />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-      <style>{`
-    `}</style>
+      <style jsx>{`
+        .teamProject__form {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          padding: 20px 0px;
+        }
+        .teamProject__form__item {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .teamProject__form__errs {
+          display: grid;
+          gap: 4px;
+          padding-left: 16px;
+        }
+        .teamProject__form__errs__err {
+          color: #ef4444;
+          font-size: 12px;
+          line-height: 16px;
+        }
+        .info {
+          display: flex;
+          color: #94a3b8;
+          font-size: 13px;
+          font-weight: 400;
+          align-items: flex-start;
+          gap: 4px;
+        }
+        .hidden {
+          display: none;
+        }
+      `}</style>
     </>
   );
 };

@@ -8,50 +8,46 @@ interface Option {
 
 interface SingleSelectProps {
   options: Option[];
-  selectedOptions: Option[];
-  onAdd: (selectedOptions: Option) => void;
-  onRemove: (selectedOptions: Option) => void;
+  selectedOption: any;
+  onItemSelect: (selectedOption: Option | null) => void;
   uniqueKey: string;
   displayKey: string;
   placeholder?: string;
   isMandatory?: boolean;
   arrowImgUrl?: string;
-  closeImgUrl: string;
   label?: string;
+  id: string;
 }
 
-const SingleSelect: React.FC<SingleSelectProps> = ({
-  options,
-  selectedOptions,
-  onAdd,
-  onRemove,
-  uniqueKey,
-  displayKey,
-  placeholder = 'Select options...',
-  isMandatory = false,
-  arrowImgUrl,
-  closeImgUrl,
-  label = ''
-}) => {
+const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, onItemSelect, uniqueKey, displayKey, placeholder = 'Select', isMandatory = false, arrowImgUrl, label = '', id }) => {
+  const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
+  const searchRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const selectedOptionsIds = [...selectedOptions].map((v) => v[uniqueKey]);
-  const remainingOptions: Option[] = [...options].filter((v) => !selectedOptionsIds.includes(v[uniqueKey]));
+  const defaultSelectedValue = selectedOption ? selectedOption[displayKey] : '';
 
   const handleOptionClick = (option: Option) => {
-    console.log(option);
-    onAdd(option);
+    if (searchRef.current) {
+      searchRef.current.value = option[displayKey];
+    }
+    onItemSelect(option);
+    setShowOptions(false);
+    setFilteredOptions(options);
   };
 
-  const handleRemoveOption = (e, optionToRemove: Option) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onRemove(optionToRemove);
+  const onSearchFocus = () => {
+    setShowOptions(true);
   };
 
-  const toggleOptions = () => {
-    setShowOptions(!showOptions);
-  };
+  useEffect(() => {
+    setFilteredOptions(options);
+  }, [options]);
+
+  useEffect(() => {
+    if (searchRef.current && selectedOption) {
+      searchRef.current.value = selectedOption[displayKey];
+    }
+  }, [selectedOption, displayKey]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -69,40 +65,31 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
   return (
     <>
       <div className="select" ref={containerRef}>
-        {label !== '' && <label className='select__label'>{label}</label>}
-        <div className={`select__selectedoptions ${selectedOptions.length === 0 ? 'select__selectedoptions--error': ''}`} onClick={toggleOptions}>
-          {selectedOptions.length === 0 && <span className="select__placeholder">{placeholder}</span>}
-          {selectedOptions.map((option) => (
-            <div key={option[uniqueKey]} className="select__selectedoptions__item">
-              {option[displayKey]}
-              <img
-                width="16"
-                height="16"
-                alt="close tag"
-                src={closeImgUrl}
-                className="select__remove-option"
-                onClick={(e) => handleRemoveOption(e, option)}
-              />
-            </div>
-          ))}
-          {arrowImgUrl && <img className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+        {label !== '' && (
+          <label className="select__label" htmlFor={id}>
+            {label}
+          </label>
+        )}
+        <div className='select_cn'>
+          <input
+            id={id}
+            className={`select__search ${isMandatory && !selectedOption?.[uniqueKey] ? 'select__search--error' : ''}`}
+            ref={searchRef}
+            defaultValue={defaultSelectedValue}
+            onFocus={onSearchFocus}
+            placeholder={placeholder}
+            readOnly
+          />
+          {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
         </div>
         {showOptions && (
           <ul className="select__options">
-            {remainingOptions.map((option) => (
-              <li
-                key={option[uniqueKey]}
-                onClick={() => handleOptionClick(option)}
-                className={`select__options__item ${
-                  selectedOptions.some((selectedOption) => selectedOption[uniqueKey] === option[uniqueKey])
-                    ? 'select__options__item--selected'
-                    : ''
-                }`}
-              >
+            {filteredOptions?.map((option) => (
+              <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
                 {option[displayKey]}
               </li>
             ))}
-            {remainingOptions.length === 0 && <p className="select__options__noresult">No data available</p>}
+            {filteredOptions.length === 0 && <p className="select__options__noresults">No Results found</p>}
           </ul>
         )}
       </div>
@@ -112,46 +99,39 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
             width: 100%;
             position: relative;
           }
+
+          .select_cn {
+            position: relative;
+          }
+
           .select__label {
             font-weight: 600;
             font-size: 14px;
             margin-bottom: 12px;
             display: block;
           }
-          .select__selectedoptions {
-            display: flex;
-            font-size: 14px;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 8px 12px;
-            border: 1px solid lightgrey;
-            border-radius: 8px;
-            cursor: pointer;
-            align-items: center;
-          }
-          .select__selectedoptions--error {
-            border: 1px solid red;
-          }
           .select__arrowimg {
-            margin-left: auto;
+            position: absolute;
+            bottom: calc(50% - 4px);
             cursor: pointer;
+            right: 12px;
           }
-          .select__placeholder {
-            color: grey;
-          }
-          .select__selectedoptions__item {
-            border: 1px solid #cbd5e1;
-            padding: 5px 12px;
-            border-radius: 24px;
-            font-size: 12px;
+          .select__search {
+            padding: 8px 12px;
+            padding-right: 22px;
+            min-height: 40px;
+            width: 100%;
+            font-size: 14px;
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 3px;
+            border-radius: 8px;
+            border: 1px solid lightgrey;
           }
-          .select__remove-option {
-            margin-left: 5px;
-            cursor: pointer;
+          .select__search:focus-visible,
+          .select__search:focus {
+            outline: none;
+          }
+          .select__search--error {
+            border: 1px solid red;
           }
           .select__options {
             width: 100%;
@@ -167,24 +147,17 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
             border: 1px solid lightgrey;
             top: 100%;
             left: 0;
+            right: 0;
           }
           .select__options__item {
             cursor: pointer;
             font-size: 14px;
             padding: 4px 8px;
           }
-          .select__options__item--selected {
-            background-color: #e0e0e0;
-          }
-          .select__options__noresult {
-            padding: 16px;
-            font-size: 14px;
-            width: 90%;
-            overflow-x: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 8px;
+          .select__options__noresults {
+            cursor: pointer;
+            font-size: 15px;
+            padding: 4px 8px;
           }
         `}
       </style>

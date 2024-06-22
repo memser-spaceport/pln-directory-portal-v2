@@ -35,7 +35,7 @@ const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '',
           id={id}
           placeholder={placeholder}
           onChange={onTextChange}
-          className={`tf__input ${inputValue === '' && isMandatory ? 'tf__input--error' : ''}`}
+          className="tf__input"
           defaultValue={defaultValue}
           required={isMandatory}
           maxLength={maxLength}
@@ -62,7 +62,7 @@ const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '',
             font-size: 14px;
             line-height: 24px;
           }
-          .tf__input--error {
+          .tf__input:invalid {
             border: 1px solid red;
           }
 

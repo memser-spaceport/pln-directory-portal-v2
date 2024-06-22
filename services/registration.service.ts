@@ -15,19 +15,19 @@ export const getTeamsFormOptions = async () => {
     return { isError: true };
   }
 
-  const formattedTechnologies = technologies?.map((technology) => ({
+  const formattedTechnologies = technologies?.map((technology: any) => ({
     id: technology?.uid,
     name: technology?.title,
   }));
 
-  const formattedFundingStages = fundingTags.map((tag) => ({ id: tag?.uid, name: tag?.title }));
+  const formattedFundingStages = fundingTags.map((tag: any) => ({ id: tag?.uid, name: tag?.title }));
 
-  const formattedMembershipResources = membershipSources?.map((source) => ({
+  const formattedMembershipResources = membershipSources?.map((source: any) => ({
     id: source?.uid,
     name: source?.title,
   }));
 
-  const formattedIndustryTags = industryTags.map((tag) => ({ id: tag?.uid, name: tag?.title }));
+  const formattedIndustryTags = industryTags.map((tag: any) => ({ id: tag?.uid, name: tag?.title }));
 
   return { technologies: formattedTechnologies, fundingStage: formattedFundingStages, membershipSources: formattedMembershipResources, industryTags: formattedIndustryTags };
 };
@@ -35,7 +35,6 @@ export const getTeamsFormOptions = async () => {
 export const saveRegistrationImage = async (payload: any) => {
   const formData = new FormData();
   formData.append('file', payload);
-  console.log("in",payload)
   const requestOptions = {
     method: 'POST',
     body: formData,

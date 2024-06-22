@@ -6,14 +6,15 @@ import StepsIndicatorMobile from '../../core/register/steps-indicator-mobile';
 import StepsIndicatorDesktop from '../../core/register/steps-indicator-desktop';
 import TeamRegisterInfo from './team-register-info';
 import TeamRegisterForm from './team-register-form';
+import RegsiterFormLoader from '@/components/core/register/register-form-loader';
+import { EVENTS } from '@/utils/constants';
 
 function TeamRegisterDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const steps = ['basic', 'project details', 'social'];
+  const steps = ['basic', 'project details', 'social', 'success'];
 
   const onDialogClose = () => {
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
-    document.dispatchEvent(new CustomEvent('team-register-success'));
   };
 
   const onCloseRegister = () => {
@@ -28,9 +29,9 @@ function TeamRegisterDialog() {
         dialogRef.current.showModal();
       }
     }
-    document.addEventListener('open-team-register-dialog', dialogHandler as EventListener);
+    document.addEventListener(EVENTS.OPEN_TEAM_REGISTER_DIALOG, dialogHandler as EventListener);
     return function () {
-      document.removeEventListener('open-team-register-dialog', dialogHandler as EventListener);
+      document.removeEventListener(EVENTS.OPEN_TEAM_REGISTER_DIALOG, dialogHandler as EventListener);
     };
   }, []);
 
@@ -46,11 +47,7 @@ function TeamRegisterDialog() {
             <StepsIndicatorDesktop steps={steps} />
           </aside>
           <section className="teamReg__cn__content">
-            {/*  {currentStep === 'basic' && (
-              <div className="register__cn__bannermobile">
-                <RegisterInfo />
-              </div>
-            )} */}
+            <RegsiterFormLoader/>
             <TeamRegisterForm onCloseForm={onCloseRegister} />
           </section>
         </div>
@@ -101,6 +98,7 @@ function TeamRegisterDialog() {
           height: 100%;
           flex: 1;
           overflow: hidden;
+          position: relative;
         }
 
         @media (min-width: 1200px) {

@@ -39,7 +39,6 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   const remainingOptions: Option[] = [...options].filter((v) => !selectedOptionsIds.includes(v[uniqueKey]));
 
   const handleOptionClick = (option: Option) => {
-    console.log(option);
     onAdd(option);
   };
 

@@ -7,8 +7,8 @@ export const validatePariticipantsEmail = async (emailid: string, participantTyp
     method: 'POST',
     body: JSON.stringify(data),
     headers: {
-        'Content-Type': 'application/json'
-      }
+      'Content-Type': 'application/json',
+    },
   });
   if (!result.ok) {
     return {
@@ -20,9 +20,20 @@ export const validatePariticipantsEmail = async (emailid: string, participantTyp
     return {
       isValid: false,
     };
-  } 
+  }
 
   return {
     isValid: true,
   };
+};
+
+export const createParticipantRequest = async (payload: any) => {
+  return await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 };

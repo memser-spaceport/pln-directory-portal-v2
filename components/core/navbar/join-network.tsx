@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import useClickedOutside from '@/hooks/useClickedOutside';
-import { JOIN_NETWORK_MENUS, TOAST_MESSAGES } from '@/utils/constants';
+import { EVENTS, JOIN_NETWORK_MENUS, TOAST_MESSAGES } from '@/utils/constants';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
@@ -26,12 +26,12 @@ export default function JoinNetwork() {
     }
   };
 
-  const onJoinNetworkListClick = (item) => {
+  const onJoinNetworkListClick = (item:any) => {
     analytics.onNavJoinNetworkOptionClicked(item.name);
     if(item.key === 'member') {
-      document.dispatchEvent(new CustomEvent('open-member-register-dialog'));
+      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_MEMBER_REGISTER_DIALOG));
     } else if(item.key === 'team') {
-      document.dispatchEvent(new CustomEvent('open-team-register-dialog'));
+      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
     }
     setIsOpen(false)
   };

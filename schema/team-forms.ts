@@ -30,12 +30,11 @@ export const basicInfoSchema = z.object({
     .trim()
     .min(1)
     .max(2000),
-  profileimage: z
+  profileImage: z
     .string()
     .refine(
       (base64) => {
         const { mime } = decodeBase64(base64);
-        console.log(mime, 'miem');
         return validFormats.includes(mime);
       },
       {

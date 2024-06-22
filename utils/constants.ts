@@ -25,11 +25,14 @@ export const NAV_OPTIONS = [
   },
 ];
 
-  export const EVENTS = {
-    TRIGGER_LOADER: "TRIGGER_LOADER",
-    TRIGGER_MOBILE_NAV: "TRIGGER_MOBILE_NAV",
-    SHOW_FILTER: "SHOW_FILTER",
-  };
+export const EVENTS = {
+  TRIGGER_LOADER: 'TRIGGER_LOADER',
+  TRIGGER_MOBILE_NAV: 'TRIGGER_MOBILE_NAV',
+  TRIGGER_REGISTER_LOADER: 'trigger-register-loader',
+  OPEN_TEAM_REGISTER_DIALOG: 'open-team-register-dialog',
+  OPEN_MEMBER_REGISTER_DIALOG: 'open-member-register-dialog',
+  SHOW_FILTER: 'SHOW_FILTER',
+};
 
 export const HELPER_MENU_OPTIONS = [
   {
@@ -69,6 +72,7 @@ export const TOAST_MESSAGES = {
   LOGOUT_MSG: 'You have been logged out successfully',
   LOGIN_MSG: 'Successfully Logged In',
   LOGGED_IN_MSG: 'You are already logged in',
+  SOMETHING_WENT_WRONG: 'Something went wrong',
 };
 
 export const AUTH_ANALYTICS = {
@@ -86,57 +90,60 @@ export const AUTH_ANALYTICS = {
   AUTH_SETTINGS_PRIVY_ACCOUNT_LINK: 'AUTH_SETTINGS_PRIVY_ACCOUNT_LINK',
 };
 
-  export const TEAMS_ANALYTICS_EVENTS = {
-    TEAM_OFFICE_HOURS_FILTER_SELECTED: 'team-office-hours-filter-selected',
-    TEAM_FRIENDS_OF_PROTOCOL_FILTER_SELECTED: 'team-friends-of-protocol-filter-selected',
-    FILTERS_APPLIED: 'filters-applied',
-    TEAM_CLEAR_ALL_FILTERS_APPLIED: 'team-clears-all-filters-applied',
-    TEAM_VIEW_FILTER_RESULT_CLICKED: 'team-view-filter-result-clicked',
-    TEAM_CLOSE_FILTER_PANEL_CLICKED: 'team-close-filter-panel-clicked'
-  }
+export const TEAMS_ANALYTICS_EVENTS = {
+  TEAM_OFFICE_HOURS_FILTER_SELECTED: 'team-office-hours-filter-selected',
+  TEAM_FRIENDS_OF_PROTOCOL_FILTER_SELECTED: 'team-friends-of-protocol-filter-selected',
+  FILTERS_APPLIED: 'filters-applied',
+  TEAM_CLEAR_ALL_FILTERS_APPLIED: 'team-clears-all-filters-applied',
+  TEAM_VIEW_FILTER_RESULT_CLICKED: 'team-view-filter-result-clicked',
+  TEAM_CLOSE_FILTER_PANEL_CLICKED: 'team-close-filter-panel-clicked',
+};
 
-  export const PAGE_ROUTES = {
-    MEMBERS: "/members",
-    TEAMS: "/teams",
-    SETTINGS: "/settings",
-    PROJECTS: "/projects",
-    IRL: "/irl"
-  };
+export const PAGE_ROUTES = {
+  MEMBERS: '/members',
+  TEAMS: '/teams',
+  SETTINGS: '/settings',
+  PROJECTS: '/projects',
+  IRL: '/irl',
+};
 
-  export const SORT_OPTIONS = {
-    ASCENDING: "Name,asc",
-    DESCENDING: "Name,desc",
-  };
+export const SORT_OPTIONS = {
+  ASCENDING: 'Name,asc',
+  DESCENDING: 'Name,desc',
+};
 
-  export const URL_QUERY_VALUE_SEPARATOR = "|";
+export const URL_QUERY_VALUE_SEPARATOR = '|';
 
-  export const PRIVATE_FILTERS = ["region", "country", "metroArea"];
+export const PRIVATE_FILTERS = ['region', 'country', 'metroArea'];
 
-  export const VIEW_TYPE_OPTIONS = {
-    GRID: "Grid View",
-    LIST: "List View",
-  };
+export const VIEW_TYPE_OPTIONS = {
+  GRID: 'Grid View',
+  LIST: 'List View',
+};
 
+export const SORT_ICONS = [
+  {
+    name: 'Name,asc',
+    label: 'Ascending',
+    selectedIcon: '/icons/ascending-selected.svg',
+    deselectIcon: '/icons/ascending-black.svg',
+  },
+  {
+    name: 'Name,desc',
+    label: 'Descending',
+    selectedIcon: '/icons/descending-selected.svg',
+    deselectIcon: '/icons/descending-black.svg',
+  },
+];
 
-  export const SORT_ICONS = [
-    {
-      name: "Name,asc",
-      label: "Ascending",
-      selectedIcon: "/icons/ascending-selected.svg",
-      deselectIcon: "/icons/ascending-black.svg",
-    },
-    {
-      name: "Name,desc",
-      label: "Descending",
-      selectedIcon: "/icons/descending-selected.svg",
-      deselectIcon: "/icons/descending-black.svg",
-    },
-  ];
+export const FOCUS_AREAS_FILTER_KEYS = {
+  projects: 'projectAncestorFocusAreas',
+  teams: 'teamAncestorFocusAreas',
+};
 
-  export const FOCUS_AREAS_FILTER_KEYS = {
-    projects: "projectAncestorFocusAreas",
-    teams: "teamAncestorFocusAreas"
-  }
+export const ITEMS_PER_PAGE = 40;
 
-  
-  export const ITEMS_PER_PAGE = 40;
+export const ENROLLMENT_TYPE = {
+  MEMBER: 'MEMBER',
+  TEAM: 'TEAM',
+};

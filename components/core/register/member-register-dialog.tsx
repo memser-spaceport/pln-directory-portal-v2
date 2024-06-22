@@ -7,6 +7,7 @@ import RegisterInfo from '../../page/member-info/register-info';
 import StepsIndicatorDesktop from './steps-indicator-desktop';
 import StepsIndicatorMobile from './steps-indicator-mobile';
 import useStepsIndicator from '@/hooks/useStepsIndicator';
+import { EVENTS } from '@/utils/constants';
 
 function MemberRegisterDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -27,9 +28,9 @@ function MemberRegisterDialog() {
         dialogRef.current.showModal();
       }
     }
-    document.addEventListener('open-member-register-dialog', dialogHandler);
+    document.addEventListener(EVENTS.OPEN_MEMBER_REGISTER_DIALOG, dialogHandler);
     return function () {
-      document.removeEventListener('open-member-register-dialog', dialogHandler);
+      document.removeEventListener(EVENTS.OPEN_MEMBER_REGISTER_DIALOG, dialogHandler);
     };
   }, []);
 

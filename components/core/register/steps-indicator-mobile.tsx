@@ -8,10 +8,10 @@ function StepsIndicatorMobile(props) {
   const currentStepIndex = steps.findIndex((v) => v === currentStep);
   return (
     <>
-      <div className="mri__stepsm">
+      {currentStep !== 'success' &&<div className="mri__stepsm">
         <p className='mri__stepsm__stepname'>{currentStep}</p>
-        <p className='mri__stepsm__stepinfo'>{`Step ${currentStepIndex + 1} of ${steps.length}`}</p>
-      </div>
+        <p className='mri__stepsm__stepinfo'>{`Step ${currentStepIndex + 1} of ${steps.length - 1}`}</p>
+      </div>}
       <style jsx>
         {`
           .mri {

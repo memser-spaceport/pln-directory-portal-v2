@@ -7,6 +7,7 @@ import { basicInfoSchema, projectDetailsSchema, socialSchema } from '@/schema/te
 import { getTeamsFormOptions, saveRegistrationImage } from '@/services/registration.service';
 import TeamProjectsInfo from './team-projects-info';
 import TeamSocialInfo from './team-social-info';
+import { validatePariticipantsEmail } from '@/services/participants-request.service';
 
 interface ITeamRegisterForm {
   onCloseForm: () => void;
@@ -14,12 +15,38 @@ interface ITeamRegisterForm {
 
 function TeamRegisterForm(props: ITeamRegisterForm) {
   const onCloseForm = props.onCloseForm;
-  const { currentStep, goToNextStep, goToPreviousStep } = useStepsIndicator({ steps: ['basic', 'project details', 'social'], defaultStep: 'basic', uniqueKey: 'register' });
+  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'project details', 'social'], defaultStep: 'basic', uniqueKey: 'register' });
   const formRef = useRef<HTMLFormElement>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
-  const [basicErrors, setBasicErrors] = useState([]);
+  const [basicErrors, setBasicErrors] = useState<any>([]);
   const [projectDetailsErrors, setProjectDetailsErrors] = useState([]);
-  const [socialErrors, setSocialErrors] = useState([]);
+  const [socialErrors, setSocialErrors] = useState<any>([]);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const initialValues = {
+    basicInfo: {
+      requestorEmail: '',
+      teamProfile: '',
+      name: '',
+      shortDescription: '',
+      longDescription: '',
+      officeHoures: '',
+    },
+    projectsInfo: {
+      technologies: [],
+      membershipSources: [],
+      industryTags: [],
+      fundingStage: { id: '', name: '' },
+    },
+    socialInfo: {
+      contactMethod: '',
+      website: '',
+      linkedinHandler: '',
+      twitterHandler: '',
+      telegramHandler: '',
+      blog: '',
+    },
+  };
 
   const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,11 +60,53 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           return;
         }
         setSocialErrors([]);
+
         let image: any;
-        try {
-          // const imgResponse = await saveRegistrationImage(formattedData?.teamImage);
-          // image = imgResponse?.data?.image;
-        } catch (err) {}
+        setIsSubmitted(true);
+        // try {
+        //   if (formattedData?.teamImage?.name) {
+        //     const imgResponse = await saveRegistrationImage(formattedData?.teamImage);
+        //     image = imgResponse?.image;
+        //   }
+
+        //   console.log('jjj', image);
+
+        //   const data = {
+        //     participantType: 'TEAM',
+        //     status: 'PENDING',
+        //     requesterEmailId: formattedData?.requestorEmail,
+        //     uniqueIdentifier: formattedData?.name,
+        //     newData: { ...formattedData, logoUid: image?.uid ?? '', logoUrl: image?.url ?? '' },
+        //   };
+        //   delete data.newData.profileImage;
+        //   delete data.newData.teamImage;
+
+        //   const tokenResult = await fetch(`${process.env.DIRECTORY_API_URL}/token`, {
+        //     method: 'GET',
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //     },
+        //   });
+
+        //   const output = await tokenResult.json();
+        //   const token = output.token;
+
+        //   const formResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request`, {
+        //     method: 'POST',
+        //     body: JSON.stringify(data),
+        //     credentials: 'include',
+        //     headers: {
+        //       'csrf-token': token,
+        //       'Content-Type': 'application/json',
+        //     },
+        //   });
+
+        //   if (formResult.ok) {
+        //     goToNextStep();
+        //   } else {
+        //     console.log(await formResult.json());
+        //   }
+        // } catch (err) {}
       }
     }
   };
@@ -54,16 +123,30 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
     return { success: true, errors: [] };
   };
 
-  const onNextClicked = () => {
+  const onNextClicked = async () => {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formattedData = transformObject(Object.fromEntries(formData));
       if (currentStep === 'basic') {
         const validationResponse = validateForm(basicInfoSchema, formattedData);
-        if (!validationResponse.success) {
-          setBasicErrors(validationResponse.errors);
+        const nameVerification = await validatePariticipantsEmail(formattedData.name, 'TEAM');
+
+        if (!validationResponse.success || !nameVerification.isValid) {
+          setBasicErrors((prevErrors) => {
+            const newErrors = [...validationResponse.errors];
+            if (!nameVerification.isValid) {
+              const errorIndex = prevErrors.findIndex((error) => error.key === 'uniqueName');
+              if (errorIndex !== -1) {
+                newErrors[errorIndex] = { ...prevErrors[errorIndex], message: 'Name Already exists' };
+              } else {
+                newErrors.push({ key: 'uniqueName', message: 'Name Already exists' });
+              }
+            }
+            return newErrors;
+          });
           return;
         }
+
         setBasicErrors([]);
       } else if (currentStep === 'project details') {
         const validationResponse = validateForm(projectDetailsSchema, formattedData);
@@ -85,7 +168,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
     const result: any = {};
     const fundingStage: any = {};
     const technologies: any = {};
-    const membershipResources: any = {};
+    const membershipSources: any = {};
     const industryTags: any = {};
 
     for (const key in obj) {
@@ -102,15 +185,15 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           }
           technologies[technologyIndex][subKey] = obj[key];
         }
-      } else if (key.startsWith('membershipResource')) {
-        const [membershipResource, subKey] = key.split('-');
-        const membershipResourceIndexMatch = membershipResource.match(/\d+$/);
-        if (membershipResourceIndexMatch) {
-          const membershipResourceIndex = membershipResourceIndexMatch[0];
-          if (!membershipResources[membershipResourceIndex]) {
-            membershipResources[membershipResourceIndex] = {};
+      } else if (key.startsWith('membershipSource')) {
+        const [membershipSource, subKey] = key.split('-');
+        const membershipSourceIndexMatch = membershipSource.match(/\d+$/);
+        if (membershipSourceIndexMatch) {
+          const membershipSourceIndex = membershipSourceIndexMatch[0];
+          if (!membershipSources[membershipSourceIndex]) {
+            membershipSources[membershipSourceIndex] = {};
           }
-          membershipResources[membershipResourceIndex][subKey] = obj[key];
+          membershipSources[membershipSourceIndex][subKey] = obj[key];
         }
       } else if (key.startsWith('industryTag')) {
         const [industryTag, subKey] = key.split('-');
@@ -129,7 +212,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
 
     result.fundingStage = fundingStage;
     result.technologies = Object.values(technologies);
-    result.membershipResources = Object.values(membershipResources);
+    result.membershipResources = Object.values(membershipSources);
     result.industryTags = Object.values(industryTags);
     return result;
   }
@@ -144,49 +227,83 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
       .catch((e) => console.error(e));
   }, []);
 
+  useEffect(() => {
+    function resetHandler() {
+      if (formRef.current) {
+        formRef.current.reset();
+        setCurrentStep('basic');
+      }
+    }
+    document.addEventListener('reset-team-register-form', resetHandler);
+    return function () {
+      document.removeEventListener('reset-team-register-form', resetHandler);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handler(e: CustomEvent) {
+      setIsSubmitted(false);
+    }
+
+    document.addEventListener('team-register-success', handler as EventListener);
+    return function () {
+      document.removeEventListener('team-register-success', handler as EventListener);
+    };
+  }, []);
+
   return (
     <>
-      <form className="rf" onSubmit={onFormSubmit} ref={formRef}>
-        <div className="rf__form">
-          <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
-            <TeamBasicInfo errors={basicErrors} />
+      {!isSubmitted && (
+        <form className="rf" onSubmit={onFormSubmit} ref={formRef}>
+          <div className="rf__form">
+            <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
+              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} />
+            </div>
+            <div className={currentStep !== 'project details' ? 'hidden' : 'form'}>
+              <TeamProjectsInfo
+                errors={projectDetailsErrors}
+                protocolOptions={allData?.technologies}
+                fundingStageOptions={allData?.fundingStage}
+                membershipSourceOptions={allData?.membershipSources}
+                industryTagOptions={allData?.industryTags}
+                initialValues={initialValues.projectsInfo}
+              />
+            </div>
+            <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
+              <TeamSocialInfo errors={socialErrors} />
+            </div>
           </div>
-          <div className={currentStep !== 'project details' ? 'hidden' : 'form'}>
-            <TeamProjectsInfo
-              errors={projectDetailsErrors}
-              protocolOptions={allData?.technologies}
-              fundingStageOptions={allData?.fundingStage}
-              membershipResourceOptions={allData?.membershipSources}
-              industryTagOptions={allData?.industryTags}
-            />
+          <div className="rf__actions">
+            {currentStep === 'basic' && (
+              <button onClick={onCloseForm} className="rf__actions__cancel" type="button">
+                Cancel
+              </button>
+            )}
+            {currentStep !== 'basic' && (
+              <button className="rf__actions__back" onClick={onBackClicked} type="button">
+                Back
+              </button>
+            )}
+            {currentStep !== 'social' && (
+              <button className="rf__actions__next" onClick={onNextClicked} type="button">
+                Next
+              </button>
+            )}
+            {currentStep === 'social' && (
+              <button className="rf__actions__submit" type="submit">
+                Submit
+              </button>
+            )}
           </div>
-          <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
-            <TeamSocialInfo errors={socialErrors} />
-          </div>
+        </form>
+      )}
+      {isSubmitted && (
+        <div className="teamReg__cn__content__submit">
+          <p className="teamReg__cn__content__submit__ttl">Thank You for Submitting</p>
+          <p className="teamReg__cn__content__submit__desc">Our team will review your request shortly and get back</p>
+          <button onClick={onCloseForm} className="teamReg__cn__content__submit__cls">Close</button>
         </div>
-        <div className="rf__actions">
-          {currentStep === 'basic' && (
-            <button onClick={onCloseForm} className="rf__actions__cancel" type="button">
-              Cancel
-            </button>
-          )}
-          {currentStep !== 'basic' && (
-            <button className="rf__actions__back" onClick={onBackClicked} type="button">
-              Back
-            </button>
-          )}
-          {currentStep !== 'social' && (
-            <button className="rf__actions__next" onClick={onNextClicked} type="button">
-              Next
-            </button>
-          )}
-          {currentStep === 'social' && (
-            <button className="rf__actions__submit" type="submit">
-              Submit
-            </button>
-          )}
-        </div>
-      </form>
+      )}
       <style jsx>
         {`
           .hidden {
@@ -242,6 +359,46 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             font-size: 14px;
             font-weight: 500;
           }
+
+          .teamReg__cn__content__submit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            margin: auto;
+          }
+
+          .teamReg__cn__content__submit__ttl {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 32px;
+            color: #0f172a;
+          }
+
+          .teamReg__cn__content__submit__desc {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+            color: #0f172a;
+            margin: 8px 0px 0px 0px;
+          }
+
+          .teamReg__cn__content__submit__cls {
+            width: 86px;
+            height: 40px;
+            padding: 10px 24px 10px 24px;
+            gap: 8px;
+            border-radius: 8px;
+            border: 1px 0px 0px 0px;
+            background: #156ff7;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #ffffff;
+            margin: 18px 0px 0px 0px;
+          }
+
           @media (min-width: 1200px) {
             .rf__form {
               padding: 24px 32px;

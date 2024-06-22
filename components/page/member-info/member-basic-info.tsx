@@ -36,7 +36,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
-        setProfileImage(initialValues.imageFile)
+        setProfileImage(initialValues.teamProfile)
       }
     }
     document.addEventListener('reset-member-register-form', resetHandler);
@@ -67,7 +67,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
               )}
             </label>
             <input onChange={onImageUpload} id="member-image-upload" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
-            {profileImage && <input hidden name="profileimage" value={profileImage} />}
+            {profileImage && <input hidden name="teamProfile" value={profileImage} />}
             <div className="memberinfo__form__item">
               <TextField isMandatory={true} id="register-member-name" label="Name*" defaultValue={initialValues.name} name="name" type="text" placeholder="Enter your full name" />
             </div>

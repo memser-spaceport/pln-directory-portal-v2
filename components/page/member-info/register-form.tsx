@@ -108,7 +108,8 @@ function RegisterForm(props) {
         scrollToTop();
         return;
       }
-      const emailVerification = await validatePariticipantsEmail(formattedData.email, 'MEMBER');
+      const email = formattedData?.email?.toLowerCase().trim();
+      const emailVerification = await validatePariticipantsEmail(email, 'MEMBER');
       if (!emailVerification.isValid) {
         setBasicErrors(['Email already exist. Please enter another email']);
         scrollToTop();

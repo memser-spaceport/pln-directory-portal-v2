@@ -1,7 +1,7 @@
 import HiddenField from '@/components/form/hidden-field';
 import MultiSelect from '@/components/form/multi-select';
 import SingleSelect from '@/components/form/single-select';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ICommonProperties {
   id: string;
@@ -10,26 +10,28 @@ interface ICommonProperties {
 
 interface IProtocolOptions extends ICommonProperties {}
 interface IFundingStage extends ICommonProperties {}
-interface IMembershipResourceOptions extends ICommonProperties {}
+interface IMembershipSourceOptions extends ICommonProperties {}
 interface IIndustryTagsOptions extends ICommonProperties {}
 interface ITeamProjectsInfo {
   protocolOptions: IProtocolOptions[];
   fundingStageOptions: IFundingStage[];
-  membershipResourceOptions: IMembershipResourceOptions[];
+  membershipSourceOptions: IMembershipSourceOptions[];
   industryTagOptions: IIndustryTagsOptions[];
   errors: { key: string; message: string }[];
+  initialValues: any;
 }
 
 const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
+  const initialValues = props?.initialValues;
   const protocolOptions = props?.protocolOptions;
   const fundingStageOptions = props?.fundingStageOptions;
-  const membershipResourceOptions = props?.membershipResourceOptions;
+  const membershipResourceOptions = props?.membershipSourceOptions;
   const industryTagOptions = props?.industryTagOptions;
   const errors = props?.errors;
-  const [selectedProtocols, setSelectedProtocols] = useState<IProtocolOptions[]>([]);
-  const [selectedMembershipResources, setSelectedMembershipResources] = useState<IMembershipResourceOptions[]>([]);
-  const [selectedIndustryTags, setSelectedIndustryTags] = useState<IProtocolOptions[]>([]);
-  const [selectedFundingStage, setSelectedFundingStage] = useState<IFundingStage>({ id: '', name: '' });
+  const [selectedProtocols, setSelectedProtocols] = useState<IProtocolOptions[]>(initialValues.technologies);
+  const [selectedMembershipSources, setSelectedMembershipSources] = useState<IMembershipSourceOptions[]>(initialValues.membershipSources);
+  const [selectedIndustryTags, setSelectedIndustryTags] = useState<IIndustryTagsOptions[]>(initialValues.industryTags);
+  const [selectedFundingStage, setSelectedFundingStage] = useState<IFundingStage>(initialValues.fundingStage);
 
   const addItem = (setState: React.Dispatch<React.SetStateAction<any[]>>, itemToAdd: any) => {
     setState((prevItems: any[]) => {
@@ -47,6 +49,19 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const onTeamSelectionChanged = (item: any) => {
     setSelectedFundingStage(item);
   };
+
+  useEffect(() => {
+    function resetHandler() {
+      setSelectedProtocols(initialValues.technologies);
+      setSelectedMembershipSources(initialValues.membershipSources);
+      setSelectedIndustryTags(initialValues.industryTags);
+      setSelectedFundingStage(initialValues.fundingStage);
+    }
+    document.addEventListener('reset-team-register-form', resetHandler);
+    return function () {
+      document.removeEventListener('reset-team-register-form', resetHandler);
+    };
+  }, [initialValues]);
 
   return (
     <>
@@ -108,9 +123,9 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
         <div className="teamProject__form__item">
           <MultiSelect
             options={membershipResourceOptions}
-            selectedOptions={selectedMembershipResources}
-            onAdd={(itemToAdd) => addItem(setSelectedMembershipResources, itemToAdd)}
-            onRemove={(itemToRemove) => removeItem(setSelectedMembershipResources, itemToRemove)}
+            selectedOptions={selectedMembershipSources}
+            onAdd={(itemToAdd) => addItem(setSelectedMembershipSources, itemToAdd)}
+            onRemove={(itemToRemove) => removeItem(setSelectedMembershipSources, itemToRemove)}
             uniqueKey="id"
             displayKey="name"
             label="Membership Source"
@@ -120,10 +135,10 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             arrowImgUrl="/icons/arrow-down.svg"
           />
           <div className="hidden">
-            {selectedMembershipResources.map((source, index) => (
-              <div key={`team-membershipResource-${index}`}>
-                <HiddenField value={source.name} defaultValue="" name={`membershipResource${index}-title`} />
-                <HiddenField value={source.id} defaultValue="" name={`membershipResource${index}-uid`} />
+            {selectedMembershipSources.map((source, index) => (
+              <div key={`team-membershipSource-${index}`}>
+                <HiddenField value={source.name} defaultValue="" name={`membershipSource${index}-title`} />
+                <HiddenField value={source.id} defaultValue="" name={`membershipSource${index}-uid`} />
               </div>
             ))}
           </div>

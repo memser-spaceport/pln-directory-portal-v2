@@ -1,6 +1,6 @@
 export const validatePariticipantsEmail = async (emailid: string, participantType: string) => {
   const data = {
-    uniqueIdentifier: emailid.toLowerCase().trim(),
+    uniqueIdentifier: emailid.trim(),
     participantType: participantType,
   };
   const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request/unique-identifier`, {

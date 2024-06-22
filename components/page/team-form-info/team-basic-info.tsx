@@ -1,18 +1,20 @@
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface ITeamBasicInfo {
   errors: { key: string; message: string }[];
+  initialValues: any;
 }
 
 function TeamBasicInfo(props: ITeamBasicInfo) {
   const errors = props?.errors;
-  const [profileImage, setProfileImage] = useState<string>('');
+  const initialValues = props?.initialValues;
+  const [profileImage, setProfileImage] = useState<string>(initialValues.teamProfile);
   const uploadImageRef = useRef<HTMLInputElement>(null);
+
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    console.log("fff", file)
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
@@ -26,7 +28,24 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
     e.stopPropagation();
     e.preventDefault();
     setProfileImage('');
+    if (uploadImageRef.current) {
+      uploadImageRef.current.value = '';
+    }
   };
+
+  useEffect(() => {
+    function resetHandler() {
+      if (uploadImageRef.current) {
+        uploadImageRef.current.value = '';
+        setProfileImage(initialValues.imageFile);
+      }
+    }
+    document.addEventListener('reset-team-register-form', resetHandler);
+    return function () {
+      document.removeEventListener('reset-team-register-form', resetHandler);
+    };
+  }, [initialValues]);
+
   return (
     <>
       <div className="teaminfo__form">
@@ -42,7 +61,15 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           </ul>
         )}
         <div className="teaminfo__form__email">
-          <TextField isMandatory={true} id="register-team-requestor-email" label="Requestor Email*" name="requestorEmail" type="email" placeholder="Enter your email address" />
+          <TextField
+            defaultValue={initialValues.requestorEmail}
+            isMandatory={true}
+            id="register-team-requestor-email"
+            label="Requestor Email*"
+            name="requestorEmail"
+            type="email"
+            placeholder="Enter your email address"
+          />
         </div>
         <div className="teaminfo__form__item">
           <div className="teaminfo__form__team">
@@ -58,11 +85,20 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                   </span>
                 )}
               </label>
-              <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name='teamImage' hidden type="file" accept="image/png, image/jpeg" />
-              {profileImage && <input hidden name="profileimage" value={profileImage} />}
+              <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamImage" hidden type="file" accept="image/png, image/jpeg" />
+              {profileImage && <input hidden name="profileImage" value={profileImage} />}
             </div>
             <div className="teaminfo__form__item">
-              <TextField maxLength={150} isMandatory id="register-team-name" label="What is your organization, company, or team name?*" name="name" type="text" placeholder="Enter name here" />
+              <TextField
+                defaultValue={initialValues.name}
+                maxLength={150}
+                isMandatory
+                id="register-team-name"
+                label="What is your organization, company, or team name?*"
+                name="name"
+                type="text"
+                placeholder="Enter name here"
+              />
             </div>
           </div>
           <p className="info">
@@ -72,6 +108,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
 
         <div className="teaminfo__form__item">
           <TextArea
+            defaultValue={initialValues.shortDescription}
             maxLength={1000}
             isMandatory
             id="register-team-shortDescription"
@@ -84,14 +121,30 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           </p>
         </div>
         <div className="teaminfo__form__item">
-          <TextArea maxLength={2000} isMandatory id="register-team-longDescription" name="longDescription" label="Long Description*" placeholder="Elaborate on your elevator pitch here" />
+          <TextArea
+            defaultValue={initialValues.longDescription}
+            maxLength={2000}
+            isMandatory
+            id="register-team-longDescription"
+            name="longDescription"
+            label="Long Description*"
+            placeholder="Elaborate on your elevator pitch here"
+          />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
             <span className="info__text">Please explain what your team does in a bit more detail. 4-5 sentences will be great!.</span>
           </p>
         </div>
         <div className="teaminfo__form__item">
-          <TextField isMandatory={false} id="register-team-officeHours" label="Team Office Hours" name="officeHours" type="text" placeholder="Enter link here" />
+          <TextField
+            defaultValue={initialValues.officeHours}
+            isMandatory={false}
+            id="register-team-officeHours"
+            label="Team Office Hours"
+            name="officeHours"
+            type="text"
+            placeholder="Enter link here"
+          />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
             <span className="info__text">If your team offers group office hours or open meetings that are open to the public, please share the link so PLN members can join and learn more.</span>

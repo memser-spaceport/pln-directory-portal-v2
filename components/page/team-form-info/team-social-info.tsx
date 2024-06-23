@@ -1,21 +1,21 @@
 import TextField from '@/components/form/text-field';
 
 interface ITeamSocialInfo {
-  errors: { key: string; message: string }[];
+  errors: string[];
 }
 
 function TeamSocialInfo(props: ITeamSocialInfo) {
   const errors = props?.errors;
-  
+
   return (
     <>
       <div className="teamSocialInfo__form">
         {errors.length > 0 && (
-          <ul className="teamSocialInfo__form__errs">
-            {errors.map((error: { key: string; message: string }, index: number) => {
+          <ul className="teaminfo__form__errs">
+            {errors.map((error: string, index: number) => {
               return (
-                <li className="teamSocialInfo__form__errs__err" key={`${error.key}-${index}`}>
-                  {error?.message}
+                <li className="teaminfo__form__errs__err" key={`team-err-${index}`}>
+                  {error}
                 </li>
               );
             })}

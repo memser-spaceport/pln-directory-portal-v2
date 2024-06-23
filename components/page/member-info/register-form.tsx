@@ -119,16 +119,31 @@ function RegisterForm(props: any) {
     const formData = new FormData(formRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
     if (currentStep === 'basic') {
+      const errors = [];
+
       const result = basicInfoSchema.safeParse(formattedData);
       if (!result.success) {
-        setBasicErrors(result.error.errors.map((v) => v.message));
-        scrollToTop();
-        return;
+        errors.push(...result.error.errors.map((v) => v.message));
       }
       const email = formattedData?.email?.toLowerCase().trim();
       const emailVerification = await validatePariticipantsEmail(email, 'MEMBER');
       if (!emailVerification.isValid) {
-        setBasicErrors(['Email already exist. Please enter another email']);
+        errors.push('Email already exist. Please enter another email');
+      }
+      const imageFile = formattedData?.memberProfile;
+
+      if (imageFile.name) {
+        if (!['image/jpeg', 'image/png'].includes(imageFile.type)) {
+          errors.push('Please upload image in jpeg or png format');
+        } else {
+          if (imageFile.size > 4 * 1024 * 1024) {
+            errors.push('Please upload a file less than 4MB');
+          }
+        }
+      }
+
+      if (errors.length > 0) {
+        setBasicErrors(errors);
         scrollToTop();
         return;
       }
@@ -147,7 +162,7 @@ function RegisterForm(props: any) {
     } else if (currentStep === 'contributions') {
       const result = projectContributionSchema.safeParse(formattedData);
       if (!result.success) {
-        const formatted = result.error.errors.reduce((acc:any, error) => {
+        const formatted = result.error.errors.reduce((acc: any, error) => {
           const [name, index, key] = error.path;
           if (!acc[index]) {
             acc[index] = [error.message];
@@ -223,7 +238,7 @@ function RegisterForm(props: any) {
     result.projectContributions = Object.values(projectContributions);
     result.skills = Object.values(skills);
 
-    result.projectContributions = result.projectContributions.map((v:any) => {
+    result.projectContributions = result.projectContributions.map((v: any) => {
       if (!v.currentProject) {
         v['currentProject'] = false;
       }

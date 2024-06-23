@@ -242,8 +242,8 @@ function RegisterForm(props: any) {
       if (!v.currentProject) {
         v['currentProject'] = false;
       }
-      v['startDate'] = v.startDate === '' ? v.startDate : new Date(v.startDate).toISOString();
-      v['endDate'] = v.endDate === '' ? v.endDate : new Date(v.endDate).toISOString();
+      v['startDate'] = v.startDate === '' ? null : new Date(v.startDate).toISOString();
+      v['endDate'] = v.endDate === '' ? null : new Date(v.endDate).toISOString();
       return v;
     });
     if (result['plnStartDate']) {

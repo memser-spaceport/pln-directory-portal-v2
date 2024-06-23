@@ -93,7 +93,6 @@ function MemberContributionInfo(props: any) {
       newV[index].projectUid = item.projectUid;
       newV[index].projectName = item.projectName;
       newV[index].projectLogo = item.projectLogo;
-      newV[index].currentProject = false;
       return [...newV];
     });
   };

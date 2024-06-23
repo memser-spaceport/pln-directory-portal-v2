@@ -2,12 +2,12 @@
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 
-function StepsIndicatorDesktop(props) {
+function StepsIndicatorDesktop(props:any) {
   const steps = props.steps ?? [];
   const stepsToSkip = props.skip ?? [];
   const filteredSteps = [...steps].filter(v => !stepsToSkip.includes(v))
   const { currentStep } = useStepsIndicator({ steps, defaultStep: 'basic', uniqueKey: 'register' });
-  const currentStepIndex = steps.findIndex((v) => v === currentStep);
+  const currentStepIndex = steps.findIndex((v:string) => v === currentStep);
   const activeIcon = '/icons/hexagon-active.svg';
   const completedIcon = '/icons/hexagon-completed.svg';
   const defaultIcon = '/icons/hexagon.svg';

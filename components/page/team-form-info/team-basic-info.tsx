@@ -10,7 +10,7 @@ interface ITeamBasicInfo {
 function TeamBasicInfo(props: ITeamBasicInfo) {
   const errors = props?.errors;
   const initialValues = props?.initialValues;
-  const [profileImage, setProfileImage] = useState<string>(initialValues.teamProfile);
+  const [profileImage, setProfileImage] = useState<string>(initialValues?.teamProfile);
   const uploadImageRef = useRef<HTMLInputElement>(null);
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,7 +37,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
-        setProfileImage(initialValues.imageFile);
+        setProfileImage(initialValues?.imageFile);
       }
     }
     document.addEventListener('reset-team-register-form', resetHandler);

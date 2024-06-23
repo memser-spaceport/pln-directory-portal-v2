@@ -1,4 +1,4 @@
-function AddContribution(props) {
+function AddContribution(props:any) {
   const onAddContribution = props.onAddContribution;
   return (
     <>

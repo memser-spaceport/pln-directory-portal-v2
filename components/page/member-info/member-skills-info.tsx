@@ -19,7 +19,7 @@ interface SkillsOptions {
   id: string;
 }
 
-function MemberSkillsInfo(props) {
+function MemberSkillsInfo(props:any) {
   const teamOptions = props.teamsOptions;
   const skillsOptions = props.skillsOptions;
   const errors = props.errors;

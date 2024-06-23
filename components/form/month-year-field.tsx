@@ -20,7 +20,6 @@ const getYears = (): number[] => {
   }
   return years;
 };
-const yearValues = getYears();
 
 // Month names constant
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];

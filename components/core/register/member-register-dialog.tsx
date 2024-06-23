@@ -3,15 +3,13 @@
 import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 import RegisterForm from '../../page/member-info/register-form';
-import RegisterInfo from '../../page/member-info/register-info';
 import StepsIndicatorDesktop from './steps-indicator-desktop';
 import StepsIndicatorMobile from './steps-indicator-mobile';
-import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { EVENTS } from '@/utils/constants';
 
 function MemberRegisterDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const steps = ['basic', 'skills', 'contributions', 'social'];
+  const steps = ['basic', 'skills', 'contributions', 'social', 'success'];
 
   const onDialogClose = () => {
     document.dispatchEvent(new CustomEvent('reset-member-register-form'))
@@ -39,7 +37,7 @@ function MemberRegisterDialog() {
       <dialog onClose={onDialogClose} ref={dialogRef} className="register">
         <div className="register__cn">
           <div className="register__cn__mobile">
-            <StepsIndicatorMobile steps={steps} />
+            <StepsIndicatorMobile skip={['success']} steps={steps} />
           </div>
           <aside className="register__cn__desktop">
             <div className="register__cn__desktop__info">
@@ -47,7 +45,7 @@ function MemberRegisterDialog() {
               <p className="register__cn__desktop__info__desc">Tell us about yourself</p>
               <div className="register__cn__desktop__info__sep"></div>
             </div>
-            <StepsIndicatorDesktop steps={steps} />
+            <StepsIndicatorDesktop skip={['success']} steps={steps} />
           </aside>
           <section className="register__cn__content">
             <RegisterForm onCloseForm={onCloseRegister} />

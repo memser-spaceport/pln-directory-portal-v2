@@ -2,169 +2,208 @@ import { useEffect, useRef, useState } from 'react';
 
 interface MonthYearFieldProps {
   label: string;
-  defaultValue: string;
-  id: string
+  defaultValue?: string;
+  id: string;
   name: string;
+  disabled?: boolean;
+  dateBoundary: 'start' | 'end';
   onChange: (dateString: string) => void;
 }
 
-function MonthYearField(props: MonthYearFieldProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const getYears = () => {
-    const currentYear = new Date().getFullYear();
-    const start = currentYear - 50;
-    const years = [];
-    for (let year = start; year <= currentYear; year++) {
-      years.push(year);
-    }
-    return years;
-  };
-  const label = props.label ?? '';
-  const yearValues = getYears();
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const defaultValue = props.defaultValue ?? 'min';
-  const defaultYear = defaultValue === 'min' ? yearValues[0] : yearValues[yearValues.length - 1];
-  const defaultMonth = defaultValue === 'min' ? 0 : 11;
+// Generate list of years
+const getYears = (): number[] => {
+  const currentYear = new Date().getFullYear();
+  const start = currentYear - 50;
+  const years = [];
+  for (let year = start; year <= currentYear; year++) {
+    years.push(year);
+  }
+  return years;
+};
+const yearValues = getYears();
 
-  const name = props.name;
-  const id = props.id;
+// Month names constant
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = 'start', disabled = false, name, defaultValue, onChange }: MonthYearFieldProps) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const monthDropdownRef = useRef<HTMLDivElement | null>(null);
+  const yearDropdownRef = useRef<HTMLDivElement | null>(null);
+  const yearValues = getYears();
+  const defaultDateValue = defaultValue ? new Date(defaultValue) : new Date();
+  const defaultYear = defaultDateValue.getFullYear();
+  const defaultMonth = defaultDateValue.getMonth();
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [isMonthDpActive, setMonthDpStatus] = useState(false);
   const [isYearDpActive, setYearDpStatus] = useState(false);
-  const defaultDate = defaultValue === 'min' ? new Date(defaultYear, defaultMonth) : new Date(defaultYear, defaultMonth + 1, 0);
-  const onMonthSelected = (e, index) => {
+
+  // Event handlers
+  const onMonthSelected = (e, index: number): void => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedMonth(index);
     setMonthDpStatus(false);
   };
 
-  const formatDate = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Ensure two digits
-    const day = date.getDate().toString().padStart(2, '0'); // Ensure two digits
-    return `${year}-${month}-${day}`;
-  };
-
-  const onYearSelected = (e, index) => {
+  const onYearSelected = (e, index: number): void => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedYear(yearValues[index]);
     setYearDpStatus(false);
   };
 
+  const formatDate = (year: number, month: number): string => {
+    const date = dateBoundary === 'start' ? new Date(Date.UTC(year, month, 1)) : new Date(Date.UTC(year, month - 1, 0));
+    return date.toISOString().slice(0, 10); // ISO date string format (YYYY-MM-DD)
+  };
+
+  // Effect for updating input field and parent component on change
   useEffect(() => {
-    const selectedDateValue = defaultValue === 'min' ? new Date(selectedYear, selectedMonth) : new Date(selectedYear, selectedMonth + 1, 0);
+    const formattedDate = formatDate(selectedYear, selectedMonth);
     if (inputRef.current) {
-      inputRef.current.value = formatDate(selectedDateValue);
-      props.onChange(formatDate(selectedDateValue))
+      if (disabled) {
+        inputRef.current.value = '';
+        onChange('');
+      } else {
+        inputRef.current.value = formattedDate;
+        onChange(formattedDate);
+      }
     }
-  }, [selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth, disabled]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        monthDropdownRef.current &&
+        !monthDropdownRef.current.contains(event.target as Node)
+      ) {
+        setMonthDpStatus(false);
+      }
+      if (
+        yearDropdownRef.current &&
+        !yearDropdownRef.current.contains(event.target as Node)
+      ) {
+        setYearDpStatus(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
-    <>
-      <div className="myf">
-        <label className="myf__title">{label}</label>
-        <input name={name} ref={inputRef} type="date" hidden readOnly defaultValue={formatDate(defaultDate)} />
-        <div className="myf__cn">
-          <div onClick={() => setMonthDpStatus((v) => !v)} className="myf__cn__dp myf__cn__dp--month">
-            <p>{monthNames[selectedMonth]}</p>
-            <img width="8" height="8" src="/icons/arrow-down.svg" />
-            {isMonthDpActive === true && (
-              <div className="myf__cn__dp__pane">
-                {monthNames.map((monthName, monthIndex) => (
-                  <div
-                    onClick={(e) => onMonthSelected(e, monthIndex)}
-                    className={`myf__cn__dp__pane__item ${selectedMonth === monthIndex ? 'myf__cn__dp__pane__item--active' : ''}`}
-                    key={`month-year${monthIndex}`}
-                  >
-                    <p>{monthName}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div onClick={() => setYearDpStatus((v) => !v)} className="myf__cn__dp myf__cn__dp--year">
-            <p>{`${selectedYear}`}</p>
-            <img width="8" height="8" src="/icons/arrow-down.svg" />
-            {isYearDpActive === true && (
-              <div className="myf__cn__dp__pane">
-                {yearValues.map((yearValue, yearIndex) => (
-                  <div
-                    onClick={(e) => onYearSelected(e, yearIndex)}
-                    className={`myf__cn__dp__pane__item ${selectedYear === yearValues[yearIndex] ? 'myf__cn__dp__pane__item--active' : ''}`}
-                    key={`month-year${yearIndex}`}
-                  >
-                    <p>{yearValue}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+    <div className="month-year-field">
+      <label className="month-year-field__label">{label}</label>
+      <input name={name} ref={inputRef} type="text" className="month-year-field__hidden-input" defaultValue={formatDate(defaultYear, defaultMonth)} readOnly />
+      <div className={`month-year-field__dropdowns ${disabled ? 'month-year-field__dropdowns--disabled' : ''}`}>
+        <div ref={monthDropdownRef} className="month-year-field__dropdown month-dropdown" onClick={() => !disabled && setMonthDpStatus((v) => !v)}>
+          {!disabled && <p className="month-year-field__dropdown-text">{monthNames[selectedMonth]}</p>}
+          {disabled && <p className="month-year-field__dropdown-text">Month</p>}
+          {!disabled && <img className="month-year-field__dropdown-icon" src="/icons/arrow-down.svg" alt="expand icon" />}
+          {isMonthDpActive && !disabled && (
+            <div className="month-year-field__dropdown-pane">
+              {monthNames.map((monthName, index) => (
+                <div key={`month-${index}`} className={`month-year-field__dropdown-item dropdown-item ${selectedMonth === index ? 'active' : ''}`} onClick={(e) => onMonthSelected(e, index)}>
+                  <p>{monthName}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div ref={yearDropdownRef} className="month-year-field__dropdown year-dropdown" onClick={() => !disabled && setYearDpStatus((v) => !v)}>
+          {!disabled && <p className="month-year-field__dropdown-text">{selectedYear}</p>}
+          {disabled && <p className="month-year-field__dropdown-text">Year</p>}
+          {!disabled && <img className="month-year-field__dropdown-icon" src="/icons/arrow-down.svg" alt="expand icon" />}
+          {isYearDpActive && !disabled && (
+            <div className="month-year-field__dropdown-pane">
+              {yearValues.map((year, index) => (
+                <div key={`year-${index}`} className={`month-year-field__dropdown-item dropdown-item ${selectedYear === year ? 'active' : ''}`} onClick={(e) => onYearSelected(e, index)}>
+                  <p>{year}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-      <style jsx>
-        {`
-          .myf {
-          }
-          .myf__cn {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-          }
-          .myf__title {
-            font-weight: 600;
-            font-size: 14px;
-          }
-          .myf__cn__dp {
-            padding: 8px 12px;
-            border: 1px solid grey;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 8px;
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-          }
 
-          .myf__cn__dp--month {
-            width: 115px;
-          }
-          .myf__cn__dp--year {
-            width: 80px;
-          }
-          .myf__cn__dp__pane {
-            padding: 8px;
-            border: 1px solid grey;
-            height: 100px;
-            position: absolute;
-            bottom: -102px;
-            background: white;
-            font-size: 12px;
-            left: 0;
-            right: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-          }
-          .myf__cn__dp__pane__item {
-            padding: 8px;
-            color: black;
-            border-radius: 2px;
-            background: white;
-          }
-          .myf__cn__dp__pane__item--active {
-            color: white;
-            background: #156ff7;
-          }
-          .myf__cn__dp__pane__item__text {
-          }
-        `}
-      </style>
-    </>
+      <style jsx>{`
+        .month-year-field {
+          /* Container styles */
+        }
+        .month-year-field__label {
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .month-year-field__hidden-input {
+          display: none;
+        }
+        .month-year-field__dropdowns {
+          display: flex;
+          gap: 8px;
+          margin-top: 12px;
+        }
+        .month-year-field__dropdown {
+          /* Dropdown container styles */
+          padding: 8px 12px;
+          border: 1px solid lightgrey;
+          font-size: 14px;
+          cursor: pointer;
+          border-radius: 8px;
+          display: flex;
+          gap: 8px;
+          justify-content: space-between;
+          align-items: center;
+          position: relative;
+        }
+        .month-dropdown {
+          width: 115px;
+        }
+        .year-dropdown {
+          width: 80px;
+        }
+        .month-year-field__dropdowns--disabled {
+          opacity: 0.6;
+          pointer-events: none;
+        }
+        .month-year-field__dropdown-text {
+          /* Dropdown text styles */
+        }
+        .month-year-field__dropdown-icon {
+          /* Dropdown arrow styles */
+        }
+        .month-year-field__dropdown-pane {
+          /* Dropdown pane styles */
+          padding: 8px;
+          border: 1px solid grey;
+          height: 100px;
+          position: absolute;
+          bottom: -102px;
+          background: white;
+          font-size: 12px;
+          left: 0;
+          right: 0;
+          overflow-y: auto;
+          overflow-x: hidden;
+          z-index: 2;
+        }
+        .month-year-field__dropdown-item {
+          /* Dropdown item styles */
+          padding: 8px;
+          color: black;
+          border-radius: 2px;
+          background: white;
+        }
+        .month-year-field__dropdown-item.active {
+          /* Active dropdown item styles */
+          color: white;
+          background: #156ff7;
+        }
+      `}</style>
+    </div>
   );
-}
+};
 
 export default MonthYearField;

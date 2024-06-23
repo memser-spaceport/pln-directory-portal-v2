@@ -1,26 +1,32 @@
 import React, { useState } from 'react';
 
-interface ToggleProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface ToggleProps {
   id: string;
   label?: string;
   name: string;
+  onChange: (isChecked: boolean) => void
+  checked?: boolean
+  disabled?:boolean
 }
 
-const Toggle: React.FC<ToggleProps> = ({ id, label, name, ...props }) => {
-  const [isChecked, setIsChecked] = useState<boolean>(props.checked || false);
+const Toggle: React.FC<ToggleProps> = ({ id, label, name, disabled=false, onChange, checked = false, ...props  }) => {
+  const [isChecked, setIsChecked] = useState<boolean>(checked || false);
 
   const handleToggle = () => {
-    setIsChecked(!isChecked);
+    if(!disabled) {
+      onChange(!isChecked)
+      setIsChecked(!isChecked);
+    }
   };
 
   return (
     <>
       <div className="toggle-container">
         {label && <label htmlFor={id}>{label}</label>}
-        <div className={`toggle-switch ${isChecked ? 'checked' : ''}`} onClick={handleToggle}>
+        <div className={`toggle-switch ${isChecked ? 'checked' : ''} ${disabled ? 'toggle-switch--disabled': ''}`} onClick={handleToggle}>
           <div className="toggle-knob" />
         </div>
-        <input type="checkbox" name={name} id={id} {...props} checked={isChecked} onChange={handleToggle} style={{ display: 'none' }} />
+        <input type="checkbox" name={name} disabled={disabled} id={id} {...props} checked={isChecked} onChange={handleToggle} style={{ display: 'none' }} />
       </div>
       <style jsx>
         {`
@@ -37,6 +43,9 @@ const Toggle: React.FC<ToggleProps> = ({ id, label, name, ...props }) => {
             cursor: pointer;
             transition: background-color 0.3s;
           }
+            .toggle-switch--disabled {
+             cursor: not-allowed;
+            }
           .toggle-switch.checked {
             background-color: #156ff7;
           }

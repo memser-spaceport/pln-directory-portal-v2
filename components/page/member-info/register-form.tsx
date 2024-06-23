@@ -1,4 +1,5 @@
 'use client';
+import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import MemberBasicInfo from '@/components/page/member-info/member-basic-info';
 import MemberContributionInfo from '@/components/page/member-info/member-contributions-info';
 import MemberSkillsInfo from '@/components/page/member-info/member-skills-info';
@@ -6,7 +7,10 @@ import MemberSocialInfo from '@/components/page/member-info/member-social-info';
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
+import { saveRegistrationImage } from '@/services/registration.service';
+import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 import { z } from 'zod';
 
 function RegisterForm(props) {
@@ -54,43 +58,54 @@ function RegisterForm(props) {
 
   const onFormSubmit = async (e) => {
     e.preventDefault();
-    if (formRef.current) {
-      const formData = new FormData(formRef.current);
-      const formValues = transformObject(Object.fromEntries(formData));
-      console.log(formValues);
+    try {
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
+      if (formRef.current) {
+        const formData = new FormData(formRef.current);
+        const formValues = transformObject(Object.fromEntries(formData));
+        console.log(formValues);
 
-      const bodyData = {
-        participantType: 'MEMBER',
-        status: 'PENDING',
-        requesterEmailId: formValues.email,
-        uniqueIdentifier: formValues.email,
-        newData: { ...formValues },
-      };
-      const tokenResult = await fetch(`${process.env.DIRECTORY_API_URL}/token`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+        if(formValues.memberProfile && formValues.memberProfile.size > 0) {
+          const imgResponse = await saveRegistrationImage(formValues.memberProfile);
+          const image = imgResponse?.image;
+          formValues.imageUid = image.uid;
+          formValues.imageUrl = image.url;
+        }
 
-      const output = await tokenResult.json();
-      const token = output.token;
-      const formResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request`, {
-        method: 'POST',
-        body: JSON.stringify(bodyData),
-        credentials: 'include',
-        headers: {
-          'csrf-token': token,
-          'Content-Type': 'application/json',
-        },
-      });
+        if(formValues.plnStartDate === '') {
+          formValues.plnStartDate = null;
+        }
 
-      if (formResult.ok) {
-        formRef.current.reset();
-        setCurrentStep('success');
-      } else {
-        console.log(await formResult.json());
+        const bodyData = {
+          participantType: 'MEMBER',
+          status: 'PENDING',
+          requesterEmailId: formValues.email,
+          uniqueIdentifier: formValues.email,
+          newData: { ...formValues },
+        };
+        const formResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request`, {
+          method: 'POST',
+          body: JSON.stringify(bodyData),
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (formResult.ok) {
+          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+          formRef.current.reset();
+          setCurrentStep('success');
+        } else {
+          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+          onCloseForm();
+          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        }
       }
+    } catch (err) {
+      onCloseForm();
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
     }
   };
 
@@ -288,6 +303,7 @@ function RegisterForm(props) {
 
   return (
     <>
+      <RegsiterFormLoader />
       {currentStep !== 'success' && (
         <form className="rf" onSubmit={onFormSubmit} ref={formRef}>
           <div ref={formContainerRef} className="rf__form">
@@ -332,7 +348,7 @@ function RegisterForm(props) {
         <div className="success">
           <h2 className="success__title">Thank You for Submitting</h2>
           <p className="success__desc">Our team will review your request shortly and get back</p>
-          <button onClick={onCloseForm}  type="button" className="success__btn">
+          <button onClick={onCloseForm} type="button" className="success__btn">
             Close
           </button>
         </div>

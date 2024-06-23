@@ -44,7 +44,7 @@ function TeamRegisterDialog() {
           </div>
           <aside className="teamReg__cn__desktopinfo">
             <TeamRegisterInfo />
-            <StepsIndicatorDesktop steps={steps} />
+            <StepsIndicatorDesktop skip={['success']} steps={steps} />
           </aside>
           <section className="teamReg__cn__content">
             <RegsiterFormLoader/>
@@ -101,7 +101,7 @@ function TeamRegisterDialog() {
           position: relative;
         }
 
-        @media (min-width: 1200px) {
+        @media (min-width: 1024px) {
           .teamReg__cn {
             flex-direction: row;
             overflow-y: hidden;
@@ -120,7 +120,7 @@ function TeamRegisterDialog() {
             height: 100%;
           }
           .teamReg__cn__content {
-            overflow-y: auto;
+            // overflow-y: auto;
           }
           .teamReg__close {
             display: block;

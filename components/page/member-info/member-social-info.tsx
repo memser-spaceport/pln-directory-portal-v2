@@ -1,7 +1,7 @@
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
 
-function MemberSocialInfo(props) {
+function MemberSocialInfo(props:any) {
   const errors = props.errors ?? [];
   return (
     <>

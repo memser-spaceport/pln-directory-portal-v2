@@ -6,6 +6,7 @@ interface ITeamSocialInfo {
 
 function TeamSocialInfo(props: ITeamSocialInfo) {
   const errors = props?.errors;
+  
   return (
     <>
       <div className="teamSocialInfo__form">

@@ -2,10 +2,10 @@
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 
-function StepsIndicatorMobile(props) {
+function StepsIndicatorMobile(props:any) {
   const steps = props.steps ?? [];
   const { currentStep } = useStepsIndicator({ steps, defaultStep: 'basic', uniqueKey: 'register' });
-  const currentStepIndex = steps.findIndex((v) => v === currentStep);
+  const currentStepIndex = steps.findIndex((v:string) => v === currentStep);
   return (
     <>
       {currentStep !== 'success' &&<div className="mri__stepsm">

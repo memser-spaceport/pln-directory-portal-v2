@@ -9,11 +9,10 @@ import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } f
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import { useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { z } from 'zod';
 
-function RegisterForm(props) {
+function RegisterForm(props: any) {
   const onCloseForm = props.onCloseForm;
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({
     steps: ['basic', 'skills', 'contributions', 'social', 'success'],
@@ -56,23 +55,21 @@ function RegisterForm(props) {
     },
   };
 
-  const onFormSubmit = async (e) => {
+  const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
       if (formRef.current) {
         const formData = new FormData(formRef.current);
         const formValues = transformObject(Object.fromEntries(formData));
-        console.log(formValues);
-
-        if(formValues.memberProfile && formValues.memberProfile.size > 0) {
+        if (formValues.memberProfile && formValues.memberProfile.size > 0) {
           const imgResponse = await saveRegistrationImage(formValues.memberProfile);
           const image = imgResponse?.image;
           formValues.imageUid = image.uid;
           formValues.imageUrl = image.url;
         }
 
-        if(formValues.plnStartDate === '') {
+        if (formValues.plnStartDate === '') {
           formValues.plnStartDate = null;
         }
 
@@ -121,7 +118,6 @@ function RegisterForm(props) {
     }
     const formData = new FormData(formRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
-    console.log(Object.fromEntries(formData), formattedData);
     if (currentStep === 'basic') {
       const result = basicInfoSchema.safeParse(formattedData);
       if (!result.success) {
@@ -151,7 +147,7 @@ function RegisterForm(props) {
     } else if (currentStep === 'contributions') {
       const result = projectContributionSchema.safeParse(formattedData);
       if (!result.success) {
-        const formatted = result.error.errors.reduce((acc, error) => {
+        const formatted = result.error.errors.reduce((acc:any, error) => {
           const [name, index, key] = error.path;
           if (!acc[index]) {
             acc[index] = [error.message];
@@ -160,7 +156,6 @@ function RegisterForm(props) {
           }
           return acc;
         }, {});
-        console.log(formatted);
         setContributionErrors(formatted);
         scrollToTop();
         return;
@@ -184,33 +179,40 @@ function RegisterForm(props) {
     for (const key in obj) {
       if (key.startsWith('teamInfo')) {
         const [teamInfo, subKey] = key.split('-');
-        const teamIndex = teamInfo.match(/\d+$/)[0];
+        const teamIndexMatch = teamInfo.match(/\d+$/);
 
-        if (!teamAndRoles[teamIndex]) {
-          teamAndRoles[teamIndex] = {};
+        if (teamIndexMatch) {
+          const teamIndex = teamIndexMatch[0];
+          if (!teamAndRoles[teamIndex]) {
+            teamAndRoles[teamIndex] = {};
+          }
+          teamAndRoles[teamIndex][subKey] = obj[key];
         }
-
-        teamAndRoles[teamIndex][subKey] = obj[key];
       } else if (key.startsWith('contributionInfo')) {
         const [contributionInfo, subKey] = key.split('-');
-        const contributionIndex = contributionInfo.match(/\d+$/)[0];
+        const contributionIndexMatch = contributionInfo.match(/\d+$/);
+        if (contributionIndexMatch) {
+          const contributionIndex = contributionIndexMatch[0];
 
-        if (!projectContributions[contributionIndex]) {
-          projectContributions[contributionIndex] = {};
-        }
-        if (subKey === 'currentProject') {
-          projectContributions[contributionIndex][subKey] = (obj[key] && obj[key]) === 'on' ? true : false;
-        } else {
-          projectContributions[contributionIndex][subKey] = obj[key];
+          if (!projectContributions[contributionIndex]) {
+            projectContributions[contributionIndex] = {};
+          }
+          if (subKey === 'currentProject') {
+            projectContributions[contributionIndex][subKey] = (obj[key] && obj[key]) === 'on' ? true : false;
+          } else {
+            projectContributions[contributionIndex][subKey] = obj[key];
+          }
         }
       } else if (key.startsWith('skillsInfo')) {
         const [skillInfo, subKey] = key.split('-');
-        const skillIndex = skillInfo.match(/\d+$/)[0];
-
-        if (!skills[skillIndex]) {
-          skills[skillIndex] = {};
+        const skillIndexMatch = skillInfo.match(/\d+$/);
+        if (skillIndexMatch) {
+          const skillIndex = skillIndexMatch[0];
+          if (!skills[skillIndex]) {
+            skills[skillIndex] = {};
+          }
+          skills[skillIndex][subKey] = obj[key];
         }
-        skills[skillIndex][subKey] = obj[key];
       } else {
         //contributionInfo
         result[key] = obj[key];
@@ -221,7 +223,7 @@ function RegisterForm(props) {
     result.projectContributions = Object.values(projectContributions);
     result.skills = Object.values(skills);
 
-    result.projectContributions = result.projectContributions.map((v) => {
+    result.projectContributions = result.projectContributions.map((v:any) => {
       if (!v.currentProject) {
         v['currentProject'] = false;
       }
@@ -248,22 +250,21 @@ function RegisterForm(props) {
     const teamsData = await teamsInfo.json();
     const projectsData = await projectsInfo.json();
     const skillsData = await skillsInfo.json();
-    console.log(projectsData);
     return {
-      teams: teamsData.map((d) => {
+      teams: teamsData.map((d: any) => {
         return {
           teamUid: d.uid,
           teamTitle: d.name,
           role: '',
         };
       }),
-      skills: skillsData.map((d) => {
+      skills: skillsData.map((d: any) => {
         return {
           id: d.uid,
           name: d.title,
         };
       }),
-      projects: projectsData.map((d) => {
+      projects: projectsData.map((d: any) => {
         return {
           projectUid: d.uid,
           projectName: d.name,
@@ -277,8 +278,7 @@ function RegisterForm(props) {
     getFormOptions()
       .then((d) => {
         if (!d.isError) {
-          console.log(d);
-          setAllData(d);
+          setAllData(d as any);
         }
       })
       .catch((e) => console.error(e));

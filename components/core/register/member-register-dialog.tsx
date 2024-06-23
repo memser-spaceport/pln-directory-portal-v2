@@ -21,7 +21,7 @@ function MemberRegisterDialog() {
   };
 
   useEffect(() => {
-    function dialogHandler(e) {
+    function dialogHandler(e:any) {
       if (dialogRef.current) {
         dialogRef.current.showModal();
       }

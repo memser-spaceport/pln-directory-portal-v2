@@ -7,7 +7,6 @@ import TextField from '@/components/form/text-field';
 import MonthYearField from '@/components/form/month-year-field';
 import TextArea from '@/components/form/text-area';
 import HiddenField from '@/components/form/hidden-field';
-import ContributionFormErrors from './contributions/contribution-form-errors';
 import TextAreaEditor from '@/components/form/text-area-editor';
 
 function MemberContributionInfo(props: any) {
@@ -82,14 +81,14 @@ function MemberContributionInfo(props: any) {
   }; */
 
   const onClearProjectSearch = (index: number) => {
-    setContributionInfos((old) => {
+    setContributionInfos((old:any) => {
       old[index] = { ...old[index], projectUid: '', projectName: '', projectLogo: '', currentProject: false };
       return [...old];
     });
   };
 
   const onProjectSelectionChanged = (index: number, item: any) => {
-    setContributionInfos((old) => {
+    setContributionInfos((old:any) => {
       const newV = structuredClone(old);
       newV[index].projectUid = item.projectUid;
       newV[index].projectName = item.projectName;
@@ -100,7 +99,7 @@ function MemberContributionInfo(props: any) {
   };
 
   const onProjectDetailsChanged = (index: number, value: string | boolean, key: string) => {
-    setContributionInfos((old) => {
+    setContributionInfos((old:any) => {
       const newV = structuredClone(old);
       newV[index][key] = value;
       return [...newV];
@@ -146,8 +145,8 @@ function MemberContributionInfo(props: any) {
                 <div className={`pc__list__item__form ${expandedId !== index ? 'hidden' : ''}`}>
                   {errors[index] && (
                     <ul className="error">
-                      {errors[index].map((error: string) => (
-                        <li>{error}</li>
+                      {errors[index].map((error: string, index:number) => (
+                        <li key={`contibution-error-${index}`}>{error}</li>
                       ))}
                     </ul>
                   )}

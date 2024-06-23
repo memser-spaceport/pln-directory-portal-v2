@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 
 interface MonthYearFieldProps {
   label: string;
-  defaultValue?: string;
+  defaultValue?: Date | string;
   id: string;
   name: string;
   disabled?: boolean;
-  dateBoundary: 'start' | 'end';
+  dateBoundary?: 'start' | 'end';
   onChange: (dateString: string) => void;
 }
 
@@ -39,14 +39,14 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
   const [isYearDpActive, setYearDpStatus] = useState(false);
 
   // Event handlers
-  const onMonthSelected = (e, index: number): void => {
+  const onMonthSelected = (e:any, index: number): void => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedMonth(index);
     setMonthDpStatus(false);
   };
 
-  const onYearSelected = (e, index: number): void => {
+  const onYearSelected = (e:any, index: number): void => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedYear(yearValues[index]);

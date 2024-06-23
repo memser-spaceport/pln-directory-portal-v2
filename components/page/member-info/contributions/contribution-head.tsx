@@ -7,15 +7,17 @@ interface ContributionHeadProps {
   currentProjectsCount: number;
   contribution: any;
   onToggleExpansion: (index: number) => void;
+  onProjectStatusChanged: (checked: boolean) => void;
 }
 
 function ContributionHead(props: ContributionHeadProps) {
   const expandedId = props.expandedId;
   const contributionIndex = props.contributionIndex;
-  const onDeleteContribution = props.onDeleteContribution;
+  const onDeleteContribution = props.onDeleteContribution;[]
   const currentProjectsCount = props.currentProjectsCount;
   const contribution = props.contribution;
   const onToggleExpansion = props.onToggleExpansion;
+  const onProjectStatusChanged = props.onProjectStatusChanged;
   return (
     <>
       <div className="cb">
@@ -28,7 +30,7 @@ function ContributionHead(props: ContributionHeadProps) {
         {contribution?.projectName.trim() !== '' && <h2 className="cb__name">{`${contribution?.projectName.trim()}`}</h2>}
         <div className="cb__projects">
           <div title={`${contribution.currentProject === false && currentProjectsCount === 5 ? 'Max 5 projects can be set as current' : 'On/Off'} `}>
-            <Toggle name={`contributionInfo${contributionIndex}-currentProject`} id={`member-register-contribution-currentproject-${contributionIndex}`} />
+            <Toggle disabled={contribution.currentProject === false && currentProjectsCount === 5} onChange={onProjectStatusChanged} name={`contributionInfo${contributionIndex}-currentProject`} id={`member-register-contribution-currentproject-${contributionIndex}`} />
             {/* <Switch
                   nonEditable={exp.currentProject === false && currentProjectsCount === 5}
                   initialValue={exp.currentProject}

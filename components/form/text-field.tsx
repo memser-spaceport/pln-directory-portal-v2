@@ -1,4 +1,4 @@
-import { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 
 interface TextFieldProps {
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -32,7 +32,7 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '
           id={id}
           placeholder={placeholder}
           onChange={onTextChange}
-          className={`tf__input`}
+          className="tf__input"
           type={type}
           defaultValue={defaultValue}
           required={isMandatory}
@@ -58,7 +58,6 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '
             border-radius: 8px;
             min-height:40px;
           }
-
           .tf__input:invalid {
             border: 1px solid red;
           }

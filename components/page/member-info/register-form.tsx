@@ -11,7 +11,11 @@ import { z } from 'zod';
 
 function RegisterForm(props) {
   const onCloseForm = props.onCloseForm;
-  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'skills', 'contributions', 'social'], defaultStep: 'basic', uniqueKey: 'register' });
+  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({
+    steps: ['basic', 'skills', 'contributions', 'social', 'success'],
+    defaultStep: 'basic',
+    uniqueKey: 'register',
+  });
   const formRef = useRef<HTMLFormElement>(null);
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
 
@@ -26,7 +30,7 @@ function RegisterForm(props) {
       skills: [],
     },
     contributionInfo: {
-      contributions: []
+      contributions: [],
     },
     basicInfo: {
       name: '',
@@ -82,6 +86,8 @@ function RegisterForm(props) {
       });
 
       if (formResult.ok) {
+        formRef.current.reset();
+        setCurrentStep('success');
       } else {
         console.log(await formResult.json());
       }
@@ -120,8 +126,9 @@ function RegisterForm(props) {
     } else if (currentStep === 'skills') {
       const result = TeamAndSkillsInfoSchema.safeParse(formattedData);
       if (!result.success) {
-        console.log(result.error.errors);
-        setSkillsErrors(result.error.errors.map((v) => v.message));
+        const errors = result.error.errors.map((v) => v.message);
+        const uniqueErrors = Array.from(new Set(errors));
+        setSkillsErrors([...uniqueErrors]);
         scrollToTop();
         return;
       }
@@ -203,8 +210,8 @@ function RegisterForm(props) {
       if (!v.currentProject) {
         v['currentProject'] = false;
       }
-      v['startDate'] = new Date(v.startDate).toISOString();
-      v['endDate'] = new Date(v.endDate).toISOString();
+      v['startDate'] = v.startDate === '' ? v.startDate : new Date(v.startDate).toISOString();
+      v['endDate'] = v.endDate === '' ? v.endDate : new Date(v.endDate).toISOString();
       return v;
     });
     if (result['plnStartDate']) {
@@ -266,61 +273,103 @@ function RegisterForm(props) {
     function resetHandler() {
       if (formRef.current) {
         formRef.current.reset();
-        setCurrentStep('basic');
       }
+      setBasicErrors([]);
+      setContributionErrors([]);
+      setSkillsErrors([]);
+      setSocialErrors([]);
+      setCurrentStep('basic');
     }
     document.addEventListener('reset-member-register-form', resetHandler);
-    return function() {
+    return function () {
       document.removeEventListener('reset-member-register-form', resetHandler);
-    }
+    };
   }, []);
 
   return (
     <>
-      <form className="rf" onSubmit={onFormSubmit} ref={formRef}>
-        <div ref={formContainerRef} className="rf__form">
-          <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
-            <MemberBasicInfo initialValues={initialValues.basicInfo} errors={basicErrors} />
+      {currentStep !== 'success' && (
+        <form className="rf" onSubmit={onFormSubmit} ref={formRef}>
+          <div ref={formContainerRef} className="rf__form">
+            <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
+              <MemberBasicInfo initialValues={initialValues.basicInfo} errors={basicErrors} />
+            </div>
+            <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
+              <MemberContributionInfo initialValues={initialValues.contributionInfo} projectOptions={allData.projects} errors={contributionErrors} />
+            </div>
+            <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
+              <MemberSocialInfo initialValues={initialValues.socialInfo} errors={socialErrors} />
+            </div>
+            <div className={currentStep !== 'skills' ? 'hidden' : 'form'}>
+              <MemberSkillsInfo initialValues={initialValues.skillsInfo} errors={skillsErrors} teamsOptions={allData.teams} skillsOptions={allData.skills} />
+            </div>
           </div>
-          <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
-            <MemberContributionInfo initialValues={initialValues.contributionInfo} projectOptions={allData.projects} errors={contributionErrors} />
+          <div className="rf__actions">
+            {currentStep === 'basic' && (
+              <button onClick={onCloseForm} className="rf__actions__cancel" type="button">
+                Cancel
+              </button>
+            )}
+            {currentStep !== 'basic' && (
+              <button className="rf__actions__back" onClick={onBackClicked} type="button">
+                Back
+              </button>
+            )}
+            {currentStep !== 'social' && (
+              <button className="rf__actions__next" onClick={onNextClicked} type="button">
+                Next
+              </button>
+            )}
+            {currentStep === 'social' && (
+              <button className="rf__actions__submit" type="submit">
+                Submit
+              </button>
+            )}
           </div>
-          <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
-            <MemberSocialInfo initialValues={initialValues.socialInfo} errors={socialErrors} />
-          </div>
-          <div className={currentStep !== 'skills' ? 'hidden' : 'form'}>
-            <MemberSkillsInfo initialValues={initialValues.skillsInfo} errors={skillsErrors} teamsOptions={allData.teams} skillsOptions={allData.skills} />
-          </div>
+        </form>
+      )}
+      {currentStep === 'success' && (
+        <div className="success">
+          <h2 className="success__title">Thank You for Submitting</h2>
+          <p className="success__desc">Our team will review your request shortly and get back</p>
+          <button onClick={onCloseForm}  type="button" className="success__btn">
+            Close
+          </button>
         </div>
-        <div className="rf__actions">
-          {currentStep === 'basic' && (
-            <button onClick={onCloseForm} className="rf__actions__cancel" type="button">
-              Cancel
-            </button>
-          )}
-          {currentStep !== 'basic' && (
-            <button className="rf__actions__back" onClick={onBackClicked} type="button">
-              Back
-            </button>
-          )}
-          {currentStep !== 'social' && (
-            <button className="rf__actions__next" onClick={onNextClicked} type="button">
-              Next
-            </button>
-          )}
-          {currentStep === 'social' && (
-            <button className="rf__actions__submit" type="submit">
-              Submit
-            </button>
-          )}
-        </div>
-      </form>
+      )}
       <style jsx>
         {`
           .hidden {
             visibility: hidden;
             height: 0;
             overflow: hidden;
+          }
+          .success {
+            width: 100%;
+            position: relative;
+            height: 100%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+          }
+          .success__title {
+            font-size: 24px;
+            font-weight: 700;
+          }
+          .success__desc {
+            font-size: 14px;
+            font-weight: 400;
+          }
+          .success__btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            background: #156ff7;
+            outline: none;
+            border: none;
+            color: white;
           }
           .rf {
             width: 100%;

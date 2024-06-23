@@ -169,7 +169,7 @@ function MemberSkillsInfo(props) {
             displayKey="name"
             label="Professional Skills*"
             placeholder="Search options..."
-            isMandatory={false}
+            isMandatory={true}
             closeImgUrl="/icons/close.svg"
             arrowImgUrl="/icons/arrow-down.svg"
           />

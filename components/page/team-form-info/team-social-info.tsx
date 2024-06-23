@@ -11,10 +11,10 @@ function TeamSocialInfo(props: ITeamSocialInfo) {
     <>
       <div className="teamSocialInfo__form">
         {errors.length > 0 && (
-          <ul className="teaminfo__form__errs">
+          <ul className="teamSocialInfo__form__errs">
             {errors.map((error: string, index: number) => {
               return (
-                <li className="teaminfo__form__errs__err" key={`team-err-${index}`}>
+                <li className="teamSocialInfo__form__errs__err" key={`team-err-${index}`}>
                   {error}
                 </li>
               );

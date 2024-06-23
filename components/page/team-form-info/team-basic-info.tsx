@@ -3,7 +3,7 @@ import TextField from '@/components/form/text-field';
 import { useEffect, useRef, useState } from 'react';
 
 interface ITeamBasicInfo {
-  errors: { key: string; message: string }[];
+  errors: string[];
   initialValues: any;
 }
 
@@ -51,10 +51,10 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
       <div className="teaminfo__form">
         {errors.length > 0 && (
           <ul className="teaminfo__form__errs">
-            {errors.map((error: { key: string; message: string }, index: number) => {
+            {errors.map((error:string, index: number) => {
               return (
-                <li className="teaminfo__form__errs__err" key={`${error.key}-${index}`}>
-                  {error?.message}
+                <li className="teaminfo__form__errs__err" key={`team-err-${index}`}>
+                  {error}
                 </li>
               );
             })}
@@ -85,8 +85,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                   </span>
                 )}
               </label>
-              <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamImage" hidden type="file" accept="image/png, image/jpeg" />
-              {profileImage && <input hidden name="profileImage" value={profileImage} />}
+              <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" />
+              {/* {profileImage && <input hidden name="profileImage" value={profileImage} />} */}
             </div>
             <div className="teaminfo__form__item">
               <TextField

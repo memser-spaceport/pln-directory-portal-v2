@@ -15,19 +15,14 @@ interface ITeamRegisterForm {
   onCloseForm: () => void;
 }
 
-interface IFormError {
-  key: string;
-  message: string;
-}
-
 function TeamRegisterForm(props: ITeamRegisterForm) {
   const onCloseForm = props.onCloseForm;
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'project details', 'social', 'success'], defaultStep: 'basic', uniqueKey: 'register' });
   const formRef = useRef<HTMLFormElement>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
-  const [basicErrors, setBasicErrors] = useState<any>([]);
-  const [projectDetailsErrors, setProjectDetailsErrors] = useState([]);
-  const [socialErrors, setSocialErrors] = useState<any>([]);
+  const [basicErrors, setBasicErrors] = useState<string[]>([]);
+  const [projectDetailsErrors, setProjectDetailsErrors] = useState<string[]>([]);
+  const [socialErrors, setSocialErrors] = useState<string[]>([]);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
 
   const initialValues = {
@@ -78,8 +73,8 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
         let image: any;
         try {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-          if (formattedData?.teamImage?.name) {
-            const imgResponse = await saveRegistrationImage(formattedData?.teamImage);
+          if (formattedData?.teamProfile?.name) {
+            const imgResponse = await saveRegistrationImage(formattedData?.teamProfile);
             image = imgResponse?.image;
           }
           const data = {
@@ -89,8 +84,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             uniqueIdentifier: formattedData?.name,
             newData: { ...formattedData, logoUid: image?.uid ?? '', logoUrl: image?.url ?? '' },
           };
-          delete data.newData?.profileImage;
-          delete data.newData?.teamImage;
+          delete data.newData?.teamProfile;
 
           const response = await createParticipantRequest(data);
 
@@ -112,10 +106,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
   const validateForm = (schema: any, data: any) => {
     const validationResponse = schema.safeParse(data);
     if (!validationResponse.success) {
-      const formattedErrors = validationResponse?.error?.errors?.map((error: any) => ({
-        key: error.path[0],
-        message: error.message,
-      }));
+      const formattedErrors = validationResponse?.error?.errors?.map((error: any) => (error.message));
       return { success: false, errors: formattedErrors };
     }
     return { success: true, errors: [] };
@@ -126,26 +117,35 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
       const formData = new FormData(formRef.current);
       const formattedData = transformObject(Object.fromEntries(formData));
       if (currentStep === 'basic') {
+        const errors = [];
         const validationResponse = validateForm(basicInfoSchema, formattedData);
         const nameVerification = await validatePariticipantsEmail(formattedData.name, ENROLLMENT_TYPE.TEAM);
+        const imageFile = formattedData?.teamProfile;
 
-        if (!validationResponse.success || !nameVerification.isValid) {
-          setBasicErrors((prevErrors: IFormError[]) => {
-            const newErrors = [...validationResponse.errors];
-            if (!nameVerification.isValid) {
-              const errorIndex = prevErrors.findIndex((error) => error.key === 'uniqueName');
-              if (errorIndex !== -1) {
-                newErrors[errorIndex] = { ...prevErrors[errorIndex], message: 'Name Already exists' };
-              } else {
-                newErrors.push({ key: 'uniqueName', message: 'Name Already exists' });
-              }
+        if (!validationResponse.success) {
+          errors.push(...validationResponse.errors);
+        }
+
+        if (!nameVerification.isValid) {
+          errors.push('Name Already exists');
+        }
+
+        if (imageFile.name) {
+          if (!['image/jpeg', 'image/png'].includes(imageFile.type)) {
+            errors.push('Please upload image in jpeg or png format');
+          } else {
+            if (imageFile.size > 4 * 1024 * 1024) {
+              errors.push('Please upload a file less than 4MB');
             }
-            return newErrors;
-          });
+          }
+        }
+
+        if (errors.length > 0) {
+          setBasicErrors(errors);
           scrollToTop();
           return;
         }
-
+  
         setBasicErrors([]);
       } else if (currentStep === 'project details') {
         const validationResponse = validateForm(projectDetailsSchema, formattedData);

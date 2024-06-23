@@ -1,15 +1,5 @@
 import { z } from 'zod';
 
-const validFormats = ['image/jpeg', 'image/png'];
-
-const decodeBase64 = (base64: any) => {
-  const [header, data] = base64.split(',');
-  const mime = header.match(/:(.*?);/)[1];
-  const binaryString = atob(data);
-  const size = binaryString.length;
-  return { mime, size };
-};
-
 export const basicInfoSchema = z.object({
   requestorEmail: z
     .string({ errorMap: () => ({ message: 'Please add a valid Requestor email' }) })
@@ -29,28 +19,7 @@ export const basicInfoSchema = z.object({
     .string({ errorMap: () => ({ message: 'Please add a Long Description' }) })
     .trim()
     .min(1)
-    .max(2000),
-  profileImage: z
-    .string()
-    .refine(
-      (base64) => {
-        const { mime } = decodeBase64(base64);
-        return validFormats.includes(mime);
-      },
-      {
-        message: 'Invalid file format. Only JPEG and PNG are allowed.',
-      }
-    )
-    .refine(
-      (base64) => {
-        const { size } = decodeBase64(base64);
-        return size / 1024 ** 2 < 4; // size in MB
-      },
-      {
-        message: 'Please upload a file less than 4MB',
-      }
-    )
-    .optional(),
+    .max(2000)
 });
 
 const industryTag = z.object({

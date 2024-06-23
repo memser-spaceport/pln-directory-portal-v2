@@ -67,10 +67,10 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
     <>
       <div className="teamProject__form">
       {errors.length > 0 && (
-          <ul className="teaminfo__form__errs">
+          <ul className="teamProject__form__errs">
             {errors.map((error:string, index: number) => {
               return (
-                <li className="teaminfo__form__errs__err" key={`team-err-${index}`}>
+                <li className="teamProject__form__errs__err" key={`team-err-${index}`}>
                   {error}
                 </li>
               );

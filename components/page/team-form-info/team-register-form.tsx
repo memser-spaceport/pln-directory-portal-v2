@@ -73,18 +73,20 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
         let image: any;
         try {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-          if (formattedData?.teamProfile?.name) {
+          if (formattedData?.teamProfile && formattedData.teamProfile.size > 0) {
             const imgResponse = await saveRegistrationImage(formattedData?.teamProfile);
             image = imgResponse?.image;
+            formattedData.logoUid = image.uid;
+            formattedData.logoUrl = image.url;
           }
           const data = {
             participantType: 'TEAM',
             status: 'PENDING',
             requesterEmailId: formattedData?.requestorEmail,
             uniqueIdentifier: formattedData?.name,
-            newData: { ...formattedData, logoUid: image?.uid ?? '', logoUrl: image?.url ?? '' },
+            newData: { ...formattedData},
           };
-          delete data.newData?.teamProfile;
+          
 
           const response = await createParticipantRequest(data);
 
@@ -373,9 +375,10 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           }
 
           .trf__success__desc {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 400;
             line-height: 20px;
+            text-align: center;
             color: #0f172a;
             margin: 8px 0px 0px 0px;
           }
@@ -402,6 +405,9 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             }
             .trf__actions {
               position: relative;
+            }
+            .trf__success__desc {
+             font-size: 16px;
             }
           }
         `}

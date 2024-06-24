@@ -41,7 +41,7 @@ const projectInfo = z.object({
   projectUid: z.string({ errorMap: () => ({ message: 'Please provide valid project name' }) }).min(1),
   role: z.string({ errorMap: () => ({ message: 'Please provide valid role' }) }).min(1),
   startDate: z.coerce.date({ errorMap: () => ({ message: 'Please provide valid project start date' }) }),
-  endDate: z.union([z.string({message: 'Please enter valid end date'}).length(0), z.string().datetime({message: "Please enter valid end date"})])
+  // endDate: z.union([z.string({message: 'Please enter valid end date'}).length(0), z.string().datetime({message: "Please enter valid end date"})])
 });
 
 export const projectContributionSchema = z.object({

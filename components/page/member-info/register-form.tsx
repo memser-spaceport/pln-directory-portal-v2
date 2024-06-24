@@ -243,7 +243,12 @@ function RegisterForm(props: any) {
         v['currentProject'] = false;
       }
       v['startDate'] = v.startDate === '' ? null : new Date(v.startDate).toISOString();
-      v['endDate'] = v.endDate === '' ? null : new Date(v.endDate).toISOString();
+      if(v['endDate'] === '') {
+         delete v['endDate']
+      } else {
+        v['endDate'] = new Date(v.endDate).toISOString();
+      }
+      
       return v;
     });
     if (result['plnStartDate']) {

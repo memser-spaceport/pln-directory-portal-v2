@@ -395,7 +395,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             margin: 18px 0px 0px 0px;
           }
 
-          @media (min-width: 1200px) {
+          @media (min-width: 1024px) {
             .trf__form {
               padding: 24px 32px;
               overflow-y: auto;

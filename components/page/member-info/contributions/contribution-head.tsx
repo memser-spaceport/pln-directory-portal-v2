@@ -63,7 +63,7 @@ function ContributionHead(props: ContributionHeadProps) {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 12px;
+          font-size: 10px;
           font-weight: 600;
           gap: 8px;
         }
@@ -72,9 +72,18 @@ function ContributionHead(props: ContributionHeadProps) {
           color: #0f172a;
           flex: 1;
           font-weight: 600;
-          font-size: 14px;
+          font-size: 11px;
           padding-left: 16px;
         }
+          @media(min-width: 1024px) {
+            .cb__name {
+            font-size: 14px;
+            }
+
+            .cb__projects {
+            font-size: 12px;
+            }
+          }
 
             
             `}

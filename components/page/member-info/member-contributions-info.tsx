@@ -264,7 +264,8 @@ function MemberContributionInfo(props: any) {
           .pc__list__item__form__item {
             width: 100%;
             display: flex;
-            gap: 8px;
+            flex-direction: column;
+            gap: 20px;
           }
           .error {
             color: #ef4444;
@@ -274,9 +275,13 @@ function MemberContributionInfo(props: any) {
             gap: 8px;
             margin: 16px;
           }
-          @media (min-width: 1200px) {
+          @media (min-width: 1024px) {
             .pc__list {
               padding-top: 32px;
+            }
+            .pc__list__item__form__item {
+              flex-direction: row;
+              gap: 8px;
             }
           }
         `}

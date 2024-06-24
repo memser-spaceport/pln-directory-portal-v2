@@ -1,7 +1,7 @@
 import { ZodError, z } from 'zod';
 export const basicInfoSchema = z.object({
   name: z
-    .string({ errorMap: () => ({ message: 'Please provide valid name' }) }).regex(/^[a-zA-Z]+$/)
+    .string({ errorMap: () => ({ message: 'Please provide valid name' }) }).regex(/^[a-zA-Z\s]*$/)
     .trim()
     .min(2)
     .max(64),

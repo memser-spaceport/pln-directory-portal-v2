@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 
-interface TextFieldProps {
+interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement>  {
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
   onClear?: () => void;
   placeholder?: string;
@@ -13,7 +13,7 @@ interface TextFieldProps {
   maxLength?:number;
 }
 
-const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, type, maxLength }) => {
+const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, type, maxLength, ...rest }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [inputValue, setInputValue] = useState<string>(defaultValue);
   const onTextChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -38,6 +38,7 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '
           required={isMandatory}
           maxLength={maxLength}
           autoComplete="off"
+          {...rest}
         />
       </div>
       <style jsx>

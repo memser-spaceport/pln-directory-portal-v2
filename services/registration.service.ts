@@ -15,19 +15,21 @@ export const getTeamsFormOptions = async () => {
     return { isError: true };
   }
 
-  const formattedTechnologies = technologies?.map((technology: any) => ({
-    id: technology?.uid,
-    name: technology?.title,
-  }));
+  const formattedTechnologies = technologies
+    ?.map((technology: any) => ({
+      id: technology?.uid,
+      name: technology?.title,
+    }))
+    .sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
-  const formattedFundingStages = fundingTags.map((tag: any) => ({ id: tag?.uid, name: tag?.title }));
+  const formattedFundingStages = fundingTags.map((tag: any) => ({ id: tag?.uid, name: tag?.title })).sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
   const formattedMembershipResources = membershipSources?.map((source: any) => ({
     id: source?.uid,
     name: source?.title,
   }));
 
-  const formattedIndustryTags = industryTags.map((tag: any) => ({ id: tag?.uid, name: tag?.title }));
+  const formattedIndustryTags = industryTags.map((tag: any) => ({ id: tag?.uid, name: tag?.title })).sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
   return { technologies: formattedTechnologies, fundingStage: formattedFundingStages, membershipSources: formattedMembershipResources, industryTags: formattedIndustryTags };
 };

@@ -68,7 +68,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             </label>
             <input onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
             <div className="memberinfo__form__item">
-              <TextField isMandatory={true} id="register-member-name" label="Name*" defaultValue={initialValues.name} name="name" type="text" placeholder="Enter your full name" />
+              <TextField pattern="^[a-zA-Z\s]*$" maxLength={64} isMandatory={true} id="register-member-name" label="Name*" defaultValue={initialValues.name} name="name" type="text" placeholder="Enter your full name" />
             </div>
           </div>
           <p className="info">

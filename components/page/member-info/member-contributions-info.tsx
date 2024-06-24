@@ -234,6 +234,8 @@ function MemberContributionInfo(props: any) {
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            width: 100%;
+            margin: 20px;
           }
 
           .pc__new__text {

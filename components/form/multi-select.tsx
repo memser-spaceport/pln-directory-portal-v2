@@ -69,15 +69,17 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     <>
       <div className="select">
         {label !== '' && <label className="select__label">{label}</label>}
-        <div className='select__content' ref={containerRef}>
-          <div className={`select__selectedoptions ${(selectedOptions.length === 0 && isMandatory) ? 'select__selectedoptions--error' : ''}`} onClick={toggleOptions}>
-            {selectedOptions.length === 0 && <span className="select__placeholder">{placeholder}</span>}
-            {selectedOptions.map((option) => (
-              <div key={option[uniqueKey]} className="select__selectedoptions__item">
-                {option[displayKey]}
-                <img width="16" height="16" alt="close tag" src={closeImgUrl} className="select__remove-option" onPointerDown={(e) => handleRemoveOption(e, option)} />
-              </div>
-            ))}
+        <div className="select__content" ref={containerRef}>
+          <div className={`select__selectedoptions ${selectedOptions.length === 0 && isMandatory ? 'select__selectedoptions--error' : ''}`} onClick={toggleOptions}>
+            <div className="select__selectedoptions__wrpr">
+              {selectedOptions.length === 0 && <span className="select__placeholder">{placeholder}</span>}
+              {selectedOptions.map((option) => (
+                <div key={option[uniqueKey]} className="select__selectedoptions__item">
+                  {option[displayKey]}
+                  <img width="16" height="16" alt="close tag" src={closeImgUrl} className="select__remove-option" onPointerDown={(e) => handleRemoveOption(e, option)} />
+                </div>
+              ))}
+            </div>
             {arrowImgUrl && <img className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
           </div>
           {showOptions && (
@@ -104,6 +106,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           }
 
           .select__content {
+            position: relative;
           }
           .select__label {
             font-weight: 600;
@@ -114,7 +117,6 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           .select__selectedoptions {
             display: flex;
             font-size: 14px;
-            flex-wrap: wrap;
             gap: 8px;
             padding: 8px 12px;
             border: 1px solid lightgrey;
@@ -125,6 +127,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           }
           .select__selectedoptions--error {
             border: 1px solid red;
+          }
+
+          .select__selectedoptions__wrpr {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
           }
           .select__arrowimg {
             margin-left: auto;

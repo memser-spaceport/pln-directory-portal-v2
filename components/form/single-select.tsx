@@ -36,7 +36,7 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
   };
 
   const onSearchFocus = () => {
-    setShowOptions(true);
+    setShowOptions(!showOptions);
   };
 
   useEffect(() => {
@@ -64,25 +64,24 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
 
   return (
     <>
-      <div className="select" ref={containerRef}>
+      <div className="select">
         {label !== '' && (
           <label className="select__label" htmlFor={id}>
             {label}
           </label>
         )}
-        <div className='select_cn'>
+        <div ref={containerRef} className='select_cn'>
           <input
             id={id}
             className={`select__search ${isMandatory && !selectedOption?.[uniqueKey] ? 'select__search--error' : ''}`}
             ref={searchRef}
             defaultValue={defaultSelectedValue}
-            onFocus={onSearchFocus}
+            onClick={onSearchFocus}
             placeholder={placeholder}
             readOnly
           />
           {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
-        </div>
-        {showOptions && (
+          {showOptions && (
           <ul className="select__options">
             {filteredOptions?.map((option) => (
               <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
@@ -92,6 +91,8 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
             {filteredOptions.length === 0 && <p className="select__options__noresults">No Results found</p>}
           </ul>
         )}
+        </div>
+       
       </div>
       <style jsx>
         {`
@@ -109,11 +110,13 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
             font-size: 14px;
             margin-bottom: 12px;
             display: block;
+            width:fit-content;
           }
           .select__arrowimg {
             position: absolute;
-            bottom: calc(50% - 4px);
             cursor: pointer;
+            top: 50%;
+            transform: translateY(-50%);
             right: 12px;
           }
           .select__search {
@@ -125,6 +128,7 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
             font-weight: 500;
             border-radius: 8px;
             border: 1px solid lightgrey;
+            cursor:pointer;
           }
           .select__search:focus-visible,
           .select__search:focus {

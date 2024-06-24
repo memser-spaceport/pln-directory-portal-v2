@@ -84,9 +84,8 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             status: 'PENDING',
             requesterEmailId: formattedData?.requestorEmail,
             uniqueIdentifier: formattedData?.name,
-            newData: { ...formattedData},
+            newData: { ...formattedData },
           };
-          
 
           const response = await createParticipantRequest(data);
 
@@ -108,7 +107,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
   const validateForm = (schema: any, data: any) => {
     const validationResponse = schema.safeParse(data);
     if (!validationResponse.success) {
-      const formattedErrors = validationResponse?.error?.errors?.map((error: any) => (error.message));
+      const formattedErrors = validationResponse?.error?.errors?.map((error: any) => error.message);
       return { success: false, errors: formattedErrors };
     }
     return { success: true, errors: [] };
@@ -121,7 +120,9 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
       if (currentStep === 'basic') {
         const errors = [];
         const validationResponse = validateForm(basicInfoSchema, formattedData);
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
         const nameVerification = await validatePariticipantsEmail(formattedData.name, ENROLLMENT_TYPE.TEAM);
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
         const imageFile = formattedData?.teamProfile;
 
         if (!validationResponse.success) {
@@ -147,7 +148,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           scrollToTop();
           return;
         }
-  
+
         setBasicErrors([]);
       } else if (currentStep === 'project details') {
         const validationResponse = validateForm(projectDetailsSchema, formattedData);
@@ -248,59 +249,88 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
 
   return (
     <>
-      <form className="trf" onSubmit={onFormSubmit} ref={formRef}>
-        <div ref={formContainerRef} className="trf__form">
-          <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
-            <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} />
-          </div>
-          <div className={currentStep !== 'project details' ? 'hidden' : 'form'}>
-            <TeamProjectsInfo
-              errors={projectDetailsErrors}
-              protocolOptions={allData?.technologies}
-              fundingStageOptions={allData?.fundingStage}
-              membershipSourceOptions={allData?.membershipSources}
-              industryTagOptions={allData?.industryTags}
-              initialValues={initialValues.projectsInfo}
-            />
-          </div>
-          <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
-            <TeamSocialInfo errors={socialErrors} />
-          </div>
-          <div className={currentStep !== 'success' ? 'hidden' : 'form'}>
-            <div className="trf__success">
-              <p className="trf__success__ttl">Thank You for Submitting</p>
-              <p className="trf__success__desc">Our team will review your request shortly and get back</p>
-              <button onClick={onCloseForm} className="trf__success__cls">
-                Close
-              </button>
+      {currentStep !== 'success' && (
+        <form className="trf" onSubmit={onFormSubmit} ref={formRef}>
+          <div ref={formContainerRef} className="trf__form">
+            <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
+              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} />
+            </div>
+            <div className={currentStep !== 'project details' ? 'hidden' : 'form'}>
+              <TeamProjectsInfo
+                errors={projectDetailsErrors}
+                protocolOptions={allData?.technologies}
+                fundingStageOptions={allData?.fundingStage}
+                membershipSourceOptions={allData?.membershipSources}
+                industryTagOptions={allData?.industryTags}
+                initialValues={initialValues.projectsInfo}
+              />
+            </div>
+            <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
+              <TeamSocialInfo errors={socialErrors} />
             </div>
           </div>
+          {currentStep !== 'success' && (
+            <>
+              <div className="trf__actions trf__actions--desktop">
+                {currentStep === 'basic' && (
+                  <button onClick={onCloseForm} className="trf__actions__cancel" type="button">
+                    Cancel
+                  </button>
+                )}
+                {currentStep !== 'basic' && (
+                  <button className="trf__actions__back" onClick={onBackClicked} type="button">
+                    Back
+                  </button>
+                )}
+                {currentStep !== 'social' && (
+                  <button className="trf__actions__next" onClick={onNextClicked} type="button">
+                    Next
+                  </button>
+                )}
+                {currentStep === 'social' && (
+                  <button className="trf__actions__submit" type="submit">
+                    Submit
+                  </button>
+                )}
+              </div>
+              <div className="trf__actions trf__actions--mobile">
+                <div className="trf__actions__cancelmobile">
+                  <button onClick={onCloseForm} className="trf__actions__cancel" type="button">
+                    Cancel
+                  </button>
+                </div>
+                <div className="trf__actions__group">
+                  {currentStep !== 'basic' && (
+                    <button className="trf__actions__back" onClick={onBackClicked} type="button">
+                      Back
+                    </button>
+                  )}
+                  {currentStep !== 'social' && (
+                    <button className="trf__actions__next" onClick={onNextClicked} type="button">
+                      Next
+                    </button>
+                  )}
+                  {currentStep === 'social' && (
+                    <button className="trf__actions__submit" type="submit">
+                      Submit
+                    </button>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </form>
+      )}
+
+      {currentStep === 'success' && (
+        <div className="trf__success">
+          <p className="trf__success__ttl">Thank You for Submitting</p>
+          <p className="trf__success__desc">Our team will review your request shortly and get back</p>
+          <button onClick={onCloseForm} type="button" className="trf__success__cls">
+            Close
+          </button>
         </div>
-        {currentStep !== 'success' && (
-          <div className="trf__actions">
-            {currentStep === 'basic' && (
-              <button onClick={onCloseForm} className="trf__actions__cancel" type="button">
-                Cancel
-              </button>
-            )}
-            {currentStep !== 'basic' && (
-              <button className="trf__actions__back" onClick={onBackClicked} type="button">
-                Back
-              </button>
-            )}
-            {currentStep !== 'social' && (
-              <button className="trf__actions__next" onClick={onNextClicked} type="button">
-                Next
-              </button>
-            )}
-            {currentStep === 'social' && (
-              <button className="trf__actions__submit" type="submit">
-                Submit
-              </button>
-            )}
-          </div>
-        )}
-      </form>
+      )}
 
       <style jsx>
         {`
@@ -363,8 +393,9 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100%;
             margin: auto;
+            padding: 0px 10px;
+            height: 100%;
           }
 
           .trf__success__ttl {
@@ -372,6 +403,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             font-weight: 700;
             line-height: 32px;
             color: #0f172a;
+            text-align: center;
           }
 
           .trf__success__desc {
@@ -381,6 +413,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             text-align: center;
             color: #0f172a;
             margin: 8px 0px 0px 0px;
+            text-align: center;
           }
 
           .trf__success__cls {
@@ -398,6 +431,21 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             margin: 18px 0px 0px 0px;
           }
 
+          .trf__actions--mobile {
+            display: flex;
+          }
+          .trf__actions--desktop {
+            display: none;
+          }
+
+          .trf__actions__group {
+            display: flex;
+            gap: 8px;
+          }
+          .trf__actions__cancelmobile {
+            flex: 1;
+          }
+
           @media (min-width: 1024px) {
             .trf__form {
               padding: 24px 32px;
@@ -407,7 +455,14 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
               position: relative;
             }
             .trf__success__desc {
-             font-size: 16px;
+              font-size: 16px;
+            }
+
+            .trf__actions--mobile {
+              display: none;
+            }
+            .trf__actions--desktop {
+              display: flex;
             }
           }
         `}

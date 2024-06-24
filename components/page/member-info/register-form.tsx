@@ -132,7 +132,7 @@ function RegisterForm(props: any) {
       const emailVerification = await validatePariticipantsEmail(email, 'MEMBER');
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (!emailVerification.isValid) {
-        errors.push('Email already exist. Please enter another email');
+        errors.push('Email already exists');
       }
       const imageFile = formattedData?.memberProfile;
 

@@ -1,12 +1,13 @@
 function AddContribution(props:any) {
   const onAddContribution = props.onAddContribution;
+  const disableAdd = props.disableAdd
   return (
     <>
       <div className="ch">
-        <button onClick={onAddContribution} className="ch__btn">
+        {!disableAdd && <button onClick={onAddContribution} className="ch__btn">
           <img width="14" height="14" alt="Add Contribution button" src="/icons/expand-blue.svg" />
           <span>Add Contribution</span>
-        </button>
+        </button>}
         <p className="ch__info">(Max 20 contributions)</p>
       </div>
       <style jsx>

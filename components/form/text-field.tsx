@@ -37,6 +37,7 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '
           defaultValue={defaultValue}
           required={isMandatory}
           maxLength={maxLength}
+          autoComplete="off"
         />
       </div>
       <style jsx>

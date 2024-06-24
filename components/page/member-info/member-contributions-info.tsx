@@ -128,7 +128,7 @@ function MemberContributionInfo(props: any) {
         {contributionInfos.length > 0 && (
           <div className="pc__list">
             {Object.keys(errors).length > 0 && <p className="error">There are fields that require your attention. Please review the fields below.</p>}
-            <AddContribution onAddContribution={onAddContribution} />
+            <AddContribution disableAdd={contributionInfos.length >= 20} onAddContribution={onAddContribution} />
             {contributionInfos.map((contributionInfo: any, index: number) => (
               <div className="pc__list__item" key={`member-skills-team-info-${index}`}>
                 <ContributionHead
@@ -138,6 +138,7 @@ function MemberContributionInfo(props: any) {
                   currentProjectsCount={currentProjectsCount}
                   onDeleteContribution={onDeleteContribution}
                   onToggleExpansion={onToggleExpansion}
+                  isError={errors[index] ? true : false}
                   onProjectStatusChanged={(value: boolean) => onProjectDetailsChanged(index, value, 'currentProject')}
                 />
 
@@ -205,6 +206,7 @@ function MemberContributionInfo(props: any) {
                 </div>
               </div>
             ))}
+             {expandedId !== -1 && <AddContribution disableAdd={contributionInfos.length >= 20} onAddContribution={onAddContribution} />}
           </div>
         )}
       </div>

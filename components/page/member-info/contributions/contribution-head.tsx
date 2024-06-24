@@ -6,6 +6,7 @@ interface ContributionHeadProps {
   onDeleteContribution: (index: number) => void;
   currentProjectsCount: number;
   contribution: any;
+  isError: boolean;
   onToggleExpansion: (index: number) => void;
   onProjectStatusChanged: (checked: boolean) => void;
 }
@@ -17,10 +18,11 @@ function ContributionHead(props: ContributionHeadProps) {
   const currentProjectsCount = props.currentProjectsCount;
   const contribution = props.contribution;
   const onToggleExpansion = props.onToggleExpansion;
+  const isError = props.isError ?? false;
   const onProjectStatusChanged = props.onProjectStatusChanged;
   return (
     <>
-      <div className="cb">
+      <div className={`cb ${isError ? 'cb--error': ''}`}>
         <div className="cb__actions">
           {contributionIndex === expandedId && <img className="cursor-pointer" onClick={() => onToggleExpansion(contributionIndex)} src="/icons/arrow-down-blue.svg" />}
           {contributionIndex !== expandedId && <img className="cursor-pointer" onClick={() => onToggleExpansion(contributionIndex)} src="/icons/arrow-up-blue.svg" />}
@@ -52,6 +54,13 @@ function ContributionHead(props: ContributionHeadProps) {
           align-items: center;
           justify-content: space-between;
           padding: 0 8px;
+          margin: 4px 0;
+        }
+        .cb--error {
+          border: 1px solid #ed6e68;
+          background: #ef44441a;
+         
+
         }
 
         .cb__actions {

@@ -118,15 +118,19 @@ function RegisterForm(props: any) {
     }
     const formData = new FormData(formRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
+
     if (currentStep === 'basic') {
+      
       const errors = [];
 
       const result = basicInfoSchema.safeParse(formattedData);
       if (!result.success) {
         errors.push(...result.error.errors.map((v) => v.message));
       }
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
       const email = formattedData?.email?.toLowerCase().trim();
       const emailVerification = await validatePariticipantsEmail(email, 'MEMBER');
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (!emailVerification.isValid) {
         errors.push('Email already exist. Please enter another email');
       }
@@ -160,21 +164,38 @@ function RegisterForm(props: any) {
       }
       setSkillsErrors([]);
     } else if (currentStep === 'contributions') {
+      const allErrorObj: any = {};
+      const contributions = formattedData.projectContributions;
+      contributions.forEach((contribution: any, index: number) => {
+        if (contribution.endDate && new Date(contribution.startDate) >= new Date(contribution.endDate)) {
+          if (!allErrorObj[index]) {
+            allErrorObj[index] = [];
+          }
+          allErrorObj[index].push('Your contribution end date cannot be less than or equal to start date');
+        }
+      });
       const result = projectContributionSchema.safeParse(formattedData);
       if (!result.success) {
         const formatted = result.error.errors.reduce((acc: any, error) => {
           const [name, index, key] = error.path;
           if (!acc[index]) {
-            acc[index] = [error.message];
-          } else {
-            acc[index].push(error.message);
+            acc[index] = [];
           }
+          acc[index].push(error.message);
+
           return acc;
-        }, {});
+        }, allErrorObj);
         setContributionErrors(formatted);
         scrollToTop();
         return;
       }
+
+      if (Object.keys(allErrorObj).length > 0) {
+        setContributionErrors(allErrorObj);
+        scrollToTop();
+        return;
+      }
+
       setContributionErrors({});
     }
 
@@ -243,12 +264,12 @@ function RegisterForm(props: any) {
         v['currentProject'] = false;
       }
       v['startDate'] = v.startDate === '' ? null : new Date(v.startDate).toISOString();
-      if(v['endDate'] === '') {
-         delete v['endDate']
+      if (v['endDate'] === '') {
+        delete v['endDate'];
       } else {
         v['endDate'] = new Date(v.endDate).toISOString();
       }
-      
+
       return v;
     });
     if (result['plnStartDate']) {
@@ -271,26 +292,32 @@ function RegisterForm(props: any) {
     const projectsData = await projectsInfo.json();
     const skillsData = await skillsInfo.json();
     return {
-      teams: teamsData.map((d: any) => {
-        return {
-          teamUid: d.uid,
-          teamTitle: d.name,
-          role: '',
-        };
-      }),
-      skills: skillsData.map((d: any) => {
-        return {
-          id: d.uid,
-          name: d.title,
-        };
-      }),
-      projects: projectsData.map((d: any) => {
-        return {
-          projectUid: d.uid,
-          projectName: d.name,
-          projectLogo: d.logo,
-        };
-      }),
+      teams: teamsData
+        .map((d: any) => {
+          return {
+            teamUid: d.uid,
+            teamTitle: d.name,
+            role: '',
+          };
+        })
+        .sort((a, b) => a.teamTitle - b.teamTitle),
+      skills: skillsData
+        .map((d: any) => {
+          return {
+            id: d.uid,
+            name: d.title,
+          };
+        })
+        .sort((a, b) => a.name - b.name),
+      projects: projectsData
+        .map((d: any) => {
+          return {
+            projectUid: d.uid,
+            projectName: d.name,
+            projectLogo: d.logo,
+          };
+        })
+        .sort((a, b) => a.projectName - b.projectName),
     };
   };
 
@@ -340,7 +367,7 @@ function RegisterForm(props: any) {
               <MemberSkillsInfo initialValues={initialValues.skillsInfo} errors={skillsErrors} teamsOptions={allData.teams} skillsOptions={allData.skills} />
             </div>
           </div>
-          <div className="rf__actions">
+          <div className="rf__actions rf__actions--desktop">
             {currentStep === 'basic' && (
               <button onClick={onCloseForm} className="rf__actions__cancel" type="button">
                 Cancel
@@ -361,6 +388,30 @@ function RegisterForm(props: any) {
                 Submit
               </button>
             )}
+          </div>
+          <div className="rf__actions rf__actions--mobile">
+            <div className="rf__actions__cancelmobile">
+              <button onClick={onCloseForm} className="rf__actions__cancel" type="button">
+                Cancel
+              </button>
+            </div>
+            <div className="rf__actions__group">
+              {currentStep !== 'basic' && (
+                <button className="rf__actions__back" onClick={onBackClicked} type="button">
+                  Back
+                </button>
+              )}
+              {currentStep !== 'social' && (
+                <button className="rf__actions__next" onClick={onNextClicked} type="button">
+                  Next
+                </button>
+              )}
+              {currentStep === 'social' && (
+                <button className="rf__actions__submit" type="submit">
+                  Submit
+                </button>
+              )}
+            </div>
           </div>
         </form>
       )}
@@ -436,6 +487,21 @@ function RegisterForm(props: any) {
             width: 100%;
           }
 
+          .rf__actions--mobile {
+            display: flex;
+          }
+          .rf__actions--desktop {
+            display: none;
+          }
+
+          .rf__actions__group {
+            display: flex;
+            gap: 8px;
+          }
+          .rf__actions__cancelmobile {
+            flex: 1;
+          }
+
           .rf__actions__cancel,
           .rf__actions__back {
             padding: 10px 24px;
@@ -468,10 +534,16 @@ function RegisterForm(props: any) {
             .success {
               height: 100%;
             }
-            .success__desc { 
-              font-size: 16px
+            .success__desc {
+              font-size: 16px;
             }
-            
+
+            .rf__actions--mobile {
+              display: none;
+            }
+            .rf__actions--desktop {
+              display: flex;
+            }
           }
         `}
       </style>

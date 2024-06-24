@@ -118,7 +118,7 @@ function MemberSkillsInfo(props:any) {
                   <SearchableSingleSelect
                     id="members-register-team-info"
                     isMandatory={true}
-                    placeholder="Search by team name"
+                    placeholder="Select a team"
                     displayKey="teamTitle"
                     options={getAvailableTeamOptions()}
                     selectedOption={teaminfo}
@@ -132,7 +132,7 @@ function MemberSkillsInfo(props:any) {
                   <HiddenField value={teaminfo.teamUid} defaultValue="" name={`teamInfo${index}-teamUid`} />
                 </div>
                 <div className="msf__tr__content__cn__role">
-                  <TextField id="register-member-role" isMandatory={true} name={`teamInfo${index}-role`} placeholder="Enter role" onChange={(e) => onRoleChange(index, e.target.value)} type="text" />
+                  <TextField id="register-member-role" isMandatory={true} name={`teamInfo${index}-role`} placeholder="Enter your title/role" onChange={(e) => onRoleChange(index, e.target.value)} type="text" />
                 </div>
                 <div className="msf__tr__content__cn__delete">
                   {index !== 0 && (
@@ -168,7 +168,7 @@ function MemberSkillsInfo(props:any) {
             uniqueKey="id"
             displayKey="name"
             label="Professional Skills*"
-            placeholder="Search options..."
+            placeholder="Select applicable skills"
             isMandatory={true}
             closeImgUrl="/icons/close.svg"
             arrowImgUrl="/icons/arrow-down.svg"
@@ -238,7 +238,7 @@ function MemberSkillsInfo(props:any) {
             width: calc(50% - 18px);
           }
           .msf__tr__add {
-            width: 100%;
+            width: fit-content;
             margin-top: 4px;
           }
           .msf__tr__add__btn {

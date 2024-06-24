@@ -120,6 +120,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             onChange={onSearch}
             onFocus={onSearchFocus}
             placeholder={placeholder}
+            autoComplete="off"
           />
           <input ref={inputRef} type='text' hidden defaultValue={defaultSelectedValue} name={name}/>
 

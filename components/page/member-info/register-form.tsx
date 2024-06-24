@@ -390,14 +390,16 @@ function RegisterForm(props: any) {
             justify-content: center;
             flex-direction: column;
             gap: 16px;
+            padding: 16px;
           }
           .success__title {
             font-size: 24px;
             font-weight: 700;
           }
           .success__desc {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 400;
+            text-align: center;
           }
           .success__btn {
             padding: 10px 24px;
@@ -463,6 +465,13 @@ function RegisterForm(props: any) {
             .rf__actions {
               position: relative;
             }
+            .success {
+              height: 100%;
+            }
+            .success__desc { 
+              font-size: 16px
+            }
+            
           }
         `}
       </style>

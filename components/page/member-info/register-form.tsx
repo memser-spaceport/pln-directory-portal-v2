@@ -300,7 +300,7 @@ function RegisterForm(props: any) {
             role: '',
           };
         })
-        .sort((a, b) => a.teamTitle - b.teamTitle),
+        .sort((a: any, b: any) => a.teamTitle - b.teamTitle),
       skills: skillsData
         .map((d: any) => {
           return {
@@ -308,7 +308,7 @@ function RegisterForm(props: any) {
             name: d.title,
           };
         })
-        .sort((a, b) => a.name - b.name),
+        .sort((a: any, b: any) => a.name - b.name),
       projects: projectsData
         .map((d: any) => {
           return {
@@ -317,7 +317,7 @@ function RegisterForm(props: any) {
             projectLogo: d.logo,
           };
         })
-        .sort((a, b) => a.projectName - b.projectName),
+        .sort((a: any, b: any) => a.projectName - b.projectName),
     };
   };
 

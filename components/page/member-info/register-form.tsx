@@ -78,7 +78,7 @@ function RegisterForm(props: any) {
           status: 'PENDING',
           requesterEmailId: formValues.email,
           uniqueIdentifier: formValues.email,
-          newData: { ...formValues },
+          newData: { ...formValues, openToWork: false },
         };
         const formResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request`, {
           method: 'POST',

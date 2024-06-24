@@ -93,7 +93,7 @@ const TeamsList = (props: ITeamList) => {
           } 
         }
 
-        @media (min-width: 1200px) {
+        @media (min-width: 1024px) {
           .team-list__list__team {
             padding: 0px 0px;
           }

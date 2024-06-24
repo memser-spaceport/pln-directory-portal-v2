@@ -101,7 +101,7 @@ function TeamRegisterInfo() {
             opacity: 1 !important;
           }
 
-          @media (min-width: 1200px) {
+          @media (min-width: 1024px) {
             .tri__stepsd {
               display: flex;
             }

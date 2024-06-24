@@ -455,7 +455,7 @@ function RegisterForm(props: any) {
             font-size: 14px;
             font-weight: 500;
           }
-          @media (min-width: 1200px) {
+          @media (min-width: 1024px) {
             .rf__form {
               padding: 24px 32px;
               overflow-y: auto;

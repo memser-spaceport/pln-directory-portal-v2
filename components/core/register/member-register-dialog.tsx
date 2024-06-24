@@ -92,7 +92,7 @@ function MemberRegisterDialog() {
             flex: 1;
             overflow: hidden;
           }
-          @media (min-width: 1200px) {
+          @media (min-width: 1024px) {
             .register__cn {
               flex-direction: row;
               overflow-y: hidden;

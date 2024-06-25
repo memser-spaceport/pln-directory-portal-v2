@@ -65,7 +65,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             defaultValue={initialValues.requestorEmail}
             isMandatory={true}
             id="register-team-requestor-email"
-            label="Requestor Email*"
+            label="Requestor's email*"
             name="requestorEmail"
             type="email"
             placeholder="Enter your email address"
@@ -126,12 +126,12 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             isMandatory
             id="register-team-longDescription"
             name="longDescription"
-            label="Long Description*"
+            label="Long description*"
             placeholder="Elaborate on your elevator pitch here"
           />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">Please explain what your team does in a bit more detail. 4-5 sentences will be great!.</span>
+            <span className="info__text">Please explain what your team does in a bit more detail. 4-5 sentences will be great!</span>
           </p>
         </div>
         <div className="teaminfo__form__item">
@@ -139,7 +139,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             defaultValue={initialValues.officeHours}
             isMandatory={false}
             id="register-team-officeHours"
-            label="Team Office Hours"
+            label="Team office hours"
             name="officeHours"
             type="text"
             placeholder="Enter link here"

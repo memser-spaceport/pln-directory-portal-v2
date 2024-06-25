@@ -26,21 +26,21 @@ export default function JoinNetwork() {
     }
   };
 
-  const onJoinNetworkListClick = (item:any) => {
+  const onJoinNetworkListClick = (item: any) => {
     analytics.onNavJoinNetworkOptionClicked(item.name);
-    if(item.key === 'member') {
+    if (item.key === 'member') {
       document.dispatchEvent(new CustomEvent(EVENTS.OPEN_MEMBER_REGISTER_DIALOG));
-    } else if(item.key === 'team') {
+    } else if (item.key === 'team') {
       document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
     }
-    setIsOpen(false)
+    setIsOpen(false);
   };
 
   return (
     <>
       <div className="jn">
         <button className="jn__btn" onClick={onJoinNetworkClick}>
-          <span className="jn__btn__txt">Join the Network</span>
+          <span className="jn__btn__txt">Join the network</span>
           <img loading="lazy" className="jn__btn__icon" src="/icons/dropdown-white.svg" alt="dropdown" />
         </button>
         {isOpen && (
@@ -77,9 +77,13 @@ export default function JoinNetwork() {
           background-image: linear-gradient(90deg, #427dff, #44d5bb);
         }
 
+        .jn__btn:hover {
+          box-shadow: 0 4px 4px 0 rgba(15, 23, 42, 0.04), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 0 0 2px rgba(21, 111, 247, 0.25);
+        }
+
         .jn__btn__txt {
           font-weight: 600;
-          font-size: 15px;
+          font-size: 14px;
           line-height: 24px;
           text-overflow: clip;
           overflow: hidden;
@@ -92,9 +96,9 @@ export default function JoinNetwork() {
           right: 0;
           width: 190px;
           background-color: #ffffff;
-          box-shadow: 0 2px 8px 0 #0f172a;
+          box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
           border-radius: 8px;
-          padding: 4px 8px 4px 8px;
+          padding: 8px;
           display: flex;
           flex-direction: column;
         }
@@ -102,10 +106,15 @@ export default function JoinNetwork() {
         .jn__options__item__cn {
           padding: 10px;
           display: flex;
-          gap: 3px;
+          gap: 8px;
           align-items: center;
           cursor: pointer;
           color: black;
+        }
+
+        .jn__options__item__cn:hover {
+          background-color: #f1f5f9;
+          border-radius: 8px;
         }
 
         @media (min-width: 1024px) {

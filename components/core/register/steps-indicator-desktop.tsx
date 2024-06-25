@@ -2,12 +2,12 @@
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 
-function StepsIndicatorDesktop(props:any) {
+function StepsIndicatorDesktop(props: any) {
   const steps = props.steps ?? [];
   const stepsToSkip = props.skip ?? [];
-  const filteredSteps = [...steps].filter(v => !stepsToSkip.includes(v))
+  const filteredSteps = [...steps].filter((v) => !stepsToSkip.includes(v));
   const { currentStep } = useStepsIndicator({ steps, defaultStep: 'basic', uniqueKey: 'register' });
-  const currentStepIndex = steps.findIndex((v:string) => v === currentStep);
+  const currentStepIndex = steps.findIndex((v: string) => v === currentStep);
   const activeIcon = '/icons/hexagon-active.svg';
   const completedIcon = '/icons/hexagon-completed.svg';
   const defaultIcon = '/icons/hexagon.svg';
@@ -32,7 +32,7 @@ function StepsIndicatorDesktop(props:any) {
                 <img className="mri__stepsd__item__icon__img" src={getStepImageSrc(index)} alt="step icon" width="24" height="24" />
                 {currentStepIndex <= index && <p className="mri__stepsd__item__icon__text">{index + 1}</p>}
               </div>
-              <p className="mri__stepsd__item__text">{step}</p>
+              <p className={`mri__stepsd__item__text ${index === currentStepIndex || currentStepIndex > index ? 'active--step' : ''}`}>{step}</p>
             </li>
           ))}
         </ul>
@@ -57,6 +57,8 @@ function StepsIndicatorDesktop(props:any) {
             font-size: 16px;
             color: white;
             text-transform: capitalize;
+            opacity: 50%;
+            font-weight: 600;
           }
           .mri__stepsd__item__icon {
             position: relative;
@@ -79,6 +81,10 @@ function StepsIndicatorDesktop(props:any) {
           .mri__stepsd__item__hexagon__step {
             color: white;
             opacity: 1 !important;
+          }
+
+          .active--step {
+            opacity: unset;
           }
 
           @media (min-width: 1024px) {

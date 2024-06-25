@@ -130,7 +130,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
         }
 
         if (!nameVerification.isValid) {
-          errors.push('Name Already exists');
+          errors.push('Name Already exists!');
         }
 
         if (imageFile.name) {
@@ -250,7 +250,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
   return (
     <>
       {currentStep !== 'success' && (
-        <form className="trf" onSubmit={onFormSubmit} ref={formRef}>
+        <form className="trf" onSubmit={onFormSubmit} ref={formRef} noValidate>
           <div ref={formContainerRef} className="trf__form">
             <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
               <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} />
@@ -325,7 +325,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
       {currentStep === 'success' && (
         <div className="trf__success">
           <p className="trf__success__ttl">Thank You for Submitting</p>
-          <p className="trf__success__desc">Our team will review your request shortly and get back</p>
+          <p className="trf__success__desc">Our team will review your request and get back to you shortly</p>
           <button onClick={onCloseForm} type="button" className="trf__success__cls">
             Close
           </button>

@@ -61,6 +61,9 @@ const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '',
             font-family: 'Inter', sans-serif;
             font-size: 14px;
             line-height: 24px;
+            resize: vertical;
+            height: 60px;
+            min-height: 60px;
           }
           .tf__input:invalid {
             border: 1px solid red;

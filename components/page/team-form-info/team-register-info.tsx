@@ -5,8 +5,8 @@ function TeamRegisterInfo() {
     <>
       <div className="tri">
         <div className="tri__head">
-          <h2 className="tri__head__title">Join the Protocol Labs Network</h2>
-          <p className="tri__head__desc">Tell us about team!</p>
+          <h2 className="tri__head__title">Join the Protocol Labs</h2>
+          <p className="tri__head__desc">Tell us about your team!</p>
         </div>
       </div>
       <style jsx>

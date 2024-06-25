@@ -118,7 +118,8 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             ref={searchRef}
             defaultValue={defaultSelectedValue}
             onChange={onSearch}
-            onFocus={onSearchFocus}
+            onClick={() => setShowOptions(v => !v)}
+            //onFocus={onSearchFocus}
             placeholder={placeholder}
             autoComplete="off"
           />
@@ -148,6 +149,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             font-size: 14px;
             margin-bottom: 12px;
             display: block;
+            width: fit-content;
           }
           .select__arrowimg {
             position: absolute;

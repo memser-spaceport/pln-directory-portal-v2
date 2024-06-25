@@ -53,7 +53,7 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
   };
 
   const formatDate = (year: number, month: number): string => {
-    const date = dateBoundary === 'start' ? new Date(Date.UTC(year, month, 1)) : new Date(Date.UTC(year, month - 1, 0));
+    const date = dateBoundary === 'start' ? new Date(Date.UTC(year, month, 1)) : new Date(Date.UTC(year, month + 1, 0));
     return date.toISOString().slice(0, 10); // ISO date string format (YYYY-MM-DD)
   };
 

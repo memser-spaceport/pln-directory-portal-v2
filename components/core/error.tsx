@@ -1,5 +1,6 @@
 "use client";
 import { PAGE_ROUTES } from "@/utils/constants";
+import Image from "next/image";
 
 const Error = () => {
   return (
@@ -7,7 +8,7 @@ const Error = () => {
       <div className="error-container">
         <div className="error-container__content">
           <div className="error-container__content__notfoundcontainer">
-            <img loading="lazy" className="error-container__content__notfound-img" alt="error" src="/icons/notfound.svg" />
+            <img  loading="lazy" className="error-container__content__notfound-img" alt="error" src="/icons/notfound.svg" />
           </div>
           <div className="error-container__content__message">
             <h2 className="error-container__content__message__title">Oh snap! Something went wrong!</h2>

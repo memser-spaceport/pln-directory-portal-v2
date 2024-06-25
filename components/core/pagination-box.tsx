@@ -1,6 +1,9 @@
 'use client';
 
+import { useCommonAnalytics } from '@/analytics/common.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -12,11 +15,16 @@ interface IPaginationBox {
   currentPage: number;
   totalPages: number;
   searchParams: any;
+  from: string, 
+  userInfo: IUserInfo | undefined | null;
 }
 
 export function PaginationBox(props: IPaginationBox) {
   const pathname = usePathname();
   const [isOpenPagesPanel, setIsOpenPagesPanel] = useState(false);
+  const from = props.from;
+  const analytics = useCommonAnalytics();
+  const userInfo = props?.userInfo;
 
   const pagesPanelRef = useRef(null);
   useClickedOutside({ callback: () => setIsOpenPagesPanel(false), ref: pagesPanelRef });
@@ -70,6 +78,11 @@ export function PaginationBox(props: IPaginationBox) {
   const nextPageLink = getNextPageLink();
   const previousPageLink = getPrevPageLink();
 
+
+  const onPaginationOptionClickHandler = (option: string, page: number) => {
+    analytics.onPaginationOptionClicked(option, page, getAnalyticsUserInfo(userInfo), from);
+  }
+
   return (
     <>
       <div className="pb">
@@ -80,13 +93,13 @@ export function PaginationBox(props: IPaginationBox) {
         <div className="pb__left">
           <div className="pb__left__contrls">
             <button className="pb__left__ctrls__first">
-              <Link href={firstPageLink}>
+              <Link href={firstPageLink} onClick={() => onPaginationOptionClickHandler("first", 1)}>
                 <Image height={8} width={8} src={currentPage === 1 ? '/icons/pagination/inactive/left-double-arrow.svg' : '/icons/pagination/active/left-double-arrow.svg'} alt="first" />
               </Link>
             </button>
 
             <button className="pb__left__ctrls__prev">
-              <Link href={previousPageLink}>
+              <Link href={previousPageLink} onClick={() => onPaginationOptionClickHandler("prev", currentPage - 1)}>
                 <Image height={8} width={8} src={currentPage === 1 ? '/icons/pagination/inactive/left-arrow.svg' : '/icons/pagination/active/left-arrow.svg'} alt="prev" />
               </Link>
             </button>
@@ -95,7 +108,7 @@ export function PaginationBox(props: IPaginationBox) {
               {isOpenPagesPanel && (
                 <div ref={pagesPanelRef} className="pb__left__contrls__pagescon__pnl">
                   {Array.from({ length: totalPages })?.map((_page: any, index: number) => (
-                    <Link style={{fontWeight: `${(currentPage === (index + 1)) ? "600" : ""}`}} href={getPageUrl(index+1)} key={index}>{index + 1} </Link>
+                    <Link onClick={() => onPaginationOptionClickHandler("", index + 1)} style={{fontWeight: `${(currentPage === (index + 1)) ? "600" : ""}`}} href={getPageUrl(index+1)} key={index}>{index + 1} </Link>
                   ))}
                 </div>
               )}
@@ -104,13 +117,13 @@ export function PaginationBox(props: IPaginationBox) {
             </button>
 
             <button className="pb__left__ctrls__next">
-              <Link href={nextPageLink}>
+              <Link href={nextPageLink} onClick={() => onPaginationOptionClickHandler("next", currentPage + 1)}>
                 <Image height={8} width={8} src={currentPage === totalPages ? '/icons/pagination/inactive/right-arrow.svg' : '/icons/pagination/active/right-arrow.svg'} alt="next" />
               </Link>
             </button>
 
             <button className="pb__left__ctrls__last">
-              <Link href={lastPageLink}>
+              <Link  href={lastPageLink} onClick={() => onPaginationOptionClickHandler("last", totalPages)}>
                 <Image height={8} width={8} src={currentPage === totalPages ? '/icons/pagination/inactive/right-double-arrow.svg' : '/icons/pagination/active/right-double-arrow.svg'} alt="last" />
               </Link>
             </button>

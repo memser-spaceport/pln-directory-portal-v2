@@ -11,6 +11,7 @@ import FilterCount from "../../ui/filter-count";
 import SortByDropdown from "../../ui/sort-by-dropdown";
 import ViewType from "../../ui/view-type";
 import Image from "next/image";
+import { useTeamAnalytics } from "@/analytics/teams.analytics";
 
 interface IToolbar {
   searchParams: ITeamsSearchParams;
@@ -34,12 +35,13 @@ const TeamsToolbar = (props: IToolbar) => {
   const [isSortBy, setIsSortBy] = useState(false);
 
   useClickedOutside({ callback: () => setIsSortBy(false), ref: sortByRef });
-//   const analytics = useTeamsAnalytics();
+  const analytics = useTeamAnalytics();
 
   const query = getQuery(searchParams);
   const filterCount = getFilterCount(query);
 
   const onFilterClickHandler = () => {
+    analytics.onTeamOpenFilterPanelClicked(getAnalyticsUserInfo(userInfo))
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_FILTER, { detail: true }));
   };
 
@@ -47,7 +49,7 @@ const TeamsToolbar = (props: IToolbar) => {
     if (view === type) {
       return;
     }
-    // analytics.onViewTypeClicked(getAnalyticsUserInfo(userInfo), type);
+    analytics.onTeamViewTypeChanged(type, getAnalyticsUserInfo(userInfo),);
     if (type !== VIEW_TYPE_OPTIONS.GRID) {
       updateQueryParams("viewType", type, searchParams);
       return;
@@ -63,7 +65,7 @@ const TeamsToolbar = (props: IToolbar) => {
     e.preventDefault();
     if (searchBy.trim() !== searchInput.trim()) {
     }
-    // analytics.onTeamsSearchClicked(searchInput, getAnalyticsUserInfo(userInfo));
+    analytics.onTeamSearch(searchInput, getAnalyticsUserInfo(userInfo));
     if(searchParams?.page) {
       searchParams.page = "1";
     }
@@ -73,11 +75,11 @@ const TeamsToolbar = (props: IToolbar) => {
   const onSortClickHandler = (device: string) => {
     if (device === "mobile") {
       if (sortBy === SORT_OPTIONS.ASCENDING) {
-        // analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.DESCENDING);
+        analytics.onTeamSortByChanged("teams", SORT_OPTIONS.DESCENDING, getAnalyticsUserInfo(userInfo));
         updateQueryParams("sort", SORT_OPTIONS.DESCENDING, searchParams);
         return;
       }
-    //   analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.ASCENDING);
+      analytics.onTeamSortByChanged("teams", SORT_OPTIONS.ASCENDING, getAnalyticsUserInfo(userInfo));
       updateQueryParams("sort", "", searchParams);
     } else {
       setIsSortBy(!isSortBy);
@@ -86,7 +88,7 @@ const TeamsToolbar = (props: IToolbar) => {
 
   const onSortOptionClickHandler = (option: string) => {
     setIsSortBy(false);
-    // analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.ASCENDING);
+    analytics.onTeamSortByChanged("teams", option, getAnalyticsUserInfo(userInfo));
     updateQueryParams("sort", option, searchParams);
   };
 
@@ -136,9 +138,9 @@ const TeamsToolbar = (props: IToolbar) => {
           <div className="toolbar__right__web">
             <p className="toolbar__right__web__sort-by-text">Sort by:</p>
             <button className="toolbar__right__web__sort-by" onClick={() => onSortClickHandler("web")}>
-              <img loading="lazy" alt="sort" src={sortBy === SORT_OPTIONS.ASCENDING ? "/icons/ascending-gray.svg" : "/icons/descending-gray.svg"} height={20} width={20} />
+              <Image loading="lazy" alt="sort" src={sortBy === SORT_OPTIONS.ASCENDING ? "/icons/ascending-gray.svg" : "/icons/descending-gray.svg"} height={20} width={20} />
               <p className="toolbar__right__web__sord-by__name">{sortBy === SORT_OPTIONS.ASCENDING ? "Ascending" : "Descending"}</p>
-              <img loading="lazy" alt="dropdown" src="/icons/dropdown-gray.svg" />
+              <Image loading="lazy" alt="dropdown" src="/icons/dropdown-gray.svg" height={20} width={20}/>
             </button>
             {isSortBy && (
               <div ref={sortByRef} className="toolbar__right__web__drop-downc">

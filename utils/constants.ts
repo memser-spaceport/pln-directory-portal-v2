@@ -67,6 +67,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_JOIN_NETWORK_CLICKED: 'navbar-join-network-menu-clicked',
   NAVBAR_JOIN_NETWORK_OPTION_CLICKED: 'navbar-join-network-option-clicked',
   NAVBAR_DRAWER_BTN_CLICKED: 'navbar-drawer-btn-clicked',
+  FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked'
 };
 export const TOAST_MESSAGES = {
   LOGOUT_MSG: 'You have been logged out successfully',
@@ -90,14 +91,20 @@ export const AUTH_ANALYTICS = {
   AUTH_SETTINGS_PRIVY_ACCOUNT_LINK: 'AUTH_SETTINGS_PRIVY_ACCOUNT_LINK',
 };
 
-export const TEAMS_ANALYTICS_EVENTS = {
-  TEAM_OFFICE_HOURS_FILTER_SELECTED: 'team-office-hours-filter-selected',
-  TEAM_FRIENDS_OF_PROTOCOL_FILTER_SELECTED: 'team-friends-of-protocol-filter-selected',
-  FILTERS_APPLIED: 'filters-applied',
-  TEAM_CLEAR_ALL_FILTERS_APPLIED: 'team-clears-all-filters-applied',
-  TEAM_VIEW_FILTER_RESULT_CLICKED: 'team-view-filter-result-clicked',
-  TEAM_CLOSE_FILTER_PANEL_CLICKED: 'team-close-filter-panel-clicked',
-};
+  export const TEAMS_ANALYTICS_EVENTS = {
+    TEAM_OFFICE_HOURS_FILTER_SELECTED: 'team-office-hours-filter-selected',
+    TEAM_FRIENDS_OF_PROTOCOL_FILTER_SELECTED: 'team-friends-of-protocol-filter-selected',
+    FILTERS_APPLIED: 'filters-applied',
+    TEAM_CLEAR_ALL_FILTERS_APPLIED: 'team-clears-all-filters-applied',
+    TEAM_VIEW_FILTER_RESULT_CLICKED: 'team-view-filter-result-clicked',
+    TEAM_CLOSE_FILTER_PANEL_CLICKED: 'team-close-filter-panel-clicked',
+    TEAMS_SEARCH: 'team-search',
+    DIRECTORY_LIST_SORTBY_CHANGED: 'directory-list-sortby-changed',
+    TEAMS_VIEW_TYPE_CHANGED: 'team-view-type-changed',
+    TEAM_OPEN_FILTER_PANEL_CLICKED: 'team-open-filter-panel-clicked',
+    TEAM_CLICKED: 'team-clicked',
+    TEAM_PAGINATION_OPTION_CLICKED: 'team-pagination-option-clicked',
+  }
 
 export const PAGE_ROUTES = {
   MEMBERS: '/members',

@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import FilterCount from '../../ui/filter-count';
 import Toggle from '../../ui/toogle';
 import TagContainer from '../tag-container';
-import { getFilterCount, getQuery } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, getFilterCount, getQuery } from '@/utils/common.utils';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import Image from 'next/image';
 import FocusAreaFilter from '../../core/focus-area-filter/focus-area-filter';
@@ -90,7 +90,7 @@ const Filter = (props: ITeamFilterWeb) => {
     if (apliedFiltersCount > 0) {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
-      analytics.onClearAllFiltersClicked();
+      analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
       const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
@@ -230,7 +230,7 @@ const Filter = (props: ITeamFilterWeb) => {
           }
 
           .team-filter__body {
-            height: 100dvh;
+            height: calc(100dvh - 100px);
             overflow: auto;
             padding: 0px 24px 10px 24px;
             flex-direction: column;

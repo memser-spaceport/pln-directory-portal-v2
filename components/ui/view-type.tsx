@@ -1,5 +1,6 @@
 import { VIEW_TYPE_OPTIONS } from "@/utils/constants";
 import { Tooltip } from "../core/tooltip/tooltip";
+import Image from "next/image";
 
 interface IViewType {
   view: string;
@@ -17,7 +18,7 @@ const ViewType = (props: IViewType) => {
         asChild
           trigger={
             <button className={`view-option-container__grid ${view === VIEW_TYPE_OPTIONS.GRID ? "selected" : "not-selected"}`} onClick={() => callback(VIEW_TYPE_OPTIONS.GRID)}>
-              {view === VIEW_TYPE_OPTIONS.GRID ? <img loading="lazy" alt="grid" src="/icons/grid-selected.svg" width={24} height={24} /> : <img loading="lazy" alt="grid" src="/icons/grid-deselect.svg" width={24} height={24} />}
+              {view === VIEW_TYPE_OPTIONS.GRID ? <Image loading="lazy" alt="grid" src="/icons/grid-selected.svg" width={24} height={24} /> : <Image loading="lazy" alt="grid" src="/icons/grid-deselect.svg" width={24} height={24} />}
             </button>
           }
           content={VIEW_TYPE_OPTIONS.GRID}
@@ -27,7 +28,7 @@ const ViewType = (props: IViewType) => {
         asChild
           trigger={
             <button className={`view-option-container__list ${view === VIEW_TYPE_OPTIONS.LIST ? "selected" : "not-selected"}`} onClick={() => callback(VIEW_TYPE_OPTIONS.LIST)}>
-              {view === VIEW_TYPE_OPTIONS.LIST ? <img loading="lazy" alt="grid" src="/icons/list-selected.svg" width={24} height={24} /> : <img loading="lazy" alt="list" src="/icons/list-deselect.svg" width={24} height={24} />}
+              {view === VIEW_TYPE_OPTIONS.LIST ? <Image loading="lazy" alt="grid" src="/icons/list-selected.svg" width={24} height={24} /> : <Image loading="lazy" alt="list" src="/icons/list-deselect.svg" width={24} height={24} />}
             </button>
           }
           content={VIEW_TYPE_OPTIONS.LIST}

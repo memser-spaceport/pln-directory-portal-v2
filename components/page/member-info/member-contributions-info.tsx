@@ -59,6 +59,12 @@ function MemberContributionInfo(props: any) {
     setContributionInfos([...newExp]);
   };
 
+  const getAvailableContributionOptions = () => {
+    const selectedTeamUids = [...contributionInfos].filter((v) => v.projectUid !== '').map((v) => v.projectUid);
+    const remainingItems = [...projectsOptions].filter((v) => !selectedTeamUids.includes(v.projectUid));
+    return [...remainingItems];
+  };
+
   /* const onAddContribution = () => {
     setContributionInfos((v) => {
       const nv = structuredClone(v);
@@ -160,7 +166,7 @@ function MemberContributionInfo(props: any) {
                       isFormElement={true}
                       name={`contributionInfo${index}-projectUid`}
                       onClear={() => onClearProjectSearch(index)}
-                      options={projectsOptions}
+                      options={getAvailableContributionOptions()}
                       selectedOption={contributionInfo}
                       displayKey="projectName"
                       id={`member-contribution-project-${index}`}
@@ -264,6 +270,8 @@ function MemberContributionInfo(props: any) {
             visibility: hidden;
             height: 0;
             margin: 0;
+            max-height:0;
+            overflow: hidden;
           }
           .pc__list__item__form__item {
             width: 100%;

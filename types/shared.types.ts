@@ -59,3 +59,10 @@ export interface IUserInfo {
     teamAncestorFocusAreas: ITeam[];
     projectAncestorFocusAreas: any;
   }
+
+
+  export interface IAnalyticsTeamInfo {
+    name: string;
+    shortDescription: string;
+    logo: string;
+  }

@@ -2,7 +2,7 @@ import { getAllTeams, getTeamsFilters } from '@/services/teams.service';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
 import { calculateTotalPages } from '@/utils/common.utils';
-import { ITEMS_PER_PAGE } from '@/utils/constants';
+import { ITEMS_PER_PAGE, PAGE_ROUTES } from '@/utils/constants';
 import { getCookieFromHeaders } from '@/utils/next.utils';
 import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
 import { Metadata } from 'next';
@@ -44,7 +44,7 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
           </div>
 
           <div className={styles.team__right__pgn}>
-            <PaginationBox searchParams={searchParams} showingItems={teams?.length} totalItems={totalTeams} currentPage={currentPage} totalPages={totalPages} />
+            <PaginationBox userInfo={userInfo} from={PAGE_ROUTES.TEAMS} searchParams={searchParams} showingItems={teams?.length} totalItems={totalTeams} currentPage={currentPage} totalPages={totalPages} />
           </div>
         </div>
       </div>

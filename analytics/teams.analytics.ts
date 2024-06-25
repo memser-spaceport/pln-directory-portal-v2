@@ -1,3 +1,4 @@
+import { IAnalyticsTeamInfo, IAnalyticsUserInfo } from "@/types/shared.types";
 import { TEAMS_ANALYTICS_EVENTS } from "@/utils/constants";
 import { usePostHog } from "posthog-js/react";
 
@@ -33,7 +34,7 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.FILTERS_APPLIED, params)
       }
 
-      function onClearAllFiltersClicked() {
+      function onClearAllFiltersClicked(user: IAnalyticsUserInfo | null ) {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_CLEAR_ALL_FILTERS_APPLIED)
       }
 
@@ -45,7 +46,47 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_CLOSE_FILTER_PANEL_CLICKED)
       }
 
+      function onTeamSearch(value: string, user: IAnalyticsUserInfo | null) {
+        const params = {
+          value,
+          user
+          
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_SEARCH, params)
+      }
 
+      function onTeamSortByChanged(directoryType: string, sortedBy: string, user: IAnalyticsUserInfo | null) {
+        const params = {
+          directoryType,
+          sortedBy,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.DIRECTORY_LIST_SORTBY_CHANGED, params)
+      }
+
+      function onTeamViewTypeChanged(type: string, user: IAnalyticsUserInfo |  null) {
+        const params = {
+          type, 
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_VIEW_TYPE_CHANGED, params);
+      }
+
+      function onTeamOpenFilterPanelClicked(user: IAnalyticsUserInfo | null) {
+        const params = {
+          user,
+        }
+
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_OPEN_FILTER_PANEL_CLICKED, params)
+      }
+
+      function onTeamCardClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params = {
+          team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_CLICKED, params);
+      }
 
       return {
         onOfficeHoursSelected,
@@ -53,6 +94,11 @@ export const useTeamAnalytics = () => {
         onFilterApplied,
         onClearAllFiltersClicked,
         onTeamShowFilterResultClicked,
-        onTeamFilterCloseClicked
+        onTeamFilterCloseClicked, 
+        onTeamSearch, 
+        onTeamSortByChanged,
+        onTeamViewTypeChanged,
+        onTeamOpenFilterPanelClicked,
+        onTeamCardClicked
       }
 }

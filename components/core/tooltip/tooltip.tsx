@@ -22,6 +22,9 @@ export function Tooltip({ trigger, triggerClassName = "", content, asChild = fal
     e.stopPropagation();
     e.preventDefault();
     setIsOpen(!isOpen);
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 2000)
   };
 
   useClickedOutside({ callback: () => setIsOpen(false), ref: tooltipRef });

@@ -1,5 +1,6 @@
 import { IUserInfo } from "@/types/shared.types";
 import { EVENTS, SORT_OPTIONS } from "./constants";
+import { ITeam } from "@/types/teams.types";
 
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
@@ -16,13 +17,19 @@ export const getParsedValue = (value: string) => {
   }
 };
 
-export const getAnalyticsUserInfo = (userInfo: IUserInfo | null) => {
+export const getAnalyticsUserInfo = (userInfo: IUserInfo | null | undefined) => {
   if (userInfo?.name && userInfo?.email && userInfo?.roles) {
     return { name: userInfo?.name, email: userInfo?.email, roles: userInfo?.roles };
   }
   return null;
 }
 
+export const getAnalyticsTeamInfo = (team: ITeam | undefined) => {
+  if (team?.name && team?.shortDescription && team?.logo) {
+    return { name: team?.name ?? "", shortDescription: team?.shortDescription ?? "", logo: team?.logo ?? "" }
+  }
+  return null;
+}
 export const getQuery = (searchParams: any) => {
   return {
     tags: searchParams?.tags ?? "",
@@ -35,18 +42,18 @@ export const getQuery = (searchParams: any) => {
     skills: searchParams?.skills ?? "",
     region: searchParams?.region ?? "",
     country: searchParams?.country ?? "",
-    metroArea: searchParams?.metroArea ?? "", 
+    metroArea: searchParams?.metroArea ?? "",
     focusAreas: searchParams?.focusAreas ?? "",
   };
 }
 
 
-export const  getFilterCount = (filters:any) => {
+export const getFilterCount = (filters: any) => {
   let count = 0;
 
-  if(typeof filters === "object") {
+  if (typeof filters === "object") {
     Object.keys(filters).forEach((key) => {
-      filters[key]!== "" ? count += 1 : count
+      filters[key] !== "" ? count += 1 : count
     })
   }
   return count;

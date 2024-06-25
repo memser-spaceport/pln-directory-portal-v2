@@ -63,13 +63,25 @@ export const useCommonAnalytics = () => {
         captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_DRAWER_BTN_CLICKED, params )
       }
 
+      function onPaginationOptionClicked(option: string, page: number, user: IAnalyticsUserInfo | null, from: string) {
+        const params = {
+          option,
+          page,
+          user,
+          from
+        }
+
+        captureEvent(COMMON_ANALYTICS_EVENTS.FOOTER_PAGINATION_OPTION_CLICKED, params)
+      }
+
       return {
         onNavItemClicked,
         onNavGetHelpItemClicked,
         onNavAccountItemClicked,
         onNavJoinNetworkClicked,
         onNavJoinNetworkOptionClicked,
-        onNavDrawerBtnClicked
+        onNavDrawerBtnClicked, 
+        onPaginationOptionClicked
 
       }
 }

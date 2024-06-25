@@ -3,7 +3,7 @@
 import { getAllTeams } from "@/services/teams.service";
 import { IUserInfo } from "@/types/shared.types";
 import { ITeam, ITeamsSearchParams } from "@/types/teams.types";
-import { triggerLoader } from "@/utils/common.utils";
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from "@/utils/common.utils";
 import { PAGE_ROUTES, VIEW_TYPE_OPTIONS } from "@/utils/constants";
 import { getTeamsListOptions, getTeamsOptionsFromQuery } from "@/utils/team.utils";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import TeamGridView from "./team-grid-view";
 import TeamListView from "./team-list-view";
 import { PaginationBox } from "../../core/pagination-box";
 import Link from "next/link";
+import { useTeamAnalytics } from "@/analytics/teams.analytics";
 
 
 interface ITeamList {
@@ -28,16 +29,10 @@ const TeamsList = (props: ITeamList) => {
   const userInfo = props?.userInfo;
   const router = useRouter();
   const observerTarget = useRef(null);
-//   const { currentPage, limit, setPagination } = usePagination({
-//     observerTargetRef: observerTarget,
-//     totalItems: totalTeams,
-//     totalCurrentItems: allTeams.length,
-//   });
-//   const analytics = useTeamsAnalytics()
 
+  const analytics = useTeamAnalytics();
    const onTeamClickHandler = (team: ITeam) => {
-    // analytics.onTeamClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team))
-    // router.push(`${PAGE_ROUTES.TEAMS}/${team?.id}`)
+    analytics.onTeamCardClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo))
    }
 
   return (

@@ -173,6 +173,12 @@ function RegisterForm(props: any) {
           }
           allErrorObj[index].push('Your contribution end date cannot be less than or equal to start date');
         }
+        if(contribution.startDate && new Date(contribution.startDate) > new Date()) {
+          if (!allErrorObj[index]) {
+            allErrorObj[index] = [];
+          }
+          allErrorObj[index].push('Your contribution start date cannot be greater than current date');
+        }
       });
       const result = projectContributionSchema.safeParse(formattedData);
       if (!result.success) {
@@ -418,7 +424,7 @@ function RegisterForm(props: any) {
       {currentStep === 'success' && (
         <div className="success">
           <h2 className="success__title">Thank You for Submitting</h2>
-          <p className="success__desc">Our team will review your request shortly and get back</p>
+          <p className="success__desc">Our team will review your request and get back to you shortly</p>
           <button onClick={onCloseForm} type="button" className="success__btn">
             Close
           </button>

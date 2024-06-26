@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ToggleProps {
   id: string;
@@ -7,10 +7,12 @@ interface ToggleProps {
   onChange: (isChecked: boolean) => void
   checked?: boolean
   disabled?:boolean
+  value?:boolean
 }
 
-const Toggle: React.FC<ToggleProps> = ({ id, label, name, disabled=false, onChange, checked = false, ...props  }) => {
-  const [isChecked, setIsChecked] = useState<boolean>(checked || false);
+const Toggle: React.FC<ToggleProps> = ({ id, label, name, value = false, disabled=false, onChange, checked = false, ...props  }) => {
+  const [isChecked, setIsChecked] = useState<boolean>(value || false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleToggle = () => {
     if(!disabled) {
@@ -19,6 +21,13 @@ const Toggle: React.FC<ToggleProps> = ({ id, label, name, disabled=false, onChan
     }
   };
 
+  useEffect(() => {
+     if(inputRef.current) {
+      inputRef.current.checked = value;
+      setIsChecked(value)
+     }
+  }, [value])
+
   return (
     <>
       <div className="toggle-container">
@@ -26,7 +35,7 @@ const Toggle: React.FC<ToggleProps> = ({ id, label, name, disabled=false, onChan
         <div className={`toggle-switch ${isChecked ? 'checked' : ''} ${disabled ? 'toggle-switch--disabled': ''}`} onClick={handleToggle}>
           <div className="toggle-knob" />
         </div>
-        <input type="checkbox" name={name} disabled={disabled} id={id} {...props} checked={isChecked} onChange={handleToggle} style={{ display: 'none' }} />
+        <input ref={inputRef} type="checkbox" name={name} disabled={disabled} id={id} {...props} onChange={handleToggle} style={{ display: 'none' }} />
       </div>
       <style jsx>
         {`

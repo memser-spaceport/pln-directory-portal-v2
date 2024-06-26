@@ -20,13 +20,13 @@ function MemberSocialInfo(props:any) {
           <TextField type="text" id="register-member-twitter" name="twitterHandler" label="Twitter" placeholder="eg.,@protocollabs" />
         </div>
         <div className="memberinfo__form__item">
-          <TextField type="text" id="register-member-github" name="githubHandler" label="Github" placeholder="Enter Github handle" />
+          <TextField type="text" id="register-member-github" name="githubHandler" label="GitHub" placeholder="Enter github handle" />
         </div>
         <div className="memberinfo__form__item">
           <TextField type="text" id="register-member-telegram" name="telegramHandler" label="Telegram" placeholder="Telegram" />
         </div>
         <div className="memberinfo__form__item">
-          <TextField type="text" id="register-member-officehours" name="officeHours" label="Office hours link" placeholder="enter office hours" />
+          <TextField type="text" id="register-member-officehours" name="officeHours" label="Office hours link" placeholder="Enter office hours" />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
             <span className="info__text">

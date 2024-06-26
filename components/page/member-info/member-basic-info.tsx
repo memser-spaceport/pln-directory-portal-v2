@@ -78,7 +78,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             <TextField defaultValue={initialValues.email} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" />
           </div>
           <div className="memberinfo__form__item">
-            <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="Join Date" name="plnStartDate" type="date" placeholder="Enter Start Date" />
+            <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="Join date" name="plnStartDate" type="date" placeholder="Enter Start Date" />
           </div>
           <div className="memberinfo__form__item">
             <TextField defaultValue={initialValues.city} id="register-member-city" label="City" name="city" type="text" placeholder="Enter your city" />

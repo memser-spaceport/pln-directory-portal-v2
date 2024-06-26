@@ -13,6 +13,7 @@ interface SearchableSingleSelectProps {
   onClear: () => void;
   uniqueKey: string;
   displayKey: string;
+  iconKey?: string;
   formKey: string;
   placeholder?: string;
   isMandatory?: boolean;
@@ -36,6 +37,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   arrowImgUrl,
   label = '',
   isFormElement = false,
+  iconKey,
   name,
   id,
 }) => {
@@ -74,8 +76,8 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   };
 
   const onInputBlur = (e: PointerEventHandler<HTMLDivElement>) => {
-    setShowOptions(false)
-  }
+    setShowOptions(false);
+  };
 
   useEffect(() => {
     setFilteredOptions(options);
@@ -85,7 +87,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
     if (searchRef.current && selectedOption) {
       searchRef.current.value = selectedOption[displayKey];
     }
-    if(inputRef.current && selectedOption) {
+    if (inputRef.current && selectedOption) {
       inputRef.current.value = selectedOption[formKey];
     }
   }, [selectedOption, displayKey]);
@@ -111,26 +113,28 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             {label}
           </label>
         )}
-        <div ref={containerRef}>
+        <div className="select__cn" ref={containerRef}>
+          {iconKey && selectedOption && selectedOption[iconKey] && <img className="selected__icon" src={selectedOption[iconKey]} alt={selectedOption[displayKey]} />}
           <input
             id={id}
-            className={`select__search ${isMandatory && !selectedOption?.[uniqueKey] ? 'select__search--error' : ''}`}
+            className={`select__search ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${isMandatory && !selectedOption?.[uniqueKey] ? 'select__search--error' : ''}`}
             ref={searchRef}
             defaultValue={defaultSelectedValue}
             onChange={onSearch}
-            onClick={() => setShowOptions(v => !v)}
+            onClick={() => setShowOptions((v) => !v)}
             //onFocus={onSearchFocus}
             placeholder={placeholder}
             autoComplete="off"
           />
-          <input ref={inputRef} type='text' hidden defaultValue={defaultSelectedValue} name={name}/>
+          <input ref={inputRef} type="text" hidden defaultValue={defaultSelectedValue} name={name} />
 
           {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
           {showOptions && (
             <ul className="select__options">
               {filteredOptions.map((option) => (
                 <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
-                  {option[displayKey]}
+                  {iconKey && <img className="select__options__item__img" src={option[iconKey]} alt={option[displayKey]} />}
+                  <span> {option[displayKey]}</span>
                 </li>
               ))}
               {filteredOptions.length === 0 && <p className="select__options__noresults">No Results found</p>}
@@ -144,12 +148,27 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             width: 100%;
             position: relative;
           }
+
+          .select__cn {
+            position: relative;
+            height: fit-content;
+          }
           .select__label {
             font-weight: 600;
             font-size: 14px;
             margin-bottom: 12px;
             display: block;
             width: fit-content;
+          }
+          .selected__icon {
+            width: 26px;
+            object-fit: cover;
+            object-position: top;
+            border-radius: 8px;
+            height: 26px;
+            position: absolute;
+            left: 8px;
+            top: calc(50% - 13px);
           }
           .select__arrowimg {
             position: absolute;
@@ -166,6 +185,9 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             font-weight: 400;
             border-radius: 8px;
             border: 1px solid lightgrey;
+          }
+          .select__icon {
+            padding-left: 42px;
           }
           .select__search:focus-visible,
           .select__search:focus {
@@ -186,7 +208,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             position: absolute;
             background: white;
             border: 1px solid lightgrey;
-            top: ${label === '' ? '42px' : '72px'};
+            top: 42px;
             left: 0;
             right: 0;
           }
@@ -194,6 +216,16 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             cursor: pointer;
             font-size: 14px;
             padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+          .select__options__item__img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            object-position: top;
           }
           .select__options__noresults {
             cursor: pointer;

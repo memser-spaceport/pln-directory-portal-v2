@@ -6,6 +6,7 @@ interface MonthYearFieldProps {
   id: string;
   name: string;
   disabled?: boolean;
+  value?: string;
   dateBoundary?: 'start' | 'end';
   onChange: (dateString: string) => void;
 }
@@ -24,7 +25,7 @@ const getYears = (): number[] => {
 // Month names constant
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = 'start', disabled = false, name, defaultValue, onChange }: MonthYearFieldProps) => {
+const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = 'start', value, disabled = false, name, defaultValue, onChange }: MonthYearFieldProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const monthDropdownRef = useRef<HTMLDivElement | null>(null);
   const yearDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -56,6 +57,17 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
     const date = dateBoundary === 'start' ? new Date(Date.UTC(year, month, 1)) : new Date(Date.UTC(year, month + 1, 0));
     return date.toISOString().slice(0, 10); // ISO date string format (YYYY-MM-DD)
   };
+
+  useEffect(() => {
+   if(value && inputRef.current) {
+    inputRef.current.value = value
+    const newDateValue = new Date(value)
+    const newYear = newDateValue.getFullYear();
+    const newMonth = newDateValue.getMonth();
+    setSelectedYear(newYear);
+    setSelectedMonth(newMonth)
+   }
+  }, [value])
 
   // Effect for updating input field and parent component on change
   useEffect(() => {
@@ -95,10 +107,10 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
 
   return (
     <div className="month-year-field">
-      <label className="month-year-field__label">{label}</label>
-      <input name={name} ref={inputRef} type="text" className="month-year-field__hidden-input" defaultValue={formatDate(defaultYear, defaultMonth)} readOnly />
+      <label className={`month-year-field__label ${disabled ? 'label--disabled': ''}`}>{label}</label>
+      <input name={name} ref={inputRef} type="text" className="month-year-field__hidden-input" />
       <div className={`month-year-field__dropdowns ${disabled ? 'month-year-field__dropdowns--disabled' : ''}`}>
-        <div ref={monthDropdownRef} className="month-year-field__dropdown month-dropdown" onClick={() => !disabled && setMonthDpStatus((v) => !v)}>
+        <div ref={monthDropdownRef} className={`month-year-field__dropdown month-dropdown ${disabled ? 'dropdown--disabled': ''}`} onClick={() => !disabled && setMonthDpStatus((v) => !v)}>
           {!disabled && <p className="month-year-field__dropdown-text">{monthNames[selectedMonth]}</p>}
           {disabled && <p className="month-year-field__dropdown-text">Month</p>}
           {!disabled && <img className="month-year-field__dropdown-icon" src="/icons/arrow-down.svg" alt="expand icon" />}
@@ -112,7 +124,7 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
             </div>
           )}
         </div>
-        <div ref={yearDropdownRef} className="month-year-field__dropdown year-dropdown" onClick={() => !disabled && setYearDpStatus((v) => !v)}>
+        <div ref={yearDropdownRef} className={`month-year-field__dropdown year-dropdown ${disabled ? 'dropdown--disabled': ''}`} onClick={() => !disabled && setYearDpStatus((v) => !v)}>
           {!disabled && <p className="month-year-field__dropdown-text">{selectedYear}</p>}
           {disabled && <p className="month-year-field__dropdown-text">Year</p>}
           {!disabled && <img className="month-year-field__dropdown-icon" src="/icons/arrow-down.svg" alt="expand icon" />}
@@ -129,12 +141,17 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
       </div>
 
       <style jsx>{`
+       
         .month-year-field {
           /* Container styles */
         }
         .month-year-field__label {
           font-size: 14px;
           font-weight: 600;
+        }
+
+         .label--disabled {
+           color: #CBD5E1;
         }
         .month-year-field__hidden-input {
           display: none;
@@ -163,9 +180,13 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
         .year-dropdown {
           width: 80px;
         }
+         .dropdown--disbaled {
+            background: #f5f5f5;
+         }
         .month-year-field__dropdowns--disabled {
-          opacity: 0.6;
+         
           pointer-events: none;
+          color: #CBD5E1;
         }
         .month-year-field__dropdown-text {
           /* Dropdown text styles */

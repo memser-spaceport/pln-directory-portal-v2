@@ -139,7 +139,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             cursor: pointer;
           }
           .select__placeholder {
-            color: grey;
+            color: #aab0b8;
           }
           .select__selectedoptions__item {
             border: 1px solid #cbd5e1;

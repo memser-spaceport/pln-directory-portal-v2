@@ -10,18 +10,25 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement>  {
   name: string;
   id: string;
   defaultValue?: string;
+  value?: string;
   maxLength?:number;
 }
 
-const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, type, maxLength, ...rest }) => {
+const TextField: React.FC<TextFieldProps> = ({ label, id, name, value = '', defaultValue = '', onChange, isMandatory, placeholder, type, maxLength, ...rest }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [inputValue, setInputValue] = useState<string>(defaultValue);
   const onTextChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
     if(onChange) {
         onChange(e)
     }
   }
+
+  useEffect(() => {
+    if(inputRef.current) {
+      inputRef.current.value = value
+    }
+  }, [value])
+
+
   return (
     <>
       <div className="tf">
@@ -34,7 +41,6 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '
           onChange={onTextChange}
           className="tf__input"
           type={type}
-          defaultValue={defaultValue}
           required={isMandatory}
           maxLength={maxLength}
           autoComplete="off"
@@ -59,6 +65,7 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '
             border: 1px solid lightgrey;
             border-radius: 8px;
             min-height:40px;
+            font-size: 14px;
           }
           .tf__input:invalid {
             border: 1px solid red;
@@ -68,6 +75,9 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, defaultValue = '
           .tf__input:focus {
             outline: none;
           }
+            ::placeholder {
+              color: #aab0b8;
+            }
         `}
       </style>
     </>

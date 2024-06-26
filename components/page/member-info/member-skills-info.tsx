@@ -132,7 +132,7 @@ function MemberSkillsInfo(props:any) {
                   <HiddenField value={teaminfo.teamUid} defaultValue="" name={`teamInfo${index}-teamUid`} />
                 </div>
                 <div className="msf__tr__content__cn__role">
-                  <TextField id="register-member-role" isMandatory={true} name={`teamInfo${index}-role`} placeholder="Enter your title/role" onChange={(e) => onRoleChange(index, e.target.value)} type="text" />
+                  <TextField id="register-member-role" value={teaminfo.role} isMandatory={true} name={`teamInfo${index}-role`} placeholder="Enter your title/role" onChange={(e) => onRoleChange(index, e.target.value)} type="text" />
                 </div>
                 <div className="msf__tr__content__cn__delete">
                   {index !== 0 && (
@@ -147,7 +147,7 @@ function MemberSkillsInfo(props:any) {
               <div className="msf__tr__add">
                 <button className="msf__tr__add__btn" type="button" onClick={onAddTeam}>
                   <Image src="/icons/add.svg" width="16" height="16" alt="Add New" />
-                  <span>Add Team and Role</span>
+                  <span>Add team and role</span>
                 </button>
               </div>
             )}
@@ -167,7 +167,7 @@ function MemberSkillsInfo(props:any) {
             onRemove={onRemoveSkill}
             uniqueKey="id"
             displayKey="name"
-            label="Professional Skills*"
+            label="Professional skills*"
             placeholder="Select applicable skills"
             isMandatory={true}
             closeImgUrl="/icons/close.svg"

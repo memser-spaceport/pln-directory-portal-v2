@@ -118,7 +118,7 @@ function RegisterForm(props: any) {
     }
     const formData = new FormData(formRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
-
+    
     if (currentStep === 'basic') {
       
       const errors = [];
@@ -273,7 +273,7 @@ function RegisterForm(props: any) {
       if (v['endDate'] === '') {
         delete v['endDate'];
       } else {
-        v['endDate'] = new Date(v.endDate).toISOString();
+        v['endDate'] = new Date(v.endDate) >= new Date() ? new Date().toISOString() : new Date(v.endDate).toISOString();
       }
 
       return v;
@@ -320,7 +320,7 @@ function RegisterForm(props: any) {
           return {
             projectUid: d.uid,
             projectName: d.name,
-            projectLogo: d.logo,
+            projectLogo: d.logo?.url ?? '/icons/default-project.svg',
           };
         })
         .sort((a: any, b: any) => a.projectName - b.projectName),

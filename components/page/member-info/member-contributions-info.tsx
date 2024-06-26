@@ -21,7 +21,10 @@ function MemberContributionInfo(props: any) {
   const startYear = currentYear - 50;
   const startDate = new Date(startYear, currentMonth);
   const endDate = new Date();
-
+  const formatDate = (year: number, month: number, dateBoundary: string): string => {
+    const date = dateBoundary === 'start' ? new Date(Date.UTC(year, month, 1)) : new Date(Date.UTC(year, month + 1, 0));
+    return date.toISOString().slice(0, 10); // ISO date string format (YYYY-MM-DD)
+  };
   const defaultValues = {
     projectUid: '',
     projectName: '',
@@ -29,8 +32,8 @@ function MemberContributionInfo(props: any) {
     currentProject: false,
     description: '',
     role: '',
-    startDate: '1990-01-01',
-    endDate: `${new Date().getFullYear()}-12-31`,
+    startDate: formatDate(startYear, currentMonth, 'start'),
+    endDate: formatDate(currentYear, currentMonth, 'end'),
   };
 
   const onToggleExpansion = (index: number) => {
@@ -54,9 +57,13 @@ function MemberContributionInfo(props: any) {
     if (index === expandedId) {
       setExpandedId(-1);
     }
-    const newExp = [...contributionInfos];
-    newExp.splice(index, 1);
-    setContributionInfos([...newExp]);
+    
+    setContributionInfos((old: any[]) => {
+      const newItem = [...old];
+      newItem.splice(index, 1);
+      console.log(newItem, index)
+      return newItem;
+    });
   };
 
   const getAvailableContributionOptions = () => {
@@ -162,6 +169,7 @@ function MemberContributionInfo(props: any) {
                       label="Project Name*"
                       uniqueKey="projectUid"
                       formKey="projectUid"
+                      iconKey='projectLogo'
                       isMandatory={true}
                       isFormElement={true}
                       name={`contributionInfo${index}-projectUid`}
@@ -175,9 +183,9 @@ function MemberContributionInfo(props: any) {
                   </div>
                   <div className="pc__list__item__form__item">
                     <TextField
-                      defaultValue={contributionInfo.role}
+                      value={contributionInfo.role}
                       onChange={(e) => onProjectDetailsChanged(index, e.target.value, 'role')}
-                      placeholder="Ex: Senior Architect"
+                      placeholder="eg: senior architect"
                       type="text"
                       isMandatory={true}
                       label="Role*"
@@ -192,6 +200,7 @@ function MemberContributionInfo(props: any) {
                       name={`contributionInfo${index}-startDate`}
                       defaultValue={startDate.toISOString()}
                       dateBoundary='start'
+                      value={contributionInfo.startDate}
                       label="From*"
                     />
                     <MonthYearField
@@ -200,13 +209,14 @@ function MemberContributionInfo(props: any) {
                       onChange={(e) => onProjectDetailsChanged(index, e, 'endDate')}
                       name={`contributionInfo${index}-endDate`}
                       defaultValue={endDate.toISOString()}
+                      value={contributionInfo.endDate}
                       dateBoundary='end'
                       label="To*"
                     />
                   </div>
                   <div className="pc__list__item__form__item">
                     <div className="editor">
-                      <TextAreaEditor name={`contributionInfo${index}-description`} label="Description" placeholder="Enter Project Contribution.." />
+                      <TextAreaEditor name={`contributionInfo${index}-description`} label="Description" placeholder="Enter project contribution.." />
                     </div>
                   </div>
                 </div>

@@ -32,7 +32,7 @@ function ContributionHead(props: ContributionHeadProps) {
         {contribution?.projectName.trim() !== '' && <h2 className="cb__name">{`${contribution?.projectName.trim()}`}</h2>}
         <div className="cb__projects">
           <div title={`${contribution.currentProject === false && currentProjectsCount === 5 ? 'Max 5 projects can be set as current' : 'On/Off'} `}>
-            <Toggle disabled={contribution.currentProject === false && currentProjectsCount === 5} onChange={onProjectStatusChanged} name={`contributionInfo${contributionIndex}-currentProject`} id={`member-register-contribution-currentproject-${contributionIndex}`} />
+            <Toggle value={contribution.currentProject} disabled={contribution.currentProject === false && currentProjectsCount === 5} onChange={onProjectStatusChanged} name={`contributionInfo${contributionIndex}-currentProject`} id={`member-register-contribution-currentproject-${contributionIndex}`} />
             {/* <Switch
                   nonEditable={exp.currentProject === false && currentProjectsCount === 5}
                   initialValue={exp.currentProject}

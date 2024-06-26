@@ -67,7 +67,8 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_JOIN_NETWORK_CLICKED: 'navbar-join-network-menu-clicked',
   NAVBAR_JOIN_NETWORK_OPTION_CLICKED: 'navbar-join-network-option-clicked',
   NAVBAR_DRAWER_BTN_CLICKED: 'navbar-drawer-btn-clicked',
-  FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked'
+  FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked',
+  SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED:"session-expired-popup-login-btn-clicked"
 };
 export const TOAST_MESSAGES = {
   LOGOUT_MSG: 'You have been logged out successfully',

@@ -6,9 +6,9 @@ function AuthInvalidUser() {
   const [isOpen, setIsModalOpen] = useState(false);
 
   const [content, setContent] = useState({
-    title: 'Email Verification Failed',
-    errorMessage: 'Your email is either invalid or not available in our directory. Please try again with valid email.',
-    description: '',
+    title: 'Email Verification',
+    errorMessage: 'Email not available',
+    description: 'Your email is either invalid or not available in our directory. Please try again with valid email.',
   });
 
   const handleModalClose = () => {

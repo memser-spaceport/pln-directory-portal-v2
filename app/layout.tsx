@@ -9,6 +9,7 @@ import { PostHogPageview } from '@/providers/analytics-provider';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import './globals.css';
+import CookieChecker from '@/components/core/login/cookie-checker';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'));
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <BroadCastChannel />
           <MemberRegisterDialog/>
           <TeamRegisterDialog/>
+          <CookieChecker isLoggedIn={isLoggedIn}/>
         </StyledJsxRegistry>
       </body>
     </html>

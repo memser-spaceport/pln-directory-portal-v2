@@ -74,6 +74,10 @@ export const useCommonAnalytics = () => {
         captureEvent(COMMON_ANALYTICS_EVENTS.FOOTER_PAGINATION_OPTION_CLICKED, params)
       }
 
+      function onSessionExpiredLoginClicked() {
+        captureEvent(COMMON_ANALYTICS_EVENTS.SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED)
+      }
+
       return {
         onNavItemClicked,
         onNavGetHelpItemClicked,
@@ -81,7 +85,7 @@ export const useCommonAnalytics = () => {
         onNavJoinNetworkClicked,
         onNavJoinNetworkOptionClicked,
         onNavDrawerBtnClicked, 
-        onPaginationOptionClicked
-
+        onPaginationOptionClicked,
+        onSessionExpiredLoginClicked
       }
 }

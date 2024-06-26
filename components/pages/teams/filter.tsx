@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import FilterCount from '../../ui/filter-count';
 import Toggle from '../../ui/toogle';
 import TagContainer from '../tag-container';
-import { getAnalyticsUserInfo, getFilterCount, getQuery } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import Image from 'next/image';
 import FocusAreaFilter from '../../core/focus-area-filter/focus-area-filter';
@@ -46,6 +46,7 @@ const Filter = (props: ITeamFilterWeb) => {
   const apliedFiltersCount = getFilterCount(query);
 
   const onIncludeFriendsToggle = () => {
+    triggerLoader(true);
     if (!includeFriends) {
       if (searchParams?.page) {
         searchParams.page = '1';
@@ -58,6 +59,7 @@ const Filter = (props: ITeamFilterWeb) => {
   };
 
   const onOfficeHoursToogle = () => {
+    triggerLoader(true);
     if (searchParams?.page) {
       searchParams.page = '1';
     }
@@ -70,6 +72,7 @@ const Filter = (props: ITeamFilterWeb) => {
   };
 
   const onTagClickHandler = async (key: string, value: string, selected: boolean, from?: string) => {
+    triggerLoader(true);
     if (searchParams?.page) {
       searchParams.page = '1';
     }
@@ -88,6 +91,7 @@ const Filter = (props: ITeamFilterWeb) => {
 
   const onClearAllClicked = () => {
     if (apliedFiltersCount > 0) {
+      triggerLoader(true);
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
@@ -111,7 +115,6 @@ const Filter = (props: ITeamFilterWeb) => {
   const onShowClickHandler = () => {
     analytics.onTeamShowFilterResultClicked();
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_FILTER, { detail: false }));
-
   };
 
   return (

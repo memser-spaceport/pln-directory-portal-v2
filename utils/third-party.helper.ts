@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { getParsedValue } from "./common.utils";
 
 export const clearAllAuthCookies = () => {
     Cookies.remove("directory_idToken");
@@ -13,4 +14,19 @@ export const clearAllAuthCookies = () => {
     Cookies.remove('authLinkedAccounts');
     Cookies.remove('privy-refresh-token');
     localStorage.clear();
+  };
+
+
+  export const getUserInfo = () => {
+    const userInfo = getParsedValue(Cookies.get('userInfo') ||  "");
+  
+    if (userInfo) {
+      return {
+        name: userInfo?.name,
+        email: userInfo?.email,
+        roles: userInfo?.roles,
+      };
+    } else {
+      return {};
+    }
   };

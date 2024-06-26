@@ -50,6 +50,7 @@ const TeamsToolbar = (props: IToolbar) => {
       return;
     }
     analytics.onTeamViewTypeChanged(type, getAnalyticsUserInfo(userInfo),);
+    triggerLoader(true);
     if (type !== VIEW_TYPE_OPTIONS.GRID) {
       updateQueryParams("viewType", type, searchParams);
       return;
@@ -74,6 +75,7 @@ const TeamsToolbar = (props: IToolbar) => {
 
   const onSortClickHandler = (device: string) => {
     if (device === "mobile") {
+      triggerLoader(true);
       if (sortBy === SORT_OPTIONS.ASCENDING) {
         analytics.onTeamSortByChanged("teams", SORT_OPTIONS.DESCENDING, getAnalyticsUserInfo(userInfo));
         updateQueryParams("sort", SORT_OPTIONS.DESCENDING, searchParams);
@@ -88,6 +90,7 @@ const TeamsToolbar = (props: IToolbar) => {
 
   const onSortOptionClickHandler = (option: string) => {
     setIsSortBy(false);
+    triggerLoader(true);
     analytics.onTeamSortByChanged("teams", option, getAnalyticsUserInfo(userInfo));
     updateQueryParams("sort", option, searchParams);
   };
@@ -135,7 +138,7 @@ const TeamsToolbar = (props: IToolbar) => {
               {sortBy === SORT_OPTIONS.DESCENDING && <Image loading="lazy" alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />}
             </button>
           </div>
-          <div className="toolbar__right__web">
+          <div className="toolbar__right__web" ref={sortByRef} >
             <p className="toolbar__right__web__sort-by-text">Sort by:</p>
             <button className="toolbar__right__web__sort-by" onClick={() => onSortClickHandler("web")}>
               <Image loading="lazy" alt="sort" src={sortBy === SORT_OPTIONS.ASCENDING ? "/icons/ascending-gray.svg" : "/icons/descending-gray.svg"} height={20} width={20} />
@@ -143,7 +146,7 @@ const TeamsToolbar = (props: IToolbar) => {
               <Image loading="lazy" alt="dropdown" src="/icons/dropdown-gray.svg" height={20} width={20}/>
             </button>
             {isSortBy && (
-              <div ref={sortByRef} className="toolbar__right__web__drop-downc">
+              <div className="toolbar__right__web__drop-downc">
                 <SortByDropdown selectedItem={sortBy} callback={onSortOptionClickHandler} />
               </div>
             )}

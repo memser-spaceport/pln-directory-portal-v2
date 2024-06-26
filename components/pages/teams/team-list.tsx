@@ -1,19 +1,18 @@
-"use client";
+'use client';
 
-import { getAllTeams } from "@/services/teams.service";
-import { IUserInfo } from "@/types/shared.types";
-import { ITeam, ITeamsSearchParams } from "@/types/teams.types";
-import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from "@/utils/common.utils";
-import { PAGE_ROUTES, VIEW_TYPE_OPTIONS } from "@/utils/constants";
-import { getTeamsListOptions, getTeamsOptionsFromQuery } from "@/utils/team.utils";
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
-import TeamGridView from "./team-grid-view";
-import TeamListView from "./team-list-view";
-import { PaginationBox } from "../../core/pagination-box";
-import Link from "next/link";
-import { useTeamAnalytics } from "@/analytics/teams.analytics";
-
+import { getAllTeams } from '@/services/teams.service';
+import { IUserInfo } from '@/types/shared.types';
+import { ITeam, ITeamsSearchParams } from '@/types/teams.types';
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { PAGE_ROUTES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
+import { useRouter } from 'next/navigation';
+import { useRef, useState } from 'react';
+import TeamGridView from './team-grid-view';
+import TeamListView from './team-list-view';
+import { PaginationBox } from '../../core/pagination-box';
+import Link from 'next/link';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 interface ITeamList {
   teams: ITeam[];
@@ -23,27 +22,29 @@ interface ITeamList {
 }
 const TeamsList = (props: ITeamList) => {
   const searchParams = props?.searchParams;
-  const viewType = searchParams["viewType"] || VIEW_TYPE_OPTIONS.GRID;
+  const viewType = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
   const allTeams = props?.teams;
-  const totalTeams = props?.totalTeams;
   const userInfo = props?.userInfo;
-  const router = useRouter();
-  const observerTarget = useRef(null);
 
   const analytics = useTeamAnalytics();
-   const onTeamClickHandler = (team: ITeam) => {
-    analytics.onTeamCardClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo))
-   }
+  const onTeamClickHandler = (team: ITeam) => {
+    triggerLoader(true);
+    analytics.onTeamCardClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+  };
 
   return (
     <div className="team-list">
-      <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? "team-list__grid" : "team-list__list"}`}>
+      <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid' : 'team-list__list'}`}>
         {allTeams?.map((team: ITeam, index: number) => (
-          <div key={`${team} + ${index}`} className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? "team-list__grid__team" : "team-list__list__team"}`} onClick={() => onTeamClickHandler(team)}>
-            <Link scroll={false} href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
-            {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}
-            {VIEW_TYPE_OPTIONS.LIST === viewType && <TeamListView team={team} viewType={viewType} />}
-            </Link>
+          <div
+            key={`${team} + ${index}`}
+            className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid__team' : 'team-list__list__team'}`}
+            onClick={() => onTeamClickHandler(team)}
+          >
+            <a href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
+              {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}
+              {VIEW_TYPE_OPTIONS.LIST === viewType && <TeamListView team={team} viewType={viewType} />}
+            </a>
           </div>
         ))}
       </div>
@@ -82,7 +83,7 @@ const TeamsList = (props: ITeamList) => {
         @media (min-width: 768px) {
           .team-list__grid {
             width: 600px;
-          } 
+          }
         }
 
         @media (min-width: 1024px) {
@@ -96,16 +97,15 @@ const TeamsList = (props: ITeamList) => {
 
           .team-list__grid {
             width: 900px;
-          } 
+          }
         }
 
         @media (min-width: 1400px) {
           .team-list__grid {
             width: unset;
             // justify-content: center;
-          } 
+          }
         }
-
       `}</style>
     </div>
   );

@@ -52,6 +52,7 @@ const TeamsList = (props: ITeamList) => {
         .team-list {
           width: 100%;
           margin-top: 24px;
+          margin-bottom: 16px;
         }
 
         .team-list__team {

@@ -4,39 +4,36 @@ import { triggerLoader } from '@/utils/common.utils';
 
 function AuthInvalidUser() {
   const [isOpen, setIsModalOpen] = useState(false);
-  const [title, setTitle] = useState('Email Verification Failed');
-  const [description, setDescription] = useState(
-    'Your email is either invalid or not available in our directory. Please try again with valid email.'
-  );
+
+  const [content, setContent] = useState({
+    title: 'Email Verification Failed',
+    errorMessage: 'Your email is either invalid or not available in our directory. Please try again with valid email.',
+    description: '',
+  });
 
   const handleModalClose = () => {
-    // document.dispatchEvent(new CustomEvent('app-loader-status'));
     triggerLoader(false);
     setIsModalOpen(false);
-    setTimeout(() => {
-      setTitle('Email Verification Failed');
-      setDescription('');
-    }, 500);
+    // setTimeout(() => {
+    //   setTitle('Email Verification Failed');
+    //   setDescription('');
+    // }, 500);
   };
 
   useEffect(() => {
     function handleInvalidEmail(e: CustomEvent) {
       if (e?.detail) {
         if (e.detail === 'linked_to_another_user') {
-          setTitle('Email Verification');
-          setDescription(
-            'The email you provided is already used or linked to another account. If this is your email id, then login with the email id and connect this social account in profile settings page. After that you can use any of your linked accounts for subsequent logins.'
-          );
+          setContent({
+            title: 'Email Verification',
+            errorMessage: 'Email already used. Connect social account for login',
+            description:
+              'The email you provided is already used or linked to another account. If this is your email id, then login with the email id and connect this social account in profile settings page. After that you can use any of your linked accounts for subsequent logins.',
+          });
         } else if (e.detail === 'unexpected_error') {
-          setTitle('Something went wrong');
-          setDescription(
-            'We are unable to authenticate you at the moment due to technical issues. Please try again later'
-          );
+          setContent({ title: 'Something went wrong', errorMessage: 'We are unable to authenticate you at the moment due to technical issues. Please try again later', description: '' });
         } else if (e.detail === 'email-changed') {
-          setTitle('Email Changed recently');
-          setDescription(
-            'Your email in our directory has been changed recently. Please login with your updated email id.'
-          );
+          setContent({ title: 'Email Changed recently', errorMessage: 'Your email in our directory has been changed recently. Please login with your updated email id.', description: '' });
         }
       }
 
@@ -48,9 +45,7 @@ function AuthInvalidUser() {
     };
   }, []);
 
-  return (
-    <>{isOpen && <VerifyEmailModal title={title} description={description} handleModalClose={handleModalClose} />}</>
-  );
+  return <>{isOpen && <VerifyEmailModal content={content} handleModalClose={handleModalClose} />}</>;
 }
 
 export default AuthInvalidUser;

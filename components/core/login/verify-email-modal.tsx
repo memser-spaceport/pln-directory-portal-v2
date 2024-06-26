@@ -1,31 +1,32 @@
 interface IVerifyEmailModalProps {
   handleModalClose: () => void;
-  description: string;
-  title: string;
+  content: { title: string; errorMessage: string; description: string };
 }
 
-export function VerifyEmailModal({ description, title, handleModalClose }: IVerifyEmailModalProps) {
+export function VerifyEmailModal({ content, handleModalClose }: IVerifyEmailModalProps) {
+  const description = content?.description ?? '';
+  const title = content?.title ?? '';
+  const errorMessage = content?.errorMessage ?? '';
+
   return (
     <>
       <div className="verifyEmail">
         <div className="verifyEmail__cn">
           <div className="verifyEmail__cn__box">
             <div className="verifyEmail__cn__box__info">
-              <h2 className="verifyEmail__cn__box__info__title">
-                <span className="verifyEmail__cn__box__info__title__logo">
-                  <img
-                    width={22}
-                    height={22}
-                    className="verifyEmail__cn__box__info__title__logo__img"
-                    src="/icons/danger.svg"
-                    alt="warning"
-                  />
-                </span>
-                {title}
-              </h2>
-              <p className="verifyEmail__cn__box__info__text">{description}</p>
-              <div className="verifyEmail__cn__actions">
-                <button onClick={handleModalClose} className="verifyEmail__cn__box__info__btn">
+              <div className="verifyEmail__cn__box__info__hdr">
+                <h6 className="verifyEmail__cn__box__info__hdr__ttl">{title}</h6>
+                <button onClick={handleModalClose} className="verifyEmail__cn__box__info__hdr__clsBtn">
+                  <img width={22} height={22} src="/icons/close.svg" alt="close" />
+                </button>
+              </div>
+              <div className="verifyEmail__cn__box__info__errmsg">
+                <img width={16} height={16} src="/icons/warning-red.svg" alt="warn icon" />
+                <p className="verifyEmail__cn__box__info__errmsg__text">{errorMessage}</p>
+              </div>
+              {description && <p className="verifyEmail__cn__box__info__text">{description}</p>}
+              <div className="verifyEmail__cn__box__info__actions">
+                <button onClick={handleModalClose} className="verifyEmail__cn__box__info__actions__cls__btn">
                   Close
                 </button>
               </div>
@@ -43,7 +44,7 @@ export function VerifyEmailModal({ description, title, handleModalClose }: IVeri
             left: 0;
             width: 100svw;
             height: 100svh;
-            background: rgb(0, 0, 0, 0.6);
+            background: rgb(0, 0, 0, 0.4);
           }
           .verifyEmail__cn {
             width: 100%;
@@ -65,45 +66,61 @@ export function VerifyEmailModal({ description, title, handleModalClose }: IVeri
             display: none;
           }
           .verifyEmail__cn__box__info {
-            padding: 32px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
           }
-          .verifyEmail__cn__box__info__title {
+          .verifyEmail__cn__box__info__hdr {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            gap: 8px;
+            width: 100%;
+          }
+          .verifyEmail__cn__box__info__hdr__ttl {
+            color: #0f172a;
             font-size: 24px;
             font-weight: 700;
             line-height: 32px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            flex-direction:column;
-            gap: 8px;
           }
 
           .verifyEmail__cn__box__info__text {
-            font-size: 16px;
             font-weight: 400;
-            text-align: center;
-            line-height: 24px;
             padding-bottom: 16px;
-            padding-top: 12px;
+            padding: 10px 0px 0px 0px;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
           }
-          .verifyEmail__cn__box__info__title__logo {
-            background: grey;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: #fbe9ee;
+
+          .verifyEmail__cn__box__info__hdr__clsBtn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: transparent;
+          }
+
+          .verifyEmail__cn__box__info__errmsg {
             display: flex;
+            gap: 10px;
             align-items: center;
-            justify-content: center;
+            background-color: #dd2c5a1a;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-top: 20px;
+            width:100%;
           }
-          .verifyEmail__cn__box__info__title__logo__img {
-            margin-bottom: 3px;
+
+          .verifyEmail__cn__box__info__errmsg__text {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+            color: #0f172a;
           }
-          .verifyEmail__cn__actions {
+          .verifyEmail__cn__box__info__actions {
             background: white;
             display: flex;
             align-items: center;
@@ -111,40 +128,31 @@ export function VerifyEmailModal({ description, title, handleModalClose }: IVeri
             border-radius: 0 0 8px 8px;
             width: 100%;
             justify-content: center;
+            margin-top: 20px;
           }
-          .verifyEmail__cn__actions__cancel {
-            padding: 10px 24px;
+
+          .verifyEmail__cn__box__info__actions__cls__btn {
+            padding: 8px 24px;
             border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 14px;
-            font-weight: 500;
-          }
-          .verifyEmail__cn__actions__login {
-            padding: 10px 24px;
-            border-radius: 8px;
-            background: #156ff7;
+            border: 1px solid #156ff7;
             color: white;
             font-size: 14px;
             font-weight: 500;
-          }
-          .verifyEmail__cn__box__info__btn {
-            padding: 8px 24px;
-            border-radius: 28px;
-            border: 1px solid #156ff7;
-            color: #156ff7;
-            font-size: 14px;
-            font-weight: 500;
-            background-color: #ffffff;
+            background-color: #156ff7;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 150px;
+            width: 100%;
           }
 
           @media (min-width: 1024px) {
-            .verifyEmail__cn__actions {
+            .verifyEmail__cn__box__info__actions {
               justify-content: end;
+            }
+
+            .verifyEmail__cn__box__info__actions__cls__btn {
+              width: 86px;
             }
 
             .verifyEmail__cn__box__info__text {
@@ -152,15 +160,14 @@ export function VerifyEmailModal({ description, title, handleModalClose }: IVeri
               width: 600px;
             }
 
-            .verifyEmail__cn__box__info__title {
+            .verifyEmail__cn__box__info__hdr {
               width: 100%;
-              flex-direction:row;
             }
 
             .verifyEmail__cn__box {
               flex-direction: row;
               max-height: 598px;
-              width: fit-content;
+              width: 656px;
               overflow: hidden;
             }
 

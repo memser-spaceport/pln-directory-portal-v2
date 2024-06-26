@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 export default function JoinNetwork() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const joinNetworkRef = useRef<HTMLUListElement | null>(null);
+  const joinNetworkRef = useRef<HTMLDivElement | null>(null);
   const analytics = useCommonAnalytics();
   const router = useRouter();
 
@@ -21,8 +21,8 @@ export default function JoinNetwork() {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
+      setIsOpen(prev=>!prev);
       analytics.onNavJoinNetworkClicked(!isOpen);
-      setIsOpen(!isOpen);
     }
   };
 
@@ -38,13 +38,13 @@ export default function JoinNetwork() {
 
   return (
     <>
-      <div className="jn">
+      <div className="jn" ref={joinNetworkRef} >
         <button className="jn__btn" onClick={onJoinNetworkClick}>
           <span className="jn__btn__txt">Join the network</span>
           <img loading="lazy" className="jn__btn__icon" src="/icons/dropdown-white.svg" alt="dropdown" />
         </button>
         {isOpen && (
-          <ul ref={joinNetworkRef} className="jn__options">
+          <ul className="jn__options">
             {JOIN_NETWORK_MENUS.map((item) => (
               <li key={item.name} className="jn__options__item" onClick={() => onJoinNetworkListClick(item)}>
                 <div className="jn__options__item__cn">
@@ -79,6 +79,7 @@ export default function JoinNetwork() {
 
         .jn__btn:hover {
           box-shadow: 0 4px 4px 0 rgba(15, 23, 42, 0.04), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 0 0 2px rgba(21, 111, 247, 0.25);
+          background: linear-gradient(71.47deg, #1a61ff 8.43%, #2cc3ae 87.45%);
         }
 
         .jn__btn__txt {
@@ -96,7 +97,7 @@ export default function JoinNetwork() {
           right: 0;
           width: 190px;
           background-color: #ffffff;
-          box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+          box-shadow: 0px 2px 6px 0px #0F172A29;
           border-radius: 8px;
           padding: 8px;
           display: flex;

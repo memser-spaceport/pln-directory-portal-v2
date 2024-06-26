@@ -18,17 +18,17 @@ interface IProfile {
 
 export default function UserProfile(props: Readonly<IProfile>) {
   const [isDropdown, setIsDropdown] = useState(false);
-  const profileOptionsRef = useRef(null);
+  const profileMenuRef = useRef(null);
 
   const analytics = useCommonAnalytics();
   const userInfo = props?.userInfo;
 
+  useClickedOutside({ callback: () => setIsDropdown(false), ref: profileMenuRef });
+
   const onDrodownClick = () => {
     const mode = isDropdown ? 'close' : 'open';
-    setIsDropdown(!isDropdown);
+    setIsDropdown(prev => !prev);
   };
-
-  useClickedOutside({ callback: onDrodownClick, ref: profileOptionsRef });
 
   const onLogoutHandler = () => {
     setIsDropdown(false);
@@ -44,7 +44,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
 
   return (
     <div className="profile">
-      <div className="profile__profileimgsection">
+      <div className="profile__profileimgsection" >
         <img
           loading="lazy"
           src={userInfo?.profileImageUrl || '/icons/default_profile.svg'}
@@ -53,11 +53,11 @@ export default function UserProfile(props: Readonly<IProfile>) {
           width={40}
           className="profile__profileimagesection__img"
         />
-        <button className="profile__profileimgsection__dropdownbtn" onClick={onDrodownClick}>
+        <button ref={profileMenuRef}  className="profile__profileimgsection__dropdownbtn" onClick={onDrodownClick}>
           <Image height={20} width={20} loading="lazy" src="/icons/dropdown.svg" alt="dropdown" />
         </button>
         {isDropdown && (
-          <div ref={profileOptionsRef} className="profile__profileimagesection__ddown">
+          <div className="profile__profileimagesection__ddown">
             <button
               className="profile__profileimagesection__ddown__settings"
               onClick={() => onAccountOptionsClickHandler('settings')}

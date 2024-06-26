@@ -58,7 +58,7 @@ export interface ITeamsSearchParams {
 
   export interface ITeam {
     role?: string;
-    id?: string;
+    id: string;
     logo?: string;
     name?: string | null;
     shortDescription?: string | null;
@@ -73,4 +73,22 @@ export interface ITeamsSearchParams {
     mainTeam?: boolean;
     teamLead?: boolean;
     linkedinHandle?: string | null;
+    maintainingProjects: any [];
+    contributingProjects: any [];
   }
+
+  export interface ITeamDetailParams {
+    id: string;
+  }
+
+  export interface IFormatedTeamProject {
+    uid: string;
+    logo: {url: string};
+    tagline: string;
+    name: string;
+    lookingForFunding: boolean;
+    hasEditAccess: boolean;
+    isDeleted: boolean;
+    isMaintainingProject: boolean;
+  }
+  

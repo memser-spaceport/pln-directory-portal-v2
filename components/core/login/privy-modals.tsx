@@ -104,7 +104,7 @@ function PrivyModals() {
   const deleteUser = async (errorCode: string) => {
     analytics.onPrivyUserDelete({ ...user, type: 'init' });
     const token = await getAccessToken() as string;
-    // await fetch(`${process.env.WEB_API_BASE_URL}/v1/auth/accounts/external/${user?.id}`, {
+    // await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/accounts/external/${user?.id}`, {
     //   method: 'POST',
     //   headers: {
     //     'Content-Type': 'application/json',
@@ -143,7 +143,7 @@ function PrivyModals() {
       // document.dispatchEvent(new CustomEvent('app-loader-status', { detail: true }));
       triggerLoader(true);
       const privyToken = await getAccessToken();
-      const response = await fetch(`${process.env.WEB_API_BASE_URL}/v1/auth/token`, {
+      const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

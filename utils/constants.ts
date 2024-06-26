@@ -119,6 +119,8 @@ export const SORT_OPTIONS = {
   DESCENDING: 'Name,desc',
 };
 
+export const TECHNOLOGIES = ["Filecoin", "IPFS", "libp2p", "IPLD", "drand", "FVM", "SourceCred"];
+
 export const URL_QUERY_VALUE_SEPARATOR = '|';
 
 export const PRIVATE_FILTERS = ['region', 'country', 'metroArea'];
@@ -154,3 +156,12 @@ export const ENROLLMENT_TYPE = {
   MEMBER: 'MEMBER',
   TEAM: 'TEAM',
 };
+
+export const ADMIN_ROLE = "DIRECTORYADMIN";
+
+export const AIRTABLE_REGEX = /^rec[A-Za-z0-9]{14}/;
+export const LINKEDIN_URL_REGEX = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|profile|company)\/([a-zA-Z0-9-_]+)/;
+export const TWITTER_URL_REGEX = /twitter\.com\/([^/]+)/;
+export const GITHUB_URL_REGEX = /github\.com\/([^/]+)/;
+export const TELEGRAM_URL_REGEX = /t\.me\/([^/]+)/;
+export const EMAIL_REGEX = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;

@@ -1,5 +1,5 @@
 import { IUserInfo } from "@/types/shared.types";
-import { EVENTS, SORT_OPTIONS } from "./constants";
+import { EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from "./constants";
 import { ITeam } from "@/types/teams.types";
 
 export const triggerLoader = (status: boolean) => {
@@ -92,4 +92,46 @@ export const getHeader = (authToken: string) => {
 
 export const calculateTotalPages = (totalItems: number, itemsPerPage: number) => {
   return Math.ceil(totalItems / itemsPerPage);
+}
+
+export const validateEmail = (email: string) => {
+  return EMAIL_REGEX?.test(email) ? true : false
+ };
+
+ export function getSocialLinkUrl(linkContent: string, type: string, url?: string) {
+  const socialUrls:any = {
+    email: `mailto:${linkContent}`,
+    twitter: `https://twitter.com/${linkContent}`,
+    github: `https://github.com/${linkContent}`,
+    telegram: `https://t.me/${linkContent}`,
+    linkedin: type === "linkedin" && linkContent !== url
+      ? url
+      : `https://www.linkedin.com/search/results/all/?keywords=${linkContent}`,
+    discord: "https://discord.com/app",
+  };
+  return socialUrls[type] || linkContent;
+}
+
+export const getProfileFromURL = (handle: string, type: string) => {
+  const urlRegexMap: any = {
+    linkedin: LINKEDIN_URL_REGEX,
+    twitter: TWITTER_URL_REGEX,
+    telegram: TELEGRAM_URL_REGEX,
+    github: GITHUB_URL_REGEX,
+  };
+
+  const regex = urlRegexMap[type];
+  
+  const match = regex && handle?.match(regex);
+  
+  return (match && match[1]) ? decodeURIComponent(match[1]).replace(/^@/, "") :
+    (type === "telegram" || type === "twitter") ? handle?.replace(/^@/, "") : handle;
+};
+
+
+export const sortMemberByRole = (firstMember: { teamLead: number; name: string; }, secondMember: { teamLead: number; name: any; }) => {
+  if (secondMember.teamLead - firstMember.teamLead !== 0) {
+    return secondMember.teamLead - firstMember.teamLead;
+  }
+  return firstMember.name.localeCompare(secondMember.name);
 }

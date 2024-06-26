@@ -17,8 +17,9 @@ const nextConfig = {
     GET_SUPPORT_URL: process.env.GET_SUPPORT_URL,
     LOGIN_BANNER_URL: process.env.LOGIN_BANNER_URL,
     PRIVY_AUTH_ID: process.env.PRIVY_AUTH_ID,
-    WEB_API_BASE_URL: process.env.WEB_API_BASE_URL,
-    APPLICATION_BASE_URL: process.env.APPLICATION_BASE_URL
+    DIRECTORY_API_URL: process.env.DIRECTORY_API_URL,
+    APPLICATION_BASE_URL: process.env.APPLICATION_BASE_URL,
+    AUTH_API_URL: process.env.AUTH_API_URL,
   },
   images: {
     remotePatterns: [

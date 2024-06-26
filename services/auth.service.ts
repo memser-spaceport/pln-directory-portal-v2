@@ -2,7 +2,7 @@ import { generateOAuth2State } from '@/utils/auth.utils';
 
 export const renewAccessToken = async (refreshToken: string) => {
   const body = JSON.stringify({ refreshToken, grantType: 'refresh_token' });
-  const response = await fetch(`${process.env.WEB_API_BASE_URL}/v1/auth/token`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     cache: 'no-store',
@@ -30,7 +30,7 @@ export const checkIsValidToken = async (token: string) => {
 };
 
 export const createStateUid = async () => {
-  const response = await fetch(`${process.env.WEB_API_BASE_URL}/v1/auth`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -45,7 +45,7 @@ export const createStateUid = async () => {
 };
 
 export const deletePrivyUser = async (token: string, userId: string) => {
-  return await fetch(`${process.env.WEB_API_BASE_URL}/v1/auth/accounts/external/${userId}`, {
+  return await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/accounts/external/${userId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -20,6 +20,7 @@ const nextConfig = {
     DIRECTORY_API_URL: process.env.DIRECTORY_API_URL,
     APPLICATION_BASE_URL: process.env.APPLICATION_BASE_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
+    COOKIE_DOMAIN: process.env.COOKIE_DOMAIN
   },
   images: {
     remotePatterns: [

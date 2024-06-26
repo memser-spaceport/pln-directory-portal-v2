@@ -64,7 +64,6 @@ export interface IUserInfo {
   export interface IAnalyticsTeamInfo {
     name: string;
     shortDescription: string;
-    logo: string;
   }
 
 

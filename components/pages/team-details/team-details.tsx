@@ -4,14 +4,15 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { Tag } from '@/components/ui/tag';
 import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';
+import { ADMIN_ROLE } from '@/utils/constants';
 import { getTechnologyImage } from '@/utils/team.utils';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { Fragment, useState } from 'react';
 import About from './about';
-import Technology from './technologies';
 import Technologies from './technologies';
-import Image from 'next/image';
-import { ADMIN_ROLE } from '@/utils/constants';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface ITeamDetails {
   team: ITeam;
@@ -28,10 +29,9 @@ const TeamDetails = (props: ITeamDetails) => {
   const teamId = params?.id;
   const about = team?.longDescription ?? '';
   const technologies = team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
-
   const hasTeamEditAccess = getHasTeamEditAccess();
-
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
+  const analytics = useTeamAnalytics();
 
   const onTagCountClickHandler = () => {
     setIsTechnologyPopup(!isTechnologyPopup);
@@ -48,7 +48,13 @@ const TeamDetails = (props: ITeamDetails) => {
     }
   }
 
-  const onEditTeamClickHandler = () => {};
+  const onEditTeamClickHandler = () => {
+    if(userInfo?.roles?.includes(ADMIN_ROLE)) {
+      analytics.onEditTeamByAdmin(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+      return;
+    }
+    analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+  };
 
   return (
     <>
@@ -145,7 +151,7 @@ const TeamDetails = (props: ITeamDetails) => {
           </div>
 
           {hasTeamEditAccess && (
-            <button className="team-details__profile__edit">
+            <button className="team-details__profile__edit" onClick={onEditTeamClickHandler}>
               <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} />
               Edit Team
             </button>
@@ -157,7 +163,7 @@ const TeamDetails = (props: ITeamDetails) => {
         </div>
 
         {/* About */}
-        <About about={about} />
+        <About team={team} userInfo={userInfo} about={about} />
 
         {/* Technology */}
         <Technologies technologies={technologies} team={team} userInfo={userInfo} />
@@ -244,6 +250,7 @@ const TeamDetails = (props: ITeamDetails) => {
             height: fit-content;
             background: none;
             border: none;
+            white-space: nowrap;
             gap: 8px;}
 
             @media(min-width: 1024px) {

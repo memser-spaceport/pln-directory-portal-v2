@@ -4,7 +4,8 @@ import { IUserInfo } from "@/types/shared.types";
 import { ITeam } from "@/types/teams.types";
 import ContactMethod from "./contact-method";
 import { ProfileSocialLink } from "./profile-social-link";
-import { getProfileFromURL } from "@/utils/common.utils";
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo, getProfileFromURL } from "@/utils/common.utils";
+import { useTeamAnalytics } from "@/analytics/teams.analytics";
 
 interface IContactInfo {
   team: ITeam | undefined;
@@ -18,10 +19,10 @@ const ContactInfo = (props: IContactInfo) => {
   const contactMethod = team?.contactMethod;
   const linkedinHandle = team?.linkedinHandle;
 
-//   const analytics = useTeamDetailAnalytics()
+  const analytics = useTeamAnalytics();
 
   const callback = (type: string, url: string) => {
-    // analytics.onSocialProfileLinkClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team), type, url);
+    analytics.onTeamDetailContactClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), type, url);
   }
 
   return (

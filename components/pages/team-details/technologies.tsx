@@ -1,13 +1,17 @@
 
+import { useTeamAnalytics } from "@/analytics/teams.analytics";
+import Modal from "@/components/core/modal";
 import { Tooltip } from "@/components/core/tooltip/tooltip";
 import { IUserInfo } from "@/types/shared.types";
 import { ITeam } from "@/types/teams.types";
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from "@/utils/common.utils";
 import { TECHNOLOGIES } from "@/utils/constants";
+import Image from "next/image";
 import { Fragment, useState } from "react";
 
 interface ITechnologies {
   technologies: { name: string; url: string | undefined }[];
-  userInfo: IUserInfo | undefined;
+  userInfo: IUserInfo | undefined | null;
   team: ITeam | undefined;
 }
 
@@ -16,10 +20,10 @@ const Technologies = (props: ITechnologies) => {
   const team = props?.team;
   const technologies = props?.technologies ?? [];
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
-//   const analytics = useTeamDetailAnalytics();
+  const analytics = useTeamAnalytics();
 
   const onTechnologiesCountClickHandler = () => {
-    // analytics.onShowMoreTechnologyClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
+    analytics.onTeamDetailShowMoreTechnologiesClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
     setIsTechnologyPopup(!isTechnologyPopup);
   };
 
@@ -52,19 +56,19 @@ const Technologies = (props: ITechnologies) => {
         </div>
       )}
       {isTechnologyPopup && (
-        <dialog onClose={onClose}>
+        <Modal onClose={onClose}>
           <div className="technologies-popup">
             <h2 className="technologies-popup__title">Technologies</h2>
             {technologies?.map((Technology, index: number) => (
               <div key={`${Technology} + ${index + 1}`} className="technologies-popup__technology">
                 <div className="technologies-popup__technology__logo-container">
-                  <img loading="lazy" alt="technology" src={Technology?.url} height={24} width={24} />
+                  <Image loading="lazy" alt="technology" src={Technology?.url ?? ""} height={24} width={24} />
                 </div>
                 <p className="technologies-popup__technology__name">{Technology?.name}</p>
               </div>
             ))}
           </div>
-        </dialog>
+        </Modal>
       )}
       <style jsx>
         {`

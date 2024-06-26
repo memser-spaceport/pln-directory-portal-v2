@@ -25,10 +25,27 @@ export const getAnalyticsUserInfo = (userInfo: IUserInfo | null | undefined) => 
 }
 
 export const getAnalyticsTeamInfo = (team: ITeam | undefined) => {
-  if (team?.name && team?.shortDescription && team?.logo) {
-    return { name: team?.name ?? "", shortDescription: team?.shortDescription ?? "", logo: team?.logo ?? "" }
+  if (team?.name && team?.shortDescription ) {
+    return { name: team?.name ?? "", shortDescription: team?.shortDescription ?? ""}
   }
   return null;
+}
+
+export const getAnalyticsMemberInfo = (member: any) => {
+  if(member?.name) {
+    return {
+      name: member?.name,
+    }
+  }
+
+  return null;
+}
+
+export const getAnalyticsProjectInfo = (project: any) => {
+  if(project?.name && project?.description) {
+    return { name: project?.name ?? "", description: project?.description}
+  }
+  return null
 }
 export const getQuery = (searchParams: any) => {
   return {

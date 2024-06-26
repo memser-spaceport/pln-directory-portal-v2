@@ -3,11 +3,11 @@
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 interface IPaginationBox {
   totalItems: number;
@@ -21,6 +21,7 @@ interface IPaginationBox {
 
 export function PaginationBox(props: IPaginationBox) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpenPagesPanel, setIsOpenPagesPanel] = useState(false);
   const from = props.from;
   const analytics = useCommonAnalytics();
@@ -80,8 +81,13 @@ export function PaginationBox(props: IPaginationBox) {
 
 
   const onPaginationOptionClickHandler = (option: string, page: number) => {
+    triggerLoader(true);
     analytics.onPaginationOptionClicked(option, page, getAnalyticsUserInfo(userInfo), from);
   }
+
+  useEffect(() => {
+    triggerLoader(false);
+  }, [router, searchParams])
 
   return (
     <>
@@ -104,9 +110,9 @@ export function PaginationBox(props: IPaginationBox) {
               </Link>
             </button>
 
-            <button className="pb__left__contrls__pagescon" onClick={onCoutClickHandler}>
+            <button className="pb__left__contrls__pagescon" onClick={onCoutClickHandler} ref={pagesPanelRef}>
               {isOpenPagesPanel && (
-                <div ref={pagesPanelRef} className="pb__left__contrls__pagescon__pnl">
+                <div  className="pb__left__contrls__pagescon__pnl">
                   {Array.from({ length: totalPages })?.map((_page: any, index: number) => (
                     <Link onClick={() => onPaginationOptionClickHandler("", index + 1)} style={{fontWeight: `${(currentPage === (index + 1)) ? "600" : ""}`}} href={getPageUrl(index+1)} key={index}>{index + 1} </Link>
                   ))}

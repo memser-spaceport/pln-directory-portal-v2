@@ -9,7 +9,7 @@ import TeamDetailsMembersCard from './team-member-card';
 import AllMembers from './all-members';
 import Modal from '@/components/core/modal';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { getAnalyticsMemberInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsMemberInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
 interface ITeamMembers {
   members: IMember[] | undefined;
@@ -39,6 +39,7 @@ const TeamMembers = (props: ITeamMembers) => {
   };
 
   const onMemberClickHandler = (member: IMember) => {
+    triggerLoader(true);
     analytics.onTeamDetailMemberClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member))
   };
 

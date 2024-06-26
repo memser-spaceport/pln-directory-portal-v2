@@ -8,7 +8,7 @@ import TeamProjectCard from './team-project-card';
 import AllProjects from './all-projects';
 import Modal from '@/components/core/modal';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
 interface IProjects {
   projects: IFormatedTeamProject[] | undefined;
@@ -34,6 +34,7 @@ const Projects = (props: IProjects) => {
   };
 
   const onProjectCardClicked = (project: any) => {
+    triggerLoader(true);
     analytics.onTeamDetailProjectClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
   } 
 

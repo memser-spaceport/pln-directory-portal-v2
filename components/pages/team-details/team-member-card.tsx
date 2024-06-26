@@ -3,6 +3,7 @@ import { Tooltip } from "@/components/core/tooltip/tooltip";
 import { ITag, ITeam } from "@/types/teams.types";
 import { IMember } from "@/types/members.types";
 import { Tag } from "@/components/ui/tag";
+import Link from "next/link";
 
 interface ITeamMemberCard {
   team: ITeam | undefined;
@@ -20,10 +21,12 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
   const isTeamLead = member?.teamLead;
   const url = props?.url; 
   const callback = props?.onCardClick
+  
 
   return (
     <>
-      <a href={url} onClick={() => callback(member)} className="team-members-card">
+    <Link href={url} onClick={() => callback(member)} >
+      <div className="team-members-card">
         <div className="team-members-card__profile-details">
           <div className="team-members-card__profile-details__profile">
             <div className="team-members-card__profile-details__profile-container">
@@ -73,7 +76,8 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
             <img loading="lazy" alt="goto" src="/icons/right-arrow-gray.svg" />
           </button>
         </div>
-      </a>
+      </div>
+      </Link>
 
       <style jsx>
         {`

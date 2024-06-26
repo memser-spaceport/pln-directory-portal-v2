@@ -190,7 +190,6 @@ const FocusAreaItem = (props: FocusArea) => {
           .fltitemcon__textc__ttl {
             word-break: break-word;
             font-size: 12px;
-            font-weight: 500;
             line-height: 14px;
           }
 

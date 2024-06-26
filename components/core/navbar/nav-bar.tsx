@@ -10,7 +10,7 @@ import UserProfile from './userProfile';
 import { useRef, useState } from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import LoginBtn from './login-btn';
-import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import useClickedOutside from '@/hooks/useClickedOutside';
 
 interface INavbar {

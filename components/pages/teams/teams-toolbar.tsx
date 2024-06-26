@@ -64,8 +64,10 @@ const TeamsToolbar = (props: IToolbar) => {
 
   const onSubmitHandler = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (searchBy.trim() !== searchInput.trim()) {
+    if (searchBy.trim() === searchInput.trim()) {
+      return;
     }
+    triggerLoader(true);
     analytics.onTeamSearch(searchInput, getAnalyticsUserInfo(userInfo));
     if(searchParams?.page) {
       searchParams.page = "1";

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Tooltip } from "@/components/core/tooltip/tooltip";
-import { getSocialLinkUrl } from "@/utils/common.utils";
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { getSocialLinkUrl } from '@/utils/common.utils';
 
 interface IProfileSocialLink {
   type: string;
@@ -27,23 +27,23 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
   const href = getSocialLinkUrl(profile, type, handle);
   return (
     <>
-      <Tooltip
-        asChild
-        trigger={
-          <a
-            onClick={() => callback(type, href)}
-            href={href}
-            target="_blank"
-            rel="noreferrer noopener"
-            data-testid="profile-social-link"
-            className={`profile-social-link ${preferred ? "preffered" : "not-preferred"} `}
-          >
-            <img loading="lazy" src={logo} alt={type} height={height} width={width} />
-            <p className="profile-social-link__link">{profile ? profile : handle}</p>
-          </a>
-        }
-        content={href}
-      />
+      {/* <Tooltip
+        trigger={ */}
+      <a
+        title={href}
+        onClick={() => callback(type, href)}
+        href={href}
+        target="_blank"
+        rel="noreferrer noopener"
+        data-testid="profile-social-link"
+        className={`profile-social-link ${preferred ? 'preffered' : 'not-preferred'} `}
+      >
+        <img loading="lazy" src={logo} alt={type} height={height} width={width} />
+        <p className="profile-social-link__link">{profile ? profile : handle}</p>
+      </a>
+      {/* }
+        content={href} */}
+      {/* /> */}
 
       <style jsx>
         {`

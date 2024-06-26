@@ -147,7 +147,6 @@ export function PaginationBox(props: IPaginationBox) {
             flex-direction: column-reverse;
             width: 100%;
             margin-bottom: 17px;
-            padding: 0 10px;
             gap: 10px;
             height: 60px;
             border-top: 1px solid #e2e8f0;
@@ -200,7 +199,6 @@ export function PaginationBox(props: IPaginationBox) {
             border: 1px solid #e2e8f0;
             border-radius: 4px;
             background-color: white;
-            padding: 10px;
             gap: 2px;
             align-items: center;
           }
@@ -254,6 +252,7 @@ export function PaginationBox(props: IPaginationBox) {
           @media (min-width: 1024px) {
             .pb {
               flex-direction: row;
+              margin-bottom: 31px;
               justify-content: space-between;
             }
 

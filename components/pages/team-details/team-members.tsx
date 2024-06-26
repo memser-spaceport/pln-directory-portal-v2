@@ -8,6 +8,8 @@ import { Fragment, useState } from 'react';
 import TeamDetailsMembersCard from './team-member-card';
 import AllMembers from './all-members';
 import Modal from '@/components/core/modal';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import { getAnalyticsMemberInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface ITeamMembers {
   members: IMember[] | undefined;
@@ -23,7 +25,7 @@ const TeamMembers = (props: ITeamMembers) => {
   const userInfo = props?.userInfo;
 
   const [isMemberModal, setIsMemberModal] = useState(false);
-  //   const analytics = useTeamDetailAnalytics();
+  const analytics = useTeamAnalytics();
 
   const onClose = () => {
     setIsMemberModal(!isMemberModal);
@@ -31,9 +33,13 @@ const TeamMembers = (props: ITeamMembers) => {
 
   const onSeeAllClickHandler = () => {
     if (!isMemberModal) {
-      //   analytics.onSeeAllMemberClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team))
+      analytics.onTeamDetailSeeAllMemberClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
     }
     setIsMemberModal(!isMemberModal);
+  };
+
+  const onMemberClickHandler = (member: IMember) => {
+    analytics.onTeamDetailMemberClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member))
   };
 
   return (
@@ -72,7 +78,7 @@ const TeamMembers = (props: ITeamMembers) => {
             return (
               <Fragment key={`${member} + ${index}`}>
                 <div className={`${index < members.length - 1 ? 'team-members__members__member__border-set' : ''}`}>
-                  <TeamDetailsMembersCard url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`} member={member} team={team} />
+                  <TeamDetailsMembersCard onCardClick={onMemberClickHandler} url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`} member={member} team={team} />
                 </div>
               </Fragment>
             );
@@ -84,7 +90,7 @@ const TeamMembers = (props: ITeamMembers) => {
       {isMemberModal && (
         <div className="all-member-container">
           <Modal onClose={onClose}>
-            <AllMembers members={members} teamId={teamId} />
+            <AllMembers onCardClick={onMemberClickHandler} members={members} teamId={teamId} />
           </Modal>
         </div>
       )}

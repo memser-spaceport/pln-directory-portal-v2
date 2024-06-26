@@ -8,6 +8,7 @@ interface ITeamMemberCard {
   team: ITeam | undefined;
   member: IMember;
   url: string;
+  onCardClick: any;
 }
 const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
   const member = props?.member ?? {};
@@ -18,10 +19,11 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
   const skills = member?.skills ?? [];
   const isTeamLead = member?.teamLead;
   const url = props?.url; 
+  const callback = props?.onCardClick
 
   return (
     <>
-      <a href={url} className="team-members-card">
+      <a href={url} onClick={() => callback(member)} className="team-members-card">
         <div className="team-members-card__profile-details">
           <div className="team-members-card__profile-details__profile">
             <div className="team-members-card__profile-details__profile-container">

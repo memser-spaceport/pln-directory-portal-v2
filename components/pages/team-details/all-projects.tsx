@@ -5,12 +5,14 @@ import TeamProjectCard from "./team-project-card";
 
 interface IAllProjects {
   projects: IFormatedTeamProject[];
-  hasProjectsEditAccess: boolean
+  hasProjectsEditAccess: boolean;
+  onCardClicked: (project: any) => void;
 }
 const AllProjects = (props: IAllProjects) => {
   const projects = props?.projects;
   const hasProjectsEditAccess = props?.hasProjectsEditAccess;
   const [allProjects, setAllProjects] = useState(projects);
+  const callback = props?.onCardClicked;
 
   const onInputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const name = e?.target?.value?.toLowerCase();
@@ -35,7 +37,7 @@ const AllProjects = (props: IAllProjects) => {
             return (
               <Fragment key={`${project} + ${index}`}>
                 <div className={`${index < allProjects?.length - 1 ? "all-projects__border-set" : ""}`}>
-                  <TeamProjectCard url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
+                  <TeamProjectCard onCardClicked={() => callback(project)} url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
                 </div>
               </Fragment>
             );

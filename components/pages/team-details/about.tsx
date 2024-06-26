@@ -1,18 +1,30 @@
 'use client'
+import { useTeamAnalytics } from "@/analytics/teams.analytics";
+import { IUserInfo } from "@/types/shared.types";
+import { ITeam } from "@/types/teams.types";
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from "@/utils/common.utils";
 import { useState } from "react";
 
 interface IAbout {
-  about: string
+  about: string;
+  team: ITeam;
+  userInfo : IUserInfo | undefined
 }
 const About = (props: IAbout) => {
   const aboutContent = props?.about;
   const [about, setAbout] = useState(aboutContent.substring(0, 350));
+  const userInfo = props?.userInfo;
+  const team = props?.team;
+
+  const analytics = useTeamAnalytics();
 
   const onShowMoreClickHandler = () => {
     setAbout(aboutContent);
+    analytics.onTeamDetailAboutShowMoreClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
   };
 
   const onShowLessClickHandler = () => {
+    analytics.onTeamDetailAboutShowLessClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
     setAbout(about?.substring(0, 350));
   };
   return (
@@ -21,7 +33,7 @@ const About = (props: IAbout) => {
         <div className="about">
           <h2 className="about__title">About</h2>
           <div className="about__content">
-            <div dangerouslySetInnerHTML={{__html: about}}></div>
+            <span dangerouslySetInnerHTML={{__html: about}}/>
             {aboutContent?.length > about?.length && (
               <span>
                 ...

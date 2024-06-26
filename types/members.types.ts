@@ -140,3 +140,8 @@ export interface IMemberRepository {
   description: string;
   url: string;
 }
+
+
+export interface IAnalyticsMemberInfo {
+  name: string;
+}

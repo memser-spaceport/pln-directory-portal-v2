@@ -176,8 +176,8 @@ type IGenerateMetadata = {
 };
 export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
   const teamId = params.id;
-  const teamResonse = await getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' });
-  if (teamResonse?.error) {
+  // const teamResonse = await getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' });
+  // if (teamResonse?.error) {
     return {
       title: 'Protocol Labs Directory',
       description:
@@ -198,15 +198,16 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
         images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
       },
     };
-  }
-  const team = teamResonse?.data?.formatedData;
-  const previousImages = (await parent).openGraph?.images || [];
-  return {
-    title: team?.name,
-    openGraph: {
-      type: 'website',
-      url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`,
-      images: [team?.logo, ...previousImages],
-    },
-  };
+  // }
+  // const team = teamResonse?.data?.formatedData;
+  // const previousImages = (await parent).openGraph?.images || [];
+  // const logo = team?.logo || "https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg";
+  // return {
+  //   title: team?.name,
+  //   openGraph: {
+  //     type: 'website',
+  //     url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`,
+  //     images: [logo, ...previousImages],
+  //   },
+  // };
 }

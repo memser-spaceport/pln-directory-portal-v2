@@ -5,7 +5,6 @@ export const getFocusAreas = async (type: string, queryParams: any) => {
     const officeHoursFilter = queryParams?.officeHoursOnly ?? false;
     const url = `${process.env.DIRECTORY_API_URL}/v1/focus-areas?type=${type}&plnFriend=${includeFriends}&officeHours=${officeHoursFilter}&${new URLSearchParams(queryParams)}`;
 
-    console.log("url is", url);
     const response = await fetch(url, {
         method: 'GET',
         headers: {

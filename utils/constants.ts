@@ -107,6 +107,16 @@ export const AUTH_ANALYTICS = {
     TEAM_OPEN_FILTER_PANEL_CLICKED: 'team-open-filter-panel-clicked',
     TEAM_CLICKED: 'team-clicked',
     TEAM_PAGINATION_OPTION_CLICKED: 'team-pagination-option-clicked',
+    TEAM_EDIT_BY_LEAD: "team-edit-by-lead",
+    TEAM_EDIT_BY_ADMIN: 'team-edit-by-admin',
+    TEAM_DETAIL_ABOUT_SHOW_MORE_CLICKED: 'team-detail-about-show-more-clicked',
+    TEAM_DETAIL_ABOUT_SHOW_LESS_CLICKED: 'team-detail-show-less-clicked',
+    TEAM_DETAIL_SHOW_MORE_TECHNOLOGY_CLICKED: 'team-detail-show-more-technology-clicked',
+    TEAM_DETAIL_CONTACT_CLICKED: 'team-detail-contact-clicked',
+    TEAM_DETAIL_SEE_ALL_PROJECTS_CLICKED: 'team-detail-projects-see-all-clicked',
+    TEAM_DETAIL_PROJECT_CLICKED: 'project-clicked',
+    TEAM_DETAIL_SEE_ALL_MEMBERS_CLICKED: 'team-detail-members-see-all-clicked',
+    TEAM_DETAIL_MEMBER_CLICKED: 'team-detail-member-clicked',
   }
 
 export const PAGE_ROUTES = {

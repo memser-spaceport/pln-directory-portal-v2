@@ -1,3 +1,5 @@
+import { IAnalyticsMemberInfo } from "@/types/members.types";
+import { IAnalyticsProjectInfo } from "@/types/project.types";
 import { IAnalyticsTeamInfo, IAnalyticsUserInfo } from "@/types/shared.types";
 import { TEAMS_ANALYTICS_EVENTS } from "@/utils/constants";
 import { usePostHog } from "posthog-js/react";
@@ -88,6 +90,91 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_CLICKED, params);
       }
 
+      function onEditTeamByLead(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params = {
+          team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_EDIT_BY_LEAD, params);
+      }
+
+      function onEditTeamByAdmin(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params = {
+          team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_EDIT_BY_ADMIN, params);
+      }
+
+      function onTeamDetailAboutShowMoreClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params =  {
+          team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_SHOW_MORE_CLICKED, params);
+      }
+
+      function onTeamDetailAboutShowLessClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params = {
+          team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_SHOW_LESS_CLICKED, params)
+      }
+
+      function onTeamDetailShowMoreTechnologiesClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params = {
+          team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SHOW_MORE_TECHNOLOGY_CLICKED, params)
+      }
+
+      function onTeamDetailContactClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null, type: string, value: string) {
+        const params = {
+          team,
+          user,
+          type,
+          value
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_CONTACT_CLICKED, params);
+      }
+
+      function onTeamDetailSeeAllProjectsClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params = {
+          team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SEE_ALL_PROJECTS_CLICKED, params);
+      }
+
+      function onTeamDetailProjectClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null, project: IAnalyticsProjectInfo | null) {
+        const params = {
+          team,
+          user,
+          project
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_PROJECT_CLICKED, params);
+      }
+
+      function onTeamDetailSeeAllMemberClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null)  {
+        const params = {
+          team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SEE_ALL_MEMBERS_CLICKED, params);
+      }
+
+      function onTeamDetailMemberClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
+        const params = {
+          team,
+          user,
+          member
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_MEMBER_CLICKED, params);
+      }
+
+
       return {
         onOfficeHoursSelected,
         onFriendsOfProtocolSelected,
@@ -99,6 +186,17 @@ export const useTeamAnalytics = () => {
         onTeamSortByChanged,
         onTeamViewTypeChanged,
         onTeamOpenFilterPanelClicked,
-        onTeamCardClicked
+        onTeamCardClicked,
+        onEditTeamByLead,
+        onEditTeamByAdmin,
+        onTeamDetailAboutShowMoreClicked,
+        onTeamDetailAboutShowLessClicked,
+        onTeamDetailShowMoreTechnologiesClicked,
+        onTeamDetailContactClicked,
+        onTeamDetailSeeAllProjectsClicked,
+        onTeamDetailProjectClicked,
+        onTeamDetailSeeAllMemberClicked,
+        onTeamDetailMemberClicked,
       }
+
 }

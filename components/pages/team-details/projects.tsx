@@ -7,6 +7,8 @@ import { Fragment, useState } from 'react';
 import TeamProjectCard from './team-project-card';
 import AllProjects from './all-projects';
 import Modal from '@/components/core/modal';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface IProjects {
   projects: IFormatedTeamProject[] | undefined;
@@ -22,14 +24,18 @@ const Projects = (props: IProjects) => {
 
   const [isSeeAll, setIsSeAll] = useState(false);
 
-  //   const analytics = useTeamDetailAnalytics();
+    const analytics = useTeamAnalytics();
 
   const onSeeAllClickHandler = () => {
     if (!isSeeAll) {
-      //   analytics.onSeeAllTeamClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team))
+      analytics.onTeamDetailSeeAllProjectsClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
     }
     setIsSeAll(!isSeeAll);
   };
+
+  const onProjectCardClicked = (project: any) => {
+    analytics.onTeamDetailProjectClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
+  } 
 
   return (
     <>
@@ -72,7 +78,7 @@ const Projects = (props: IProjects) => {
           <div className="projects-container__projects-web">
             {projects?.slice(0, 3).map((project: IFormatedTeamProject, index: number) => (
               <div key={`${project} + ${index}`} className={`${index < projects?.length - 1 ? 'projects-container__projects__project__border-set' : ''}`}>
-                <TeamProjectCard url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
+                <TeamProjectCard onCardClicked={onProjectCardClicked} url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
               </div>
             ))}
           </div>
@@ -96,7 +102,7 @@ const Projects = (props: IProjects) => {
 
         {isSeeAll && (
           <Modal onClose={onSeeAllClickHandler}>
-            <AllProjects hasProjectsEditAccess={hasProjectsEditAccess} projects={projects} />
+            <AllProjects onCardClicked={onProjectCardClicked} hasProjectsEditAccess={hasProjectsEditAccess} projects={projects} />
           </Modal>
         )}
       </div>

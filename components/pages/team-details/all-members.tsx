@@ -8,10 +8,12 @@ import TeamDetailsMembersCard from "./team-member-card";
 interface IAllMembers {
   members: IMember[];
   teamId: string;
+  onCardClick : any;
 }
 const AllMembers = (props: IAllMembers) => {
   const members = props?.members;
   const teamId = props?.teamId;
+  const callback = props?.onCardClick;
   const [allMembers, setAllMembers] = useState(members);
 
   const onInputChangeHandler = (e:ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +40,7 @@ const AllMembers = (props: IAllMembers) => {
             return (
               <Fragment key={`${member} + ${index}`}>
                 <div className={`${index < allMembers?.length ? "all-members__border-set" : ""}`}>
-                  <TeamDetailsMembersCard url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`} member={member} team={team} />
+                  <TeamDetailsMembersCard onCardClick={callback} url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`} member={member} team={team} />
                 </div>
               </Fragment>
             );

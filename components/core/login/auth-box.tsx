@@ -16,12 +16,12 @@ function AuthBox() {
   const isLoginPopup = '#login' === hash;
   const router = useRouter();
 
-  useEffect(() => {
-    //restrict the user to manually open the login modal when authendicated state
-    if (Cookies.get('refreshToken')) {
-      router.push(`${window.location.pathname}${window.location.search}`);
-    }
-  }, []);
+  // useEffect(() => {
+  //   //restrict the user to manually open the login modal when authendicated state
+  //   if (Cookies.get('refreshToken')) {
+  //     router.push(`${window.location.pathname}${window.location.search}`);
+  //   }
+  // }, []);
 
   return (
     <PrivyProvider

@@ -40,20 +40,17 @@ const TeamsList = (props: ITeamList) => {
       <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? "team-list__grid" : "team-list__list"}`}>
         {allTeams?.map((team: ITeam, index: number) => (
           <div key={`${team} + ${index}`} className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? "team-list__grid__team" : "team-list__list__team"}`} onClick={() => onTeamClickHandler(team)}>
-            <Link href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
+            <Link scroll={false} href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
             {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}
             {VIEW_TYPE_OPTIONS.LIST === viewType && <TeamListView team={team} viewType={viewType} />}
             </Link>
           </div>
         ))}
-        <div ref={observerTarget}></div>
       </div>
-      {/* <PaginationBox/> */}
       <style jsx>{`
         .team-list {
           width: 100%;
           margin-top: 24px;
-          margin-bottom: 10px;
         }
 
         .team-list__team {

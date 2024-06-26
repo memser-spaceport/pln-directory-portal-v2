@@ -33,4 +33,9 @@ export interface IProjectLinks {
     url: string;
     name: string;
   }
+
+  export interface IAnalyticsProjectInfo {
+    name: string;
+    description: string;
+  }
   

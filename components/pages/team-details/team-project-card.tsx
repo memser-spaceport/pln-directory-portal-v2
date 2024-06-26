@@ -49,7 +49,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
         </div>
         <div className="team-project-card__goto">
           <div>
-            {!project?.hasEditAccess && !project?.isDeleted && (
+            {project?.hasEditAccess && !project?.isDeleted && (
               <div className="team-project-card__goto__options">
                 <button className="team-project-card__goto__options__edit">
                   <img loading="lazy" src="/icons/edit-black.svg" />

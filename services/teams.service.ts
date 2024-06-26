@@ -105,17 +105,14 @@ export const hasProjectEditAccess = (userInfo: IUserInfo, selectedProject: any, 
       return true;
     }
 
+
     if (selectedProject?.createdBy && userInfo?.uid === selectedProject?.createdBy) {
       return true;
     }
 
     if (teams) {
-      if (teams?.some((team: any) => team?.uid === selectedProject?.maintainingTeamUid)) {
+      if (teams?.some((team: any) => team?.id === selectedProject?.maintainingTeamUid)) {
         return true;
-      }
-
-      if (selectedProject?.contributingTeams?.length) {
-        return selectedProject?.contributingTeams?.some((cteam: any) => teams?.some((team: any) => team.uid === cteam.value))
       }
     }
     return false;

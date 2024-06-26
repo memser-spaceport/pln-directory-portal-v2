@@ -1,0 +1,60 @@
+.teamDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 40px;
+  min-height: 100px;
+  background-color: #F1F5F9;
+  min-height: calc(100vh - 80px);
+}
+
+.teamDetail__breadcrumb {
+  display: none;
+}
+
+
+.teamDetail__container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teamDetail__Container__details {
+  min-height: 100px;
+}
+.teamDetail__container__contact {
+}
+
+.teamDetail__container__funding {
+  min-height: 20px;
+}
+
+.teamDetail__container__member {
+  min-height: 100px;
+}
+
+.teamDetail__container__projects {
+  min-height: 100px;
+}
+
+@media (min-width: 1024px) {
+  .teamDetail {
+    align-items: center;
+  }
+  .teamDetail__container {
+    width: 900px;
+    padding-top: 38px;
+  }
+
+  .teamDetail__breadcrumb {
+    display: unset;
+    height: 48px;
+    width: 100%;
+    position: sticky;
+    top: 80px;
+    display: flex;
+    align-items:center;
+    background-color: #fff;
+  }
+
+}

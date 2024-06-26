@@ -66,3 +66,22 @@ export function getTagsFromValues(allValues: string[], availableValues: string[]
 export function getTeamsListOptions(options: ITeamListOptions) {
   return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title", pagination: true };
 }
+
+
+export const getTechnologyImage = (technology: string) => {
+  if (technology === "Filecoin") {
+    return "/icons/technology/filecoin.svg";
+  } else if (technology === "IPFS") {
+    return "/icons/technology/ipfs.svg";
+  } else if (technology === "libp2p") {
+    return "/icons/technology/libp2p.svg";
+  } else if (technology === "IPLD") {
+    return "/icons/technology/ipld.svg";
+  } else if (technology === "drand") {
+    return "/icons/technology/drand.svg";
+  } else if (technology === "FVM") {
+    return "/icons/technology/fvm.svg";
+  } else if (technology === "SourceCred") {
+    return "/icons/technology/sourcecred.svg";
+  }
+};

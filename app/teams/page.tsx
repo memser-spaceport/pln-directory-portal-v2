@@ -3,7 +3,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
 import { calculateTotalPages } from '@/utils/common.utils';
 import { ITEMS_PER_PAGE, PAGE_ROUTES } from '@/utils/constants';
-import { getCookieFromHeaders } from '@/utils/next.utils';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
 import { Metadata } from 'next';
 import EmptyResult from '../../components/core/empty-result';
@@ -15,9 +15,8 @@ import TeamsToolbar from '../../components/pages/teams/teams-toolbar';
 import styles from './page.module.css';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
-  const { userInfo } = getCookieFromHeaders();
+  const { userInfo } = getCookiesFromHeaders();
 
-  const parsedUserDetails: IUserInfo = userInfo;
   const { teams, filtersValues, isError, totalTeams, currentPage } = await getPageData(searchParams);
 
   const totalPages = calculateTotalPages(totalTeams, ITEMS_PER_PAGE);
@@ -30,16 +29,16 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
     <section className={styles.team}>
       {/* Side-nav */}
       <aside className={styles.team__left}>
-        <FilterWrapper searchParams={searchParams} filterValues={filtersValues} userInfo={parsedUserDetails} />
+        <FilterWrapper searchParams={searchParams} filterValues={filtersValues} userInfo={userInfo} />
       </aside>
       {/* Teams */}
       <div className={styles.team__right}>
         <div className={styles.team__right__content}>
           <div className={styles.team__right__toolbar}>
-            <TeamsToolbar totalTeams={totalTeams} searchParams={searchParams} userInfo={parsedUserDetails} />
+            <TeamsToolbar totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />
           </div>
           <div className={styles.team__right__teamslist}>
-            {teams?.length >= 0 && <TeamsList teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={parsedUserDetails} />}
+            {teams?.length >= 0 && <TeamsList teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />}
             {teams?.length === 0 && <EmptyResult />}
           </div>
 
@@ -61,7 +60,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
   let totalTeams = 0;
   let currentPage = 1;
   try {
-    const { authToken } = getCookieFromHeaders();
+    const { authToken } = getCookiesFromHeaders();
     const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
 

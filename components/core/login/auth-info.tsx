@@ -38,6 +38,7 @@ const AuthInfo = () => {
 
   // Reset Url
   const onClose = () => {
+    try {
     analytics.onAuthInfoClosed();
     const queryString = window.location.search.substring(1);
     const params = new URLSearchParams(queryString);
@@ -48,6 +49,9 @@ const AuthInfo = () => {
       }
     });
     router.push(`${window.location.pathname}${queryParams === '?' ? '' : queryParams}`);
+  } catch (e) {
+    console.error(e);
+  }
   };
 
   return (

@@ -67,7 +67,7 @@ export default function FilterWrapper(props: IFilterwrapper) {
         `}
       </style>
 
-      <style global>
+      <style jsx global>
         {`
         html {
         overflow: ${isMobileFilter ? 'hidden' : 'auto'}}

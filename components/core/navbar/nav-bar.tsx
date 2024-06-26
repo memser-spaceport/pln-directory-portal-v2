@@ -7,10 +7,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import JoinNetwork from './join-network';
 import MobileNavDrawer from './mobile-nav-drawer';
 import UserProfile from './userProfile';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import LoginBtn from './login-btn';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import useClickedOutside from '@/hooks/useClickedOutside';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -24,6 +25,10 @@ export default function Navbar(props: Readonly<INavbar>) {
   const analytics = useCommonAnalytics();
 
   const helpMenuRef = useRef<HTMLDivElement>(null);
+  const [isHelperMenuOpen, setIsHelperMenuOpen] = useState(false);
+  const [isMobileDrawerOpen, setIsMobilDrawerOpen] = useState(false); 
+
+  useClickedOutside({ callback: () => setIsHelperMenuOpen(false), ref: helpMenuRef });
 
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
@@ -31,42 +36,36 @@ export default function Navbar(props: Readonly<INavbar>) {
     }
   };
 
-  const onHelpClickHandler = () => {
+  const onHelpClickHandler = (e: any) => {
+    e.preventDefault();
+    setIsHelperMenuOpen((prev) => !prev);
     analytics.onNavItemClicked('get-help', getAnalyticsUserInfo(userInfo));
   };
 
   const onHelpItemClickHandler = (name: string) => {
-    helpMenuRef?.current?.hidePopover();
+    // helpMenuRef?.current?.hidePopover();
+    setIsHelperMenuOpen(false);
     analytics.onNavGetHelpItemClicked(name, getAnalyticsUserInfo(userInfo));
   };
 
   const onNavDrawerIconClickHandler = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_MOBILE_NAV, { detail: true }));
-    analytics.onNavDrawerBtnClicked(true);
+    // document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_MOBILE_NAV, { detail: true }));
+    setIsMobilDrawerOpen(prev => !prev);
+    analytics.onNavDrawerBtnClicked(isMobileDrawerOpen);
   };
 
   return (
     <>
       <div className="nb">
-        <MobileNavDrawer userInfo={userInfo} isLoggedIn={isLoggedIn} />
+        {isMobileDrawerOpen && <MobileNavDrawer userInfo={userInfo} isLoggedIn={isLoggedIn} onNavMenuClick={onNavDrawerIconClickHandler}/>}
         <div className="nb__left">
           <Link href="/">
             <Image src="/icons/app-logo.svg" height={35} width={157} alt="app-logo" />
           </Link>
           <div className="nb__left__web-optns">
             {NAV_OPTIONS.map((option, index) => (
-              <Link
-                href={option.url}
-                key={`${option.url} + ${index}`}
-                onClick={() => onNavItemClickHandler(option?.url, option?.name)}
-              >
-                <li
-                  key={option.name}
-                  tabIndex={0}
-                  className={`nb__left__web-optns__optn ${
-                    pathName === option.url ? 'nb__left__web-optns__optn--active' : ''
-                  }`}
-                >
+              <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)}>
+                <li key={option.name} tabIndex={0} className={`nb__left__web-optns__optn ${pathName === option.url ? 'nb__left__web-optns__optn--active' : ''}`}>
                   <Image
                     loading="lazy"
                     height={20}
@@ -82,32 +81,22 @@ export default function Navbar(props: Readonly<INavbar>) {
           </div>
         </div>
         <div className="nb__right">
-          <div className="nb__right__helpc">
-            <button onClick={onHelpClickHandler} popoverTarget="help" className="nb__right__helpc__btn">
-              <Image
-                className="nb__right__helpc__btn__img"
-                alt="help"
-                loading="lazy"
-                height={24}
-                width={24}
-                src="/icons/help.svg"
-              />
+          <div className="nb__right__helpc" ref={helpMenuRef}>
+            <button onClick={onHelpClickHandler} className="nb__right__helpc__btn">
+              <Image className="nb__right__helpc__btn__img" alt="help" loading="lazy" height={24} width={24} src="/icons/help.svg" />
             </button>
-            <div className="nb__right__helpc__opts" ref={helpMenuRef} popover="auto" id="help">
-              {HELPER_MENU_OPTIONS.map((helperMenu, index) => (
-                <Link
-                  target={helperMenu.type}
-                  href={helperMenu.url ?? ''}
-                  key={`${helperMenu} + ${index}`}
-                  onClick={() => onHelpItemClickHandler(helperMenu.name)}
-                >
-                  <li className="nb__right__helpc__opts__optn">
-                    <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
-                    <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
-                  </li>
-                </Link>
-              ))}
-            </div>
+            {isHelperMenuOpen && (
+              <div className="nb__right__helpc__opts">
+                {HELPER_MENU_OPTIONS.map((helperMenu, index) => (
+                  <Link target={helperMenu.type} href={helperMenu.url ?? ''} key={`${helperMenu} + ${index}`} onClick={() => onHelpItemClickHandler(helperMenu.name)}>
+                    <li className="nb__right__helpc__opts__optn">
+                      <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
+                      <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
+                    </li>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
           <button className="nb__right__drawerandprofile__drawerbtn" onClick={onNavDrawerIconClickHandler}>
             <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
@@ -116,7 +105,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           {!isLoggedIn && (
             <div className="nb__right__lgandjoin">
               <JoinNetwork />
-              <LoginBtn/>
+              <LoginBtn />
             </div>
           )}
         </div>
@@ -197,25 +186,21 @@ export default function Navbar(props: Readonly<INavbar>) {
             position: relative;
           }
 
-          :popover-open {
+          .nb__right__helpc {
+            display: none;
+          }
+
+          .nb__right__helpc__opts {
             position: absolute;
-            inset: unset;
-            bottom: 5px;
-            right: ${isLoggedIn ? '128px' : '365px'};
-            margin: 0;
-            top: 60px;
-            border: none;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 2px 6px 0px #0f172a29;
+            right: 0;
+            margin-top: 10px;
             padding: 16px;
+            background-color: white;
             display: flex;
             flex-direction: column;
             gap: 16px;
-          }
-
-          .nb__right__helpc {
-            display: none;
+            box-shadow: 0px 2px 6px 0px #0F172A29;
+            border-radius: 8px;
           }
 
           .nb__right__helpc__opts__optn__name {

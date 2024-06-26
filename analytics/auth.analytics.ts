@@ -27,11 +27,11 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_INFO_POPUP_CLOSED);
   };
 
-  const onPrivyLoginSuccess = (privyUser:any) => {
+  const onPrivyLoginSuccess = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_PRIVY_LOGIN_SUCCESS, { ...privyUser });
   };
 
-  const onDirectoryLoginInit = (privyUser:any) => {
+  const onDirectoryLoginInit = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_DIRECTORY_LOGIN_INIT, { ...privyUser });
   };
 
@@ -39,28 +39,40 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_DIRECTORY_LOGIN_SUCCESS);
   };
 
-  const onDirectoryLoginFailure = (privyUser:any) => {
+  const onDirectoryLoginFailure = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_DIRECTORY_LOGIN_FAILURE, { ...privyUser });
   };
 
-  const onPrivyUnlinkEmail = (privyUser:any) => {
+  const onPrivyUnlinkEmail = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_PRIVY_UNLINK_EMAIL, { ...privyUser });
   };
 
-  const onPrivyUserDelete = (privyUser:any) => {
+  const onPrivyUserDelete = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_PRIVY_DELETE_USER, { ...privyUser });
   };
 
-  const onPrivyLinkSuccess = (privyUser:any) => {
+  const onPrivyLinkSuccess = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_PRIVY_LINK_SUCCESS, { ...privyUser });
   };
 
-  const onAccountLinkError = (privyUser:any) => {
+  const onAccountLinkError = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_PRIVY_LINK_ERROR, { ...privyUser });
   };
 
-  const onPrivyAccountLink = (privyUser:any) => {
+  const onPrivyAccountLink = (privyUser: any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_PRIVY_ACCOUNT_LINK, { ...privyUser });
+  };
+
+  const onUpdateEmailSuccess = (privyUser:any) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS, { ...privyUser });
+  };
+
+  const onUpdateEmailFailure = (privyUser:any) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_FAILED, { ...privyUser });
+  };
+
+  const onUpdateSameEmailProvided = (privyUser:any) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD, { ...privyUser });
   };
 
   return {
@@ -76,5 +88,8 @@ export const useAuthAnalytics = () => {
     onDirectoryLoginFailure,
     onAccountLinkError,
     onPrivyAccountLink,
+    onUpdateEmailSuccess,
+    onUpdateEmailFailure,
+    onUpdateSameEmailProvided
   };
 };

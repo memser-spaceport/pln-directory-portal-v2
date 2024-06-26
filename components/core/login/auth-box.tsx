@@ -10,7 +10,6 @@ import { useEffect } from 'react';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 
-
 function AuthBox() {
   const hash = useHash();
 
@@ -26,7 +25,7 @@ function AuthBox() {
 
   return (
     <PrivyProvider
-      appId={process.env.PRIVY_AUTH_ID!}
+      appId={process.env.PRIVY_AUTH_ID as string}
       config={{
         appearance: {
           theme: 'light',

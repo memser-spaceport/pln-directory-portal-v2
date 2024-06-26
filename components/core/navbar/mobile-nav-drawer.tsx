@@ -16,29 +16,32 @@ import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
+  onNavMenuClick:() => void;
 }
 
 export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   const userInfo = props.userInfo;
   const isLoggedIn = props.isLoggedIn;
+  const onNavMenuClick = props?.onNavMenuClick;
   const pathName = usePathname();
   const settingsUrl = '';
 
   const analytics = useCommonAnalytics();
 
+
   const drawerRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(false);
 
-  useClickedOutside({ callback: () => setIsOpen(false), ref: drawerRef });
+  useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
 
-  useEffect(() => {
-    document.addEventListener(EVENTS.TRIGGER_MOBILE_NAV, (e: any) => setIsOpen(e.detail));
-    document.removeEventListener(EVENTS.TRIGGER_MOBILE_NAV, () => {});
-  }, []);
+  // useEffect(() => {
+  //   document.addEventListener(EVENTS.TRIGGER_MOBILE_NAV, (e: any) => setIsOpen(e.detail));
+  //   document.removeEventListener(EVENTS.TRIGGER_MOBILE_NAV, () => {});
+  // }, []);
 
-  const onCloseClickHandler = () => {
-    setIsOpen(false);
-  };
+  // const onCloseClickHandler = () => {
+  //   onNavDrawerIconClickHandler();
+  // };
 
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
@@ -64,13 +67,12 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
 
   return (
     <>
-      {isOpen && (
-        <div className="md">
+        <div className="md" >
           <div className="md__container" ref={drawerRef}>
             <div className="md__container__bdy">
               {/* Close menu */}
               <div className="md__container__bdy__clsmenu">
-                <button className="md__container__bdy__clsmenu__btn" onClick={onCloseClickHandler}>
+                <button className="md__container__bdy__clsmenu__btn" onClick={onNavMenuClick}>
                   <Image src="/icons/close.svg" height={16} width={16} alt="close" />
                   <span> Close Menu</span>
                 </button>
@@ -166,7 +168,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             </div>
           </div>
         </div>
-      )}
+      
 
       <style jsx>
         {`
@@ -374,12 +376,12 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
           }
         `}
       </style>
-      <style global>
+      {/* <style jsx global>
         {`
         html {
         overflow: ${isOpen ? 'hidden' : 'auto'};
         }`}
-      </style>
+      </style> */}
     </>
   );
 }

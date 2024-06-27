@@ -8,19 +8,18 @@ export interface FocusArea {
   selectedItems: IFocusArea[];
   onItemClickHandler: (item: IFocusArea) => void;
   parents: IFocusArea[];
-  uniqueKey: string;
+  uniqueKey: "teamAncestorFocusAreas" | "projectAncestorFocusAreas";
   isGrandParent: boolean;
   isHelpActive: boolean;
 }
 const FocusAreaItem = (props: FocusArea) => {
-  const currentItem: any = props?.item;
+  const currentItem = props?.item;
   const selectedItems = props?.selectedItems || [];
   const onItemClickHandler = props?.onItemClickHandler;
   const parents = props?.parents;
   const isGrandParent = props?.isGrandParent ?? false;
   const isHelpActive = props?.isHelpActive;
   const uniqueKey = props?.uniqueKey;
-
   const router = useRouter();
 
   const assignedItemsLength = currentItem?.[uniqueKey]?.length;
@@ -72,13 +71,13 @@ const FocusAreaItem = (props: FocusArea) => {
       return false;
     }
   
-    return currentItem.children.some((child: any) =>
+    return currentItem.children.some((child: IFocusArea) =>
       (child?.[uniqueKey]?.length > 0) || hasSelectedItems(child)
     );
   }
   
 
-  function getIsSelectedItem(cItem: any) {
+  function getIsSelectedItem(cItem: IFocusArea) {
     return selectedItems.some((item) => item.parentUid === cItem.uid || item.uid === cItem.uid);
   }
 
@@ -122,7 +121,7 @@ const FocusAreaItem = (props: FocusArea) => {
         <>
           <>
             {currentItem?.children?.map(
-              (child: any, index: number) =>
+              (child: IFocusArea, index: number) =>
                 (child?.[uniqueKey]?.length > 0 || getIsSelectedItem(child)) && (
                   <div key={`${index}+ ${child}`} className="fltitem">
                     <FocusAreaItem

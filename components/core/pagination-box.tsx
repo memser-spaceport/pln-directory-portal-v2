@@ -3,6 +3,7 @@
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { IUserInfo } from '@/types/shared.types';
+import { ITeamsSearchParams } from '@/types/teams.types';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,7 +15,7 @@ interface IPaginationBox {
   showingItems: number;
   currentPage: number;
   totalPages: number;
-  searchParams: any;
+  searchParams: ITeamsSearchParams;
   from: string, 
   userInfo: IUserInfo | undefined | null;
 }
@@ -113,7 +114,7 @@ export function PaginationBox(props: IPaginationBox) {
             <button className="pb__left__contrls__pagescon" onClick={onCoutClickHandler} ref={pagesPanelRef}>
               {isOpenPagesPanel && (
                 <div  className="pb__left__contrls__pagescon__pnl">
-                  {Array.from({ length: totalPages })?.map((_page: any, index: number) => (
+                  {Array.from({ length: totalPages })?.map((_page, index: number) => (
                     <Link onClick={() => onPaginationOptionClickHandler("", index + 1)} style={{fontWeight: `${(currentPage === (index + 1)) ? "600" : ""}`}} href={getPageUrl(index+1)} key={index}>{index + 1} </Link>
                   ))}
                 </div>

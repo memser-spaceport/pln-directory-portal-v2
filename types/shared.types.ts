@@ -1,13 +1,13 @@
 import { ITeam } from "./teams.types";
 
 export interface IUserInfo {
-    isFirstTimeLogin: boolean;
-    name: string;
-    email: string;
-    profileImageUrl: string;
-    uid: string;
-    roles: string[];
-    leadingTeams: string[];
+    isFirstTimeLogin?: boolean;
+    name?: string;
+    email?: string;
+    profileImageUrl?: string;
+    uid?: string;
+    roles?: string[];
+    leadingTeams?: string[];
   }
 
 

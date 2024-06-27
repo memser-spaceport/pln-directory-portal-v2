@@ -1,6 +1,6 @@
 import { IMember, IMemberResponse, ITeamMemberRole } from "@/types/members.types";
 
-export const parseMemberDetails = (members: IMemberResponse[], teamId: string, isLoggedIn: boolean): any => {
+export const parseMemberDetails = (members: IMemberResponse[], teamId: string, isLoggedIn: boolean) => {
     return members?.map((member: IMemberResponse): IMember => {
       let parsedMember = { ...member };
       if (teamId) {

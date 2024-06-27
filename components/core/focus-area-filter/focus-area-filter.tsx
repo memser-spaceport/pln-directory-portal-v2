@@ -7,18 +7,19 @@ import FocusAreaItem from './filter-focus-are-item';
 import Image from 'next/image';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { ITeamsSearchParams } from '@/types/teams.types';
 
 interface IFocusAreaFilter {
-  uniqueKey: string;
+  uniqueKey: "teamAncestorFocusAreas" | "projectAncestorFocusAreas";
   title: string;
-  selectedItems: any;
-  focusAreaRawData: any;
-  searchParams: any;
+  selectedItems: IFocusArea[];
+  focusAreaRawData: IFocusArea[];
+  searchParams: ITeamsSearchParams;
 }
 
 const FocusAreaFilter = (props: IFocusAreaFilter) => {
-  const focusAreas = props.focusAreaRawData?.filter((focusArea: any) => !focusArea.parentUid);
+  const focusAreas = props.focusAreaRawData?.filter((focusArea: IFocusArea) => !focusArea.parentUid);
 
   const title = props?.title;
   const uniqueKey = props?.uniqueKey;
@@ -39,9 +40,9 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
     return PAGE_ROUTES.TEAMS;
   }
 
-  function getAllParents(items: any[]) {
+  function getAllParents(items: IFocusArea[]) {
     try {
-      let initialParents: any[] = [];
+      let initialParents: IFocusArea[] = [];
       items?.map((item) => {
         const parents = findParents(focusAreas, item.uid);
         if (parents?.length > 0) {
@@ -58,11 +59,11 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
     }
   }
 
-  function findChildrens(node: any) {
-    const children: any[] = [];
-    function findChildrenRecursive(currentNode: any) {
+  function findChildrens(node: IFocusArea) {
+    const children: IFocusArea[] = [];
+    function findChildrenRecursive(currentNode: IFocusArea) {
       if (currentNode.children && currentNode.children.length > 0) {
-        currentNode.children.forEach((child: any) => {
+        currentNode.children.forEach((child: IFocusArea) => {
           children.push(child);
           findChildrenRecursive(child);
         });
@@ -73,14 +74,14 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
   }
 
   function findParents(data: IFocusArea[], childUid: string) {
-    const parents: any = [];
-    const findParentsRecursive = (item: IFocusArea, childUid: string, currentParents = []) => {
+    const parents: IFocusArea[] = [];
+    const findParentsRecursive = (item: IFocusArea, childUid: string, currentParents: IFocusArea[] = []) => {
       if (!item || !item.children) return;
       if (item.uid === childUid) {
         parents.push(...currentParents);
         return;
       }
-      const updatedParents: any = [...currentParents, item];
+      const updatedParents: IFocusArea[] = [...currentParents, item];
       if (item.children) {
         item.children.forEach((child) => {
           findParentsRecursive(child, childUid, updatedParents);
@@ -93,15 +94,14 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
     return parents;
   }
 
-  const onItemClickHandler = (item: any) => {
+  const onItemClickHandler = (item: IFocusArea) => {
     try {
       triggerLoader(true);
-      // const { focusAreas: queryFilterValue, ...restQuery } = query;
-      const hasItem = selectedItems.some((selectedItem: any) => selectedItem.uid === item.uid);
+      const hasItem = selectedItems.some((selectedItem: IFocusArea) => selectedItem.uid === item.uid);
       let updatedTitles = [];
       if (hasItem) {
-        const updatedSelectedItems = selectedItems.filter((selectedItem: any) => selectedItem.uid !== item.uid);
-        updatedTitles = updatedSelectedItems.map((item: any) => item.title);
+        const updatedSelectedItems = selectedItems.filter((selectedItem: IFocusArea) => selectedItem.uid !== item.uid);
+        updatedTitles = updatedSelectedItems.map((item: IFocusArea) => item.title);
       } else {
         const childrens = findChildrens(item);
         const parents = findParents(focusAreas, item.uid);
@@ -111,14 +111,14 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
           page: pageName,
           name: 'Focus Area',
           value: item.title,
-          user,
+          user: getAnalyticsUserInfo(user),
           nameAndValue: `Focus Area - ${item.title}`,
         });
         updatedSelectedItems.push(item);
         updatedTitles = updatedSelectedItems.map((item) => item.title);
       }
       if (searchParams?.page) {
-        searchParams.page = 1;
+        searchParams.page = "1";
       }
       updateQueryParams('focusAreas', updatedTitles.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
     } catch (error) {
@@ -131,7 +131,7 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
     if (!isHelpActive) {
       analytics.onTeamFocusAreaHelpClicked({
         page: pageName,
-        user,
+        user: getAnalyticsUserInfo(user),
       });
     }
   };

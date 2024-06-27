@@ -57,11 +57,10 @@ function MemberContributionInfo(props: any) {
     if (index === expandedId) {
       setExpandedId(-1);
     }
-    
+
     setContributionInfos((old: any[]) => {
       const newItem = [...old];
       newItem.splice(index, 1);
-      console.log(newItem, index)
       return newItem;
     });
   };
@@ -94,14 +93,14 @@ function MemberContributionInfo(props: any) {
   }; */
 
   const onClearProjectSearch = (index: number) => {
-    setContributionInfos((old:any) => {
+    setContributionInfos((old: any) => {
       old[index] = { ...old[index], projectUid: '', projectName: '', projectLogo: '', currentProject: false };
       return [...old];
     });
   };
 
   const onProjectSelectionChanged = (index: number, item: any) => {
-    setContributionInfos((old:any) => {
+    setContributionInfos((old: any) => {
       const newV = structuredClone(old);
       newV[index].projectUid = item.projectUid;
       newV[index].projectName = item.projectName;
@@ -111,7 +110,7 @@ function MemberContributionInfo(props: any) {
   };
 
   const onProjectDetailsChanged = (index: number, value: string | boolean, key: string) => {
-    setContributionInfos((old:any) => {
+    setContributionInfos((old: any) => {
       const newV = structuredClone(old);
       newV[index][key] = value;
       return [...newV];
@@ -137,7 +136,12 @@ function MemberContributionInfo(props: any) {
             <p className="pc__new__text">Click to add project contributions</p>
           </div>
         )}
-
+        {contributionInfos.length > 0 && (
+          <div className="user__info">
+            <img width="16" height="16" className="user__info__icon" src="/icons/info-blue.svg" />
+            <p className="user__info__text">Note that you can only set upto 5 projects as current</p>
+          </div>
+        )}
         {contributionInfos.length > 0 && (
           <div className="pc__list">
             {Object.keys(errors).length > 0 && <p className="error">There are fields that require your attention. Please review the fields below.</p>}
@@ -158,7 +162,7 @@ function MemberContributionInfo(props: any) {
                 <div className={`pc__list__item__form ${expandedId !== index ? 'hidden' : ''}`}>
                   {errors[index] && (
                     <ul className="error">
-                      {errors[index].map((error: string, index:number) => (
+                      {errors[index].map((error: string, index: number) => (
                         <li key={`contibution-error-${index}`}>{error}</li>
                       ))}
                     </ul>
@@ -169,7 +173,7 @@ function MemberContributionInfo(props: any) {
                       label="Project Name*"
                       uniqueKey="projectUid"
                       formKey="projectUid"
-                      iconKey='projectLogo'
+                      iconKey="projectLogo"
                       isMandatory={true}
                       isFormElement={true}
                       name={`contributionInfo${index}-projectUid`}
@@ -199,7 +203,7 @@ function MemberContributionInfo(props: any) {
                       onChange={(e) => onProjectDetailsChanged(index, e, 'startDate')}
                       name={`contributionInfo${index}-startDate`}
                       defaultValue={startDate.toISOString()}
-                      dateBoundary='start'
+                      dateBoundary="start"
                       value={contributionInfo.startDate}
                       label="From*"
                     />
@@ -210,7 +214,7 @@ function MemberContributionInfo(props: any) {
                       name={`contributionInfo${index}-endDate`}
                       defaultValue={endDate.toISOString()}
                       value={contributionInfo.endDate}
-                      dateBoundary='end'
+                      dateBoundary="end"
                       label="To*"
                     />
                   </div>
@@ -222,7 +226,7 @@ function MemberContributionInfo(props: any) {
                 </div>
               </div>
             ))}
-             {expandedId !== -1 && <AddContribution disableAdd={contributionInfos.length >= 20} onAddContribution={onAddContribution} />}
+            {expandedId !== -1 && <AddContribution disableAdd={contributionInfos.length >= 20} onAddContribution={onAddContribution} />}
           </div>
         )}
       </div>
@@ -231,14 +235,24 @@ function MemberContributionInfo(props: any) {
         {`
           .editor {
             width: 100%;
-           
+          }
+
+          .user__info {
+            display: flex;
+            background: #f1f5f9;
+            padding: 8px 16px;
+            gap: 10px;
+            font-size: 14px;
+            width: 100%;
+            margin-bottom: 16px;
           }
           .pc {
             height: 100%;
             width: 100%;
             display: flex;
-            align-items: flex-start;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
           }
 
           .pc__new {
@@ -280,7 +294,7 @@ function MemberContributionInfo(props: any) {
             visibility: hidden;
             height: 0;
             margin: 0;
-            max-height:0;
+            max-height: 0;
             overflow: hidden;
           }
           .pc__list__item__form__item {
@@ -299,8 +313,11 @@ function MemberContributionInfo(props: any) {
           }
           @media (min-width: 1024px) {
             .pc__list {
-              padding-top: 32px;
+             
             }
+              .user__info {
+              margin: 32px 0 16px 0;
+              }
             .pc__list__item__form__item {
               flex-direction: row;
               gap: 8px;

@@ -16,7 +16,7 @@ interface IPaginationBox {
   currentPage: number;
   totalPages: number;
   searchParams: ITeamsSearchParams;
-  from: string, 
+  from: string;
   userInfo: IUserInfo | undefined | null;
 }
 
@@ -72,23 +72,24 @@ export function PaginationBox(props: IPaginationBox) {
   const getPageUrl = (pageNumber: number) => {
     const current = new URLSearchParams(Object.entries(searchParams));
     current.delete('page');
-    current.set('page', (pageNumber).toString());
-    return `${pathname}/?${current.toString()}`
-  }
+    current.set('page', pageNumber.toString());
+    return `${pathname}/?${current.toString()}`;
+  };
   const firstPageLink = getFirstPagelink();
   const lastPageLink = getLastPageLink();
   const nextPageLink = getNextPageLink();
   const previousPageLink = getPrevPageLink();
 
-
   const onPaginationOptionClickHandler = (option: string, page: number) => {
-    triggerLoader(true);
+    if (currentPage !== page) {
+      triggerLoader(true);
+    }
     analytics.onPaginationOptionClicked(option, page, getAnalyticsUserInfo(userInfo), from);
-  }
+  };
 
   useEffect(() => {
     triggerLoader(false);
-  }, [router, searchParams])
+  }, [router, searchParams]);
 
   return (
     <>
@@ -100,22 +101,29 @@ export function PaginationBox(props: IPaginationBox) {
         <div className="pb__left">
           <div className="pb__left__contrls">
             <button className="pb__left__ctrls__first">
-              <Link href={firstPageLink} onClick={() => onPaginationOptionClickHandler("first", 1)}>
+              <Link href={firstPageLink} onClick={() => onPaginationOptionClickHandler('first', 1)}>
                 <Image height={8} width={8} src={currentPage === 1 ? '/icons/pagination/inactive/left-double-arrow.svg' : '/icons/pagination/active/left-double-arrow.svg'} alt="first" />
               </Link>
             </button>
 
             <button className="pb__left__ctrls__prev">
-              <Link href={previousPageLink} onClick={() => onPaginationOptionClickHandler("prev", currentPage - 1)}>
+              <Link href={previousPageLink} onClick={() => onPaginationOptionClickHandler('prev', currentPage - 1)}>
                 <Image height={8} width={8} src={currentPage === 1 ? '/icons/pagination/inactive/left-arrow.svg' : '/icons/pagination/active/left-arrow.svg'} alt="prev" />
               </Link>
             </button>
 
             <button className="pb__left__contrls__pagescon" onClick={onCoutClickHandler} ref={pagesPanelRef}>
               {isOpenPagesPanel && (
-                <div  className="pb__left__contrls__pagescon__pnl">
+                <div className="pb__left__contrls__pagescon__pnl">
                   {Array.from({ length: totalPages })?.map((_page, index: number) => (
-                    <Link onClick={() => onPaginationOptionClickHandler("", index + 1)} style={{fontWeight: `${(currentPage === (index + 1)) ? "600" : ""}`}} href={getPageUrl(index+1)} key={index}>{index + 1} </Link>
+                    <Link
+                      onClick={() => onPaginationOptionClickHandler('', index + 1)}
+                      style={{ minWidth: '35px', minHeight: '15px', fontWeight: `${currentPage === index + 1 ? '600' : ''}` }}
+                      href={getPageUrl(index + 1)}
+                      key={index}
+                    >
+                      {index + 1}{' '}
+                    </Link>
                   ))}
                 </div>
               )}
@@ -124,13 +132,13 @@ export function PaginationBox(props: IPaginationBox) {
             </button>
 
             <button className="pb__left__ctrls__next">
-              <Link href={nextPageLink} onClick={() => onPaginationOptionClickHandler("next", currentPage + 1)}>
+              <Link href={nextPageLink} onClick={() => onPaginationOptionClickHandler('next', currentPage + 1)}>
                 <Image height={8} width={8} src={currentPage === totalPages ? '/icons/pagination/inactive/right-arrow.svg' : '/icons/pagination/active/right-arrow.svg'} alt="next" />
               </Link>
             </button>
 
             <button className="pb__left__ctrls__last">
-              <Link  href={lastPageLink} onClick={() => onPaginationOptionClickHandler("last", totalPages)}>
+              <Link href={lastPageLink} onClick={() => onPaginationOptionClickHandler('last', totalPages)}>
                 <Image height={8} width={8} src={currentPage === totalPages ? '/icons/pagination/inactive/right-double-arrow.svg' : '/icons/pagination/active/right-double-arrow.svg'} alt="last" />
               </Link>
             </button>
@@ -238,19 +246,21 @@ export function PaginationBox(props: IPaginationBox) {
 
           .pb__left__contrls__pagescon__pnl {
             position: absolute;
+            cursor: default;
             bottom: 22px;
-            padding: 10px;
+            padding: 10px 0px;
             max-height: 200px;
+
             overflow: auto;
             display: flex;
+            gap: 10px;
             flex-direction: column;
-            gap: 14px;
             font-size: 10px;
             line-height: 16px;
             background-color: white;
             border: 1px solid #e2e8f0;
             border-radius: 4px;
-            width: 35px;
+            min-width: 35px;
             right: -1px;
           }
           ::-webkit-scrollbar {

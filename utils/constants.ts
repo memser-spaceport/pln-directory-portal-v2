@@ -20,7 +20,7 @@ export const NAV_OPTIONS = [
   {
     name: 'IRL Gatherings',
     url: '/irl',
-    selectedLogo: '/icons/nav-calendar.svg',
+    selectedLogo: '/icons/nav-calendar--selected.svg',
     unSelectedLogo: '/icons/nav-calendar.svg',
   },
 ];

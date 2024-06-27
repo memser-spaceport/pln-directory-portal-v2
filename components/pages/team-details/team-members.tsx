@@ -4,7 +4,7 @@ import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
 import { PAGE_ROUTES } from '@/utils/constants';
-import { Fragment, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import TeamDetailsMembersCard from './team-member-card';
 import AllMembers from './all-members';
 import Modal from '@/components/core/modal';
@@ -24,18 +24,20 @@ const TeamMembers = (props: ITeamMembers) => {
   const team = props?.team;
   const userInfo = props?.userInfo;
 
-  const [isMemberModal, setIsMemberModal] = useState(false);
   const analytics = useTeamAnalytics();
+  const allMembersRef = useRef<HTMLDialogElement>(null);
 
   const onClose = () => {
-    setIsMemberModal(!isMemberModal);
+    if(allMembersRef?.current) {
+      allMembersRef.current.close();
+    }
   };
 
   const onSeeAllClickHandler = () => {
-    if (!isMemberModal) {
-      analytics.onTeamDetailSeeAllMemberClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+    if(allMembersRef?.current) {
+      allMembersRef?.current?.showModal();
     }
-    setIsMemberModal(!isMemberModal);
+      analytics.onTeamDetailSeeAllMemberClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
   };
 
   const onMemberClickHandler = (member: IMember) => {
@@ -87,14 +89,12 @@ const TeamMembers = (props: ITeamMembers) => {
         </div>
         {!members?.length && <p className="team-members__empty">No members added yet</p>}
       </div>
-
-      {isMemberModal && (
+      
         <div className="all-member-container">
-          <Modal onClose={onClose}>
+          <Modal modalRef={allMembersRef} onClose={onClose}>
             <AllMembers onCardClick={onMemberClickHandler} members={members} teamId={teamId} />
           </Modal>
         </div>
-      )}
 
       <style jsx>
         {`

@@ -34,13 +34,13 @@ const TeamListView = (props: ITeamListView) => {
           <div className="team-list__details-container__tagscontainer team-list__details-container__tagscontainer">
             {tags?.map((tag: ITag, index: number) => (
               <Fragment key={`${tag} + ${index}`}>
-                {index < 3 && <div>{<Tooltip asChild trigger={<Tag value={tag?.title} variant="primary" tagsLength={tags?.length} />} content={tag?.title} />}</div>}
+                {index < 3 && <div>{<Tooltip asChild trigger={<div><Tag value={tag?.title} variant="primary" tagsLength={tags?.length} /> </div>} content={tag?.title} />}</div>}
               </Fragment>
             ))}
             {tags?.length > 3 && (
               <Tooltip
               asChild
-                trigger={<Tag variant="primary" value={"+" + (tags?.length - 3).toString()}></Tag>}
+                trigger={<div><Tag variant="primary" value={"+" + (tags?.length - 3).toString()}></Tag></div>}
                 content={
                   <div>
                     {tags?.slice(3, tags?.length).map((tag, index) => (

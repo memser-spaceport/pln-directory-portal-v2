@@ -4,10 +4,10 @@ function AddContribution(props:any) {
   return (
     <>
       <div className="ch">
-        {!disableAdd && <button onClick={onAddContribution} className="ch__btn">
+        {!disableAdd && <div onClick={onAddContribution} className="ch__btn">
           <img width="14" height="14" alt="Add Contribution button" src="/icons/expand-blue.svg" />
           <span>Add Contribution</span>
-        </button>}
+        </div>}
         <p className="ch__info">(Max 20 contributions)</p>
       </div>
       <style jsx>

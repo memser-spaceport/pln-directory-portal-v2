@@ -14,7 +14,8 @@ interface ContributionHeadProps {
 function ContributionHead(props: ContributionHeadProps) {
   const expandedId = props.expandedId;
   const contributionIndex = props.contributionIndex;
-  const onDeleteContribution = props.onDeleteContribution;[]
+  const onDeleteContribution = props.onDeleteContribution;
+  [];
   const currentProjectsCount = props.currentProjectsCount;
   const contribution = props.contribution;
   const onToggleExpansion = props.onToggleExpansion;
@@ -22,17 +23,23 @@ function ContributionHead(props: ContributionHeadProps) {
   const onProjectStatusChanged = props.onProjectStatusChanged;
   return (
     <>
-      <div className={`cb ${isError ? 'cb--error': ''}`}>
+      <div className={`cb ${isError ? 'cb--error' : ''}`}>
         <div className="cb__actions">
-          {contributionIndex === expandedId && <img className="cursor-pointer" onClick={() => onToggleExpansion(contributionIndex)} src="/icons/arrow-down-blue.svg" />}
-          {contributionIndex !== expandedId && <img className="cursor-pointer" onClick={() => onToggleExpansion(contributionIndex)} src="/icons/arrow-up-blue.svg" />}
-          <img onClick={() => onDeleteContribution(contributionIndex)} className="cursor-pointer" src="/icons/delete-icon.svg" />
+          {contributionIndex === expandedId && <img className="img-icon" onClick={() => onToggleExpansion(contributionIndex)} src="/icons/arrow-down-blue.svg" />}
+          {contributionIndex !== expandedId && <img className="img-icon" onClick={() => onToggleExpansion(contributionIndex)} src="/icons/arrow-up-blue.svg" />}
+          <img onClick={() => onDeleteContribution(contributionIndex)} className="img-icon" src="/icons/delete-icon.svg" />
         </div>
         {contribution?.projectName.trim() === '' && <h2 className="cb__name">{`Project ${contributionIndex + 1}`}</h2>}
         {contribution?.projectName.trim() !== '' && <h2 className="cb__name">{`${contribution?.projectName.trim()}`}</h2>}
         <div className="cb__projects">
           <div title={`${contribution.currentProject === false && currentProjectsCount === 5 ? 'Max 5 projects can be set as current' : 'On/Off'} `}>
-            <Toggle value={contribution.currentProject} disabled={contribution.currentProject === false && currentProjectsCount === 5} onChange={onProjectStatusChanged} name={`contributionInfo${contributionIndex}-currentProject`} id={`member-register-contribution-currentproject-${contributionIndex}`} />
+            <Toggle
+              value={contribution.currentProject}
+              disabled={contribution.currentProject === false && currentProjectsCount === 5}
+              onChange={onProjectStatusChanged}
+              name={`contributionInfo${contributionIndex}-currentProject`}
+              id={`member-register-contribution-currentproject-${contributionIndex}`}
+            />
             {/* <Switch
                   nonEditable={exp.currentProject === false && currentProjectsCount === 5}
                   initialValue={exp.currentProject}
@@ -56,6 +63,9 @@ function ContributionHead(props: ContributionHeadProps) {
           padding: 0 8px;
           margin: 4px 0;
         }
+          .img-icon {
+            cursor: pointer;
+          }
         .cb--error {
           border: 1px solid #ed6e68;
           background: #ef44441a;
@@ -83,6 +93,12 @@ function ContributionHead(props: ContributionHeadProps) {
           font-weight: 600;
           font-size: 11px;
           padding-left: 16px;
+          -webkit-box-orient: vertical;
+          display: -webkit-box;
+           -webkit-line-clamp: 2;
+           text-overflow: ellipsis;
+           overflow: hidden;
+           padding-right: 8px;
         }
           @media(min-width: 1024px) {
             .cb__name {

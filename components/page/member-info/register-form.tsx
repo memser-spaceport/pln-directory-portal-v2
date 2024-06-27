@@ -118,11 +118,9 @@ function RegisterForm(props: any) {
     }
     const formData = new FormData(formRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
-    
-    if (currentStep === 'basic') {
-      
-      const errors = [];
 
+    if (currentStep === 'basic') {
+      const errors = [];
       const result = basicInfoSchema.safeParse(formattedData);
       if (!result.success) {
         errors.push(...result.error.errors.map((v) => v.message));
@@ -358,7 +356,7 @@ function RegisterForm(props: any) {
     <>
       <RegsiterFormLoader />
       {currentStep !== 'success' && (
-        <form className="rf" onSubmit={onFormSubmit} ref={formRef}>
+        <form className="rf" onSubmit={onFormSubmit} ref={formRef} noValidate>
           <div ref={formContainerRef} className="rf__form">
             <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
               <MemberBasicInfo initialValues={initialValues.basicInfo} errors={basicErrors} />

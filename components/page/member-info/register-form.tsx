@@ -6,6 +6,7 @@ import MemberSkillsInfo from '@/components/page/member-info/member-skills-info';
 import MemberSocialInfo from '@/components/page/member-info/member-social-info';
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
+import { validateLocation } from '@/services/location.service';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
@@ -132,6 +133,21 @@ function RegisterForm(props: any) {
       if (!emailVerification.isValid) {
         errors.push('Email already exists');
       }
+
+      const locationInfo = {
+          ...(formattedData.city && { city: formattedData.city }),
+          ...(formattedData.country && { country: formattedData.country }),
+          ...(formattedData.region && { region: formattedData.region })
+        };
+      
+     if(Object.keys(locationInfo).length > 0) {
+      const locationVerification = await validateLocation(locationInfo)
+      if(!locationVerification.isValid) {
+        errors.push('location info provided is invalid');
+      }
+     }
+
+
       const imageFile = formattedData?.memberProfile;
 
       if (imageFile.name) {

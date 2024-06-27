@@ -30,21 +30,12 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
 
 
   const drawerRef = useRef(null);
-  // const [isOpen, setIsOpen] = useState(false);
 
   useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
 
-  // useEffect(() => {
-  //   document.addEventListener(EVENTS.TRIGGER_MOBILE_NAV, (e: any) => setIsOpen(e.detail));
-  //   document.removeEventListener(EVENTS.TRIGGER_MOBILE_NAV, () => {});
-  // }, []);
-
-  // const onCloseClickHandler = () => {
-  //   onNavDrawerIconClickHandler();
-  // };
-
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
+      onNavMenuClick();
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
   };

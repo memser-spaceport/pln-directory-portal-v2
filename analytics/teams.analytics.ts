@@ -43,7 +43,7 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_CLEAR_ALL_FILTERS_APPLIED, params)
       }
 
-      function onFocusAreaFilterClicked(params: any) {
+      function onFocusAreaFilterClicked(params: {page: string, name: string, value: string, user: IAnalyticsUserInfo | null, nameAndValue: string}) {
         captureEvent(TEAMS_ANALYTICS_EVENTS.FILTERS_APPLIED, params)
       }
 
@@ -181,13 +181,13 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_MEMBER_CLICKED, params);
       }
 
-      function onTeamFocusAreaHelpClicked(params: any) {
+      function onTeamFocusAreaHelpClicked(params: {page: string, user: IAnalyticsUserInfo | null}) {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_FOCUS_AREA_HELP_CLICKED, params);
       }
 
-      function onTeamDetailProjectEditClicked(params: any) {
-        captureEvent(TEAMS_ANALYTICS_EVENTS.PROJECT_EDIT_CLICKED, params);
-      }
+      // function onTeamDetailProjectEditClicked(params: any) {
+      //   captureEvent(TEAMS_ANALYTICS_EVENTS.PROJECT_EDIT_CLICKED, params);
+      // }
 
 
       return {
@@ -214,7 +214,7 @@ export const useTeamAnalytics = () => {
         onTeamDetailMemberClicked,
         onFocusAreaFilterClicked,
         onTeamFocusAreaHelpClicked,
-        onTeamDetailProjectEditClicked
+        // onTeamDetailProjectEditClicked
       }
 
 }

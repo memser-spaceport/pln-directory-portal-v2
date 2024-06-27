@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import JoinNetwork from './join-network';
 import MobileNavDrawer from './mobile-nav-drawer';
 import UserProfile from './userProfile';
-import { useRef, useState } from 'react';
+import { SyntheticEvent, useRef, useState } from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import LoginBtn from './login-btn';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
@@ -36,7 +36,7 @@ export default function Navbar(props: Readonly<INavbar>) {
     }
   };
 
-  const onHelpClickHandler = (e: any) => {
+  const onHelpClickHandler = (e: SyntheticEvent) => {
     e.preventDefault();
     setIsHelperMenuOpen((prev) => !prev);
     analytics.onNavItemClicked('get-help', getAnalyticsUserInfo(userInfo));

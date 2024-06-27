@@ -154,7 +154,7 @@ const Filter = (props: ITeamFilterWeb) => {
 
           <FocusAreaFilter
             title="Focus Area"
-            uniqueKey={FOCUS_AREAS_FILTER_KEYS.teams}
+            uniqueKey={FOCUS_AREAS_FILTER_KEYS.teams as "teamAncestorFocusAreas" | "projectAncestorFocusAreas"}
             focusAreaRawData={filterValues?.focusAreas?.rawData}
             selectedItems={filterValues?.focusAreas?.selectedFocusAreas}
             searchParams={searchParams}

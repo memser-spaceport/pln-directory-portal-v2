@@ -27,6 +27,6 @@ export const clearAllAuthCookies = () => {
         roles: userInfo?.roles,
       };
     } else {
-      return {};
+      return null;
     }
   };

@@ -7,7 +7,7 @@ import { ITeam } from "@/types/teams.types";
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from "@/utils/common.utils";
 import { TECHNOLOGIES } from "@/utils/constants";
 import Image from "next/image";
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 
 interface ITechnologies {
   technologies: { name: string; url: string | undefined }[];
@@ -21,14 +21,19 @@ const Technologies = (props: ITechnologies) => {
   const technologies = props?.technologies ?? [];
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
   const analytics = useTeamAnalytics();
+  const allTechnologiesRef = useRef<HTMLDialogElement>(null);
 
   const onTechnologiesCountClickHandler = () => {
     analytics.onTeamDetailShowMoreTechnologiesClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
-    setIsTechnologyPopup(!isTechnologyPopup);
+    if(allTechnologiesRef?.current) {
+    allTechnologiesRef.current.showModal();
+    }
   };
 
   const onClose = () => {
-    setIsTechnologyPopup(false);
+    if (allTechnologiesRef.current) {
+      allTechnologiesRef.current.close();
+    }
   };
   return (
     <>
@@ -55,8 +60,7 @@ const Technologies = (props: ITechnologies) => {
           </div>
         </div>
       )}
-      {isTechnologyPopup && (
-        <Modal onClose={onClose}>
+        <Modal onClose={onClose} modalRef={allTechnologiesRef}>
           <div className="technologies-popup">
             <h2 className="technologies-popup__title">Technologies</h2>
             {technologies?.map((Technology, index: number) => (
@@ -69,7 +73,6 @@ const Technologies = (props: ITechnologies) => {
             ))}
           </div>
         </Modal>
-      )}
       <style jsx>
         {`
           .technology-container {

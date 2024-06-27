@@ -1,37 +1,32 @@
-import { ReactNode } from "react";
+import Image from 'next/image';
+import { ReactNode } from 'react';
 
 interface IModal {
-  onClose : () => void;
+  onClose: () => void;
   children: ReactNode;
+  modalRef: any;
 }
 const Modal = (props: IModal) => {
   const onClose = props?.onClose ?? props?.onClose;
   const children = props?.children;
+  const ref = props?.modalRef;
 
   return (
     <>
-      <div className="modal">
+      <dialog onClose={onClose} ref={ref} className="modal">
         <div className="modal__cn">
           <button className="modal__cn__closebtn" onClick={onClose}>
-            <img loading="lazy" src="/icons/close.svg"/>
+            <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
           </button>
           {children}
         </div>
-      </div>
+      </dialog>
       <style jsx>
         {`
           .modal {
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: 0;
-            z-index: 5;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100vw;
-            background-color: rgba(0, 0, 0, 0.6);
+            border: none;
+            margin: auto;
+            border-radius: 12px;
           }
 
           .modal__cn {
@@ -51,10 +46,10 @@ const Modal = (props: IModal) => {
       </style>
       <style global jsx>
         {`
-        html {
-          height: 80vh;
-          overflow: hidden;
-        }
+          html {
+            height: 80vh;
+            overflow: hidden;
+          }
         `}
       </style>
     </>

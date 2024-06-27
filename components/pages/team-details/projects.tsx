@@ -3,7 +3,7 @@
 import { IUserInfo } from '@/types/shared.types';
 import { IFormatedTeamProject, ITeam } from '@/types/teams.types';
 import { PAGE_ROUTES } from '@/utils/constants';
-import { Fragment, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import TeamProjectCard from './team-project-card';
 import AllProjects from './all-projects';
 import Modal from '@/components/core/modal';
@@ -22,21 +22,27 @@ const Projects = (props: IProjects) => {
   const projects = props?.projects ?? [];
   const hasProjectsEditAccess = props?.hasProjectsEditAccess;
 
-  const [isSeeAll, setIsSeAll] = useState(false);
+  const allProjectsRef = useRef<HTMLDialogElement>(null);
 
-    const analytics = useTeamAnalytics();
+  const analytics = useTeamAnalytics();
 
   const onSeeAllClickHandler = () => {
-    if (!isSeeAll) {
-      analytics.onTeamDetailSeeAllProjectsClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+    analytics.onTeamDetailSeeAllProjectsClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+    if (allProjectsRef?.current) {
+      allProjectsRef?.current?.showModal();
     }
-    setIsSeAll(!isSeeAll);
+  };
+
+  const onClosePopupClicked = () => {
+    if (allProjectsRef?.current) {
+      allProjectsRef?.current?.close();
+    }
   };
 
   const onProjectCardClicked = (project: any) => {
     triggerLoader(true);
     analytics.onTeamDetailProjectClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
-  } 
+  };
 
   return (
     <>
@@ -101,11 +107,9 @@ const Projects = (props: IProjects) => {
           </div>
         )}
 
-        {isSeeAll && (
-          <Modal onClose={onSeeAllClickHandler}>
-            <AllProjects onCardClicked={onProjectCardClicked} hasProjectsEditAccess={hasProjectsEditAccess} projects={projects} />
-          </Modal>
-        )}
+        <Modal modalRef={allProjectsRef} onClose={onClosePopupClicked}>
+          <AllProjects onCardClicked={onProjectCardClicked} hasProjectsEditAccess={hasProjectsEditAccess} projects={projects} />
+        </Modal>
       </div>
 
       <style jsx>
@@ -187,7 +191,7 @@ const Projects = (props: IProjects) => {
             background: #fff;
             line-height: 24px;
           }
-            
+
           .projects-container__projects-mob {
             background-color: #fff;
             display: unset;

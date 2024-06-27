@@ -27,7 +27,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
 
   const onDrodownClick = () => {
     const mode = isDropdown ? 'close' : 'open';
-    setIsDropdown(prev => !prev);
+    setIsDropdown((prev) => !prev);
   };
 
   const onLogoutHandler = () => {
@@ -44,42 +44,24 @@ export default function UserProfile(props: Readonly<IProfile>) {
 
   return (
     <div className="profile">
-      <div className="profile__profileimgsection" >
-        <img
-          loading="lazy"
-          src={userInfo?.profileImageUrl || '/icons/default_profile.svg'}
-          alt="profile"
-          height={40}
-          width={40}
-          className="profile__profileimagesection__img"
-        />
-        <button ref={profileMenuRef}  className="profile__profileimgsection__dropdownbtn" onClick={onDrodownClick}>
+      <div className="profile__profileimgsection">
+        <img loading="lazy" src={userInfo?.profileImageUrl || '/icons/default_profile.svg'} alt="profile" height={40} width={40} className="profile__profileimagesection__img" />
+        <button ref={profileMenuRef} className="profile__profileimgsection__dropdownbtn" onClick={onDrodownClick}>
           <Image height={20} width={20} loading="lazy" src="/icons/dropdown.svg" alt="dropdown" />
         </button>
         {isDropdown && (
           <div className="profile__profileimagesection__ddown">
-            <button
-              className="profile__profileimagesection__ddown__settings"
-              onClick={() => onAccountOptionsClickHandler('settings')}
-            >
+            <button className="profile__profileimagesection__ddown__settings" onClick={() => onAccountOptionsClickHandler('settings')}>
               <Image height={16} width={16} loading="lazy" alt="settings" src="/icons/settings.svg" />
               Account Settings
             </button>
             <div className="profile__profileimagesection__ddown__bl"> </div>
             <div className="profile__profieimagesection__ddown__louts">
-              <button
-                onClick={onLogoutHandler}
-                className="profile__profieimagesection__ddown__louts__loutbtn"
-                onClickCapture={() => onAccountOptionsClickHandler('logout')}
-              >
+              <button onClick={onLogoutHandler} className="profile__profieimagesection__ddown__louts__loutbtn" onClickCapture={() => onAccountOptionsClickHandler('logout')}>
                 <Image height={16} width={16} loading="lazy" alt="logout" src="/icons/logout.svg" />
                 Logout
               </button>
-              <Tooltip
-                asChild
-                trigger={<p className="profile__profieimagesection__ddown__louts__uname">{userInfo?.name}</p>}
-                content={userInfo?.name}
-              />
+              <Tooltip asChild trigger={<p className="profile__profieimagesection__ddown__louts__uname">{userInfo?.name}</p>} content={userInfo?.name} />
             </div>
           </div>
         )}
@@ -175,10 +157,14 @@ export default function UserProfile(props: Readonly<IProfile>) {
             line-height: 20px;
           }
 
+          .profile__profieimagesection__ddown__louts {
+            width: 100%;
+          }
           .profile__profieimagesection__ddown__louts__loutbtn {
             border: none;
             background: #fff;
             display: flex;
+            width: 100%;
             align-items: center;
             gap: 4px;
             align-self: stretch;

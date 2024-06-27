@@ -145,10 +145,10 @@ function MemberSkillsInfo(props:any) {
             ))}
             {teamOptions.length !== teamsinfo.length && (
               <div className="msf__tr__add">
-                <button className="msf__tr__add__btn" type="button" onClick={onAddTeam}>
+                <div className="msf__tr__add__btn" onClick={onAddTeam}>
                   <Image src="/icons/add.svg" width="16" height="16" alt="Add New" />
                   <span>Add team and role</span>
-                </button>
+                </div>
               </div>
             )}
           </div>

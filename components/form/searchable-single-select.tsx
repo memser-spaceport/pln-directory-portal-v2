@@ -75,10 +75,6 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
     setShowOptions(true);
   };
 
-  const onInputBlur = (e: PointerEventHandler<HTMLDivElement>) => {
-    setShowOptions(false);
-  };
-
   useEffect(() => {
     setFilteredOptions(options);
   }, [options]);
@@ -168,6 +164,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             height: 26px;
             position: absolute;
             left: 8px;
+            background: lightgrey;
             top: calc(50% - 13px);
           }
           .select__arrowimg {
@@ -226,6 +223,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             border-radius: 8px;
             object-fit: cover;
             object-position: top;
+             background: lightgrey;
           }
           .select__options__noresults {
             cursor: pointer;

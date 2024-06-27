@@ -30,6 +30,7 @@ const AuthInfo = () => {
         localStorage.setItem('stateUid', result);
         document.dispatchEvent(new CustomEvent('privy-init-login'));
         router.push(`${window.location.pathname}${window.location.search}`);
+        router.refresh();
       }
     } catch (err) {
       console.log('Login Failed', err);
@@ -49,6 +50,7 @@ const AuthInfo = () => {
       }
     });
     router.push(`${window.location.pathname}${queryParams === '?' ? '' : queryParams}`);
+    router.refresh();
   } catch (e) {
     console.error(e);
   }

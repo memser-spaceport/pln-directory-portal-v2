@@ -4,7 +4,6 @@ import { PrivyProvider } from '@privy-io/react-auth';
 import AuthInfo from './auth-info';
 import useHash from '@/hooks/useHash';
 import PrivyModals from './privy-modals';
-import { AuthErrorModal } from './auth-error-modal';
 import AuthInvalidUser from './auth-invalid-user';
 import { useEffect } from 'react';
 import Cookies from 'js-cookie';
@@ -36,7 +35,6 @@ function AuthBox() {
       }}
     >
       <PrivyModals />
-      <AuthErrorModal />
       <AuthInvalidUser />
       {isLoginPopup && <AuthInfo />}
     </PrivyProvider>

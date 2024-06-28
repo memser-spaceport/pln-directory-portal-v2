@@ -27,8 +27,6 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   const settingsUrl = '/settings';
 
   const analytics = useCommonAnalytics();
-
-
   const drawerRef = useRef(null);
 
   useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });

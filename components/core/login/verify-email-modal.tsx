@@ -1,16 +1,21 @@
+import { RefObject, useEffect, } from 'react';
+
 interface IVerifyEmailModalProps {
   handleModalClose: () => void;
   content: { title: string; errorMessage: string; description: string };
+  dialogRef: RefObject<HTMLDialogElement>;
 }
 
-export function VerifyEmailModal({ content, handleModalClose }: IVerifyEmailModalProps) {
+export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVerifyEmailModalProps) {
   const description = content?.description ?? '';
   const title = content?.title ?? '';
   const errorMessage = content?.errorMessage ?? '';
 
+ 
+
   return (
     <>
-      <div className="verifyEmail">
+      <dialog onClose={handleModalClose} ref={dialogRef} className="verifyEmail">
         <div className="verifyEmail__cn">
           <div className="verifyEmail__cn__box">
             <div className="verifyEmail__cn__box__info">
@@ -33,30 +38,24 @@ export function VerifyEmailModal({ content, handleModalClose }: IVerifyEmailModa
             </div>
           </div>
         </div>
-      </div>
+      </dialog>
       <style jsx>
         {`
           .verifyEmail {
-            position: fixed;
-            top: 0;
-            z-index: 2000;
-            right: 0;
-            left: 0;
-            width: 100svw;
-            height: 100svh;
-            background: rgb(0, 0, 0, 0.4);
+            background: white;
+            border-radius: 8px;
+            border: none;
+            width: 656px;
+            margin: auto;
+            outline: none;
           }
           .verifyEmail__cn {
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
             position: relative;
-            align-items: center;
-            justify-content: center;
           }
           .verifyEmail__cn__box {
-            width: 90svw;
+            // width: 90svw;
             background: white;
             border-radius: 8px;
             display: flex;
@@ -71,6 +70,7 @@ export function VerifyEmailModal({ content, handleModalClose }: IVerifyEmailModa
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            width: 100%;
           }
           .verifyEmail__cn__box__info__hdr {
             position: relative;
@@ -111,7 +111,7 @@ export function VerifyEmailModal({ content, handleModalClose }: IVerifyEmailModa
             padding: 8px 12px;
             border-radius: 4px;
             margin-top: 20px;
-            width:100%;
+            width: 100%;
           }
 
           .verifyEmail__cn__box__info__errmsg__text {

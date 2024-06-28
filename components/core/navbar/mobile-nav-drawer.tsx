@@ -24,7 +24,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   const isLoggedIn = props.isLoggedIn;
   const onNavMenuClick = props?.onNavMenuClick;
   const pathName = usePathname();
-  const settingsUrl = '';
+  const settingsUrl = '/settings';
 
   const analytics = useCommonAnalytics();
 
@@ -41,10 +41,12 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   };
 
   const onHelpItemClickHandler = (name: string) => {
+    onNavMenuClick();
     analytics.onNavGetHelpItemClicked(name, getAnalyticsUserInfo(userInfo));
   };
 
   const onAccountOptionClickHandler = (name: string) => {
+    onNavMenuClick();
     analytics.onNavAccountItemClicked(name, getAnalyticsUserInfo(userInfo));
   };
 
@@ -107,7 +109,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
                 {HELPER_MENU_OPTIONS.map((helperMenu, index) => (
                   <Link
                     onClick={() => onHelpItemClickHandler(helperMenu.name)}
-                    target="_blank"
+                    target={helperMenu.type}
                     href={helperMenu.url ?? ''}
                     key={`${helperMenu} + ${index}`}
                   >
@@ -290,7 +292,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             display: flex;
             padding: 10px 12px;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
           }
 
           .md__container__bdy__footer {

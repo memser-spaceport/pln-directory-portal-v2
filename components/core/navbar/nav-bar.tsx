@@ -26,7 +26,7 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   const helpMenuRef = useRef<HTMLDivElement>(null);
   const [isHelperMenuOpen, setIsHelperMenuOpen] = useState(false);
-  const [isMobileDrawerOpen, setIsMobilDrawerOpen] = useState(false); 
+  const [isMobileDrawerOpen, setIsMobilDrawerOpen] = useState(false);
 
   useClickedOutside({ callback: () => setIsHelperMenuOpen(false), ref: helpMenuRef });
 
@@ -50,14 +50,14 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   const onNavDrawerIconClickHandler = () => {
     // document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_MOBILE_NAV, { detail: true }));
-    setIsMobilDrawerOpen(prev => !prev);
+    setIsMobilDrawerOpen((prev) => !prev);
     analytics.onNavDrawerBtnClicked(isMobileDrawerOpen);
   };
 
   return (
     <>
       <div className="nb">
-        {isMobileDrawerOpen && <MobileNavDrawer userInfo={userInfo} isLoggedIn={isLoggedIn} onNavMenuClick={onNavDrawerIconClickHandler}/>}
+        {isMobileDrawerOpen && <MobileNavDrawer userInfo={userInfo} isLoggedIn={isLoggedIn} onNavMenuClick={onNavDrawerIconClickHandler} />}
         <div className="nb__left">
           <Link href="/">
             <Image src="/icons/app-logo.svg" height={35} width={157} alt="app-logo" />
@@ -98,10 +98,12 @@ export default function Navbar(props: Readonly<INavbar>) {
               </div>
             )}
           </div>
-          <button className="nb__right__drawerandprofile__drawerbtn" onClick={onNavDrawerIconClickHandler}>
-            <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
-          </button>
-          {isLoggedIn && <UserProfile userInfo={userInfo} />}
+          <div className="nb__right__drawerandprofilesec" onClick={onNavDrawerIconClickHandler}>
+            <button className="nb__right__drawerandprofile__drawerbtn">
+              <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
+            </button>
+            {isLoggedIn && <UserProfile userInfo={userInfo} />}
+          </div>
           {!isLoggedIn && (
             <div className="nb__right__lgandjoin">
               <JoinNetwork />
@@ -194,13 +196,19 @@ export default function Navbar(props: Readonly<INavbar>) {
             position: absolute;
             right: 0;
             margin-top: 10px;
-            padding: 16px;
+            padding: 8px;
             background-color: white;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            box-shadow: 0px 2px 6px 0px #0F172A29;
+            gap: 4px;
+            box-shadow: 0px 2px 6px 0px #0f172a29;
             border-radius: 8px;
+          }
+
+          .nb__right__helpc__opts__optn:hover {
+            background-color: #f1f5f9;
+            border-radius: 4px;
+            transition: all 0.2s ease;
           }
 
           .nb__right__helpc__opts__optn__name {
@@ -232,12 +240,23 @@ export default function Navbar(props: Readonly<INavbar>) {
             display: flex;
             gap: 4px;
             align-items: center;
+            padding: 8px;
           }
 
           .nb__right__drawerandprofile {
             display: flex;
             gap: 16px;
             align-items: center;
+          }
+
+          .nb__right__drawerandprofilesec {
+            display: flex;
+            cursor: pointer;
+            align-items: center;
+            border: ${isLoggedIn ? '1px solid #E2E8F0' : 'none'};
+            gap: 4px;
+            border-radius: 4px;
+            padding: ${isLoggedIn ? '8px' : '0'};
           }
 
           @media (min-width: 1024px) {
@@ -272,6 +291,10 @@ export default function Navbar(props: Readonly<INavbar>) {
               display: flex;
               gap: 16px;
               align-items: center;
+            }
+
+            .nb__right__drawerandprofilesec {
+              border: none;
             }
           }
         `}

@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { VerifyEmailModal } from './verify-email-modal';
 import { triggerLoader } from '@/utils/common.utils';
+import { useRouter } from 'next/navigation';
 
 function AuthInvalidUser() {
-  const [isOpen, setIsModalOpen] = useState(false);
+
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const router = useRouter();
 
   const [content, setContent] = useState({
     title: 'Email Verification',
@@ -13,16 +16,28 @@ function AuthInvalidUser() {
 
   const handleModalClose = () => {
     triggerLoader(false);
-    setIsModalOpen(false);
-    // setTimeout(() => {
-    //   setTitle('Email Verification Failed');
-    //   setDescription('');
-    // }, 500);
+    if (dialogRef.current) {
+      dialogRef.current.close();
+    }
+    setTimeout(() => {
+      setContent({
+        title: 'Email Verification',
+        errorMessage: 'Email not available',
+        description: 'Your email is either invalid or not available in our directory. Please try again with valid email.',
+      });
+    }, 500);
+  };
+
+  const handleModalOpen = () => {
+    if (dialogRef.current) {
+      dialogRef.current.showModal();
+    }
   };
 
   useEffect(() => {
     function handleInvalidEmail(e: CustomEvent) {
       if (e?.detail) {
+        router.refresh();
         if (e.detail === 'linked_to_another_user') {
           setContent({
             title: 'Email Verification',
@@ -36,8 +51,7 @@ function AuthInvalidUser() {
           setContent({ title: 'Email Changed recently', errorMessage: 'Your email in our directory has been changed recently. Please login with your updated email id.', description: '' });
         }
       }
-
-      setIsModalOpen(true);
+      handleModalOpen();
     }
     document.addEventListener('auth-invalid-email', handleInvalidEmail as EventListener);
     return function () {
@@ -45,7 +59,7 @@ function AuthInvalidUser() {
     };
   }, []);
 
-  return <>{isOpen && <VerifyEmailModal content={content} handleModalClose={handleModalClose} />}</>;
+  return <VerifyEmailModal dialogRef={dialogRef} content={content} handleModalClose={handleModalClose} />;
 }
 
 export default AuthInvalidUser;

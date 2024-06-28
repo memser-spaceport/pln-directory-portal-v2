@@ -47,9 +47,10 @@ function AuthInvalidUser() {
           });
         } else if (e.detail === 'unexpected_error') {
           setContent({ title: 'Something went wrong', errorMessage: 'We are unable to authenticate you at the moment due to technical issues. Please try again later', description: '' });
-        } else if (e.detail === 'email-changed') {
-          setContent({ title: 'Email Changed recently', errorMessage: 'Your email in our directory has been changed recently. Please login with your updated email id.', description: '' });
         }
+        // } else if (e.detail === 'email-changed') {
+        //   setContent({ title: 'Email Changed recently', errorMessage: 'Your email in our directory has been changed recently. Please login with your updated email id.', description: '' });
+        // }
       }
       handleModalOpen();
     }

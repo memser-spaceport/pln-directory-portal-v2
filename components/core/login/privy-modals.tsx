@@ -8,7 +8,6 @@ import { TOAST_MESSAGES } from '@/utils/constants';
 import { User } from '@privy-io/react-auth';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createLogoutChannel } from './broadcast-channel';
-// import "react-toastify/dist/ReactToastify.css";
 import { deletePrivyUser } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
 
@@ -54,7 +53,6 @@ function PrivyModals() {
       router.push('/settings');
     }
     setLinkAccountKey('');
-    // document.dispatchEvent(new CustomEvent('app-loader-status', { detail: false }));
     triggerLoader(false);
     toast.success(TOAST_MESSAGES.LOGIN_MSG);
     router.refresh();
@@ -91,13 +89,6 @@ function PrivyModals() {
   const deleteUser = async (errorCode: string) => {
     analytics.onPrivyUserDelete({ ...user, type: 'init' });
     const token = (await getAccessToken()) as string;
-    // await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/accounts/external/${user?.id}`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({ token: token }),
-    // });
     await deletePrivyUser(token, user?.id as string);
     analytics.onPrivyUserDelete({ type: 'success' });
     setLinkAccountKey('');
@@ -127,7 +118,6 @@ function PrivyModals() {
 
   const initDirectoryLogin = async () => {
     try {
-      // document.dispatchEvent(new CustomEvent('app-loader-status', { detail: true }));
       triggerLoader(true);
       const privyToken = await getAccessToken();
       const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/token`, {
@@ -145,7 +135,7 @@ function PrivyModals() {
       if (response.ok) {
         const result = await response.json();
         if (result?.isEmailChanged) {
-          document.dispatchEvent(new CustomEvent('auth-info-modal', { detail: 'email_changed' }));
+          // document.dispatchEvent(new CustomEvent('auth-info-modal', { detail: 'email_changed' }));
         } else if (result?.isDeleteAccount && user) {
           if (user?.linkedAccounts?.length > 1) {
             await unlinkEmail(user?.email?.address as string);
@@ -165,15 +155,10 @@ function PrivyModals() {
         await handleInvalidDirectoryEmail();
       }
     } catch (error) {
-      // document.dispatchEvent(new CustomEvent('app-loader-status', { detail: false }));
       triggerLoader(false);
-      // if (user?.email?.address && error?.response?.status === 403) {
-      //   await handleInvalidDirectoryEmail();
-      // } else {
       document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'unexpected_error' }));
       setLinkAccountKey('');
       await logout();
-      // }
     }
   };
 
@@ -205,10 +190,9 @@ function PrivyModals() {
         if (!userInfo && !accessToken && !refreshToken) {
           // Initiate Directory Login to validate email and login user
           const stateUid = localStorage.getItem('stateUid');
-          // analytics.onDirectoryLoginInit({ ...e?.detail?.user, stateUid, linkedAccount });
+          analytics.onDirectoryLoginInit({ ...e?.detail?.user, stateUid, linkedAccount });
           await initDirectoryLogin();
         } else {
-          // document.dispatchEvent(new CustomEvent('app-loader-status', { detail: true }));
           triggerLoader(true);
           document.dispatchEvent(new CustomEvent('directory-update-email', { detail: { newEmail: linkedAccount.address } }));
         }

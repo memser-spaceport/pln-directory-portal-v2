@@ -41,6 +41,7 @@ const Modal = (props: IModal) => {
             right: 24px;
             user-select: none;
             background: #fff;
+            outline: none;
           }
         `}
       </style>

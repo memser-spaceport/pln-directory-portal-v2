@@ -20,7 +20,6 @@ export function BreadCrumb(props: IBreadcrumb) {
           <img loading="lazy" src="/icons/home.svg" className="breadcrumb__home" />
         </a>
         <span className="breadcrumb__item__separator">/</span>
-
         {breadcrumbItems.map((item, itemIndex: number) => (
           <div key={item.label} className={`breadcrumb__item ${itemIndex === breadcrumbItems.length - 1 ? 'breadcrumb__item--last' : ''}`}>
             {item.href && (
@@ -38,8 +37,9 @@ export function BreadCrumb(props: IBreadcrumb) {
           display: flex;
           font-size: 14px;
           width: full;
+          height: 100%;
           align-items: center;
-          padding: 0 64px;
+          padding: 0 20px;
           gap: 16px;
           background-color: rgb(255 255 255/0.95);
         }
@@ -87,6 +87,12 @@ export function BreadCrumb(props: IBreadcrumb) {
         .breadcrumb__item_separator {
           margin: 14px 0px;
           color: #475569;
+        }
+
+        @media (min-width: 1024px) {
+          .breadcrumb {
+            padding: 0 64px;
+          }
         }
       `}</style>
     </>

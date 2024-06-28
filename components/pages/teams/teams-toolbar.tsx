@@ -143,7 +143,7 @@ const TeamsToolbar = (props: IToolbar) => {
           <div className="toolbar__right__web" ref={sortByRef} >
             <p className="toolbar__right__web__sort-by-text">Sort by:</p>
             <button className="toolbar__right__web__sort-by" onClick={() => onSortClickHandler("web")}>
-              <Image loading="lazy" alt="sort" src={sortBy === SORT_OPTIONS.ASCENDING ? "/icons/ascending-gray.svg" : "/icons/descending-gray.svg"} height={20} width={20} />
+              <Image loading="lazy" className="toolbar__right__web__sort-by__icon" alt="sort" src={sortBy === SORT_OPTIONS.ASCENDING ? "/icons/ascending-gray.svg" : "/icons/descending-gray.svg"} height={20} width={20} />
               <p className="toolbar__right__web__sord-by__name">{sortBy === SORT_OPTIONS.ASCENDING ? "Ascending" : "Descending"}</p>
               <Image loading="lazy" alt="dropdown" src="/icons/dropdown-gray.svg" height={20} width={20}/>
             </button>
@@ -179,6 +179,9 @@ const TeamsToolbar = (props: IToolbar) => {
           .toolbar__right__web__sort-by-text {
             color: #000;
           }
+
+          .toolbar__right__web__sort-by__icon {
+          margin-top: 4px;}
 
           .toolbar__left__filterbtn {
             padding: 8px 12px 8px 12px;

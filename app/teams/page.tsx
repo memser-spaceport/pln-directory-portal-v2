@@ -42,9 +42,19 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
             {teams?.length === 0 && <EmptyResult />}
           </div>
 
-          <div className={styles.team__right__pgn}>
-            <PaginationBox userInfo={userInfo} from={PAGE_ROUTES.TEAMS} searchParams={searchParams} showingItems={teams?.length} totalItems={totalTeams} currentPage={currentPage} totalPages={totalPages} />
-          </div>
+          {teams?.length !== 0 && (
+            <div className={styles.team__right__pgn}>
+              <PaginationBox
+                userInfo={userInfo}
+                from={PAGE_ROUTES.TEAMS}
+                searchParams={searchParams}
+                showingItems={teams?.length}
+                totalItems={totalTeams}
+                currentPage={currentPage}
+                totalPages={totalPages}
+              />
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -65,10 +75,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
 
     currentPage = searchParams?.page ? Number(searchParams?.page) : 1;
-    const [teamsResponse, teamFiltersResponse] = await Promise.all([
-      getAllTeams(authToken, listOptions, currentPage, ITEMS_PER_PAGE),
-      getTeamsFilters(optionsFromQuery, searchParams),
-    ]);
+    const [teamsResponse, teamFiltersResponse] = await Promise.all([getAllTeams(authToken, listOptions, currentPage, ITEMS_PER_PAGE), getTeamsFilters(optionsFromQuery, searchParams)]);
 
     if (teamsResponse?.error || teamFiltersResponse?.error) {
       isError = true;

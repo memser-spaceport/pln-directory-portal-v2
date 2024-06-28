@@ -1,26 +1,29 @@
 'use client';
 
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import Modal from '@/components/core/modal';
 import { IUserInfo } from '@/types/shared.types';
 import { IFormatedTeamProject, ITeam } from '@/types/teams.types';
-import { PAGE_ROUTES } from '@/utils/constants';
-import { Fragment, useRef, useState } from 'react';
-import TeamProjectCard from './team-project-card';
-import AllProjects from './all-projects';
-import Modal from '@/components/core/modal';
-import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { useRef } from 'react';
+import AllProjects from './all-projects';
+import TeamProjectCard from './team-project-card';
+import Image from 'next/image';
 
 interface IProjects {
   projects: IFormatedTeamProject[] | undefined;
   hasProjectsEditAccess: boolean;
   userInfo: IUserInfo | undefined;
   team: ITeam | undefined;
+  isLoggedIn: boolean;
 }
 const Projects = (props: IProjects) => {
   const userInfo = props?.userInfo;
   const team = props?.team;
   const projects = props?.projects ?? [];
   const hasProjectsEditAccess = props?.hasProjectsEditAccess;
+  const isLoggedIn = props?.isLoggedIn;
 
   const allProjectsRef = useRef<HTMLDialogElement>(null);
 
@@ -48,37 +51,25 @@ const Projects = (props: IProjects) => {
     <>
       <div className="projects-container">
         <div className="projects-container__header">
-          <h2 className="projects-container__header__title">Projects({projects?.length ? projects?.length : 0})</h2>
+          <h2 className="projects-container__header__title">Projects ({projects?.length ? projects?.length : 0})</h2>
           <div className="projects-container__header__edit-and-seeallcontainer">
-            {hasProjectsEditAccess && (
+            {isLoggedIn && (
               <div className="projects-container__header__eidt-access">
                 <button className="projects-container__header__eidt-access__edit-btn">
-                  <img loading="lazy" alt="edit" src="/icons/add-blue.svg" height={16} width={16} />
-                  <p>Add Project</p>
+                  <Image loading="lazy" alt="edit" src="/icons/add-blue.svg" height={16} width={16} />
+                  <p className='projects-container__header__eidt-access__edit-btn__cnt'>Add Project</p>
                 </button>
               </div>
             )}
             {projects?.length > 3 && (
               <button className="project-container__header__seeall-btn" onClick={onSeeAllClickHandler}>
-                See all
+                <p className='project-container__header__seeall-btn__cnt'> 
+                See All
+                </p>
               </button>
             )}
           </div>
         </div>
-        {/* Projects Mob*/}
-        {/* {projects?.length !== 0 && (
-          <div className="projects-container__projects-mob">
-            {projects?.map((project: IFormatedTeamProject, index: number) => (
-              <Fragment key={`${project} + ${index}`}>
-                {index < 3 && (
-                  <div className={`${index < projects?.length - 1 ? 'projects-container__projects__project__border-set' : ''}`}>
-                    <TeamProjectCard url={`${PAGE_ROUTES.PROJECTS}/${project?.id}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
-                  </div>
-                )}
-              </Fragment>
-            ))}
-          </div>
-        )} */}
 
         {/* Projects Web*/}
         {projects?.length !== 0 && (
@@ -93,7 +84,7 @@ const Projects = (props: IProjects) => {
 
         {projects?.length === 0 && (
           <div className="projects-container__empty__projects">
-            {hasProjectsEditAccess ? (
+            {isLoggedIn ? (
               <p className="projects-container__empty__project__member-message">
                 No projects added.&nbsp;
                 <a href={PAGE_ROUTES.PROJECTS} className="projects-container__empty__project__member-message__link">
@@ -114,6 +105,10 @@ const Projects = (props: IProjects) => {
 
       <style jsx>
         {`
+
+        button {
+        border: none;
+        outline: none;}
           .projects-container {
             padding: 16px;
             display: flex;
@@ -171,6 +166,7 @@ const Projects = (props: IProjects) => {
             display: flex;
             gap: 20px;
             align-items: center;
+            padding : 0 12px 0 0;
           }
 
           .projects-container__header__title {
@@ -202,6 +198,17 @@ const Projects = (props: IProjects) => {
             border: 1px solid #e2e8f0;
             box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
           }
+
+          .projects-container__header__eidt-access__edit-btn__cnt {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 24px;
+          }
+
+          .project-container__header__seeall-btn__cnt {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 24px;}
 
           .projects-container__projects__project__border-set {
             border-bottom: 1px solid #e2e8f0;

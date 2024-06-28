@@ -80,6 +80,8 @@ const Technologies = (props: ITechnologies) => {
             justify-content: space-between;
             height: 40px;
             align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0; 
           }
 
           .technology-container__title {

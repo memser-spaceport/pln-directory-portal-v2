@@ -153,6 +153,9 @@ const FocusAreaItem = (props: FocusArea) => {
             gap: 6px;
           }
 
+          .filteritemcon__expbtn {
+          pointer-events: ${!isChildrensAvailable ? 'none' : 'auto'}}
+
           .isParent {
             background-color: #156ff7;
           }

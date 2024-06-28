@@ -4,6 +4,8 @@ import { ITeamFilterSelectedItems, ITeamsSearchParams } from '@/types/teams.type
 import Filter from './filter';
 import { useEffect, useState } from 'react';
 import { EVENTS } from '@/utils/constants';
+import { triggerLoader } from '@/utils/common.utils';
+import { useRouter } from 'next/navigation';
 
 interface IFilterwrapper {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -17,6 +19,7 @@ export default function FilterWrapper(props: IFilterwrapper) {
   const userInfo = props?.userInfo;
 
   const [isMobileFilter, setIsMobileFilter] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     document.addEventListener(EVENTS.SHOW_FILTER, (e: any) => {
@@ -25,6 +28,11 @@ export default function FilterWrapper(props: IFilterwrapper) {
 
     document.removeEventListener(EVENTS.SHOW_FILTER, () => {});
   }, []);
+
+
+  useEffect(() => {
+    triggerLoader(false);
+  }, [router, searchParams]);
 
   return (
     <div className="fw">

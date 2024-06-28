@@ -1,10 +1,10 @@
 import { BreadCrumb } from '@/components/core/bread-crumb';
 import Error from '@/components/core/error';
-import ContactInfo from '@/components/pages/team-details/contact-info';
-import Funding from '@/components/pages/team-details/funding';
-import Projects from '@/components/pages/team-details/projects';
-import TeamDetails from '@/components/pages/team-details/team-details';
-import TeamMembers from '@/components/pages/team-details/team-members';
+import ContactInfo from '@/components/page/team-details/contact-info';
+import Funding from '@/components/page/team-details/funding';
+import Projects from '@/components/page/team-details/projects';
+import TeamDetails from '@/components/page/team-details/team-details';
+import TeamMembers from '@/components/page/team-details/team-members';
 import { getMembers } from '@/services/members.service';
 import { getAllTeams, getTeam, getTeamUIDByAirtableId, hasProjectEditAccess } from '@/services/teams.service';
 import { IMember } from '@/types/members.types';
@@ -177,8 +177,8 @@ type IGenerateMetadata = {
 };
 export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
   const teamId = params.id;
-  // const teamResonse = await getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' });
-  // if (teamResonse?.error) {
+  const teamResonse = await getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' });
+  if (teamResonse?.error) {
   return {
     title: 'Protocol Labs Directory',
     description:
@@ -199,16 +199,16 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
       images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
     },
   };
-  // }
-  // const team = teamResonse?.data?.formatedData;
-  // const previousImages = (await parent).openGraph?.images || [];
-  // const logo = team?.logo || "https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg";
-  // return {
-  //   title: team?.name,
-  //   openGraph: {
-  //     type: 'website',
-  //     url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`,
-  //     images: [logo, ...previousImages],
-  //   },
-  // };
+  }
+  const team = teamResonse?.data?.formatedData;
+  const previousImages = (await parent).openGraph?.images || [];
+  const logo = team?.logo || "https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg";
+  return {
+    title: team?.name,
+    openGraph: {
+      type: 'website',
+      url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`,
+      images: [logo, ...previousImages],
+    },
+  };
 }

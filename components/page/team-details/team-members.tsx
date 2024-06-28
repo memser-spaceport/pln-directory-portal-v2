@@ -3,7 +3,7 @@
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
-import { PAGE_ROUTES } from '@/utils/constants';
+import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import { Fragment, useRef, useState } from 'react';
 import TeamDetailsMembersCard from './team-member-card';
 import AllMembers from './all-members';
@@ -28,6 +28,7 @@ const TeamMembers = (props: ITeamMembers) => {
   const allMembersRef = useRef<HTMLDialogElement>(null);
 
   const onClose = () => {
+    document.dispatchEvent(new CustomEvent(EVENTS.TEAM_DETAIL_ALL_MEMBERS_CLOSE, { detail: '' }));
     if(allMembersRef?.current) {
       allMembersRef.current.close();
     }

@@ -5,7 +5,7 @@ import Modal from '@/components/core/modal';
 import { IUserInfo } from '@/types/shared.types';
 import { IFormatedTeamProject, ITeam } from '@/types/teams.types';
 import { getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { PAGE_ROUTES } from '@/utils/constants';
+import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import { useRef } from 'react';
 import AllProjects from './all-projects';
 import TeamProjectCard from './team-project-card';
@@ -37,6 +37,7 @@ const Projects = (props: IProjects) => {
   };
 
   const onClosePopupClicked = () => {
+    document.dispatchEvent(new CustomEvent(EVENTS.TEAM_DETAIL_ALL_PROJECTS_CLOSE, { detail: '' }));
     if (allProjectsRef?.current) {
       allProjectsRef?.current?.close();
     }

@@ -39,7 +39,7 @@ const Technologies = (props: ITechnologies) => {
     <>
       {technologies?.length !== 0 && (
         <div className="technology-container">
-          <h2 className="technology-container__title">Technology</h2>
+          <h2 className="technology-container__title">Technologies</h2>
           <div className="technology-container__technologies">
             {technologies?.map((technology, index: number) => (
               <Fragment key={`${technology} + ${index}`}>

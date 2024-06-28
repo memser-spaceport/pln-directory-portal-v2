@@ -32,6 +32,8 @@ export const EVENTS = {
   OPEN_TEAM_REGISTER_DIALOG: 'open-team-register-dialog',
   OPEN_MEMBER_REGISTER_DIALOG: 'open-member-register-dialog',
   SHOW_FILTER: 'SHOW_FILTER',
+  TEAM_DETAIL_ALL_PROJECTS_CLOSE: "team-detail-all-projects-close",
+  TEAM_DETAIL_ALL_MEMBERS_CLOSE: "team-detail-all-members-close"
 };
 
 export const HELPER_MENU_OPTIONS = [

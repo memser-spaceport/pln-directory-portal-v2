@@ -1,8 +1,8 @@
 
 import { IMember } from "@/types/members.types";
 import { ITeam } from "@/types/teams.types";
-import { PAGE_ROUTES } from "@/utils/constants";
-import { ChangeEvent, Fragment, useState } from "react";
+import { EVENTS, PAGE_ROUTES } from "@/utils/constants";
+import { ChangeEvent, Fragment, useEffect, useRef, useState } from "react";
 import TeamDetailsMembersCard from "./team-member-card";
 import Image from "next/image";
 
@@ -17,8 +17,11 @@ const AllMembers = (props: IAllMembers) => {
   const callback = props?.onCardClick;
   const [allMembers, setAllMembers] = useState(members);
 
+  const [searchValue, setSearchValue] = useState("");
+
   const onInputChangeHandler = (e:ChangeEvent<HTMLInputElement>) => {
     const name = e?.target?.value?.toLowerCase();
+    setSearchValue(name);
     if (name) {
       const filteredMembers = allMembers?.filter((member: IMember) => member?.name?.toLowerCase()?.includes(name));
       setAllMembers(filteredMembers);
@@ -26,13 +29,21 @@ const AllMembers = (props: IAllMembers) => {
       setAllMembers(members);
     }
   };
+
+  useEffect(() => {
+    document.addEventListener(EVENTS.TEAM_DETAIL_ALL_MEMBERS_CLOSE, ((e: any) => {
+      setAllMembers(members);
+      setSearchValue("");
+    }));
+    document.removeEventListener(EVENTS.TRIGGER_LOADER, () => {});
+  }, []);
   return (
     <>
       <div className="all-members">
         <h2 className="all-membes__title">Members ({members?.length})</h2>
         <div className="all-members__search-bar">
             <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20}/>
-          <input className="all-members__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
+          <input value={searchValue} className="all-members__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
         </div>
 
         <div className="all-membes__members">
@@ -46,7 +57,7 @@ const AllMembers = (props: IAllMembers) => {
               </Fragment>
             );
           })}
-          {allMembers.length === 0 && <div className="all-members__members__empty-result"><p>No member&apos;s found.</p></div>}
+          {allMembers.length === 0 && <div className="all-members__members__empty-result"><p>No member found.</p></div>}
         </div>
       </div>
 

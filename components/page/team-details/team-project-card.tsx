@@ -39,7 +39,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
           <div className="team-project-card__profilec__name-and-tagline">
             <div className="team-project-card__profilec__name-and-tagline__name-and-raising-funds">
               <Tooltip asChild trigger={<h2 className="team-project-card__profilec__name-and-tagline__name">{name}</h2>} content={name} />
-              {project?.isMaintainingProject && <Image src="/icons/badge/maintainer.svg" alt="maintainer image" width={20} height={20} className="rounded" />}
+              {project?.isMaintainingProject && <Tooltip side='top' asChild trigger={<div><Image src="/icons/badge/maintainer.svg" alt="maintainer image" width={20} height={20} className="rounded" /> </div>} content={"Maintainer"} />}
               {lookingForFunding && (
                 <div className="team-project-card__goto__btn-section__web">
                   <RaisingFunds />
@@ -70,7 +70,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
               </div>
             )}
             <button className="team-project-card__goto__btn">
-              <img loading="lazy" alt="go-to" src="/icons/right-arrow-gray.svg" width={16} height={14} />
+              <img loading="lazy" alt="go-to" src="/icons/right-arrow-gray.svg" width={16} height={16} />
             </button>
           </div>
         </div>
@@ -134,6 +134,9 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
             gap: 8px;
             align-items: center;
           }
+
+          .team-project-card__goto__btn {
+          background: inherit;}
 
           .team-project-card__goto__btn-section {
             display: flex;

@@ -4,6 +4,7 @@ import { ITag, ITeam } from "@/types/teams.types";
 import { IMember } from "@/types/members.types";
 import { Tag } from "@/components/ui/tag";
 import Link from "next/link";
+import Image from "next/image";
 
 interface ITeamMemberCard {
   team: ITeam | undefined;
@@ -30,8 +31,8 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
         <div className="team-members-card__profile-details">
           <div className="team-members-card__profile-details__profile">
             <div className="team-members-card__profile-details__profile-container">
-            {isTeamLead && <Tooltip asChild trigger={<img loading="lazy" className="team-members-card__profile-details__profile-container__lead" height={16} width={16} src="/icons/badge/team-lead.svg"/>} content={"Team Lead"}/>}
-            <img loading="lazy" className="team-members-card__profile-details__profile__image" alt="profile" src={logo} width={40} height={40} />
+            {isTeamLead && <Tooltip side="top" asChild trigger={<div><img alt="lead" loading="lazy" className="team-members-card__profile-details__profile-container__lead" height={16} width={16} src="/icons/badge/team-lead.svg"/></div>} content={"Team Lead"}/>}
+            <Image loading="lazy" className="team-members-card__profile-details__profile__image" alt="profile" src={logo} width={40} height={40} />
             </div>
             <div className="team-members-card__profile-details__profile__name-role">
               <Tooltip asChild trigger={<h2 className="team-members-card__profile-details__profile__name-role__name">{memberName}</h2>} content={memberName} />
@@ -73,7 +74,7 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
         </div>
         <div className="team-members-card__arrow">
           <button type="button" className="team-members-card__arrow__btn">
-            <img loading="lazy" alt="goto" src="/icons/right-arrow-gray.svg" />
+            <img loading="lazy" alt="goto" src="/icons/right-arrow-gray.svg" height={16} width={16} />
           </button>
         </div>
       </div>
@@ -96,7 +97,7 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
 
           .team-members-card__arrow__btn {
             border: none;
-            background-color: #fff;
+            background-color: inherit;
           }
 
           .team-members-card__profile-details {

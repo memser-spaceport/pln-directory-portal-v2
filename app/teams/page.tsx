@@ -9,9 +9,9 @@ import { Metadata } from 'next';
 import EmptyResult from '../../components/core/empty-result';
 import Error from '../../components/core/error';
 import { PaginationBox } from '../../components/core/pagination-box';
-import FilterWrapper from '../../components/pages/teams/filter-wrapper';
-import TeamsList from '../../components/pages/teams/team-list';
-import TeamsToolbar from '../../components/pages/teams/teams-toolbar';
+import FilterWrapper from '../../components/page/teams/filter-wrapper';
+import TeamsList from '../../components/page/teams/team-list';
+import TeamsToolbar from '../../components/page/teams/teams-toolbar';
 import styles from './page.module.css';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {

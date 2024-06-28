@@ -1,5 +1,5 @@
-import { ChangeEvent, Fragment, useState } from "react";
-import { PAGE_ROUTES } from "@/utils/constants";
+import { ChangeEvent, Fragment, useEffect, useState } from "react";
+import { EVENTS, PAGE_ROUTES } from "@/utils/constants";
 import { IFormatedTeamProject } from "@/types/teams.types";
 import TeamProjectCard from "./team-project-card";
 import Image from "next/image";
@@ -14,9 +14,11 @@ const AllProjects = (props: IAllProjects) => {
   const hasProjectsEditAccess = props?.hasProjectsEditAccess;
   const [allProjects, setAllProjects] = useState(projects);
   const callback = props?.onCardClicked;
+  const [searchValue, setSearchValue] = useState("");
 
   const onInputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const name = e?.target?.value?.toLowerCase();
+    setSearchValue(name);
     if (name) {
       const filteredProjects = allProjects?.filter((project: IFormatedTeamProject) => project?.name?.toLowerCase()?.includes(name));
       setAllProjects(filteredProjects);
@@ -24,13 +26,21 @@ const AllProjects = (props: IAllProjects) => {
       setAllProjects(projects);
     }
   };
+
+  useEffect(() => {
+    document.addEventListener(EVENTS.TEAM_DETAIL_ALL_PROJECTS_CLOSE, ((e: any) => {
+      setAllProjects(projects);
+      setSearchValue("");
+    }));
+    document.removeEventListener(EVENTS.TRIGGER_LOADER, () => {});
+  }, []);
   return (
     <>
       <div className="all-projects">
         <h2 className="all-projects__title">Projects ({projects?.length})</h2>
         <div className="all-projects__search-bar">
           <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
-          <input className="all-projects__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
+          <input value={searchValue} className="all-projects__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
         </div>
 
         <div className="all-projects__projects">
@@ -45,7 +55,7 @@ const AllProjects = (props: IAllProjects) => {
           })}
           {allProjects.length === 0 && (
             <div className="all-projects__projects__empty-result">
-              <p>No project&apos;s found.</p>
+              <p>No project found.</p>
             </div>
           )}
         </div>

@@ -62,6 +62,7 @@ const TeamsList = (props: ITeamList) => {
         .team-list__titlesec {
           display: flex;
           gap: 4px;
+          align-items: baseline;
           padding: 0px 38px 16px 38px;
         }
 
@@ -76,7 +77,6 @@ const TeamsList = (props: ITeamList) => {
           font-size: 14px;
           font-weight: 400;
           color: #64748b;
-          margin-top: 10px;
         }
 
         .team-list__team {

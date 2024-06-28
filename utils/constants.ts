@@ -166,7 +166,7 @@ export const FOCUS_AREAS_FILTER_KEYS = {
   teams: 'teamAncestorFocusAreas',
 };
 
-export const ITEMS_PER_PAGE = 40;
+export const ITEMS_PER_PAGE = 42;
 
 export const ENROLLMENT_TYPE = {
   MEMBER: 'MEMBER',

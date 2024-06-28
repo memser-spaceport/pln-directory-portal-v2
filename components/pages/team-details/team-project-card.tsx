@@ -28,7 +28,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
     if (project?.logo) {
       return project?.logo?.url;
     }
-    return '/icons/team-detail-default-project-logo.svg';
+    return '/icons/default-project.svg';
   }
 
   return (

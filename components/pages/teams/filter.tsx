@@ -47,10 +47,10 @@ const Filter = (props: ITeamFilterWeb) => {
 
   const onIncludeFriendsToggle = () => {
     triggerLoader(true);
+    if (searchParams?.page) {
+      searchParams.page = '1';
+    }
     if (!includeFriends) {
-      if (searchParams?.page) {
-        searchParams.page = '1';
-      }
       analytics.onFriendsOfProtocolSelected();
       updateQueryParams('includeFriends', 'true', searchParams);
       return;

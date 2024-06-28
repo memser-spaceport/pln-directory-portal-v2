@@ -18,7 +18,7 @@ import styles from './page.module.css';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
-  const { team, members, isLoggedIn,  userInfo, teamProjectList, hasProjectsEditAccess = false, redirectTeamUid, isError, isNotFound } = await getPageData(teamId);
+  const { team, members, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess = false, redirectTeamUid, isError, isNotFound } = await getPageData(teamId);
 
   if (redirectTeamUid) {
     redirect(`/teams/${redirectTeamUid}`, RedirectType.replace);
@@ -43,10 +43,6 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           <div className={styles?.teamDetail__container__contact}>
             <ContactInfo team={team} userInfo={userInfo} />
           </div>
-          {/* Projects */}
-          <div className={styles?.teamDetail__container__projects}>
-            <Projects projects={teamProjectList} team={team} userInfo={userInfo} hasProjectsEditAccess={hasProjectsEditAccess} />
-          </div>
           {/* Funding */}
           {team?.fundingStage || team?.membershipSources?.length ? (
             <div className={styles?.teamDetail__container__funding}>
@@ -57,6 +53,12 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           <div className={styles?.teamDetail__container__member}>
             <TeamMembers team={team} userInfo={userInfo} members={members} teamId={teamId} />
           </div>
+          
+          {/* Projects */}
+          <div className={styles?.teamDetail__container__projects}>
+            <Projects isLoggedIn={isLoggedIn} projects={teamProjectList} team={team} userInfo={userInfo} hasProjectsEditAccess={hasProjectsEditAccess} />
+          </div>
+
         </div>
       </div>
     </>
@@ -98,7 +100,7 @@ async function getPageData(teamId: string) {
       const teamUidResponse = await getTeamUIDByAirtableId(teamId);
       if (teamUidResponse?.error || teamUidResponse?.length === 0) {
         isError = true;
-        return { isError, team, userInfo};
+        return { isError, team, userInfo };
       }
       const redirectTeamUid = teamUidResponse[0]?.uid;
       return { redirectTeamUid, team, members, hasProjectsEditAccess, teamProjectList, userInfo };
@@ -119,7 +121,7 @@ async function getPageData(teamId: string) {
       ),
     ]);
 
-    if(isLoggedIn) {
+    if (isLoggedIn) {
       const allTeams = await getAllTeams(
         authToken,
         {
@@ -129,12 +131,11 @@ async function getPageData(teamId: string) {
         },
         0,
         0
-      )
-      if(!allTeams?.error) {
+      );
+      if (!allTeams?.error) {
         memberTeams = allTeams?.data?.formattedData ?? [];
       }
     }
-
 
     if (teamResponse?.error || teamMembersResponse?.error) {
       isError = true;
@@ -178,26 +179,26 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
   const teamId = params.id;
   // const teamResonse = await getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' });
   // if (teamResonse?.error) {
-    return {
-      title: 'Protocol Labs Directory',
-      description:
-        'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
-      openGraph: {
-        images: [
-          {
-            url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
-            width: 1280,
-            height: 640,
-            alt: 'Protocol Labs Directory',
-            type: 'image/jpeg',
-          },
-        ],
-      },
-      twitter: {
-        card: 'summary_large_image',
-        images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
-      },
-    };
+  return {
+    title: 'Protocol Labs Directory',
+    description:
+      'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+    openGraph: {
+      images: [
+        {
+          url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+          width: 1280,
+          height: 640,
+          alt: 'Protocol Labs Directory',
+          type: 'image/jpeg',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+    },
+  };
   // }
   // const team = teamResonse?.data?.formatedData;
   // const previousImages = (await parent).openGraph?.images || [];

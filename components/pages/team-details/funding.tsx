@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Tooltip } from "@/components/core/tooltip/tooltip";
-import { Tag } from "@/components/ui/tag";
-import { ITag, ITeam } from "@/types/teams.types";
-import { Fragment } from "react";
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { Tag } from '@/components/ui/tag';
+import { ITag, ITeam } from '@/types/teams.types';
+import { Fragment } from 'react';
 
 interface IFunding {
   team: ITeam;
@@ -28,9 +28,18 @@ const Funding = (props: IFunding) => {
             <h3 className="funding__seriescontainer__membership-source-container__title">Accelerator Programs:</h3>
             {accelerataorPrograms?.map((program: ITag, index: number) => (
               <Fragment key={`${program} + ${index}`}>
-                <Tooltip asChild trigger={ <div><Tag value={program?.title} /> </div>} content={program?.title} />
+                <Tooltip
+                  asChild
+                  trigger={
+                    <div>
+                      <Tag value={program?.title} />{' '}
+                    </div>
+                  }
+                  content={program?.title}
+                />
               </Fragment>
             ))}
+            {accelerataorPrograms?.length === 0 && <p className="funding__seriescontainer__membership-source-container_notavai">Not available</p>}
           </div>
         </div>
       </div>
@@ -92,6 +101,12 @@ const Funding = (props: IFunding) => {
               font-size: 14px;
               font-weight: 500;
               line-height: 20px;
+            }
+
+            .funding__seriescontainer__membership-source-container_notavai {
+            font-size: 12px;
+            font-weight: 500;
+            color: #475569;
             }
 
             @media (min-width: 1024px) {

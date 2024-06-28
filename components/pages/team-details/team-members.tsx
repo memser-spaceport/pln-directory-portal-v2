@@ -49,29 +49,13 @@ const TeamMembers = (props: ITeamMembers) => {
     <>
       <div className="team-members">
         <div className="team-members__header">
-          <h2 className="team-members__header__title">Members({members?.length ? members?.length : 0})</h2>
+          <h2 className="team-members__header__title">Members ({members?.length ? members?.length : 0})</h2>
           {members?.length > 3 && (
             <button className="team-members__header__seeall-btn" onClick={onSeeAllClickHandler}>
-              See all
+              See All
             </button>
           )}
         </div>
-
-        {/* Projects mob */}
-        {/* <div className="team-members__members__mob">
-          {members?.map((member: IMember, index: number) => {
-            const team = member?.teams?.find((team: ITeam) => team.id === teamId);
-            return (
-              <Fragment key={`${member} + ${index}`}>
-                {index < 3 && (
-                  <div className={`${(index < 2 && members?.length > 2) ? "team-members__members__member__border-set" : ""}`}>
-                    <TeamDetailsMembersCard url={`${PAGE_ROUTES.MEMBERS}/${member?.id}`} member={member} team={team}/>
-                  </div>
-                )}
-              </Fragment>
-            );
-          })}
-        </div> */}
 
         {/* Projects web */}
 
@@ -124,9 +108,11 @@ const TeamMembers = (props: ITeamMembers) => {
             color: #156ff7;
             font-size: 14px;
             font-weight: 500;
-            line-height: 20px;
+            line-height: 24px;
+            padding: 0 12px 0 0;
             border: none;
             background-color: #fff;
+            outline: none;
           }
 
           .team-members__members__mob {

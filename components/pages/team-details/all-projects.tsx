@@ -2,6 +2,7 @@ import { ChangeEvent, Fragment, useState } from "react";
 import { PAGE_ROUTES } from "@/utils/constants";
 import { IFormatedTeamProject } from "@/types/teams.types";
 import TeamProjectCard from "./team-project-card";
+import Image from "next/image";
 
 interface IAllProjects {
   projects: IFormatedTeamProject[];
@@ -9,7 +10,7 @@ interface IAllProjects {
   onCardClicked: (project: any) => void;
 }
 const AllProjects = (props: IAllProjects) => {
-  const projects = props?.projects;
+  const projects = props?.projects ?? [];
   const hasProjectsEditAccess = props?.hasProjectsEditAccess;
   const [allProjects, setAllProjects] = useState(projects);
   const callback = props?.onCardClicked;
@@ -26,9 +27,9 @@ const AllProjects = (props: IAllProjects) => {
   return (
     <>
       <div className="all-projects">
-        <h2 className="all-projects__title">Projects</h2>
+        <h2 className="all-projects__title">Projects ({projects?.length})</h2>
         <div className="all-projects__search-bar">
-          <img loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
+          <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
           <input className="all-projects__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
         </div>
 
@@ -66,7 +67,7 @@ const AllProjects = (props: IAllProjects) => {
 
           .all-projects__title {
             color: #0f172a;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             line-height: 32px;
           }

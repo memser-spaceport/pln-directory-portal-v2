@@ -4,6 +4,7 @@ import { ITeam } from "@/types/teams.types";
 import { PAGE_ROUTES } from "@/utils/constants";
 import { ChangeEvent, Fragment, useState } from "react";
 import TeamDetailsMembersCard from "./team-member-card";
+import Image from "next/image";
 
 interface IAllMembers {
   members: IMember[];
@@ -11,7 +12,7 @@ interface IAllMembers {
   onCardClick : any;
 }
 const AllMembers = (props: IAllMembers) => {
-  const members = props?.members;
+  const members = props?.members ?? [];
   const teamId = props?.teamId;
   const callback = props?.onCardClick;
   const [allMembers, setAllMembers] = useState(members);
@@ -28,9 +29,9 @@ const AllMembers = (props: IAllMembers) => {
   return (
     <>
       <div className="all-members">
-        <h2 className="all-membes__title">Members</h2>
+        <h2 className="all-membes__title">Members ({members?.length})</h2>
         <div className="all-members__search-bar">
-            <img loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20}/>
+            <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20}/>
           <input className="all-members__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
         </div>
 
@@ -65,7 +66,7 @@ const AllMembers = (props: IAllMembers) => {
 
           .all-membes__title {
             color: #0f172a;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             line-height: 32px;
           }

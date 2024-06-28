@@ -23,8 +23,9 @@ interface ITeamList {
 const TeamsList = (props: ITeamList) => {
   const searchParams = props?.searchParams;
   const viewType = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
-  const allTeams = props?.teams;
+  const allTeams = props?.teams ?? [];
   const userInfo = props?.userInfo;
+  const totalTeams = props?.totalTeams;
 
   const analytics = useTeamAnalytics();
   const onTeamClickHandler = (team: ITeam) => {
@@ -34,6 +35,9 @@ const TeamsList = (props: ITeamList) => {
 
   return (
     <div className="team-list">
+      <div className="team-list__titlesec">
+        <h1 className="team-list__titlesec__title">Teams</h1> <div className="team-list__title__count">({totalTeams})</div>
+      </div>
       <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid' : 'team-list__list'}`}>
         {allTeams?.map((team: ITeam, index: number) => (
           <div
@@ -53,6 +57,26 @@ const TeamsList = (props: ITeamList) => {
           width: 100%;
           margin-top: 24px;
           margin-bottom: 16px;
+        }
+
+        .team-list__titlesec {
+          display: flex;
+          gap: 4px;
+          padding: 0px 38px 16px 38px;
+        }
+
+        .team-list__titlesec__title {
+          font-size: 24px;
+          line-height: 40px;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .team-list__title__count {
+          font-size: 14px;
+          font-weight: 400;
+          color: #64748b;
+          margin-top: 10px;
         }
 
         .team-list__team {
@@ -98,6 +122,10 @@ const TeamsList = (props: ITeamList) => {
 
           .team-list__grid {
             width: 900px;
+          }
+
+                    .team-list__titlesec {
+            display: none;
           }
         }
 

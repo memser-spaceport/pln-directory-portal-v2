@@ -177,10 +177,9 @@ const TeamDetails = (props: ITeamDetails) => {
                 gap: 24px;
                 background: #fff;
                 padding: 16px 16px 16px 16px;
-                border-radius: 8px;
+                border-radius: 0px 8px;
                 background: #FFF;
                 box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
-
             }
 
             .team-details__profile {

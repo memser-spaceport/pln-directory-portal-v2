@@ -78,8 +78,6 @@ const About = (props: IAbout) => {
             font-size: 15px;
             font-weight: 400;
             line-height: 24px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #e2e8f0;
           }
 
           .about__content__show-more {

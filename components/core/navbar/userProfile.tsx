@@ -11,6 +11,7 @@ import { Tooltip } from '../tooltip/tooltip';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { createLogoutChannel } from '../login/broadcast-channel';
+import Link from 'next/link';
 
 interface IProfile {
   userInfo: IUserInfo;
@@ -51,10 +52,12 @@ export default function UserProfile(props: Readonly<IProfile>) {
         </button>
         {isDropdown && (
           <div className="profile__profileimagesection__ddown">
-            <button className="profile__profileimagesection__ddown__settings" onClick={() => onAccountOptionsClickHandler('settings')}>
-              <Image height={16} width={16} loading="lazy" alt="settings" src="/icons/settings.svg" />
-              Account Settings
-            </button>
+            <Link href='/settings' style={{width:'100%'}}>
+              <button className="profile__profileimagesection__ddown__settings" onClick={() => onAccountOptionsClickHandler('settings')}>
+                <Image height={16} width={16} loading="lazy" alt="settings" src="/icons/settings.svg" />
+                Account Settings
+              </button>
+            </Link>
             <div className="profile__profileimagesection__ddown__bl"> </div>
             <div className="profile__profieimagesection__ddown__louts">
               <button onClick={onLogoutHandler} className="profile__profieimagesection__ddown__louts__loutbtn" onClickCapture={() => onAccountOptionsClickHandler('logout')}>
@@ -98,6 +101,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
           .profile__profileimagesection__img {
             border: 1px solid #e2e8f0;
             border-radius: 50%;
+            background-color: #e2e8f0;
             height: 40px;
             width: 40px;
           }
@@ -113,10 +117,10 @@ export default function UserProfile(props: Readonly<IProfile>) {
             border-radius: 8px;
             background: #fff;
             display: inline-flex;
-            padding: 16px;
+            padding: 8px;
             flex-direction: column;
             align-items: flex-start;
-            gap: 16px;
+            gap: 8px;
             box-shadow: 0px 2px 6px 0px rgba(15, 23, 42, 0.16);
             top: 65px;
             right: 25px;
@@ -133,6 +137,14 @@ export default function UserProfile(props: Readonly<IProfile>) {
             font-size: 14px;
             font-weight: 400;
             line-height: 20px;
+            padding: 8px;
+            width:100%;
+          }
+
+          .profile__profileimagesection__ddown__settings:hover {
+            background-color: #f1f5f9;
+            border-radius: 4px;
+            transition: all 0.2s ease;
           }
 
           .profile__profileimagesection__ddown__bl {
@@ -159,16 +171,23 @@ export default function UserProfile(props: Readonly<IProfile>) {
 
           .profile__profieimagesection__ddown__louts {
             width: 100%;
+            padding: 8px;
           }
+
+          .profile__profieimagesection__ddown__louts:hover {
+            background-color: #f1f5f9;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+          }
+
           .profile__profieimagesection__ddown__louts__loutbtn {
             border: none;
-            background: #fff;
             display: flex;
             width: 100%;
             align-items: center;
             gap: 4px;
             align-self: stretch;
-            background: #fff;
+            background: transparent;
             border: none;
             color: #0f172a;
             font-size: 14px;

@@ -115,7 +115,8 @@ export default function JoinNetwork() {
 
         .jn__options__item__cn:hover {
           background-color: #f1f5f9;
-          border-radius: 8px;
+          border-radius: 4px;
+          transition: all 0.2s ease;
         }
 
         @media (min-width: 1024px) {

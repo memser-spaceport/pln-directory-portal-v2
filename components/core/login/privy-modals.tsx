@@ -8,25 +8,12 @@ import { TOAST_MESSAGES } from '@/utils/constants';
 import { User } from '@privy-io/react-auth';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createLogoutChannel } from './broadcast-channel';
-import "react-toastify/dist/ReactToastify.css";
+// import "react-toastify/dist/ReactToastify.css";
 import { deletePrivyUser } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
 
 function PrivyModals() {
-  const {
-    getAccessToken,
-    linkEmail,
-    linkGithub,
-    linkGoogle,
-    linkWallet,
-    login,
-    logout,
-    ready,
-    unlinkEmail,
-    updateEmail,
-    user,
-    PRIVY_CUSTOM_EVENTS,
-  } = usePrivyWrapper();
+  const { getAccessToken, linkEmail, linkGithub, linkGoogle, linkWallet, login, logout, ready, unlinkEmail, updateEmail, user, PRIVY_CUSTOM_EVENTS } = usePrivyWrapper();
   const analytics = useAuthAnalytics();
   const [linkAccountKey, setLinkAccountKey] = useState('');
   const router = useRouter();
@@ -62,14 +49,14 @@ function PrivyModals() {
   };
 
   const loginInUser = (output: any) => {
+    clearPrivyParams();
     if (output.userInfo?.isFirstTimeLogin) {
       router.push('/settings');
     }
-    clearPrivyParams();
     setLinkAccountKey('');
     // document.dispatchEvent(new CustomEvent('app-loader-status', { detail: false }));
     triggerLoader(false);
-    toast.success(TOAST_MESSAGES.LOGIN_MSG, { hideProgressBar: true });
+    toast.success(TOAST_MESSAGES.LOGIN_MSG);
     router.refresh();
   };
 
@@ -103,7 +90,7 @@ function PrivyModals() {
 
   const deleteUser = async (errorCode: string) => {
     analytics.onPrivyUserDelete({ ...user, type: 'init' });
-    const token = await getAccessToken() as string;
+    const token = (await getAccessToken()) as string;
     // await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/accounts/external/${user?.id}`, {
     //   method: 'POST',
     //   headers: {
@@ -223,24 +210,23 @@ function PrivyModals() {
         } else {
           // document.dispatchEvent(new CustomEvent('app-loader-status', { detail: true }));
           triggerLoader(true);
-          document.dispatchEvent(
-            new CustomEvent('directory-update-email', { detail: { newEmail: linkedAccount.address } })
-          );
+          document.dispatchEvent(new CustomEvent('directory-update-email', { detail: { newEmail: linkedAccount.address } }));
         }
       } else if (linkMethod === 'github') {
         document.dispatchEvent(new CustomEvent('new-auth-accounts', { detail: authLinkedAccounts }));
-        toast.success('Github linked successfully', { hideProgressBar: true });
+        toast.success('Github linked successfully');
       } else if (linkMethod === 'google') {
         document.dispatchEvent(new CustomEvent('new-auth-accounts', { detail: authLinkedAccounts }));
-        toast.success('Google linked successfully', { hideProgressBar: true });
+        toast.success('Google linked successfully');
       } else if (linkMethod === 'siwe') {
         document.dispatchEvent(new CustomEvent('new-auth-accounts', { detail: authLinkedAccounts }));
-        toast.success('Wallet linked successfully', { hideProgressBar: true });
+        toast.success('Wallet linked successfully');
       }
       setLinkAccountKey('');
     }
 
     function handlePrivyLoginError(e: CustomEvent) {
+      triggerLoader(false);
       console.log('Privy login error');
     }
 
@@ -251,19 +237,17 @@ function PrivyModals() {
 
       if (!userInfo && !accessToken && !refreshToken) {
         analytics.onAccountLinkError({ type: 'loggedout', error: e?.detail?.error });
-        if (
-          e?.detail?.error === 'linked_to_another_user' ||
-          e?.detail?.error === 'exited_link_flow' ||
-          e?.detail?.error === 'invalid_credentials'
-        ) {
+        if (e?.detail?.error === 'linked_to_another_user' || e?.detail?.error === 'exited_link_flow' || e?.detail?.error === 'invalid_credentials') {
           try {
             await deleteUser(e?.detail?.error);
           } catch (err) {
+            triggerLoader(false);
             document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: e?.detail?.error }));
           }
         } else {
           await logout();
           setLinkAccountKey('');
+          triggerLoader(false);
           document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'unexpected_error' }));
         }
       } else {
@@ -289,9 +273,7 @@ function PrivyModals() {
       const isDirectory = localStorage.getItem('directory-logout');
       if (isDirectory) {
         localStorage.clear();
-        toast.info(TOAST_MESSAGES.LOGOUT_MSG, {
-          hideProgressBar: true,
-        });
+        toast.info(TOAST_MESSAGES.LOGOUT_MSG);
         createLogoutChannel().postMessage('logout');
       }
     }

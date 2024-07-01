@@ -13,6 +13,7 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
+    "md-editor-rt": "^4.17.0",
     "next": "14.2.3",
     "posthog-js": "^1.139.2",
     "react": "^18",

@@ -1,5 +1,5 @@
 import { IUserInfo } from "@/types/shared.types";
-import { EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from "./constants";
+import { ADMIN_ROLE, EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from "./constants";
 import { ITeam } from "@/types/teams.types";
 
 export const triggerLoader = (status: boolean) => {
@@ -151,4 +151,48 @@ export const sortMemberByRole = (firstMember: { teamLead: number; name: string; 
     return secondMember.teamLead - firstMember.teamLead;
   }
   return firstMember.name.localeCompare(secondMember.name);
+}
+
+
+export const hasProjectEditAccess = (userInfo: IUserInfo, selectedProject: any, isUserLoggedIn: boolean, teams: any) => {
+  try {
+    if (!isUserLoggedIn) {
+      return false;
+    }
+
+    if (userInfo?.roles && userInfo.roles.length && userInfo?.roles?.includes(ADMIN_ROLE)) {
+      return true;
+    }
+
+
+    if (selectedProject?.createdBy && userInfo?.uid === selectedProject?.createdBy) {
+      return true;
+    }
+
+    if (teams) {
+      if (teams?.some((team: any) => team?.id === selectedProject?.maintainingTeamUid)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (err) {
+    return false;
+  }
+}
+
+export const hasProjectDeleteAccess = (userInfo: any, project: any, isUserLoggedIn: any) => {
+  if(!isUserLoggedIn) {
+    return false;
+  }
+
+  if(userInfo?.roles?.length && userInfo.roles.includes(ADMIN_ROLE)) {
+    return true;
+  }
+
+  if(userInfo?.leadingTeams?.length && userInfo.leadingTeams.includes(project?.teamUid)) {
+    return true;
+  }
+
+  return false;
+
 }

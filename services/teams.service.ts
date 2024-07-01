@@ -93,30 +93,3 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
   };
   return { data: { formatedData } };
 };
-
-
-export const hasProjectEditAccess = (userInfo: IUserInfo, selectedProject: any, isUserLoggedIn: boolean, teams: any) => {
-  try {
-    if (!isUserLoggedIn) {
-      return false;
-    }
-
-    if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes('DIRECTORYADMIN')) {
-      return true;
-    }
-
-
-    if (selectedProject?.createdBy && userInfo?.uid === selectedProject?.createdBy) {
-      return true;
-    }
-
-    if (teams) {
-      if (teams?.some((team: any) => team?.id === selectedProject?.maintainingTeamUid)) {
-        return true;
-      }
-    }
-    return false;
-  } catch (err) {
-    return false;
-  }
-}

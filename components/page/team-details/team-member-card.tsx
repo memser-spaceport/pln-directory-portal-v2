@@ -32,7 +32,7 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
           <div className="team-members-card__profile-details__profile">
             <div className="team-members-card__profile-details__profile-container">
             {isTeamLead && <Tooltip side="top" asChild trigger={<div><img alt="lead" loading="lazy" className="team-members-card__profile-details__profile-container__lead" height={16} width={16} src="/icons/badge/team-lead.svg"/></div>} content={"Team Lead"}/>}
-            <Image loading="lazy" className="team-members-card__profile-details__profile__image" alt="profile" src={logo} width={40} height={40} />
+            <img loading="lazy" className="team-members-card__profile-details__profile__image" alt="profile" src={logo} width={40} height={40} />
             </div>
             <div className="team-members-card__profile-details__profile__name-role">
               <Tooltip asChild trigger={<h2 className="team-members-card__profile-details__profile__name-role__name">{memberName}</h2>} content={memberName} />
@@ -133,7 +133,8 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
           }
 
           .team-members-card__profile-details__profile__image {
-            border-radius: 24px;
+            border-radius: 50%;
+            object-fit: cover;
           }
 
           .team-members-card__profile-details__profile__name-role {

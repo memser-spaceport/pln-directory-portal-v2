@@ -30,7 +30,7 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
       {/* <Tooltip
         trigger={ */}
       <a
-        title={href}
+        title={profile}
         onClick={() => callback(type, href)}
         href={href}
         target="_blank"

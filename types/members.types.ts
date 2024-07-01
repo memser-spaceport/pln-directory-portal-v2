@@ -7,6 +7,7 @@ export type IMemberListOptions = IListOptions & {
   "location.continent__with"?: string;
   "location.country__with"?: string;
   "location.metroarea__with"?: string;
+  "projectContributions.projectUid"? : string;
   "teamMemberRoles.team.uid"?: string | string[];
   plnFriend?: boolean;
   openToWork?: boolean;

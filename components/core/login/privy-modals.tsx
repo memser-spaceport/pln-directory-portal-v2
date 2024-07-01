@@ -132,11 +132,12 @@ function PrivyModals() {
         }),
       });
 
-      if(!response.ok) {
+      if (response.status === 500) {
         triggerLoader(false);
         document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'unexpected_error' }));
         setLinkAccountKey('');
         await logout();
+        return;
       }
 
       if (response.ok) {
@@ -161,7 +162,6 @@ function PrivyModals() {
       if (user?.email?.address && response.status === 403) {
         await handleInvalidDirectoryEmail();
       }
-
     } catch (error) {
       triggerLoader(false);
       document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'unexpected_error' }));

@@ -45,7 +45,7 @@ const TeamListView = (props: ITeamListView) => {
                   <div>
                     {tags?.slice(3, tags?.length).map((tag, index) => (
                       <div key={`${tag} + ${tag} + ${index}`}>
-                        {tag?.title} {index !== tags?.slice(3, tags?.length - 1)?.length ? "," : ""}
+                        {tag?.title}{index !== tags?.slice(3, tags?.length - 1)?.length ? "," : ""}
                       </div>
                     ))}
                   </div>

@@ -39,10 +39,10 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
           <div className="team-project-card__profilec__name-and-tagline">
             <div className="team-project-card__profilec__name-and-tagline__name-and-raising-funds">
               <Tooltip asChild trigger={<h2 className="team-project-card__profilec__name-and-tagline__name">{name}</h2>} content={name} />
-              {project?.isMaintainingProject && <Tooltip side='top' asChild trigger={<div><Image src="/icons/badge/maintainer.svg" alt="maintainer image" width={20} height={20} className="rounded" /> </div>} content={"Maintainer"} />}
+              {project?.isMaintainingProject && <Tooltip side='top' asChild trigger={<div className='team-project-card__profilec__name-and-tagline__name-and-raising-funds__mtr'><Image src="/icons/badge/maintainer.svg" alt="maintainer image" width={20} height={20} className="rounded" /> </div>} content={"Maintainer"} />}
               {lookingForFunding && (
                 <div className="team-project-card__goto__btn-section__web">
-                  <RaisingFunds />
+                  <Tooltip asChild trigger={<div><RaisingFunds/> </div>} content={"Raising Funds"}/>
                 </div>
               )}
             </div>
@@ -56,19 +56,11 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
                 <button className="team-project-card__goto__options__edit">
                   <img loading="lazy" src="/icons/edit-black.svg" />
                 </button>
-                {/* <button className="team-project-card__goto__options__pin">
-                  <img loading="lazy" src="/icons/pin-black.svg" />
-                </button> */}
               </div>
             )}
           </div>
 
           <div className="team-project-card__goto__btn-section">
-            {lookingForFunding && (
-              <div className="team-project-card__goto__btn-section__mob">
-                <RaisingFunds />
-              </div>
-            )}
             <button className="team-project-card__goto__btn">
               <img loading="lazy" alt="go-to" src="/icons/right-arrow-gray.svg" width={16} height={16} />
             </button>
@@ -144,9 +136,6 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
             justify-content: center;
           }
 
-          .team-project-card__goto__btn-section__web {
-            display: none;
-          }
 
           .team-project-card__goto__btn-section__mob {
             display: flex;
@@ -156,6 +145,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
           .team-project-card__profilec__name-and-tagline__name-and-raising-funds {
             display: flex;
             align-items: center;
+            height: 20px;
             gap: 10px;
           }
 
@@ -183,6 +173,10 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
             border-radius: 100%;
           }
 
+          .team-project-card__profilec__name-and-tagline__name-and-raising-funds__mtr {
+          height: 20px;
+          }
+
           @media (min-width: 1024px) {
             .team-project-card {
               justify-content: space-between;
@@ -192,6 +186,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
 
             .team-project-card__goto__btn-section__web {
               display: flex;
+              height: 20px;
             }
 
             .team-project-card__goto__btn-section__mob {

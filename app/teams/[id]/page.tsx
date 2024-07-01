@@ -1,4 +1,3 @@
-import { BreadCrumb } from '@/components/core/bread-crumb';
 import Error from '@/components/core/error';
 import ContactInfo from '@/components/page/team-details/contact-info';
 import Funding from '@/components/page/team-details/funding';
@@ -15,6 +14,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
+import { BreadCrumb } from '@/components/core/bread-crumb';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -148,7 +148,6 @@ async function getPageData(teamId: string) {
       return {
         ...project,
         isMaintainingProject: true,
-        hasEditAccess: hasProjectEditAccess(userInfo, project, isLoggedIn, memberTeams),
       };
     });
 
@@ -160,6 +159,12 @@ async function getPageData(teamId: string) {
       }
     }
     teamProjectList = [...maintainingProjects, ...contributingProjects];
+    teamProjectList = teamProjectList?.map((project: any) => {
+      return {
+        ...project,
+        hasEditAccess: hasProjectEditAccess(userInfo, project, isLoggedIn, memberTeams),
+      }
+    })
     if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes(ADMIN_ROLE) && authToken) {
       hasProjectsEditAccess = true;
     }

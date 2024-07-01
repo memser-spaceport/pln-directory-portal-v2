@@ -101,7 +101,7 @@ export const hasProjectEditAccess = (userInfo: IUserInfo, selectedProject: any, 
       return false;
     }
 
-    if (userInfo?.roles && userInfo.roles.length && userInfo?.roles?.includes('DIRECTORYADMIN')) {
+    if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes('DIRECTORYADMIN')) {
       return true;
     }
 

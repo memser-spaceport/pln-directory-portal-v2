@@ -59,7 +59,7 @@ export function BreadCrumb(props: IBreadcrumb) {
         }
         .breadcrumb__item--last {
           display: flex;
-          font: 500;
+          font-weight: 500;
           width: 150px;
           overflow: hidden;
           display: inline-block;
@@ -68,7 +68,8 @@ export function BreadCrumb(props: IBreadcrumb) {
           display: inline-block;
           cursor: default;
           font-size: 14px;
-          color: #000;
+          color: #0f172a;
+          
         }
 
         .breadcrumb__name {

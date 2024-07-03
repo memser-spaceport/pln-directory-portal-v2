@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 interface IModal {
   onClose: () => void;
@@ -31,6 +31,7 @@ const Modal = (props: IModal) => {
 
           .modal__cn {
             position: relative;
+            overflow: hidden;
           }
 
           .modal__cn__closebtn {

@@ -1,14 +1,13 @@
-import { IListOptions } from "./shared.types";
-import { ITeam, ITeamResponse } from "./teams.types";
+import { IListOptions } from './shared.types';
+import { ITeam, ITeamResponse } from './teams.types';
 
 export type IMemberListOptions = IListOptions & {
-  officeHours__not?: "null";
-  "skills.title__with"?: string;
-  "location.continent__with"?: string;
-  "location.country__with"?: string;
-  "location.metroarea__with"?: string;
-  "projectContributions.projectUid"? : string;
-  "teamMemberRoles.team.uid"?: string | string[];
+  officeHours__not?: 'null';
+  'skills.title__with'?: string;
+  'location.continent__with'?: string;
+  'location.country__with'?: string;
+  'location.metroarea__with'?: string;
+  'teamMemberRoles.team.uid'?: string | string[];
   plnFriend?: boolean;
   openToWork?: boolean;
 };
@@ -142,7 +141,7 @@ export interface IMemberRepository {
   url: string;
 }
 
-
 export interface IAnalyticsMemberInfo {
+  id: string;
   name: string;
 }

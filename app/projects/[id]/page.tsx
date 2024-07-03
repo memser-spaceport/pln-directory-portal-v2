@@ -1,23 +1,22 @@
+import { BreadCrumb } from '@/components/core/bread-crumb';
 import Error from '@/components/core/error';
-import { getMembers } from '@/services/members.service';
+import { AdditionalDetails } from '@/components/page/project-details/additional-details';
+import ContactInfos from '@/components/page/project-details/contact-infos';
+import Contributors from '@/components/page/project-details/contributors';
+import Description from '@/components/page/project-details/description';
+import Header from '@/components/page/project-details/header';
+import Hyperlinks from '@/components/page/project-details/hyper-links';
+import KPIs from '@/components/page/project-details/kpis';
+import TeamsInvolved from '@/components/page/project-details/teams-involved';
 import { getProject } from '@/services/projects.service';
 import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import styles from './page.module.css';
-import { BreadCrumb } from '@/components/core/bread-crumb';
-import Header from '@/components/page/project-details/header';
-import Description from '@/components/page/project-details/description';
-import Hyperlinks from '@/components/page/project-details/hyper-links';
-import KPIs from '@/components/page/project-details/kpis';
-import { AdditionalDetails } from '@/components/page/project-details/additional-details';
-import Contributors from '@/components/page/project-details/contributors';
-import TeamsInvolved from '@/components/page/project-details/teams-involved';
-import ContactInfos from '@/components/page/project-details/contact-infos';
 
 export default async function ProjectDetails({ params }: any) {
   const projectId = params?.id;
-  const { isError, isLoggedIn, userInfo, hasEditAccess, hasDeleteAccess, project, contributors, authToken } = await getPageData(projectId);
+  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, authToken } = await getPageData(projectId);
 
   if (isError) {
     return <Error />;
@@ -52,9 +51,9 @@ export default async function ProjectDetails({ params }: any) {
           </div>
         </div>
         <div className={styles.project__container__info}>
-          {(project?.contributors.length > 0 || contributors.length > 0) && (
+          {project?.contributors?.length > 0 && (
             <div className={styles.project__container__info__contributors}>
-              <Contributors contributors={project?.contributors} contributingMembers={contributors} user={userInfo} />
+              <Contributors project={project}  contributors={project?.contributors} user={userInfo} />
             </div>
           )}
           <div className={styles.project__container__info__teams}>
@@ -74,29 +73,15 @@ export default async function ProjectDetails({ params }: any) {
 const getPageData = async (projectId: string) => {
   let isError = false;
   const { authToken, isLoggedIn, userInfo } = getCookiesFromHeaders();
-  let contributors: any = [];
   let project = null;
   let hasEditAccess = false;
   let hasDeleteAccess = false;
   let loggedInMemberTeams = [];
 
   try {
-    const [projectResponse, contributorsResponse] = await Promise.all([
-      getProject(projectId, {}),
-      getMembers(
-        {
-          'projectContributions.projectUid': projectId + '',
-          select: 'uid,name,image,teamMemberRoles.team,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.teamLead',
-          pagination: false,
-        },
-        '',
-        0,
-        0,
-        isLoggedIn
-      ),
-    ]);
+    const [projectResponse] = await Promise.all([getProject(projectId, {})]);
 
-    if (projectResponse?.error || contributorsResponse?.error) {
+    if (projectResponse?.error) {
       return {
         isError: true,
         isLoggedIn,
@@ -104,7 +89,6 @@ const getPageData = async (projectId: string) => {
         hasEditAccess,
         hasDeleteAccess,
         project,
-        contributors,
         authToken,
       };
     }
@@ -126,7 +110,6 @@ const getPageData = async (projectId: string) => {
     }
 
     project = projectResponse?.data?.formattedData;
-    contributors = contributorsResponse?.data?.formattedData ?? [];
 
     hasEditAccess = hasProjectEditAccess(userInfo, project, isLoggedIn, loggedInMemberTeams);
     hasDeleteAccess = hasProjectDeleteAccess(userInfo, project, isLoggedIn);
@@ -139,7 +122,6 @@ const getPageData = async (projectId: string) => {
       hasDeleteAccess,
       project,
       authToken,
-      contributors,
     };
   } catch (error) {
     return {
@@ -150,7 +132,6 @@ const getPageData = async (projectId: string) => {
       hasDeleteAccess,
       project,
       authToken,
-      contributors,
     };
   }
 };

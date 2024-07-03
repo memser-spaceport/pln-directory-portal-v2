@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import Modal from "@/components/core/modal";
-import ModalButton from "@/components/ui/modal-button";
-import { useRef } from "react";
+import Modal from '@/components/core/modal';
+import ModalButton from '@/components/ui/modal-button';
+import { EVENTS } from '@/utils/constants';
+import { useEffect, useRef } from 'react';
 
 interface IDeleteConfirmationModal {
   onClose: () => void;
@@ -12,7 +13,20 @@ interface IDeleteConfirmationModal {
 const DeleteConfirmationModal = (props: IDeleteConfirmationModal) => {
   const onClose = props?.onClose;
   const onDeleteProject = props?.onDeleteProject;
-  const modalRef = useRef(null);
+  const modalRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    document.addEventListener(EVENTS.PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE, (e: any) => {
+      if (e.detail) {
+        modalRef?.current?.showModal();
+        return;
+      }
+      modalRef?.current?.close();
+      return;
+    });
+
+    return document.removeEventListener(EVENTS.PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE, () => {});
+  }, []);
 
   return (
     <>
@@ -20,23 +34,11 @@ const DeleteConfirmationModal = (props: IDeleteConfirmationModal) => {
         <div className="dcm">
           <div className="dcm__header">Confirm Delete</div>
           <div className="dcm__body">
-            <p className="dcm__body__desc">
-              Are you sure you want to delete the project?
-            </p>
+            <p className="dcm__body__desc">Are you sure you want to delete the project?</p>
           </div>
           <div className="dcm__footer">
-            <ModalButton
-              variant="secondary"
-              type="button"
-              callBack={onClose}
-              value="Cancel"
-            />
-            <ModalButton
-              variant="primary"
-              type="button"
-              callBack={onDeleteProject}
-              value="Confirm"
-            />
+            <ModalButton variant="secondary" type="button" callBack={onClose} value="Cancel" />
+            <ModalButton variant="primary" type="button" callBack={onDeleteProject} value="Confirm" />
           </div>
         </div>
       </Modal>

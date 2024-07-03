@@ -1,7 +1,9 @@
-"use client";
+'use client';
 
-import Modal from "@/components/core/modal";
-import { useEffect, useRef, useState } from "react";
+import Modal from '@/components/core/modal';
+import { EVENTS } from '@/utils/constants';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 
 interface IAllTeamsModal {
   onClose: () => void;
@@ -16,73 +18,52 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
   const onMaintainerTeamClicked = props?.onMaintainerTeamClicked;
   const onContributingTeamClicked = props?.onContributingTeamClicked;
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const allTeamsModalRef = useRef(null);
-  const [contributingTeams, setContributingTeams] = useState(
-    project?.contributingTeams ?? [],
-  );
+  const [searchTerm, setSearchTerm] = useState('');
+  const allTeamsModalRef = useRef<HTMLDialogElement>(null);
+  const [contributingTeams, setContributingTeams] = useState(project?.contributingTeams ?? []);
 
   useEffect(() => {
     if (searchTerm) {
-      const filteredContributors = contributingTeams?.filter(
-        (contri: any) => {
-          return contri?.name
-            ?.toLowerCase()
-            .includes(searchTerm?.toLowerCase());
-        },
-      );
+      const filteredContributors = contributingTeams?.filter((contri: any) => {
+        return contri?.name?.toLowerCase().includes(searchTerm?.toLowerCase());
+      });
       setContributingTeams(filteredContributors);
     } else {
       setContributingTeams(project?.contributingTeams);
     }
   }, [searchTerm]);
 
+  useEffect(() => {
+    document.addEventListener(EVENTS.PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE, (e: any) => {
+      if (e.detail) {
+        allTeamsModalRef?.current?.showModal();
+        return;
+      }
+      allTeamsModalRef?.current?.close();
+    });
+  }, []);
+  
+
   return (
     <>
       <Modal modalRef={allTeamsModalRef} onClose={onClose}>
         <div className="tm">
-          <div className="tm__hdr">
-            Teams ({project?.contributingTeams.length + 1})
-          </div>
+          <div className="tm__hdr">Teams ({project?.contributingTeams.length + 1})</div>
           <div>
             <div className="tm__body__search">
               <div className="tm__body__search__icon">
-                <img src="/icons/search-grey.svg" alt="search icon" />
+                <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
               </div>
-              <input
-                value={searchTerm}
-                type="search"
-                className="tm__body__search__input"
-                placeholder="Search"
-                onChange={(event) => setSearchTerm(event.currentTarget.value)}
-              />
+              <input value={searchTerm} type="search" className="tm__body__search__input" placeholder="Search" onChange={(event) => setSearchTerm(event.currentTarget.value)} />
             </div>
           </div>
           <div className="tm__body__teams">
-            {((searchTerm &&
-              project.maintainingTeam?.name
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())) ||
-              !searchTerm) && (
-              <div
-                className="tm__body__teams__mainTeam__wrpr"
-                onClick={() =>
-                  onMaintainerTeamClicked(project?.maintainingTeam)
-                }
-              >
+            {((searchTerm && project.maintainingTeam?.name.toLowerCase().includes(searchTerm.toLowerCase())) || !searchTerm) && (
+              <div className="tm__body__teams__mainTeam__wrpr" onClick={() => onMaintainerTeamClicked(project?.maintainingTeam)}>
                 <div className="tm__body__teams__mainTeam">
                   <div className="tm__body__teams__mainTeam__info">
-                    <img
-                      width={40}
-                      height={40}
-                      src={
-                        project.maintainingTeam?.logo?.url ||
-                        "/icons/team-default-profile.svg"
-                      }
-                    />
-                    <div className="tm__body__teams__mainTeam__info__name">
-                      {project.maintainingTeam.name}
-                    </div>
+                    <img width={40} className="tm__body__teams__cteam__info__profile"   height={40} src={project.maintainingTeam?.logo?.url || '/icons/team-default-profile.svg'} />
+                    <div className="tm__body__teams__mainTeam__info__name">{project.maintainingTeam.name}</div>
                   </div>
                   <div className="tm__body__teams__mainTeam__nav">
                     <img src="/icons/right-arrow-gray.svg" alt="icon" />
@@ -90,53 +71,35 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
                 </div>
               </div>
             )}
-            {contributingTeams.length > 0 &&
-              contributingTeams.map(
-                (cteam: any, index: number) => (
-                  <div
-                    key={`tm-cteam-${index}`}
-                    onClick={() => {
-                      onContributingTeamClicked(cteam);
-                    }}
-                  >
-                    <div className="tm__body__teams__cteam__wrpr">
-                      <div className="tm__body__teams__cteam">
-                        <div className="tm__body__teams__cteam__info">
-                          <img
-                            width={40}
-                            height={40}
-                            src={
-                              cteam?.logo?.url ||
-                              "/icons/team-default-profile.svg"
-                            }
-                            alt="team logo"
-                          />
-                          <div className="tm__body__teams__cteam__info__name">
-                            {cteam?.name}
-                          </div>
-                        </div>
-                        <div className="tm__body__teams__cteam__nav">
-                          <img src="/icons/right-arrow-gray.svg" alt="icon" />
-                        </div>
+            {contributingTeams.map((cteam: any, index: number) => (
+                <div
+                  key={`tm-cteam-${index}`}
+                  onClick={() => {
+                    onContributingTeamClicked(cteam);
+                  }}
+                >
+                  <div className="tm__body__teams__cteam__wrpr">
+                    <div className="tm__body__teams__cteam">
+                      <div className="tm__body__teams__cteam__info">
+                        <img width={40} className="tm__body__teams__cteam__info__profile" height={40} src={cteam?.logo?.url || '/icons/team-default-profile.svg'} alt="team logo" />
+                        <div className="tm__body__teams__cteam__info__name">{cteam?.name}</div>
+                      </div>
+                      <div className="tm__body__teams__cteam__nav">
+                        <img src="/icons/right-arrow-gray.svg" alt="icon" />
                       </div>
                     </div>
                   </div>
-                ),
-              )}
-
-            {searchTerm &&
-              !project.maintainingTeam?.name
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()) &&
-              contributingTeams.length === 0 && (
-                <div className="tm__body__teams__notFound">
-                  No results found for the search criteria.
                 </div>
-              )}
+              ))}
+
+            {contributingTeams.length === 0 && (
+              <div className="tm__body__teams__notFound">No team found.</div>
+            )}
           </div>
         </div>
       </Modal>
       <style jsx>{`
+
         .tm {
           padding: 24px;
           width: 320px;
@@ -253,6 +216,10 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
         .tm__body__teams__cteam__wrpr:hover {
           background-color: #f1f5f9;
         }
+          
+        .tm__body__teams__cteam__info__profile {
+          background-color: #e2e8f0;
+      }
 
         @media (min-width: 1024px) {
           .tm {

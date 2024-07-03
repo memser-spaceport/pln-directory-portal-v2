@@ -1,21 +1,23 @@
 "use client";
 
-import { IAnalyticsUserInfo } from "@/types/shared.types";
+import { useProjectAnalytics } from "@/analytics/project.analytics";
+import { IAnalyticsUserInfo, IUserInfo } from "@/types/shared.types";
+import { getAnalyticsUserInfo } from "@/utils/common.utils";
 
 
 interface IHyperlinks {
   project: any;
-  user: IAnalyticsUserInfo;
+  user: IUserInfo;
 }
 
 const Hyperlinks = (props: IHyperlinks) => {
   const project = props?.project;
   const links = project?.projectLinks ?? [];
   const user = props?.user;
-  // const { onLinkClicked } = useProjectDetailAnalytics();
+  const analytics = useProjectAnalytics();
 
   const onLinkClick = (link: string) => {
-    // onLinkClicked(user, link, project?.uid, project?.name);
+    analytics.onProjectDetailContactClicked(getAnalyticsUserInfo(user), project?.id, link);
   };
 
   return (

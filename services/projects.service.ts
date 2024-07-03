@@ -69,6 +69,7 @@ const getFormattedProject = (project: any) => {
             formattedProject['teamUid'] = project.maintainingTeamUid;
             formattedProject['maintainingTeam'] = project.maintainingTeam;
             formattedProject['isDeleted'] = project.isDeleted ?? false;
+            formattedProject['lookingForFunding'] = project.lookingForFunding ?? false;
             formattedProject['createdBy'] = project.createdBy ?? null;
             formattedProject['score'] = project.score ?? null;
 

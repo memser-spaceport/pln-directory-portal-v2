@@ -36,7 +36,7 @@ export const EVENTS = {
   TEAM_DETAIL_ALL_MEMBERS_CLOSE: "team-detail-all-members-close",
   PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE: "project-detail-all-members-open-and-close",
   PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE: "project-detail-all-teams-open-and-close",
-  PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: "project-detail-delete-modal-open-and-close"
+  PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: "project-detail-delete-modal-open-and-close",
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -73,7 +73,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_JOIN_NETWORK_OPTION_CLICKED: 'navbar-join-network-option-clicked',
   NAVBAR_DRAWER_BTN_CLICKED: 'navbar-drawer-btn-clicked',
   FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked',
-  SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: "session-expired-popup-login-btn-clicked"
+  SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: "session-expired-popup-login-btn-clicked",
 };
 
 export const PROJECT_ANALYTICS_EVENTS = {
@@ -124,7 +124,7 @@ export const AUTH_ANALYTICS = {
   AUTH_SETTINGS_PRIVY_ACCOUNT_LINK: 'AUTH_SETTINGS_PRIVY_ACCOUNT_LINK',
   AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS: 'AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS',
   AUTH_SETTINGS_EMAIL_UPDATE_FAILED: 'AUTH_SETTINGS_EMAIL_UPDATE_FAILED',
-  AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD: "AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD"
+  AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD: 'AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD',
 };
 
 export const TEAMS_ANALYTICS_EVENTS = {
@@ -141,7 +141,7 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_OPEN_FILTER_PANEL_CLICKED: 'team-open-filter-panel-clicked',
   TEAM_CLICKED: 'team-clicked',
   TEAM_PAGINATION_OPTION_CLICKED: 'team-pagination-option-clicked',
-  TEAM_EDIT_BY_LEAD: "team-edit-by-lead",
+  TEAM_EDIT_BY_LEAD: 'team-edit-by-lead',
   TEAM_EDIT_BY_ADMIN: 'team-edit-by-admin',
   TEAM_DETAIL_ABOUT_SHOW_MORE_CLICKED: 'team-detail-about-show-more-clicked',
   TEAM_DETAIL_ABOUT_SHOW_LESS_CLICKED: 'team-detail-show-less-clicked',
@@ -152,7 +152,24 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_DETAIL_SEE_ALL_MEMBERS_CLICKED: 'team-detail-members-see-all-clicked',
   TEAM_DETAIL_MEMBER_CLICKED: 'team-detail-member-clicked',
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
-}
+};
+
+export const MEMBER_ANALYTICS_EVENTS = {
+  MEMBER_DETAIL_OFFICEHOURS_CLICKED: 'member-officehours-clicked',
+  MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_EDIT: 'member-pr-contributions-edit',
+  MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_ADD: 'member-pr-contributions-add',
+  MEMBER_DETAIL_GITHUB_PROJECT_VIEW_ALL_CLICKED: 'member-github-project-view-all-clicked',
+  MEMBER_DETAIL_GITHUB_PROJECT_ITEM_CLICKED: 'member-github-project-view-item-clicked',
+
+  MEMBER_DETAIL_EDIT_PROFILE_CLICKED: 'member-detail-edit-profile-clicked',
+  MEMBER_DETAIL_SOCIAL_LINK_CLICKED: 'member-detail-social-link_clicked',
+  MEMBER_DETAIL_LEARN_MORE_BTN_CLICKED: 'member-detail-learn-more-btn-clicked',
+  MEMBER_DETAIL_TEAMS_SEE_ALL_CLICKED: 'member-detail-teams-see-all-clicked',
+  MEMBER_DETAIL_TEAM_CLICKED: 'memeber-detail-team-clicked',
+  MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_SEE_ALL_CLICKED: 'member-detail-project-contributions-see-all-clicked',
+  MEMBER_DETAIL_PROJECT_CLICKED: 'member-detail-project-clicked',
+  MEMBER_DETAIL_GITHUB_HANDLE_UPDATE_CLICKED:"member-detail-github-handle-update-clicked"
+};
 
 export const PAGE_ROUTES = {
   MEMBERS: '/members',
@@ -167,7 +184,7 @@ export const SORT_OPTIONS = {
   DESCENDING: 'Name,desc',
 };
 
-export const TECHNOLOGIES = ["Filecoin", "IPFS", "libp2p", "IPLD", "drand", "FVM", "SourceCred"];
+export const TECHNOLOGIES = ['Filecoin', 'IPFS', 'libp2p', 'IPLD', 'drand', 'FVM', 'SourceCred'];
 
 export const URL_QUERY_VALUE_SEPARATOR = '|';
 
@@ -205,7 +222,7 @@ export const ENROLLMENT_TYPE = {
   TEAM: 'TEAM',
 };
 
-export const ADMIN_ROLE = "DIRECTORYADMIN";
+export const ADMIN_ROLE = 'DIRECTORYADMIN';
 
 export const AIRTABLE_REGEX = /^rec[A-Za-z0-9]{14}/;
 export const LINKEDIN_URL_REGEX = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|profile|company)\/([a-zA-Z0-9-_]+)/;
@@ -213,3 +230,37 @@ export const TWITTER_URL_REGEX = /twitter\.com\/([^/]+)/;
 export const GITHUB_URL_REGEX = /github\.com\/([^/]+)/;
 export const TELEGRAM_URL_REGEX = /t\.me\/([^/]+)/;
 export const EMAIL_REGEX = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;
+
+export const LEARN_MORE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
+
+const DEFAULT_PRIVACY_VISIBILITY = true;
+
+export const PRIVACY_CONSTANTS = {
+  CONTACT_DETAILS: 'Contact Details',
+  SHOW_EMAIL: 'Show Email',
+  EMAIL_HELP_TXT: 'Enabling this will display your email to all logged in members ',
+  SHOW_GITHUB: 'Show GitHub',
+  GH_HELP_TXT: 'Enabling this will display your GitHub handle to all logged in members',
+  SHOW_TELEGRAM: 'Show Telegram',
+  TELEGRAM_HELP_TXT: 'Enabling this will display your Telegram handle to all logged in members',
+  SHOW_LIN_PFL: 'Show LinkedIn Profile',
+  LIN_HELP_TXT: 'Enabling this will display your LinkedIn Profile link to all logged in members',
+  SHOW_DISCORD: 'Show Discord',
+  DISCORD_HLP_TXT: 'Enabling this will display your Discord handle link to all logged in members',
+  OPEN_TO_COLLABORATE: 'Open to collborate',
+  OTC_HELP_TXT: 'Enabling this will let the members know your collaboration logged in status',
+  SHOW_TWITTER: 'Show Twitter',
+  TWITTER_HELP_TXT: 'Enabling this will display your Twitter Handle to all logged in members ',
+  SHOW_GH_PJCTS: 'Show my GitHub Projects',
+  GH_PJCTS_HELP_TXT: 'Control visibility of your GitHub projects',
+  PROFILE: 'Profile',
+  DEFAULT_SETTINGS: {
+    showEmail: DEFAULT_PRIVACY_VISIBILITY,
+    showGithubHandle: DEFAULT_PRIVACY_VISIBILITY,
+    showTelegram: DEFAULT_PRIVACY_VISIBILITY,
+    showLinkedin: DEFAULT_PRIVACY_VISIBILITY,
+    showDiscord: DEFAULT_PRIVACY_VISIBILITY,
+    showGithubProjects: DEFAULT_PRIVACY_VISIBILITY,
+    showTwitter: DEFAULT_PRIVACY_VISIBILITY,
+  },
+};

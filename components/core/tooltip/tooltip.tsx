@@ -20,7 +20,7 @@ export function Tooltip({ trigger, triggerClassName = "", content, asChild = fal
 
   const onClickandHoverHandler = (e:any) => {
     e.stopPropagation();
-    e.preventDefault();
+    // e.preventDefault();
     setIsOpen(!isOpen);
     setTimeout(() => {
       setIsOpen(false);

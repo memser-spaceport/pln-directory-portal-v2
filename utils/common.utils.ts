@@ -34,6 +34,7 @@ export const getAnalyticsTeamInfo = (team: ITeam | undefined) => {
 export const getAnalyticsMemberInfo = (member: any) => {
   if(member?.name) {
     return {
+      id: member?.id,
       name: member?.name,
     }
   }
@@ -43,7 +44,7 @@ export const getAnalyticsMemberInfo = (member: any) => {
 
 export const getAnalyticsProjectInfo = (project: any) => {
   if(project?.name && project?.description) {
-    return { name: project?.name ?? "", description: project?.description}
+    return { id:project?.id, name: project?.name ?? "", description: project?.description}
   }
   return null
 }

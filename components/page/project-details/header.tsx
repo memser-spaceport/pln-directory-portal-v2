@@ -1,71 +1,73 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import DeleteConfirmationModal from "./delete-confirmation-modal";
-import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
-import { IAnalyticsUserInfo } from "@/types/shared.types";
-import { triggerLoader } from "@/utils/common.utils";
-import { deleteProject } from "@/services/projects.service";
-import { Tooltip } from "@/components/core/tooltip/tooltip";
-
+import { useProjectAnalytics } from '@/analytics/project.analytics';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { deleteProject } from '@/services/projects.service';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { EVENTS } from '@/utils/constants';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
+import DeleteConfirmationModal from './delete-confirmation-modal';
 
 interface IHeader {
   project: any;
   userHasDeleteRights: boolean;
   userHasEditRights: boolean;
-  user: IAnalyticsUserInfo;
+  user: IUserInfo;
   authToken: string;
 }
 
 const Header = (props: IHeader) => {
   const project = props?.project;
-  const name = project?.name ?? "";
-  const tagline = project?.tagline ?? "";
+  const name = project?.name ?? '';
+  const tagline = project?.tagline ?? '';
   const lookingForFunding = project?.lookingForFunding ?? false;
   const userHasDeleteRights = props?.userHasDeleteRights ?? false;
   const userHasEditRights = props?.userHasEditRights ?? false;
-  const id = project?.uid ?? "";
+  const id = project?.id ?? '';
   const isDeleted = project?.isDeleted ?? false;
   const user = props?.user;
   const authToken = props?.authToken;
-
-  const [isOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
+  const analytics = useProjectAnalytics();
+
   const onOpenDeleteModal = () => {
-    // onDeleteButtonClicked(user, project?.uid, project?.name);
-    setIsModalOpen(true);
+    analytics.onProjectDeleteBtnClicked(getAnalyticsUserInfo(user), id);
+    document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE, { detail: true }));
   };
 
   const onCloseModal = () => {
-    // onDeleteCancelButtonClicked(user, project?.uid, project?.name);
-    setIsModalOpen(false);
+    analytics.onProjectDeleteCancelBtnClicked(getAnalyticsUserInfo(user), id);
+    document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE, { detail: false }));
   };
 
   const onEditProject = () => {
     triggerLoader(true);
-    // onEditButtonClicked(user, project?.uid, project?.name);
+    analytics.onProjectDetailEditClicked(getAnalyticsUserInfo(user), id);
     router.push(`/projects/update/${id}`);
   };
 
   const onDeleteProject = async () => {
-    // onDeleteConfirmButtonClicked(user, project?.uid, project?.name);
+    analytics.onProjectDeleteConfirmBtnClicked(getAnalyticsUserInfo(user), id);
     triggerLoader(true);
     try {
       const res = await deleteProject(id, authToken);
       if (res.status === 200) {
         triggerLoader(false);
-        // onProjectDelete(user, "success", project?.uid, project?.name);
-        toast.success("Project deleted successfully.");
-        setIsModalOpen(false);
-        router.push("/projects");
+        analytics.onProjectDeleteSuccess(getAnalyticsUserInfo(user), id);
+        toast.success('Project deleted successfully.');
+        document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE, { detail: false }));
+        router.push('/projects');
         router.refresh();
+      } else {
+        triggerLoader(false);
       }
     } catch (err) {
       triggerLoader(false);
-      // onProjectDelete(user, "failed", project?.uid, project?.name);
-      setIsModalOpen(false);
+      analytics.onProjectDeleteFailed(getAnalyticsUserInfo(user), id);
+      document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE, { detail: false }));
       console.error(err);
     }
   };
@@ -74,22 +76,12 @@ const Header = (props: IHeader) => {
     <>
       <div className="header">
         <div className="header__profile">
-          <img
-            className="header__profile__img"
-            src={project?.logo?.url ?? "/icons/default-project.svg"}
-            alt="logo"
-          />
+          <img className="header__profile__img" src={project?.logo ?? '/icons/default-project.svg'} alt="logo" />
         </div>
         <div className="header__details">
           <div className="header__details__specifics">
             <div className="header__details__specifics__hdr">
-              <Tooltip
-                asChild
-                content={name}
-                trigger={
-                  <h1 className="header__details__specifics__name">{name}</h1>
-                }
-              />
+              <Tooltip asChild content={name} trigger={<h1 className="header__details__specifics__name">{name}</h1>} />
             </div>
             <p className="header__details__specifics__desc">{tagline}</p>
           </div>
@@ -100,30 +92,14 @@ const Header = (props: IHeader) => {
             {!isDeleted && (
               <>
                 {userHasEditRights && (
-                  <button
-                    className="header__details__controls__edit"
-                    onClick={onEditProject}
-                  >
-                    <img
-                      width={14}
-                      height={14}
-                      src="/icons/edit-blue.svg"
-                      alt="edit icon"
-                    />
+                  <button className="header__details__controls__edit" onClick={onEditProject}>
+                    <img width={14} height={14} src="/icons/edit-blue.svg" alt="edit icon" />
                     <span>Edit</span>
                   </button>
                 )}
                 {userHasDeleteRights && (
-                  <button
-                    onClick={onOpenDeleteModal}
-                    className="header__details__controls__delete"
-                  >
-                    <img
-                      width={14}
-                      height={14}
-                      src="/icons/delete.svg"
-                      alt="delete icon"
-                    />
+                  <button onClick={onOpenDeleteModal} className="header__details__controls__delete">
+                    <img width={14} height={14} src="/icons/delete.svg" alt="delete icon" />
                     <span>Delete</span>
                   </button>
                 )}
@@ -140,17 +116,18 @@ const Header = (props: IHeader) => {
           )}
         </div>
       </div>
-      {isOpen && (
-        <DeleteConfirmationModal
-          onClose={onCloseModal}
-          onDeleteProject={onDeleteProject}
-        />
-      )}
+      <DeleteConfirmationModal onClose={onCloseModal} onDeleteProject={onDeleteProject} />
       <style jsx>{`
         .header {
           display: grid;
           grid-template-columns: 48px auto;
           column-gap: 8px;
+        }
+
+        button {
+          background: none;
+          outline: none;
+          cursor: pointer;
         }
 
         .header__profile {

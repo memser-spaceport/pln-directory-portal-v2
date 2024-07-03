@@ -1,8 +1,11 @@
-"use client";
+'use client';
 
-import { Fragment, useState } from "react";
-import AllTeamsModal from "./all-teams-modal";
-import { IAnalyticsUserInfo } from "@/types/shared.types";
+import { Fragment, useRef, useState } from 'react';
+import AllTeamsModal from './all-teams-modal';
+import { IAnalyticsUserInfo } from '@/types/shared.types';
+import { EVENTS } from '@/utils/constants';
+import { useProjectAnalytics } from '@/analytics/project.analytics';
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface ITeamsInvolved {
   project: any;
@@ -15,104 +18,55 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
   const maintainingTeam = project?.maintainingTeam;
   const user = props?.user;
 
-  const [isTeamsOpen, setIsTeamsOpen] = useState(false);
-
-  // const {
-  //   onMaintainerTeamClicked,
-  //   onContributingTeamClicked,
-  //   onTeamsPopUpClose,
-  //   onTeamsPopUpClicked,
-  // } = useProjectDetailAnalytics();
+  const analytics = useProjectAnalytics();
 
   const onContributingTeamClick = (cteam: any) => {
-    // onContributingTeamClicked(
-    //   user,
-    //   cteam?.uid,
-    //   cteam?.name,
-    //   project?.uid,
-    //   project?.name,
-    // );
-    window.open("/teams/" + cteam.uid);
+    analytics.onProjectDetailContributingTeamClicked(getAnalyticsUserInfo(user), project?.id, getAnalyticsTeamInfo(cteam))
+    window.open('/teams/' + cteam.uid);
   };
 
   const onMaintainerTeamClick = (team: any) => {
-    // onMaintainerTeamClicked(
-    //   user,
-    //   team?.uid,
-    //   team?.name,
-    //   project?.uid,
-    //   project?.name,
-    // );
-    window.open("/teams/" + team?.uid);
+    analytics.onProjectDetailMaintainerTeamClicked(getAnalyticsUserInfo(user), project?.id, getAnalyticsTeamInfo(team));
+    window.open('/teams/' + team?.uid);
   };
 
   const onCloseTeamsModal = () => {
-    // onTeamsPopUpClose(user);
-    setIsTeamsOpen(false);
+    document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE, { detail: false }));
   };
 
   const onOpenTeamsModal = () => {
-    // onTeamsPopUpClicked(user);
-    setIsTeamsOpen(true);
+    analytics.onProjectDetailSeeAllTeamsClicked(getAnalyticsUserInfo(user), project?.id)
+    document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE, { detail: true }));
   };
 
   return (
     <>
       <div className="teams">
-        <div className="teams__hdr" onClick={onOpenTeamsModal}>
+        <button className="teams__hdr" onClick={onOpenTeamsModal}>
           <h6 className="teams__hdr__title">Teams</h6>
-          <span className="teams__hdr__count">
-            {contributingTeams?.length + 1}
-          </span>
-        </div>
-        <div
-          className="teams__mTeam"
-          onClick={() => onMaintainerTeamClick(maintainingTeam)}
-        >
+          <span className="teams__hdr__count">{contributingTeams?.length + 1}</span>
+        </button>
+        <button className="teams__mTeam" onClick={() => onMaintainerTeamClick(maintainingTeam)}>
           <div className="teams__mTeam__info">
-            <img
-              height={40}
-              width={40}
-              className="teams__mTeam__info__logo"
-              src={
-                maintainingTeam?.logo?.url || "/icons/team-default-profile.svg"
-              }
-              alt="team image"
-            />
+            <img height={40} width={40} className="teams__mTeam__info__logo" src={maintainingTeam?.logo || '/icons/team-default-profile.svg'} alt="team image" />
             <div title="Maintainer" className="teams__mTeam__info__name">
               {maintainingTeam?.name}
             </div>
           </div>
           <div className="teams__mTeam__settings">
-            <img
-              width={20}
-              height={20}
-              src="/icons/configuration.svg"
-              alt="image"
-            />
+            <img width={20} height={20} src="/icons/configuration.svg" alt="image" />
           </div>
-        </div>
+        </button>
         {contributingTeams.length > 0 &&
           contributingTeams.map((cteam: any, index: number) => (
             <Fragment key={`cteam-${index}`}>
               {index < 3 && (
-                <div
-                  className="cteam"
-                  onClick={() => onContributingTeamClick(cteam)}
-                >
+                <button className="cteam" onClick={() => onContributingTeamClick(cteam)}>
                   <div className="cteam__info">
-                    <img
-                      height={40}
-                      width={40}
-                      className="cteam__info__logo"
-                      src={
-                        cteam?.logo?.url || "/icons/team-default-profile.svg"
-                      }
-                      alt="team image"
-                    />
+                    <img height={40} width={40} className="cteam__info__logo" src={cteam?.logo?.url || '/icons/team-default-profile.svg'} alt="team image" />
                     <div className="cteam__info__name">{cteam?.name}</div>
                   </div>
-                </div>
+                </button>
               )}
             </Fragment>
           ))}
@@ -121,16 +75,15 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
             +{project?.contributingTeams.length - 3} more
           </button>
         )}
-        {isTeamsOpen && (
-          <AllTeamsModal
-            onClose={onCloseTeamsModal}
-            project={project}
-            onContributingTeamClicked={onContributingTeamClick}
-            onMaintainerTeamClicked={onMaintainerTeamClick}
-          />
-        )}
+        <AllTeamsModal onClose={onCloseTeamsModal} project={project} onContributingTeamClicked={onContributingTeamClick} onMaintainerTeamClicked={onMaintainerTeamClick} />
       </div>
       <style jsx>{`
+        button {
+          background: none;
+          border: none;
+          outline: none;
+        }
+
         .teams {
           display: flex;
           flex-direction: column;
@@ -139,6 +92,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
 
         .teams__hdr {
           display: flex;
+          width: 100%;
           justify-content: space-between;
           align-items: center;
           padding-bottom: 14px;
@@ -200,6 +154,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
         .teams__mTeam__info__logo {
           border: 1px solid #e2e8f0;
           border-radius: 4px;
+          background-color: #e2e8f0;
         }
 
         .teams__mTeam__info__name {
@@ -218,6 +173,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
         .cteam__info__logo {
           border: 1px solid #e2e8f0;
           border-radius: 4px;
+          background-color: #e2e8f0;
         }
 
         .cteam__info__name {

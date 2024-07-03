@@ -33,7 +33,10 @@ export const EVENTS = {
   OPEN_MEMBER_REGISTER_DIALOG: 'open-member-register-dialog',
   SHOW_FILTER: 'SHOW_FILTER',
   TEAM_DETAIL_ALL_PROJECTS_CLOSE: "team-detail-all-projects-close",
-  TEAM_DETAIL_ALL_MEMBERS_CLOSE: "team-detail-all-members-close"
+  TEAM_DETAIL_ALL_MEMBERS_CLOSE: "team-detail-all-members-close",
+  PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE: "project-detail-all-members-open-and-close",
+  PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE: "project-detail-all-teams-open-and-close",
+  PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: "project-detail-delete-modal-open-and-close"
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -70,8 +73,35 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_JOIN_NETWORK_OPTION_CLICKED: 'navbar-join-network-option-clicked',
   NAVBAR_DRAWER_BTN_CLICKED: 'navbar-drawer-btn-clicked',
   FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked',
-  SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED:"session-expired-popup-login-btn-clicked"
+  SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: "session-expired-popup-login-btn-clicked"
 };
+
+export const PROJECT_ANALYTICS_EVENTS = {
+  PROJECT_DETAIL_DELETE_SUCCESS: 'project-detail-delete-success',
+  PROJECT_DETAIL_DELETE_FAILED: 'project-detail-delete-failed',
+  PROJECT_DETAIL_DELETE_BTN_CLICKED: 'project-detail-delete-btn-clicked',
+  PROJECT_DETAIL_DELETE_CANCEL_BTN_CLICKED: 'project-detail-delete-cancel-btn-clicked',
+  PROJECT_DETAIL_EDIT_CONFIRM_CLICKED: 'project-edit-confirm-btn-clicked',
+  PROJECT_DETAIL_EDIT_CLICKED: 'project-detail-edit-clicked',
+  PROJECT_DETAIL_LINKS_CLICKED: 'project-detail-link-clicked',
+  PROJECT_EDIT_CLICKED: 'project-edit-clicked',
+  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_CANCELLED:
+    'project-detail-additional-detail-edit-cancelled',
+  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE:
+    'project-detail-additional-detail-edit-save-clicked',
+  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE_SUCCESS:
+    'project-detail-additional-detail-edit-save-success',
+  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE_FAILED:
+    'project-detail-additional-detail-edit-save-failed',
+  PROJECT_DETAIL_MAINTAINER_TEAM_CLICKED:
+    'project-detail-maintainer-team-clicked',
+  PROJECT_DETAIL_CONTRIBUTING_TEAM_CLICKED:
+    'project-detail-contributing-team-clicked',
+  PROJECT_DETAIL_SEEALL_CLICKED: 'project-detail-teams-seeall-clicked',
+  PROJECT_DETAIL_SEE_ALL_CONTRIBUTORS_CLICKED: 'project-detail-see-all-contributors-clicked',
+  PROJECT_DETAIL_CONTRIBUTOR_PROFILE_CLICKED: 'project-detail-contributor-profile-clicked',
+}
+
 export const TOAST_MESSAGES = {
   LOGOUT_MSG: 'You have been logged out successfully',
   LOGIN_MSG: 'Successfully Logged In',

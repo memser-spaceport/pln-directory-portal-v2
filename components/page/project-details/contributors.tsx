@@ -1,139 +1,72 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import AllContributorsModal from "./all-contributors-modal";
-import { IMember } from "@/types/members.types";
-import { IAnalyticsUserInfo } from "@/types/shared.types";
+import { IAnalyticsUserInfo } from '@/types/shared.types';
+import AllContributorsModal from './all-contributors-modal';
+import { EVENTS } from '@/utils/constants';
+import { useProjectAnalytics } from '@/analytics/project.analytics';
+import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface IContributors {
   contributors: any[];
-  contributingMembers: IMember[];
   user: IAnalyticsUserInfo;
+  project: any;
 }
 
 const Contributors = (props: IContributors) => {
-  const contributors = props?.contributors;
-  const contributingMembers = props?.contributingMembers ?? [];
+  const contributors = props?.contributors ?? [];
   const contributorsLength = contributors?.length ?? 0;
-  const contributingMembersLength = contributingMembers.length ?? 0;
+  const project = props?.project;
 
-  const slicedContributors =
-    contributorsLength > 17 ? contributors.slice(0, 17) : contributors;
-  const individualContributors =
-    contributingMembersLength > 0
-      ? slicedContributors?.length < 17
-        ? contributingMembers?.slice(0, 17 - slicedContributors?.length)
-        : []
-      : [];
+  const slicedContributors = contributorsLength > 20 ? contributors.slice(0, 20) : contributors;
   const user = props.user;
 
-  console.log("sliced contributors is", slicedContributors);
-
-  const [isContributorsOpen, setIsContributorsOpen] = useState(false);
-  // const {
-  //   onContributorClicked,
-  //   onContributorPopUpClicked,
-  //   onContributorPopUpClose,
-  // } = useProjectDetailAnalytics();
+  const analytics = useProjectAnalytics();
 
   const onCloseContributorsModal = () => {
-    // onContributorPopUpClose(user);
-    setIsContributorsOpen(false);
+    document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: false }));
   };
 
   const onOpenContributorsModal = () => {
-    // onContributorPopUpClicked(user);
-    setIsContributorsOpen(true);
+    analytics.onProjDetailSeeAllContributorsClicked(getAnalyticsUserInfo(user), getAnalyticsProjectInfo(project));
+    document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: true }));
   };
 
-  const onContributorClick = (
-    contributorUid: string,
-    contributorName: string,
-  ) => {
-    // onContributorClicked(user, contributorUid, contributorName);
-    window.open("/members/" + contributorUid, "_blank");
+  const onContributorClick = (contributor: any) => {
+    analytics.onProjectDetailContributorClicked(getAnalyticsUserInfo(user), getAnalyticsProjectInfo(project), getAnalyticsMemberInfo(contributor));
+    window.open('/members/' + contributor?.uid, '_blank');
   };
 
   return (
     <>
       <div className="contributors">
-        <div className="contributors__hdr" onClick={onOpenContributorsModal}>
+        <button className="contributors__hdr" onClick={onOpenContributorsModal}>
           <h6 className="contributors__hdr__title">Contributors</h6>
-          <span className="contributors__hdr__count">
-            {contributorsLength + contributingMembersLength}
-          </span>
-        </div>
+          <span className="contributors__hdr__count">{contributorsLength}</span>
+        </button>
         <div className="contributors__body">
           <div className="contributors__body__list">
             {contributorsLength > 0 &&
-              slicedContributors.map(
-                (contributor: any, index: number) => (
-                  <div
-                    key={`contributor-${index}`}
-                    className="contributors__body__list__contributor"
-                    title={contributor?.name}
-                    onClick={() =>
-                      onContributorClick(
-                        contributor?.uid,
-                        contributor?.name,
-                      )
-                    }
-                  >
-                    <img
-                      width={32}
-                      height={32}
-                      className="contributors__body__list__contributor__img"
-                      src={
-                        contributor.logo ||
-                        "/icons/default_profile.svg"
-                      }
-                    />
-                  </div>
-                ),
-              )}
-            {contributingMembers &&
-              individualContributors.map(
-                (contributor: IMember, index: number) => {
-                  return (
-                    <div
-                      key={`member-${index}`}
-                      className="contributors__body__list__contributor"
-                      title={contributor?.name}
-                      onClick={() =>
-                        onContributorClick(contributor.id, contributor?.name)
-                      }
-                    >
-                      <img
-                        width={32}
-                        height={32}
-                        className="contributors__body__list__contributor__img"
-                        src={
-                          contributor?.profile || "/icons/default_profile.svg"
-                        }
-                      />
-                    </div>
-                  );
-                },
-              )}
-            {contributorsLength + contributingMembersLength > 17 && (
-              <div
-                className="contributors__body__list__remaining"
-                onClick={onOpenContributorsModal}
-              >
-                +{contributorsLength - 17 + contributingMembersLength}
-              </div>
+              slicedContributors.map((contributor: any, index: number) => (
+                <button key={`contributor-${index}`} className="contributors__body__list__contributor" title={contributor?.name} onClick={() => onContributorClick(contributor)}>
+                  <img width={32} height={32} className="contributors__body__list__contributor__img" src={contributor.logo || '/icons/default_profile.svg'} />
+                </button>
+              ))}
+            {contributorsLength > 20 && (
+              <button className="contributors__body__list__remaining" onClick={onOpenContributorsModal}>
+                +{contributorsLength - 20}
+              </button>
             )}
           </div>
         </div>
       </div>
-      {isContributorsOpen && (
-        <AllContributorsModal
-          onClose={onCloseContributorsModal}
-          contributorsList={contributors}
-          contributingMembers={contributingMembers}
-        />
-      )}
+      <AllContributorsModal onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={contributors} />
       <style jsx>{`
+        button {
+          background: none;
+          border: none;
+          outline: none;
+        }
+
         .contributors__hdr {
           display: flex;
           justify-content: space-between;
@@ -141,6 +74,7 @@ const Contributors = (props: IContributors) => {
           padding-bottom: 14px;
           border-bottom: 1px solid #e2e8f0;
           cursor: pointer;
+          width: 100%;
           color: #0f172a;
         }
 

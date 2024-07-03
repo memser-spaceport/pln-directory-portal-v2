@@ -1,155 +1,86 @@
-"use client";
+'use client';
 
-import Modal from "@/components/core/modal";
-import { IMember } from "@/types/members.types";
-import { useEffect, useRef, useState } from "react";
+import { useProjectAnalytics } from '@/analytics/project.analytics';
+import Modal from '@/components/core/modal';
+import { IMember } from '@/types/members.types';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { EVENTS } from '@/utils/constants';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 
 interface IAllContributorsModal {
   onClose: () => void;
-  contributingMembers: IMember[];
   contributorsList: any[];
+  onContributorClickHandler: any;
 }
 
 const AllContributorsModal = (props: IAllContributorsModal) => {
   const onClose = props?.onClose;
-  const contributingMembers = props?.contributingMembers ?? [];
   const contributorsList = props?.contributorsList ?? [];
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const allContributorsRef = useRef(null);
-  const [filteredContriList, setFilteredContriList] =
-    useState(contributorsList);
-  const [filteredContriMembers, setFilteredContriMembers] =
-    useState(contributingMembers);
+  const onContributorClickHandler = props?.onContributorClickHandler
+
+  const analytics = useProjectAnalytics();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const allContributorsRef = useRef<HTMLDialogElement>(null);
+  const [filteredContriList, setFilteredContriList] = useState(contributorsList);
 
   useEffect(() => {
-    if (searchTerm) {
-      const filteredContributors = contributorsList.filter(
-        (contributor: any) => {
-          return contributor?.member?.name
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase());
-        },
-      );
-      setFilteredContriList(filteredContributors);
+    document.addEventListener(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, (e: any) => {
+      if (e.detail) {
+        allContributorsRef?.current?.showModal();
+        return;
+      }
+      allContributorsRef?.current?.close();
+      return;
+    });
+  }, []);
 
-      const tempMembers = contributingMembers.filter((contributor: IMember) => {
-        return contributor?.name
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-      });
-      setFilteredContriMembers(tempMembers);
-    } else {
-      setFilteredContriList(contributorsList);
-      setFilteredContriMembers(contributingMembers);
+  const onInputchangeHandler = (event: any) => {
+    const searchTerm = event?.target.value;
+    if (searchTerm) {
+      setSearchTerm(event.target.value);
+      const filteredMembers = contributorsList?.filter((member: IMember) => member?.name?.toLowerCase()?.includes(searchTerm));
+      setFilteredContriList(filteredMembers);
     }
-  }, [searchTerm]);
+  };
+
+  const onModalCloseClickHandler = () => {
+    setSearchTerm("");
+    setFilteredContriList(contributorsList);
+    onClose();
+  }
+
 
   return (
     <>
-      <Modal modalRef={allContributorsRef} onClose={onClose}>
+      <Modal modalRef={allContributorsRef} onClose={onModalCloseClickHandler}>
         <div className="cm">
-          <div className="cm__hdr">
-            Contributors (
-            {contributorsList.length + contributingMembers?.length})
-          </div>
+          <div className="cm__hdr">Contributors ({contributorsList.length})</div>
           <div>
             <div className="cm__body__search">
               <div className="cm__body__search__icon">
-                <img src="/icons/search-grey.svg" alt="search icon" />
+                <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
               </div>
-              <input
-                value={searchTerm}
-                type="search"
-                className="cm__body__search__input"
-                placeholder="Search"
-                onChange={(event) => setSearchTerm(event.currentTarget.value)}
-              />
+              <input value={searchTerm} type="search" className="cm__body__search__input" placeholder="Search" onChange={(event) => onInputchangeHandler(event)} />
             </div>
           </div>
           <div className="cm__body__contributors">
-            {filteredContriList?.map(
-              (contributor: any, index: number) => {
-                const isTeamLead = contributor?.member?.teamMemberRoles.some(
-                  (team: { teamLead: boolean }) => team?.teamLead,
-                );
-                return (
-                  <div
-                    className="contributor__wrpr"
-                    key={"contributor" + contributor?.uid}
-                    onClick={() => {
-                      window.open("/members/" + contributor?.member?.uid);
-                    }}
-                  >
-                    <div className="contributor">
-                      <div className="contributor__info">
-                        <div className="contributor__info__imgWrpr">
-                          <img
-                            width={40}
-                            height={40}
-                            src={
-                              contributor?.member?.image?.url ||
-                              "/icons/default_profile.svg"
-                            }
-                            alt="image"
-                            className="contributor__info__img"
-                          />
-                          {isTeamLead && (
-                            <img
-                              src="/icons/badge/team-lead.svg"
-                              className="contributor__info__teamlead"
-                              alt="team lead image"
-                              width={16}
-                              height={16}
-                            />
-                          )}
-                        </div>
-                        <div className="contributor__info__name">
-                          {contributor?.member?.name}
-                        </div>
-                      </div>
-                      <div className="contributor__nav">
-                        <img src="/icons/right-arrow-gray.svg" alt="icon" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              },
-            )}
-            {filteredContriMembers?.map((contributor: IMember) => {
+            {filteredContriList?.map((contributor: any) => {
               return (
                 <div
                   className="contributor__wrpr"
-                  key={"contributor" + contributor?.id}
-                  onClick={() => {
-                    window.open("/members/" + contributor?.id);
-                  }}
+                  key={'contributor' + contributor?.id}
+                  onClick={() => onContributorClickHandler(contributor)}
                 >
                   <div className="contributor">
                     <div className="contributor__info">
                       <div className="contributor__info__imgWrpr">
-                        <img
-                          width={40}
-                          height={40}
-                          src={
-                            contributor?.profile || "/icons/default_profile.svg"
-                          }
-                          alt="image"
-                          className="contributor__info__img"
-                        />
-                        {contributor?.teamLead && (
-                          <img
-                            src="/icons/badge/team-lead.svg"
-                            className="contributor__info__teamlead"
-                            alt="team lead image"
-                            width={16}
-                            height={16}
-                          />
-                        )}
+                        <img width={40} height={40} src={contributor.logo || '/icons/default_profile.svg'} alt="image" className="contributor__info__img" />
+                        {contributor?.teamLead && <img src="/icons/badge/team-lead.svg" className="contributor__info__teamlead" alt="team lead image" width={16} height={16} />}
                       </div>
-                      <div className="contributor__info__name">
-                        {contributor?.name}
-                      </div>
+                      <div className="contributor__info__name">{contributor?.name}</div>
                     </div>
                     <div className="contributor__nav">
                       <img src="/icons/right-arrow-gray.svg" alt="icon" />
@@ -158,13 +89,7 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
                 </div>
               );
             })}
-            {searchTerm &&
-              filteredContriList.length === 0 &&
-              filteredContriMembers.length === 0 && (
-                <div className="cm__body__contributors__notFound">
-                  No results found for the search criteria.
-                </div>
-              )}
+            {filteredContriList.length === 0 && <div className="cm__body__contributors__notFound">No contributor found.</div>}
           </div>
         </div>
       </Modal>
@@ -263,6 +188,7 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
         .contributor__info__img {
           border: 1px solid #e2e8f0;
           color: #e2e8f0;
+          object-fit: cover;
           border-radius: 50%;
         }
 

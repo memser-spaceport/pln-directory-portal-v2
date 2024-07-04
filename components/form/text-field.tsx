@@ -24,7 +24,9 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, value = '', defa
 
   useEffect(() => {
     if(inputRef.current) {
-      inputRef.current.value = value
+      if(value !== '') {
+        inputRef.current.value = value
+      }
     }
   }, [value])
 
@@ -42,6 +44,7 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, value = '', defa
           className="tf__input"
           type={type}
           required={isMandatory}
+          defaultValue={defaultValue}
           maxLength={maxLength}
           autoComplete="off"
           {...rest}

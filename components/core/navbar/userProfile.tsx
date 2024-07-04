@@ -11,7 +11,8 @@ import { Tooltip } from '../tooltip/tooltip';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { createLogoutChannel } from '../login/broadcast-channel';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
 
 interface IProfile {
   userInfo: IUserInfo;
@@ -20,6 +21,7 @@ interface IProfile {
 export default function UserProfile(props: Readonly<IProfile>) {
   const [isDropdown, setIsDropdown] = useState(false);
   const profileMenuRef = useRef(null);
+  const router = useRouter()
 
   const analytics = useCommonAnalytics();
   const userInfo = props?.userInfo;
@@ -40,6 +42,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
   };
 
   const onAccountOptionsClickHandler = (name: string) => {
+    router.push('/settings/profile')
     analytics.onNavAccountItemClicked(name, getAnalyticsUserInfo(userInfo));
   };
 

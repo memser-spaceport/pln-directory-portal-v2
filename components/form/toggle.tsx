@@ -1,10 +1,11 @@
+'use client'
 import React, { useEffect, useRef, useState } from 'react';
 
 interface ToggleProps {
   id: string;
   label?: string;
   name: string;
-  onChange: (isChecked: boolean) => void
+  onChange?: (isChecked: boolean) => void
   checked?: boolean
   disabled?:boolean
   value?:boolean
@@ -16,7 +17,9 @@ const Toggle: React.FC<ToggleProps> = ({ id, label, name, value = false, disable
 
   const handleToggle = () => {
     if(!disabled) {
-      onChange(!isChecked)
+      if(onChange) {
+        onChange(!isChecked)
+      }
       setIsChecked(!isChecked);
     }
   };

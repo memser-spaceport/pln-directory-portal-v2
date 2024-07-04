@@ -9,17 +9,18 @@ import TextArea from '@/components/form/text-area';
 import HiddenField from '@/components/form/hidden-field';
 import TextAreaEditor from '@/components/form/text-area-editor';
 
-function MemberContributionInfo(props: any) {
-  const initialValues = props.initialValues;
-  const projectsOptions = props.projectOptions ?? [];
-  const [contributionInfos, setContributionInfos] = useState(initialValues.contributions);
-  const errors = props.errors ?? {};
+interface MemberContributionInfoProps {
+  initialValues: any,
+  projectsOptions: any[],
+  errors: string[]
+}
+
+function MemberContributionInfo({ initialValues = {}, projectsOptions = [], errors = [] }: MemberContributionInfoProps) {
+  const [contributionInfos, setContributionInfos] = useState(initialValues.contributions ?? []);
   const currentProjectsCount = contributionInfos.filter((v: any) => v.currentProject === true).length;
   const [expandedId, setExpandedId] = useState(-1);
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
-  const startYear = currentYear - 50;
-  const startDate = new Date(startYear, currentMonth);
   const endDate = new Date();
   const formatDate = (year: number, month: number, dateBoundary: string): string => {
     const date = dateBoundary === 'start' ? new Date(Date.UTC(year, month, 1)) : new Date(Date.UTC(year, month + 1, 0));
@@ -32,7 +33,7 @@ function MemberContributionInfo(props: any) {
     currentProject: false,
     description: '',
     role: '',
-    startDate: formatDate(startYear, currentMonth, 'start'),
+    startDate: new Date('1990-01-02').toISOString().slice(0,10) ,
     endDate: formatDate(currentYear, currentMonth, 'end'),
   };
 
@@ -202,7 +203,7 @@ function MemberContributionInfo(props: any) {
                       id={`member-contribution-startDate-${index}`}
                       onChange={(e) => onProjectDetailsChanged(index, e, 'startDate')}
                       name={`contributionInfo${index}-startDate`}
-                      defaultValue={startDate.toISOString()}
+                      defaultValue={Date.UTC(1990, 1, 1).toString()}
                       dateBoundary="start"
                       value={contributionInfo.startDate}
                       label="From*"
@@ -253,6 +254,7 @@ function MemberContributionInfo(props: any) {
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
+           
           }
 
           .pc__new {
@@ -276,6 +278,7 @@ function MemberContributionInfo(props: any) {
 
           .pc__list {
             width: 100%;
+            padding-bottom: 70px;
           }
 
           .pc__list__item {

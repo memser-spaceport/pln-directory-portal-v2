@@ -158,7 +158,7 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
     ...(includeFriends ? {} : { plnFriend: false }),
     ...(openToWork ? { openToWork: true } : {}),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
-    ...(memberRoles ? { 'memberRoles': stringifyQueryValues(memberRoles) } : {}),
+    ...(memberRoles ? { memberRoles: stringifyQueryValues(memberRoles) } : {}),
     orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
   };
 }
@@ -232,11 +232,50 @@ export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedI
     region: getTagsFromValues(parsedValuesByFilter.region, parsedAvailableValuesByFilter.region, query?.region, isUserLoggedIn),
     country: getTagsFromValues(parsedValuesByFilter.country, parsedAvailableValuesByFilter.country, query?.country, isUserLoggedIn),
     metroArea: getTagsFromValues(parsedValuesByFilter.metroArea, parsedAvailableValuesByFilter.metroArea, query?.metroArea, isUserLoggedIn),
-    memberRoles: getRoleTagsFromValues(
-      roleValues,
-      query.memberRoles
-    ),
+    memberRoles: getRoleTagsFromValues(roleValues, query.memberRoles),
   };
 
   return { data: { formattedData } };
+};
+export const getMemberInfoFormValues = async () => {
+  const [teamsInfo, projectsInfo, skillsInfo] = await Promise.all([
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false`, { method: 'GET' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false`, { method: 'GET' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/skills?pagination=false`, { method: 'GET' }),
+  ]);
+  if (!teamsInfo.ok || !projectsInfo.ok || !skillsInfo.ok) {
+    return { isError: true };
+  }
+
+  const teamsData = await teamsInfo.json();
+  const projectsData = await projectsInfo.json();
+  const skillsData = await skillsInfo.json();
+  return {
+    teams: teamsData
+      .map((d: any) => {
+        return {
+          teamUid: d.uid,
+          teamTitle: d.name,
+          role: '',
+        };
+      })
+      .sort((a: any, b: any) => a.teamTitle - b.teamTitle),
+    skills: skillsData
+      .map((d: any) => {
+        return {
+          id: d.uid,
+          name: d.title,
+        };
+      })
+      .sort((a: any, b: any) => a.name - b.name),
+    projects: projectsData
+      .map((d: any) => {
+        return {
+          projectUid: d.uid,
+          projectName: d.name,
+          projectLogo: d.logo?.url ?? '/icons/default-project.svg',
+        };
+      })
+      .sort((a: any, b: any) => a.projectName - b.projectName),
+  };
 };

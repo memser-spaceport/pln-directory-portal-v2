@@ -158,7 +158,6 @@ export const getMemberRoles = async (options: IMemberListOptions) => {
   return await response.json();
 };
 
-
 export const getMembersForProjectForm = async (teamId = null) => {
   let response;
   if (teamId) {
@@ -185,4 +184,39 @@ export const getMembersForProjectForm = async (teamId = null) => {
   });
 
   return {data: formattedData};
+};
+export const getMemberInfo = async (memberUid: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+  if (!response?.ok) {
+    return { isError: true };
+  }
+
+  const result = await response?.json();
+  return { data: result };
+};
+
+export const getMembersInfoForDp = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+  if (!response?.ok) {
+    return { error: { status: response?.status, statusText: response?.statusText } };
+  }
+  const result = await response?.json();
+  const formattedData: any = result
+    .map((info: any) => {
+      return {
+        id: info.uid,
+        name: info.name,
+        profile: info.image?.url,
+      };
+    })
+    .sort((a: any, b: any) => a.name - b.name);
+  return { data: formattedData };
 };

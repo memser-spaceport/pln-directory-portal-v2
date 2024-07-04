@@ -1,8 +1,6 @@
 'use client';
 import HiddenField from '@/components/form/hidden-field';
 import MultiSelect from '@/components/form/multi-select';
-import RadioButton from '@/components/form/radio-button';
-import SearchableMultiSelect from '@/components/form/searchable-multi-select';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import TextField from '@/components/form/text-field';
 import Image from 'next/image';
@@ -19,13 +17,16 @@ interface SkillsOptions {
   id: string;
 }
 
-function MemberSkillsInfo(props:any) {
-  const teamOptions = props.teamsOptions;
-  const skillsOptions = props.skillsOptions;
-  const errors = props.errors;
-  const initialValues = props.initialValues
-  const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>(initialValues.teamsAndRoles);
-  const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>(initialValues.skills);
+interface MemberSkillsInfoProps {
+  initialValues: any;
+  teamsOptions: TeamAndRoleOptions[];
+  skillsOptions: SkillsOptions[];
+  errors: string[];
+}
+
+function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions = [], errors = [] }: MemberSkillsInfoProps) {
+  const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>(initialValues.teamsAndRoles ?? []);
+  const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>(initialValues.skills ?? []);
 
   const onAddTeam = () => {
     setTeamsInfo((v) => {
@@ -68,7 +69,7 @@ function MemberSkillsInfo(props:any) {
 
   const getAvailableTeamOptions = () => {
     const selectedTeamUids = [...teamsinfo].filter((v) => v.teamUid !== '').map((v) => v.teamUid);
-    const remainingItems = [...teamOptions].filter((v) => !selectedTeamUids.includes(v.teamUid));
+    const remainingItems = [...teamsOptions].filter((v) => !selectedTeamUids.includes(v.teamUid));
     return [...remainingItems];
   };
 
@@ -88,7 +89,7 @@ function MemberSkillsInfo(props:any) {
   useEffect(() => {
     function resetHandler() {
       setTeamsInfo(initialValues.teamsAndRoles);
-      setSelectedSkills(initialValues.skills)
+      setSelectedSkills(initialValues.skills);
     }
     document.addEventListener('reset-member-register-form', resetHandler);
     return function () {
@@ -132,7 +133,15 @@ function MemberSkillsInfo(props:any) {
                   <HiddenField value={teaminfo.teamUid} defaultValue="" name={`teamInfo${index}-teamUid`} />
                 </div>
                 <div className="msf__tr__content__cn__role">
-                  <TextField id="register-member-role" value={teaminfo.role} isMandatory={true} name={`teamInfo${index}-role`} placeholder="Enter your title/role" onChange={(e) => onRoleChange(index, e.target.value)} type="text" />
+                  <TextField
+                    id="register-member-role"
+                    value={teaminfo.role}
+                    isMandatory={true}
+                    name={`teamInfo${index}-role`}
+                    placeholder="Enter your title/role"
+                    onChange={(e) => onRoleChange(index, e.target.value)}
+                    type="text"
+                  />
                 </div>
                 <div className="msf__tr__content__cn__delete">
                   {index !== 0 && (
@@ -143,7 +152,7 @@ function MemberSkillsInfo(props:any) {
                 </div>
               </div>
             ))}
-            {teamOptions.length !== teamsinfo.length && (
+            {teamsOptions.length !== teamsinfo.length && (
               <div className="msf__tr__add">
                 <div className="msf__tr__add__btn" onClick={onAddTeam}>
                   <Image src="/icons/add.svg" width="16" height="16" alt="Add New" />
@@ -192,7 +201,7 @@ function MemberSkillsInfo(props:any) {
             flex-direction: column;
             gap: 4px;
           }
-        .msf__errors {
+          .msf__errors {
             color: red;
             font-size: 12px;
             padding: 0 16px 16px 16px;

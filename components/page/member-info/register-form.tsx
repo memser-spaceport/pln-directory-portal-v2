@@ -287,7 +287,7 @@ function RegisterForm(props: any) {
       if (v['endDate'] === '') {
         delete v['endDate'];
       } else {
-        v['endDate'] = new Date(v.endDate) >= new Date() ? new Date().toISOString() : new Date(v.endDate).toISOString();
+        v['endDate'] = new Date(v.endDate).toISOString();
       }
 
       return v;

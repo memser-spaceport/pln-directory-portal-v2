@@ -1,3 +1,4 @@
+'use client'
 import TextField from '@/components/form/text-field';
 import { useEffect, useRef, useState } from 'react';
 

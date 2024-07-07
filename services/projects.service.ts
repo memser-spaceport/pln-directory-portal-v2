@@ -61,8 +61,7 @@ const getFormattedProject = (project: any) => {
             formattedProject['tagline'] = project.tagline ?? '';
             formattedProject['description'] = project.description ?? '';
             formattedProject['contactEmail'] = project.contactEmail ?? '';
-            formattedProject['image'] = project.logo?.url;
-            formattedProject['logo'] = project.logo ?? null;
+            formattedProject['logo'] = project.logo?.url ?? null;
             formattedProject['fundingNeeded'] = project.lookingForFunding ?? false;
             formattedProject['kpis'] = project.kpis ?? [];
             formattedProject['readMe'] = project.readMe ?? '';

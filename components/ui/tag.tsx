@@ -20,8 +20,7 @@ export function Tag(props: Readonly<TagProps>) {
   const variant = props?.variant ?? 'tag-default';
   const tagsLength = props?.tagsLength ?? 3;
   const keyValue = props?.keyValue ?? '';
-  const from = props?.from ?? "" ;
-
+  const from = props?.from ?? '';
 
   const getTagStyle = () => {
     if (variant === 'secondary') {
@@ -39,7 +38,7 @@ export function Tag(props: Readonly<TagProps>) {
   };
 
   const onTagClickHandler = (event: SyntheticEvent) => {
-    if(callback) {
+    if (callback) {
       callback(keyValue, value, selected, from);
       return;
     }
@@ -142,6 +141,15 @@ export function Tag(props: Readonly<TagProps>) {
           @media (min-width: 1024px) {
             .tag-default {
               max-width: 150px;
+            }
+
+            .tag-primary {
+              max-width: 60px;
+            }
+
+            .tag-md {
+              max-width: 120px;
+
             }
           }
         `}

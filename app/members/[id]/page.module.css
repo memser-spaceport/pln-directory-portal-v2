@@ -1,87 +1,82 @@
 .memberDetail {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-bottom: 40px;
-    min-height: 100px;
-    background-color: #f1f5f9;
-    min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 40px;
+  min-height: 100px;
+  background-color: #f1f5f9;
+  min-height: calc(100vh - 80px);
+}
+
+.memberDetail__breadcrumb {
+  display: unset;
+  height: 48px;
+  width: 100%;
+  position: sticky;
+  z-index: 1;
+  top: 80px;
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+}
+
+.memberDetail__container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memberDetail__container__contact {
+  min-height: 20px;
+  padding: 20px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.memberDetail__container__header {
+  min-height: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  background: #fff;
+}
+
+.memberDetail__container__header__loggedOut {
+  border-radius: 0px 0px 8px 8px;
+}
+
+.memberDetail__container__teams {
+  min-height: 20px;
+  padding: 20px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.memberDetail__container__repositories {
+  min-height: 20px;
+  padding: 16px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.memberDetail__projectContribution {
+  min-height: 20px;
+  padding: 16px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  border-radius: 8px;
+  background: #fff;
+}
+
+@media (min-width: 1024px) {
+  .memberDetail {
+    align-items: center;
   }
-  
-  .memberDetail__breadcrumb {
-    display: none;
-  }
-  
+
   .memberDetail__container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    width: 900px;
+    padding-top: 38px;
   }
-  
-  .memberDetail__container__contact {
-      min-height: 20px;
-      padding: 20px;
-      box-shadow: 0px 4px 4px 0px #0F172A0A;
-      border-radius: 8px;
-      background: #fff;
-  }
-  
-  .memberDetail__container__header {
-      min-height: 20px;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0px 4px 4px 0px #0F172A0A;
-      background: #fff;
-  }
-  
-  .memberDetail__container__header__loggedOut {
-    border-radius: 0px 0px 8px 8px;
-  }
-  
-  .memberDetail__container__teams {
-    min-height: 20px;
-    padding: 20px;
-    box-shadow: 0px 4px 4px 0px #0F172A0A;
-    border-radius: 8px;
-    background: #fff;
-  }
-  
-  .memberDetail__container__repositories {
-    min-height: 20px;
-    padding: 16px;
-    box-shadow: 0px 4px 4px 0px #0F172A0A;
-    border-radius: 8px;
-    background: #fff;
-  }
-  
-  .memberDetail__projectContribution {
-    min-height: 20px;
-    padding: 16px;
-    box-shadow: 0px 4px 4px 0px #0F172A0A;
-    border-radius: 8px;
-    background: #fff; 
-  }
-  
-  @media (min-width: 1024px) {
-    .memberDetail {
-      align-items: center;
-    }
-  
-    .memberDetail__breadcrumb {
-      display: unset;
-      height: 48px;
-      width: 100%;
-      position: sticky;
-      z-index: 1;
-      top: 80px;
-      display: flex;
-      align-items: center;
-      background-color: #fff;
-    }
-  
-    .memberDetail__container {
-      width: 900px;
-      padding-top: 38px;
-    }
-  }
-  
+}

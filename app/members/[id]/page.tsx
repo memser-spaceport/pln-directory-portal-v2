@@ -26,7 +26,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
   }
 
   return (
-    <>
       <div className={styles?.memberDetail}>
         <div className={styles?.memberDetail__breadcrumb}>
           <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
@@ -56,7 +55,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
           )}
         </div>
       </div>
-    </>
   );
 };
 

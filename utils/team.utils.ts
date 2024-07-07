@@ -64,7 +64,7 @@ export function getTagsFromValues(allValues: string[], availableValues: string[]
 
 
 export function getTeamsListOptions(options: ITeamListOptions) {
-  return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title", pagination: true };
+  return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title", pagination: false };
 }
 
 

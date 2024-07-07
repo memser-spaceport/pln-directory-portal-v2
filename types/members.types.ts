@@ -119,6 +119,7 @@ export interface IMembersSearchParams {
   viewType?: string;
   openToWork: string;
   officeHoursOnly: string;
+  memberRoles: string;
 }
 
 export interface IMemberDetailParams {

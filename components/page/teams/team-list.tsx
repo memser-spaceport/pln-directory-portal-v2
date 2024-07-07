@@ -13,25 +13,25 @@ import TeamListView from './team-list-view';
 import { PaginationBox } from '../../core/pagination-box';
 import Link from 'next/link';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import usePagination from '@/hooks/usePagination';
 
 interface ITeamList {
-  teams: ITeam[];
   totalTeams: number;
   searchParams: ITeamsSearchParams;
-  userInfo: IUserInfo | undefined;
+  children: any;
 }
 const TeamsList = (props: ITeamList) => {
   const searchParams = props?.searchParams;
   const viewType = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
-  const allTeams = props?.teams ?? [];
-  const userInfo = props?.userInfo;
-  const totalTeams = props?.totalTeams;
 
-  const analytics = useTeamAnalytics();
-  const onTeamClickHandler = (team: ITeam) => {
-    triggerLoader(true);
-    analytics.onTeamCardClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
-  };
+  const totalTeams = props?.totalTeams;
+  const observerTarget = useRef<HTMLDivElement>(null);
+  const children = props?.children;
+
+  const [visibleItems] = usePagination({
+    items: children,
+    observerTarget,
+  });
 
   return (
     <div className="team-list">
@@ -39,18 +39,8 @@ const TeamsList = (props: ITeamList) => {
         <h1 className="team-list__titlesec__title">Teams</h1> <div className="team-list__title__count">({totalTeams})</div>
       </div>
       <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid' : 'team-list__list'}`}>
-        {allTeams?.map((team: ITeam, index: number) => (
-          <div
-            key={`${team} + ${index}`}
-            className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid__team' : 'team-list__list__team'}`}
-            onClick={() => onTeamClickHandler(team)}
-          >
-            <a href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
-              {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}
-              {VIEW_TYPE_OPTIONS.LIST === viewType && <TeamListView team={team} viewType={viewType} />}
-            </a>
-          </div>
-        ))}
+        {visibleItems}
+        <div ref={observerTarget} style={{ height: '20px' }} />
       </div>
       <style jsx>{`
         .team-list {
@@ -88,8 +78,9 @@ const TeamsList = (props: ITeamList) => {
           gap: 16px;
           flex-wrap: wrap;
           width: 100%;
-          width: 300px;
+          width: 100%;
           margin: auto;
+          justify-content: center;
         }
 
         .team-list__list {
@@ -107,7 +98,7 @@ const TeamsList = (props: ITeamList) => {
 
         @media (min-width: 768px) {
           .team-list__grid {
-            width: 600px;
+            width: 100%;
           }
         }
 
@@ -122,9 +113,10 @@ const TeamsList = (props: ITeamList) => {
 
           .team-list__grid {
             width: 900px;
+            justify-content: unset;
           }
 
-                    .team-list__titlesec {
+          .team-list__titlesec {
             display: none;
           }
         }
@@ -133,6 +125,7 @@ const TeamsList = (props: ITeamList) => {
           .team-list__grid {
             width: unset;
             // justify-content: center;
+            justify-content: unset;
           }
         }
       `}</style>

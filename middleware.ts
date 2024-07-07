@@ -14,6 +14,11 @@ export const config = {
      * - images (image file)
      */
     '/((?!api|_next/static|_next/image|favicon.ico|icons|images).*)',
+    '/teams/:path',
+    '/members/:path',
+    '/irl/:path',
+    '/settings/:path',
+    '/changelog'
   ],
 };
 

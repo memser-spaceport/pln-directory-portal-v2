@@ -5,10 +5,11 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { Tag } from '@/components/ui/tag';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
 import { parseMemberLocation } from '@/utils/member.utils';
-import { Fragment } from 'react';
+import { useRouter } from 'next/navigation';
+import { Fragment, useEffect } from 'react';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -26,6 +27,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const isOpenToWork = member?.openToWork;
   const skills = member?.skills;
   const userInfo = props?.userInfo;
+  const router = useRouter();
 
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
@@ -34,6 +36,10 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const onEditProfileClick = () => {
     analytics.onEditProfileClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
   };
+
+  useEffect(() => {
+    triggerLoader(false);
+  }, [router]);
 
   return (
     <>

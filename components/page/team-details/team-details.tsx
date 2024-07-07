@@ -7,12 +7,12 @@ import { ITag, ITeam } from '@/types/teams.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { getTechnologyImage } from '@/utils/team.utils';
 import Image from 'next/image';
-import { useParams } from 'next/navigation';
-import { Fragment, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Fragment, useEffect, useState } from 'react';
 import About from './about';
 import Technologies from './technologies';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
 interface ITeamDetails {
   team: ITeam;
@@ -32,6 +32,8 @@ const TeamDetails = (props: ITeamDetails) => {
   const hasTeamEditAccess = getHasTeamEditAccess();
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
   const analytics = useTeamAnalytics();
+
+  const router = useRouter();
 
   const onTagCountClickHandler = () => {
     setIsTechnologyPopup(!isTechnologyPopup);
@@ -55,6 +57,11 @@ const TeamDetails = (props: ITeamDetails) => {
     }
     analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
   };
+
+
+  useEffect(() => {
+    triggerLoader(false);
+  }, [router]);
 
   return (
     <>

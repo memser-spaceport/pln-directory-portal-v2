@@ -1,7 +1,7 @@
-import { IMemberListOptions } from '@/types/members.types';
+import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
-import { hidePreferences, parseMemberDetails } from '@/utils/member.utils';
+import { getRoleTagsFromValues, getTagsFromValues, hidePreferences, parseMemberDetails, getUniqueFilters } from '@/utils/member.utils';
 
 export const getMembers = async (options: IMemberListOptions, teamId: string, currentPage: number, limit: number, isLoggedIn: boolean) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}&${new URLSearchParams(options as any)}`, {
@@ -15,6 +15,31 @@ export const getMembers = async (options: IMemberListOptions, teamId: string, cu
   const result = await response?.json();
   const formattedData: any = parseMemberDetails(result, teamId, isLoggedIn);
   return { data: { formattedData, status: response?.status } };
+};
+
+export const getMembersFilters = async (options: IMemberListOptions, isUserLoggedIn: boolean) => {
+  const [valuesByFilter, availableValuesByFilter] = await Promise.all([getMembersFiltersValues({ plnFriend: false }, isUserLoggedIn), getMembersFiltersValues(options, isUserLoggedIn)]);
+
+  if (valuesByFilter?.error || availableValuesByFilter?.error) {
+    return { error: {} };
+  }
+  const parsedValuesByFilter = getUniqueFilters(valuesByFilter.data?.formattedData);
+  const parsedAvailableValuesByFilter = getUniqueFilters(availableValuesByFilter?.data?.formattedData);
+  return { parsedValuesByFilter, parsedAvailableValuesByFilter };
+};
+
+const getMembersFiltersValues = async (options: IMemberListOptions = {}, isUserLoggedIn: boolean) => {
+  return await getMembers(
+    {
+      ...options,
+      pagination: false,
+      select: 'skills.title,location.metroArea,location.city,location.continent,location.country',
+    },
+    '',
+    0,
+    0,
+    isUserLoggedIn
+  );
 };
 
 export const getMemberUidByAirtableId = async (id: string) => {
@@ -115,4 +140,20 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
   }
 
   return { data: { formattedData: member, status: memberResponse?.status } };
+};
+
+export const findRoleByName = async (params: any) => {
+  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(params.params as any)}`, params);
+  const response = await result.json();
+  return response;
+};
+
+export const getMemberRoles = async (options: IMemberListOptions) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(options as any)}`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+
+  return await response.json();
 };

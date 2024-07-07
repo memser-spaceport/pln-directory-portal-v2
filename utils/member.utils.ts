@@ -1,139 +1,242 @@
-import { IMember, IMemberPreferences, IMemberResponse, ITeamMemberRole } from "@/types/members.types";
+import { IMember, IMemberListOptions, IMemberPreferences, IMemberResponse, IMembersSearchParams, ITeamMemberRole } from '@/types/members.types';
+import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
+import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 
 export const parseMemberDetails = (members: IMemberResponse[], teamId: string, isLoggedIn: boolean) => {
-    return members?.map((member: IMemberResponse): IMember => {
-      let parsedMember = { ...member };
-      if (teamId) {
-        parsedMember = {
-          ...member,
-          teamMemberRoles: member.teamMemberRoles?.filter((teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId),
-        };
-      }
-      const teams =
-        parsedMember.teamMemberRoles?.map((teamMemberRole: ITeamMemberRole) => ({
-          id: teamMemberRole.team?.uid || "",
-          name: teamMemberRole.team?.name || "",
-          role: teamMemberRole.role || "Contributor",
-          teamLead: !!teamMemberRole.teamLead,
-          mainTeam: !!teamMemberRole.mainTeam,
-        })) || [];
-      const mainTeam = teams.find((team) => team.mainTeam);
-      const teamLead = teams.some((team) => team.teamLead);
-  
-      const data: any = {
-        id: parsedMember.uid,
-        name: parsedMember.name,
-        profile: parsedMember.image?.url || null,
-        officeHours: parsedMember.officeHours || null,
-        skills: parsedMember.skills || [],
-        teamLead,
-        projectContributions: parsedMember.projectContributions ?? null,
-        teams,
-        location: parsedMember?.location,
-        mainTeam,
-        openToWork: parsedMember.openToWork || false,
-        preferences: parsedMember.preferences ?? null,
+  return members?.map((member: IMemberResponse): IMember => {
+    let parsedMember = { ...member };
+    if (teamId) {
+      parsedMember = {
+        ...member,
+        teamMemberRoles: member.teamMemberRoles?.filter((teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId),
       };
-  
-      if (!isLoggedIn) {
-        return {
-          ...data,
-          email: null,
-          githubHandle: null,
-          discordHandle: null,
-          telegramHandle: null,
-          twitter: null,
-          linkedinHandle: null,
-          repositories: [],
-        };
-      }
-      return data;
-    });
-  };
+    }
+    const teams =
+      parsedMember.teamMemberRoles?.map((teamMemberRole: ITeamMemberRole) => ({
+        id: teamMemberRole.team?.uid || '',
+        name: teamMemberRole.team?.name || '',
+        role: teamMemberRole.role || 'Contributor',
+        teamLead: !!teamMemberRole.teamLead,
+        mainTeam: !!teamMemberRole.mainTeam,
+      })) || [];
+    const mainTeam = teams.find((team) => team.mainTeam);
+    const teamLead = teams.some((team) => team.teamLead);
 
+    const data: any = {
+      id: parsedMember.uid,
+      name: parsedMember.name,
+      profile: parsedMember.image?.url || null,
+      officeHours: parsedMember.officeHours || null,
+      skills: parsedMember.skills || [],
+      teamLead,
+      // projectContributions: parsedMember.projectContributions ?? null,
+      teams,
+      location: parsedMember?.location,
+      mainTeam,
+      openToWork: parsedMember.openToWork || false,
+      // preferences: parsedMember.preferences ?? null,
+    };
 
-  export const hidePreferences = (preferences: IMemberPreferences, member: IMember) => {
-    if (!preferences?.showEmail) {
-      delete member['email'];
+    if (!isLoggedIn) {
+      return {
+        ...data,
+        email: null,
+        githubHandle: null,
+        discordHandle: null,
+        telegramHandle: null,
+        twitter: null,
+        linkedinHandle: null,
+        repositories: [],
+      };
     }
-    if (!preferences?.showDiscord) {
-      delete member['discordHandle'];
+    return data;
+  });
+};
+
+export const hidePreferences = (preferences: IMemberPreferences, member: IMember) => {
+  if (!preferences?.showEmail) {
+    delete member['email'];
+  }
+  if (!preferences?.showDiscord) {
+    delete member['discordHandle'];
+  }
+  if (!preferences?.showGithubHandle) {
+    delete member['githubHandle'];
+  }
+  if (!preferences?.showTelegram) {
+    delete member['telegramHandle'];
+  }
+  if (!preferences?.showLinkedin) {
+    delete member['linkedinHandle'];
+  }
+  if (!preferences?.showGithubProjects) {
+    delete member['repositories'];
+  }
+  if (!preferences?.showTwitter) {
+    delete member['twitter'];
+  }
+};
+
+export const parseMemberLocation = (location: any) => {
+  const { metroArea, city, country, region } = location ?? {};
+  if (metroArea) {
+    return metroArea;
+  }
+  if (country) {
+    if (city) {
+      return `${city}, ${country}`;
     }
-    if (!preferences?.showGithubHandle) {
-      delete member['githubHandle'];
+    if (region) {
+      return `${region}, ${country}`;
     }
-    if (!preferences?.showTelegram) {
-      delete member['telegramHandle'];
-    }
-    if (!preferences?.showLinkedin) {
-      delete member['linkedinHandle'];
-    }
-    if (!preferences?.showGithubProjects) {
-      delete member['repositories'];
-    }
-    if (!preferences?.showTwitter) {
-      delete member['twitter'];
-    }
+    return country;
   }
 
-  export const parseMemberLocation = (location: any) => {
-    const { metroArea, city, country, region } = location ?? {};
-    if (metroArea) {
-      return metroArea;
-    }
-    if (country) {
-      if (city) {
-        return `${city}, ${country}`;
-      }
-      if (region) {
-        return `${region}, ${country}`;
-      }
-      return country;
-    }
-  
-    return "Not provided";
+  return 'Not provided';
+};
+
+export const formatDate = (dateString: string) => {
+  const month = new Date(dateString).toLocaleDateString(undefined, { month: 'short' });
+  const year = new Date(dateString).getFullYear();
+  return `${month} ${year}`;
+};
+
+export const dateDifference = (date1: any, date2: any) => {
+  const timeDifference = Math.abs(date1 - date2);
+  const monthsBetween = (date1: any, date2: any) => {
+    return (date2.getFullYear() - date1.getFullYear()) * 12 + date2.getMonth() - date1.getMonth();
   };
 
-  export const formatDate = (dateString: string) => {
-    const month = new Date(dateString).toLocaleDateString(undefined, { month: "short" });
-    const year = new Date(dateString).getFullYear();
-    return `${month} ${year}`;
-  };
-  
-  export const dateDifference = (date1: any, date2: any) => {
-    const timeDifference = Math.abs(date1 - date2);
-    const monthsBetween = (date1: any, date2: any) => {
-      return (date2.getFullYear() - date1.getFullYear()) * 12 + date2.getMonth() - date1.getMonth();
-    };
-  
-    const secondsDifference = Math.floor(timeDifference / 1000);
-    const minutesDifference = Math.floor(secondsDifference / 60);
-    const hoursDifference = Math.floor(minutesDifference / 60);
-    const daysDifference = Math.floor(hoursDifference / 24);
-    const monthsDifference = monthsBetween(date1, date2);
-    const yearsDifference = Math.floor(monthsDifference / 12);
-  
-    if (yearsDifference >= 1) {
-      if (monthsDifference % 12 !== 0) {
-        return `${yearsDifference} years and ${monthsDifference % 12} months`;
-      } else if (yearsDifference === 1) {
-        return `${yearsDifference} year`;
-      } else {
-        return `${yearsDifference} years`;
-      }
-    } else if (monthsDifference === 1) {
-      return `${monthsDifference} month`;
-    } else if (monthsDifference > 1) {
-      return `${monthsDifference} months`;
-    } else if (daysDifference === 1) {
-      return `${daysDifference} day`;
-    } else if (daysDifference > 1) {
-      return `${daysDifference} days`;
-    } else if (hoursDifference >= 1) {
-      return `${hoursDifference} hours`;
-    } else if (minutesDifference >= 1) {
-      return `${minutesDifference} minutes`;
+  const secondsDifference = Math.floor(timeDifference / 1000);
+  const minutesDifference = Math.floor(secondsDifference / 60);
+  const hoursDifference = Math.floor(minutesDifference / 60);
+  const daysDifference = Math.floor(hoursDifference / 24);
+  const monthsDifference = monthsBetween(date1, date2);
+  const yearsDifference = Math.floor(monthsDifference / 12);
+
+  if (yearsDifference >= 1) {
+    if (monthsDifference % 12 !== 0) {
+      return `${yearsDifference} years and ${monthsDifference % 12} months`;
+    } else if (yearsDifference === 1) {
+      return `${yearsDifference} year`;
     } else {
-      return `${secondsDifference} seconds`;
+      return `${yearsDifference} years`;
     }
+  } else if (monthsDifference === 1) {
+    return `${monthsDifference} month`;
+  } else if (monthsDifference > 1) {
+    return `${monthsDifference} months`;
+  } else if (daysDifference === 1) {
+    return `${daysDifference} day`;
+  } else if (daysDifference > 1) {
+    return `${daysDifference} days`;
+  } else if (hoursDifference >= 1) {
+    return `${hoursDifference} hours`;
+  } else if (minutesDifference >= 1) {
+    return `${minutesDifference} minutes`;
+  } else {
+    return `${secondsDifference} seconds`;
+  }
+};
+
+export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): IMemberListOptions {
+  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles } = queryParams;
+
+  const sortFromQuery = getSortFromQuery(sort?.toString());
+  const sortField = sortFromQuery.field.toLowerCase();
+
+  return {
+    ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),
+    ...(skills ? { 'skills.title__with': stringifyQueryValues(skills) } : {}),
+    ...(region
+      ? {
+          'location.continent__with': stringifyQueryValues(region),
+        }
+      : {}),
+    ...(country ? { 'location.country__with': stringifyQueryValues(country) } : {}),
+    ...(metroArea ? { 'location.metroArea__with': stringifyQueryValues(metroArea) } : {}),
+    ...(includeFriends ? {} : { plnFriend: false }),
+    ...(openToWork ? { openToWork: true } : {}),
+    ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
+    ...(memberRoles ? { 'memberRoles': stringifyQueryValues(memberRoles) } : {}),
+    orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
   };
+}
+
+export function getMembersListOptions(options: IMemberListOptions) {
+  return {
+    ...options,
+    pagination: false,
+    select:
+      'uid,name,openToWork,image.url,location.metroArea,location.country,location.region,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
+  };
+}
+
+export const getUniqueFilters = (members: IMemberResponse[]) => {
+  const filtersValues = members.reduce(
+    (values: any, member) => {
+      const skills = getUniqueFilterValues(
+        values?.skills,
+        member?.skills?.map((skill: { title: string }) => skill.title)
+      );
+
+      const region = getUniqueFilterValues(values?.region, member?.location?.continent ? [member?.location?.continent] : []);
+
+      const country = getUniqueFilterValues(values?.country, member?.location?.country ? [member?.location?.country] : []);
+
+      const metroArea = getUniqueFilterValues(values.metroArea, member?.location?.metroArea ? [member?.location?.metroArea] : []);
+
+      return { skills, region, country, metroArea };
+    },
+    {
+      skills: [],
+      region: [],
+      country: [],
+      metroArea: [],
+    }
+  );
+
+  Object.values(filtersValues).forEach((value: any) => value?.sort());
+
+  return filtersValues;
+};
+
+export function getTagsFromValues(allValues: string[], availableValues: string[], queryValues: string | string[] = [], isUserLoggedIn: boolean) {
+  const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
+  return allValues?.map((value) => {
+    const selected = isUserLoggedIn ? queryValuesArr.includes(value) : false;
+    const available = availableValues.includes(value);
+    const isLoggedIn = isUserLoggedIn ? !selected && !available : true;
+    const disabled = isLoggedIn;
+    return { value, selected, disabled };
+  });
+}
+
+export function getRoleTagsFromValues(allValues: any[], queryValues: string | string[] = []): any {
+  const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
+
+  const newValues = allValues?.map((item) => {
+    const role = item.role;
+    const selected = queryValuesArr.includes(item.role);
+    return { role, selected, default: item.default ?? false, alias: item.alias ?? null, count: item.count };
+  });
+
+  return newValues.filter((item) => item?.selected || item?.default);
+}
+
+export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedIn: boolean, roleValues: any[]) => {
+  const { parsedValuesByFilter, parsedAvailableValuesByFilter } = filtersValues;
+
+  const formattedData = {
+    skills: getTagsFromValues(parsedValuesByFilter.skills, parsedAvailableValuesByFilter.skills, query?.skills, true),
+    region: getTagsFromValues(parsedValuesByFilter.region, parsedAvailableValuesByFilter.region, query?.region, isUserLoggedIn),
+    country: getTagsFromValues(parsedValuesByFilter.country, parsedAvailableValuesByFilter.country, query?.country, isUserLoggedIn),
+    metroArea: getTagsFromValues(parsedValuesByFilter.metroArea, parsedAvailableValuesByFilter.metroArea, query?.metroArea, isUserLoggedIn),
+    memberRoles: getRoleTagsFromValues(
+      roleValues,
+      query.memberRoles
+    ),
+  };
+
+  return { data: { formattedData } };
+};

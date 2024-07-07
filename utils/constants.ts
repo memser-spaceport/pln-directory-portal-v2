@@ -32,6 +32,7 @@ export const EVENTS = {
   OPEN_TEAM_REGISTER_DIALOG: 'open-team-register-dialog',
   OPEN_MEMBER_REGISTER_DIALOG: 'open-member-register-dialog',
   SHOW_FILTER: 'SHOW_FILTER',
+  SHOW_MEMBERS_FILTER: 'show-members-filter',
   TEAM_DETAIL_ALL_PROJECTS_CLOSE: "team-detail-all-projects-close",
   TEAM_DETAIL_ALL_MEMBERS_CLOSE: "team-detail-all-members-close",
   PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE: "project-detail-all-members-open-and-close",
@@ -155,6 +156,22 @@ export const TEAMS_ANALYTICS_EVENTS = {
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
+
+  MEMBER_LIST_MEMEBR_CLICKED: 'member-clicked',
+  MEMBER_LIST_FILTERS_APPLIED: 'filters-applied',
+  MEMBER_ROLE_FILTER_SEARCH_CALLED: 'member-role-filter-search-called',
+  MEMBER_ROLE_FILTER_SELECT_ALL: 'member-role-filter-select-all',
+  MEMBER_ROLE_FILTER_SEARCH_ERROR: 'member-role-filter-search-error',
+
+  MEMBER_LIST_VIEW_TYPE_CLICKED:"member-list-view-type-clicked",
+  MEMBER_LIST_SEARCH_CLICKED: "member-list-search-clicked",
+  MEMBER_LIST_SORT_CLICKED: "member-list-sort-clicked",
+  MEMBER_LIST_FILTER_TOGGLE_CLICKED: "member-list-filter-toggle-clicked",
+  MEMBER_LIST_FILTER_TAG_SELECTED: "member-list-filter-tag-selected",
+  MEMBER_LIST_FILTER_CLEAR_ALL_CLICKED: "member-list-filter-clear-all-clicked",
+  MEMBER_LIST_VIEW_FILTER_RESULT_CLICKED: 'member-list-view-filter-result-clicked',
+  MEMBER_LIST_CLOSE_FILTER_PANEL_CLICKED: 'member-list-close-filter-panel-clicked',
+
   MEMBER_DETAIL_OFFICEHOURS_CLICKED: 'member-officehours-clicked',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_EDIT: 'member-pr-contributions-edit',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_ADD: 'member-pr-contributions-add',
@@ -215,7 +232,7 @@ export const FOCUS_AREAS_FILTER_KEYS = {
   teams: 'teamAncestorFocusAreas',
 };
 
-export const ITEMS_PER_PAGE = 42;
+export const ITEMS_PER_PAGE = 300;
 
 export const ENROLLMENT_TYPE = {
   MEMBER: 'MEMBER',
@@ -264,3 +281,6 @@ export const PRIVACY_CONSTANTS = {
     showTwitter: DEFAULT_PRIVACY_VISIBILITY,
   },
 };
+
+export const ROLE_FILTER_QUERY_NAME = "memberRoles";
+

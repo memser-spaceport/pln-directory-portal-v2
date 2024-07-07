@@ -13,6 +13,7 @@ import FilterWrapper from '../../components/page/teams/filter-wrapper';
 import TeamsList from '../../components/page/teams/team-list';
 import TeamsToolbar from '../../components/page/teams/teams-toolbar';
 import styles from './page.module.css';
+import TeamListWrapper from '@/components/page/teams/teams-list-wrapper';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -38,23 +39,9 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
             <TeamsToolbar totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />
           </div>
           <div className={styles.team__right__teamslist}>
-            {teams?.length >= 0 && <TeamsList teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />}
+            {teams?.length >= 0 && <TeamListWrapper teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />}
             {teams?.length === 0 && <EmptyResult />}
           </div>
-
-          {teams?.length !== 0 && (
-            <div className={styles.team__right__pgn}>
-              <PaginationBox
-                userInfo={userInfo}
-                from={PAGE_ROUTES.TEAMS}
-                searchParams={searchParams}
-                showingItems={teams?.length}
-                totalItems={totalTeams}
-                currentPage={currentPage}
-                totalPages={totalPages}
-              />
-            </div>
-          )}
         </div>
       </div>
     </section>
@@ -75,7 +62,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
 
     currentPage = searchParams?.page ? Number(searchParams?.page) : 1;
-    const [teamsResponse, teamFiltersResponse] = await Promise.all([getAllTeams(authToken, listOptions, currentPage, ITEMS_PER_PAGE), getTeamsFilters(optionsFromQuery, searchParams)]);
+    const [teamsResponse, teamFiltersResponse] = await Promise.all([getAllTeams(authToken, listOptions, 0, 0), getTeamsFilters(optionsFromQuery, searchParams)]);
 
     if (teamsResponse?.error || teamFiltersResponse?.error) {
       isError = true;

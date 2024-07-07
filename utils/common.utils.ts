@@ -62,6 +62,7 @@ export const getQuery = (searchParams: any) => {
     country: searchParams?.country ?? "",
     metroArea: searchParams?.metroArea ?? "",
     focusAreas: searchParams?.focusAreas ?? "",
+    memberRoles:searchParams?.memberRoles ?? '',
   };
 }
 

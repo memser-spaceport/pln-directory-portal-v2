@@ -9,6 +9,9 @@ import Modal from '@/components/core/modal';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useRouter } from 'next/navigation';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import dynamic from 'next/dynamic';
+
+dynamic(() => import('@/components/core/modal'), { ssr: false });
 
 interface IMemberProjectExperience {
   member: any;
@@ -41,7 +44,7 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
     if (modalRef.current) {
       modalRef.current.showModal();
     }
-     analytics.onSeeAllProjectContributionsClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member))
+    analytics.onSeeAllProjectContributionsClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
   };
 
   const onEditOrAdd = () => {

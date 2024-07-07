@@ -38,6 +38,7 @@ export const EVENTS = {
   PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE: "project-detail-all-members-open-and-close",
   PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE: "project-detail-all-teams-open-and-close",
   PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: "project-detail-delete-modal-open-and-close",
+  ADD_OR_EDIT_PROJECT_STEP_CHANGE: "add-or-edit-project-step-change",
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -284,3 +285,5 @@ export const PRIVACY_CONSTANTS = {
 
 export const ROLE_FILTER_QUERY_NAME = "memberRoles";
 
+
+export const PROJECT_FORM_STEPS = ["General", "Contributors", "KPIs", "More Details"];

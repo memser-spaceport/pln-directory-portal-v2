@@ -95,7 +95,7 @@ export function Tag(props: Readonly<TagProps>) {
             align-items: flex-start;
             background: #f1f5f9;
             border: none;
-            max-width: 60px;
+            max-width: 66px;
             white-space: nowrap;
             border: 1px solid #f1f5f9;
             overflow: hidden;
@@ -106,7 +106,7 @@ export function Tag(props: Readonly<TagProps>) {
           }
 
           .tag-md {
-            max-width: 120px;
+            max-width: 100px;
           }
 
           .tag--active {
@@ -149,7 +149,6 @@ export function Tag(props: Readonly<TagProps>) {
 
             .tag-md {
               max-width: 120px;
-
             }
           }
         `}

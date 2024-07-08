@@ -50,7 +50,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
     }
     triggerLoader(true);
     if (type !== VIEW_TYPE_OPTIONS.GRID) {
-      updateQueryParams('viewType', type,searchParams);
+      updateQueryParams('viewType', type, searchParams);
       return;
     }
     updateQueryParams('viewType', type, searchParams);
@@ -117,7 +117,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
                 value={searchInput}
                 onChange={(e) => onInputChange(e)}
                 className="toolbar__left__search-container__searchfrm__input"
-                placeholder="Search"
+                placeholder="Search by Member Name, Team, or Project"
                 onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
               />
               <button className="toolbar__left__search-container__searchfrm__searchbtn" type="submit">
@@ -158,6 +158,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
             justify-content: space-between;
             height: 40px;
             gap: 8px;
+            width: 100%;
           }
 
           .toolbar__left {
@@ -194,7 +195,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
             height: inherit;
             border-radius: 4px;
             background: #fff;
-            box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
+            box-shadow: 0px 1px 2px 0px #0f172a29;
             background: #fff;
           }
 
@@ -252,6 +253,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
             border: none;
             width: 111px;
             background-color: #fff;
+            padding-right: 4px;
             color: black;
             &:focus {
               outline: none;
@@ -262,6 +264,8 @@ const MembersToolbar = (props: IMembersToolbar) => {
             border: none;
             background: #fff;
             height: inherit;
+            display: flex;
+            align-items: center;
           }
 
           .toolbar__right {
@@ -356,7 +360,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
             }
 
             .toolbar__left__search-container__searchfrm__input {
-              width: 192px;
+              width: 280px;
             }
 
             .toolbar__left__title-container__title {

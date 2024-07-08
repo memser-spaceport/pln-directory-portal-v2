@@ -36,7 +36,7 @@ body {
   position: sticky;
   top: 0;
   background-color: white;
-  z-index: 4;
+  z-index: 5;
 }
 
 .layout__main {
@@ -91,6 +91,24 @@ button {
 
 dialog {
   outline: none;
+}
+
+.med__text {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    font-size: 14px !important;
+    line-height: 24px;
+    color: #475569;
+  }
+}
+
+.all-member-container dialog {
+  overflow: hidden;
 }
 
 @media (prefers-color-scheme: dark) {

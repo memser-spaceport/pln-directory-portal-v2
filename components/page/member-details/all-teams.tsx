@@ -90,7 +90,7 @@ const AllTeams = (props: IAllTeams) => {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 600px;
+            height: 550px;
             overflow: auto;
             border-radius: 12px;
             background: #fff;
@@ -179,6 +179,7 @@ const AllTeams = (props: IAllTeams) => {
             overflow: auto;
             flex-direction: column;
             flex: 1;
+            overflow-x: hidden;
           }
 
           .all-teams__container__empty-result {

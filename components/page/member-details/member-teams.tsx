@@ -55,7 +55,7 @@ const MemberTeams = (props: IMemberTeams) => {
       <div className="member-teams">
         <div className="member-teams__header">
           <h2 className="member-teams__title">Teams ({totalTeams})</h2>
-          {teams?.length > 2 && (
+          {teams?.length > 3 && (
             <button className="member-teams__header__seeall-btn" onClick={onSeeAllClickHandler}>
               See all
             </button>
@@ -67,7 +67,7 @@ const MemberTeams = (props: IMemberTeams) => {
             return (
               <Fragment key={`${team}+${index}`}>
                 {index < 3 && (
-                  <div className={`memberteam ${index !== sortedTeams.length - 1 ? 'memberteam__border-set' : ''}`}>
+                  <div className={`memberteam ${sortedTeams.length - 1 !== index ? 'memberteam__border-set' : ''}`}>
                     <MemberDetailsTeamCard
                       member={member}
                       userInfo={userInfo}

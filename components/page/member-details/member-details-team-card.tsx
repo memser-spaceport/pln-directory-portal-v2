@@ -32,9 +32,10 @@ const MemberDetailsTeamCard = (props: IMemberTeamCard) => {
   const member = props?.member;
   const isPopupOpen = props?.isPopupOpen;
   const analytics = useMemberAnalytics();
+  const noOfTagsToShow = 2;
 
   const onTeamClickHandler = () => {
-    analytics.onTeamClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), getAnalyticsTeamInfo(team))
+    analytics.onTeamClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), getAnalyticsTeamInfo(team));
   };
 
   return (
@@ -64,7 +65,7 @@ const MemberDetailsTeamCard = (props: IMemberTeamCard) => {
         <div className="member-team-card__tags-container">
           {tags?.map((tag: any, index: number) => (
             <Fragment key={`${tag} + ${index}`}>
-              {index < 3 && (
+              {index < noOfTagsToShow && (
                 <Tooltip
                   asChild
                   trigger={
@@ -77,19 +78,19 @@ const MemberDetailsTeamCard = (props: IMemberTeamCard) => {
               )}
             </Fragment>
           ))}
-          {tags?.length > 3 && (
+          {tags?.length > noOfTagsToShow && (
             <Tooltip
               asChild
               trigger={
                 <div>
-                  <Tag variant="primary" value={'+' + (tags?.length - 3).toString()}></Tag>{' '}
+                  <Tag variant="primary" value={'+' + (tags?.length - noOfTagsToShow).toString()}></Tag>{' '}
                 </div>
               }
               content={
                 <div>
-                  {tags?.slice(3, tags?.length).map((tag: any, index: number) => (
+                  {tags?.slice(noOfTagsToShow, tags?.length).map((tag: any, index: number) => (
                     <div key={`${tag} + ${tag} + ${index}`}>
-                      {tag?.title} {index !== tags?.slice(3, tags?.length - 1)?.length ? ',' : ''}
+                      {tag?.title} {index !== tags?.slice(noOfTagsToShow, tags?.length - 1)?.length ? ',' : ''}
                     </div>
                   ))}
                 </div>
@@ -162,9 +163,13 @@ const MemberDetailsTeamCard = (props: IMemberTeamCard) => {
             font-weight: 400;
             line-height: 14px;
             letter-spacing: 0em;
-            white-space: nowrap;
+            max-height: 28px;
             max-width: 80%;
             overflow: hidden;
+            -webkit-line-clamp: 2;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            word-wrap: break-word;
             text-overflow: ellipsis;
             color: #475569;
             text-align: left;
@@ -192,6 +197,10 @@ const MemberDetailsTeamCard = (props: IMemberTeamCard) => {
             .member-team-card__tags-container {
               grid-row: ${isPopupOpen ? '' : 'unset'};
               margin-top: ${isPopupOpen ? '' : 'unset'};
+            }
+
+            .member-team-card__profile-details__name-and-role__role {
+              max-width: 256px;
             }
           }
         `}

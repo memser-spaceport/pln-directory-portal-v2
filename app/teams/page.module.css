@@ -2,7 +2,7 @@
   height: inherit;
   display: flex;
   position: relative;
-  background: #F1F5F9;
+  background: #f1f5f9;
   min-height: calc(100vh - 80px);
 }
 
@@ -12,14 +12,20 @@
 
 .team__right {
   position: relative;
-    flex: 1;
-    background:  #F1F5F9;
+  flex: 1;
+  background: #f1f5f9;
+}
+
+.team__right__content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .team__right__toolbar {
   height: 72px;
   position: sticky;
-  z-index: 2;
+  z-index: 4;
   top: 80px;
   padding: 16px;
   border-bottom: 1px solid #e2e8f0;
@@ -34,21 +40,13 @@
   .team__right {
     display: flex;
     justify-content: center;
-    padding: 32px 0px 0px 0px;
+    padding: 30px 0px 40px 0px;
   }
-
-  .team__right__content {
-    width: 900px;
-    display: flex;
-    gap: 24px;
-    flex-direction: column;
-  }
-
-
 
   .team__right__teamslist {
     margin-top: 0px;
     min-height: calc(100vh - 325px);
+    padding: 0px 16px;
   }
 
   .team__left {
@@ -59,13 +57,16 @@
   }
 
   .team__right__toolbar {
-    height: 40px;
     height: 60px;
-    padding: 16px;
-    padding: 0px;
-    border:none;
-    background:  #F1F5F9;
-    padding-top: 10px;
+    padding: 10px 40px;
+    border: none;
+    background: #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
   }
 
+  .team__right__content {
+    gap: 14px;
+  }
 }

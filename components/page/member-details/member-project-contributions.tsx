@@ -47,7 +47,7 @@ const MemberProjectContributions = (props: IAllProjectExperience) => {
           {allContributions?.map((repo: any, index: number) => {
             return (
               <Fragment key={`${repo} + ${index}`}>
-                <div className={`project-contributions__container__repo ${index < allContributions?.length ? 'project-contributions__border-set' : ''}`}>
+                <div className={`project-contributions__container__repo ${allContributions?.length - 1 !== index ? 'project-contributions__border-set' : ''}`}>
                   <MemberProjectExperienceCard experience={repo} />
                 </div>
               </Fragment>
@@ -69,8 +69,7 @@ const MemberProjectContributions = (props: IAllProjectExperience) => {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            height: 60vh;
-            overflow: auto;
+            height: 550px;
             border-radius: 12px;
             background: #fff;
           }
@@ -162,6 +161,7 @@ const MemberProjectContributions = (props: IAllProjectExperience) => {
             overflow: auto;
             flex-direction: column;
             flex: 1;
+            overflow-x: hidden;
           }
 
           .project-contributions__container__empty-result {

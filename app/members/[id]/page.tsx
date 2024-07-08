@@ -12,10 +12,11 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMember, getMemberUidByAirtableId } from '@/services/members.service';
 import { getAllTeams } from '@/services/teams.service';
 import MemberProjectContribution from '@/components/page/member-details/member-project-contribution';
+import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
-  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo } = await getpageData(memberId);
+  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo,officeHoursFlag } = await getpageData(memberId);
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
@@ -26,35 +27,36 @@ const MemberDetails = async ({ params }: { params: any }) => {
   }
 
   return (
-      <div className={styles?.memberDetail}>
-        <div className={styles?.memberDetail__breadcrumb}>
-          <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
-        </div>
-        <div className={styles?.memberDetail__container}>
-          <div>
-            {!isLoggedIn && <MemberProfileLoginStrip member={member} />}
-            <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
-              <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            </div>
-          </div>
-          <div className={styles?.memberDetail__container__contact}>
-            <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-          </div>
-          <div className={styles?.memberDetail__container__teams}>
-            <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
-          </div>
-          {isLoggedIn && (
-            <div className={styles?.memberDetail__projectContribution}>
-              <MemberProjectContribution member={member} userInfo={userInfo} />
-            </div>
-          )}
-          {isLoggedIn && (
-            <div className={styles?.memberDetail__container__repositories}>
-              <MemberRepositories member={member} userInfo={userInfo} />
-            </div>
-          )}
-        </div>
+    <div className={styles?.memberDetail}>
+      <div className={styles?.memberDetail__breadcrumb}>
+        <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
       </div>
+      <div className={styles?.memberDetail__container}>
+        <div>
+          {!isLoggedIn && <MemberProfileLoginStrip member={member} />}
+          <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
+            <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+          </div>
+        </div>
+        <div className={styles?.memberDetail__container__contact}>
+          {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
+          {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
+        </div>
+        <div className={styles?.memberDetail__container__teams}>
+          <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
+        </div>
+        {isLoggedIn && (
+          <div className={styles?.memberDetail__projectContribution}>
+            <MemberProjectContribution member={member} userInfo={userInfo} />
+          </div>
+        )}
+        {isLoggedIn && (
+          <div className={styles?.memberDetail__container__repositories}>
+            <MemberRepositories member={member} userInfo={userInfo} />
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -93,11 +95,17 @@ const getpageData = async (memberId: string) => {
     member = memberResponse?.data?.formattedData;
     teams = memberTeamsResponse?.data?.formattedData;
 
+    let officeHoursFlag = false;
+    officeHoursFlag = member['officeHours'] ? true : false;
+    if (!isLoggedIn && member['officeHours']) {
+      delete member['officeHours'];
+    }
+
     if (memberResponse?.error) {
       isError = true;
       return { isError, isLoggedIn };
     }
-    return { member, teams, isLoggedIn, userInfo };
+    return { member, teams, isLoggedIn, userInfo, officeHoursFlag };
   } catch (error) {
     isError = true;
     return { isError, isLoggedIn };
@@ -137,7 +145,7 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
   const member = memberResponse?.data?.formattedData;
   const previousImages = (await parent).openGraph?.images ?? [];
   return {
-    title: member?.name,
+    title: `${member?.name} | Protocol Labs Directory`,
     openGraph: {
       type: 'website',
       url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${memberId}`,

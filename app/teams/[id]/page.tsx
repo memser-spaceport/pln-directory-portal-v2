@@ -209,7 +209,7 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
   const previousImages = (await parent).openGraph?.images || [];
   const logo = team?.logo || "https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg";
   return {
-    title: team?.name,
+    title: `${team?.name} | Protocol Labs Directory`,
     openGraph: {
       type: 'website',
       url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`,

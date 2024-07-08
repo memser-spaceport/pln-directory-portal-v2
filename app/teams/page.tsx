@@ -80,7 +80,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
 };
 
 export const metadata: Metadata = {
-  title: 'Protocol Labs Directory',
+  title: 'Teams | Protocol Labs Directory',
   description:
     'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
   openGraph: {

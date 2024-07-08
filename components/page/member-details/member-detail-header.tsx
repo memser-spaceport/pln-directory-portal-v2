@@ -29,6 +29,12 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const userInfo = props?.userInfo;
   const router = useRouter();
 
+  const mainTeam = member?.mainTeam;
+  const otherTeams = member.teams
+    .filter((team) => team.id !== mainTeam?.id)
+    .map((team) => team.name)
+    .sort();
+
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
   const analytics = useMemberAnalytics();
@@ -58,19 +64,22 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
                 <div className="header__details__roleandlocation__teams">
                   <Tooltip
                     asChild
-                    trigger={<p className="header__details__roleandlocation__teams__name"> {member?.teams?.length > 0 ? member?.teams[0].name : ''} </p>}
-                    content={member?.teams?.length > 0 ? member?.teams[0].name : ''}
+                    trigger={<p className="header__details__roleandlocation__teams__name"> {member?.teams?.length > 0 ? mainTeam?.name : ''} </p>}
+                    content={member?.teams?.length > 0 ? mainTeam?.name : ''}
                   />
                   {member?.teams?.length > 1 && (
                     <Tooltip
                       asChild
-                      trigger={<div className="header__details__roleandlocation__teams__count">+{(member?.teams?.length - 1).toString()}</div>}
+                      trigger={
+                        <button onClick={(e) => e.preventDefault()} className="header__details__roleandlocation__teams__count">
+                          +{(member?.teams?.length - 1).toString()}
+                        </button>
+                      }
                       content={
                         <>
-                          {member?.teams?.slice(1, member?.teams?.length).map((team: any, index: number) => (
+                          {otherTeams?.map((team: any, index: number) => (
                             <div key={`${team} + ${index}`}>
-                              {team?.name}
-                              {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
+                              {team}{index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
                             </div>
                           ))}
                         </>
@@ -96,7 +105,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
             {(isAdmin || isOwner) && (
               <a href={`${PAGE_ROUTES.SETTINGS}`} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
                 <img loading="lazy" alt="Edit profile" src="/icons/edit.svg" />
-                Edit profile
+                Edit Profile
               </a>
             )}
           </div>
@@ -113,7 +122,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           {isTeamLead && (
             <div className="header__tags__funds">
               <img loading="lazy" src="/icons/badge/team-lead.svg" alt="icon" height={24} width={24} />
-              <span className="header__tags__funds__text">Raising funds</span>
+              <span className="header__tags__funds__text">Team lead</span>
             </div>
           )}
 
@@ -280,7 +289,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
         }
 
         .header__detials__edit-and-notification__edit {
-          color: blue;
+          color: #156ff7;
           font-size: 15px;
           line-height: 24px;
           display: flex;

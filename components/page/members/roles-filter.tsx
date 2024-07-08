@@ -54,6 +54,7 @@ export function RolesFilter({ memberRoles, searchParams, userInfo }: RolesFilter
   };
 
   const handleSelectAllRole = () => {
+    triggerLoader(true);
     if (!isAllCustomRoleSelected) {
       selectAllRole(displayResults);
       analytics.onMemberRoleFilterSelectAllClicked(getAnalyticsUserInfo(userInfo));
@@ -272,6 +273,7 @@ export function RolesFilter({ memberRoles, searchParams, userInfo }: RolesFilter
           flex-direction: column;
           gap: 8px;
           overflow-y: auto;
+          overflow-x: hidden;
         }
 
         .checkbox {

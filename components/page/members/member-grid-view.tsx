@@ -17,14 +17,17 @@ const MemberGridView = (props: IMemberGridView) => {
   const member = props?.member;
   const isUserLoggedIn = props?.isUserLoggedIn;
   const profileUrl = member?.profile ?? '/icons/default_profile.svg';
+  const mainTeam = member?.mainTeam;
+  const otherTeams = member.teams
+    .filter((team) => team.id !== mainTeam?.id)
+    .map((team) => team.name)
+    .sort();
   const role = member.mainTeam?.role || 'Contributor';
   const location = parseMemberLocation(member?.location);
   const skills = member?.skills ?? [];
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
   const isBorder = isTeamLead || isOpenToWork;
-
-  const noOfSkillsToShow = 3;
 
   return (
     <>
@@ -44,7 +47,7 @@ const MemberGridView = (props: IMemberGridView) => {
                 <Tooltip
                   asChild
                   trigger={<img loading="lazy" className="member-grid__profile-container__outer-section__inner-circle__opento-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
-                  content={'Open To Work'}
+                  content={'Open To Collaborate'}
                 />
               )}
             </div>
@@ -57,20 +60,20 @@ const MemberGridView = (props: IMemberGridView) => {
                 <h3 className="member-grid__details__name">{member?.name}</h3>
               </div>
               <div className="member-grid__details__member-details__team-name-container">
-                <p className="member-grid__details__member-details__team-name-container__team-name">{member?.teams?.length > 0 ? member?.teams[0].name : '-'}</p>
+                <p className="member-grid__details__member-details__team-name-container__team-name">{member?.teams?.length > 0 ? mainTeam?.name : '-'}</p>
                 {member?.teams?.length > 2 && (
                   <Tooltip
                     asChild
-                    trigger={<div className="member-grid__details__member-details__team-name-container__tems-count">+{(member?.teams?.length - 1).toString()}</div>}
-                    content={
-                      <>
-                        {member?.teams?.slice(1, member?.teams?.length).map((team, index) => (
-                          <div key={`${team} + ${index}`}>
-                            {team?.name} {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
-                          </div>
-                        ))}
-                      </>
+                    trigger={
+                      <button onClick={(e) => e.preventDefault()} className="member-grid__details__member-details__team-name-container__tems-count">
+                        +{(member?.teams?.length - 1).toString()}
+                      </button>
                     }
+                    content={otherTeams?.map((team, index) => (
+                      <div key={`${team} + ${index}`}>
+                        {team}{index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
+                      </div>
+                    ))}
                   />
                 )}
               </div>
@@ -108,7 +111,6 @@ const MemberGridView = (props: IMemberGridView) => {
           .member-grid {
             height: 166px;
             width: 167.5px;
-            margin-bottom: 8px;
             border-radius: 12px;
             box-shadow: 0px 4px 4px 0px #0f172a0a;
           }
@@ -183,14 +185,6 @@ const MemberGridView = (props: IMemberGridView) => {
             border-radius: 0 0 12px 12px;
             border-top: 1px solid #e2e8f0;
             position: relative;
-          }
-
-          .gradiant-border-rounded {
-            border: double 1px transparent;
-            border-radius: 50%;
-            background-image: linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
-            background-origin: border-box;
-            background-clip: content-box, border-box;
           }
 
           .member-grid__profile-container__outer-section__inner-circle__profile {
@@ -313,6 +307,14 @@ const MemberGridView = (props: IMemberGridView) => {
               height: 94px;
             }
 
+            .gradiant-border-rounded {
+              border: double 1px transparent;
+              border-radius: 50%;
+              background-image: linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
+              background-origin: border-box;
+              background-clip: content-box, border-box;
+            }
+
             .member-grid__profile-container__outer-section {
               background: url('/images/outer-circle.svg');
               height: 147px;
@@ -364,7 +366,7 @@ const MemberGridView = (props: IMemberGridView) => {
             }
 
             .member-grid__profile-container__outer-section__inner-circle__lead {
-              diaplay: block;
+              display: block;
             }
 
             .member-grid__profile-container__outer-section__inner-circle__opento-work {

@@ -45,7 +45,6 @@ const TeamsList = (props: ITeamList) => {
       <style jsx>{`
         .team-list {
           width: 100%;
-          margin-top: 24px;
           margin-bottom: 16px;
         }
 
@@ -53,7 +52,11 @@ const TeamsList = (props: ITeamList) => {
           display: flex;
           gap: 4px;
           align-items: baseline;
-          padding: 0px 38px 16px 38px;
+          padding: 12px 16px;
+          position: sticky;
+          top: 150px;
+          z-index: 3;
+          background: #f1f5f9;
         }
 
         .team-list__titlesec__title {
@@ -74,13 +77,11 @@ const TeamsList = (props: ITeamList) => {
         }
 
         .team-list__grid {
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
-          width: 100%;
-          width: 100%;
-          margin: auto;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, 167.5px);
           justify-content: center;
+          row-gap: 24px;
+          column-gap: 16px;
         }
 
         .team-list__list {
@@ -112,20 +113,11 @@ const TeamsList = (props: ITeamList) => {
           }
 
           .team-list__grid {
-            width: 900px;
-            justify-content: unset;
+            grid-template-columns: repeat(auto-fit, 289px);
           }
 
           .team-list__titlesec {
             display: none;
-          }
-        }
-
-        @media (min-width: 1400px) {
-          .team-list__grid {
-            width: unset;
-            // justify-content: center;
-            justify-content: unset;
           }
         }
       `}</style>

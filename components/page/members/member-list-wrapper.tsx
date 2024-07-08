@@ -19,27 +19,26 @@ const MemberListWrapper = (props: any) => {
   const analytics = useMemberAnalytics();
 
   const onMemberOnClickHandler = (member: IMember) => {
-    analytics.onMemberCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), viewType)
+    analytics.onMemberCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), viewType);
     triggerLoader(true);
     // router.push(`${PAGE_ROUTES.MEMBERS}/${id}`, {scroll: false})
-   }
+  };
 
   return (
-    <div>
-      <MembersList {...props}>
-        {members?.map((member: any, index: number) => (
-          <Link
-            href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
-            key={`${member} + ${viewType}+ ${index}`}
-            className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
-            onClick={() => onMemberOnClickHandler(member)}
-          >
-            {VIEW_TYPE_OPTIONS.GRID === viewType && <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />}
-            {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
-          </Link>
-        ))}
-      </MembersList>
-    </div>
+    <MembersList {...props}>
+      {members?.map((member: any, index: number) => (
+        <Link
+          href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
+          key={`${member} + ${viewType}+ ${index}`}
+          className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
+          onClick={() => onMemberOnClickHandler(member)}
+          // scroll={false}
+        >
+          {VIEW_TYPE_OPTIONS.GRID === viewType && <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />}
+          {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
+        </Link>
+      ))}
+    </MembersList>
   );
 };
 

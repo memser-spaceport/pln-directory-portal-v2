@@ -284,6 +284,8 @@ export const PRIVACY_CONSTANTS = {
 };
 
 export const ROLE_FILTER_QUERY_NAME = "memberRoles";
+export const OFFICE_HOURS_MSG =
+  'Schedule a one on one office hours discussion with';
 
 
 export const PROJECT_FORM_STEPS = ["General", "Contributors", "KPIs", "More Details"];

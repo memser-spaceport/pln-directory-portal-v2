@@ -8,7 +8,7 @@ import MemberProjectContributions from './member-project-contributions';
 import Modal from '@/components/core/modal';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useRouter } from 'next/navigation';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
 
 dynamic(() => import('@/components/core/modal'), { ssr: false });
@@ -60,12 +60,11 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
         <div className="member-project-experience__header">
           <h2 className="member-project-experience__title">Project Contributions {contributions && Array.isArray(contributions) ? `(${contributions?.length})` : ''}</h2>
           <div className="member-project-experience__header__options">
-            {isOwner ||
-              (isAdmin && (
-                <button onClick={onEditOrAdd} className="member-project-experience__header__edit-btn">
-                  Add/Edit
-                </button>
-              ))}
+            {(isOwner || isAdmin) && (
+              <button onClick={onEditOrAdd} className="member-project-experience__header__edit-btn">
+                Add/Edit
+              </button>
+            )}
             {contributions?.length > 3 && (
               <button className="member-project-experience__header__seeall-btn" onClick={onSeeAllClickHandler}>
                 See all
@@ -85,7 +84,7 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
               return (
                 <Fragment key={`${experience}+${index}`}>
                   {index < 3 && (
-                    <div className={`member-project-experience__repo-container__repo ${index < 2 && 'member-project-experience__repo-container__repo__border-set'}`}>
+                    <div className={`member-project-experience__repo-container__repo ${contributions.length - 1 !== index && 'member-project-experience__repo-container__repo__border-set'}`}>
                       <MemberProjectExperienceCard experience={experience} />
                     </div>
                   )}
@@ -138,7 +137,6 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
 
           .member-project-experience__repo-container {
             border-radius: 12px;
-            max-height: 300px;
             box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
             border: 1px solid #e2e8f0;
           }

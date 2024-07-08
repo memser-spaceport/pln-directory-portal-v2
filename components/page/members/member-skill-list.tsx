@@ -35,7 +35,7 @@ const MemberSkillList = (props: any) => {
             }
             content={
               <div>
-                {skills?.slice(3, skills?.length).map((skill: any, index: number) => (
+                {skills?.slice(noOfSkillsToShow, skills?.length).map((skill: any, index: number) => (
                   <div key={`${skill} + ${skill} + ${index}`}>
                     {skill?.title} {index !== skills?.slice(noOfSkillsToShow, skills?.length - 1)?.length ? ',' : ''}
                   </div>

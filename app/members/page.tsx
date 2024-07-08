@@ -10,6 +10,7 @@ import MembersToolbar from '@/components/page/members/members-toolbar';
 import FilterWrapper from '@/components/page/members/filter-wrapper';
 import EmptyResult from '@/components/core/empty-result';
 import MemberListWrapper from '@/components/page/members/member-list-wrapper';
+import { Metadata } from 'next';
 
 async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
   const { refreshToken, userInfo, authToken } = getCookiesFromHeaders();
@@ -78,3 +79,26 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
 };
 
 export default Page;
+
+export const metadata: Metadata = {
+  title: 'Members | Protocol Labs Directory',
+  description:
+    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  openGraph: {
+    type: 'website',
+    url: process.env.APPLICATION_BASE_URL,
+    images: [
+      {
+        url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+        width: 1280,
+        height: 640,
+        alt: 'Protocol Labs Directory',
+        type: 'image/jpeg',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+  },
+};

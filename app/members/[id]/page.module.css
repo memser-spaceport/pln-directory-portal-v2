@@ -27,17 +27,13 @@
 }
 
 .memberDetail__container__contact {
-  min-height: 20px;
-  padding: 20px;
   box-shadow: 0px 4px 4px 0px #0f172a0a;
-  border-radius: 8px;
   background: #fff;
 }
 
 .memberDetail__container__header {
   min-height: 20px;
   padding: 20px;
-  border-radius: 8px;
   box-shadow: 0px 4px 4px 0px #0f172a0a;
   background: #fff;
 }
@@ -50,7 +46,6 @@
   min-height: 20px;
   padding: 20px;
   box-shadow: 0px 4px 4px 0px #0f172a0a;
-  border-radius: 8px;
   background: #fff;
 }
 
@@ -58,7 +53,6 @@
   min-height: 20px;
   padding: 16px;
   box-shadow: 0px 4px 4px 0px #0f172a0a;
-  border-radius: 8px;
   background: #fff;
 }
 
@@ -66,7 +60,6 @@
   min-height: 20px;
   padding: 16px;
   box-shadow: 0px 4px 4px 0px #0f172a0a;
-  border-radius: 8px;
   background: #fff;
 }
 
@@ -78,5 +71,25 @@
   .memberDetail__container {
     width: 900px;
     padding-top: 38px;
+  }
+
+  .memberDetail__container__header {
+    border-radius: 8px;
+  }
+
+  .memberDetail__container__contact {
+    border-radius: 8px;
+  }
+
+  .memberDetail__container__teams {
+    border-radius: 8px;
+  }
+
+  .memberDetail__projectContribution {
+    border-radius: 8px;
+  }
+
+  .memberDetail__container__repositories {
+    border-radius: 8px;
   }
 }

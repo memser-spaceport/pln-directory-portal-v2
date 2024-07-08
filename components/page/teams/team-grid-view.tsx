@@ -45,7 +45,6 @@ const TeamGridView = (props: ITeamGridView) => {
           .team-grid {
             width: 167.5px;
             height: 162px;
-            margin-bottom: 8px;
             background-color: #fff;
             border-radius: 12px;
             box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);

@@ -27,8 +27,7 @@ const Toggle = (props:IToggle) => {
               position: relative;
               display: inline-block;
               border-radius: 25px;
-              border: 0.4px solid rgba(203, 213, 225, 0.4);
-              background: var(--elements-background-mild, #f1f5f9);
+              background: #cbd5e1;
             }
   
             .toogle input {
@@ -44,26 +43,25 @@ const Toggle = (props:IToggle) => {
               left: 0;
               right: 0;
               bottom: 0;
-              -webkit-transition: 0.4s;
-              box-shadow: 0px 0px 2px rgba(15, 23, 42, 0.16);
-              transition: 0.4s;
+              -webkit-transition: 0.2s;
+              transition: 0.2s;
             }
   
             .toogle__slider:before {
               position: absolute;
               content: '';
-              height: 14px;
-              width: 14px;
+              height: 12px;
+              width: 12px;
               left: 3px;
               bottom: 2px;
               top: 2px;
               background-color: white;
-              -webkit-transition: 0.4s;
-              transition: 0.4s;
+              -webkit-transition: 0.2s;
+              transition: 0.2s;
             }
   
             input:checked + .toogle__slider {
-              background-color: #2196f3;
+              background-color: #156ff7;
             }
   
             input:focus + .toogle__slider {
@@ -71,9 +69,9 @@ const Toggle = (props:IToggle) => {
             }
   
             input:checked + .toogle__slider:before {
-              -webkit-transform: translateX(15px);
-              -ms-transform: translateX(15px);
-              transform: translateX(15px);
+              -webkit-transform: translateX(10px);
+              -ms-transform: translateX(10px);
+              transform: translateX(10px);
             }
 
             .toogle__slider.toogle__round {

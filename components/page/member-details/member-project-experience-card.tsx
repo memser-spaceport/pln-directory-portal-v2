@@ -3,6 +3,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { dateDifference, formatDate } from '@/utils/member.utils';
+import MemberExperienceDescription from './member-experience-item';
 
 const MemberProjectExperienceCard = (props: any) => {
   const experience = props?.experience;
@@ -13,7 +14,7 @@ const MemberProjectExperienceCard = (props: any) => {
   const analytics = useMemberAnalytics();
 
   const onProjectClickHandler = () => {
-    analytics.onProjectClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), getAnalyticsProjectInfo(experience))
+    analytics.onProjectClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), getAnalyticsProjectInfo(experience));
   };
 
   return (
@@ -64,13 +65,19 @@ const MemberProjectExperienceCard = (props: any) => {
             content={'This project has been deleted'}
           />
         )}
+
+        {experience?.description && (
+          <div className="member-project-experience__desc">
+            <MemberExperienceDescription desc={experience.description} />
+          </div>
+        )}
       </div>
       <style jsx>
         {`
           .member-project-experience {
-            diaplay: flex;
+            display: flex;
             gap: 16px;
-            align-items: center;
+            flex-direction: column;
           }
 
           .member-project-experience__container {

@@ -36,7 +36,7 @@ const MemberProfileLoginStrip = (props: IMemberProfileLoginStrip) => {
             <span className="login-strip__content__login" onClick={onLoginClickHandler}>
               &nbsp;Login
             </span>
-            &nbsp; to access details such as social profiles, projects & office hours.
+            &nbsp;to access details such as social profiles, projects & office hours.
           </p>
         </div>
       </div>

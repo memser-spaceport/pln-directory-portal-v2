@@ -184,6 +184,7 @@ const TeamsToolbar = (props: IToolbar) => {
             justify-content: space-between;
             height: 40px;
             gap: 8px;
+            width: 100%;
           }
 
           .toolbar__left {
@@ -229,9 +230,10 @@ const TeamsToolbar = (props: IToolbar) => {
           }
 
           .toolbar__left__search-container__searchfrm {
-          display: flex;
-          align-items: center;
-          gap: 10px;}
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
 
           .toolbar__left__search-container__searchfrm__optns {
             display: flex;

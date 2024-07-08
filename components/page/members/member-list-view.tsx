@@ -43,7 +43,7 @@ const MemberListView = (props: IMemberListView) => {
                   <Tooltip
                     asChild
                     trigger={<img loading="lazy" className="member-list-view__details-section__name-container__badges__open-to-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
-                    content={'Open To Work'}
+                    content={'Open To Collaborate'}
                   />
                 )}
               </div>
@@ -54,7 +54,11 @@ const MemberListView = (props: IMemberListView) => {
                 {member?.teams?.length > 2 && (
                   <Tooltip
                     asChild
-                    trigger={<div className="member-list-view__details-section__right__work-details__tems-count">+{(member?.teams?.length - 1).toString()}</div>}
+                    trigger={
+                      <button onClick={(e) => e.preventDefault()} className="member-list-view__details-section__right__work-details__tems-count">
+                        +{(member?.teams?.length - 1).toString()}
+                      </button>
+                    }
                     content={
                       <>
                         {member?.teams?.slice(1, member?.teams?.length).map((team, index) => (
@@ -89,22 +93,24 @@ const MemberListView = (props: IMemberListView) => {
 
           {skills.length > 0 && (
             <div className="member-list-view__details-section__left">
-              <div className="member-list-view__details-section__name-container__badges__mob">
-                {isTeamLead && (
-                  <Tooltip
-                    asChild
-                    trigger={<img loading="lazy" className="member-list-view__details-section__name-container__badges__team-lead" height={20} width={20} src="/icons/badge/team-lead.svg" />}
-                    content={'Team Lead'}
-                  />
-                )}
-                {isOpenToWork && (
-                  <Tooltip
-                    asChild
-                    trigger={<img loading="lazy" className="member-list-view__details-section__name-container__badges__open-to-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
-                    content={'Open To Work'}
-                  />
-                )}
-              </div>
+              {(isTeamLead || isOpenToWork) && (
+                <div className="member-list-view__details-section__name-container__badges__mob">
+                  {isTeamLead && (
+                    <Tooltip
+                      asChild
+                      trigger={<img loading="lazy" className="member-list-view__details-section__name-container__badges__team-lead" height={20} width={20} src="/icons/badge/team-lead.svg" />}
+                      content={'Team Lead'}
+                    />
+                  )}
+                  {isOpenToWork && (
+                    <Tooltip
+                      asChild
+                      trigger={<img loading="lazy" className="member-list-view__details-section__name-container__badges__open-to-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
+                      content={'Open To Collaborat'}
+                    />
+                  )}
+                </div>
+              )}
               <MemberSkillList skills={skills} noOfSkillsToShow={3} />
             </div>
           )}
@@ -173,6 +179,8 @@ const MemberListView = (props: IMemberListView) => {
             max-width: 100px;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 250px;
+            white-space: nowrap;
           }
 
           .member-list-view__details-section__name-container__badges__desc {
@@ -185,6 +193,7 @@ const MemberListView = (props: IMemberListView) => {
             display: flex;
             align-items: center;
             gap: 5px;
+            padding-top:4px;
           }
 
           .member-list-view__details-section__right__work-details {
@@ -299,7 +308,7 @@ const MemberListView = (props: IMemberListView) => {
             }
 
             .member-list-view__details-section__right__work-detail__team__role {
-              max-width: unset;
+              max-width: 400px;
             }
 
             .member-list-view__details-section__name-container__badges__desc {

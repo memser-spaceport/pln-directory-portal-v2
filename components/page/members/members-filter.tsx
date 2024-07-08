@@ -128,7 +128,7 @@ const MembersFilter = (props: IMembersFilter) => {
             {apliedFiltersCount > 0 && <FilterCount count={apliedFiltersCount} />}
           </h2>
           <button className="team-fitlter__header__clear-all-btn" onClick={onClearAllClicked}>
-            Clear all
+            Clear filters
           </button>
           <button className="team-filter__header__closebtn" onClick={onCloseClickHandler}>
             <Image alt="close" src="/icons/close.svg" height={16} width={16} />
@@ -142,8 +142,8 @@ const MembersFilter = (props: IMembersFilter) => {
               <h3 className="team-filter__body__toggle-section__toogle-option__title">Only Show Members with Office Hours</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
-                  height="20px"
-                  width="36px"
+                  height="16px"
+                  width="28px"
                   callback={(e: BaseSyntheticEvent) => onToggleClicked('officeHoursOnly', 'member-office-hours-only', e)}
                   isChecked={isOfficeHoursOnly}
                   id="member-office-hours-only"
@@ -155,7 +155,7 @@ const MembersFilter = (props: IMembersFilter) => {
                 <h3 className="team-filter__body__toggle-section__toogle-option__title">Open to Collaborate</h3>
                 <Tooltip
                   asChild
-                  trigger={<img style={{marginTop:'4px'}} width={16} height={16} loading="lazy" alt="info" src="/icons/note.svg" />}
+                  trigger={<img style={{ marginTop: '4px' }} width={16} height={16} loading="lazy" alt="info" src="/icons/note.svg" />}
                   content={
                     <div className="team-filter__body__toggle-section__toggle-option__title-container__collaborate-note">
                       <span>
@@ -175,7 +175,7 @@ const MembersFilter = (props: IMembersFilter) => {
                 />
               </div>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle height="20px" width="36px" callback={(e: BaseSyntheticEvent) => onToggleClicked('openToWork', 'member-open-to-work', e)} isChecked={isOpenToWork} id="member-open-to-work" />
+                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('openToWork', 'member-open-to-work', e)} isChecked={isOpenToWork} id="member-open-to-work" />
               </div>
             </div>
             {/* Include filter */}
@@ -183,8 +183,8 @@ const MembersFilter = (props: IMembersFilter) => {
               <h3 className="team-filter__body__toggle-section__toogle-option__title">Include Friends of Protocol Labs</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
-                  height="20px"
-                  width="36px"
+                  height="16px"
+                  width="28px"
                   callback={(e: BaseSyntheticEvent) => onToggleClicked('includeFriends', 'member-include-friends', e)}
                   isChecked={isIncludeFriends}
                   id="member-include-friends"

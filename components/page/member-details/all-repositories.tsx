@@ -81,7 +81,7 @@ const AllRepositories = (props: IAllRepos) => {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 660px;
+            height: 550px;
             overflow: auto;
             border-radius: 12px;
             background: #fff;
@@ -170,6 +170,7 @@ const AllRepositories = (props: IAllRepos) => {
             overflow: auto;
             flex-direction: column;
             flex: 1;
+            overflow-x: hidden;
           }
 
           .all-repos__container__empty-result {

@@ -45,7 +45,11 @@ const MembersList = (props: IMembersList) => {
           display: flex;
           gap: 4px;
           align-items: baseline;
-          padding: 0px 16px 12px 16px;
+          padding: 12px 16px;
+          position: sticky;
+          top: 150px;
+          z-index: 3;
+          background: #f1f5f9;
         }
 
         .members-list__titlesec__title {
@@ -66,11 +70,12 @@ const MembersList = (props: IMembersList) => {
         }
 
         .members-list__grid {
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, 167.5px);
+          justify-content: center;
+          row-gap: 24px;
+          column-gap: 16px;
           width: 100%;
-          margin: auto;
           justify-content: center;
         }
 
@@ -79,17 +84,11 @@ const MembersList = (props: IMembersList) => {
           flex-direction: column;
           gap: 16px;
           margin-bottom: 16px;
+          padding: 0px 8px;
         }
 
         .members-list__list__member {
           margin: 0px 16px;
-          // height:295px;
-        }
-
-        @media (min-width: 768px) {
-          .members-list__grid {
-            width: 100%;
-          }
         }
 
         @media (min-width: 1024px) {
@@ -98,18 +97,15 @@ const MembersList = (props: IMembersList) => {
           }
 
           .members-list__grid {
-            width: 900px;
-            justify-content: unset;
+            grid-template-columns: repeat(auto-fit, 289px);
           }
 
           .members-list__titlesec {
             display: none;
           }
-        }
 
-        @media (min-width: 1400px) {
-          .members-list__grid {
-            width: unset;
+          .members-list__list {
+            padding: 0px 20px;
           }
         }
       `}</style>

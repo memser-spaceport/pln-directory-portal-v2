@@ -39,47 +39,55 @@ const MemberRepositories = (props: IMemberRepositories) => {
 
   return (
     <>
-      <div className="member-repo">
-        <div className="member-repo__header">
-          <h2 className="member-repo__title">Repositories {repositories && Array.isArray(repositories) ? `(${repositories?.length})` : ''}</h2>
-          {repositories?.length > 3 && Array.isArray(repositories) && (
-            <button className="member-repo__header__seeall-btn" onClick={onSeeAllClickHandler}>
-              See all
-            </button>
+      {repositories && (
+        <div className="member-repo">
+          {Array.isArray(repositories) && (
+            <div className="member-repo__header">
+              <h2 className="member-repo__title">Repositories {repositories && Array.isArray(repositories) ? `(${repositories?.length})` : ''}</h2>
+              {repositories?.length > 3 && Array.isArray(repositories) && (
+                <button className="member-repo__header__seeall-btn" onClick={onSeeAllClickHandler}>
+                  See all
+                </button>
+              )}
+            </div>
           )}
+
+          {!Array.isArray(repositories) && repositories?.statusCode == 500 && (
+            <div className="member-repo__unable-to-load">
+              <p>Unable to load repositories</p>
+            </div>
+          )}
+
+          {Array.isArray(repositories) &&
+            (repositories?.length > 0 ? (
+              <div className="member-repo__repo-container">
+                {repositories?.map((repository: any, index: number) => {
+                  return (
+                    <Fragment key={`${repository}+${index}`}>
+                      {index <= 2 && (
+                        <div className={`member-repo__repo-container__repo ${repositories.length - 1 !== index ? 'member-repo__repo-container__repo__border-set' : ''}`}>
+                          <MemberDetailsRepoCard repo={repository} userInfo={userInfo} memebr={member} />
+                        </div>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="member-repo__empty-repo">
+                <MemberEmptyProject profileType="member" member={member} userInfo={userInfo} />
+              </div>
+            ))}
         </div>
-        {repositories && !Array.isArray(repositories) && repositories?.statusCode == 500 && (
-          <div className="member-repo__unable-to-load">
-            <p>Unable to load repositories</p>
-          </div>
-        )}
+      )}
 
-        {repositories && Array.isArray(repositories) && repositories?.length > 0 ? (
-          <div className="member-repo__repo-container">
-            {repositories?.map((repository: any, index: number) => {
-              return (
-                <Fragment key={`${repository}+${index}`}>
-                  {index <= 2 && (
-                    <div className={`member-repo__repo-container__repo ${index < 1 ? 'member-repo__repo-container__repo__border-set' : ''}`}>
-                      <MemberDetailsRepoCard repo={repository} userInfo={userInfo} memebr={member} />
-                    </div>
-                  )}
-                </Fragment>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="member-repo__empty-repo">
-            <MemberEmptyProject profileType="member" member={member} userInfo={userInfo} />
-          </div>
-        )}
-      </div>
-
-      <div className="all-member-container">
-        <Modal modalRef={modalRef} onClose={onClose}>
-          <AllRepositories userInfo={userInfo} member={member} allRepos={repositories} />
-        </Modal>
-      </div>
+      {Array.isArray(repositories) && (
+        <div className="all-member-container">
+          <Modal modalRef={modalRef} onClose={onClose}>
+            <AllRepositories userInfo={userInfo} member={member} allRepos={repositories} />
+          </Modal>
+        </div>
+      )}
 
       <style jsx>
         {`
@@ -87,6 +95,8 @@ const MemberRepositories = (props: IMemberRepositories) => {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            padding: 16px;
+            background: #fff;
           }
 
           .member-repo__unable-to-load {
@@ -159,13 +169,9 @@ const MemberRepositories = (props: IMemberRepositories) => {
           }
 
           @media (min-width: 1024px) {
-            // .all-repo-container {
-            //   display: none;
-            // }
-
-            // .member-repo__header__seeall-btn {
-            //   display: none;
-            // }
+            .member-repo {
+              border-radius: 8px;
+            }
           }
         `}
       </style>

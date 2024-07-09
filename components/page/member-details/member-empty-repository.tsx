@@ -25,39 +25,65 @@ const MemberEmptyProject = (props: IMemberEmptyProject) => {
 
   return (
     <>
-      {(isOwner || isAdmin) && member?.githubHandle && (
-        <div className="member-empty-project">
-          <p>No repositories to display</p>
-        </div>
-      )}
 
-      {!isOwner && !isAdmin && member?.githubHandle && (
-        <div className="member-empty-project">
-          <p>No repositories to display</p>
-        </div>
-      )}
-
-      {isOwner && !member?.githubHandle && (
-        <div className="member-empty-project">
-          <p>
-            GitHub handle is missing. Please update your profile
-            <a onClick={onUpdateGithub} href={PAGE_ROUTES.SETTINGS} className="member-empty-project__update">
-              here.{' '}
-            </a>
-          </p>
-        </div>
-      )}
-
-      {isAdmin && !isOwner && !member?.githubHandle && (
-        <div className="member-empty-project">
-          <p>
-            GitHub handle is missing for the user. If you have the required information, please update
-            <a onClick={onUpdateGithub} href={PAGE_ROUTES.SETTINGS} className="member-empty-project__update">
-              here.
-            </a>
-          </p>
-        </div>
-      )}
+      <>
+        {isOwner && member?.githubHandle ? (
+          <div className="member-empty-project">
+            <p>No repositories to display</p>
+          </div>
+        ) : (
+          <>
+            {isOwner && member?.githubHandle == null ? (
+              <div className="member-empty-project">
+                <p>
+                  GitHub handle is missing. Please update your profile
+                  <a onClick={onUpdateGithub} href={PAGE_ROUTES.SETTINGS} className="member-empty-project__update">
+                    here
+                  </a>
+                </p>
+              </div>
+            ) : (
+              <>
+                {isOwner || isAdmin ? (
+                  <>
+                    {member?.githubHandle == null ? (
+                      <div className="member-empty-project">
+                        <p>
+                          GitHub handle is missing for the user. If you have the required information, please update
+                          <a onClick={onUpdateGithub} href={PAGE_ROUTES.SETTINGS} className="member-empty-project__update">
+                            here
+                          </a>
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        {member?.githubHandle ? (
+                          <div className="member-empty-project">
+                            <p>No repositories to display</p>
+                          </div>
+                        ) : (
+                          <div className="member-empty-project">
+                            <p>
+                              GitHub handle is missing. Please update your profile
+                              <a onClick={onUpdateGithub} href={PAGE_ROUTES.SETTINGS} className="member-empty-project__update">
+                                here
+                              </a>
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div className="member-empty-project">
+                    <p>No repositories to display</p>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </>
 
       <style jsx>
         {`

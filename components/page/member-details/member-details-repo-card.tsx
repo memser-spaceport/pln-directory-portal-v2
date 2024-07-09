@@ -61,11 +61,13 @@ const MemberDetailsRepoCard = (props: IMemberRepoCard) => {
             display: flex;
             align-items: center;
             gap: 16px;
+            width:100%;
           }
           .member-repo__profile-container__details {
             display: flex;
             flex-direction: column;
             gap: 4px;
+            width:100%;
           }
 
           .member-repo__profile-container__details__project-name {

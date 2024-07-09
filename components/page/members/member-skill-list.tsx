@@ -30,14 +30,14 @@ const MemberSkillList = (props: any) => {
             asChild
             trigger={
               <div>
-                <Tag variant="primary" value={'+' + (skills?.length - noOfSkillsToShow).toString()}></Tag>{' '}
+                <Tag variant="primary" value={'+' + (skills?.length - noOfSkillsToShow).toString()}></Tag>
               </div>
             }
             content={
               <div>
                 {skills?.slice(noOfSkillsToShow, skills?.length).map((skill: any, index: number) => (
                   <div key={`${skill} + ${skill} + ${index}`}>
-                    {skill?.title} {index !== skills?.slice(noOfSkillsToShow, skills?.length - 1)?.length ? ',' : ''}
+                    {skill?.title}{index !== skills?.slice(noOfSkillsToShow, skills?.length - 1)?.length ? ',' : ''}
                   </div>
                 ))}
               </div>

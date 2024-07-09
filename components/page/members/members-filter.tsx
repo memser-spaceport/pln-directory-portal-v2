@@ -235,7 +235,7 @@ const MembersFilter = (props: IMembersFilter) => {
 
         <div className="team-filter__footer">
           <button className="team-filter__footer__clrall" onClick={onClearAllClicked}>
-            Clear all
+            Clear filters
           </button>
 
           <button className="team-filter__footer__aply" onClick={onShowClickHandler}>

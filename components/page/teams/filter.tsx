@@ -127,7 +127,7 @@ const Filter = (props: ITeamFilterWeb) => {
             {apliedFiltersCount > 0 && <FilterCount count={apliedFiltersCount} />}
           </h2>
           <button className="team-fitlter__header__clear-all-btn" onClick={onClearAllClicked}>
-            Clear all
+            Clear filters
           </button>
           <button className="team-filter__header__closebtn" onClick={onCloseClickHandler}>
             <Image alt="close" src="/icons/close.svg" height={16} width={16} />
@@ -139,14 +139,14 @@ const Filter = (props: ITeamFilterWeb) => {
           <div className="team-filter__body__ohonly">
             <h3 className="team-filter__body__ohonly__title">Only Show Teams with Office Hours</h3>
             <div className="team-filter__body__ohonly__toogle">
-              <Toggle height="20px" width="36px" callback={onOfficeHoursToogle} isChecked={includeOfficeHours} />
+              <Toggle height="16px" width="28px" callback={onOfficeHoursToogle} isChecked={includeOfficeHours} />
             </div>
           </div>
           {/* Include filter */}
           <div className="team-filter__body__includes">
             <h3 className="team-filter__body__includes__title">Include Friends of Protocol Labs</h3>
             <div className="pe__body__topic__select__toggle">
-              <Toggle height="20px" width="36px" callback={onIncludeFriendsToggle} isChecked={includeFriends} />
+              <Toggle height="16px" width="28px" callback={onIncludeFriendsToggle} isChecked={includeFriends} />
             </div>
           </div>
           {/* Border line */}
@@ -199,7 +199,7 @@ const Filter = (props: ITeamFilterWeb) => {
         {/* Footer */}
         <div className="team-filter__footer">
           <button className="team-filter__footer__clrall" onClick={onClearAllClicked}>
-            Clear all
+            Clear filters
           </button>
 
           <button className="team-filter__footer__aply" onClick={onShowClickHandler}>

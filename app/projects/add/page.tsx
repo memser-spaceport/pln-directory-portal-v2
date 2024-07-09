@@ -9,7 +9,7 @@ export default function AddProject(props: any) {
         <BreadCrumb backLink="/projects" directoryName="project" pageName="Add Project" />
       </div>
       <div>
-        {/* <AddEditProjectContainer project={null} /> */}
+        <AddEditProjectContainer project={null} />
       </div>
     </div>
   );

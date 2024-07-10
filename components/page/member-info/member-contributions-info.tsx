@@ -10,14 +10,14 @@ import HiddenField from '@/components/form/hidden-field';
 import TextAreaEditor from '@/components/form/text-area-editor';
 
 interface MemberContributionInfoProps {
-  initialValues: any,
-  projectsOptions: any[],
-  errors: string[]
+  initialValues: any;
+  projectsOptions: any[];
+  errors: string[];
 }
 
-function MemberContributionInfo({ initialValues = {}, projectsOptions = [], errors = [] }: MemberContributionInfoProps) {
-  const [contributionInfos, setContributionInfos] = useState(initialValues.contributions ?? []);
-  const currentProjectsCount = contributionInfos.filter((v: any) => v.currentProject === true).length;
+function MemberContributionInfo({ initialValues, projectsOptions = [], errors = [] }: MemberContributionInfoProps) {
+  const [contributionInfos, setContributionInfos] = useState(initialValues ?? []);
+  const currentProjectsCount = contributionInfos?.filter((v: any) => v.currentProject === true).length;
   const [expandedId, setExpandedId] = useState(-1);
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
@@ -33,8 +33,17 @@ function MemberContributionInfo({ initialValues = {}, projectsOptions = [], erro
     currentProject: false,
     description: '',
     role: '',
-    startDate: new Date('1990-01-02').toISOString().slice(0,10) ,
+    startDate: new Date('1990-01-02').toISOString().slice(0, 10),
     endDate: formatDate(currentYear, currentMonth, 'end'),
+  };
+
+  const getDefaultValueByKey = (teamUid: string, key: string) => {
+    const teamIndex = initialValues.teamsAndRoles.findIndex((v) => v.teamUid === teamUid);
+    if (teamIndex < 0) {
+      return '';
+    }
+
+    return initialValues.teamsAndRoles[teamIndex][key];
   };
 
   const onToggleExpansion = (index: number) => {
@@ -72,27 +81,6 @@ function MemberContributionInfo({ initialValues = {}, projectsOptions = [], erro
     return [...remainingItems];
   };
 
-  /* const onAddContribution = () => {
-    setContributionInfos((v) => {
-      const nv = structuredClone(v);
-      nv.push({...defaultValues});
-      return nv;
-    });
-  };
-
-  
-
-  const onDeleteContribution = (index: number) => {
-    if (index === expandedId) {
-      setExpandedId(-1);
-    }
-    setContributionInfos((old) => {
-      const newItem = [...old];
-      newItem.splice(index, 1);
-      return newItem;
-    });
-  }; */
-
   const onClearProjectSearch = (index: number) => {
     setContributionInfos((old: any) => {
       old[index] = { ...old[index], projectUid: '', projectName: '', projectLogo: '', currentProject: false };
@@ -111,16 +99,20 @@ function MemberContributionInfo({ initialValues = {}, projectsOptions = [], erro
   };
 
   const onProjectDetailsChanged = (index: number, value: string | boolean, key: string) => {
+   if(contributionInfos[index]) {
     setContributionInfos((old: any) => {
       const newV = structuredClone(old);
+      console.log(old, newV);
       newV[index][key] = value;
       return [...newV];
     });
+   }
   };
 
   useEffect(() => {
+    setContributionInfos(structuredClone(initialValues) ?? [])
     function resetHandler() {
-      setContributionInfos(initialValues.contributions);
+      setContributionInfos(structuredClone(initialValues) ?? []);
     }
     document.addEventListener('reset-member-register-form', resetHandler);
     return function () {
@@ -188,7 +180,7 @@ function MemberContributionInfo({ initialValues = {}, projectsOptions = [], erro
                   </div>
                   <div className="pc__list__item__form__item">
                     <TextField
-                      value={contributionInfo.role}
+                      defaultValue={contributionInfo.role}
                       onChange={(e) => onProjectDetailsChanged(index, e.target.value, 'role')}
                       placeholder="eg: senior architect"
                       type="text"
@@ -221,7 +213,7 @@ function MemberContributionInfo({ initialValues = {}, projectsOptions = [], erro
                   </div>
                   <div className="pc__list__item__form__item">
                     <div className="editor">
-                      <TextAreaEditor name={`contributionInfo${index}-description`} label="Description" placeholder="Enter project contribution.." />
+                      <TextAreaEditor defaultValue={contributionInfo.description} name={`contributionInfo${index}-description`} label="Description" placeholder="Enter project contribution.." />
                     </div>
                   </div>
                 </div>
@@ -254,7 +246,6 @@ function MemberContributionInfo({ initialValues = {}, projectsOptions = [], erro
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-           
           }
 
           .pc__new {
@@ -316,11 +307,10 @@ function MemberContributionInfo({ initialValues = {}, projectsOptions = [], erro
           }
           @media (min-width: 1024px) {
             .pc__list {
-             
             }
-              .user__info {
+            .user__info {
               margin: 32px 0 16px 0;
-              }
+            }
             .pc__list__item__form__item {
               flex-direction: row;
               gap: 8px;

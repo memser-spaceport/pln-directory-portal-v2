@@ -237,6 +237,7 @@ export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedI
 
   return { data: { formattedData } };
 };
+
 export const getMemberInfoFormValues = async () => {
   const [teamsInfo, projectsInfo, skillsInfo] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false`, { method: 'GET' }),
@@ -279,3 +280,161 @@ export const getMemberInfoFormValues = async () => {
       .sort((a: any, b: any) => a.projectName - b.projectName),
   };
 };
+
+export function compareObjects(obj1: any, obj2: any) {
+  if (obj1 === obj2) {
+    return true; // Handles identical values and reference equality for objects and arrays
+  }
+
+  if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
+    return false; // Handles primitive types and null
+  }
+
+  if (Array.isArray(obj1) !== Array.isArray(obj2)) {
+    return false; // One is an array and the other is not
+  }
+
+  if (Array.isArray(obj1)) {
+    if (obj1.length !== obj2.length) {
+      return false; // Different array lengths
+    }
+    for (let i = 0; i < obj1.length; i++) {
+      if (!compareObjects(obj1[i], obj2[i])) {
+        return false; // Different array elements
+      }
+    }
+    return true;
+  }
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return false; // Different number of properties
+  }
+
+  for (let key of keys1) {
+    if (!keys2.includes(key) || !compareObjects(obj1[key], obj2[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function utcDateToDateFieldString(isoString: string) {
+  const date = new Date(isoString);
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function apiObjsToMemberObj(obj: any) {
+  const formatted = {
+    ...obj.basicInfo,
+    ...obj.socialInfo,
+    projectContributions: [...obj.contributionInfo].map(c => {
+      const endDateMonth = new Date(c.endDate).getMonth();
+      const endDateYear = new Date(c.endDate).getFullYear();
+      return {
+        projectUid: c.projectUid,
+        role: c.role,
+        startDate: c.startDate,
+        description: c.description,
+        currentProject: c.currentProject,
+        ...(c.currentProject === false && { endDate: new Date(Date.UTC(endDateYear, endDateMonth + 1, 0)).toISOString() })
+      }
+    }),
+    skills: obj.skillsInfo.skills.map((sk) => {
+      return {
+        title: sk.name,
+        uid: sk.id,
+      };
+    }),
+    teamAndRoles: obj.skillsInfo.teamsAndRoles,
+  };
+
+  if(!formatted.imageFile) {
+    formatted.imageFile = ''
+  }
+
+  if(formatted.plnStartDate) {
+    formatted['plnStartDate'] = new Date(formatted['plnStartDate']).toISOString();
+  }
+
+  return formatted;
+}
+
+export function formInputsToMemberObj(obj: any) {
+  console.log(obj)
+  const result: any = {};
+  const teamAndRoles: any = {};
+  const projectContributions: any = {};
+  const skills: any = {};
+
+  for (const key in obj) {
+    if (key.startsWith('teamInfo')) {
+      const [teamInfo, subKey] = key.split('-');
+      const teamIndexMatch = teamInfo.match(/\d+$/);
+
+      if (teamIndexMatch) {
+        const teamIndex = teamIndexMatch[0];
+        if (!teamAndRoles[teamIndex]) {
+          teamAndRoles[teamIndex] = {};
+        }
+        teamAndRoles[teamIndex][subKey] = obj[key];
+      }
+    } else if (key.startsWith('contributionInfo')) {
+      const [contributionInfo, subKey] = key.split('-');
+      const contributionIndexMatch = contributionInfo.match(/\d+$/);
+      if (contributionIndexMatch) {
+        const contributionIndex = contributionIndexMatch[0];
+
+        if (!projectContributions[contributionIndex]) {
+          projectContributions[contributionIndex] = {};
+        }
+        if (subKey === 'currentProject') {
+          projectContributions[contributionIndex][subKey] = (obj[key] && obj[key]) === 'on' ? true : false;
+        } else {
+          projectContributions[contributionIndex][subKey] = obj[key];
+        }
+      }
+    } else if (key.startsWith('skillsInfo')) {
+      const [skillInfo, subKey] = key.split('-');
+      const skillIndexMatch = skillInfo.match(/\d+$/);
+      if (skillIndexMatch) {
+        const skillIndex = skillIndexMatch[0];
+        if (!skills[skillIndex]) {
+          skills[skillIndex] = {};
+        }
+        skills[skillIndex][subKey] = obj[key];
+      }
+    } else {
+      //contributionInfo
+      result[key] = obj[key];
+    }
+  }
+
+  result.teamAndRoles = Object.values(teamAndRoles);
+  result.projectContributions = Object.values(projectContributions);
+  result.skills = Object.values(skills);
+
+  result.projectContributions = result.projectContributions.map((v: any) => {
+    if (!v.currentProject) {
+      v['currentProject'] = false;
+    }
+    v['startDate'] = v.startDate === '' ? null : new Date(v.startDate).toISOString();
+    if (v['endDate'] === '') {
+      delete v['endDate'];
+    } else {
+      v['endDate'] = new Date(v.endDate).toISOString();
+    }
+
+    return v;
+  });
+  if (result['plnStartDate']) {
+    result['plnStartDate'] = new Date(result['plnStartDate']).toISOString();
+  }
+  return result;
+}

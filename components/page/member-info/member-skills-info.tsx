@@ -3,6 +3,7 @@ import HiddenField from '@/components/form/hidden-field';
 import MultiSelect from '@/components/form/multi-select';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import TextField from '@/components/form/text-field';
+import { getUniqueId } from '@/utils/common.utils';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
@@ -25,13 +26,22 @@ interface MemberSkillsInfoProps {
 }
 
 function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions = [], errors = [] }: MemberSkillsInfoProps) {
-  const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>(initialValues.teamsAndRoles ?? []);
-  const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>(initialValues.skills ?? []);
+  const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>([]);
+
+  const getTeamRoleDefaultValue = (teamUid: string) => {
+    const teamIndex = initialValues.teamsAndRoles.findIndex(v => v.teamUid === teamUid);
+    if(teamIndex < 0) {
+      return ""
+    }
+
+    return initialValues.teamsAndRoles[teamIndex].role;
+  }
 
   const onAddTeam = () => {
     setTeamsInfo((v) => {
       const nv = structuredClone(v);
-      nv.push({ teamTitle: '', role: '', teamUid: '' });
+      nv.push({ teamTitle: '', role: '', teamUid: getUniqueId() });
       return nv;
     });
   };
@@ -87,9 +97,12 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
   };
 
   useEffect(() => {
+    console.log('skills reset called')
+    setTeamsInfo(structuredClone(initialValues.teamsAndRoles) ?? []);
+    setSelectedSkills(structuredClone(initialValues.skills) ?? []);
     function resetHandler() {
-      setTeamsInfo(initialValues.teamsAndRoles);
-      setSelectedSkills(initialValues.skills);
+      setTeamsInfo(structuredClone(initialValues.teamsAndRoles));
+      setSelectedSkills(structuredClone(initialValues.skills));
     }
     document.addEventListener('reset-member-register-form', resetHandler);
     return function () {
@@ -114,7 +127,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
           </div>
           <div className="msf__tr__content">
             {teamsinfo.map((teaminfo, index) => (
-              <div key={`teams-role-${index}`} className="msf__tr__content__cn">
+              <div key={`teams-role-${teaminfo.teamUid}`} className="msf__tr__content__cn">
                 <div className="msf__tr__content__cn__teams">
                   <SearchableSingleSelect
                     id="members-register-team-info"
@@ -130,13 +143,13 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
                     onChange={(item) => onTeamSelectionChanged(index, item)}
                     arrowImgUrl="/icons/arrow-down.svg"
                   />
-                  <HiddenField value={teaminfo.teamUid} defaultValue="" name={`teamInfo${index}-teamUid`} />
+                  <HiddenField value={teaminfo.teamUid} defaultValue={teaminfo.teamUid} name={`teamInfo${index}-teamUid`} />
                 </div>
                 <div className="msf__tr__content__cn__role">
                   <TextField
                     id="register-member-role"
-                    value={teaminfo.role}
                     isMandatory={true}
+                    defaultValue={getTeamRoleDefaultValue(teaminfo.teamUid)}
                     name={`teamInfo${index}-role`}
                     placeholder="Enter your title/role"
                     onChange={(e) => onRoleChange(index, e.target.value)}
@@ -145,9 +158,9 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
                 </div>
                 <div className="msf__tr__content__cn__delete">
                   {index !== 0 && (
-                    <button className="msf__tr__content__cn__delete__btn" onClick={() => onDeleteTeam(index)} type="button">
+                    <div className="msf__tr__content__cn__delete__btn" onClick={() => onDeleteTeam(index)} type="button">
                       <Image src="/icons/close.svg" alt="delete team role" width="18" height="18" />
-                    </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -188,8 +201,8 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
           </div>
           {selectedSkills.map((skillInfo, index) => (
             <div key={`member-skills-${index}`}>
-              <HiddenField value={skillInfo.name} defaultValue="" name={`skillsInfo${index}-title`} />
-              <HiddenField value={skillInfo.id} defaultValue="" name={`skillsInfo${index}-uid`} />
+              <HiddenField value={skillInfo.name} defaultValue={skillInfo.name} name={`skillsInfo${index}-title`} />
+              <HiddenField value={skillInfo.id} defaultValue={skillInfo.id} name={`skillsInfo${index}-uid`} />
             </div>
           ))}
         </div>

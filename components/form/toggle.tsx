@@ -9,9 +9,10 @@ interface ToggleProps {
   checked?: boolean
   disabled?:boolean
   value?:boolean
+  defaultValue?: boolean
 }
 
-const Toggle: React.FC<ToggleProps> = ({ id, label, name, value = false, disabled=false, onChange, checked = false, ...props  }) => {
+const Toggle: React.FC<ToggleProps> = ({ id, label, defaultValue = false,  name, value = false, disabled=false, onChange, checked = false, ...props  }) => {
   const [isChecked, setIsChecked] = useState<boolean>(value || false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -38,7 +39,7 @@ const Toggle: React.FC<ToggleProps> = ({ id, label, name, value = false, disable
         <div className={`toggle-switch ${isChecked ? 'checked' : ''} ${disabled ? 'toggle-switch--disabled': ''}`} onClick={handleToggle}>
           <div className="toggle-knob" />
         </div>
-        <input ref={inputRef} type="checkbox" name={name} disabled={disabled} id={id} {...props} onChange={handleToggle} style={{ display: 'none' }} />
+        <input ref={inputRef} type="checkbox" name={name} disabled={disabled} id={id} {...props} onChange={handleToggle} style={{ width: '0px', height: '0px' }} />
       </div>
       <style jsx>
         {`

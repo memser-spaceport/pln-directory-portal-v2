@@ -28,10 +28,10 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const membershipResourceOptions = props?.membershipSourceOptions;
   const industryTagOptions = props?.industryTagOptions;
   const errors = props?.errors;
-  const [selectedProtocols, setSelectedProtocols] = useState<IProtocolOptions[]>(initialValues.technologies);
-  const [selectedMembershipSources, setSelectedMembershipSources] = useState<IMembershipSourceOptions[]>(initialValues.membershipSources);
-  const [selectedIndustryTags, setSelectedIndustryTags] = useState<IIndustryTagsOptions[]>(initialValues.industryTags);
-  const [selectedFundingStage, setSelectedFundingStage] = useState<IFundingStage>(initialValues.fundingStage);
+  const [selectedProtocols, setSelectedProtocols] = useState<IProtocolOptions[]>([]);
+  const [selectedMembershipSources, setSelectedMembershipSources] = useState<IMembershipSourceOptions[]>([]);
+  const [selectedIndustryTags, setSelectedIndustryTags] = useState<IIndustryTagsOptions[]>([]);
+  const [selectedFundingStage, setSelectedFundingStage] = useState<IFundingStage | null>({...initialValues.fundingStage});
 
   const addItem = (setState: React.Dispatch<React.SetStateAction<any[]>>, itemToAdd: any) => {
     setState((prevItems: any[]) => {
@@ -50,12 +50,27 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
     setSelectedFundingStage(item);
   };
 
+  const getDefaultValueByKey = (field: string, key: string, id: string) => {
+    const defaultValues = structuredClone(initialValues)
+    console.log(defaultValues[field], 'checking values', key, id)
+    const teamIndex = defaultValues[field].findIndex(v => v.id === id);
+    if(teamIndex < 0) {
+      return ""
+    }
+    console.log(`returning field-${field} - key-${key} - id-${id}`, defaultValues[field])
+    return defaultValues[field][teamIndex][key];
+  }
+
   useEffect(() => {
+    setSelectedProtocols([...initialValues.technologies])
+    setSelectedMembershipSources([...initialValues.membershipSources])
+    setSelectedIndustryTags([...initialValues.industryTags])
+    setSelectedFundingStage({...initialValues.fundingStage})
     function resetHandler() {
-      setSelectedProtocols(initialValues.technologies);
-      setSelectedMembershipSources(initialValues.membershipSources);
-      setSelectedIndustryTags(initialValues.industryTags);
-      setSelectedFundingStage(initialValues.fundingStage);
+      setSelectedProtocols(structuredClone(initialValues.technologies));
+      setSelectedMembershipSources(structuredClone(initialValues.membershipSources));
+      setSelectedIndustryTags(structuredClone(initialValues.industryTags));
+      setSelectedFundingStage(structuredClone(initialValues.fundingStage));
     }
     document.addEventListener('reset-team-register-form', resetHandler);
     return function () {
@@ -97,9 +112,9 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
           </div>
           <div className="hidden">
             {selectedProtocols.map((protocol, index) => (
-              <div key={`team-technologies-${index}`}>
-                <HiddenField value={protocol.name} defaultValue="" name={`technology${index}-title`} />
-                <HiddenField value={protocol.id} defaultValue="" name={`technology${index}-uid`} />
+              <div key={`team-technologies-${protocol.id}-${index}`}>
+                <HiddenField value={protocol.name} defaultValue={protocol.name} name={`technology${index}-title`} />
+                <HiddenField value={protocol.id}  defaultValue={protocol.id} name={`technology${index}-uid`} />
               </div>
             ))}
           </div>
@@ -117,8 +132,8 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             arrowImgUrl="/icons/arrow-down.svg"
             label="Funding Stage*"
           />
-          <HiddenField value={selectedFundingStage?.id} defaultValue="" name="fundingStage-uid" />
-          <HiddenField value={selectedFundingStage?.name} defaultValue="" name="fundingStage-title" />
+          <HiddenField value={selectedFundingStage?.id} defaultValue={selectedFundingStage?.id ?? ''} name="fundingStage-uid" />
+          <HiddenField value={selectedFundingStage?.name} defaultValue={selectedFundingStage?.name ?? ''} name="fundingStage-title" />
         </div>
         <div className="teamProject__form__item">
           <MultiSelect
@@ -136,9 +151,9 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
           />
           <div className="hidden">
             {selectedMembershipSources.map((source, index) => (
-              <div key={`team-membershipSource-${index}`}>
-                <HiddenField value={source.name} defaultValue="" name={`membershipSource${index}-title`} />
-                <HiddenField value={source.id} defaultValue="" name={`membershipSource${index}-uid`} />
+              <div key={`team-membershipSource-${source.id}-${index}`}>
+                <HiddenField value={source.name} defaultValue={source.name} name={`membershipSource${index}-title`} />
+                <HiddenField value={source.id} defaultValue={source.id} name={`membershipSource${index}-uid`} />
               </div>
             ))}
           </div>
@@ -163,9 +178,9 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
           </div>
           <div className="hidden">
             {selectedIndustryTags.map((tag, index) => (
-              <div key={`team-industryTags-${index}`}>
-                <HiddenField value={tag.name} defaultValue="" name={`industryTag${index}-title`} />
-                <HiddenField value={tag.id} defaultValue="" name={`industryTag${index}-uid`} />
+              <div key={`team-industryTags-${tag.id}-${index}`}>
+                <HiddenField value={tag.name} defaultValue={tag.name}   name={`industryTag${index}-title`} />
+                <HiddenField value={tag.id} defaultValue={tag.id}   name={`industryTag${index}-uid`} />
               </div>
             ))}
           </div>
@@ -202,7 +217,9 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
           gap: 4px;
         }
         .hidden {
-          display: none;
+          visibility: hidden;
+          height:0;
+          width:0;
         }
       `}</style>
     </>

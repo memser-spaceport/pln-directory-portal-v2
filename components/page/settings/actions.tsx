@@ -1,15 +1,34 @@
+import { useEffect, useState } from "react";
+
 function SettingsAction() {
+  const [isFormChanged, setIsFormChanged] = useState(false);
+  const onResetForm = () => {
+    document.dispatchEvent(new CustomEvent('reset-member-register-form'));
+    setIsFormChanged(false)
+  }
+  useEffect(() => {
+    function handler(e) {
+      console.log(e.detail, ' setting actions')
+      setIsFormChanged(e.detail);
+    }
+    document
+    document.addEventListener('settings-form-changed', handler);
+    return function () {
+      document.removeEventListener('settings-form-changed', handler);
+    }
+  }, [])
+
   return (
     <>
-      <div className="fa">
+      <div className={`fa ${isFormChanged === false ? 'hidden': ''}`}>
         <div className="fa__info">
           <img alt="save icon" src="/icons/save.svg" width="16" height="16" />
           <p>Attention! You have unsaved changes!</p>
         </div>
         <div className="fa__action">
-          <button className="fa__action__cancel" type="button">
+          <div className="fa__action__cancel" onClick={onResetForm}>
             Cancel
-          </button>
+          </div>
           <button className="fa__action__save" type="submit">
             Save Changes
           </button>
@@ -17,6 +36,11 @@ function SettingsAction() {
       </div>
       <style jsx>
         {`
+         .hidden {
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+          }
           .fa {
             height: 98px;
             position: sticky;

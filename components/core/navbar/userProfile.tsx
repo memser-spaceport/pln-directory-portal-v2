@@ -12,6 +12,7 @@ import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { createLogoutChannel } from '../login/broadcast-channel';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 
 interface IProfile {
@@ -55,12 +56,10 @@ export default function UserProfile(props: Readonly<IProfile>) {
         </button>
         {isDropdown && (
           <div className="profile__profileimagesection__ddown">
-            <Link href='/settings' style={{width:'100%'}}>
-              <button className="profile__profileimagesection__ddown__settings" onClick={() => onAccountOptionsClickHandler('settings')}>
+             <button className="profile__profileimagesection__ddown__settings" onClick={() => onAccountOptionsClickHandler('settings')}>
                 <Image height={16} width={16} loading="lazy" alt="settings" src="/icons/settings.svg" />
                 Account Settings
               </button>
-            </Link>
             <div className="profile__profileimagesection__ddown__bl"> </div>
             <div className="profile__profieimagesection__ddown__louts">
               <button onClick={onLogoutHandler} className="profile__profieimagesection__ddown__louts__loutbtn" onClickCapture={() => onAccountOptionsClickHandler('logout')}>

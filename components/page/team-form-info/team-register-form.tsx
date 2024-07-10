@@ -10,6 +10,7 @@ import TeamSocialInfo from './team-social-info';
 import { createParticipantRequest, validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { toast } from 'react-toastify';
+import { transformRawInputsToFormObj } from '@/utils/team.utils';
 
 interface ITeamRegisterForm {
   onCloseForm: () => void;
@@ -25,7 +26,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const initialValues = {
+  const [initialValues, setInitialValues] = useState({
     basicInfo: {
       requestorEmail: '',
       teamProfile: '',
@@ -48,7 +49,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
       telegramHandler: '',
       blog: '',
     },
-  };
+  });
 
   const scrollToTop = () => {
     if (formContainerRef.current) {
@@ -60,7 +61,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
     e.preventDefault();
     if (formRef.current) {
       const formData = new FormData(formRef.current);
-      const formattedData = transformObject(Object.fromEntries(formData));
+      const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
       if (currentStep === 'social') {
         const validationResponse = validateForm(socialSchema, formattedData);
         if (!validationResponse?.success) {
@@ -116,7 +117,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
   const onNextClicked = async () => {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
-      const formattedData = transformObject(Object.fromEntries(formData));
+      const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
       if (currentStep === 'basic') {
         const errors = [];
         const validationResponse = validateForm(basicInfoSchema, formattedData);
@@ -166,59 +167,6 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
   const onBackClicked = () => {
     goToPreviousStep();
   };
-
-  function transformObject(obj: any) {
-    const result: any = {};
-    const fundingStage: any = {};
-    const technologies: any = {};
-    const membershipSources: any = {};
-    const industryTags: any = {};
-
-    for (const key in obj) {
-      if (key.startsWith('fundingStage')) {
-        const subKey = key.split('-')[1];
-        fundingStage[subKey] = obj[key];
-      } else if (key.startsWith('technology')) {
-        const [technology, subKey] = key.split('-');
-        const technologyIndexMatch = technology?.match(/\d+$/);
-        if (technologyIndexMatch) {
-          const technologyIndex = technologyIndexMatch[0];
-          if (!technologies[technologyIndex]) {
-            technologies[technologyIndex] = {};
-          }
-          technologies[technologyIndex][subKey] = obj[key];
-        }
-      } else if (key.startsWith('membershipSource')) {
-        const [membershipSource, subKey] = key.split('-');
-        const membershipSourceIndexMatch = membershipSource.match(/\d+$/);
-        if (membershipSourceIndexMatch) {
-          const membershipSourceIndex = membershipSourceIndexMatch[0];
-          if (!membershipSources[membershipSourceIndex]) {
-            membershipSources[membershipSourceIndex] = {};
-          }
-          membershipSources[membershipSourceIndex][subKey] = obj[key];
-        }
-      } else if (key.startsWith('industryTag')) {
-        const [industryTag, subKey] = key.split('-');
-        const industryTagIndexMatch = industryTag.match(/\d+$/);
-        if (industryTagIndexMatch) {
-          const industryTagIndex = industryTagIndexMatch[0];
-          if (!industryTags[industryTagIndex]) {
-            industryTags[industryTagIndex] = {};
-          }
-          industryTags[industryTagIndex][subKey] = obj[key];
-        }
-      } else {
-        result[key] = obj[key];
-      }
-    }
-
-    result.fundingStage = fundingStage;
-    result.technologies = Object.values(technologies);
-    result.membershipSources = Object.values(membershipSources);
-    result.industryTags = Object.values(industryTags);
-    return result;
-  }
 
   useEffect(() => {
     getTeamsFormOptions()

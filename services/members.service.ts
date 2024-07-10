@@ -196,11 +196,39 @@ export const getMemberInfo = async (memberUid: string) => {
   }
 
   const result = await response?.json();
-  return { data: result };
+  const teamMemberRoles = result.teamMemberRoles.map((tm) => {
+    return {
+      teamTitle: tm.team.name,
+      teamUid: tm.teamUid,
+      role: tm.role,
+    };
+  });
+
+  const skills = result.skills.map((sk) => {
+    return {
+      id: sk.uid,
+      name: sk.title,
+    };
+  });
+
+  const projectContributions = result.projectContributions.map(pc => {
+    return {
+      role: pc?.role,
+      projectName: pc?.project?.name,
+      projectUid: pc?.project?.uid,
+      startDate: pc?.startDate,
+      endDate: pc?.endDate,
+      description: pc?.description,
+      currentProject: pc?.currentProject
+    }
+  })
+  const formatted = { ...result, moreDetails: result.moreDetails ?? '', officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills };
+
+  return { data: formatted };
 };
 
 export const getMembersInfoForDp = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),
@@ -217,6 +245,34 @@ export const getMembersInfoForDp = async () => {
         profile: info.image?.url,
       };
     })
-    .sort((a: any, b: any) => a.name - b.name);
+    .sort((a: any, b: any) => a.name.localeCompare(b.name));
   return { data: formattedData };
 };
+
+
+export const updateMember = async (uid: string, payload: any, authToken: string) => {
+ const result =  await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if(!result.ok) {
+    return {
+      isError: true,
+      errorMessage: result.statusText,
+      status: result.status
+    }
+  }
+
+
+  const output = await result.json()
+
+  return {
+    data: output
+  }
+}

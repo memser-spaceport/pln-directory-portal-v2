@@ -6,6 +6,55 @@ export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
 };
 
+
+
+export function compareObjsIfSame(obj1: any, obj2: any) {
+  if (obj1 === obj2) {
+    return true; // Handles identical values and reference equality for objects and arrays
+  }
+
+  if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
+    return false; // Handles primitive types and null
+  }
+
+  if (Array.isArray(obj1) !== Array.isArray(obj2)) {
+    return false; // One is an array and the other is not
+  }
+
+  if (Array.isArray(obj1)) {
+    if (obj1.length !== obj2.length) {
+      return false; // Different array lengths
+    }
+    for (let i = 0; i < obj1.length; i++) {
+      if (!compareObjsIfSame(obj1[i], obj2[i])) {
+        return false; // Different array elements
+      }
+    }
+    return true;
+  }
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return false; // Different number of properties
+  }
+
+  for (let key of keys1) {
+    if (!keys2.includes(key) || !compareObjsIfSame(obj1[key], obj2[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export const getUniqueId = () => {
+  const dateString = Date.now().toString(36);
+  const randomness = Math.random().toString(36).substr(2);
+  return dateString + randomness;
+};
+
 export const getParsedValue = (value: string) => {
   try {
     if (value) {

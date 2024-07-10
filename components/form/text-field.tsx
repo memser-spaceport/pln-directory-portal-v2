@@ -22,15 +22,6 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, value = '', defa
     }
   }
 
-  useEffect(() => {
-    if(inputRef.current) {
-      if(value !== '') {
-        inputRef.current.value = value
-      }
-    }
-  }, [value])
-
-
   return (
     <>
       <div className="tf">

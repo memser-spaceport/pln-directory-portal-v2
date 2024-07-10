@@ -67,6 +67,96 @@ export function getTeamsListOptions(options: ITeamListOptions) {
   return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title", pagination: false };
 }
 
+export function transformTeamApiToFormObj(obj){
+  const output = {
+    ...obj.basicInfo,
+    ...obj.projectsInfo,
+    ...obj.socialInfo
+  };
+
+  output.fundingStage = {
+    title: {...output}.fundingStage?.name,
+    uid: {...output}.fundingStage?.id
+  }
+
+  output.membershipSources = {...output}.membershipSources?.map(v => {
+    return {
+      title: v.name,
+      uid: v.id
+    }
+  })
+
+  output.technologies = {...output}.technologies?.map(v => {
+    return {
+      title: v.name,
+      uid: v.id
+    }
+  })
+  output.industryTags = {...output}.industryTags?.map(v => {
+    return {
+      title: v.name,
+      uid: v.id
+    }
+  })
+  
+ delete output.teamProfile
+ delete output.requestorEmail
+  return output;
+}
+
+export function transformRawInputsToFormObj(obj: any) {
+  const result: any = {};
+  const fundingStage: any = {};
+  const technologies: any = {};
+  const membershipSources: any = {};
+  const industryTags: any = {};
+
+  for (const key in obj) {
+    if (key.startsWith('fundingStage')) {
+      const subKey = key.split('-')[1];
+      fundingStage[subKey] = obj[key];
+    } else if (key.startsWith('technology')) {
+      const [technology, subKey] = key.split('-');
+      const technologyIndexMatch = technology?.match(/\d+$/);
+      if (technologyIndexMatch) {
+        const technologyIndex = technologyIndexMatch[0];
+        if (!technologies[technologyIndex]) {
+          technologies[technologyIndex] = {};
+        }
+        technologies[technologyIndex][subKey] = obj[key];
+      }
+    } else if (key.startsWith('membershipSource')) {
+      const [membershipSource, subKey] = key.split('-');
+      const membershipSourceIndexMatch = membershipSource.match(/\d+$/);
+      if (membershipSourceIndexMatch) {
+        const membershipSourceIndex = membershipSourceIndexMatch[0];
+        if (!membershipSources[membershipSourceIndex]) {
+          membershipSources[membershipSourceIndex] = {};
+        }
+        membershipSources[membershipSourceIndex][subKey] = obj[key];
+      }
+    } else if (key.startsWith('industryTag')) {
+      const [industryTag, subKey] = key.split('-');
+      const industryTagIndexMatch = industryTag.match(/\d+$/);
+      if (industryTagIndexMatch) {
+        const industryTagIndex = industryTagIndexMatch[0];
+        if (!industryTags[industryTagIndex]) {
+          industryTags[industryTagIndex] = {};
+        }
+        industryTags[industryTagIndex][subKey] = obj[key];
+      }
+    } else {
+      result[key] = obj[key];
+    }
+  }
+
+  result.fundingStage = fundingStage;
+  result.technologies = Object.values(technologies);
+  result.membershipSources = Object.values(membershipSources);
+  result.industryTags = Object.values(industryTags);
+  return result;
+}
+
 
 export const getTechnologyImage = (technology: string) => {
   if (technology === "Filecoin") {

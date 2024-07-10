@@ -39,6 +39,8 @@ export const EVENTS = {
   PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE: "project-detail-all-teams-open-and-close",
   PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: "project-detail-delete-modal-open-and-close",
   ADD_OR_EDIT_PROJECT_STEP_CHANGE: "add-or-edit-project-step-change",
+  OPEN_MAINTAINING_TEAM_POPUP: 'open-maintaining-team-popup',
+  OPEN_CONTRIBUTORS_POPUP: 'open-contributors-popup'
 };
 
 export const HELPER_MENU_OPTIONS = [

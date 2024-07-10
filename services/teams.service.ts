@@ -93,3 +93,25 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
   };
   return { data: { formatedData } };
 };
+
+
+export const getTeamsForProject = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?select=uid,name,shortDescription,logo.url&&pagination=false&&with=teamMemberRoles`);
+
+  if (!response.ok) {
+    return { isError: true, message: response?.status }
+  }
+
+  const result = await response.json();
+
+  const formattedData = result?.map((team: any) => {
+    return {
+      uid: team.uid,
+      name: team.name,
+      logo: team.logo?.url ? team.logo.url : null,
+    }
+  })
+
+  return { data: formattedData }
+
+};

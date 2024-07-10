@@ -157,3 +157,32 @@ export const getMemberRoles = async (options: IMemberListOptions) => {
 
   return await response.json();
 };
+
+
+export const getMembersForProjectForm = async (teamId = null) => {
+  let response;
+  if (teamId) {
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc`);
+  } else {
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc`);
+  }
+
+  if (!response.ok) {
+    return { isError: true, message: response.statusText }
+  }
+  const result = await response.json();
+  const formattedData = result?.map((member: any) => {
+    const mainTeam = member.teamMemberRoles.find((team: any) => team.mainTeam) || null;
+    const teamLead = member.teamMemberRoles.some((team: any) => team.teamLead);
+    return {
+      uid: member.uid,
+      name: member.name,
+      logo: member.image?.url ? member.image.url : null,
+      teamMemberRoles: member?.teamMemberRoles,
+      mainTeam: mainTeam,
+      teamLead,
+    }
+  });
+
+  return {data: formattedData};
+};

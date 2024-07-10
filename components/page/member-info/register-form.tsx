@@ -7,8 +7,9 @@ import MemberSocialInfo from '@/components/page/member-info/member-social-info';
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import { validateLocation } from '@/services/location.service';
-import { validatePariticipantsEmail } from '@/services/participants-request.service';
+import { createParticipantRequest, validatePariticipantsEmail } from '@/services/participants-request.service';
 import { saveRegistrationImage } from '@/services/registration.service';
+import { triggerLoader } from '@/utils/common.utils';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -28,14 +29,12 @@ function RegisterForm(props: any) {
   const [skillsErrors, setSkillsErrors] = useState<string[]>([]);
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
-  const initialValues = {
+  const [initialValues, setInitialState] = useState({
     skillsInfo: {
       teamsAndRoles: [{ teamTitle: '', role: '', teamUid: '' }],
       skills: [],
     },
-    contributionInfo: {
-      contributions: [],
-    },
+    contributionInfo: [],
     basicInfo: {
       name: '',
       email: '',
@@ -54,7 +53,7 @@ function RegisterForm(props: any) {
       officeHours: '',
       comments: '',
     },
-  };
+  });
 
   const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -81,27 +80,18 @@ function RegisterForm(props: any) {
           uniqueIdentifier: formValues.email,
           newData: { ...formValues, openToWork: false },
         };
-        const formResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request`, {
-          method: 'POST',
-          body: JSON.stringify(bodyData),
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
+        const formResult = await createParticipantRequest(bodyData);
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
         if (formResult.ok) {
-          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           formRef.current.reset();
           setCurrentStep('success');
         } else {
-          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-          onCloseForm();
+          //onCloseForm();
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
         }
       }
     } catch (err) {
-      onCloseForm();
+      //onCloseForm();
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
     }
@@ -119,7 +109,7 @@ function RegisterForm(props: any) {
     }
     const formData = new FormData(formRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
-
+    console.log(JSON.stringify(formattedData))
     if (currentStep === 'basic') {
       const errors = [];
       const result = basicInfoSchema.safeParse(formattedData);
@@ -378,7 +368,7 @@ function RegisterForm(props: any) {
               <MemberBasicInfo initialValues={initialValues.basicInfo} errors={basicErrors} />
             </div>
             <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
-              <MemberContributionInfo initialValues={initialValues.contributionInfo} projectOptions={allData.projects} errors={contributionErrors} />
+              <MemberContributionInfo initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} errors={contributionErrors} />
             </div>
             <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
               <MemberSocialInfo initialValues={initialValues.socialInfo} errors={socialErrors} />
@@ -417,14 +407,14 @@ function RegisterForm(props: any) {
             </div>
             <div className="rf__actions__group">
               {currentStep !== 'basic' && (
-                <button className="rf__actions__back" onClick={onBackClicked} type="button">
+                <div className="rf__actions__back" onClick={onBackClicked}>
                   Back
-                </button>
+                </div>
               )}
               {currentStep !== 'social' && (
-                <button className="rf__actions__next" onClick={onNextClicked} type="button">
+                <div className="rf__actions__next" onClick={onNextClicked}>
                   Next
-                </button>
+                </div>
               )}
               {currentStep === 'social' && (
                 <button className="rf__actions__submit" type="submit">

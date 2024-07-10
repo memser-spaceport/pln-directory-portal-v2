@@ -11,13 +11,13 @@ const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick }) => {
     <div className="tabs">
       <div className="tabs__list">
         {tabs.map((tab, index) => (
-          <button
+          <div
             key={`${tab}-${index}`}
             className={`tabs__tab ${tab === activeTab ? 'tabs__tab--active' : ''}`}
             onClick={() => onTabClick(tab)}
           >
             <p className={`tabs__tab__text ${tab === activeTab ? 'tabs__tab__text--active': ''}`}>{tab}</p>
-          </button>
+          </div>
         ))}
       </div>
       <style jsx>{`
@@ -44,6 +44,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick }) => {
           font-weight: 400;
           text-transform: uppercase;
           color: #94A3B8;
+          text-align: center;
         }
         .tabs__tab__text--active {
            font-weight: 700;

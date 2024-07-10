@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import TextField from '@/components/form/text-field';
 import { useEffect, useRef, useState } from 'react';
 
@@ -11,14 +11,21 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const errors = props.errors;
   const initialValues = props.initialValues;
   const uploadImageRef = useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string>(initialValues.imageFile);
+  const [profileImage, setProfileImage] = useState<string>(initialValues?.imageFile ?? '');
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
+        if(!initialValues.imageFile && imageInputRef.current) {
+          imageInputRef.current.value = reader.result as string;
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -31,13 +38,19 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
     if (uploadImageRef.current) {
       uploadImageRef.current.value = '';
     }
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
   };
 
   useEffect(() => {
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
-        setProfileImage(initialValues.teamProfile)
+        setProfileImage(initialValues?.imageFile);
+      }
+      if(imageInputRef.current) {
+        imageInputRef.current.value = initialValues?.imageFile;
       }
     }
     document.addEventListener('reset-member-register-form', resetHandler);
@@ -67,9 +80,20 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 </span>
               )}
             </label>
+            <input id="member-info-basic-image" ref={imageInputRef} hidden name="imageFile" defaultValue={initialValues?.imageFile} />
             <input onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
             <div className="memberinfo__form__item">
-              <TextField pattern="^[a-zA-Z\s]*$" maxLength={64} isMandatory={true} id="register-member-name" label="Name*" defaultValue={initialValues.name} name="name" type="text" placeholder="Enter your full name" />
+              <TextField
+                pattern="^[a-zA-Z\s]*$"
+                maxLength={64}
+                isMandatory={true}
+                id="register-member-name"
+                label="Name*"
+                defaultValue={initialValues?.name}
+                name="name"
+                type="text"
+                placeholder="Enter your full name"
+              />
             </div>
           </div>
           <p className="info">
@@ -91,7 +115,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
 
           <div className="memberinfo__form__item">
             <div className="memberinfo__form__item__cn">
-              <TextField defaultValue={initialValues.state} id="register-member-state" label="State or Province" name="region" type="text" placeholder="Enter state or province" />
+              <TextField defaultValue={initialValues.region} id="register-member-state" label="State or Province" name="region" type="text" placeholder="Enter state or province" />
               <TextField defaultValue={initialValues.country} id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" />
             </div>
           </div>

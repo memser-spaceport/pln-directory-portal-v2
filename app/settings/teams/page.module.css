@@ -9,7 +9,22 @@
   width: 100%;
   background: white;
   z-index: 2;
-  border-bottom: 1px solid #e2e8f0;
+  border: none;
+}
+
+.ps__breadcrumbs__desktop {
+  display: none;
+}
+
+.ps__breadcrumbs__mobile {
+  display: flex;
+  padding: 0 16px;
+  padding-top: 16px;
+  gap: 6px;
+  color: #156FF7;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
 }
 .ps__main {
   display: flex;
@@ -43,5 +58,14 @@
     width: fit-content;
     display: flex;
     justify-content: center;
+  }
+  .ps__breadcrumbs {
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .ps__breadcrumbs__desktop {
+    display: block;
+  }
+  .ps__breadcrumbs__mobile {
+    display: none;
   }
 }

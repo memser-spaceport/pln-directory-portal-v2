@@ -77,6 +77,30 @@ export const getTeamUIDByAirtableId = async (id: string) => {
 };
 
 
+export const updateTeam = async (payload: any, authToken: string, teamUid: string) => {
+    const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${teamUid}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+    })
+
+    if(!result.ok) {
+      return {
+        isError: true,
+        status: result.status,
+        errorMessage: result.statusText
+      }
+    }
+
+    const output = await result.json();
+    return {
+      data: output
+    }
+}
+
 export const getTeam = async (id: string, options: string | string[][] | Record<string, string> | URLSearchParams | undefined) => {
   const requestOPtions: RequestInit = { method: "GET", headers: getHeader(""), cache: "no-store" };
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${id}?${new URLSearchParams(options)}`, requestOPtions);
@@ -93,7 +117,6 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
   };
   return { data: { formatedData } };
 };
-
 
 export const getTeamsForProject = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?select=uid,name,shortDescription,logo.url&&pagination=false&&with=teamMemberRoles`);
@@ -113,5 +136,61 @@ export const getTeamsForProject = async () => {
   })
 
   return { data: formattedData }
+}
 
+export const getTeamInfo = async (teamUid: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${teamUid}`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+  if (!response?.ok) {
+    return { isError: true };
+  }
+
+  const result = await response?.json();
+  const formatted = {...result}
+  formatted.technologies = [...result.technologies].map(tech => {
+    return {
+      id: tech.uid,
+      name: tech.title
+    }
+  })
+
+  formatted.membershipSources = [...result.membershipSources].map(ms => {
+    return {
+      id: ms.uid,
+      name: ms.title
+    }
+  })
+
+  formatted.industryTags = [...result.industryTags].map(ind => {
+    return {
+      id: ind.uid,
+      name: ind.title
+    }
+  })
+ 
+  return { data: formatted };
+};
+
+export const getTeamsInfoForDp = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+  if (!response?.ok) {
+    return { error: { status: response?.status, statusText: response?.statusText } };
+  }
+  const result = await response?.json();
+  const formattedData: any = result
+    .map((info: any) => {
+      return {
+        id: info.uid,
+        name: info.name,
+      };
+    })
+    .sort((a: any, b: any) => a.name.localeCompare(b.name));
+  return { data: formattedData };
 };

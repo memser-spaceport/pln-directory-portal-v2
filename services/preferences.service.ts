@@ -26,7 +26,8 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
         githubProjects: rawPreferences.showGithubProjects,
         telegram: rawPreferences.showTelegram,
         discord: rawPreferences.showDiscord,
-        linkedin: rawPreferences.showLinkedin
+        linkedin: rawPreferences.showLinkedin,
+        twitter: rawPreferences.showTwitter,
     }
 
     return {

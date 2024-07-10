@@ -5,11 +5,13 @@ import { useEffect, useRef, useState } from 'react';
 interface ITeamBasicInfo {
   errors: string[];
   initialValues: any;
+  isEdit?: boolean;
 }
 
 function TeamBasicInfo(props: ITeamBasicInfo) {
   const errors = props?.errors;
   const initialValues = props?.initialValues;
+  const isEdit = props.isEdit ?? false;
   const [profileImage, setProfileImage] = useState<string>(initialValues?.teamProfile);
   const uploadImageRef = useRef<HTMLInputElement>(null);
 
@@ -60,7 +62,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             })}
           </ul>
         )}
-        <div className="teaminfo__form__email">
+        {!isEdit && <div className="teaminfo__form__email">
           <TextField
             defaultValue={initialValues.requestorEmail}
             isMandatory={true}
@@ -70,7 +72,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             type="email"
             placeholder="Enter your email address"
           />
-        </div>
+        </div>}
         <div className="teaminfo__form__item">
           <div className="teaminfo__form__team">
             <div>

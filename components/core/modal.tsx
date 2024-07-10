@@ -37,9 +37,8 @@ const Modal = (props: IModal) => {
           .modal__cn__closebtn {
             position: absolute;
             border: none;
-            top: 24px;
-            z-index: 5;
-            right: 24px;
+            top: 12px;
+            right: 12px;
             user-select: none;
             background: #fff;
             outline: none;

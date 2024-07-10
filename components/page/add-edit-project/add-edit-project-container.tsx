@@ -1,5 +1,6 @@
 'use client';
 
+import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import AddEditProjectForm from './add-edit-project-form';
 import FormStepIndicatorMob from './form-step-indicator-mob';
 import { FormStepIndicatorWeb } from './form-step-indicator-web';

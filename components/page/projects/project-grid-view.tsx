@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // import { IProjectView } from "../../../../../../types";
 
@@ -8,10 +8,10 @@ const ProjectGridView = (props: any) => {
   const viewType = props?.viewType;
 
   //variables
-  const profile = project?.logo ?? "/icons/project-default.svg";
+  const profile = project?.logo ?? '/icons/project-default.svg';
   const projectName = project?.name;
   const description = project?.description;
-  const maintainerLogo = project?.maintainingTeam?.logo?.url ?? "/icons/project-default.svg";
+  const maintainerLogo = project?.maintainingTeam?.logo?.url ?? '/icons/project-default.svg';
   const maintainerName = project?.maintainingTeam?.name;
   const lookingForFunding = project?.lookingForFunding;
 
@@ -39,9 +39,8 @@ const ProjectGridView = (props: any) => {
       <style jsx>
         {`
           .projectgrid {
-            margin-bottom: 8px;
-            width: 289px;
-            height: 285px;
+            width: 167.5px;
+            height: 166px;
             background-color: #fff;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
@@ -49,20 +48,20 @@ const ProjectGridView = (props: any) => {
           }
 
           .projectgrid:hover {
-              box-shadow: 0px 0px 0px 2px #156FF740;
+            box-shadow: 0px 0px 0px 2px #156ff740;
           }
 
           .projectgrid__profile {
             position: relative;
-            height: 64px;
+            height: 33px;
             border-radius: 12px 12px 0px 0px;
             border-bottom: 1px solid #e2e8f0;
             background: linear-gradient(180deg, #fff 0%, #e2e8f0 205.47%);
           }
 
           .projectgrid__profile__img {
-            height: 72px;
-            width: 72px;
+            height: 36px;
+            width: 36px;
             border-radius: 4px;
             border: 1px solid #cbd5e1;
             position: absolute;
@@ -70,36 +69,33 @@ const ProjectGridView = (props: any) => {
             right: 0;
             left: 0;
             margin: auto;
-            top: 20px;
+            top: 13px;
             border-radius: 4px;
             border: 1px solid #e2e8f0;
           }
 
-          .projectgrid__profile__fund{
+          .projectgrid__profile__fund {
             position: absolute;
             top: 10px;
-            right:98px;
+            right: 98px;
           }
 
           .projectgrid__detail {
-            padding: 0 20px 20px 20px;
-            margin-top: 38px;
+            padding: 0 12px 12px 12px;
+            margin-top: 15px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
             text-align: center;
+            gap: 5px;
           }
 
           .projectgrid__detail__cn {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e2e8f0;
           }
 
-          .projectgrid__detail__cn__name{
-            color: #0F172A;
+          .projectgrid__detail__cn__name {
+            color: #0f172a;
             font-size: 18px;
             font-weight: 600;
             line-height: 28px;
@@ -112,12 +108,12 @@ const ProjectGridView = (props: any) => {
 
           .projectgrid__detail__cn__desc {
             color: #475569;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 400;
-            line-height: 20px;
-            height: 60px;
+            line-height: 18px;
+            height: 36px;
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -129,29 +125,93 @@ const ProjectGridView = (props: any) => {
             gap: 8px;
           }
 
-          .projectgrid__maintainer__cn__name{
-            font-weight:500;
-            font-size: 13px;
-            line-height: 20px;
-            color: #0F172A;
+          .projectgrid__maintainer__cn__name {
+            font-weight: 500;
+            font-size: 12px;
+            color: #0f172a;
             text-align: left;
-          }
-          .projectgrid__maintainer__cn__title{
-            font-weight:500;
-            font-size: 13px;
-            line-height: 20px;
-            color: #94A3B8;
-            text-align: left;
+            text-overflow: ellipsis;
+            max-width: 106px;
+            white-space: nowrap;
+            overflow: hidden;
+            display: inline-block;
+            // line-height: 12px;
           }
 
-          .projectgrid__maintainer__img{
-            height: 36px;
-            width: 36px;
+          .projectgrid__maintainer__cn__title {
+            font-weight: 500;
+            font-size: 11px;
+            line-height: 20px;
+            color: #94a3b8;
+            text-align: left;
+            // line-height: 12px;
+          }
+
+          .projectgrid__maintainer__img {
+            height: 28px;
+            width: 28px;
             border-radius: 4px;
             border: 1px solid #cbd5e1;
             background-color: #e2e8f0;
             border-radius: 4px;
             border: 1px solid #e2e8f0;
+          }
+
+          .projectgrid__maintainer__cn {
+            display: flex;
+            flex-direction: column;
+          }
+
+          @media (min-width: 1024px) {
+            .projectgrid {
+              width: 289px;
+              height: 285px;
+            }
+
+            .projectgrid__profile {
+              height: 64px;
+            }
+
+            .projectgrid__profile__img {
+              height: 72px;
+              width: 72px;
+              top: 20px;
+            }
+
+            .projectgrid__detail__cn {
+              gap: 10px;
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 10px;
+            }
+
+            .projectgrid__detail {
+              padding: 0 20px 20px 20px;
+              margin-top: 38px;
+              gap: 10px;
+            }
+
+            .projectgrid__detail__cn__desc {
+              line-height: 20px;
+              height: 60px;
+              font-size: 14px;
+              -webkit-line-clamp: 3;
+            }
+
+            .projectgrid__maintainer__img {
+              height: 36px;
+              width: 36px;
+            }
+
+            .projectgrid__maintainer__cn__name {
+              font-size: 13px;
+              line-height: 20px;
+              max-width: 200px;
+            }
+
+            .projectgrid__maintainer__cn__title {
+              font-size: 13px;
+              line-height: 20px;
+            }
           }
         `}
       </style>

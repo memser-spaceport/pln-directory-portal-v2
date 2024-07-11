@@ -5,38 +5,57 @@ import useUpdateQueryParams from '../../../hooks/useUpdateQueryParams';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import useClickedOutside from '../../../hooks/useClickedOutside';
-import { triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
 import Toggle from '@/components/ui/toogle';
+import { Autocomplete } from '@/components/ui/autocomplete';
+import { getTeam, searchTeamsByName } from '@/services/teams.service';
+import Image from 'next/image';
+import { EVENTS, FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
+import FocusAreaFilter from '@/components/core/focus-area-filter/focus-area-filter';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useProjectAnalytics } from '@/analytics/project.analytics';
 
 const ProjectFilter = (props: any) => {
   //props
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
-
+  const focusAreas = props?.focusAreas;
   //variables
   const { updateQueryParams } = useUpdateQueryParams();
-  const appliedFiltersCount = 0;
+  const query = getQuery(searchParams);
+  const apliedFiltersCount = getFilterCount(query);
   const isRaisingFund = searchParams['funding'] ?? false;
   const teamId = searchParams['team'] ?? '';
   const router = useRouter();
   const projectTeamRef = useRef<HTMLInputElement>(null);
   const projectPaneRef = useRef<HTMLDivElement>(null);
-  // const analytics = useProjectListAnalytics();
+  const analytics = useProjectAnalytics();
 
   //state
   const [searchResult, setSearchResult] = useState<any[]>([]);
   const [searchText, setSearchText] = useState('');
   const [selectedOption, setSelectedOption] = useState<any>({ label: '', value: '', logo: '' });
   const [isTeamActive, setIsTeamActive] = useState(false);
+  const debouncedSearchText = useDebounce(searchText, 300);
 
   //methods
   useClickedOutside({ callback: () => setIsTeamActive(false), ref: projectPaneRef });
 
+  const onCloseClickHandler = () => {
+    document.dispatchEvent(new CustomEvent(EVENTS.SHOW_PROJECTS_FILTER, { detail: false }));
+    analytics.onProjectFilterCloseClicked(getAnalyticsUserInfo(userInfo));
+  };
+
+  const onShowClickHandler = () => {
+    analytics.onProjectShowFilterResultClicked(getAnalyticsUserInfo(userInfo));
+    document.dispatchEvent(new CustomEvent(EVENTS.SHOW_PROJECTS_FILTER, { detail: false }));
+  };
+
   const onClearAllClicked = () => {
-    if (searchParams?.size) {
+    if (apliedFiltersCount > 0) {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
-      const clearQuery = ['team', 'funding'];
+      const clearQuery = ['team', 'funding', 'focusAreas'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           triggerLoader(true);
@@ -46,7 +65,7 @@ const ProjectFilter = (props: any) => {
       const search = current.toString();
       const query = search ? `?${search}` : '';
       router.push(`${pathname}/${query}`);
-      // analytics.onClearAllClicked(getAnalyticsUserInfo(userInfo));
+      analytics.onProjectFilterCleared(getAnalyticsUserInfo(userInfo));
     }
   };
 
@@ -54,66 +73,74 @@ const ProjectFilter = (props: any) => {
     triggerLoader(true);
     if (!isRaisingFund) {
       updateQueryParams('funding', 'true', searchParams);
-      // analytics.onFundingRequiredToggleClicked(getAnalyticsUserInfo(userInfo), true);
+      analytics.onProjectFilterApplied(getAnalyticsUserInfo(userInfo), {
+        raisingFunds: true,
+      });
     } else {
       updateQueryParams('funding', '', searchParams);
-      // analytics.onFundingRequiredToggleClicked(getAnalyticsUserInfo(userInfo), false);
+      analytics.onProjectFilterApplied(getAnalyticsUserInfo(userInfo), {
+        raisingFunds: false,
+      });
     }
   };
 
   const onTeamSelected = (team: any) => {
-    setSelectedOption(team);
+    // setSelectedOption(team);
+    setSearchText(team?.label);
     if (team?.value) {
       updateQueryParams('team', team.value, searchParams);
-      // analytics.onTeamSelected(getAnalyticsUserInfo(userInfo), team);
+      analytics.onProjectFilterApplied(getAnalyticsUserInfo(userInfo), {
+        teamName: team?.label,
+      });
     } else {
       updateQueryParams('team', '', searchParams);
-      // analytics.onTeamSelected(getAnalyticsUserInfo(userInfo), '');
     }
+    setIsTeamActive(false);
   };
 
   const onAutocompleteBlur = () => {
     setSearchText(selectedOption.label);
   };
 
-  // const findTeamsByName = async (searchTerm: string) => {
-  //   setIsTeamActive(true);
-  //   setSearchText(searchTerm);
-  //   try {
-  //     const results = await searchTeamsByName(searchTerm);
-  //     setSearchResult(results);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
+  const findTeamsByName = async (searchTerm: string) => {
+    try {
+      const results = await searchTeamsByName(searchTerm);
+      setSearchResult(results);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  // const onTogglePane = (isActive: boolean) => {
-  //   setIsTeamActive(isActive);
-  //   if (isActive) {
-  //     findTeamsByName(searchText);
-  //   }
-  // };
+  const onTogglePane = (isActive: boolean) => {
+    setIsTeamActive(isActive);
+  };
 
-  // useEffect(() => {
-  //   if (teamId) {
-  //     const getTeamDetail = async (teamId: string) => {
-  //       const teamResponse = await getTeam(teamId, {
-  //         with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
-  //       });
-  //       if (teamResponse.error) {
-  //         return;
-  //       }
-  //       const formattedTeam = teamResponse?.data?.formatedData;
-  //       setSelectedOption({ label: formattedTeam?.name, value: formattedTeam?.id, logo: formattedTeam?.logo });
-  //       setSearchText(formattedTeam?.name);
-  //       setIsTeamActive(false);
-  //     };
-  //     getTeamDetail(teamId ?? '');
-  //   } else {
-  //     setSelectedOption({ label: '', value: '', logo: '' });
-  //     setSearchText('');
-  //   }
-  // }, [teamId]);
+  useEffect(() => {
+    if (isTeamActive) {
+      findTeamsByName(debouncedSearchText);
+    }
+  }, [debouncedSearchText, isTeamActive]);
+
+  useEffect(() => {
+    if (teamId) {
+      const getTeamDetail = async (teamId: string) => {
+        const teamResponse = await getTeam(teamId, {
+          with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
+        });
+        if (teamResponse.error) {
+          return;
+        }
+        const formattedTeam = teamResponse?.data?.formatedData;
+        setSelectedOption({ label: formattedTeam?.name, value: formattedTeam?.id, logo: formattedTeam?.logo });
+        setSearchText(formattedTeam?.name);
+        setIsTeamActive(false);
+      };
+      getTeamDetail(teamId ?? '');
+    } else {
+      setSelectedOption({ label: '', value: '', logo: '' });
+      setSearchText('');
+    }
+  }, [teamId]);
 
   return (
     <>
@@ -121,52 +148,74 @@ const ProjectFilter = (props: any) => {
         <div className="project-filter__header">
           <h2 className="project-filter__header__title">
             Filters
-            {appliedFiltersCount > 0 && <FilterCount count={appliedFiltersCount} />}
+            {apliedFiltersCount > 0 && <FilterCount count={apliedFiltersCount} />}
           </h2>
           <button className="project-fitlter__header__clear" onClick={onClearAllClicked}>
-            Clear all
+            Clear filters
+          </button>
+          <button className="project-filter__header__closebtn" onClick={onCloseClickHandler}>
+            <Image alt="close" src="/icons/close.svg" height={16} width={16} />
           </button>
         </div>
         <div className="project-filter__body">
+          <FocusAreaFilter
+            title="Focus Area"
+            uniqueKey={FOCUS_AREAS_FILTER_KEYS.projects as 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas'}
+            focusAreaRawData={focusAreas?.rawData}
+            selectedItems={focusAreas?.selectedFocusAreas}
+            searchParams={searchParams}
+          />
+          <div className="project-filter__bl"></div>
           <div className="project-filter__body__raisingfund">
-            <img src="/icons/raising-fund-indicator.svg" alt="fund-icon" />
-            <h3 className="project-filter__body__raisingfund__title">Projects Raising Funds</h3>
+            <div className="project-filter__body__raisingfund__wrpr">
+              <img src="/icons/raising-fund-indicator.svg" alt="fund-icon" />
+              <h3 className="project-filter__body__raisingfund__title">Projects Raising Funds</h3>
+            </div>
             <div className="project-filter__body__raisingfund__toggle">
               <Toggle height="16px" width="28px" callback={onToggleClicked} isChecked={!!isRaisingFund} />
             </div>
           </div>
           <div className="project-filter__bl"></div>
           <div className="project-filter__body__maintainer">
-            {/* <label className="project-filter__body__maintainer">
-              Maintained By
-              <Autocomplete
-                selectedOption={selectedOption}
-                callback={onTeamSelected}
-                isPaneActive={isTeamActive}
-                inputRef={projectTeamRef}
-                searchResult={searchResult}
-                searchText={searchText}
-                onTextChange={(text: string) => findTeamsByName(text)}
-                placeholder="Select Team"
-                iconUrl="/icons/nav/unSelected/team.svg"
-                setIsPaneActive={onTogglePane}
-                onInputBlur={onAutocompleteBlur}
-                paneRef={projectPaneRef}
-              />
-            </label> */}
+            Maintained By
+            <Autocomplete
+              selectedOption={selectedOption}
+              callback={onTeamSelected}
+              isPaneActive={isTeamActive}
+              inputRef={projectTeamRef}
+              searchResult={searchResult}
+              searchText={searchText}
+              onTextChange={(text: string) => {
+                setIsTeamActive(true);
+                setSearchText(text);
+              }}
+              placeholder="Select Team"
+              iconUrl="/icons/team-default-profile.svg"
+              setIsPaneActive={onTogglePane}
+              onInputBlur={onAutocompleteBlur}
+              paneRef={projectPaneRef}
+            />
           </div>
+        </div>
+        <div className="project-filter__footer">
+          <button className="project-filter__footer__clrall" onClick={onClearAllClicked}>
+            Clear filters
+          </button>
+
+          <button className="project-filter__footer__aply" onClick={onShowClickHandler}>
+            View
+          </button>
         </div>
       </div>
       <style jsx>{`
         .project-filter {
-          width: inherit;
           display: unset;
           position: fixed;
           border-right: 1px solid #e2e8f0;
           background: #fff;
           width: inherit;
           z-index: 3;
-          height: calc(100vh - 80px);
+          height: 100%;
         }
         .project-filter__header {
           display: flex;
@@ -175,10 +224,7 @@ const ProjectFilter = (props: any) => {
           justify-content: space-between;
           border-bottom: 1px solid #cbd5e1;
         }
-        .project-filter__body__raisingfund__toggle {
-          height: 20px;
-          width: 36px;
-        }
+
         .project-filter__header__title {
           color: #0f172a;
           font-size: 18px;
@@ -189,6 +235,10 @@ const ProjectFilter = (props: any) => {
           gap: 8px;
         }
 
+        .project-filter__header__closebtn {
+          background: transparent;
+        }
+
         .project-fitlter__header__clear {
           display: none;
         }
@@ -196,7 +246,7 @@ const ProjectFilter = (props: any) => {
         .project-filter__body {
           height: calc(100dvh - 130px);
           overflow: auto;
-          padding: 0px 34px 10px 34px;
+          padding: 20px 24px 10px 24px;
           flex-direction: column;
           display: flex;
           gap: 20px;
@@ -204,10 +254,22 @@ const ProjectFilter = (props: any) => {
         }
 
         .project-filter__body__raisingfund {
-          padding-top: 16px;
-          margin-top: 20px;
           display: flex;
           align-items: center;
+          justify-content: space-between;
+        }
+
+        .project-filter__body__raisingfund__wrpr {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+        }
+
+        .project-filter__body__raisingfund__title {
+          font-weight: 400;
+          font-size: 14px;
+          line-height: 20px;
+          color: #475569;
         }
 
         .project-filter__body__maintainer {
@@ -226,6 +288,42 @@ const ProjectFilter = (props: any) => {
           border-top: 1px solid #cbd5e1;
         }
 
+        .project-filter__footer {
+          position: absolute;
+          box-shadow: 0px -2px 6px 0px #0f172a29;
+          height: 60px;
+          bottom: 0px;
+          padding: 10px 24px;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background-color: white;
+        }
+
+        .project-filter__footer__clrall {
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          padding: 10px 24px;
+          color: #0f172a;
+          width: 50%;
+          font-weight: 500;
+          line-height: 20px;
+          background: #fff;
+        }
+
+        .project-filter__footer__aply {
+          background-color: #156ff7;
+          padding: 10px 24px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          font-weight: 500;
+          line-height: 20px;
+          font-size: 14px;
+          width: 50%;
+          color: #fff;
+        }
+
         @media (min-width: 1024px) {
           .project-fitlter__header__clear {
             display: block;
@@ -241,13 +339,10 @@ const ProjectFilter = (props: any) => {
             width: 100%;
             overflow-x: hidden;
             height: calc(100dvh - 140px);
+            padding: 20px 34px 10px 34px;
           }
-          .project-filter__body__raisingfund__title {
-            font-weight: 400;
-            font-size: 14px;
-            line-height: 20px;
-            color: #475569;
-            padding: 0 14px 0 4px;
+          .project-filter__header__closebtn {
+            display: none;
           }
         }
       `}</style>

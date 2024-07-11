@@ -1,17 +1,16 @@
 'use client';
 
 import FilterCount from '../../ui/filter-count';
-import SortByDropdown from '../../ui/sort-by-dropdown';
 import ViewType from '../../ui/view-type';
 import useClickedOutside from '../../../hooks/useClickedOutside';
 import useUpdateQueryParams from '../../../hooks/useUpdateQueryParams';
-// import { IUserInfo } from "../../../../../../types/shared-types";
 import { ChangeEvent, FormEventHandler, useEffect, useRef, useState } from 'react';
-import { EVENTS, SORT_OPTIONS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
-import { getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
-// import { CommonUtils } from "../../../../../../utils";
-// import { useProjectListAnalytics } from "../../../analytics/project-list-analytics";
-// import { IProjectToolbar } from "../../../../../../types";
+import { EVENTS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
+import SortByDropdown from './sort-dropdown';
+import { PROJECT_SORT_ICONS, SORT_OPTIONS } from '@/utils/projects.utils';
+import Image from 'next/image';
+import { useProjectAnalytics } from '@/analytics/project.analytics';
 
 const ProjectsToolbar = (props: any) => {
   //props
@@ -21,31 +20,36 @@ const ProjectsToolbar = (props: any) => {
 
   //Ref
   const inputRef = useRef<HTMLInputElement>(null);
-  const sortByRef = useRef<HTMLInputElement>(null);
+  const sortByRef = useRef<HTMLDivElement>(null);
 
   //hooks
   const { updateQueryParams } = useUpdateQueryParams();
-  useClickedOutside({ callback: () => setIsSortBy(false), ref: sortByRef });
 
   //variables
-  const searchBy = searchParams['searchBy'] ?? '';
-  const sortBy = searchParams['sort'] ?? SORT_OPTIONS.ASCENDING;
+  const searchBy = searchParams['searchBy'] || '';
+  const sortBy = searchParams['sort'] ?? SORT_OPTIONS.DEFAULT;
   const view = searchParams['viewType'] ?? VIEW_TYPE_OPTIONS.GRID;
   const query = getQuery(searchParams);
   const filterCount = getFilterCount(query);
-  // const analytics = useProjectListAnalytics();
-
-  if (inputRef?.current) {
-    inputRef.current.value = searchBy;
-  }
+  const analytics = useProjectAnalytics();
 
   //state
   const [searchInput, setSearchInput] = useState(searchBy);
   const [isSortBy, setIsSortBy] = useState(false);
 
   //methods
+  const onSortClick = () => {
+    setIsSortBy(!isSortBy);
+  };
+
+  useClickedOutside({ callback: () => setIsSortBy(false), ref: sortByRef });
+
   const onFilterClickHandler = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.SHOW_FILTER, { detail: true }));
+    document.dispatchEvent(new CustomEvent(EVENTS.SHOW_PROJECTS_FILTER, { detail: true }));
+  };
+
+  const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e?.target?.value);
   };
 
   const onViewtypeClickHandler = (type: string) => {
@@ -53,12 +57,17 @@ const ProjectsToolbar = (props: any) => {
       return;
     }
     triggerLoader(true);
-    // analytics.onViewTypeClicked(getAnalyticsUserInfo(userInfo), type);
+    analytics.onViewTypeClicked(getAnalyticsUserInfo(userInfo), type);
     if (type !== VIEW_TYPE_OPTIONS.GRID) {
       updateQueryParams('viewType', type, searchParams);
       return;
     }
     updateQueryParams('viewType', type, searchParams);
+  };
+
+  const onClearSearchClicked = () => {
+    setSearchInput('');
+    updateQueryParams('searchBy', '', searchParams);
   };
 
   const onSubmitHandler = (e: any) => {
@@ -68,36 +77,39 @@ const ProjectsToolbar = (props: any) => {
     if (searchBy.trim() !== inputVal) {
       triggerLoader(true);
     }
-    // analytics.onProjectSearchClicked(inputVal,getAnalyticsUserInfo(userInfo));
+    analytics.onProjectSearchApplied(getAnalyticsUserInfo(userInfo), { search: inputVal });
     updateQueryParams('searchBy', inputVal, searchParams);
   };
 
-  const onSortClickHandler = (device: string) => {
-    if (device === 'mobile') {
-      if (sortBy === SORT_OPTIONS.ASCENDING) {
-        // analytics.onSorByClickedgetAnalyticsUserInfo(userInfo),SORT_OPTIONS.DESCENDING);
-        updateQueryParams('sort', SORT_OPTIONS.DESCENDING, searchParams);
-        return;
-      }
-      // analytics.onSorByClickedgetAnalyticsUserInfo(userInfo),SORT_OPTIONS.ASCENDING);
-      updateQueryParams('sort', '', searchParams);
-    } else {
-      setIsSortBy(!isSortBy);
+  const onSortClickHandler = () => {
+    if (sortBy === SORT_OPTIONS.DEFAULT) {
+      analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.ASCENDING);
+      updateQueryParams('sort', SORT_OPTIONS.ASCENDING, searchParams);
+      return;
+    } else if (sortBy === SORT_OPTIONS.ASCENDING) {
+      analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.DESCENDING);
+      updateQueryParams('sort', SORT_OPTIONS.DESCENDING, searchParams);
+      return;
     }
+    analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.DEFAULT);
+    updateQueryParams('sort', '', searchParams);
   };
 
-  const onSortOptionClickHandler = () => {
-    if (sortBy === SORT_OPTIONS.ASCENDING) {
-      // analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.DESCENDING);
-      updateQueryParams('sort', SORT_OPTIONS.DESCENDING, searchParams);
+  const onSortOptionClickHandler = (option: any) => {
+    if (option.name === SORT_OPTIONS.ASCENDING || option.name === SORT_OPTIONS.DESCENDING) {
+      analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), option.name);
+      updateQueryParams('sort', option.name, searchParams);
     } else {
-      // analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.ASCENDING);
+      analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.DEFAULT);
       updateQueryParams('sort', '', searchParams);
     }
     setIsSortBy(false);
   };
 
   useEffect(() => {
+    if (searchBy) {
+      inputRef.current?.focus();
+    }
     setSearchInput(searchBy);
   }, [searchParams]);
 
@@ -107,7 +119,7 @@ const ProjectsToolbar = (props: any) => {
         <div className="toolbar__left">
           <button className="toolbar__left__filterbtn" onClick={onFilterClickHandler}>
             <img alt="filter" src="/icons/filter.svg" height={20} width={20}></img>
-            {/* {filterCount > 0 && <FilterCount count={filterCount}/>} */}
+            {filterCount > 0 && <FilterCount count={filterCount} />}
           </button>
           <div className="toolbar__left__title-container">
             <h1 className="toolbar__left__title-container__title">Projects</h1>
@@ -117,39 +129,38 @@ const ProjectsToolbar = (props: any) => {
             <form className="toolbar__left__search-container__searchfrm" onSubmit={onSubmitHandler}>
               <input
                 ref={inputRef}
-                // value={searchInput}
-                // onChange={(e) => onInputChange(e)}
+                value={searchInput}
+                onChange={(e) => onInputChange(e)}
                 name="searchBy"
                 className="toolbar__left__search-container__searchfrm__input"
-                placeholder="Search"
+                placeholder="Search for a Project"
                 onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
               />
-              <button className="toolbar__left__search-container__searchfrm__searchbtn" type="submit">
-                <img alt="search" src="/icons/search.svg" height={16} width={16} />
-              </button>
+              <div className="toolbar__left__search-container__searchfrm__optns">
+                {searchInput && (
+                  <button type="button" onClick={onClearSearchClicked} className="toolbar__left__search-container__searchfrm__optns__clrbtn">
+                    <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
+                  </button>
+                )}
+                <button className="toolbar__left__search-container__searchfrm__searchbtn" type="submit">
+                  <img alt="search" src="/icons/search.svg" height={16} width={16} />
+                </button>
+              </div>
             </form>
           </div>
         </div>
 
         <div className="toolbar__right">
           <div className="toolbar__right__mobile">
-            <button className="toolbar__right__mobile__sort-by" onClick={() => onSortClickHandler('mobile')}>
+            <button className="toolbar__right__mobile__sort-by" onClick={onSortClickHandler}>
               {sortBy === SORT_OPTIONS.ASCENDING && <img alt="sort" src="/icons/ascending-gray.svg" height={20} width={20} />}
               {sortBy === SORT_OPTIONS.DESCENDING && <img alt="sort" src="/icons/descending-gray.svg" height={20} width={20} />}
+              {sortBy === SORT_OPTIONS.DEFAULT && <img alt="sort" src="/icons/star-outline-gray.svg" height={20} width={20} />}
             </button>
           </div>
           <div className="toolbar__right__web">
             <p className="toolbar__right__web__sort">Sort by:</p>
-            <button className="toolbar__right__web__sort-by" onClick={() => onSortClickHandler('web')}>
-              <img alt="sort" src={sortBy === SORT_OPTIONS.ASCENDING ? '/icons/ascending-gray.svg' : '/icons/descending-gray.svg'} height={20} width={20} />
-              <p className="toolbar__right__web__sord-by__name">{sortBy === SORT_OPTIONS.ASCENDING ? 'Ascending' : 'Descending'}</p>
-              <img alt="dropdown" src="/icons/dropdown-gray.svg" />
-            </button>
-            {isSortBy && (
-              <div ref={sortByRef} className="toolbar__right__web__drop-downc">
-                <SortByDropdown selectedItem={sortBy} callback={onSortOptionClickHandler} />
-              </div>
-            )}
+            <SortByDropdown isSortOpen={isSortBy} sortOptions={PROJECT_SORT_ICONS} sortByRef={sortByRef} sortBy={sortBy} onSortClick={onSortClick} onSortItemClick={onSortOptionClickHandler} />
           </div>
           <ViewType callback={onViewtypeClickHandler} view={view} />
         </div>
@@ -289,6 +300,24 @@ const ProjectsToolbar = (props: any) => {
             background: #fff;
             color: #000;
             border: none;
+          }
+
+          .toolbar__left__search-container__searchfrm__optns {
+            display: flex;
+            width: 40px;
+            justify-content: end;
+            position: relative;
+            align-items: center;
+            gap: 10px;
+          }
+
+          .toolbar__left__search-container__searchfrm__optns__clrbtn {
+            background: inherit;
+            outline: none;
+            position: absolute;
+            bottom: 0;
+            height: 16px;
+            left: 0;
           }
 
           @media (min-width: 1024px) {

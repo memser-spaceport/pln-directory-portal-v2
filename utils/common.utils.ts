@@ -112,6 +112,8 @@ export const getQuery = (searchParams: any) => {
     metroArea: searchParams?.metroArea ?? "",
     focusAreas: searchParams?.focusAreas ?? "",
     memberRoles:searchParams?.memberRoles ?? '',
+    funding:searchParams?.funding ?? "",
+    team:searchParams?.team ?? "",
   };
 }
 

@@ -19,7 +19,7 @@
 .project__cn__toolbar {
   height: 72px;
   position: sticky;
-  z-index: 2;
+  z-index: 4;
   top: 80px;
   padding: 16px;
   border-bottom: 1px solid #e2e8f0;

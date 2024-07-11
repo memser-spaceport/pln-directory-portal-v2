@@ -318,6 +318,7 @@ const ProjectsToolbar = (props: any) => {
             bottom: 0;
             height: 16px;
             left: 0;
+            top: 0;
           }
 
           @media (min-width: 1024px) {
@@ -342,7 +343,7 @@ const ProjectsToolbar = (props: any) => {
               padding: 8px 12px;
               align-items: center;
               gap: 8px;
-              width: 160px;
+              width: 130px;
               justify-content: space-between;
               border-radius: 8px;
               background: #fff;

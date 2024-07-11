@@ -23,6 +23,7 @@ interface AutocompleteProps {
   iconUrl?: string;
   onInputBlur?: () => void;
   isProcessing?: boolean;
+  onClear: any;
 }
 
 export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
@@ -41,6 +42,7 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
   const iconUrl = props.iconUrl;
   const onInputBlur = props.onInputBlur ?? undefined;
   const isProcessing = props?.isProcessing;
+  const onClear = props?.onClear;
 
   //methods
   const onTextInputChange = (e: any) => {
@@ -59,13 +61,14 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
     <>
       <div ref={paneRef} className={`autocomplete ${required ? 'autocomplete--required' : ''}`}>
         <div onClick={onPaneClick} className="autocomplete__box">
-          {selectedOption?.label === searchText && searchText != '' && (
-            <div className="autocomplete__img__wrpr">
-              <img width={30} height={30} className="autocomplete__img" src={selectedOption?.logo || iconUrl} alt="logo" />
-            </div>
-          )}
-          {searchText === '' && iconUrl && <img width={30} height={30} className="autocomplete__icon" src={iconUrl} alt="icon" />}
+          <div className="autocomplete__img__wrpr">
+            <img width={24} height={24} className="autocomplete__img" src={selectedOption?.logo || iconUrl} alt="logo" />
+          </div>
           <input placeholder={placeholder} ref={inputRef} value={searchText} className="autocomplete__input" onChange={onTextInputChange} onBlur={onInputBlur} type="text" tabIndex={-1} />
+
+          {/* <button className='autocomplete__img__wrpr__clrbtn' onClick={onClear} >
+            <img src="/icons/close-gray.svg"/>
+          </button> */}
           <button className="autocomplete__arrow">
             <img height={10} width={10} src="/icons/arrow-down.svg" alt="arrow" />
           </button>
@@ -84,7 +87,7 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
                   }}
                   key={res.value}
                 >
-                  <img width={35} height={35} className="autocomplete__optns__lst__logo" src={res?.logo || iconUrl} alt="logo" />
+                  <img width={24} height={24} className="autocomplete__optns__lst__logo" src={res?.logo || iconUrl} alt="logo" />
                   <p className="autocomplete__optns__lst__label">{res.label}</p>
                 </button>
               ))
@@ -94,7 +97,7 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
                   <span>Searching</span>
                 ) : (
                   <>
-                    No results found for <span className="autocomplete__optns__na__text">{inputRef?.current?.value}</span>
+                    No options available
                   </>
                 )}
               </p>
@@ -132,12 +135,18 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
             align-items: center;
           }
 
+          .autocomplete__img__wrpr__clrbtn {
+          background: none;
+          border: none;
+          height: 10px;
+          width: 10px;
+          }
+
           .autocomplete__img {
-            width: 30px;
-            height: 30px;
-            border-radius: 4px;
+            border-radius: 50%;
             object-fit: cover;
             object-position: center;
+            background-color: #e2e8f0;
           }
           .autocomplete__input {
             width: 100%;
@@ -158,6 +167,7 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
             position: absolute;
             background-color: white;
             box-shadow: 0px 0px 6px 0px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
             top: 40px;
             left: 0;
             max-height: 180px;
@@ -188,6 +198,7 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
             display: flex;
             color: black;
             text-align: left;
+            align-items: center;
             background: transparent;
           }
 
@@ -201,11 +212,10 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
           }
 
           .autocomplete__optns__lst__logo {
-            width: 35px;
-            height: 35px;
             object-fit: cover;
             border-radius: 4px;
             object-position: center;
+            border-radius: 50%;
             margin-bottom: 2px;
             background: #e2e8f0;
           }

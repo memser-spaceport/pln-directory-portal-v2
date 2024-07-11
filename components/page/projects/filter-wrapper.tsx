@@ -11,10 +11,13 @@ interface IFilterwrapper {
   userInfo: IUserInfo;
   searchParams: ITeamsSearchParams;
   focusAreas: any;
+  selectedTeam: any
+  initialTeams: any;
 }
 
 export default function FilterWrapper(props: IFilterwrapper) {
   const [isMobileFilter, setIsMobileFilter] = useState(false);
+  const selectedTeam = props?.selectedTeam;
   const router = useRouter();
 
   useEffect(() => {
@@ -59,6 +62,7 @@ export default function FilterWrapper(props: IFilterwrapper) {
         @media(min-width: 1024px){ 
          .fw__web {
           display: unset;
+          height: 150vh;
           width: inherit;
           }
          .fw__mob {

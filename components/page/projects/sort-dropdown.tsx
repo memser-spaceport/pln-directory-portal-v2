@@ -33,7 +33,7 @@ const SortByDropdown = (props: any) => {
         {`
           .dropdown {
             position: relative;
-            width: 160px;
+            width: 140px;
           }
 
           .dropdown__option__container__option {

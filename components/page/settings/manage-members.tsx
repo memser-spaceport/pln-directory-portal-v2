@@ -308,7 +308,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <MemberBasicInfo isMemberSelfEdit={true} errors={[]} initialValues={initialValues.basicInfo} />
+            <MemberBasicInfo isAdminEdit={true} errors={[]} initialValues={initialValues.basicInfo} />
           </div>
           <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
             <MemberSkillsInfo errors={[]} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />

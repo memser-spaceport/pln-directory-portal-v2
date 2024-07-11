@@ -4,7 +4,7 @@ import FocusArea from './focus-area';
 
 interface IFocusAreas {
   focusAreas: any[];
-  onClose: () => void;
+  onClose: (e?:any) => void;
   selectedItems: any[];
   handleFoucsAreaSave: (items: any[]) => void;
 }
@@ -19,7 +19,7 @@ const FocusAreas = (props: IFocusAreas) => {
 
   function getAllParents(items: any[]) {
     try {
-      let initialParents = [];
+      let initialParents: any = [];
       items?.map((item) => {
         const parents = findParents(focusAreas, item.uid);
         if (parents?.length > 0) {
@@ -27,7 +27,7 @@ const FocusAreas = (props: IFocusAreas) => {
         }
       });
       const uniqueItems = new Set();
-      return initialParents.filter((obj) => {
+      return initialParents.filter((obj: any) => {
         const value = obj['uid'];
         return uniqueItems.has(value) ? false : uniqueItems.add(value);
       });
@@ -37,10 +37,10 @@ const FocusAreas = (props: IFocusAreas) => {
   }
 
   function findChildrens(node: any) {
-    const children = [];
+    const children: any = [];
     function findChildrenRecursive(currentNode: any) {
       if (currentNode.children && currentNode.children.length > 0) {
-        currentNode.children.forEach((child) => {
+        currentNode.children.forEach((child: any) => {
           children.push(child);
           findChildrenRecursive(child);
         });
@@ -51,16 +51,16 @@ const FocusAreas = (props: IFocusAreas) => {
   }
 
   function findParents(data: any[], childUid: string) {
-    const parents = [];
+    const parents: any = [];
     const findParentsRecursive = (item: any, childUid: string, currentParents = []) => {
       if (!item || !item.children) return;
       if (item.uid === childUid) {
         parents.push(...currentParents);
         return;
       }
-      const updatedParents = [...currentParents, item];
+      const updatedParents: any = [...currentParents, item];
       if (item.children) {
-        item.children.forEach((child) => {
+        item.children.forEach((child: any) => {
           findParentsRecursive(child, childUid, updatedParents);
         });
       }
@@ -97,9 +97,9 @@ const FocusAreas = (props: IFocusAreas) => {
   const getDesc = (item: any) => {
     try {
       const childrens = findChildrens(item);
-      const matchedChildren = childrens.filter((child) => selectedItems.some((selectedItem) => selectedItem.uid === child.uid));
+      const matchedChildren = childrens.filter((child: any) => selectedItems.some((selectedItem) => selectedItem.uid === child.uid));
       const formattedText = matchedChildren
-        .map((child) => {
+        .map((child: any) => {
           return child?.title;
         })
         .join(', ');
@@ -109,7 +109,7 @@ const FocusAreas = (props: IFocusAreas) => {
     }
   };
 
-  const onSaveClickHandler = (e) => {
+  const onSaveClickHandler = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
     handleFoucsAreaSave(selectedItems);

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
 import { toast } from 'react-toastify';
 
-function MemberPrivacyForm(props) {
+function MemberPrivacyForm(props: any) {
   const uid = props?.uid;
   const preferences = props?.preferences ?? {};
   const settings = preferences?.preferenceSettings ?? {};
@@ -54,7 +54,7 @@ function MemberPrivacyForm(props) {
     }
   };
 
-  const onFormSubmitted = async (e) => {
+  const onFormSubmitted = async (e: any) => {
     try {
       triggerLoader(true);
       e.stopPropagation();
@@ -76,12 +76,16 @@ function MemberPrivacyForm(props) {
         payload.showGithubHandle = formValues.github === 'on' ? true : false;
         payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
 
+        const authToken = Cookies.get('authToken');
+        if(!authToken) {
+          return;
+        }
         const apiResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}/preferences`, {
           method: 'PATCH',
           body: JSON.stringify(payload),
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${JSON.parse(Cookies.get('authToken'))}`,
+            Authorization: `Bearer ${JSON.parse(authToken)}`,
           },
         });
         triggerLoader(false);

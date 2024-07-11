@@ -7,7 +7,7 @@ function SettingsAction() {
     setIsFormChanged(false)
   }
   useEffect(() => {
-    function handler(e) {
+    function handler(e: any) {
       console.log(e.detail, ' setting actions')
       setIsFormChanged(e.detail);
     }

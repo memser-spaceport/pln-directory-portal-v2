@@ -67,7 +67,7 @@ export function getTeamsListOptions(options: ITeamListOptions) {
   return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title", pagination: false };
 }
 
-export function transformTeamApiToFormObj(obj){
+export function transformTeamApiToFormObj(obj: any){
   const output = {
     ...obj.basicInfo,
     ...obj.projectsInfo,
@@ -79,20 +79,20 @@ export function transformTeamApiToFormObj(obj){
     uid: {...output}.fundingStage?.id
   }
 
-  output.membershipSources = {...output}.membershipSources?.map(v => {
+  output.membershipSources = {...output}.membershipSources?.map((v:any) => {
     return {
       title: v.name,
       uid: v.id
     }
   })
 
-  output.technologies = {...output}.technologies?.map(v => {
+  output.technologies = {...output}.technologies?.map((v:any) => {
     return {
       title: v.name,
       uid: v.id
     }
   })
-  output.industryTags = {...output}.industryTags?.map(v => {
+  output.industryTags = {...output}.industryTags?.map((v:any) => {
     return {
       title: v.name,
       uid: v.id

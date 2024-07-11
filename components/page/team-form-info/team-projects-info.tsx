@@ -64,7 +64,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
     }
   }
 
-  const onFocusAreaClose = (e) => {
+  const onFocusAreaClose = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
     if (focusAreaDialogRef.current) {
@@ -78,7 +78,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const getDefaultValueByKey = (field: string, key: string, id: string) => {
     const defaultValues = structuredClone(initialValues)
     console.log(defaultValues[field], 'checking values', key, id)
-    const teamIndex = defaultValues[field].findIndex(v => v.id === id);
+    const teamIndex = defaultValues[field].findIndex((v:any) => v.id === id);
     if(teamIndex < 0) {
       return ""
     }
@@ -216,7 +216,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             <FocusAreasList onOpen={onEditFocusArea} selectedItems={[...selectedFocusAreas]} rawData={[...focusAreas]}/>
             <div className="info">
             <img src="/icons/info.svg" />
-            <p>Protocol Labs's vision for the future is built on core focus areas that aim to harness humanity's potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.</p>
+            <p>Protocol Labs&apos;s vision for the future is built on core focus areas that aim to harness humanity&apos;s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.</p>
           </div>
             {selectedFocusAreas.map((area, index) => (
               <div key={`team-teamFocusAreas-${area.uid}-${index}`}>

@@ -21,16 +21,16 @@ const FocusAreasList = (props: IFocusAreasList) => {
   const selectedFocusAreas = getSelectedItems(formattedRawData, selectedItems)?.sort((firstItem: ISelectedAreas, secondItem: ISelectedAreas) => firstItem.index - secondItem.index);
 
   function findParents(data: any[], childUid: string) {
-    const parents = [];
+    const parents:any = [];
     const findParentsRecursive = (item: any, childUid: string, currentParents = []) => {
       if (!item || !item.children) return;
       if (item.uid === childUid) {
         parents.push(...currentParents);
         return;
       }
-      const updatedParents = [...currentParents, item];
+      const updatedParents: any = [...currentParents, item];
       if (item.children) {
-        item.children.forEach((child) => {
+        item.children.forEach((child: any) => {
           findParentsRecursive(child, childUid, updatedParents);
         });
       }
@@ -42,13 +42,13 @@ const FocusAreasList = (props: IFocusAreasList) => {
   }
 
   function getSelectedItems(rawData: any[], selectedValues: any[]): ISelectedAreas[] {
-    const selectedParents = {};
+    const selectedParents:any = {};
     try {
       selectedValues.forEach((selectedValue) => {
         const parents = findParents(rawData, selectedValue.uid);
         const newParents = parents.length > 0 ? parents : [selectedValue];
         const path = newParents
-          .map((parent) => parent.title)
+          .map((parent: any) => parent.title)
           .reverse()
           .join(' > ');
         if (!selectedParents[path]) {
@@ -68,13 +68,13 @@ const FocusAreasList = (props: IFocusAreasList) => {
     }
   }
 
-  function findItemIndex(nodes, item) {
+  function findItemIndex(nodes: any, item: any) {
     for (const node of nodes) {
       if (node.uid === item.uid) {
         return node.index;
       }
       if (node.children && node.children.length > 0) {
-        const found = findItemIndex(node.children, item);
+        const found: any = findItemIndex(node.children, item);
         if (found) {
           return found;
         }
@@ -85,10 +85,10 @@ const FocusAreasList = (props: IFocusAreasList) => {
 
   function getFormattedFocusArea(focusArea: any[]) {
     let index = 1;
-    function traverse(node) {
+    function traverse(node: any) {
       node.index = index++;
       if (node.children && node.children.length > 0) {
-        node.children.forEach((child) => {
+        node.children.forEach((child: any) => {
           traverse(child);
         });
       }

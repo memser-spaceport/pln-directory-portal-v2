@@ -27,7 +27,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   const formRef = useRef<HTMLFormElement | null>(null);
   const actionRef = useRef<HTMLDivElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
-  const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+  const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const router = useRouter();
   const initialValues = {
     skillsInfo: {
@@ -71,7 +71,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
     document.dispatchEvent(new CustomEvent('reset-member-register-form'));
   };
 
-  const onFormSubmitted = async (e) => {
+  const onFormSubmitted = async (e: any) => {
     try {
       e.stopPropagation();
       e.preventDefault();
@@ -107,7 +107,11 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           newData: { ...formattedInputValues },
         };
 
-        const authToken = JSON.parse(Cookies.get('authToken'));
+        const rawToken = Cookies.get('authToken');
+        if(!rawToken) {
+          return;
+        }
+        const authToken = JSON.parse(rawToken);
         const { data, isError } = await updateMember(selectedMember.uid, payload, authToken);
         triggerLoader(false);
         if (isError) {
@@ -237,7 +241,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
 
   useEffect(() => {
     // MutationObserver callback
-    const observerCallback = async (mutationsList) => {
+    const observerCallback = async (mutationsList: any) => {
       for (let mutation of mutationsList) {
         if (mutation.type === 'childList') {
           await onFormChange();
@@ -338,7 +342,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             <div className="error__item">
               <h3 className="error__item__title">Basic Info</h3>
               <ul className="error__item__list">
-                {errors.basicErrors.map((v, i) => (
+                {errors.basicErrors.map((v: any, i: any) => (
                   <li className="error__item__list__msg" key={`basic-error-${i}`}>
                     {v}
                   </li>
@@ -350,7 +354,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             <div className="error__item">
               <h3 className="error__item__title">Skills Info</h3>
               <ul className="error__item__list">
-                {errors.skillsErrors.map((v, i) => (
+                {errors.skillsErrors.map((v: any, i:any) => (
                   <li className="error__item__list__msg" key={`basic-error-${i}`}>
                     {v}
                   </li>
@@ -364,7 +368,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
               <div className="error__item__list">
                 {Object.keys(errors.contributionErrors).map((v: string, i) => (
                   <ul key={`contrib-${v}`}>
-                    {errors.contributionErrors[v].map((item, index) => (
+                    {errors.contributionErrors[v].map((item: any, index: any) => (
                       <li className="error__item__list__msg" key={`${v}-${index}`}>{`Project ${Number(v) + 1} - ${item}`}</li>
                     ))}
                   </ul>

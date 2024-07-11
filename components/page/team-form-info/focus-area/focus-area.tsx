@@ -93,7 +93,7 @@ const FocusArea = (props: IFocusArea) => {
           <>
             {focusArea?.children?.length > 0 && (
               <div className="fa__cn__children">
-                {focusArea?.children?.map((chil, index) => (
+                {focusArea?.children?.map((chil: any, index: any) => (
                   <div key={`${index}+ ${chil}`}>
                     <FocusArea parents={parents} focusAreas={focusAreas} focusArea={chil} description="" isGrandParent={false} selectedItems={selectedItems} onItemClickHandler={onItemClickHandler} />
                   </div>

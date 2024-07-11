@@ -196,7 +196,7 @@ export const getMemberInfo = async (memberUid: string) => {
   }
 
   const result = await response?.json();
-  const teamMemberRoles = result.teamMemberRoles.map((tm) => {
+  const teamMemberRoles = result.teamMemberRoles.map((tm: any) => {
     return {
       teamTitle: tm.team.name,
       teamUid: tm.teamUid,
@@ -204,14 +204,14 @@ export const getMemberInfo = async (memberUid: string) => {
     };
   });
 
-  const skills = result.skills.map((sk) => {
+  const skills = result.skills.map((sk: any) => {
     return {
       id: sk.uid,
       name: sk.title,
     };
   });
 
-  const projectContributions = result.projectContributions.map(pc => {
+  const projectContributions = result.projectContributions.map((pc: any) => {
     return {
       role: pc?.role,
       projectName: pc?.project?.name,

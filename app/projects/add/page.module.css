@@ -9,6 +9,10 @@
   background-color: #fff;
 }
 
+.addProject {
+  background-color:  #F1F5F9;
+}
+
 @media (min-width: 1024px) {
   .addProject__breadcrumb {
     display: unset;

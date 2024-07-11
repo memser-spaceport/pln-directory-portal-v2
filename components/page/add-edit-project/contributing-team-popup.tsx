@@ -8,19 +8,19 @@ import ContributorsPopup from './contributors-popup';
 import { getMembersForProjectForm } from '@/services/members.service';
 import { IMember } from '@/types/members.types';
 
-export function MaintainingTeamPopup(props: any) {
-  const selectedMaintainingTeam = props?.selectedMaintainingTeam;
-  const setSelectedMaintainingTeam = props?.setSelectedMaintainingTeam;
-
+export function ContributingTeamPopup(props: any) {
   const onClose = props?.onClose;
+
+  const selectedTeams = [...props?.selectedTeams];
+
+  const selectedContributingTeams = props?.selectedContributingTeams;
+  const setSelectedContributingTeams = props?.setSelectedContributingTeams;
 
   const selectedContributors = props?.selectedContributors;
   const setSelectedContributors = props?.setSelectedContributors;
 
-  const selectedTeams = props?.selectedTeams;
-
   const [step, setStep] = useState('Teams');
-  const [temMaintainingTeam, setTempMaintainingTeam] = useState();
+  const [tempContributingTeams, setTempContributingTeams] = useState<any>([...selectedContributingTeams]);
 
   const [teams, setTeams] = useState([]);
   const [allContributors, setAllContributors] = useState<any>([]);
@@ -46,7 +46,9 @@ export function MaintainingTeamPopup(props: any) {
   };
 
   const onSelectTeamHandler = async (team: any) => {
-    setTempMaintainingTeam(team);
+    setTempContributingTeams((prev: any) => {
+      return [...prev, team];
+    });
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     const members = await getAllContributors(team?.uid);
     setAllContributors(Array.isArray(members) ? members : members);
@@ -70,13 +72,13 @@ export function MaintainingTeamPopup(props: any) {
   };
 
   const onSkipAndSaveClickHandler = () => {
-    setSelectedMaintainingTeam(temMaintainingTeam);
+    setSelectedContributingTeams(tempContributingTeams);
     setStep('Teams');
     onClose();
   };
 
   const onSaveClickHandler = () => {
-    setSelectedMaintainingTeam(temMaintainingTeam);
+    setSelectedContributingTeams(tempContributingTeams);
     setStep('Teams');
     onClose();
   };
@@ -86,7 +88,7 @@ export function MaintainingTeamPopup(props: any) {
       <div className="mtc">
         {step === 'Teams' && (
           <div>
-            <h2>Select contributors</h2>
+            <h2>Select Contributing Teams</h2>
           </div>
         )}
 
@@ -96,8 +98,7 @@ export function MaintainingTeamPopup(props: any) {
             {teams.length > 0 && (
               <>
                 {teams.map((team: any, index: number) => {
-                  const isSelected = selectedTeams.some((data: any, index: number) => team.uid === data.uid);
-
+                    const isSelected = selectedTeams.some((data: any, index: number) => team.uid === data.uid);
                   return (
                     <div key={index}>
                       {team.name}
@@ -119,7 +120,6 @@ export function MaintainingTeamPopup(props: any) {
             selectedContributors={selectedContributors}
             setSelectedContributors={setSelectedContributors}
             contributors={allContributors}
-            const
             from="Teams"
           />
         )}

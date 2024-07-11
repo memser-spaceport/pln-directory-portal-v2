@@ -20,6 +20,7 @@
  .layout {
   height: 100dvh;
   position: relative;
+  background-color:  #F1F5F9;
  }
 
 html,

@@ -38,7 +38,7 @@ export default function AddEditProjectContainer(props: any) {
             .addEditPc {
               display: flex;
               gap: 24px;
-              align-items: center;
+              padding: 24px;
             }
 
             .addEditPc__mobInd {
@@ -47,6 +47,15 @@ export default function AddEditProjectContainer(props: any) {
 
             .addEditPc__webInd {
               display: unset;
+              width: 296px;
+              border: 1px solid #CBD5E1;
+              border-radius: 8px;
+              height: fit-content;
+              background-color: white;
+              padding: 24px 20px 29px 20px;
+              position: sticky;
+              top: 140px;
+
             }
           }
         `}

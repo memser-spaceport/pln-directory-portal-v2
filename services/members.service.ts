@@ -227,6 +227,25 @@ export const getMemberInfo = async (memberUid: string) => {
   return { data: formatted };
 };
 
+export const updateUserDirectoryEmail = async (payload: any, uid: string, header: any) => {
+  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}/email`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+    headers: header
+  })
+  
+  if(!result.ok) {
+    return {
+      isError: true,
+      status: result.status,
+      message: result.statusText
+    }
+  }
+
+  const output = await result.json();
+  return output;
+}
+
 export const getMembersInfoForDp = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false`, {
     cache: 'no-store',

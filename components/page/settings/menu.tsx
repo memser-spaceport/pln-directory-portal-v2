@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 
 interface SettingsMenuProps {
   activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams';
+  isAdmin?:boolean
+  isTeamLead?: boolean
 }
 
-function SettingsMenu({ activeItem }: SettingsMenuProps) {
-  const isTeamLead = false;
-  const isAppAdmin = true;
+function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: SettingsMenuProps) {
   const router = useRouter();
   const preferences = [
     { name: 'profile', url: '/settings/profile', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
@@ -19,7 +19,6 @@ function SettingsMenu({ activeItem }: SettingsMenuProps) {
 
   const appAdminSettings = [
     { name: 'manage members', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
-    { name: 'manage teams', url: '/settings/teams', icon: '/icons/team.svg', activeIcon: '/icons/teams-blue.svg' },
   ];
 
   const onItemClicked = (url: string) => {
@@ -50,10 +49,10 @@ function SettingsMenu({ activeItem }: SettingsMenuProps) {
             ))}
           </div>
         </div>
-        <div className="sm__group">
+       {(isAdmin || isTeamLead) &&   <div className="sm__group">
           <h3 className="sm__group__title">Admin Settings</h3>
           <div className="sm__group__list">
-            {isTeamLead &&
+            {(isTeamLead || isAdmin) &&
               teamAdminSettings.map((pref) => (
                 <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
                   {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
@@ -62,7 +61,7 @@ function SettingsMenu({ activeItem }: SettingsMenuProps) {
                   <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
                 </div>
               ))}
-            {isAppAdmin &&
+            {isAdmin &&
               appAdminSettings.map((pref) => (
                 <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
                   {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
@@ -72,7 +71,7 @@ function SettingsMenu({ activeItem }: SettingsMenuProps) {
                 </div>
               ))}
           </div>
-        </div>
+        </div>}
       </div>
       <style jsx>
         {`

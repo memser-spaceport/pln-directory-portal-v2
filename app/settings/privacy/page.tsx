@@ -13,13 +13,18 @@ const getPageData = async (userInfo: any, authToken: string) => {
 
 async function PrivacyPage() {
   const cookieStore = cookies();
-  const rawAuthToken: any = cookieStore.get('authToken');
-  const rawUserInfo: any = cookieStore.get('userInfo');
+  const rawAuthToken: any = cookieStore.get('authToken')?.value;
+  const rawUserInfo: any = cookieStore.get('userInfo')?.value;
   if (!rawAuthToken || !rawUserInfo) {
     redirect('/teams');
   }
-  const parsedUserInfo = JSON.parse(rawUserInfo.value);
-  const preferences = await getPageData(parsedUserInfo, JSON.parse(rawAuthToken.value));
+
+  const userInfo = JSON.parse(rawUserInfo);
+  const roles = userInfo.roles ?? [];
+  const isAdmin = roles.includes('DIRECTORYADMIN');
+  const leadingTeams = userInfo.leadingTeams ?? [];
+  const isTeamLead = leadingTeams.length > 0;
+  const preferences = await getPageData(userInfo, JSON.parse(rawAuthToken));
   const memberPreferences = preferences.memberPreferences;
   console.log(preferences);
 
@@ -43,10 +48,10 @@ async function PrivacyPage() {
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>
-            <SettingsMenu activeItem="privacy" />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="privacy" />
           </aside>
           <div className={styles.privacy__main__content}>
-            <MemberPrivacyForm uid={parsedUserInfo.uid} preferences={preferences} />
+            <MemberPrivacyForm uid={userInfo.uid} preferences={preferences} />
           </div>
         </div>
       </div>

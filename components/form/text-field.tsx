@@ -11,10 +11,11 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement>  {
   id: string;
   defaultValue?: string;
   value?: string;
+  hide?:boolean;
   maxLength?:number;
 }
 
-const TextField: React.FC<TextFieldProps> = ({ label, id, name, value = '', defaultValue = '', onChange, isMandatory, placeholder, type, maxLength, ...rest }) => {
+const TextField: React.FC<TextFieldProps> = ({ label, id, hide = false, name, value = '', defaultValue = '', onChange, isMandatory, placeholder, type, maxLength, ...rest }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const onTextChange = (e: ChangeEvent<HTMLInputElement>) => {
     if(onChange) {
@@ -24,8 +25,8 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, value = '', defa
 
   return (
     <>
-      <div className="tf">
-        {label && <label htmlFor={id} className="tf__label">{label}</label>}
+      <div className={`tf ${hide ? 'hidden': ''}`}>
+        {label && <label htmlFor={id} className={`tf__label ${hide ? 'hidden': ''}`}>{label}</label>}
         <input
           ref={inputRef}
           name={name}
@@ -43,11 +44,13 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, value = '', defa
       </div>
       <style jsx>
         {`
+          
           .tf {
             display: flex;
             flex-direction: column;
             width: 100%;
           }
+          
           .tf__label {
             font-weight: 600;
             font-size: 14px;
@@ -72,6 +75,11 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, name, value = '', defa
             ::placeholder {
               color: #aab0b8;
             }
+               .hidden {
+            visibility: hidden;
+            height: 0;
+            width:0;
+           }
         `}
       </style>
     </>

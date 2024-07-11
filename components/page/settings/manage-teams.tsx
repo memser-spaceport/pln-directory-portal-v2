@@ -13,8 +13,11 @@ import { transformRawInputsToFormObj, transformTeamApiToFormObj } from '@/utils/
 import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { updateTeam } from '@/services/teams.service';
-import Cookies from 'js-cookie'
+import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
+import { projectDetailsSchema, socialSchema, basicInfoSchema } from '@/schema/team-forms';
+import Modal from '@/components/core/modal';
+
 
 function ManageTeamsSettings(props) {
   const teams = props.teams ?? [];
@@ -24,10 +27,14 @@ function ManageTeamsSettings(props) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const actionRef = useRef<HTMLDivElement | null>(null);
-  const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
-  const [basicErrors, setBasicErrors] = useState<string[]>([]);
-  const [projectDetailsErrors, setProjectDetailsErrors] = useState<string[]>([]);
-  const [socialErrors, setSocialErrors] = useState<string[]>([]);
+  const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], focusAreas: [], isError: false });
+  const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], projectErrors: [] });
+  const tabsWithError = {
+    basic: errors.basicErrors.length > 0,
+    'project details': errors.projectErrors.length > 0,
+    socail: errors.socialErrors.length > 0,
+  };
+  const errorDialogRef = useRef<HTMLDialogElement>(null);
 
   const initialValues = {
     basicInfo: {
@@ -46,6 +53,7 @@ function ManageTeamsSettings(props) {
         id: selectedTeam.fundingStageUid,
         name: selectedTeam?.fundingStage?.title,
       },
+      teamFocusAreas: selectedTeam?.teamFocusAreas ?? [],
     },
     socialInfo: {
       contactMethod: selectedTeam?.contactMethod ?? '',
@@ -64,56 +72,135 @@ function ManageTeamsSettings(props) {
     router.push(`/settings/teams?id=${uid}`, { scroll: false });
   };
 
+  const onModalClose = () => {
+    if (errorDialogRef.current) {
+      errorDialogRef.current.close();
+    }
+  };
+  const onShowErrorModal = () => {
+    if (errorDialogRef.current) {
+      errorDialogRef.current.showModal();
+    }
+  };
+
   const onResetForm = async () => {
     if (actionRef.current) {
       actionRef.current.style.visibility = 'hidden';
     }
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
   };
+  const validateForm = (schema: any, data: any) => {
+    const validationResponse = schema.safeParse(data);
+    if (!validationResponse.success) {
+      const formattedErrors = validationResponse?.error?.errors?.map((error: any) => error.message);
+      return { success: false, errors: formattedErrors };
+    }
+    return { success: true, errors: [] };
+  };
+  const validateBasicInfo = async (formattedData: any) => {
+    const errors = [];
+    formattedData.requestorEmail = 'test@test.com'
+    const validationResponse = validateForm(basicInfoSchema, formattedData);
+    const imageFile = formattedData?.teamProfile;
+    if (!validationResponse.success) {
+      errors.push(...validationResponse.errors);
+    }
+
+    if (imageFile.name) {
+      if (!['image/jpeg', 'image/png'].includes(imageFile.type)) {
+        errors.push('Please upload image in jpeg or png format');
+      } else {
+        if (imageFile.size > 4 * 1024 * 1024) {
+          errors.push('Please upload a file less than 4MB');
+        }
+      }
+    }
+    return errors;
+  };
+
+  const validateSocial = async (formattedData: any) => {
+    let errors = [];
+    const validationResponse = validateForm(socialSchema, formattedData);
+    if (!validationResponse?.success) {
+      errors.push(...validationResponse.errors);
+    }
+    return errors;
+  };
+
+  const validateProjectsInfo = async (formattedData: any) => {
+    let errors = [];
+    const validationResponse = validateForm(projectDetailsSchema, formattedData);
+    if (!validationResponse.success) {
+      errors.push(...validationResponse.errors);
+    }
+
+    return errors;
+  };
 
   const onFormSubmitted = async (e) => {
-   try {
-    e.stopPropagation();
-    e.preventDefault();
-    triggerLoader(true)
-    if (formRef.current) {
-      const formData = new FormData(formRef.current);
-      const formValues = Object.fromEntries(formData);
-      const formattedInputValues = transformRawInputsToFormObj(formValues);
-
-      const payload = {
-        participantType: 'TEAM',
-        referenceUid: selectedTeam?.uid,
-        uniqueIdentifier: selectedTeam?.name,
-        newData: { ...formattedInputValues },
-      };
-
-      const {data,  isError} = await updateTeam(payload, JSON.parse(Cookies.get('authToken')), selectedTeam.uid)
-      triggerLoader(false)
-      if(isError) {
-        toast.error("Team updated failed. Something went wrong, please try again later")
-      } else {
-        if (actionRef.current) {
-          actionRef.current.style.visibility = 'hidden';
+    try {
+      console.log('form submmited')
+      e.stopPropagation();
+      e.preventDefault();
+      triggerLoader(true);
+      if (formRef.current) {
+        const formData = new FormData(formRef.current);
+        const formValues = Object.fromEntries(formData);
+        const formattedInputValues = transformRawInputsToFormObj(formValues);
+        const basicInfoErrors: any = await validateBasicInfo({ ...formattedInputValues });
+        const projectInfoErrors: any = await validateProjectsInfo({ ...formattedInputValues });
+        const socialInfoErrors: any = await validateSocial({ ...formattedInputValues });
+        const allErrors = [...basicInfoErrors, ...projectInfoErrors, ...socialInfoErrors];
+        if (allErrors.length > 0) {
+          setErrors({
+            basicErrors: basicInfoErrors,
+            projectErrors: projectInfoErrors,
+            socialErrors: socialInfoErrors,
+          });
+          onShowErrorModal();
+          triggerLoader(false);
+          return;
         }
-        toast.success("Team updated successfully")
+        setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] })
+        if(formattedInputValues.teamFocusAreas) {
+          formattedInputValues.focusAreas = [...formattedInputValues.teamFocusAreas];
+          delete formattedInputValues.teamFocusAreas
+        }
+        const payload = {
+          participantType: 'TEAM',
+          referenceUid: selectedTeam?.uid,
+          uniqueIdentifier: selectedTeam?.name,
+          newData: { ...formattedInputValues },
+        };
+
+        const { data, isError } = await updateTeam(payload, JSON.parse(Cookies.get('authToken')), selectedTeam.uid);
+        triggerLoader(false);
+        if (isError) {
+          toast.error('Team updated failed. Something went wrong, please try again later');
+        } else {
+          if (actionRef.current) {
+            actionRef.current.style.visibility = 'hidden';
+          }
+          toast.success('Team updated successfully');
+          router.refresh();
+        }
       }
-      console.log(data, isError)
+    } catch (e) {
+      triggerLoader(false);
+      toast.error('Team updated failed. Something went wrong, please try again later');
     }
-   } catch (e) {
-    triggerLoader(false);
-    toast.error("Team updated failed. Something went wrong, please try again later")
-   }
   };
 
   const onFormChange = async () => {
-    console.log('form changed');
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const apiObjs = transformTeamApiToFormObj({ ...initialValues });
       const formattedInputValues = transformRawInputsToFormObj(formValues);
       delete formattedInputValues.teamProfile;
+      if(!formattedInputValues.teamFocusAreas) {
+        formattedInputValues.teamFocusAreas = [];
+      }
       const isBothSame = compareObjsIfSame(apiObjs, formattedInputValues);
 
       console.log('form change', isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formattedInputValues));
@@ -160,9 +247,9 @@ function ManageTeamsSettings(props) {
   }, []);
   return (
     <>
-      <form onSubmit={onFormSubmitted} onInput={onFormChange} onReset={onResetForm} ref={formRef} className="ms">
+      <form noValidate onSubmit={onFormSubmitted} onInput={onFormChange} onReset={onResetForm} ref={formRef} className="ms">
         <div className="ms__member-selection">
-          <div className="ms__member-selection--dp">
+          <div className="ms__member-selection__dp">
             <SearchableSingleSelect
               arrowImgUrl="/icons/arrow-down.svg"
               displayKey="name"
@@ -181,7 +268,7 @@ function ManageTeamsSettings(props) {
 
         <div className="ms__tab">
           <div className="ms__tab__desktop">
-            <Tabs activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
           </div>
           <div className="ms__tab__mobile">
             <SingleSelect
@@ -197,20 +284,22 @@ function ManageTeamsSettings(props) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <TeamBasicInfo isEdit={true} errors={basicErrors} initialValues={initialValues.basicInfo} />
+            <TeamBasicInfo isEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} />
           </div>
           <div className={`${activeTab.name !== 'project details' ? 'hidden' : ''}`}>
             <TeamProjectsInfo
-              errors={projectDetailsErrors}
+              errors={errors.projectErrors}
               protocolOptions={allData?.technologies}
               fundingStageOptions={allData?.fundingStage}
               membershipSourceOptions={allData?.membershipSources}
               industryTagOptions={allData?.industryTags}
+              focusAreas={allData?.focusAreas}
               initialValues={initialValues.projectsInfo}
+              showFocusArea={true}
             />
           </div>
           <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
-            <TeamSocialInfo initialValues={initialValues.socialInfo} errors={socialErrors} />
+            <TeamSocialInfo initialValues={initialValues.socialInfo} errors={errors.socialErrors} />
           </div>
         </div>
         <div ref={actionRef} className="fa">
@@ -228,9 +317,69 @@ function ManageTeamsSettings(props) {
           </div>
         </div>
       </form>
-
+     
+      <Modal modalRef={errorDialogRef} onClose={() => onModalClose()}>
+        <div className="error">
+          <h2 className="error__title">Validation Errors</h2>
+          {errors.basicErrors.length > 0 && (
+            <div className="error__item">
+              <h3 className="error__item__title">Basic Info</h3>
+              <ul className="error__item__list">
+                {errors.basicErrors.map((v, i) => (
+                  <li className="error__item__list__msg" key={`basic-error-${i}`}>
+                    {v}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {errors.projectErrors.length > 0 && (
+            <div className="error__item">
+              <h3 className="error__item__title">Project Info</h3>
+              <ul className="error__item__list">
+                {errors.projectErrors.map((v, i) => (
+                  <li className="error__item__list__msg" key={`basic-error-${i}`}>
+                    {v}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {errors.socialErrors.length > 0 && (
+            <div className="error__item">
+              <h3 className="error__item__title">Socail Info</h3>
+              <ul className="error__item__list">
+                {errors.socialErrors.map((v, i) => (
+                  <li className="error__item__list__msg" key={`basic-error-${i}`}>
+                    {v}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </Modal>
       <style jsx>
         {`
+          .error {
+            width: 50vw;
+            height: auto;
+            padding: 16px;
+          }
+          .error__item {
+            padding: 8px 0;
+          }
+          .error__item__title {
+            font-size: 15px;
+            font-weight: 600;
+          }
+          .error__item__list {
+            padding: 8px 16px;
+          }
+          .error__item__list__msg {
+            font-size: 12px;
+            color: #ef4444;
+          }
           .fa {
             position: sticky;
             border-top: 2px solid #ff820e;

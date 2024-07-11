@@ -25,6 +25,7 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  padding-bottom: 8px;
 }
 .ps__main {
   display: flex;

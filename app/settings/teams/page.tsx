@@ -6,16 +6,21 @@ import ManageTeamsSettings from '@/components/page/settings/manage-teams';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { getTeamInfo, getTeamsInfoForDp } from '@/services/teams.service';
+import { redirect } from 'next/navigation';
 
 
-const getPageData = async (selectedTeamId: string) => {
+const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean) => {
   const dpResult = await getTeamsInfoForDp();
   let selectedTeam;
   if(dpResult.error) {
     return {isError: true}
   }
 
-  const teams = dpResult.data ?? [];
+  let teams = dpResult.data ?? [];
+  if(isTeamLead) {
+    console.log(teams[0], leadingTeams)
+    teams = [...structuredClone(teams)].filter(v => leadingTeams.includes(v.id))
+  }
   const teamResult = await getTeamInfo(selectedTeamId ?? teams[0].id);
   if(teamResult.isError) {
     return {
@@ -34,17 +39,31 @@ const getPageData = async (selectedTeamId: string) => {
 
 
 export default async function ManageTeams(props) {
-  const selectedMemberId = props?.searchParams?.id
+  const selectedTeamId = props?.searchParams?.id
   const cookieStore = cookies();
-  const rawAuthToken: any = cookieStore.get('authToken');
-  const rawUserInfo: any = cookieStore.get('userInfo');
+  const rawAuthToken: any = cookieStore.get('authToken')?.value;
+  const rawUserInfo: any = cookieStore.get('userInfo')?.value;
   if (!rawAuthToken || !rawUserInfo) {
-    //redirect('/teams');
+    redirect('/teams');
   }
-  const { teams, isError, selectedTeam } = await getPageData(selectedMemberId)
+  
+  const userInfo = JSON.parse(rawUserInfo);
+  const roles = userInfo.roles ?? [];
+  const leadingTeams = userInfo.leadingTeams ?? [];
+  const isTeamLead = leadingTeams.length > 0;
+  const isAdmin = roles.includes('DIRECTORYADMIN');
+  if(!isAdmin && !isTeamLead) {
+    redirect('/teams')
+  }
+  if(selectedTeamId && isTeamLead && !leadingTeams.includes(selectedTeamId)) {
+    redirect('/teams')
+  }
+  
+  const { teams, isError, selectedTeam } = await getPageData(selectedTeamId, leadingTeams, isTeamLead)
   if(isError) {
     return 'Error'
   }
+
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
     { text: 'Settings', url: '/settings' },
@@ -64,7 +83,7 @@ export default async function ManageTeams(props) {
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu activeItem="manage teams" />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage teams" />
           </aside>
           <div className={styles.ps__main__content}>
             <ManageTeamsSettings selectedTeam={selectedTeam} teams={teams} />

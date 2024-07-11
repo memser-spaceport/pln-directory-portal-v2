@@ -68,30 +68,40 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
     });
   };
 
-  console.log('error is', errors);
-
   return (
     <>
       <div className="projectinfo">
-        <ul className="projectinfo__errors">
-          {errors.map((error: string, index: number) => (
-            <li key={`project-error-${index}`}>{error}</li>
-          ))}
-        </ul>
+        {errors.length > 0 && (
+          <ul className="projectinfo__errors">
+            {errors.map((error: string, index: number) => (
+              <li key={`project-error-${index}`}>{error}</li>
+            ))}
+          </ul>
+        )}
+
         <div className="projectinfo__form">
           <div className="projectinfo__form__user">
-            <label htmlFor="Project-image-upload" className="projectinfo__form__user__profile">
-              {!profileImage && <img width="32" height="32" alt="project-logo" src="/icons/camera.svg" />}
-              {!profileImage && <span className="projectinfo__form__user__profile__text">Add Image</span>}
-              {profileImage && <img className="projectinfo__form__user__profile__preview" src={profileImage} alt="user profile" width="95" height="95" />}
-              {profileImage && (
-                <span className="projectinfo__form__user__profile__actions">
-                  <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                  <img onPointerDown={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
-                </span>
-              )}
-            </label>
-            <input onChange={onImageUpload} id="Project-image-upload" name="projectProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
+            <div>
+              <label htmlFor="Project-image-upload" className="projectinfo__form__user__profile">
+                {!profileImage && <img width="24" height="24" alt="project-logo" src="/icons/add-logo.svg" />}
+                {!profileImage && <span className="projectinfo__form__user__profile__text">Add project logo</span>}
+                {profileImage && <img className="projectinfo__form__user__profile__preview" src={profileImage} alt="user profile" width="95" height="95" />}
+                {profileImage && (
+                  <span className="projectinfo__form__user__profile__actions">
+                    <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
+                    <img onPointerDown={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                  </span>
+                )}
+              </label>
+              <input onChange={onImageUpload} id="Project-image-upload" name="projectProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
+
+              <p className="profileInfo__mob">
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+                <span className="profileInfo__mob__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
+              </p>
+            </div>
+
+            {/* Name */}
             <div className="projectinfo__form__item">
               <TextField
                 pattern="^[a-zA-Z\s]*$"
@@ -106,14 +116,19 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
               />
             </div>
           </div>
-          <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
+
+          {/* INFO */}
+          <p className="profileInfo__web">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="profileInfo__web__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
-          <div className="projectinfo__form__item">
+
+          {/* Tag line */}
+          <div className="projectinfo__form__item__tabLine">
             <TextField defaultValue={project.tagline} isMandatory={true} id="register-Project-tagline" label="Project Tagline*" name="tagline" type="text" placeholder="Enter Your Project Tagline" />
           </div>
 
-          <div className="projectinfo__form__item">
+          <div className="projectinfo__form__item__description">
             <TextArea
               defaultValue={project.description}
               maxLength={1000}
@@ -123,57 +138,57 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
               label="Detailed description of your project*"
               placeholder="Enter description of your project"
             />
-            <p className="info">
-              <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">One to two sentences is perfect! Use clear language and minimal jargon.</span>
-            </p>
           </div>
 
           {/* Projects */}
 
           <div className="msf__tr">
-            <div className="msf__tr__head">
-              <p className="msf__tr__head__item">Team*</p>
-              <p className="msf__tr__head__item">Role*</p>
-            </div>
-            <div className="msf__tr__content">
+            <div className="msf__tr__links">
               {projectLinks.map((projectLink: any, index: any) => (
-                <div key={`teams-role-${index}`} className="msf__tr__content__cn">
-                  <div className="msf__tr__content__cn__teams">
-                    <TextField
-                      id="register-project-link-text"
-                      value={projectLink.text}
-                      isMandatory={projectLink?.url ? true : false}
-                      name={`projectLinks${index}-text`}
-                      placeholder="Enter Your Project Link Text"
-                      type="text"
-                      onChange={(e) => onProjectLinkTextChange(index, e.target.value)}
-                    />
+                <div key={`teams-role-${index}`} className="msf__tr__links__link">
+                  <div className="msf__tr__links__link__header">
+                    <div>PROJECT {index + 1}</div>
+                    <div className="msf__tr__links__link__cn__delete">
+                      {index !== 0 && (
+                        <button className="msf__tr__links__link__cn__delete__btn" onClick={() => onDeleteProjectLink(index)} type="button">
+                          <Image src="/icons/delete-brown.svg" alt="delete team role" width="12" height="12" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="msf__tr__content__cn__role">
-                    <TextField
-                      id="register-project-link-url"
-                      value={projectLink.url}
-                      isMandatory={projectLink?.text ? true : false}
-                      name={`projectLinks${index}-url`}
-                      placeholder="Enter your project link url"
-                      onChange={(e) => onProjectLinkUrlChange(index, e.target.value)}
-                      type="url"
-                    />
-                  </div>
-                  <div className="msf__tr__content__cn__delete">
-                    {index !== 0 && (
-                      <button className="msf__tr__content__cn__delete__btn" onClick={() => onDeleteProjectLink(index)} type="button">
-                        <Image src="/icons/close.svg" alt="delete team role" width="18" height="18" />
-                      </button>
-                    )}
+                  <div className="msf__tr__links__link__cn">
+                    <div className="msf__tr__links__link__cn__linkText">
+                      <div>Project Link Text</div>
+                      <TextField
+                        id="register-project-link-text"
+                        value={projectLink.text}
+                        isMandatory={projectLink?.url ? true : false}
+                        name={`projectLinks${index}-text`}
+                        placeholder="Enter Your Project Link Text"
+                        type="text"
+                        onChange={(e) => onProjectLinkTextChange(index, e.target.value)}
+                      />
+                    </div>
+                    <div className="msf__tr__links__link__cn__link">
+                      <div>Project Link</div>
+                      <TextField
+                        id="register-project-link-url"
+                        value={projectLink.url}
+                        isMandatory={projectLink?.text ? true : false}
+                        name={`projectLinks${index}-url`}
+                        placeholder="Enter your project link url"
+                        onChange={(e) => onProjectLinkUrlChange(index, e.target.value)}
+                        type="url"
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
-              {projectLinks.length && (
+              {projectLinks.length < 3 && (
                 <div className="msf__tr__add">
                   <div className="msf__tr__add__btn" onClick={onAddProjectLink}>
                     <Image src="/icons/add.svg" width="16" height="16" alt="Add New" />
-                    <span>Add team and role</span>
+                    <div className="msf__tr__add__btn__addText">Add project URL </div> <div className='msf__tr__add__btn__maxText'>(max 3)</div>
                   </div>
                 </div>
               )}
@@ -181,35 +196,49 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
           </div>
 
           {/* Contact email */}
-          <div className="projectinfo__form__item">
-            <TextField defaultValue={project.contactEmail}  id="register-Project-email" label="Contact Email" name="contactEmail" type="email" placeholder="Enter Email Address" />
+          <div className="projectinfo__form__item__contactEmail">
+            <TextField defaultValue={project.contactEmail} id="register-Project-email" label="Contact Email" name="contactEmail" type="email" placeholder="Enter Email Address" />
           </div>
 
-          <div className="projectinfo__form__item">
-            {/* <Toggle
-          onChange={() => {}}
-              value={project.lookingForFunding}
-              disabled={false}
-              name={`lookingForFunding`}
-              id={`project-register-raising-funds`}
-            /> */}
+          <div className="projectinfo__form__item__lookingf">
             <CustomToggle defaultChecked={project?.lookingForFunding} name={`lookingForFunding`} id={`project-register-raising-funds`} onChange={() => {}} />
+              <div className='projectinfo__form__item__lookingf__qus'>
+              Are you currently looking to raise funds for your project?
+              </div>
+
+              {/* Funding info */}
+          </div>
+          <p className="functiongInfo">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="fundingInfo__text">
+            Enabling this implies you are raising funds to support your project. You will be approached by investors who are interested in your project
+            </span>
+          </p>
+          <div>
+
           </div>
         </div>
       </div>
       <style jsx>
         {`
-          .info {
+          .profileInfo__web {
+            display: none;
+          }
+
+          .profileInfo__mob {
             display: flex;
             gap: 4px;
             align-items: center;
-            margin-top: 12px;
+            margin-top: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
           }
-          .info__text {
+          .profileInfo__mob__text {
             text-align: left;
             font-size: 13px;
             opacity: 0.4;
           }
+
           .projectinfo__errors {
             color: red;
             font-size: 12px;
@@ -220,9 +249,19 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             flex-direction: column;
           }
           .projectinfo__form__item {
-            margin: 10px 0;
             flex: 1;
           }
+
+          .projectinfo__form__item__tabLine {
+            flex: 1;
+            margin-top: 28px;
+          }
+
+          .projectinfo__form__item__description {
+            flex: 1;
+            margin-top: 28px;
+          }
+
           .projectinfo__form__item__cn {
             display: flex;
             gap: 10px;
@@ -231,8 +270,10 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
           .projectinfo__form__user {
             display: flex;
-            gap: 20px;
+            gap: 18px;
+            justify-content: center;
             width: 100%;
+            flex-direction: column;
           }
           .projectinfo__form__user__profile {
             width: 100px;
@@ -243,12 +284,22 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
             color: #156ff7;
             font-size: 12px;
             cursor: pointer;
             position: relative;
+            border-radius: 8px;
+            margin: auto;
           }
+
+          .projectinfo__form__user__profile__text {
+            font-size: 13px;
+            margin-top: 4px;
+            font-weight: 600;
+            line-height: 18px;
+            text-align: center;
+          }
+
           .projectinfo__form__user__profile__actions {
             display: flex;
             gap: 10px;
@@ -260,14 +311,177 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             top: 0;
             left: 0;
             right: 0;
-            border-radius: 50%;
+            border-radius: 5px;
             background: rgb(0, 0, 0, 0.4);
           }
 
           .projectinfo__form__user__profile__preview {
-            border-radius: 50%;
             object-fit: cover;
             object-position: top;
+            border-radius: 8px;
+          }
+
+          .msf__tr__links__link__header {
+            display: flex;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 20px;
+            color: #64748b;
+            justify-content: space-between;
+          }
+
+          .msf__tr__links__link {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 28px;
+          }
+
+          .msf__tr__links__link__cn {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          }
+
+          .projectinfo__form__item__contactEmail {
+          margin-top: 28px;}
+
+          .msf__tr__links__link__cn__linkText {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 600;
+          }
+
+          .msf__tr__links__link__cn__link {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 600;
+          }
+
+          .msf__tr__links__link__cn__delete__btn {
+            height: 24px;
+            width: 24px;
+            background-color: #dd2c5a1a;
+            outline: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+          }
+
+          .msf__tr__add__btn__addText {
+            font-size: 14px;
+            color: #156ff7;
+            font-weight: 500;
+          }
+
+          .msf__tr__add {
+            margin-top: 10px;
+          }
+
+          .msf__tr__add__btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+          }
+
+         .msf__tr__add__btn__maxText {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 24px;
+          color: #94A3B8;
+          }
+
+          .projectinfo__form__item__lookingf {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          margin-top: 28px;}
+
+          .projectinfo__form__item__lookingf__qus {
+          font-size: 14px;
+          font-weight: 600;
+          line-height: 20px;
+          }
+
+          .functiongInfo {
+          display: flex;
+          gap: 6px;
+          margin-top: 20px;
+          align-items: start;
+          font-size: 13px;
+          line-height: 18px;
+          font-weight: 500;
+          opacity: 0.4;
+          color: #0F172A;}
+
+          @media (min-width: 1024px) {
+            .projectinfo__form__user {
+              flex-direction: row;
+              gap: 20px;
+            }
+
+            .profileInfo__mob {
+              display: none;
+            }
+
+            .profileInfo__web {
+              display: flex;
+              gap: 4px;
+              align-items: center;
+              margin-top: 12px;
+            }
+            .profileInfo__web__text {
+              text-align: left;
+              font-size: 13px;
+              opacity: 0.4;
+            }
+
+            .projectinfo__form__item__tabLine {
+              margin-top: 20px;
+            }
+
+            .projectinfo__form__item__description {
+              margin-top: 20px;
+            }
+
+            .msf__tr__links__link {
+              margin-top: 20px;
+            }
+
+            .  .projectinfo__form__item__contactEmail {
+          margin-top: 20px;} 
+
+            .msf__tr__links__link__cn {
+              flex-direction: row;
+              gap: 10px;
+            }
+
+            .msf__tr__links__link__cn__linkText {
+              width: 50%;
+            }
+
+            .msf__tr__links__link__cn__link {
+              width: 50%;
+            }
+
+              .projectinfo__form__item__contactEmail {
+              margin-top: 20px;}
+
+
+                  .projectinfo__form__item__lookingf {
+                  dispaly: flex;
+                  gap: 9px;
+                  align-items: center;
+          margin-top: 20px;}
           }
         `}
       </style>

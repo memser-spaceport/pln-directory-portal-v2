@@ -10,6 +10,16 @@ const projectLinkSchema = z.object({
 })
 
 
+export const projectKpiSchema =z.object({
+    key: z.string({errorMap: () => ({message: 'please provide valid values for the kpi'})}).trim().min(1),
+    value: z.string({errorMap: () => ({message: 'please provide valid values for the kpi'})})
+})
+
+export const kpiSchema = z.object({
+    kpis: z.array(projectKpiSchema)
+})
+
+
 export const generalInfoSchema = z.object({
     name: z
         .string({ errorMap: () => ({ message: 'Please provide valid name' }) }).regex(/^[a-zA-Z\s]*$/)

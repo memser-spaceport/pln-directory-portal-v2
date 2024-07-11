@@ -1,37 +1,34 @@
-import ProjectList from '@/components/page/projects/project-list';
 import styles from './page.module.css';
 import { getAllProjects } from '@/services/projects.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getProjectSelectOptions, getProjectsFiltersFromQuery } from '@/utils/projects.utils';
 import ProjectsToolbar from '@/components/page/projects/project-toolbar';
-import ProjectFilter from '@/components/page/projects/project-filter';
 import Error from '@/components/core/error';
 import EmptyResult from '@/components/core/empty-result';
+import ProjectlistWrapper from '@/components/page/projects/projectlist-wrapper';
+import FilterWrapper from '@/components/page/projects/filter-wrapper';
+import { getFocusAreas } from '@/services/common.service';
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { Metadata } from 'next';
 
 export default async function Page({ searchParams }: any) {
-  const { projects, isError, totalProjects, userInfo } = await getPageData(searchParams);
+  const { projects, isError, totalProjects, userInfo, focusAreas } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
   }
 
-
   return (
     <section className={styles.project}>
       <aside className={styles.project__filter}>
-        <div className={styles.project__filter__web}>
-          <ProjectFilter searchParams={searchParams} userInfo={userInfo} />
-        </div>
-        <div className={styles.project__filter__mob}>
-          {/* <ProjectFilterMobile userInfo={userInfo} /> */}
-        </div>
+        <FilterWrapper searchParams={searchParams} userInfo={userInfo} focusAreas={focusAreas}/>
       </aside>
       <div className={styles.project__cn}>
         <div className={styles.project__cn__toolbar}>
           <ProjectsToolbar searchParams={searchParams} totalProjects={totalProjects} userInfo={userInfo} />
         </div>
         <div className={styles.project__cn__list}>
-          <ProjectList searchParams={searchParams} totalProjects={totalProjects} projects={projects} userInfo={userInfo} />
+          <ProjectlistWrapper searchParams={searchParams} totalProjects={totalProjects} projects={projects} userInfo={userInfo} />
           {totalProjects === 0 && <EmptyResult />}
         </div>
       </div>
@@ -45,18 +42,50 @@ const getPageData = async (searchParams: any) => {
     const { userInfo } = getCookiesFromHeaders();
     const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
     const selectOpitons = getProjectSelectOptions(filterFromQuery);
-    const [projectsResponse] = await Promise.all([getAllProjects(selectOpitons, 0, 0)]);
-    if (projectsResponse?.error) {
+    const [projectsResponse, focusAreasResponse] = await Promise.all([getAllProjects(selectOpitons, 0, 0), getFocusAreas('Project', searchParams)]);
+    if (projectsResponse?.error || focusAreasResponse?.error) {
       isError = true;
       return { isError };
     }
+
+    const focusAreaQuery = searchParams?.focusAreas;
+    const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR);
+    const selectedFocusAreas = focusAreaFilters?.length > 0 ? focusAreasResponse?.data?.filter((focusArea: any) => focusAreaFilters?.includes(focusArea?.title)) : []
+
     return {
       projects: projectsResponse.data?.formattedData ?? [],
       totalProjects: projectsResponse.data?.totalProjects ?? 0,
       userInfo,
-    };
+      focusAreas: {
+        rawData: focusAreasResponse?.data || [],
+        selectedFocusAreas
+      } 
+    }
   } catch (error) {
     isError = true;
     return { isError };
   }
+};
+
+export const metadata: Metadata = {
+  title: 'Projects | Protocol Labs Directory',
+  description:
+    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  openGraph: {
+    type: 'website',
+    url: process.env.APPLICATION_BASE_URL,
+    images: [
+      {
+        url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+        width: 1280,
+        height: 640,
+        alt: 'Protocol Labs Directory',
+        type: 'image/jpeg',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+  },
 };

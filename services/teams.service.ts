@@ -194,3 +194,19 @@ export const getTeamsInfoForDp = async () => {
     .sort((a: any, b: any) => a.name.localeCompare(b.name));
   return { data: formattedData };
 };
+export const searchTeamsByName = async (searchTerm: string) => {
+  const requestOptions = { method: "GET", headers: getHeader("") };
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/teams?name__icontains=${searchTerm}&select=uid,name,logo.url`,
+    requestOptions,
+  );
+  if (!response?.ok) {
+    return {
+      error: { status: response?.status, statusText: response?.statusText },
+    };
+  }
+  const result = await response?.json();
+  return result.map((item: any) => {
+    return { label: item.name, value: item.uid, logo: item.logo?.url };
+  });
+};

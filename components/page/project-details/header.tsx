@@ -9,6 +9,7 @@ import { EVENTS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import DeleteConfirmationModal from './delete-confirmation-modal';
+import { useEffect } from 'react';
 
 interface IHeader {
   project: any;
@@ -71,6 +72,10 @@ const Header = (props: IHeader) => {
       console.error(err);
     }
   };
+
+  useEffect(() => {
+    triggerLoader(false);
+  }, [router]);
 
   return (
     <>

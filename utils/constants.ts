@@ -40,7 +40,8 @@ export const EVENTS = {
   PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: "project-detail-delete-modal-open-and-close",
   ADD_OR_EDIT_PROJECT_STEP_CHANGE: "add-or-edit-project-step-change",
   OPEN_MAINTAINING_TEAM_POPUP: 'open-maintaining-team-popup',
-  OPEN_CONTRIBUTORS_POPUP: 'open-contributors-popup'
+  OPEN_CONTRIBUTORS_POPUP: 'open-contributors-popup',
+  SHOW_PROJECTS_FILTER: 'show-projects-filter'
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -77,7 +78,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_JOIN_NETWORK_OPTION_CLICKED: 'navbar-join-network-option-clicked',
   NAVBAR_DRAWER_BTN_CLICKED: 'navbar-drawer-btn-clicked',
   FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked',
-  SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: "session-expired-popup-login-btn-clicked",
+  SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: 'session-expired-popup-login-btn-clicked',
 };
 
 export const PROJECT_ANALYTICS_EVENTS = {
@@ -89,22 +90,26 @@ export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_DETAIL_EDIT_CLICKED: 'project-detail-edit-clicked',
   PROJECT_DETAIL_LINKS_CLICKED: 'project-detail-link-clicked',
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
-  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_CANCELLED:
-    'project-detail-additional-detail-edit-cancelled',
-  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE:
-    'project-detail-additional-detail-edit-save-clicked',
-  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE_SUCCESS:
-    'project-detail-additional-detail-edit-save-success',
-  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE_FAILED:
-    'project-detail-additional-detail-edit-save-failed',
-  PROJECT_DETAIL_MAINTAINER_TEAM_CLICKED:
-    'project-detail-maintainer-team-clicked',
-  PROJECT_DETAIL_CONTRIBUTING_TEAM_CLICKED:
-    'project-detail-contributing-team-clicked',
+  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_CANCELLED: 'project-detail-additional-detail-edit-cancelled',
+  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE: 'project-detail-additional-detail-edit-save-clicked',
+  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE_SUCCESS: 'project-detail-additional-detail-edit-save-success',
+  PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE_FAILED: 'project-detail-additional-detail-edit-save-failed',
+  PROJECT_DETAIL_MAINTAINER_TEAM_CLICKED: 'project-detail-maintainer-team-clicked',
+  PROJECT_DETAIL_CONTRIBUTING_TEAM_CLICKED: 'project-detail-contributing-team-clicked',
   PROJECT_DETAIL_SEEALL_CLICKED: 'project-detail-teams-seeall-clicked',
   PROJECT_DETAIL_SEE_ALL_CONTRIBUTORS_CLICKED: 'project-detail-see-all-contributors-clicked',
   PROJECT_DETAIL_CONTRIBUTOR_PROFILE_CLICKED: 'project-detail-contributor-profile-clicked',
-}
+
+  PROJECT_LIST_FILTERS_APPLIED: 'projects-filters-applied',
+  PROJECT_LIST_FILTERS_CLEARED: 'projects-filters-cleared',
+  PROJECT_LIST_PROJECT_CLICKED: 'project-clicked',
+  PROJECT_ADD_CLICKED: 'project-add-click',
+  PROJECT_LIST_SEARCH_APPLIED:'projects-search',
+  PROJECT_LIST_VIEW_TYPE_CLCIKED: "project-list-view-type_clciked",
+  PROJECT_LIST_SORT_CLICKED: "project-list-sort-clicked",
+  PROJECT_FILTER_PANEL_CLOSE_CLICKED:"project-filter-panel-close-clicked",
+  PROJECT_VIEW_FILTER_RESULT_CLICKED:'project-view-filter-result-clicked'
+};
 
 export const TOAST_MESSAGES = {
   LOGOUT_MSG: 'You have been logged out successfully',
@@ -159,19 +164,18 @@ export const TEAMS_ANALYTICS_EVENTS = {
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
-
   MEMBER_LIST_MEMEBR_CLICKED: 'member-clicked',
   MEMBER_LIST_FILTERS_APPLIED: 'filters-applied',
   MEMBER_ROLE_FILTER_SEARCH_CALLED: 'member-role-filter-search-called',
   MEMBER_ROLE_FILTER_SELECT_ALL: 'member-role-filter-select-all',
   MEMBER_ROLE_FILTER_SEARCH_ERROR: 'member-role-filter-search-error',
 
-  MEMBER_LIST_VIEW_TYPE_CLICKED:"member-list-view-type-clicked",
-  MEMBER_LIST_SEARCH_CLICKED: "member-list-search-clicked",
-  MEMBER_LIST_SORT_CLICKED: "member-list-sort-clicked",
-  MEMBER_LIST_FILTER_TOGGLE_CLICKED: "member-list-filter-toggle-clicked",
-  MEMBER_LIST_FILTER_TAG_SELECTED: "member-list-filter-tag-selected",
-  MEMBER_LIST_FILTER_CLEAR_ALL_CLICKED: "member-list-filter-clear-all-clicked",
+  MEMBER_LIST_VIEW_TYPE_CLICKED: 'member-list-view-type-clicked',
+  MEMBER_LIST_SEARCH_CLICKED: 'member-list-search-clicked',
+  MEMBER_LIST_SORT_CLICKED: 'member-list-sort-clicked',
+  MEMBER_LIST_FILTER_TOGGLE_CLICKED: 'member-list-filter-toggle-clicked',
+  MEMBER_LIST_FILTER_TAG_SELECTED: 'member-list-filter-tag-selected',
+  MEMBER_LIST_FILTER_CLEAR_ALL_CLICKED: 'member-list-filter-clear-all-clicked',
   MEMBER_LIST_VIEW_FILTER_RESULT_CLICKED: 'member-list-view-filter-result-clicked',
   MEMBER_LIST_CLOSE_FILTER_PANEL_CLICKED: 'member-list-close-filter-panel-clicked',
 
@@ -188,7 +192,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_TEAM_CLICKED: 'memeber-detail-team-clicked',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_SEE_ALL_CLICKED: 'member-detail-project-contributions-see-all-clicked',
   MEMBER_DETAIL_PROJECT_CLICKED: 'member-detail-project-clicked',
-  MEMBER_DETAIL_GITHUB_HANDLE_UPDATE_CLICKED:"member-detail-github-handle-update-clicked"
+  MEMBER_DETAIL_GITHUB_HANDLE_UPDATE_CLICKED: 'member-detail-github-handle-update-clicked',
 };
 
 export const PAGE_ROUTES = {
@@ -227,7 +231,7 @@ export const SORT_ICONS = [
     label: 'Descending',
     selectedIcon: '/icons/descending-selected.svg',
     deselectIcon: '/icons/descending-black.svg',
-  },
+  }
 ];
 
 export const FOCUS_AREAS_FILTER_KEYS = {
@@ -285,9 +289,7 @@ export const PRIVACY_CONSTANTS = {
   },
 };
 
-export const ROLE_FILTER_QUERY_NAME = "memberRoles";
-export const OFFICE_HOURS_MSG =
-  'Schedule a one on one office hours discussion with';
+export const ROLE_FILTER_QUERY_NAME = 'memberRoles';
+export const OFFICE_HOURS_MSG = 'Schedule a one on one office hours discussion with';
 
-
-export const PROJECT_FORM_STEPS = ["General", "Contributors", "KPIs", "More Details"];
+export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Details'];

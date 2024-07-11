@@ -1,35 +1,33 @@
-"use client";
+'use client';
 
-import { triggerLoader } from "@/utils/common.utils";
-import { VIEW_TYPE_OPTIONS } from "@/utils/constants";
-import Link from "next/link";
-// import { CommonUtils } from "../../../../../../utils";
-import { useRouter } from "next/navigation";
+import { useProjectAnalytics } from '@/analytics/project.analytics';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const ProjectAddCard = (props: any) => {
   // props
   const viewType = props?.viewType;
 
   //variable
-  const router = useRouter();
+  const analytics = useProjectAnalytics();
+  const userInfo = props?.userInfo;
 
   //method
   const onAddClick = () => {
     triggerLoader(true);
+    analytics.onProjectAddClicked(getAnalyticsUserInfo(userInfo), { from: 'list' });
   };
 
   return (
     <>
-      <Link
-        type="button"
-        href="/projects/add"
-        onClick={onAddClick}
-        prefetch={false}
-        className={`projectcard ${viewType === VIEW_TYPE_OPTIONS.LIST ? "projectcard--list" : ""}`}
-      >
-        <img src="/icons/add.svg" alt="add" />
-        <p className="projectcard__add">Add Project</p>
-        <p className="projectcard__text">List your project here</p>
+      <Link href="/projects/add" prefetch={false} legacyBehavior>
+        <a onClick={onAddClick} className={`projectcard  ${viewType === VIEW_TYPE_OPTIONS.LIST ? 'projectcard--list' : ''}`}>
+          <img src="/icons/add.svg" alt="add" />
+          <p className="projectcard__add">Add Project</p>
+          <p className="projectcard__text">List your project here</p>
+        </a>
       </Link>
       <style jsx>
         {`

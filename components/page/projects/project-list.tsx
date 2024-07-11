@@ -1,96 +1,34 @@
-"use client";
+'use client';
 
-import usePagination from "../../../hooks/usePagination";
-import { useState, useRef, useEffect } from "react";
-import ProjectGridView from "./project-grid-view";
-import { useRouter } from "next/navigation";
-import ProjectAddCard from "./project-add-card";
-import ProjectListView from "./project-list-view";
-import Link from "next/link";
-import { VIEW_TYPE_OPTIONS } from "@/utils/constants";
+import usePagination from '../../../hooks/usePagination';
+import { useRef } from 'react';
+import ProjectAddCard from './project-add-card';
+import { VIEW_TYPE_OPTIONS } from '@/utils/constants';
 
 const ProjectList = (props: any) => {
   //props
   const searchParams = props.searchParams;
-  const projects = props.projects;
-  const totalProjects = props.totalProjects;
   const userInfo = props.userInfo;
-
-  //state
-  const [projectList, setProjectList] = useState(projects);
-  const router = useRouter();
+  const children = props?.children;
+  const totalProjects = props?.totalProjects;
 
   //variables
   const viewType = searchParams?.viewType ?? VIEW_TYPE_OPTIONS.GRID;
   const observerTarget = useRef(null);
-  // const { currentPage, limit, setPagination } = usePagination({
-  //   observerTargetRef: observerTarget,
-  //   totalItems: totalProjects,
-  //   totalCurrentItems: projectList?.length,
-  // });
-  // const analytics = useProjectListAnalytics();
 
-  //methods
-  // const getProjects = async () => {
-  //   try {
-  //     const optionsFromQuery = CommonUtils.getProjectsFiltersFromQuery(searchParams);
-  //     const listOptions = CommonUtils.getProjectSelectOptions(optionsFromQuery);
-  //     const result = await getAllProjects(listOptions, currentPage, 15);
-  //     if (result?.error) {
-  //       return;
-  //     }
-  //     setProjectList((prev: any) => [...prev, ...(result?.data?.formattedData || [])]);
-  //   } catch (error) {
-  //     console.error(error);
-  //   } finally {
-  //     CommonUtils.triggerLoader(false);
-  //   }
-  // };
-
-  // const onNavigateToProject = (project: IProjectListData) => {
-  //   CommonUtils.triggerLoader(true);
-  //   analytics.onProjectClicked(CommonUtils.getAnalyticsUserInfo(userInfo), project);
-  // };
-
-  // useEffect(() => {
-  //   if (currentPage !== 1) {
-  //     CommonUtils.triggerLoader(true);
-  //     getProjects();
-  //   }
-  // }, [currentPage]);
-
-  // useEffect(() => {
-  //   setPagination({ page: 1, limit: 100 });
-  //   setProjectList(projects);
-  // }, [projects]);
+  const [visibleItems] = usePagination({
+    items: children,
+    observerTarget,
+  });
 
   return (
     <div className="project-list">
-      <div
-        className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? "project-list__grid" : "project-list__list"}`}
-      >
-        {userInfo && <ProjectAddCard viewType={viewType} />}
-        {projectList?.map((project: any, index: number) => (
-          <Link
-            href={`/projects/${project.id}`}
-            key={`${project} + ${index}`}
-            prefetch={false}
-            className={`project-list__project ${
-              VIEW_TYPE_OPTIONS.GRID === viewType
-                ? "project-list__grid__project"
-                : "project-list__list__project"
-            }`}
-            // onClick={() => onNavigateToProject(project)}
-          >
-            {VIEW_TYPE_OPTIONS.GRID === viewType && (
-              <ProjectGridView project={project} viewType={viewType} />
-            )}
-            {VIEW_TYPE_OPTIONS.LIST === viewType && (
-              <ProjectListView project={project} viewType={viewType} />
-            )}
-            {/* <ProjectGridView project={project} viewType={viewType} /> */}
-          </Link>
-        ))}
+      <div className="project-list__titlesec">
+        <h1 className="project-list__titlesec__title">Projects</h1> <div className="project-list__title__count">({totalProjects})</div>
+      </div>
+      <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid' : 'project-list__list'}`}>
+        {userInfo && <ProjectAddCard userInfo={userInfo} viewType={viewType} />}
+        {visibleItems}
         <div ref={observerTarget}></div>
       </div>
       <style jsx>{`
@@ -98,16 +36,41 @@ const ProjectList = (props: any) => {
           width: 100%;
         }
 
+        .project-list__titlesec {
+          display: flex;
+          gap: 4px;
+          align-items: baseline;
+          padding: 12px 16px;
+          position: sticky;
+          top: 150px;
+          z-index: 3;
+          background: #f1f5f9;
+        }
+
+        .project-list__titlesec__title {
+          font-size: 24px;
+          line-height: 40px;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .project-list__title__count {
+          font-size: 14px;
+          font-weight: 400;
+          color: #64748b;
+        }
+
         .project-list__project {
           cursor: pointer;
         }
 
         .project-list__grid {
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
-          width: 100%;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, 167.5px);
           justify-content: center;
+          row-gap: 16px;
+          column-gap: 16px;
+          padding: 5px 8px;
         }
 
         .project-list__list {
@@ -116,6 +79,7 @@ const ProjectList = (props: any) => {
           flex-direction: column;
           gap: 16px;
           margin-bottom: 16px;
+          padding: 5px 8px;
         }
 
         .project-list__list__project {
@@ -126,6 +90,22 @@ const ProjectList = (props: any) => {
         @media (min-width: 1024px) {
           .project-list__list__project {
             padding: 0px 0px;
+          }
+
+          .project-list__grid {
+            grid-template-columns: repeat(auto-fit, 289px);
+          }
+
+          .project-list__titlesec {
+            display: none;
+          }
+
+          .project-list__grid {
+            padding: unset;
+          }
+
+          .project-list__list {
+            padding: unset;
           }
         }
       `}</style>

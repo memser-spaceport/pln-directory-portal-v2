@@ -50,7 +50,7 @@ function PrivyModals() {
   const loginInUser = (output: any) => {
     clearPrivyParams();
     if (output.userInfo?.isFirstTimeLogin) {
-      router.push('/settings');
+      router.push('/settings/profile');
     }
     setLinkAccountKey('');
     triggerLoader(false);

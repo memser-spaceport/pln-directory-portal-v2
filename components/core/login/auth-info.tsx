@@ -66,7 +66,6 @@ const AuthInfo = () => {
                 alt="whats new"
                 width={140}
                 height={32}
-                loading="lazy"
               />
               <h2 className="authinfo__dialog__box__info__title">New Authentication Method</h2>
               <p className="authinfo__dialog__box__info__text">
@@ -90,7 +89,7 @@ const AuthInfo = () => {
             <button onClick={onClose}>
               <img width={20} height={20} src="/icons/close.svg" className="authinfo__dialog__box__close" alt="close" />
             </button>
-            <img loading="lazy" src={loginBanner} className="authinfo__dialog__box__img" alt="login banner" />
+            <img src={loginBanner} className="authinfo__dialog__box__img" alt="login banner" />
           </div>
           <div className="authinfo__dialog__actions">
             <button onClick={onClose} className="authinfo__dialog__actions__cancel">

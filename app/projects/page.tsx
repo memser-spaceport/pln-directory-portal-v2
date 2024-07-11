@@ -12,7 +12,7 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { Metadata } from 'next';
 
 export default async function Page({ searchParams }: any) {
-  const { projects, isError, totalProjects, userInfo, focusAreas } = await getPageData(searchParams);
+  const { projects, isError, totalProjects, userInfo, focusAreas, isLoggedIn } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
@@ -21,14 +21,14 @@ export default async function Page({ searchParams }: any) {
   return (
     <section className={styles.project}>
       <aside className={styles.project__filter}>
-        <FilterWrapper searchParams={searchParams} userInfo={userInfo} focusAreas={focusAreas}/>
+        <FilterWrapper searchParams={searchParams} userInfo={userInfo} focusAreas={focusAreas} />
       </aside>
       <div className={styles.project__cn}>
         <div className={styles.project__cn__toolbar}>
           <ProjectsToolbar searchParams={searchParams} totalProjects={totalProjects} userInfo={userInfo} />
         </div>
         <div className={styles.project__cn__list}>
-          <ProjectlistWrapper searchParams={searchParams} totalProjects={totalProjects} projects={projects} userInfo={userInfo} />
+          <ProjectlistWrapper searchParams={searchParams} totalProjects={totalProjects} projects={projects} userInfo={userInfo} isLoggedIn={isLoggedIn}/>
           {totalProjects === 0 && <EmptyResult />}
         </div>
       </div>
@@ -39,7 +39,7 @@ export default async function Page({ searchParams }: any) {
 const getPageData = async (searchParams: any) => {
   let isError = false;
   try {
-    const { userInfo } = getCookiesFromHeaders();
+    const { userInfo, isLoggedIn } = getCookiesFromHeaders();
     const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
     const selectOpitons = getProjectSelectOptions(filterFromQuery);
     const [projectsResponse, focusAreasResponse] = await Promise.all([getAllProjects(selectOpitons, 0, 0), getFocusAreas('Project', searchParams)]);
@@ -50,7 +50,7 @@ const getPageData = async (searchParams: any) => {
 
     const focusAreaQuery = searchParams?.focusAreas;
     const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR);
-    const selectedFocusAreas = focusAreaFilters?.length > 0 ? focusAreasResponse?.data?.filter((focusArea: any) => focusAreaFilters?.includes(focusArea?.title)) : []
+    const selectedFocusAreas = focusAreaFilters?.length > 0 ? focusAreasResponse?.data?.filter((focusArea: any) => focusAreaFilters?.includes(focusArea?.title)) : [];
 
     return {
       projects: projectsResponse.data?.formattedData ?? [],
@@ -58,9 +58,10 @@ const getPageData = async (searchParams: any) => {
       userInfo,
       focusAreas: {
         rawData: focusAreasResponse?.data || [],
-        selectedFocusAreas
-      } 
-    }
+        selectedFocusAreas,
+      },
+      isLoggedIn,
+    };
   } catch (error) {
     isError = true;
     return { isError };

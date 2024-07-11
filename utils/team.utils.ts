@@ -110,6 +110,7 @@ export function transformRawInputsToFormObj(obj: any) {
   const technologies: any = {};
   const membershipSources: any = {};
   const industryTags: any = {};
+  const teamFocusAreas: any = {};
 
   for (const key in obj) {
     if (key.startsWith('fundingStage')) {
@@ -135,7 +136,20 @@ export function transformRawInputsToFormObj(obj: any) {
         }
         membershipSources[membershipSourceIndex][subKey] = obj[key];
       }
-    } else if (key.startsWith('industryTag')) {
+    } 
+    else if (key.startsWith('teamFocusAreas')) {
+      const [focusArea, subKey] = key.split('-');
+      const focusAreaIndexMatch = focusArea.match(/\d+$/);
+      if (focusAreaIndexMatch) {
+        const focusAreaIndex = focusAreaIndexMatch[0];
+        if (!teamFocusAreas[focusAreaIndex]) {
+          teamFocusAreas[focusAreaIndex] = {};
+        }
+        teamFocusAreas[focusAreaIndex][subKey] = obj[key];
+      }
+    } 
+    
+    else if (key.startsWith('industryTag')) {
       const [industryTag, subKey] = key.split('-');
       const industryTagIndexMatch = industryTag.match(/\d+$/);
       if (industryTagIndexMatch) {
@@ -154,6 +168,7 @@ export function transformRawInputsToFormObj(obj: any) {
   result.technologies = Object.values(technologies);
   result.membershipSources = Object.values(membershipSources);
   result.industryTags = Object.values(industryTags);
+  result.teamFocusAreas = Object.values(teamFocusAreas);
   return result;
 }
 

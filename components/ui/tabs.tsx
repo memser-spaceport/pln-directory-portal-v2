@@ -3,20 +3,21 @@ import React from 'react';
 interface TabsProps {
   tabs: string[];
   activeTab: string;
+  errorInfo?: any;
   onTabClick: (item: string) => void;
 }
 
-const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick }) => {
+const Tabs: React.FC<TabsProps> = ({ tabs, errorInfo = {}, activeTab, onTabClick }) => {
   return (
     <div className="tabs">
       <div className="tabs__list">
         {tabs.map((tab, index) => (
           <div
             key={`${tab}-${index}`}
-            className={`tabs__tab ${tab === activeTab ? 'tabs__tab--active' : ''}`}
+            className={`tabs__tab ${tab === activeTab ? 'tabs__tab--active' : ''} ${errorInfo[tab] === true ? 'tabs__tab--error': ''}`}
             onClick={() => onTabClick(tab)}
           >
-            <p className={`tabs__tab__text ${tab === activeTab ? 'tabs__tab__text--active': ''}`}>{tab}</p>
+            <p className={`tabs__tab__text ${tab === activeTab ? 'tabs__tab__text--active': ''} ${errorInfo[tab] === true ? 'tabs__tab__text--error': ''}`}>{tab}</p>
           </div>
         ))}
       </div>
@@ -50,6 +51,14 @@ const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick }) => {
            font-weight: 700;
            color: #156FF7;
         }
+
+        .tabs__tab--error {
+         border-bottom: 2px solid red;
+        }
+        .tabs__tab__text--error {
+          color: red;
+        }
+
       `}</style>
     </div>
   );

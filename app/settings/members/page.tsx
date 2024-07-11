@@ -5,6 +5,7 @@ import ManageMembersSettings from '@/components/page/settings/manage-members';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { getMemberInfo, getMembersInfoForDp } from '@/services/members.service';
+import { redirect } from 'next/navigation';
 
 
 const getPageData = async (selectedMemberId: string) => {
@@ -34,10 +35,18 @@ const getPageData = async (selectedMemberId: string) => {
 export default async function ManageMembers(props) {
   const selectedMemberId = props?.searchParams?.id
   const cookieStore = cookies();
-  const rawAuthToken: any = cookieStore.get('authToken');
-  const rawUserInfo: any = cookieStore.get('userInfo');
+  const rawAuthToken: any = cookieStore.get('authToken')?.value;
+  const rawUserInfo: any = cookieStore.get('userInfo')?.value;
   if (!rawAuthToken || !rawUserInfo) {
-    //redirect('/teams');
+    redirect('/teams');
+  }
+  const userInfo = JSON.parse(rawUserInfo);
+  const roles = userInfo.roles ?? [];
+  const leadingTeams = userInfo.leadingTeams ?? [];
+  const isTeamLead = leadingTeams.length > 0;
+  const isAdmin = roles.includes('DIRECTORYADMIN');
+  if(!isAdmin) {
+    redirect('/teams');
   }
   const { members, isError, selectedMember } = await getPageData(selectedMemberId)
   if(isError) {
@@ -63,7 +72,7 @@ export default async function ManageMembers(props) {
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu activeItem="manage members" />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" />
           </aside>
           <div className={styles.ps__main__content}>
             <ManageMembersSettings selectedMember={selectedMember} members={members ?? []} />

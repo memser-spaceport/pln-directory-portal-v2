@@ -1,17 +1,19 @@
 export const getTeamsFormOptions = async () => {
-  const [membershipSourcesResponse, fundingTagsresponse, industryTagsResponse, technologiesResponse] = await Promise.all([
+  const [membershipSourcesResponse, fundingTagsresponse, industryTagsResponse, technologiesResponse, focusAreaResponse] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/membership-sources`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/funding-stages?pagination=false`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/industry-tags?pagination=false`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/technologies?pagination=false`, { method: 'GET' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/focus-areas`, { method: 'GET' }),
   ]);
 
   const membershipSources = await membershipSourcesResponse.json();
   const fundingTags = await fundingTagsresponse.json();
   const industryTags = await industryTagsResponse.json();
   const technologies = await technologiesResponse.json();
+  const focusAreas = await focusAreaResponse.json();
 
-  if (!membershipSourcesResponse.ok || !fundingTagsresponse.ok || !industryTagsResponse.ok || !technologiesResponse.ok) {
+  if (!membershipSourcesResponse.ok || !fundingTagsresponse.ok || !industryTagsResponse.ok || !technologiesResponse.ok || !focusAreaResponse.ok) {
     return { isError: true };
   }
 
@@ -30,8 +32,8 @@ export const getTeamsFormOptions = async () => {
   }));
 
   const formattedIndustryTags = industryTags.map((tag: any) => ({ id: tag?.uid, name: tag?.title })).sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-
-  return { technologies: formattedTechnologies, fundingStage: formattedFundingStages, membershipSources: formattedMembershipResources, industryTags: formattedIndustryTags };
+  const formattedFocusAreas = focusAreas.filter((data: any) => !data.parentUid);
+  return { technologies: formattedTechnologies, focusAreas: formattedFocusAreas, fundingStage: formattedFundingStages, membershipSources: formattedMembershipResources, industryTags: formattedIndustryTags };
 };
 
 export const saveRegistrationImage = async (payload: any) => {

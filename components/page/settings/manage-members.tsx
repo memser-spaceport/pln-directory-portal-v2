@@ -11,7 +11,10 @@ import { useRouter } from 'next/navigation';
 import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { updateMember } from '@/services/members.service';
-import Cookies from 'js-cookie'
+import Cookies from 'js-cookie';
+import { validateLocation } from '@/services/location.service';
+import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
+import Modal from '@/components/core/modal';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
@@ -23,6 +26,8 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
   const formRef = useRef<HTMLFormElement | null>(null);
   const actionRef = useRef<HTMLDivElement | null>(null);
+  const errorDialogRef = useRef<HTMLDialogElement>(null);
+  const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const router = useRouter();
   const initialValues = {
     skillsInfo: {
@@ -53,6 +58,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   const onMemberChanged = (uid: string) => {
     if (formRef.current) {
       formRef.current.reset();
+      onResetForm()
     }
     router.push(`/settings/members?id=${uid}`, { scroll: false });
   };
@@ -61,6 +67,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
     if (actionRef.current) {
       actionRef.current.style.visibility = 'hidden';
     }
+    setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] })
     document.dispatchEvent(new CustomEvent('reset-member-register-form'));
   };
 
@@ -74,8 +81,27 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
         const formValues = Object.fromEntries(formData);
         const formattedInputValues = formInputsToMemberObj(formValues);
 
+        const basicErrors: any[] = await checkBasicInfoForm({ ...formattedInputValues });
+        const skillsErrors: any[] = await checkSkillInfoForm({ ...formattedInputValues });
+        const contributionErrors: any = await checkContributionInfoForm({ ...formattedInputValues });
+        const allFormErrors = [...basicErrors, ...skillsErrors, ...Object.keys(contributionErrors)];
+
+        setErrors((v: any) => {
+          return {
+            ...v,
+            basicErrors: [...basicErrors],
+            skillsErrors: [...skillsErrors],
+            contributionErrors: { ...contributionErrors },
+          };
+        });
+        if (allFormErrors.length > 0) {
+          triggerLoader(false);
+          onShowErrorModal();
+          return;
+        }
+
         const payload = {
-          participantType: "MEMBER",
+          participantType: 'MEMBER',
           referenceUid: selectedMember.uid,
           uniqueIdentifier: selectedMember.email,
           newData: { ...formattedInputValues },
@@ -95,14 +121,105 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
         console.log(data, isError);
       }
     } catch (e) {
-      console.log(e)
+      console.log(e);
       triggerLoader(false);
       toast.error('Member updated failed. Something went wrong, please try again later');
     }
   };
 
+  const checkContributionInfoForm = async (formattedData: any) => {
+    const allErrorObj: any = {};
+    let errors = [];
+    const contributions = formattedData.projectContributions;
+    contributions.forEach((contribution: any, index: number) => {
+      if (contribution.endDate && new Date(contribution.startDate) >= new Date(contribution.endDate)) {
+        if (!allErrorObj[index]) {
+          allErrorObj[index] = [];
+        }
+        allErrorObj[index].push('Your contribution end date cannot be less than or equal to start date');
+      }
+      if (contribution.startDate && new Date(contribution.startDate) > new Date()) {
+        if (!allErrorObj[index]) {
+          allErrorObj[index] = [];
+        }
+        allErrorObj[index].push('Your contribution start date cannot be greater than current date');
+      }
+    });
+    const result = projectContributionSchema.safeParse(formattedData);
+    if (!result.success) {
+      errors = result.error.errors.reduce((acc: any, error) => {
+        const [name, index, key] = error.path;
+        if (!acc[index]) {
+          acc[index] = [];
+        }
+        acc[index].push(error.message);
+
+        return acc;
+      }, allErrorObj);
+    }
+    return errors;
+  };
+
+  const checkSkillInfoForm = async (formattedData: any) => {
+    const result = TeamAndSkillsInfoSchema.safeParse(formattedData);
+    if (!result.success) {
+      const errors = result.error.errors.map((v) => v.message);
+      const uniqueErrors = Array.from(new Set(errors));
+      return uniqueErrors;
+    }
+
+    return [];
+  };
+
+  const checkBasicInfoForm = async (formattedData: any) => {
+    if (!formRef.current) {
+      return [];
+    }
+    const errors = [];
+    const result = basicInfoSchema.safeParse(formattedData);
+    if (!result.success) {
+      errors.push(...result.error.errors.map((v) => v.message));
+    }
+
+    const locationInfo = {
+      ...(formattedData.city && { city: formattedData.city }),
+      ...(formattedData.country && { country: formattedData.country }),
+      ...(formattedData.region && { region: formattedData.region }),
+    };
+
+    if (Object.keys(locationInfo).length > 0) {
+      const locationVerification = await validateLocation(locationInfo);
+      if (!locationVerification.isValid) {
+        errors.push('location info provided is invalid');
+      }
+    }
+
+    //const imageFile = formattedData?.memberProfile;
+    const memberProfile = formattedData?.memberProfile;
+
+    if (memberProfile.name) {
+      if (!['image/jpeg', 'image/png'].includes(memberProfile.type)) {
+        errors.push('Please upload image in jpeg or png format');
+      } else {
+        if (memberProfile.size > 4 * 1024 * 1024) {
+          errors.push('Please upload a file less than 4MB');
+        }
+      }
+    }
+    return errors;
+  };
+
+  const onModalClose = () => {
+    if (errorDialogRef.current) {
+      errorDialogRef.current.close();
+    }
+  };
+  const onShowErrorModal = () => {
+    if (errorDialogRef.current) {
+      errorDialogRef.current.showModal();
+    }
+  };
   const onFormChange = async () => {
-    console.log('form changed');
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
@@ -155,7 +272,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   }, []);
   return (
     <>
-      <form onInput={onFormChange} onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms">
+      <form noValidate onInput={onFormChange} onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms">
         <div className="ms__member-selection">
           <div className="ms__member-selection__dp">
             <SingleSelect
@@ -214,9 +331,70 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           </div>
         </div>
       </form>
-
+      <Modal modalRef={errorDialogRef} onClose={onModalClose}>
+        <div className="error">
+          <h2 className="error__title">Validation Errors</h2>
+          {errors.basicErrors.length > 0 && (
+            <div className="error__item">
+              <h3 className="error__item__title">Basic Info</h3>
+              <ul className="error__item__list">
+                {errors.basicErrors.map((v, i) => (
+                  <li className="error__item__list__msg" key={`basic-error-${i}`}>
+                    {v}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {errors.skillsErrors.length > 0 && (
+            <div className="error__item">
+              <h3 className="error__item__title">Skills Info</h3>
+              <ul className="error__item__list">
+                {errors.skillsErrors.map((v, i) => (
+                  <li className="error__item__list__msg" key={`basic-error-${i}`}>
+                    {v}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {Object.keys(errors.contributionErrors).length > 0 && (
+            <div className="error__item">
+              <h3 className="error__item__title">Contribution Info</h3>
+              <div className="error__item__list">
+                {Object.keys(errors.contributionErrors).map((v: string, i) => (
+                  <ul key={`contrib-${v}`}>
+                    {errors.contributionErrors[v].map((item, index) => (
+                      <li className="error__item__list__msg" key={`${v}-${index}`}>{`Project ${Number(v) + 1} - ${item}`}</li>
+                    ))}
+                  </ul>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
       <style jsx>
         {`
+          .error {
+            width: 50vw;
+            height: auto;
+            padding: 16px;
+          }
+          .error__item {
+            padding: 8px 0;
+          }
+          .error__item__title {
+            font-size: 15px;
+            font-weight: 600;
+          }
+          .error__item__list {
+            padding: 8px 16px;
+          }
+          .error__item__list__msg {
+            font-size: 12px;
+            color: #ef4444;
+          }
           .fa {
             position: sticky;
             border-top: 2px solid #ff820e;

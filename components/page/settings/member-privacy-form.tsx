@@ -30,7 +30,7 @@ function MemberPrivacyForm(props) {
     { title: 'Profile', items: [{ name: 'githubProjects', title: 'Show my GitHub Projects', info: 'Control visibility of your GitHub projects' }] },
   ];
 
-  const onFormChange =  () => {
+  const onFormChange = () => {
     if (formRef.current) {
       const keys = Object.keys(memberSettings);
       const formData = new FormData(formRef.current);
@@ -42,40 +42,40 @@ function MemberPrivacyForm(props) {
           isFormChanged = true;
         }
       });
-      if(actionRef.current) {
-        actionRef.current.style.visibility = isFormChanged ? 'visible': 'hidden';
+      if (actionRef.current) {
+        actionRef.current.style.visibility = isFormChanged ? 'visible' : 'hidden';
       }
     }
   };
 
   const onFormReset = () => {
-    if(actionRef.current) {
+    if (actionRef.current) {
       actionRef.current.style.visibility = 'hidden';
     }
-  }
+  };
 
   const onFormSubmitted = async (e) => {
     try {
-      triggerLoader(true)
+      triggerLoader(true);
       e.stopPropagation();
       e.preventDefault();
-      if (formRef.current) { 
-        const keys:string[] = Object.keys(memberSettings);
+      if (formRef.current) {
+        const keys: string[] = Object.keys(memberSettings);
         const formData = new FormData(formRef.current);
         const formValues = Object.fromEntries(formData);
         let payload = {
-          ...settings
+          ...settings,
         };
-        
+
         payload.showGithub = formValues.github === 'on' ? true : false;
         payload.showEmail = formValues.email === 'on' ? true : false;
         payload.showDiscord = formValues.discord === 'on' ? true : false;
         payload.showTwitter = formValues.twitter === 'on' ? true : false;
         payload.showLinkedin = formValues.linkedin === 'on' ? true : false;
         payload.showTelegram = formValues.telegram === 'on' ? true : false;
-        payload.showGithubHandle = formValues.github === 'on' ? true: false;
+        payload.showGithubHandle = formValues.github === 'on' ? true : false;
         payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
-  
+
         const apiResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}/preferences`, {
           method: 'PATCH',
           body: JSON.stringify(payload),
@@ -83,24 +83,23 @@ function MemberPrivacyForm(props) {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${JSON.parse(Cookies.get('authToken'))}`,
           },
-        })
-        triggerLoader(false)
-        if(apiResult.ok) {
-          if(actionRef.current) {
+        });
+        triggerLoader(false);
+        if (apiResult.ok) {
+          if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           }
-          toast.success('Preferences updated successfully')
-          router.refresh()
-          
+          toast.success('Preferences updated successfully');
+          router.refresh();
         } else {
-          toast.success('Preferences update failed. Something went wrong. Please try again later')
+          toast.success('Preferences update failed. Something went wrong. Please try again later');
         }
       }
     } catch (e) {
       triggerLoader(false);
-      toast.success('Preferences update failed. Something went wrong. Please try again later')
+      toast.success('Preferences update failed. Something went wrong. Please try again later');
     }
-  }
+  };
 
   return (
     <>
@@ -111,7 +110,7 @@ function MemberPrivacyForm(props) {
             <div className="pf__fields">
               {prefForm.items.map((pref: any) => (
                 <div className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`} key={`pref-${pref.name}`}>
-                  <CustomToggle disabled={!settings[pref.name]} onChange={(value) => console.log(value)} name={pref.name} id={`privacy-${pref.name}`} defaultChecked={memberSettings[pref.name]} />
+                  <div><CustomToggle disabled={!settings[pref.name]} onChange={(value) => console.log(value)} name={pref.name} id={`privacy-${pref.name}`} defaultChecked={memberSettings[pref.name]} /></div>
                   <div className="pf__field__item__cn">
                     <label className="pf__field__item__cn__label">{pref.title}</label>
                     <div className="pf__field__item__cn__info">{pref.info}</div>
@@ -138,7 +137,6 @@ function MemberPrivacyForm(props) {
       </form>
       <style jsx>
         {`
-         
           .fa {
             position: sticky;
             border-top: 2px solid #ff820e;
@@ -185,22 +183,8 @@ function MemberPrivacyForm(props) {
             border-radius: 8px;
           }
 
-          @media (min-width: 1024px) {
-            .fa {
-              height: 72px;
-              bottom: 16px;
-              flex-direction: row;
-              left: auto;
-              border-radius: 8px;
-              justify-content: space-between;
-              align-items: center;
-              width: calc(100% - 48px);
-              margin: 0 24px;
-              border: 2px solid #ff820e;
-            }
-          }
           .pf {
-            width: 656px;
+            width: 100%;
             padding: 16px;
           }
           .pf__cn {
@@ -241,6 +225,25 @@ function MemberPrivacyForm(props) {
             color: #0f172a;
             opacity: 0.6;
             line-height: 18px;
+          }
+
+          @media (min-width: 1024px) {
+            .fa {
+              height: 72px;
+              bottom: 16px;
+              flex-direction: row;
+              left: auto;
+              border-radius: 8px;
+              justify-content: space-between;
+              align-items: center;
+              width: calc(100% - 48px);
+              margin: 0 24px;
+              border: 2px solid #ff820e;
+            }
+                .pf {
+            width: 656px;
+           
+          }
           }
         `}
       </style>

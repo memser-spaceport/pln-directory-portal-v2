@@ -5,11 +5,13 @@ import { useEffect, useRef, useState } from 'react';
 interface MemberBasicInfoProps {
   errors: string[];
   initialValues: any;
+  isMemberSelfEdit: boolean;
 }
 
 function MemberBasicInfo(props: MemberBasicInfoProps) {
   const errors = props.errors;
   const initialValues = props.initialValues;
+  const isMemberSelfEdit = props.isMemberSelfEdit ?? false;
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string>(initialValues?.imageFile ?? '');
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -100,7 +102,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
           <div className="memberinfo__form__item">
-            <TextField defaultValue={initialValues.email} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" />
+            <TextField defaultValue={initialValues.email} hide={isMemberSelfEdit} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" />
           </div>
           <div className="memberinfo__form__item">
             <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="Join date" name="plnStartDate" type="date" placeholder="Enter Start Date" />

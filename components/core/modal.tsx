@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { ReactNode, useEffect } from 'react';
 
 interface IModal {
-  onClose: () => void;
+  onClose: (e?:any) => void;
   children: ReactNode;
   modalRef: any;
 }

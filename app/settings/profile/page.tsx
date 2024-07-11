@@ -22,13 +22,17 @@ const getPageData = async (userId: string) => {
 
 export default async function ProfileSettings() {
   const cookieStore = cookies();
-  const rawAuthToken: any = cookieStore.get('authToken');
-  const rawUserInfo: any = cookieStore.get('userInfo');
+  const rawAuthToken: any = cookieStore.get('authToken')?.value;
+  const rawUserInfo: any = cookieStore.get('userInfo')?.value;
   if(!rawAuthToken || !rawUserInfo) {
     redirect('/teams')
   }
-  const parsedUserInfo = JSON.parse(rawUserInfo.value);
-  const { memberInfo } = await getPageData(parsedUserInfo.uid)
+  const userInfo = JSON.parse(rawUserInfo);
+  const roles = userInfo.roles ?? [];
+  const isAdmin = roles.includes('DIRECTORYADMIN');
+  const leadingTeams = userInfo.leadingTeams ?? [];
+  const isTeamLead = leadingTeams.length > 0;
+  const { memberInfo } = await getPageData(userInfo.uid)
   console.log(memberInfo)
 
   const breadcrumbItems = [
@@ -50,7 +54,7 @@ export default async function ProfileSettings() {
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu activeItem="profile" />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="profile" />
           </aside>
           <div className={styles.ps__main__content}>
             <MemberSettings memberInfo={memberInfo} />

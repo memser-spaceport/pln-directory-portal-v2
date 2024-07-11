@@ -164,7 +164,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
 
   const onFormSubmitted = async (e) => {
     try {
-      //triggerLoader(true);
+      triggerLoader(true);
       e.preventDefault();
       e.stopPropagation();
       console.log('form submitted');
@@ -189,6 +189,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       });
       console.log(allFormErrors);
       if (allFormErrors.length > 0) {
+        triggerLoader(false);
         onShowErrorModal();
         return;
       }
@@ -343,7 +344,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <MemberBasicInfo errors={[]} initialValues={initialValues.basicInfo} />
+            <MemberBasicInfo errors={[]} isMemberSelfEdit={true} initialValues={initialValues.basicInfo} />
           </div>
           <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
             <MemberSkillsInfo errors={[]} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />

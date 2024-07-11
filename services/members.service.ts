@@ -214,12 +214,12 @@ export const getMemberInfo = async (memberUid: string) => {
   const projectContributions = result.projectContributions.map((pc: any) => {
     return {
       role: pc?.role,
-      projectName: pc?.project?.name,
+      projectName: pc?.project?.name ?? '',
       projectUid: pc?.project?.uid,
       startDate: pc?.startDate,
       endDate: pc?.endDate,
-      description: pc?.description,
-      currentProject: pc?.currentProject
+      description: pc?.description ?? '',
+      currentProject: pc?.currentProject ?? false
     }
   })
   const formatted = { ...result, moreDetails: result.moreDetails ?? '', officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills };

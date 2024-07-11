@@ -531,7 +531,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
               padding: 16px;
             }
             .ms__member-selection__dp {
-              width: 150px;
+              width: 250px;
             }
             .cs {
               width: 656px;

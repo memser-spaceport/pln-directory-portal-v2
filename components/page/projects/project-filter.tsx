@@ -31,10 +31,11 @@ const ProjectFilter = (props: any) => {
   const projectPaneRef = useRef<HTMLDivElement>(null);
   const analytics = useProjectAnalytics();
 
+
   //state
-  const [searchResult, setSearchResult] = useState<any[]>([]);
+  const [searchResult, setSearchResult] = useState<any[]>(props?.initialTeams ?? []);
   const [searchText, setSearchText] = useState('');
-  const [selectedOption, setSelectedOption] = useState<any>({ label: '', value: '', logo: '' });
+  const selectedTeam = props?.selectedTeam;
   const [isTeamActive, setIsTeamActive] = useState(false);
   const debouncedSearchText = useDebounce(searchText, 300);
 
@@ -53,6 +54,7 @@ const ProjectFilter = (props: any) => {
 
   const onClearAllClicked = () => {
     if (apliedFiltersCount > 0) {
+      setSearchText("");
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       const clearQuery = ['team', 'funding', 'focusAreas'];
@@ -87,6 +89,11 @@ const ProjectFilter = (props: any) => {
   const onTeamSelected = (team: any) => {
     // setSelectedOption(team);
     setSearchText(team?.label);
+
+    if(team.value !== searchParams["team"]) {
+      triggerLoader(true);
+    }
+
     if (team?.value) {
       updateQueryParams('team', team.value, searchParams);
       analytics.onProjectFilterApplied(getAnalyticsUserInfo(userInfo), {
@@ -99,7 +106,9 @@ const ProjectFilter = (props: any) => {
   };
 
   const onAutocompleteBlur = () => {
-    setSearchText(selectedOption.label);
+    // if(selectedTeam?.label) {
+    // setSearchText(selectedTeam.label);
+    // }
   };
 
   const findTeamsByName = async (searchTerm: string) => {
@@ -119,28 +128,13 @@ const ProjectFilter = (props: any) => {
     if (isTeamActive) {
       findTeamsByName(debouncedSearchText);
     }
-  }, [debouncedSearchText, isTeamActive]);
+  }, [debouncedSearchText]);
 
-  useEffect(() => {
-    if (teamId) {
-      const getTeamDetail = async (teamId: string) => {
-        const teamResponse = await getTeam(teamId, {
-          with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
-        });
-        if (teamResponse.error) {
-          return;
-        }
-        const formattedTeam = teamResponse?.data?.formatedData;
-        setSelectedOption({ label: formattedTeam?.name, value: formattedTeam?.id, logo: formattedTeam?.logo });
-        setSearchText(formattedTeam?.name);
-        setIsTeamActive(false);
-      };
-      getTeamDetail(teamId ?? '');
-    } else {
-      setSelectedOption({ label: '', value: '', logo: '' });
-      setSearchText('');
-    }
-  }, [teamId]);
+
+  const onClear = () => {
+    setSearchText('');
+    updateQueryParams("team", "", searchParams);
+  }
 
   return (
     <>
@@ -179,7 +173,7 @@ const ProjectFilter = (props: any) => {
           <div className="project-filter__body__maintainer">
             Maintained By
             <Autocomplete
-              selectedOption={selectedOption}
+              selectedOption={selectedTeam}
               callback={onTeamSelected}
               isPaneActive={isTeamActive}
               inputRef={projectTeamRef}
@@ -194,6 +188,7 @@ const ProjectFilter = (props: any) => {
               setIsPaneActive={onTogglePane}
               onInputBlur={onAutocompleteBlur}
               paneRef={projectPaneRef}
+              onClear={onClear}
             />
           </div>
         </div>

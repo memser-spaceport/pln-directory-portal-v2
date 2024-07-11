@@ -10,9 +10,10 @@ import FilterWrapper from '@/components/page/projects/filter-wrapper';
 import { getFocusAreas } from '@/services/common.service';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { Metadata } from 'next';
+import { getTeam, searchTeamsByName } from '@/services/teams.service';
 
 export default async function Page({ searchParams }: any) {
-  const { projects, isError, totalProjects, userInfo, focusAreas, isLoggedIn } = await getPageData(searchParams);
+  const { projects, initialTeams, selectedTeam, isError, totalProjects, userInfo, focusAreas, isLoggedIn } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
@@ -21,7 +22,7 @@ export default async function Page({ searchParams }: any) {
   return (
     <section className={styles.project}>
       <aside className={styles.project__filter}>
-        <FilterWrapper searchParams={searchParams} userInfo={userInfo} focusAreas={focusAreas} />
+        <FilterWrapper initialTeams={initialTeams} selectedTeam={selectedTeam} searchParams={searchParams} userInfo={userInfo} focusAreas={focusAreas} />
       </aside>
       <div className={styles.project__cn}>
         <div className={styles.project__cn__toolbar}>
@@ -38,6 +39,10 @@ export default async function Page({ searchParams }: any) {
 
 const getPageData = async (searchParams: any) => {
   let isError = false;
+  let selectedTeam = { label: '', value: '', logo: '' }
+  let initialTeams = [];
+
+  
   try {
     const { userInfo, isLoggedIn } = getCookiesFromHeaders();
     const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
@@ -46,6 +51,21 @@ const getPageData = async (searchParams: any) => {
     if (projectsResponse?.error || focusAreasResponse?.error) {
       isError = true;
       return { isError };
+    }
+
+    if(searchParams["team"]) {
+        const teamResponse = await getTeam(searchParams["team"], {
+          with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
+        });
+        if (!teamResponse.error) {
+          const formattedTeam = teamResponse?.data?.formatedData;
+          selectedTeam = ({ label: formattedTeam?.name, value: formattedTeam?.id, logo: formattedTeam?.logo }); 
+        }
+    }
+
+    const result = await searchTeamsByName(selectedTeam.label);
+    if(!result.error) {
+      initialTeams = result;
     }
 
     const focusAreaQuery = searchParams?.focusAreas;
@@ -61,9 +81,12 @@ const getPageData = async (searchParams: any) => {
         selectedFocusAreas,
       },
       isLoggedIn,
+      selectedTeam,
+      initialTeams,
     };
   } catch (error) {
     isError = true;
+    console.error(error);
     return { isError };
   }
 };

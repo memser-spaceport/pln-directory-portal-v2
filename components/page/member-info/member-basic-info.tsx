@@ -1,13 +1,16 @@
 'use client';
 import TextField from '@/components/form/text-field';
 import { useEffect, useRef, useState } from 'react';
-import LinkAuthAccounts from '../settings/link-auth-accounts';
+import LinkAuthAccounts from './link-auth-accounts';
+import SelfEmailUpdate from './self-email-update';
+import AdminEmailUpdate from './admin-email-update';
 
 interface MemberBasicInfoProps {
   errors: string[];
   initialValues: any;
   isMemberSelfEdit?: boolean;
-  isAdminEdit?:boolean;
+  isAdminEdit?: boolean;
+  uid?: string;
 }
 
 function MemberBasicInfo(props: MemberBasicInfoProps) {
@@ -15,6 +18,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const initialValues = props.initialValues;
   const isMemberSelfEdit = props.isMemberSelfEdit ?? false;
   const isAdminEdit = props.isAdminEdit ?? false;
+  const uid = props.uid;
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string>(initialValues?.imageFile ?? '');
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -28,7 +32,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
       }
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
-        if(!initialValues.imageFile && imageInputRef.current) {
+        if (!initialValues.imageFile && imageInputRef.current) {
           imageInputRef.current.value = reader.result as string;
         }
       };
@@ -54,7 +58,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
         uploadImageRef.current.value = '';
         setProfileImage(initialValues?.imageFile);
       }
-      if(imageInputRef.current) {
+      if (imageInputRef.current) {
         imageInputRef.current.value = initialValues?.imageFile;
       }
     }
@@ -104,12 +108,19 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
-          <div className="memberinfo__form__item">
-            <TextField defaultValue={initialValues.email} hide={isMemberSelfEdit || isAdminEdit} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" />
-          </div>
-          {isMemberSelfEdit && <div className="memberinfo__form__item">
-             <LinkAuthAccounts/>
-            </div>}
+          {!isMemberSelfEdit && !isAdminEdit && (
+            <div className="memberinfo__form__item">
+              <TextField defaultValue={initialValues.email} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" />
+            </div>
+          )}
+
+          {isMemberSelfEdit && <SelfEmailUpdate uid={uid} email={initialValues.email}/>}
+          {isAdminEdit && <AdminEmailUpdate email={initialValues.email}/>}
+          {isMemberSelfEdit && (
+            <div className="memberinfo__form__item">
+              <LinkAuthAccounts />
+            </div>
+          )}
           <div className="memberinfo__form__item">
             <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="Join date" name="plnStartDate" type="date" placeholder="Enter Start Date" />
           </div>

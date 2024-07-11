@@ -354,7 +354,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <MemberBasicInfo errors={[]} isMemberSelfEdit={true} initialValues={initialValues.basicInfo} />
+            <MemberBasicInfo errors={[]} uid={memberInfo.uid} isMemberSelfEdit={true} initialValues={initialValues.basicInfo} />
           </div>
           <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
             <MemberSkillsInfo errors={[]} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />

@@ -121,6 +121,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             actionRef.current.style.visibility = 'hidden';
           }
           toast.success('Member updated successfully');
+          router.refresh();
         }
         console.log(data, isError);
       }

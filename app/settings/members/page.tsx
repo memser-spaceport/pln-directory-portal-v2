@@ -32,7 +32,7 @@ const getPageData = async (selectedMemberId: string) => {
   }
 }
 
-export default async function ManageMembers(props) {
+export default async function ManageMembers(props: any) {
   const selectedMemberId = props?.searchParams?.id
   const cookieStore = cookies();
   const rawAuthToken: any = cookieStore.get('authToken')?.value;

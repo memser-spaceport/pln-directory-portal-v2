@@ -32,7 +32,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
   const formRef = useRef<HTMLFormElement | null>(null);
   const actionRef = useRef<HTMLDivElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
-  const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+  const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const [allErrors, setAllErrors] = useState<any[]>([]);
 
   const [initialValues, setInitialValues] = useState({
@@ -162,12 +162,15 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
     return errors;
   };
 
-  const onFormSubmitted = async (e) => {
+  const onFormSubmitted = async (e: any) => {
     try {
       triggerLoader(true);
       e.preventDefault();
       e.stopPropagation();
       console.log('form submitted');
+      if(!formRef.current) {
+        return;
+      }
       const formData = new FormData(formRef.current);
       const formValues = formInputsToMemberObj(Object.fromEntries(formData));
       const formattedForms = { ...formValues };
@@ -179,7 +182,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
 
       const allFormErrors = [...basicErrors, ...skillsErrors, ...Object.keys(contributionErrors)];
       setAllErrors([...allErrors]);
-      setErrors((v) => {
+      setErrors((v: any) => {
         return {
           ...v,
           basicErrors: [...basicErrors],
@@ -218,7 +221,11 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         newData: { ...formattedForms, openToWork: false },
       };
 
-      const authToken = JSON.parse(Cookies.get('authToken'));
+      const rawAuthToken = Cookies.get('authToken');
+      if(!rawAuthToken) {
+        return;
+      }
+      const authToken = JSON.parse(rawAuthToken);
 
       const formResult = await updateMember(memberInfo?.uid, bodyData, authToken);
       triggerLoader(false);
@@ -244,6 +251,9 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       e.stopPropagation();
     }
 
+    if(!formRef.current) {
+      return
+    }
     const formData = new FormData(formRef.current);
     const formValues = formInputsToMemberObj(Object.fromEntries(formData));
     const apiObjs = apiObjsToMemberObj(initialValues);
@@ -258,7 +268,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
 
   useEffect(() => {
     // MutationObserver callback
-    const observerCallback = async (mutationsList) => {
+    const observerCallback = async (mutationsList: any) => {
       for (let mutation of mutationsList) {
         if (mutation.type === 'childList') {
           await onFormChange();
@@ -378,7 +388,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
             <div className="error__item">
               <h3 className="error__item__title">Basic Info</h3>
               <ul className="error__item__list">
-                {errors.basicErrors.map((v, i) => (
+                {errors.basicErrors.map((v: any, i: any) => (
                   <li className="error__item__list__msg" key={`basic-error-${i}`}>
                     {v}
                   </li>
@@ -390,7 +400,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
             <div className="error__item">
               <h3 className="error__item__title">Skills Info</h3>
               <ul className="error__item__list">
-                {errors.skillsErrors.map((v, i) => (
+                {errors.skillsErrors.map((v: any, i: any) => (
                   <li className="error__item__list__msg" key={`basic-error-${i}`}>{v}</li>
                 ))}
               </ul>
@@ -402,7 +412,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
               <div className="error__item__list">
                 {Object.keys(errors.contributionErrors).map((v: string, i) => (
                   <ul key={`contrib-${v}`}>
-                    {errors.contributionErrors[v].map((item, index) => (
+                    {errors.contributionErrors[v].map((item: any, index: any) => (
                       <li className="error__item__list__msg" key={`${v}-${index}`}>{`Project ${Number(v) + 1} - ${item}`}</li>
                     ))}
                   </ul>

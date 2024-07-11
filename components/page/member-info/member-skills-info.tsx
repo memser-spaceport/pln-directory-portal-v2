@@ -30,7 +30,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
   const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>([]);
 
   const getTeamRoleDefaultValue = (teamUid: string) => {
-    const teamIndex = initialValues.teamsAndRoles.findIndex(v => v.teamUid === teamUid);
+    const teamIndex = initialValues.teamsAndRoles.findIndex((v:any) => v.teamUid === teamUid);
     if(teamIndex < 0) {
       return ""
     }
@@ -158,7 +158,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
                 </div>
                 <div className="msf__tr__content__cn__delete">
                   {index !== 0 && (
-                    <div className="msf__tr__content__cn__delete__btn" onClick={() => onDeleteTeam(index)} type="button">
+                    <div className="msf__tr__content__cn__delete__btn" onClick={() => onDeleteTeam(index)}>
                       <Image src="/icons/close.svg" alt="delete team role" width="18" height="18" />
                     </div>
                   )}

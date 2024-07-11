@@ -346,7 +346,7 @@ export function apiObjsToMemberObj(obj: any) {
         ...(c.currentProject === false && { endDate: new Date(Date.UTC(endDateYear, endDateMonth + 1, 0)).toISOString() })
       }
     }),
-    skills: obj.skillsInfo.skills.map((sk) => {
+    skills: obj.skillsInfo.skills.map((sk: any) => {
       return {
         title: sk.name,
         uid: sk.id,

@@ -38,7 +38,7 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
 }
 
 
-export default async function ManageTeams(props) {
+export default async function ManageTeams(props: any) {
   const selectedTeamId = props?.searchParams?.id
   const cookieStore = cookies();
   const rawAuthToken: any = cookieStore.get('authToken')?.value;

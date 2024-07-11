@@ -12,7 +12,7 @@ import TextAreaEditor from '@/components/form/text-area-editor';
 interface MemberContributionInfoProps {
   initialValues: any;
   projectsOptions: any[];
-  errors: string[];
+  errors: any[];
 }
 
 function MemberContributionInfo({ initialValues, projectsOptions = [], errors = [] }: MemberContributionInfoProps) {
@@ -38,7 +38,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   };
 
   const getDefaultValueByKey = (teamUid: string, key: string) => {
-    const teamIndex = initialValues.teamsAndRoles.findIndex((v) => v.teamUid === teamUid);
+    const teamIndex = initialValues.teamsAndRoles.findIndex((v:any) => v.teamUid === teamUid);
     if (teamIndex < 0) {
       return '';
     }
@@ -155,7 +155,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
                 <div className={`pc__list__item__form ${expandedId !== index ? 'hidden' : ''}`}>
                   {errors[index] && (
                     <ul className="error">
-                      {errors[index].map((error: string, index: number) => (
+                      {errors[index]?.map((error: string, index: number) => (
                         <li key={`contibution-error-${index}`}>{error}</li>
                       ))}
                     </ul>

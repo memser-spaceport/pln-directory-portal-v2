@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 interface MemberBasicInfoProps {
   errors: string[];
   initialValues: any;
-  isMemberSelfEdit: boolean;
+  isMemberSelfEdit?: boolean;
 }
 
 function MemberBasicInfo(props: MemberBasicInfoProps) {

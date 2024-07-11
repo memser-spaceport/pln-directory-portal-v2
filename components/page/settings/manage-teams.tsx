@@ -19,7 +19,7 @@ import { projectDetailsSchema, socialSchema, basicInfoSchema } from '@/schema/te
 import Modal from '@/components/core/modal';
 
 
-function ManageTeamsSettings(props) {
+function ManageTeamsSettings(props: any) {
   const teams = props.teams ?? [];
   const selectedTeam = props.selectedTeam;
   const steps = [{ name: 'basic' }, { name: 'project details' }, { name: 'social' }];
@@ -137,7 +137,7 @@ function ManageTeamsSettings(props) {
     return errors;
   };
 
-  const onFormSubmitted = async (e) => {
+  const onFormSubmitted = async (e: any) => {
     try {
       console.log('form submmited')
       e.stopPropagation();
@@ -173,7 +173,11 @@ function ManageTeamsSettings(props) {
           newData: { ...formattedInputValues },
         };
 
-        const { data, isError } = await updateTeam(payload, JSON.parse(Cookies.get('authToken')), selectedTeam.uid);
+        const authToken = Cookies.get('authToken');
+        if(!authToken) {
+          return;
+        }
+        const { data, isError } = await updateTeam(payload, JSON.parse(authToken), selectedTeam.uid);
         triggerLoader(false);
         if (isError) {
           toast.error('Team updated failed. Something went wrong, please try again later');
@@ -212,7 +216,7 @@ function ManageTeamsSettings(props) {
 
   useEffect(() => {
     // MutationObserver callback
-    const observerCallback = async (mutationsList) => {
+    const observerCallback = async (mutationsList: any) => {
       for (let mutation of mutationsList) {
         if (mutation.type === 'childList') {
           await onFormChange();

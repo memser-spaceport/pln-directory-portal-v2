@@ -12,12 +12,17 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const errors = props?.errors;
   const initialValues = props?.initialValues;
   const isEdit = props.isEdit ?? false;
-  const [profileImage, setProfileImage] = useState<string>(initialValues?.teamProfile);
+  const [profileImage, setProfileImage] = useState<string>(initialValues?.imageFile ?? '');
   const uploadImageRef = useRef<HTMLInputElement>(null);
-
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if(imageInputRef.current) {
+        imageInputRef.current.value = ''
+        console.log('setting reset, ', imageInputRef.current.value)
+      }
+     
       const reader = new FileReader();
       reader.onload = () => {
         setProfileImage(reader.result as string);
@@ -33,13 +38,22 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
     if (uploadImageRef.current) {
       uploadImageRef.current.value = '';
     }
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
   };
 
   useEffect(() => {
+    if(imageInputRef.current) {
+      imageInputRef.current.value = initialValues?.imageFile
+    }
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
         setProfileImage(initialValues?.imageFile);
+      }
+      if(imageInputRef.current) {
+        imageInputRef.current.value = initialValues?.imageFile
       }
     }
     document.addEventListener('reset-team-register-form', resetHandler);
@@ -87,6 +101,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                   </span>
                 )}
               </label>
+              
+              <input ref={imageInputRef} id="team-info-basic-image" hidden name="imageFile"  />
               <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" /> 
             </div>
             <div className="teaminfo__form__item">

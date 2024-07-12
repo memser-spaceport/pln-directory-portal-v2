@@ -12,10 +12,10 @@ import TextAreaEditor from '@/components/form/text-area-editor';
 interface MemberContributionInfoProps {
   initialValues: any;
   projectsOptions: any[];
-  errors: any[];
+  errors: any;
 }
 
-function MemberContributionInfo({ initialValues, projectsOptions = [], errors = [] }: MemberContributionInfoProps) {
+function MemberContributionInfo({ initialValues, projectsOptions = [], errors = {} }: MemberContributionInfoProps) {
   const [contributionInfos, setContributionInfos] = useState(initialValues ?? []);
   const currentProjectsCount = contributionInfos?.filter((v: any) => v.currentProject === true).length;
   const [expandedId, setExpandedId] = useState(-1);

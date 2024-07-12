@@ -26,15 +26,12 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      if (imageInputRef.current) {
-        imageInputRef.current.value = '';
+      if(imageInputRef.current) {
+        imageInputRef.current.value = ''
       }
+      const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
-        if (!initialValues.imageFile && imageInputRef.current) {
-          imageInputRef.current.value = reader.result as string;
-        }
       };
       reader.readAsDataURL(file);
     }
@@ -53,13 +50,17 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   };
 
   useEffect(() => {
+    if(imageInputRef.current) {
+      imageInputRef.current.value = initialValues?.imageFile
+    }
+    setProfileImage(initialValues?.imageFile);
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
         setProfileImage(initialValues?.imageFile);
       }
-      if (imageInputRef.current) {
-        imageInputRef.current.value = initialValues?.imageFile;
+      if(imageInputRef.current) {
+        imageInputRef.current.value = initialValues?.imageFile
       }
     }
     document.addEventListener('reset-member-register-form', resetHandler);
@@ -89,7 +90,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 </span>
               )}
             </label>
-            <input id="member-info-basic-image" ref={imageInputRef} hidden name="imageFile" defaultValue={initialValues?.imageFile} />
+            <input type='text' ref={imageInputRef} id="member-info-basic-image" hidden name="imageFile" />
             <input onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
             <div className="memberinfo__form__item">
               <TextField

@@ -170,6 +170,8 @@ export const getTeamInfo = async (teamUid: string) => {
       name: ind.title
     }
   })
+
+  formatted.imageFile = result?.logo?.url ?? '';
  
   return { data: formatted };
 };

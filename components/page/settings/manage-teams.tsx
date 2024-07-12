@@ -8,7 +8,7 @@ import TeamProjectsInfo from '../team-form-info/team-projects-info';
 import TeamSocialInfo from '../team-form-info/team-social-info';
 import SettingsAction from './actions';
 import { useRouter } from 'next/navigation';
-import { getTeamsFormOptions } from '@/services/registration.service';
+import { getTeamsFormOptions, saveRegistrationImage } from '@/services/registration.service';
 import { transformRawInputsToFormObj, transformTeamApiToFormObj } from '@/utils/team.utils';
 import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
@@ -39,7 +39,7 @@ function ManageTeamsSettings(props: any) {
   const initialValues = {
     basicInfo: {
       requestorEmail: '',
-      teamProfile: '',
+      imageFile: selectedTeam.imageFile,
       name: selectedTeam.name,
       shortDescription: selectedTeam.shortDescription ?? '',
       longDescription: selectedTeam.longDescription ?? '',
@@ -166,6 +166,19 @@ function ManageTeamsSettings(props: any) {
           formattedInputValues.focusAreas = [...formattedInputValues.teamFocusAreas];
           delete formattedInputValues.teamFocusAreas
         }
+
+        if (formattedInputValues.teamProfile && formattedInputValues.teamProfile.size > 0) {
+          const imgResponse = await saveRegistrationImage(formattedInputValues.teamProfile);
+          const image = imgResponse?.image;
+          formattedInputValues.logoUid = image.uid;
+          formattedInputValues.logoUrl = image.url;
+          delete formattedInputValues.teamProfile;
+          delete formattedInputValues.imageFile;
+          const imgEle: any = document.getElementById('team-info-basic-image');
+          if (imgEle) {
+            imgEle.value = image.url;
+          }
+        }
         const payload = {
           participantType: 'TEAM',
           referenceUid: selectedTeam?.uid,
@@ -199,6 +212,7 @@ function ManageTeamsSettings(props: any) {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
+      console.log(formValues)
       const apiObjs = transformTeamApiToFormObj({ ...initialValues });
       const formattedInputValues = transformRawInputsToFormObj(formValues);
       delete formattedInputValues.teamProfile;

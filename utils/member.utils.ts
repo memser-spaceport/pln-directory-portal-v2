@@ -1,6 +1,9 @@
 import { IMember, IMemberListOptions, IMemberPreferences, IMemberResponse, IMembersSearchParams, ITeamMemberRole } from '@/types/members.types';
 import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
+import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
+import { validatePariticipantsEmail } from '@/services/participants-request.service';
+import { validateLocation } from '@/services/location.service';
 
 export const parseMemberDetails = (members: IMemberResponse[], teamId: string, isLoggedIn: boolean) => {
   return members?.map((member: IMemberResponse): IMember => {
@@ -334,7 +337,7 @@ export function apiObjsToMemberObj(obj: any) {
   const formatted = {
     ...obj.basicInfo,
     ...obj.socialInfo,
-    projectContributions: [...obj.contributionInfo].map(c => {
+    projectContributions: [...obj.contributionInfo].map((c) => {
       const endDateMonth = new Date(c.endDate).getMonth();
       const endDateYear = new Date(c.endDate).getFullYear();
       return {
@@ -343,8 +346,8 @@ export function apiObjsToMemberObj(obj: any) {
         startDate: c.startDate,
         description: c.description,
         currentProject: c.currentProject,
-        ...(c.currentProject === false && { endDate: new Date(Date.UTC(endDateYear, endDateMonth + 1, 0)).toISOString() })
-      }
+        ...(c.currentProject === false && { endDate: new Date(Date.UTC(endDateYear, endDateMonth + 1, 0)).toISOString() }),
+      };
     }),
     skills: obj.skillsInfo.skills.map((sk: any) => {
       return {
@@ -355,11 +358,11 @@ export function apiObjsToMemberObj(obj: any) {
     teamAndRoles: obj.skillsInfo.teamsAndRoles,
   };
 
-  if(!formatted.imageFile) {
-    formatted.imageFile = ''
+  if (!formatted.imageFile) {
+    formatted.imageFile = '';
   }
 
-  if(formatted.plnStartDate) {
+  if (formatted.plnStartDate) {
     formatted['plnStartDate'] = new Date(formatted['plnStartDate']).toISOString();
   }
 
@@ -367,7 +370,7 @@ export function apiObjsToMemberObj(obj: any) {
 }
 
 export function formInputsToMemberObj(obj: any) {
-  console.log(obj)
+  console.log(obj);
   const result: any = {};
   const teamAndRoles: any = {};
   const projectContributions: any = {};
@@ -438,3 +441,111 @@ export function formInputsToMemberObj(obj: any) {
   }
   return result;
 }
+
+export const memberRegistrationDefaults = {
+  skillsInfo: {
+    teamsAndRoles: [{ teamTitle: '', role: '', teamUid: '' }],
+    skills: [],
+  },
+  contributionInfo: [],
+  basicInfo: {
+    name: '',
+    email: '',
+    imageFile: '',
+    plnStartDate: '',
+    city: '',
+    region: '',
+    country: '',
+  },
+  socialInfo: {
+    linkedinHandler: '',
+    discordHandler: '',
+    twitterHandler: '',
+    githubHandler: '',
+    telegramHandler: '',
+    officeHours: '',
+    comments: '',
+  },
+};
+
+export const validateTeamsAndSkills = async (formattedData: any) => {
+  const errors: string[] = [];
+  const result = TeamAndSkillsInfoSchema.safeParse(formattedData);
+  if (!result.success) {
+    const rawErrors = result.error.errors.map((v) => v.message);
+    const uniqueErrors = Array.from(new Set(rawErrors));
+    errors.push(...uniqueErrors);
+  }
+  return errors;
+};
+
+export const validateContributionErrors = async (formattedData: any) => {
+  const allErrorObj: Record<number, string[]> = {};
+  const contributions = formattedData.projectContributions;
+  contributions.forEach((contribution: any, index: number) => {
+    if (contribution.endDate && new Date(contribution.startDate) >= new Date(contribution.endDate)) {
+      if (!allErrorObj[index]) {
+        allErrorObj[index] = [];
+      }
+      allErrorObj[index].push('Your contribution end date cannot be less than or equal to start date');
+    }
+    if (contribution.startDate && new Date(contribution.startDate) > new Date()) {
+      if (!allErrorObj[index]) {
+        allErrorObj[index] = [];
+      }
+      allErrorObj[index].push('Your contribution start date cannot be greater than current date');
+    }
+  });
+  const result = projectContributionSchema.safeParse(formattedData);
+  if (!result.success) {
+    result.error.errors.forEach((error) => {
+      const [name, index] = error.path as [string, number];
+      if (!allErrorObj[index]) {
+        allErrorObj[index] = [];
+      }
+      allErrorObj[index].push(error.message);
+    });
+  }
+  return allErrorObj;
+};
+
+export const validateBasicForms = async (formattedData: any) => {
+  const errors: string[] = [];
+  // Validate for basic schema
+  const result = basicInfoSchema.safeParse(formattedData);
+  if (!result.success) {
+    errors.push(...result.error.errors.map((v) => v.message));
+  }
+
+  // Validate email
+  const email = formattedData?.email?.toLowerCase().trim();
+  const emailVerification = await validatePariticipantsEmail(email, 'MEMBER');
+  if (!emailVerification.isValid) {
+    errors.push('Email already exists');
+  }
+
+  // Validate location
+  const locationInfo = {
+    ...(formattedData.city && { city: formattedData.city }),
+    ...(formattedData.country && { country: formattedData.country }),
+    ...(formattedData.region && { region: formattedData.region }),
+  };
+  if (Object.keys(locationInfo).length > 0) {
+    const locationVerification = await validateLocation(locationInfo);
+    if (!locationVerification.isValid) {
+      errors.push('Location info provided is invalid');
+    }
+  }
+
+  // Validate Image
+  const imageFile = formattedData?.memberProfile;
+  if (imageFile && imageFile.name) {
+    if (!['image/jpeg', 'image/png'].includes(imageFile.type)) {
+      errors.push('Please upload image in jpeg or png format');
+    } else if (imageFile.size > 4 * 1024 * 1024) {
+      errors.push('Please upload a file less than 4MB');
+    }
+  }
+
+  return errors;
+};

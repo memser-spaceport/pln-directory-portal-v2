@@ -190,3 +190,28 @@ export const getTechnologyImage = (technology: string) => {
     return "/icons/technology/sourcecred.svg";
   }
 };
+
+export const teamRegisterDefault = {
+  basicInfo: {
+    requestorEmail: '',
+    teamProfile: '',
+    name: '',
+    shortDescription: '',
+    longDescription: '',
+    officeHoures: '',
+  },
+  projectsInfo: {
+    technologies: [],
+    membershipSources: [],
+    industryTags: [],
+    fundingStage: { id: '', name: '' },
+  },
+  socialInfo: {
+    contactMethod: '',
+    website: '',
+    linkedinHandler: '',
+    twitterHandler: '',
+    telegramHandler: '',
+    blog: '',
+  },
+}

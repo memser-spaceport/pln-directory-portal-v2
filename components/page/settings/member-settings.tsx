@@ -257,10 +257,13 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
     const formData = new FormData(formRef.current);
     const formValues = formInputsToMemberObj(Object.fromEntries(formData));
     const apiObjs = apiObjsToMemberObj(initialValues);
+    const imgEle: any = document.getElementById('member-info-basic-image');
     delete formValues.memberProfile;
+    formValues.imageFile = imgEle?.value
+
     const isBothSame = compareObjsIfSame(apiObjs, formValues);
 
-    console.log('form change', isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formValues));
+    console.log('form change', imgEle?.value, isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formValues));
     if (actionRef.current) {
       actionRef.current.style.visibility = isBothSame ? 'hidden' : 'visible';
     }
@@ -293,7 +296,6 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
   }, [initialValues]);
 
   useEffect(() => {
-    console.log(initialValues, 'ini');
     setInitialValues({
       skillsInfo: {
         teamsAndRoles: memberInfo.teamMemberRoles ?? [],
@@ -343,7 +345,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
 
   return (
     <>
-      <form ref={formRef} onSubmit={onFormSubmitted} onReset={onResetForm} onInput={onFormChange} className="ms" noValidate>
+      <form ref={formRef} onSubmit={onFormSubmitted} onReset={onResetForm} onChange={onFormChange} onInput={onFormChange} className="ms" noValidate>
         <div className="ms__tab">
           <div className="ms__tab__desktop">
             <Tabs activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />

@@ -34,10 +34,11 @@ const ProjectFilter = (props: any) => {
 
   //state
   const [searchResult, setSearchResult] = useState<any[]>(props?.initialTeams ?? []);
-  const [searchText, setSearchText] = useState('');
   const selectedTeam = props?.selectedTeam;
+  const [searchText, setSearchText] = useState(selectedTeam?.label);
   const [isTeamActive, setIsTeamActive] = useState(false);
   const debouncedSearchText = useDebounce(searchText, 300);
+
 
   //methods
   useClickedOutside({ callback: () => setIsTeamActive(false), ref: projectPaneRef });

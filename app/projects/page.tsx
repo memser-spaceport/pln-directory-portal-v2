@@ -30,7 +30,7 @@ export default async function Page({ searchParams }: any) {
         </div>
         <div className={styles.project__cn__list}>
           <ProjectlistWrapper searchParams={searchParams} totalProjects={totalProjects} projects={projects} userInfo={userInfo} isLoggedIn={isLoggedIn}/>
-          {totalProjects === 0 && <EmptyResult />}
+          {totalProjects === 0 && <EmptyResult isLoggedIn={isLoggedIn} />}
         </div>
       </div>
     </section>

@@ -21,8 +21,8 @@ const EmptyResult = (props: any) => {
           <span onClick={onClearAllClickHandler} className="data-not-found__content__clear-all">
             clear all the criteria.
           </span>
-          {!isLoggedIn && <span> If you're unable to find your project, please login to add a project.</span>}
-          {isLoggedIn && <span> If you're unable to find your project, <a className="data-not-found__content__addpro" href="/projects/add">click here </a> to add a project.</span>}
+          {!isLoggedIn && <span> If you&apos;re unable to find your project, please login to add a project.</span>}
+          {isLoggedIn && <span> If you&apos;re unable to find your project, <a className="data-not-found__content__addpro" href="/projects/add">click here </a> to add a project.</span>}
         </p>
       </div>
 

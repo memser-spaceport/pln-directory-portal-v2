@@ -47,7 +47,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
   const onProjectLinkTextChange = (index: number, value: string) => {
     setProjectLinks((old: any) => {
-      old[index].text = value;
+      old[index].name = value;
       return [...old];
     });
   };
@@ -144,7 +144,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
           <div className="msf__tr">
             <div className="msf__tr__links">
-              {projectLinks.map((projectLink: any, index: any) => (
+              {projectLinks?.map((projectLink: any, index: any) => (
                 <div key={`teams-role-${index}`} className="msf__tr__links__link">
                   <div className="msf__tr__links__link__header">
                     <div>PROJECT {index + 1}</div>
@@ -161,9 +161,9 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                       <div>Project Link Text</div>
                       <TextField
                         id="register-project-link-text"
-                        value={projectLink.text}
+                        defaultValue={projectLink.name}
                         isMandatory={projectLink?.url ? true : false}
-                        name={`projectLinks${index}-text`}
+                        name={`projectLinks${index}-name`}
                         placeholder="Enter Your Project Link Text"
                         type="text"
                         onChange={(e) => onProjectLinkTextChange(index, e.target.value)}
@@ -173,8 +173,8 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                       <div>Project Link</div>
                       <TextField
                         id="register-project-link-url"
-                        value={projectLink.url}
-                        isMandatory={projectLink?.text ? true : false}
+                        defaultValue={projectLink.url}
+                        isMandatory={projectLink?.name ? true : false}
                         name={`projectLinks${index}-url`}
                         placeholder="Enter your project link url"
                         onChange={(e) => onProjectLinkUrlChange(index, e.target.value)}
@@ -188,7 +188,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                 <div className="msf__tr__add">
                   <div className="msf__tr__add__btn" onClick={onAddProjectLink}>
                     <Image src="/icons/add.svg" width="16" height="16" alt="Add New" />
-                    <div className="msf__tr__add__btn__addText">Add project URL </div> <div className='msf__tr__add__btn__maxText'>(max 3)</div>
+                    <div className="msf__tr__add__btn__addText">Add project URL </div> <div className="msf__tr__add__btn__maxText">(max 3)</div>
                   </div>
                 </div>
               )}
@@ -202,21 +202,15 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
           <div className="projectinfo__form__item__lookingf">
             <CustomToggle defaultChecked={project?.lookingForFunding} name={`lookingForFunding`} id={`project-register-raising-funds`} onChange={() => {}} />
-              <div className='projectinfo__form__item__lookingf__qus'>
-              Are you currently looking to raise funds for your project?
-              </div>
+            <div className="projectinfo__form__item__lookingf__qus">Are you currently looking to raise funds for your project?</div>
 
-              {/* Funding info */}
+            {/* Funding info */}
           </div>
           <p className="functiongInfo">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="fundingInfo__text">
-            Enabling this implies you are raising funds to support your project. You will be approached by investors who are interested in your project
-            </span>
+            <span className="fundingInfo__text">Enabling this implies you are raising funds to support your project. You will be approached by investors who are interested in your project</span>
           </p>
-          <div>
-
-          </div>
+          <div></div>
         </div>
       </div>
       <style jsx>
@@ -344,7 +338,8 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
           }
 
           .projectinfo__form__item__contactEmail {
-          margin-top: 28px;}
+            margin-top: 28px;
+          }
 
           .msf__tr__links__link__cn__linkText {
             display: flex;
@@ -393,35 +388,37 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             cursor: pointer;
           }
 
-         .msf__tr__add__btn__maxText {
-          font-size: 14px;
-          font-weight: 500;
-          line-height: 24px;
-          color: #94A3B8;
+          .msf__tr__add__btn__maxText {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 24px;
+            color: #94a3b8;
           }
 
           .projectinfo__form__item__lookingf {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          margin-top: 28px;}
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-top: 28px;
+          }
 
           .projectinfo__form__item__lookingf__qus {
-          font-size: 14px;
-          font-weight: 600;
-          line-height: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
           }
 
           .functiongInfo {
-          display: flex;
-          gap: 6px;
-          margin-top: 20px;
-          align-items: start;
-          font-size: 13px;
-          line-height: 18px;
-          font-weight: 500;
-          opacity: 0.4;
-          color: #0F172A;}
+            display: flex;
+            gap: 6px;
+            margin-top: 20px;
+            align-items: start;
+            font-size: 13px;
+            line-height: 18px;
+            font-weight: 500;
+            opacity: 0.4;
+            color: #0f172a;
+          }
 
           @media (min-width: 1024px) {
             .projectinfo__form__user {
@@ -457,8 +454,9 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
               margin-top: 20px;
             }
 
-            .  .projectinfo__form__item__contactEmail {
-          margin-top: 20px;} 
+            . .projectinfo__form__item__contactEmail {
+              margin-top: 20px;
+            }
 
             .msf__tr__links__link__cn {
               flex-direction: row;
@@ -473,15 +471,16 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
               width: 50%;
             }
 
-              .projectinfo__form__item__contactEmail {
-              margin-top: 20px;}
+            .projectinfo__form__item__contactEmail {
+              margin-top: 20px;
+            }
 
-
-                  .projectinfo__form__item__lookingf {
-                  dispaly: flex;
-                  gap: 9px;
-                  align-items: center;
-          margin-top: 20px;}
+            .projectinfo__form__item__lookingf {
+              dispaly: flex;
+              gap: 9px;
+              align-items: center;
+              margin-top: 20px;
+            }
           }
         `}
       </style>

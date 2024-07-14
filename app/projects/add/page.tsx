@@ -5,15 +5,19 @@ import Error from '@/components/core/error';
 import { getMembers } from '@/services/members.service';
 import { getAllTeams } from '@/services/teams.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { RedirectType, redirect } from 'next/navigation';
+import { PAGE_ROUTES } from '@/utils/constants';
 
 export default function AddProject(props: any) {
-  const {isError} =  getPageData();
+  const { isError, isLoggedIn } = getPageData();
 
-  
-  if(isError) {
-    <Error/>
+  if(!isLoggedIn) {
+      redirect(`${PAGE_ROUTES.TEAMS}`, RedirectType.replace);
   }
 
+  if (isError) {
+    <Error />;
+  }
 
   return (
     <div className={styles?.addProject}>
@@ -21,27 +25,23 @@ export default function AddProject(props: any) {
         <BreadCrumb backLink="/projects" directoryName="project" pageName="Add Project" />
       </div>
       <div>
-        <AddEditProjectContainer project={null} />
+        <AddEditProjectContainer project={null} type="Add" />
       </div>
     </div>
   );
 }
 
-
 function getPageData() {
   const isError = false;
-  const {isLoggedIn} = getCookiesFromHeaders();
+  const { isLoggedIn } = getCookiesFromHeaders();
   try {
-
-    // const {mebersResponse, teamResponse} = await Promise.all([getMembers({pagination: false, }, "", 0, 0, isLoggedIn), getAllTeams()])
-
     return {
-      isError
-    }
+      isLoggedIn
+    };
   } catch (error) {
     console.error(error);
     return {
-      isError: true
-    }
+      isError: true,
+    };
   }
 }

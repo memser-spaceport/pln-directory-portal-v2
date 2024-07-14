@@ -41,7 +41,10 @@ export const EVENTS = {
   ADD_OR_EDIT_PROJECT_STEP_CHANGE: "add-or-edit-project-step-change",
   OPEN_MAINTAINING_TEAM_POPUP: 'open-maintaining-team-popup',
   OPEN_CONTRIBUTORS_POPUP: 'open-contributors-popup',
-  SHOW_PROJECTS_FILTER: 'show-projects-filter'
+  SHOW_PROJECTS_FILTER: 'show-projects-filter',
+  UPDATE_SELECTED_CONTRIBUTING_TEAM: 'update-selected-contring-team',
+  UPDATE_SELECTED_CONTRIBUTORS: 'update-selected-contributors',
+  PROJECT_ADD_MODAL_CLOSE_EVENT: 'project-add-modal-close-event',
 };
 
 export const HELPER_MENU_OPTIONS = [

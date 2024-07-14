@@ -1,3 +1,4 @@
+'use client'
 import TextField from '@/components/form/text-field';
 
 interface ITeamSocialInfo {

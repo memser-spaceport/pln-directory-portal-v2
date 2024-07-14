@@ -1,15 +1,13 @@
 'use client';
 import Tabs from '@/components/ui/tabs';
-import { useEffect, useRef, useState } from 'react';
-import { getMemberInfoFormValues } from '@/utils/member.utils';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SingleSelect from '@/components/form/single-select';
 import TeamBasicInfo from '../team-form-info/team-basic-info';
 import TeamProjectsInfo from '../team-form-info/team-projects-info';
 import TeamSocialInfo from '../team-form-info/team-social-info';
-import SettingsAction from './actions';
 import { useRouter } from 'next/navigation';
 import { getTeamsFormOptions, saveRegistrationImage } from '@/services/registration.service';
-import { transformRawInputsToFormObj, transformTeamApiToFormObj } from '@/utils/team.utils';
+import { getTeamInitialValue, transformRawInputsToFormObj, transformTeamApiToFormObj } from '@/utils/team.utils';
 import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { updateTeam } from '@/services/teams.service';
@@ -17,7 +15,6 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { projectDetailsSchema, socialSchema, basicInfoSchema } from '@/schema/team-forms';
 import Modal from '@/components/core/modal';
-
 
 function ManageTeamsSettings(props: any) {
   const teams = props.teams ?? [];
@@ -35,39 +32,12 @@ function ManageTeamsSettings(props: any) {
     socail: errors.socialErrors.length > 0,
   };
   const errorDialogRef = useRef<HTMLDialogElement>(null);
-
-  const initialValues = {
-    basicInfo: {
-      requestorEmail: '',
-      imageFile: selectedTeam.imageFile,
-      name: selectedTeam.name,
-      shortDescription: selectedTeam.shortDescription ?? '',
-      longDescription: selectedTeam.longDescription ?? '',
-      officeHours: selectedTeam.officeHours ?? '',
-    },
-    projectsInfo: {
-      technologies: selectedTeam.technologies ?? [],
-      membershipSources: selectedTeam.membershipSources ?? [],
-      industryTags: selectedTeam.industryTags ?? [],
-      fundingStage: {
-        id: selectedTeam.fundingStageUid,
-        name: selectedTeam?.fundingStage?.title,
-      },
-      teamFocusAreas: selectedTeam?.teamFocusAreas ?? [],
-    },
-    socialInfo: {
-      contactMethod: selectedTeam?.contactMethod ?? '',
-      website: selectedTeam?.website ?? '',
-      linkedinHandler: selectedTeam?.linkedinHandler ?? '',
-      twitterHandler: selectedTeam?.twitterHandler ?? '',
-      telegramHandler: selectedTeam?.telegramHandler ?? '',
-      blog: selectedTeam?.blog ?? '',
-    },
-  };
+  const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
 
   const onTeamChanged = (uid: string) => {
     if (formRef.current) {
       formRef.current.reset();
+      onResetForm();
     }
     router.push(`/settings/teams?id=${uid}`, { scroll: false });
   };
@@ -88,6 +58,7 @@ function ManageTeamsSettings(props: any) {
       actionRef.current.style.visibility = 'hidden';
     }
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
+    setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
   };
   const validateForm = (schema: any, data: any) => {
     const validationResponse = schema.safeParse(data);
@@ -99,7 +70,7 @@ function ManageTeamsSettings(props: any) {
   };
   const validateBasicInfo = async (formattedData: any) => {
     const errors = [];
-    formattedData.requestorEmail = 'test@test.com'
+    formattedData.requestorEmail = 'test@test.com';
     const validationResponse = validateForm(basicInfoSchema, formattedData);
     const imageFile = formattedData?.teamProfile;
     if (!validationResponse.success) {
@@ -139,7 +110,7 @@ function ManageTeamsSettings(props: any) {
 
   const onFormSubmitted = async (e: any) => {
     try {
-      console.log('form submmited')
+      console.log('form submmited');
       e.stopPropagation();
       e.preventDefault();
       triggerLoader(true);
@@ -161,10 +132,10 @@ function ManageTeamsSettings(props: any) {
           triggerLoader(false);
           return;
         }
-        setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] })
-        if(formattedInputValues.teamFocusAreas) {
+        setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
+        if (formattedInputValues.teamFocusAreas) {
           formattedInputValues.focusAreas = [...formattedInputValues.teamFocusAreas];
-          delete formattedInputValues.teamFocusAreas
+          delete formattedInputValues.teamFocusAreas;
         }
 
         if (formattedInputValues.teamProfile && formattedInputValues.teamProfile.size > 0) {
@@ -187,7 +158,7 @@ function ManageTeamsSettings(props: any) {
         };
 
         const authToken = Cookies.get('authToken');
-        if(!authToken) {
+        if (!authToken) {
           return;
         }
         const { data, isError } = await updateTeam(payload, JSON.parse(authToken), selectedTeam.uid);
@@ -212,12 +183,14 @@ function ManageTeamsSettings(props: any) {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
-      console.log(formValues)
       const apiObjs = transformTeamApiToFormObj({ ...initialValues });
       const formattedInputValues = transformRawInputsToFormObj(formValues);
       delete formattedInputValues.teamProfile;
-      if(!formattedInputValues.teamFocusAreas) {
+      if (!formattedInputValues.teamFocusAreas) {
         formattedInputValues.teamFocusAreas = [];
+      }
+      if (!formattedInputValues.imageFile) {
+        formattedInputValues.imageFile = '';
       }
       const isBothSame = compareObjsIfSame(apiObjs, formattedInputValues);
 
@@ -232,7 +205,7 @@ function ManageTeamsSettings(props: any) {
     // MutationObserver callback
     const observerCallback = async (mutationsList: any) => {
       for (let mutation of mutationsList) {
-        if (mutation.type === 'childList') {
+        if (mutation.type === 'childList' || mutation.type === 'attributes') {
           await onFormChange();
         }
       }
@@ -255,6 +228,9 @@ function ManageTeamsSettings(props: any) {
   }, [initialValues]);
 
   useEffect(() => {
+    onFormChange()
+      .then(() => {})
+      .catch(() => {});
     getTeamsFormOptions()
       .then((data) => {
         if (!data.isError) {
@@ -265,7 +241,7 @@ function ManageTeamsSettings(props: any) {
   }, []);
   return (
     <>
-      <form noValidate onSubmit={onFormSubmitted} onInput={onFormChange} onReset={onResetForm} ref={formRef} className="ms">
+      <form noValidate onSubmit={onFormSubmitted} onChange={onFormChange} onReset={onResetForm} ref={formRef} className="ms">
         <div className="ms__member-selection">
           <div className="ms__member-selection__dp">
             <SearchableSingleSelect
@@ -335,7 +311,7 @@ function ManageTeamsSettings(props: any) {
           </div>
         </div>
       </form>
-     
+
       <Modal modalRef={errorDialogRef} onClose={() => onModalClose()}>
         <div className="error">
           <h2 className="error__title">Validation Errors</h2>

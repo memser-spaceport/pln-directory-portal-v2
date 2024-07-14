@@ -23,14 +23,10 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '')
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
-  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if(imageInputRef.current) {
-        imageInputRef.current.value = ''
-      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
@@ -47,15 +43,9 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
     if (uploadImageRef.current) {
       uploadImageRef.current.value = '';
     }
-    if (imageInputRef.current) {
-      imageInputRef.current.value = '';
-    }
   };
 
   useEffect(() => {
-    if(imageInputRef.current) {
-      imageInputRef.current.value = initialValues?.imageFile
-    }
     setSavedImage(initialValues?.imageFile ?? '')
     setProfileImage('');
     function resetHandler() {
@@ -64,9 +54,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
         setSavedImage(initialValues?.imageFile ?? '')
         setProfileImage('');
       }
-      if(imageInputRef.current) {
-        imageInputRef.current.value = initialValues?.imageFile
-      }
+     
     }
     document.addEventListener('reset-member-register-form', resetHandler);
     return function () {
@@ -74,9 +62,6 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
     };
   }, [initialValues]);
 
-  useEffect(() => {
-    console.log('basic loaded')
-  }, [])
 
   return (
     <>

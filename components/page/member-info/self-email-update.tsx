@@ -94,7 +94,7 @@ function SelfEmailUpdate(props: any) {
           </button>
         </div>
         <p className="eu__input">{email}</p>
-        <input name="email" type="email" hidden value={currentEmail} />
+        <input name="email" type="email" hidden value={currentEmail} readOnly/>
       </div>
       <style jsx>
         {`

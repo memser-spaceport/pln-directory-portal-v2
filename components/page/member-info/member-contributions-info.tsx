@@ -8,6 +8,8 @@ import MonthYearField from '@/components/form/month-year-field';
 import TextArea from '@/components/form/text-area';
 import HiddenField from '@/components/form/hidden-field';
 import TextAreaEditor from '@/components/form/text-area-editor';
+import MonthYearPicker from '@/components/form/month-year-picker';
+import { getUniqueId } from '@/utils/common.utils';
 
 interface MemberContributionInfoProps {
   initialValues: any;
@@ -19,31 +21,16 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   const [contributionInfos, setContributionInfos] = useState(initialValues ?? []);
   const currentProjectsCount = contributionInfos?.filter((v: any) => v.currentProject === true).length;
   const [expandedId, setExpandedId] = useState(-1);
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth();
-  const endDate = new Date();
-  const formatDate = (year: number, month: number, dateBoundary: string): string => {
-    const date = dateBoundary === 'start' ? new Date(Date.UTC(year, month, 1)) : new Date(Date.UTC(year, month + 1, 0));
-    return date.toISOString().slice(0, 10); // ISO date string format (YYYY-MM-DD)
-  };
+ 
   const defaultValues = {
-    projectUid: '',
+    projectUid: getUniqueId(),
     projectName: '',
     projectLogo: '',
     currentProject: false,
     description: '',
     role: '',
-    startDate: new Date('1990-01-02').toISOString().slice(0, 10),
-    endDate: formatDate(currentYear, currentMonth, 'end'),
-  };
-
-  const getDefaultValueByKey = (teamUid: string, key: string) => {
-    const teamIndex = initialValues.teamsAndRoles.findIndex((v:any) => v.teamUid === teamUid);
-    if (teamIndex < 0) {
-      return '';
-    }
-
-    return initialValues.teamsAndRoles[teamIndex][key];
+    startDate: new Date('1990-01-01').toISOString(),
+    endDate: new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth() + 1, 0)).toISOString(),
   };
 
   const onToggleExpansion = (index: number) => {
@@ -59,6 +46,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   const onAddContribution = () => {
     const newExp = [...contributionInfos];
     newExp.push(defaultValues);
+    console.log(newExp, 'new contri')
     setExpandedId(newExp.length - 1);
     setContributionInfos([...newExp]);
   };
@@ -99,19 +87,26 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   };
 
   const onProjectDetailsChanged = (index: number, value: string | boolean, key: string) => {
-   if(contributionInfos[index]) {
-    setContributionInfos((old: any) => {
-      const newV = structuredClone(old);
-      console.log(old, newV);
-      newV[index][key] = value;
-      return [...newV];
-    });
-   }
+    if (contributionInfos[index]) {
+      setContributionInfos((old: any) => {
+        const newV = structuredClone(old);
+        console.log(old, newV);
+        newV[index][key] = value;
+        if(key === 'currentProject' && value === false) {
+          newV[index]['endDate'] =  new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth() + 1, 0)).toISOString();
+        } else if (key === 'currentProject' && value === true) {
+          newV[index]['endDate'] = null;
+        }
+        console.log('changed info', newV)
+        return [...newV];
+      });
+    }
   };
 
   useEffect(() => {
-    setContributionInfos(structuredClone(initialValues) ?? [])
+    setContributionInfos(structuredClone(initialValues) ?? []);
     function resetHandler() {
+      console.log('changedinfo', structuredClone(initialValues))
       setContributionInfos(structuredClone(initialValues) ?? []);
     }
     document.addEventListener('reset-member-register-form', resetHandler);
@@ -140,7 +135,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
             {Object.keys(errors).length > 0 && <p className="error">There are fields that require your attention. Please review the fields below.</p>}
             <AddContribution disableAdd={contributionInfos.length >= 20} onAddContribution={onAddContribution} />
             {contributionInfos.map((contributionInfo: any, index: number) => (
-              <div className="pc__list__item" key={`member-skills-team-info-${index}`}>
+              <div className="pc__list__item" key={`member-skills-team-info-${contributionInfo.projectUid}-${index}`}>
                 <ContributionHead
                   expandedId={expandedId}
                   contribution={contributionInfo}
@@ -188,32 +183,15 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
                       label="Role*"
                       id={`member-contribution-role-${index}`}
                       name={`contributionInfo${index}-role`}
-                    />
+                    /> 
                   </div>
                   <div className="pc__list__item__form__item">
-                    <MonthYearField
-                      id={`member-contribution-startDate-${index}`}
-                      onChange={(e) => onProjectDetailsChanged(index, e, 'startDate')}
-                      name={`contributionInfo${index}-startDate`}
-                      defaultValue={Date.UTC(1990, 1, 1).toString()}
-                      dateBoundary="start"
-                      value={contributionInfo.startDate}
-                      label="From*"
-                    />
-                    <MonthYearField
-                      disabled={contributionInfo.currentProject}
-                      id={`member-contribution-endDate-${index}`}
-                      onChange={(e) => onProjectDetailsChanged(index, e, 'endDate')}
-                      name={`contributionInfo${index}-endDate`}
-                      defaultValue={endDate.toISOString()}
-                      value={contributionInfo.endDate}
-                      dateBoundary="end"
-                      label="To*"
-                    />
+                    <MonthYearPicker onDateChange={(value: string) => onProjectDetailsChanged(index, value, 'startDate')} id={`member-contribution-startDate-${contributionInfo.projectUid}-${index}`} dayValue='start' name={`contributionInfo${index}-startDate`} label="start" minYear={1970} maxYear={new Date().getFullYear()}  initialDate={contributionInfo.startDate} />
+                    <MonthYearPicker onDateChange={(value: string) => onProjectDetailsChanged(index, value, 'endDate')}  id={`member-contribution-endDate-${contributionInfo.projectUid}-${index}`} dayValue='end'  name={`contributionInfo${index}-endDate`} label="end" minYear={1970} maxYear={new Date().getFullYear()} initialDate={contributionInfo.endDate}   />
                   </div>
                   <div className="pc__list__item__form__item">
                     <div className="editor">
-                      <TextAreaEditor defaultValue={contributionInfo.description} name={`contributionInfo${index}-description`} label="Description" placeholder="Enter project contribution.." />
+                      <TextAreaEditor value={contributionInfo.description} name={`contributionInfo${index}-description`} label="Description" placeholder="Enter project contribution.." />
                     </div>
                   </div>
                 </div>

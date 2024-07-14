@@ -1,5 +1,6 @@
 .ps {
     position: relative;
+    background: white;
   }
   .ps__breadcrumbs {
     display: flex;

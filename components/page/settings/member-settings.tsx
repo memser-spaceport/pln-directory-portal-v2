@@ -1,11 +1,11 @@
 'use client';
 import Tabs from '@/components/ui/tabs';
 import MemberBasicInfo from '../member-info/member-basic-info';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import MemberSkillsInfo from '../member-info/member-skills-info';
 import MemberContributionInfo from '../member-info/member-contributions-info';
 import MemberSocialInfo from '../member-info/member-social-info';
-import { compareObjects, getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString } from '@/utils/member.utils';
+import { compareObjects, getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString, getInitialMemberFormValues } from '@/utils/member.utils';
 import SettingsAction from './actions';
 import SingleSelect from '@/components/form/single-select';
 import Cookies from 'js-cookie';
@@ -27,7 +27,6 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
   const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
-  const [isActionActive, setActionState] = useState(false);
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const actionRef = useRef<HTMLDivElement | null>(null);
@@ -35,31 +34,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const [allErrors, setAllErrors] = useState<any[]>([]);
 
-  const [initialValues, setInitialValues] = useState({
-    skillsInfo: {
-      teamsAndRoles: memberInfo.teamMemberRoles ?? [],
-      skills: memberInfo.skills ?? [],
-    },
-    contributionInfo: memberInfo?.projectContributions ?? [],
-    basicInfo: {
-      name: memberInfo?.name ?? '',
-      email: memberInfo?.email ?? '',
-      imageFile: memberInfo?.image?.url,
-      plnStartDate: memberInfo?.plnStartDate ? utcDateToDateFieldString(memberInfo?.plnStartDate) : '',
-      city: memberInfo?.location?.city ?? '',
-      region: memberInfo?.location?.region ?? '',
-      country: memberInfo?.location?.country ?? '',
-    },
-    socialInfo: {
-      linkedinHandler: memberInfo?.linkedinHandler ?? '',
-      discordHandler: memberInfo?.discordHandler,
-      twitterHandler: memberInfo?.twitterHandler,
-      githubHandler: memberInfo?.githubHandler,
-      telegramHandler: memberInfo?.telegramHandler,
-      officeHours: memberInfo?.officeHours,
-      moreDetails: memberInfo?.moreDetails ?? '',
-    },
-  });
+  const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo])
 
   const onModalClose = () => {
     if (errorDialogRef.current) {
@@ -82,7 +57,6 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
 
   const checkContributionInfoForm = async (formattedData: any) => {
     const allErrorObj: any = {};
-    let errors = [];
     const contributions = formattedData.projectContributions;
     contributions.forEach((contribution: any, index: number) => {
       if (contribution.endDate && new Date(contribution.startDate) >= new Date(contribution.endDate)) {
@@ -98,9 +72,10 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         allErrorObj[index].push('Your contribution start date cannot be greater than current date');
       }
     });
+    console.log(allErrorObj)
     const result = projectContributionSchema.safeParse(formattedData);
     if (!result.success) {
-      errors = result.error.errors.reduce((acc: any, error) => {
+      result.error.errors.reduce((acc: any, error) => {
         const [name, index, key] = error.path;
         if (!acc[index]) {
           acc[index] = [];
@@ -110,7 +85,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         return acc;
       }, allErrorObj);
     }
-    return errors;
+    return allErrorObj;
   };
 
   const checkSkillInfoForm = async (formattedData: any) => {
@@ -178,9 +153,10 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       const basicErrors: any[] = await checkBasicInfoForm({ ...formattedForms });
       const skillsErrors: any[] = await checkSkillInfoForm({ ...formattedForms });
       const contributionErrors: any = await checkContributionInfoForm({ ...formattedForms });
-      console.log(contributionErrors);
+      console.log(contributionErrors, 'contribution errors', formattedForms);
 
       const allFormErrors = [...basicErrors, ...skillsErrors, ...Object.keys(contributionErrors)];
+      console.log(allFormErrors)
       setAllErrors([...allErrors]);
       setErrors((v: any) => {
         return {
@@ -228,14 +204,16 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       const authToken = JSON.parse(rawAuthToken);
 
       const formResult = await updateMember(memberInfo?.uid, bodyData, authToken);
-      triggerLoader(false);
+     
       if (!formResult.isError) {
         if (actionRef.current) {
           actionRef.current.style.visibility = 'hidden';
         }
+        triggerLoader(false);
         toast.success('Profile has been updated successfully');
         router.refresh();
       } else {
+        triggerLoader(false);
         toast.error('Profile updated failed. Please try again later.');
       }
     } catch (e) {
@@ -263,7 +241,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
 
     const isBothSame = compareObjsIfSame(apiObjs, formValues);
 
-    console.log('form change', imgEle?.value, isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formValues));
+    console.log('form change', isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formValues));
     if (actionRef.current) {
       actionRef.current.style.visibility = isBothSame ? 'hidden' : 'visible';
     }
@@ -273,7 +251,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
     // MutationObserver callback
     const observerCallback = async (mutationsList: any) => {
       for (let mutation of mutationsList) {
-        if (mutation.type === 'childList') {
+        if (mutation.type === 'childList' || mutation.type === 'attributes' || mutation.type === 'subtree') {
           await onFormChange();
         }
       }
@@ -294,34 +272,6 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       }
     };
   }, [initialValues]);
-
-  useEffect(() => {
-    setInitialValues({
-      skillsInfo: {
-        teamsAndRoles: memberInfo.teamMemberRoles ?? [],
-        skills: memberInfo.skills ?? [],
-      },
-      contributionInfo: memberInfo?.projectContributions ?? [],
-      basicInfo: {
-        name: memberInfo?.name ?? '',
-        email: memberInfo?.email ?? '',
-        imageFile: memberInfo?.image?.url ?? '',
-        plnStartDate: memberInfo?.plnStartDate ? utcDateToDateFieldString(memberInfo?.plnStartDate) : '',
-        city: memberInfo?.location?.city ?? '',
-        region: memberInfo?.location?.region ?? '',
-        country: memberInfo?.location?.country ?? '',
-      },
-      socialInfo: {
-        linkedinHandler: memberInfo?.linkedinHandler ?? '',
-        discordHandler: memberInfo?.discordHandler,
-        twitterHandler: memberInfo?.twitterHandler,
-        githubHandler: memberInfo?.githubHandler,
-        telegramHandler: memberInfo?.telegramHandler,
-        officeHours: memberInfo?.officeHours,
-        moreDetails: memberInfo?.moreDetails ?? '',
-      },
-    });
-  }, [memberInfo]);
 
   useEffect(() => {
     function resetHandler() {

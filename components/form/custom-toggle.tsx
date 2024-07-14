@@ -1,19 +1,28 @@
 'use client';
-import React, { FC, ChangeEvent } from 'react';
+import React, { FC, ChangeEvent, useRef, useEffect } from 'react';
 
 interface CustomToggleProps {
   id: string;
   name: string;
   defaultChecked?: boolean;
   disabled?: boolean;
+  checked?: boolean;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-const CustomToggle: FC<CustomToggleProps> = ({ id, name, disabled = false, defaultChecked = false, onChange }) => {
+const CustomToggle: FC<CustomToggleProps> = ({ id, name, checked, disabled = false, defaultChecked = false, onChange }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  
+  useEffect(() => {
+    if((checked === true || checked === false) && inputRef.current ) {
+      inputRef.current.checked = checked;
+    }
+  }, [checked])
+
   return (
     <>
       <label className="custom-toggle" htmlFor={id}>
-        <input type="checkbox" id={id} name={name} disabled={disabled} defaultChecked={defaultChecked} onChange={onChange} />
+        <input ref={inputRef} type="checkbox" id={id} name={name} disabled={disabled} {...((defaultChecked === true || defaultChecked === false)) && {defaultChecked: defaultChecked}} onChange={onChange} />
         <span className="slider" />
       </label>
       <style jsx>

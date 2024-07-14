@@ -1,3 +1,4 @@
+'use client';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
 import { useEffect, useRef, useState } from 'react';
@@ -12,17 +13,14 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const errors = props?.errors;
   const initialValues = props?.initialValues;
   const isEdit = props.isEdit ?? false;
-  const [profileImage, setProfileImage] = useState<string>(initialValues?.imageFile ?? '');
+  const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '')
+  const [profileImage, setProfileImage] = useState<string>('');
+  const formImage = profileImage ? profileImage : savedImage ? savedImage : ''
   const uploadImageRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
+  
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if(imageInputRef.current) {
-        imageInputRef.current.value = ''
-        console.log('setting reset, ', imageInputRef.current.value)
-      }
-     
       const reader = new FileReader();
       reader.onload = () => {
         setProfileImage(reader.result as string);
@@ -35,25 +33,22 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
     e.stopPropagation();
     e.preventDefault();
     setProfileImage('');
+    setSavedImage('')
     if (uploadImageRef.current) {
       uploadImageRef.current.value = '';
-    }
-    if (imageInputRef.current) {
-      imageInputRef.current.value = '';
     }
   };
 
   useEffect(() => {
-    if(imageInputRef.current) {
-      imageInputRef.current.value = initialValues?.imageFile
-    }
+    setSavedImage(initialValues?.imageFile)
+    setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
-        setProfileImage(initialValues?.imageFile);
-      }
-      if(imageInputRef.current) {
-        imageInputRef.current.value = initialValues?.imageFile
+        setTimeout(() => {
+          setSavedImage(initialValues?.imageFile)
+        }, 500)
+        setProfileImage('');
       }
     }
     document.addEventListener('reset-team-register-form', resetHandler);
@@ -91,10 +86,10 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           <div className="teaminfo__form__team">
             <div>
               <label htmlFor="team-image-upload" className="teaminfo__form__team__profile">
-                {!profileImage && <img width="32" height="32" alt="upload team image" src="/icons/camera.svg" />}
-                {!profileImage && <span className="teaminfo__form__team__profile__text">Add Image</span>}
-                {profileImage && <img className="teaminfo__form__team__profile__preview" src={profileImage} alt="team profile" width="95" height="95" />}
-                {profileImage && (
+                {(!profileImage && !savedImage) && <img width="32" height="32" alt="upload team image" src="/icons/camera.svg" />}
+                {(!profileImage && !savedImage) && <span className="teaminfo__form__team__profile__text">Add Image</span>}
+                {(profileImage || savedImage) && <img className="teaminfo__form__team__profile__preview" src={formImage} alt="team profile" width="95" height="95" />}
+                {(profileImage || savedImage) && (
                   <span className="teaminfo__form__team__profile__actions">
                     <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
                     <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
@@ -102,12 +97,12 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                 )}
               </label>
               
-              <input ref={imageInputRef} id="team-info-basic-image" hidden name="imageFile"  />
+              <input id="team-info-basic-image" value={formImage} hidden name="imageFile"  />
               <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" /> 
             </div>
             <div className="teaminfo__form__item">
               <TextField
-                defaultValue={initialValues.name}
+                defaultValue={initialValues?.name}
                 maxLength={150}
                 isMandatory
                 id="register-team-name"
@@ -125,7 +120,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
 
         <div className="teaminfo__form__item">
           <TextArea
-            defaultValue={initialValues.shortDescription}
+            defaultValue={initialValues?.shortDescription}
             maxLength={1000}
             isMandatory
             id="register-team-shortDescription"
@@ -139,7 +134,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         </div>
         <div className="teaminfo__form__item">
           <TextArea
-            defaultValue={initialValues.longDescription}
+            defaultValue={initialValues?.longDescription}
             maxLength={2000}
             isMandatory
             id="register-team-longDescription"
@@ -154,7 +149,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         </div>
         <div className="teaminfo__form__item">
           <TextField
-            defaultValue={initialValues.officeHours}
+            defaultValue={initialValues?.officeHours}
             isMandatory={false}
             id="register-team-officeHours"
             label="Team office hours"

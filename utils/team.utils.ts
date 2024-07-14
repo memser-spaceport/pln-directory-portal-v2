@@ -191,6 +191,37 @@ export const getTechnologyImage = (technology: string) => {
   }
 };
 
+export const getTeamInitialValue = (selectedTeam: any) => {
+  return {
+    basicInfo: {
+      requestorEmail: '',
+      imageFile: selectedTeam.imageFile ?? '',
+      name: selectedTeam.name ?? '',
+      shortDescription: selectedTeam.shortDescription ?? '',
+      longDescription: selectedTeam.longDescription ?? '',
+      officeHours: selectedTeam.officeHours ?? '',
+    },
+    projectsInfo: {
+      technologies: selectedTeam.technologies ?? [],
+      membershipSources: selectedTeam.membershipSources ?? [],
+      industryTags: selectedTeam.industryTags ?? [],
+      fundingStage: {
+        id: selectedTeam.fundingStageUid,
+        name: selectedTeam?.fundingStage?.title,
+      },
+      teamFocusAreas: selectedTeam?.teamFocusAreas ?? [],
+    },
+    socialInfo: {
+      contactMethod: selectedTeam?.contactMethod ?? '',
+      website: selectedTeam?.website ?? '',
+      linkedinHandler: selectedTeam?.linkedinHandler ?? '',
+      twitterHandler: selectedTeam?.twitterHandler ?? '',
+      telegramHandler: selectedTeam?.telegramHandler ?? '',
+      blog: selectedTeam?.blog ?? '',
+    },
+  }
+}
+
 export const teamRegisterDefault = {
   basicInfo: {
     requestorEmail: '',

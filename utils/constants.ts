@@ -33,12 +33,12 @@ export const EVENTS = {
   OPEN_MEMBER_REGISTER_DIALOG: 'open-member-register-dialog',
   SHOW_FILTER: 'SHOW_FILTER',
   SHOW_MEMBERS_FILTER: 'show-members-filter',
-  TEAM_DETAIL_ALL_PROJECTS_CLOSE: "team-detail-all-projects-close",
-  TEAM_DETAIL_ALL_MEMBERS_CLOSE: "team-detail-all-members-close",
-  PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE: "project-detail-all-members-open-and-close",
-  PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE: "project-detail-all-teams-open-and-close",
-  PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: "project-detail-delete-modal-open-and-close",
-  ADD_OR_EDIT_PROJECT_STEP_CHANGE: "add-or-edit-project-step-change",
+  TEAM_DETAIL_ALL_PROJECTS_CLOSE: 'team-detail-all-projects-close',
+  TEAM_DETAIL_ALL_MEMBERS_CLOSE: 'team-detail-all-members-close',
+  PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE: 'project-detail-all-members-open-and-close',
+  PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE: 'project-detail-all-teams-open-and-close',
+  PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: 'project-detail-delete-modal-open-and-close',
+  ADD_OR_EDIT_PROJECT_STEP_CHANGE: 'add-or-edit-project-step-change',
   OPEN_MAINTAINING_TEAM_POPUP: 'open-maintaining-team-popup',
   OPEN_CONTRIBUTORS_POPUP: 'open-contributors-popup',
   SHOW_PROJECTS_FILTER: 'show-projects-filter',
@@ -107,11 +107,11 @@ export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_LIST_FILTERS_CLEARED: 'projects-filters-cleared',
   PROJECT_LIST_PROJECT_CLICKED: 'project-clicked',
   PROJECT_ADD_CLICKED: 'project-add-click',
-  PROJECT_LIST_SEARCH_APPLIED:'projects-search',
-  PROJECT_LIST_VIEW_TYPE_CLCIKED: "project-list-view-type_clciked",
-  PROJECT_LIST_SORT_CLICKED: "project-list-sort-clicked",
-  PROJECT_FILTER_PANEL_CLOSE_CLICKED:"project-filter-panel-close-clicked",
-  PROJECT_VIEW_FILTER_RESULT_CLICKED:'project-view-filter-result-clicked'
+  PROJECT_LIST_SEARCH_APPLIED: 'projects-search',
+  PROJECT_LIST_VIEW_TYPE_CLCIKED: 'project-list-view-type_clciked',
+  PROJECT_LIST_SORT_CLICKED: 'project-list-sort-clicked',
+  PROJECT_FILTER_PANEL_CLOSE_CLICKED: 'project-filter-panel-close-clicked',
+  PROJECT_VIEW_FILTER_RESULT_CLICKED: 'project-view-filter-result-clicked',
 };
 
 export const TOAST_MESSAGES = {
@@ -234,7 +234,7 @@ export const SORT_ICONS = [
     label: 'Descending',
     selectedIcon: '/icons/descending-selected.svg',
     deselectIcon: '/icons/descending-black.svg',
-  }
+  },
 ];
 
 export const FOCUS_AREAS_FILTER_KEYS = {
@@ -296,3 +296,12 @@ export const ROLE_FILTER_QUERY_NAME = 'memberRoles';
 export const OFFICE_HOURS_MSG = 'Schedule a one on one office hours discussion with';
 
 export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Details'];
+
+export const INVITE_ONLY_RESTRICTION_ERRORS = {
+  NOT_LOGGED_IN: 'not_logged_in',
+  UNAUTHORIZED: 'unauthorized',
+};
+
+export const EVENT_TYPE = {
+  INVITE_ONLY:"INVITE_ONLY"
+}

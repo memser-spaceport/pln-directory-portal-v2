@@ -24,6 +24,21 @@
   background-color: #fff;
 }
 
+.irlDetails__resources {
+  margin-top: 8px;
+  width: 100%;
+  border-radius: 8px;
+  background: #fff;
+  padding: 20px;
+}
+
+.irlDetails__loginStrip {
+  position: sticky;
+  top: 40px;
+  margin-top: 0;
+  width: 100%;
+}
+
 @media (min-width: 1024px) {
   .irlDetails {
     padding-top: 40px;
@@ -40,5 +55,10 @@
 
   .irlDetails__banner {
     border-radius: 8px;
+  }
+
+  .irlDetails__loginStrip {
+    top: 83px;
+    margin-top: 16px;
   }
 }

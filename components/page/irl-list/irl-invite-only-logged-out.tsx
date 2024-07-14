@@ -1,3 +1,4 @@
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useRouter } from 'next/navigation';
 
 interface IIrlInviteOnlyLoggedOut {
@@ -9,7 +10,7 @@ export function IrlInviteOnlyLoggedOut(props: IIrlInviteOnlyLoggedOut) {
   const onClose = props.onClose;
 
   //variables
-  // const analytics = useAppAnalytics();
+  const analytics = useIrlAnalytics();
   const router = useRouter();
 
   //methods
@@ -20,7 +21,7 @@ export function IrlInviteOnlyLoggedOut(props: IIrlInviteOnlyLoggedOut) {
   const handleLoginClick = () => {
     onClose();
     router.push(`${window.location.pathname}${window.location.search}#login`);
-    // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_INVITE_ONLY_RESTRICTION_POPUP_LOGIN_CLICKED);
+    analytics.irlRestrictionPopupLoginBtnClicked();
   };
 
   return (

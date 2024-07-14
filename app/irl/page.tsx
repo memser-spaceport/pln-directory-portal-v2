@@ -4,9 +4,10 @@ import IrlList from '@/components/page/irl-list/irl-list';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getAllEvents, getUserEvents } from '@/services/irl.service';
 import Error from '@/components/core/error';
+import { Metadata } from 'next';
 
 export default async function Page() {
-  const { error, conference, userEvents, userInfo, isLoggedIn } = await getPageData();
+  const { error, conference, userEvents, userInfo } = await getPageData();
 
   if (error) {
     return <Error />;
@@ -49,4 +50,27 @@ const getPageData = async () => {
   }
 
   return { conference, userEvents, isLoggedIn, userInfo, error };
+};
+
+export const metadata: Metadata = {
+  title: 'IRL Gatherings | Protocol Labs Directory',
+  description:
+    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  openGraph: {
+    type: 'website',
+    url: process.env.APPLICATION_BASE_URL,
+    images: [
+      {
+        url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+        width: 1280,
+        height: 640,
+        alt: 'Protocol Labs Directory',
+        type: 'image/jpeg',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+  },
 };

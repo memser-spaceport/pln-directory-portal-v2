@@ -427,17 +427,19 @@ export function formInputsToMemberObj(obj: any) {
     if (!v.currentProject) {
       v['currentProject'] = false;
     }
-    v['startDate'] = v.startDate === '' ? null : new Date(v.startDate).toISOString();
-    if (v['endDate'] === '') {
+    v['startDate'] = v.startDate === '' ? null : v.startDate;
+    if (v['endDate'] === '' || v['endDate'] === null || !v['endDate']) {
       delete v['endDate'];
     } else {
-      v['endDate'] = new Date(v.endDate).toISOString();
+      v['endDate'] = v.endDate
     }
 
     return v;
   });
   if (result['plnStartDate']) {
     result['plnStartDate'] = new Date(result['plnStartDate']).toISOString();
+  } else {
+    result['plnStartDate'] = null;
   }
   return result;
 }
@@ -467,6 +469,34 @@ export const memberRegistrationDefaults = {
     comments: '',
   },
 };
+
+export const getInitialMemberFormValues = (selectedMember: any) => {
+  return{
+    skillsInfo: {
+      teamsAndRoles: selectedMember.teamMemberRoles ?? [],
+      skills: selectedMember.skills ?? [],
+    },
+    contributionInfo: selectedMember?.projectContributions ?? [],
+    basicInfo: {
+      name: selectedMember?.name ?? '',
+      email: selectedMember.email ?? '',
+      imageFile: selectedMember?.image?.url ?? '',
+      plnStartDate: selectedMember?.plnStartDate ? utcDateToDateFieldString(selectedMember?.plnStartDate) : null,
+      city: selectedMember?.location?.city ?? '',
+      region: selectedMember?.location?.region ?? '',
+      country: selectedMember?.location?.country ?? '',
+    },
+    socialInfo: {
+      linkedinHandler: selectedMember?.linkedinHandler ?? '',
+      discordHandler: selectedMember?.discordHandler ?? '',
+      twitterHandler: selectedMember?.twitterHandler ?? '',
+      githubHandler: selectedMember?.githubHandler ?? '',
+      telegramHandler: selectedMember?.telegramHandler ?? '',
+      officeHours: selectedMember?.officeHours ?? '',
+      moreDetails: selectedMember?.moreDetails ?? '',
+    },
+  }
+}
 
 export const validateTeamsAndSkills = async (formattedData: any) => {
   const errors: string[] = [];

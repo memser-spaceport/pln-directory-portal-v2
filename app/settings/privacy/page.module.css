@@ -1,5 +1,6 @@
 .privacy {
   position: relative;
+  background: white;
 }
 .privacy__breadcrumbs {
   display: flex;

@@ -192,7 +192,7 @@ export const getMemberInfo = async (memberUid: string) => {
     headers: getHeader(''),
   });
   if (!response?.ok) {
-    return { isError: true };
+    return { isError: true, status: response.status, message: response.statusText };
   }
 
   const result = await response?.json();

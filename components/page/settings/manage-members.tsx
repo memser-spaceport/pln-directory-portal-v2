@@ -1,11 +1,11 @@
 'use client';
 import Tabs from '@/components/ui/tabs';
 import MemberBasicInfo from '../member-info/member-basic-info';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import MemberSkillsInfo from '../member-info/member-skills-info';
 import MemberContributionInfo from '../member-info/member-contributions-info';
 import MemberSocialInfo from '../member-info/member-social-info';
-import { getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString } from '@/utils/member.utils';
+import { getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString, getInitialMemberFormValues } from '@/utils/member.utils';
 import SingleSelect from '@/components/form/single-select';
 import { useRouter } from 'next/navigation';
 import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
@@ -15,6 +15,7 @@ import Cookies from 'js-cookie';
 import { validateLocation } from '@/services/location.service';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import Modal from '@/components/core/modal';
+import { saveRegistrationImage } from '@/services/registration.service';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
@@ -29,36 +30,12 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const router = useRouter();
-  const initialValues = {
-    skillsInfo: {
-      teamsAndRoles: selectedMember.teamMemberRoles ?? [],
-      skills: selectedMember.skills ?? [],
-    },
-    contributionInfo: selectedMember?.projectContributions ?? [],
-    basicInfo: {
-      name: selectedMember?.name ?? '',
-      email: selectedMember.email ?? '',
-      imageFile: selectedMember?.image?.url ?? '',
-      plnStartDate: selectedMember?.plnStartDate ? utcDateToDateFieldString(selectedMember?.plnStartDate) : '',
-      city: selectedMember?.location?.city ?? '',
-      region: selectedMember?.location?.region ?? '',
-      country: selectedMember?.location?.country ?? '',
-    },
-    socialInfo: {
-      linkedinHandler: selectedMember?.linkedinHandler ?? '',
-      discordHandler: selectedMember?.discordHandler ?? '',
-      twitterHandler: selectedMember?.twitterHandler ?? '',
-      githubHandler: selectedMember?.githubHandler ?? '',
-      telegramHandler: selectedMember?.telegramHandler ?? '',
-      officeHours: selectedMember?.officeHours ?? '',
-      moreDetails: selectedMember?.moreDetails ?? '',
-    },
-  };
+  const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
 
   const onMemberChanged = (uid: string) => {
     if (formRef.current) {
       formRef.current.reset();
-      onResetForm()
+      onResetForm();
     }
     router.push(`/settings/members?id=${uid}`, { scroll: false });
   };
@@ -67,7 +44,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
     if (actionRef.current) {
       actionRef.current.style.visibility = 'hidden';
     }
-    setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] })
+    setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
     document.dispatchEvent(new CustomEvent('reset-member-register-form'));
   };
 
@@ -100,6 +77,20 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           return;
         }
 
+        if (formattedInputValues.memberProfile && formattedInputValues.memberProfile.size > 0) {
+          const imgResponse = await saveRegistrationImage(formattedInputValues.memberProfile);
+          const image = imgResponse?.image;
+          formattedInputValues.imageUid = image.uid;
+          formattedInputValues.image = image.url;
+          delete formattedInputValues.memberProfile;
+          delete formattedInputValues.imageFile;
+          const imgEle: any = document.getElementById('member-info-basic-image');
+          if (imgEle) {
+            imgEle.value = image.url;
+          }
+        }
+
+
         const payload = {
           participantType: 'MEMBER',
           referenceUid: selectedMember.uid,
@@ -108,7 +99,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
         };
 
         const rawToken = Cookies.get('authToken');
-        if(!rawToken) {
+        if (!rawToken) {
           return;
         }
         const authToken = JSON.parse(rawToken);
@@ -226,11 +217,15 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   };
   const onFormChange = async () => {
     if (formRef.current) {
+      console.log('forms checking')
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const apiObjs = apiObjsToMemberObj({ ...initialValues });
       const formattedInputValues = formInputsToMemberObj(formValues);
       delete formattedInputValues.memberProfile;
+      if(!formattedInputValues.imageFile) {
+        formattedInputValues.imageFile = ''
+      }
       const isBothSame = compareObjsIfSame(apiObjs, formattedInputValues);
 
       console.log('form change', isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formattedInputValues));
@@ -244,7 +239,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
     // MutationObserver callback
     const observerCallback = async (mutationsList: any) => {
       for (let mutation of mutationsList) {
-        if (mutation.type === 'childList') {
+        if (mutation.type === 'childList' || mutation.type === 'attributes') {
           await onFormChange();
         }
       }
@@ -267,6 +262,9 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   }, [initialValues]);
 
   useEffect(() => {
+    onFormChange()
+    .then(() => {})
+    .catch(() => {})
     getMemberInfoFormValues()
       .then((d) => {
         if (!d.isError) {
@@ -355,7 +353,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             <div className="error__item">
               <h3 className="error__item__title">Skills Info</h3>
               <ul className="error__item__list">
-                {errors.skillsErrors.map((v: any, i:any) => (
+                {errors.skillsErrors.map((v: any, i: any) => (
                   <li className="error__item__list__msg" key={`basic-error-${i}`}>
                     {v}
                   </li>

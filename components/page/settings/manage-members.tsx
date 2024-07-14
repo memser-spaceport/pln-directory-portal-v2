@@ -16,6 +16,7 @@ import { validateLocation } from '@/services/location.service';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import Modal from '@/components/core/modal';
 import { saveRegistrationImage } from '@/services/registration.service';
+import SearchableSingleSelect from '@/components/form/searchable-single-select';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
@@ -24,11 +25,17 @@ interface ManageMembersSettingsProps {
 function ManageMembersSettings({ members, selectedMember }: ManageMembersSettingsProps) {
   const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
-  const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
   const formRef = useRef<HTMLFormElement | null>(null);
   const actionRef = useRef<HTMLDivElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
+  const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+  const tabsWithError = {
+    basic: errors.basicErrors.length > 0,
+    skills: errors.skillsErrors.length > 0,
+    contributions: Object.keys(errors.contributionErrors).length > 0,
+    social: errors.socialErrors.length > 0,
+  };
   const router = useRouter();
   const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
 
@@ -63,15 +70,16 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
         const contributionErrors: any = await checkContributionInfoForm({ ...formattedInputValues });
         const allFormErrors = [...basicErrors, ...skillsErrors, ...Object.keys(contributionErrors)];
 
-        setErrors((v: any) => {
-          return {
-            ...v,
-            basicErrors: [...basicErrors],
-            skillsErrors: [...skillsErrors],
-            contributionErrors: { ...contributionErrors },
-          };
-        });
+       
         if (allFormErrors.length > 0) {
+          setErrors((v: any) => {
+            return {
+              ...v,
+              basicErrors: [...basicErrors],
+              skillsErrors: [...skillsErrors],
+              contributionErrors: { ...contributionErrors },
+            };
+          });
           triggerLoader(false);
           onShowErrorModal();
           return;
@@ -217,7 +225,6 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   };
   const onFormChange = async () => {
     if (formRef.current) {
-      console.log('forms checking')
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const apiObjs = apiObjsToMemberObj({ ...initialValues });
@@ -278,11 +285,14 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
       <form noValidate onInput={onFormChange} onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms">
         <div className="ms__member-selection">
           <div className="ms__member-selection__dp">
-            <SingleSelect
+            <SearchableSingleSelect
               arrowImgUrl="/icons/arrow-down.svg"
               displayKey="name"
-              id="manage-members-settings"
-              onItemSelect={(item: any) => onMemberChanged(item.id)}
+              id="manage-teams-settings"
+              onChange={(item: any) => onMemberChanged(item.id)}
+              name=""
+              formKey="name"
+              onClear={() => {}}
               options={members}
               selectedOption={selectedMember}
               uniqueKey="id"
@@ -291,7 +301,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
         </div>
         <div className="ms__tab">
           <div className="ms__tab__desktop">
-            <Tabs activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
           </div>
           <div className="ms__tab__mobile">
             <SingleSelect

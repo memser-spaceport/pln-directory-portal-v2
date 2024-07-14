@@ -1,3 +1,4 @@
+'use client'
 import HiddenField from '@/components/form/hidden-field';
 import MultiSelect from '@/components/form/multi-select';
 import SingleSelect from '@/components/form/single-select';
@@ -74,17 +75,6 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const onTeamSelectionChanged = (item: any) => {
     setSelectedFundingStage(item);
   };
-
-  const getDefaultValueByKey = (field: string, key: string, id: string) => {
-    const defaultValues = structuredClone(initialValues)
-    console.log(defaultValues[field], 'checking values', key, id)
-    const teamIndex = defaultValues[field].findIndex((v:any) => v.id === id);
-    if(teamIndex < 0) {
-      return ""
-    }
-    console.log(`returning field-${field} - key-${key} - id-${id}`, defaultValues[field])
-    return defaultValues[field][teamIndex][key];
-  }
 
   useEffect(() => {
     setSelectedProtocols([...initialValues.technologies])

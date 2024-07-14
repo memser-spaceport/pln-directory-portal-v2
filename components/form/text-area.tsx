@@ -14,9 +14,7 @@ interface TextAreaProps {
 
 const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, maxLength }) => {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const [inputValue, setInputValue] = useState<string>('');
   const onTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setInputValue(e.target.value);
     if (onChange) {
       onChange(e);
     }

@@ -10,6 +10,7 @@ import { getMemberInfo } from '@/services/members.service';
 const getPageData = async (userId: string) => {
   const memberInfo = await getMemberInfo(userId);
   if(memberInfo.isError) {
+    console.log(memberInfo)
     return {
       isError: true
     }

@@ -46,7 +46,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   const searchRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const defaultSelectedValue = selectedOption ? selectedOption[displayKey] : '';
+  const defaultSelectedValue = selectedOption ? selectedOption[formKey] : '';
 
   const handleOptionClick = (option: Option) => {
     if (searchRef.current) {
@@ -115,11 +115,12 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             id={id}
             className={`select__search ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${isMandatory && !selectedOption?.[uniqueKey] ? 'select__search--error' : ''}`}
             ref={searchRef}
-            defaultValue={defaultSelectedValue}
+            defaultValue={selectedOption ? selectedOption[displayKey] : ''}
             onChange={onSearch}
             onClick={() => setShowOptions((v) => !v)}
             //onFocus={onSearchFocus}
             placeholder={placeholder}
+            required={isMandatory}
             autoComplete="off"
           />
           <input ref={inputRef} type="text" hidden defaultValue={defaultSelectedValue} name={name} />

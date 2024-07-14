@@ -20,7 +20,9 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const isAdminEdit = props.isAdminEdit ?? false;
   const uid = props.uid;
   const uploadImageRef = useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string>(initialValues?.imageFile ?? '');
+  const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '')
+  const [profileImage, setProfileImage] = useState<string>('');
+  const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,6 +43,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
     e.stopPropagation();
     e.preventDefault();
     setProfileImage('');
+    setSavedImage('');
     if (uploadImageRef.current) {
       uploadImageRef.current.value = '';
     }
@@ -53,11 +56,13 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
     if(imageInputRef.current) {
       imageInputRef.current.value = initialValues?.imageFile
     }
-    setProfileImage(initialValues?.imageFile);
+    setSavedImage(initialValues?.imageFile ?? '')
+    setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
-        setProfileImage(initialValues?.imageFile);
+        setSavedImage(initialValues?.imageFile ?? '')
+        setProfileImage('');
       }
       if(imageInputRef.current) {
         imageInputRef.current.value = initialValues?.imageFile
@@ -68,6 +73,10 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
       document.removeEventListener('reset-member-register-form', resetHandler);
     };
   }, [initialValues]);
+
+  useEffect(() => {
+    console.log('basic loaded')
+  }, [])
 
   return (
     <>
@@ -80,17 +89,17 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
         <div className="memberinfo__form">
           <div className="memberinfo__form__user">
             <label htmlFor="member-image-upload" className="memberinfo__form__user__profile">
-              {!profileImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
-              {!profileImage && <span className="memberinfo__form__user__profile__text">Add Image</span>}
-              {profileImage && <img className="memberinfo__form__user__profile__preview" src={profileImage} alt="user profile" width="95" height="95" />}
-              {profileImage && (
+              {(!profileImage && !savedImage) && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
+              {(!profileImage && !savedImage) && <span className="memberinfo__form__user__profile__text">Add Image</span>}
+              {(profileImage || savedImage) && <img className="memberinfo__form__user__profile__preview" src={formImage} alt="user profile" width="95" height="95" />}
+              {(profileImage || savedImage) && (
                 <span className="memberinfo__form__user__profile__actions">
                   <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                  <img onPointerDown={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                  <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
                 </span>
               )}
             </label>
-            <input type='text' ref={imageInputRef} id="member-info-basic-image" hidden name="imageFile" />
+            <input type='text' value={formImage} id="member-info-basic-image" hidden name="imageFile" />
             <input onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
             <div className="memberinfo__form__item">
               <TextField

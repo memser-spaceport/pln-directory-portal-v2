@@ -1,3 +1,4 @@
+import CustomToggle from '@/components/form/custom-toggle';
 import Toggle from '@/components/form/toggle';
 
 interface ContributionHeadProps {
@@ -33,19 +34,31 @@ function ContributionHead(props: ContributionHeadProps) {
         {contribution?.projectName.trim() !== '' && <h2 className="cb__name">{`${contribution?.projectName.trim()}`}</h2>}
         <div className="cb__projects">
           <div title={`${contribution.currentProject === false && currentProjectsCount === 5 ? 'Max 5 projects can be set as current' : 'On/Off'} `}>
-            <Toggle
-              value={contribution.currentProject}
-              disabled={contribution.currentProject === false && currentProjectsCount === 5}
-              onChange={onProjectStatusChanged}
-              name={`contributionInfo${contributionIndex}-currentProject`}
-              id={`member-register-contribution-currentproject-${contributionIndex}`}
-            />
-            {/* <Switch
-                  nonEditable={exp.currentProject === false && currentProjectsCount === 5}
-                  initialValue={exp.currentProject}
-                  onChange={(val) => onItemChange(contributionIndex, 'currentProject', val)}
-                  key={`${contributionIndex}-switch`}
-                /> */}
+            {/* <Toggle onChange={onProjectStatusChanged} disabled={contribution.currentProject === false && currentProjectsCount === 5} checked={contribution.currentProject} name={`contributionInfo${contributionIndex}-currentProject`} id={`member-register-contribution-currentproject-${contributionIndex}`}/> */}
+            {contribution.currentProject === false && (
+              <input
+                type="checkbox"
+                onChange={(e) => {
+                  console.log(e.target.value, e.target.checked);
+                  onProjectStatusChanged(e.target.checked);
+                }}
+                name={`contributionInfo${contributionIndex}-currentProject`}
+                id={`member-register-contribution-currentproject-${contributionIndex}`}
+                checked={false}
+              />
+            )}
+            {contribution.currentProject === true && (
+              <input
+                type="checkbox"
+                onChange={(e) => {
+                  console.log(e.target.value, e.target.checked);
+                  onProjectStatusChanged(e.target.checked);
+                }}
+                name={`contributionInfo${contributionIndex}-currentProject`}
+                id={`member-register-contribution-currentproject-${contributionIndex}`}
+                checked={true}
+              />
+            )}
           </div>
           <label className="">Current Project</label>
         </div>

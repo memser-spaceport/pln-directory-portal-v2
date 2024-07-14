@@ -1,46 +1,32 @@
-'use client'
+'use client';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface ToggleProps {
   id: string;
   label?: string;
   name: string;
-  onChange?: (isChecked: boolean) => void
-  checked?: boolean
-  disabled?:boolean
-  value?:boolean
-  defaultValue?: boolean
+  onChange?: (isChecked: boolean) => void;
+  checked?: boolean;
+  disabled?: boolean;
+  value?: boolean;
 }
 
-const Toggle: React.FC<ToggleProps> = ({ id, label, defaultValue = false,  name, value = false, disabled=false, onChange, checked = false, ...props  }) => {
-  const [isChecked, setIsChecked] = useState<boolean>(value || false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const handleToggle = () => {
-    if(!disabled) {
-      if(onChange) {
-        onChange(!isChecked)
-      }
-      setIsChecked(!isChecked);
+const FormToggle: React.FC<ToggleProps> = ({ id, label, name, disabled = false, onChange, checked = false }) => {
+  const handleToggle = (e) => {
+    if (onChange) {
+      onChange(!checked);
     }
   };
-
-  useEffect(() => {
-     if(inputRef.current) {
-      inputRef.current.checked = value;
-      setIsChecked(value)
-     }
-  }, [value])
 
   return (
     <>
       <div className="toggle-container">
         {label && <label htmlFor={id}>{label}</label>}
-        <div className={`toggle-switch ${isChecked ? 'checked' : ''} ${disabled ? 'toggle-switch--disabled': ''}`} onClick={handleToggle}>
+        <div className={`toggle-switch ${checked === true ? 'checked' : ''} ${disabled ? 'toggle-switch--disabled' : ''}`} onClick={handleToggle}>
           <div className="toggle-knob" />
         </div>
-        <input ref={inputRef} type="checkbox" name={name} disabled={disabled} id={id} {...props} onChange={handleToggle} style={{ width: '0px', height: '0px' }} />
       </div>
+      <input checked={checked} type="checkbox" name={name} disabled={disabled} id={id} style={{ width: '0px', height: '0px', visibility: 'hidden' }} />{' '}
       <style jsx>
         {`
           .toggle-container {
@@ -56,9 +42,9 @@ const Toggle: React.FC<ToggleProps> = ({ id, label, defaultValue = false,  name,
             cursor: pointer;
             transition: background-color 0.3s;
           }
-            .toggle-switch--disabled {
-             cursor: not-allowed;
-            }
+          .toggle-switch--disabled {
+            cursor: not-allowed;
+          }
           .toggle-switch.checked {
             background-color: #156ff7;
           }
@@ -81,4 +67,4 @@ const Toggle: React.FC<ToggleProps> = ({ id, label, defaultValue = false,  name,
   );
 };
 
-export default Toggle;
+export default FormToggle;

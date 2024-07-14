@@ -40,7 +40,7 @@ const Hyperlinks = (props: IHyperlinks) => {
                 alt="icon"
               />
               <span className="hyperLinks__container__link__name">
-                {link?.text}
+                {link?.name}
               </span>
               <img
                 width={10}

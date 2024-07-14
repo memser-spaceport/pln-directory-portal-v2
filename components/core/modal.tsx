@@ -15,7 +15,7 @@ const Modal = (props: IModal) => {
     <>
       <dialog onClose={onClose} ref={ref} className="modal">
         <div className="modal__cn">
-          <button className="modal__cn__closebtn" onClick={onClose}>
+          <button type='button' className="modal__cn__closebtn" onClick={onClose}>
             <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
           </button>
           {children}

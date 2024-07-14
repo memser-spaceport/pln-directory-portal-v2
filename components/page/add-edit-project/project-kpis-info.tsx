@@ -53,7 +53,7 @@ export default function ProjectKpisInfo(props: any) {
             <div className="kpiContainer__kpi__header">
               <h2 className="kpiContainer__kpi__header__title">KPI {index + 1}</h2>
               {index !== 0 && (
-                <button className="kpiContainer__kpi__header__delete" onClick={() => onDeleteKpi(index)} type="button">
+                <button  className="kpiContainer__kpi__header__delete" onClick={() => onDeleteKpi(index)} type="button">
                   <Image src="/icons/delete-brown.svg" alt="delete team role" width="12" height="12" />
                 </button>
               )}
@@ -64,7 +64,7 @@ export default function ProjectKpisInfo(props: any) {
                 <div className="kpiContainer__kpi__keyAndValue__key__ttl">Enter KPI Name</div>
                 <TextField
                   id="register-project-kpi-text"
-                  value={kpi.key}
+                  defaultValue={kpi.key}
                   isMandatory={kpi?.value ? true : false}
                   name={`projectKpis${index}-key`}
                   placeholder="Enter KPI Name"
@@ -76,7 +76,7 @@ export default function ProjectKpisInfo(props: any) {
                 <div className="kpiContainer__kpi__keyAndValue__value__ttl">Enter KPI Value</div>
                 <TextField
                   id="register-project-link-value"
-                  value={kpi.value}
+                  defaultValue={kpi.value}
                   isMandatory={kpi?.key ? true : false}
                   name={`projectKpis${index}-value`}
                   placeholder="Enter KPI Value"
@@ -89,7 +89,7 @@ export default function ProjectKpisInfo(props: any) {
         ))}
 
         {projectKpis.length < 5 && (
-          <button onClick={onAddProjectLink} className="kpiContainer__addOptBtn">
+          <button type='button' onClick={onAddProjectLink} className="kpiContainer__addOptBtn">
             <Image src="/icons/add.svg" width="16" height="16" alt="Add New" />
             <div className='kpiContainer__addOptBtn__addTxt'>Add KPI</div>
             <div className='kpiContainer__addOptBtn__remTxt'>(Max 5 KPIs)</div>

@@ -103,7 +103,7 @@ const getFormattedProject = (project: any) => {
             const tempProjectlinks: any = [];
             project.projectLinks?.map((link: any, index: any) => {
                 const urlObj: any = {};
-                urlObj['text'] = link?.name;
+                urlObj['name'] = link?.name;
                 urlObj['url'] = link?.url;
                 urlObj['id'] = index;
                 tempProjectlinks.push(urlObj);
@@ -130,22 +130,40 @@ const getFormattedProject = (project: any) => {
 export const getAllProjects = async (queryParams: any, currentPage: number, limit = 0) => {
     const requestOptions: RequestInit = { method: "GET", cache: "no-store" };
     const response = await fetch(
-      `${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&${new URLSearchParams(queryParams)}`,
-      requestOptions
+        `${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&${new URLSearchParams(queryParams)}`,
+        requestOptions
     );
     const result = await response.json();
     if (!response?.ok) {
-      return { error: { statusText: response?.statusText } };
+        return { error: { statusText: response?.statusText } };
     }
     const formattedData = result?.map((project: any) => {
-      return {
-        id: project?.uid,
-        name: project?.name,
-        logo: project?.logo?.url,
-        description: project?.description,
-        maintainingTeam: project?.maintainingTeam,
-        lookingForFunding: project?.lookingForFunding,
-      };
+        return {
+            id: project?.uid,
+            name: project?.name,
+            logo: project?.logo?.url,
+            description: project?.description,
+            maintainingTeam: project?.maintainingTeam,
+            lookingForFunding: project?.lookingForFunding,
+        };
     });
     return { data: { formattedData, totalProjects: result?.length } };
-  };
+};
+
+
+
+export const addProject = async (data: any, authToken: string | undefined) => {
+    const requestOptions: RequestInit = {
+        method: "POST", cache: "no-store",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(data)
+    };
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/projects`, requestOptions);
+    if(!response.ok) {
+        return {error: {status: response.status}}
+    }
+    return await response.json();
+}

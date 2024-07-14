@@ -3,7 +3,7 @@ import { z } from "zod";
 
 
 const projectLinkSchema = z.object({
-    text: z.string({ errorMap: () => ({ message: 'Please provide valid values for project link text/url' }) })
+    name: z.string({ errorMap: () => ({ message: 'Please provide valid values for project link text/url' }) })
         .trim()
         .min(1),
     url: z.string({ errorMap: () => ({ message: 'Please provide valid values for project link text/url' }) }).url().min(1),

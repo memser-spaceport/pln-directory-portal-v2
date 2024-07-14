@@ -1,17 +1,22 @@
 'use client';
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
-import { EVENTS, PROJECT_FORM_STEPS } from '@/utils/constants';
+import { EVENTS, PROJECT_FORM_STEPS, TOAST_MESSAGES } from '@/utils/constants';
 import { useRef, useState } from 'react';
 import ProjectGeneralInfo from './project-general-info';
 import ProjectContributorsInfo from './project-contributors-info';
 import ProjectKpisInfo from './project-kpis-info';
 import { ProjectMoreDetails } from './project-more-details';
 import { generalInfoSchema, kpiSchema, projectKpiSchema } from '@/schema/project-form';
+import { saveRegistrationImage } from '@/services/registration.service';
+import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
+import { addProject, updateProject } from '@/services/projects.service';
+import { useRouter } from 'next/navigation';
+import { triggerLoader } from '@/utils/common.utils';
 
 export default function AddEditProjectForm(props: any) {
   const addFormRef = useRef(null);
-
   const initialValue = {
     name: '',
     tagline: '',
@@ -30,9 +35,13 @@ export default function AddEditProjectForm(props: any) {
   };
 
   const project = props?.project ?? initialValue;
+  const type = props?.type;
 
   const [generalErrors, setGeneralErrors] = useState<any>([]);
-  const [kpiErrors, setKpiErrors]  = useState<any>([]);
+  const [kpiErrors, setKpiErrors] = useState<any>([]);
+  const [contributorsErrors, setcontributorsErrors] = useState<any>([]);
+
+  const router = useRouter();
 
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({
     steps: PROJECT_FORM_STEPS,
@@ -44,11 +53,8 @@ export default function AddEditProjectForm(props: any) {
     if (!addFormRef.current) {
       return;
     }
-
     const formData = new FormData(addFormRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
-
-    console.log("formattedDaa is", formattedData);
     if (currentStep === 'General') {
       let errors: any = [];
       const result = generalInfoSchema.safeParse(formattedData);
@@ -85,20 +91,81 @@ export default function AddEditProjectForm(props: any) {
         errors = [...uniqueErrors];
       }
 
-      if(errors.length > 0) {
-        setKpiErrors([...errors])
+      if (errors.length > 0) {
+        setKpiErrors([...errors]);
         scrollToTop();
         return;
       }
-
       setKpiErrors([]);
-      goToNextStep();
+    } else if (currentStep === 'Contributors') {
+      if (!formattedData.maintainingTeamUid) {
+        const error = [];
+        error.push('Please add maintainer team details');
+        setcontributorsErrors(error);
+        return;
+      } else {
+        setcontributorsErrors([]);
+      }
     }
+
     goToNextStep();
   };
 
-  const onFormSubmitHandler = (event: any) => {
+  const onFormSubmitHandler = async (event: any) => {
     event.preventDefault();
+    if (!addFormRef?.current) {
+      return;
+    }
+    try {
+      triggerLoader(true);
+      const formData = new FormData(addFormRef.current);
+
+      let formattedData = transformObject(Object.fromEntries(formData));
+
+      if (formattedData?.projectProfile?.size > 0) {
+        const imgResponse = await saveRegistrationImage(formattedData?.projectProfile);
+        const image = imgResponse?.image;
+        formattedData.logoUid = image.uid;
+      } else {
+        formattedData.logoUid = '';
+      }
+
+      const authToken = Cookies.get('authToken');
+
+      if (!authToken) {
+        toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+        router.push('/');
+        triggerLoader(false);
+        return;
+      }
+
+      if (type === 'Add') {
+        const result = await addProject(formattedData, authToken);
+        if (result?.error) {
+          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          triggerLoader(false);
+          return;
+        }
+        triggerLoader(false);
+        router.push('/projects');
+        toast.info('Project added successfully.');
+      }
+
+      if (type === 'Edit') {
+        const result = await updateProject(project?.id, formattedData, authToken);
+        if (result?.error) {
+          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          triggerLoader(false);
+          return;
+        }
+        triggerLoader(false);
+        toast.info("Project updated successfully.");
+        router.push(`/projects/${project?.id}`);
+      }
+    } catch (error) {
+      console.error(error);
+      triggerLoader(false);
+    }
   };
 
   function transformObject(object: any) {
@@ -106,6 +173,8 @@ export default function AddEditProjectForm(props: any) {
 
     const projectLinks: any = {};
     const kpis: any = {};
+    const contributingTeams: any = {};
+    const contributions: any = {};
 
     for (const key in object) {
       if (key.startsWith('projectLinks')) {
@@ -133,6 +202,31 @@ export default function AddEditProjectForm(props: any) {
             kpis[projectKpiIndex][subKey] = object[key];
           }
         }
+      } else if (key.startsWith('contributingTeams')) {
+        const [contributingTeam, subKey] = key.split('-');
+        const contributingTeamIndexMatch = contributingTeam.match(/\d+$/);
+        if (contributingTeamIndexMatch) {
+          const contributingTeamIndex = contributingTeamIndexMatch[0];
+          if (!contributingTeams[contributingTeamIndex]) {
+            contributingTeams[contributingTeamIndex] = {};
+          }
+          if (object[key]) {
+            contributingTeams[contributingTeamIndex][subKey] = object[key];
+          }
+        }
+      } else if (key.startsWith('contributions')) {
+        // name={`contributions${index}-memberUid`}s
+        const [teamContributions, subKey] = key.split('-');
+        const contributionsIndexMatch = teamContributions.match(/\d+$/);
+        if (contributionsIndexMatch) {
+          const contributionsTeamIndex = contributionsIndexMatch[0];
+          if (!contributions[contributionsTeamIndex]) {
+            contributions[contributionsTeamIndex] = {};
+          }
+          if (object[key]) {
+            contributions[contributionsTeamIndex][subKey] = object[key];
+          }
+        }
       } else {
         result[key] = object[key];
       }
@@ -158,6 +252,8 @@ export default function AddEditProjectForm(props: any) {
       return Object.keys(kpi).length > 0;
     });
 
+    result.contributingTeams = Object.values(contributingTeams);
+    result.contributions = Object.values(contributions);
     return result;
   }
 
@@ -167,6 +263,10 @@ export default function AddEditProjectForm(props: any) {
     document.body.scrollTop = 0;
   }
 
+  const onCancelClicHandler = () => {
+    router.push('/projects');
+  };
+
   return (
     <>
       <form className="addEditForm" ref={addFormRef} onSubmit={onFormSubmitHandler} noValidate>
@@ -175,22 +275,24 @@ export default function AddEditProjectForm(props: any) {
             <ProjectGeneralInfo errors={generalErrors} project={project} />
           </div>
           <div className={`${currentStep === 'Contributors' ? 'form' : 'hidden'}`}>
-            <ProjectContributorsInfo />
+            <ProjectContributorsInfo project={project} errors={contributorsErrors} />
           </div>
           <div className={`${currentStep === 'KPIs' ? 'form' : 'hidden'}`}>
-            <ProjectKpisInfo project={project} errors={kpiErrors}/>
+            <ProjectKpisInfo project={project} errors={kpiErrors} />
           </div>
           <div className={`${currentStep === 'More Details' ? 'form' : 'hidden'}`}>
-            <ProjectMoreDetails readMe = {project?.readMe}/>
+            <ProjectMoreDetails readMe={project?.readMe} />
           </div>
         </div>
 
         <div className="addEditForm__opts">
-          {currentStep === 'General' && (
-            <button className="addEditForm__opts__cancel" type="button">
-              Cancel
-            </button>
-          )}
+          <div>
+            {currentStep === 'General' && (
+              <button onClick={onCancelClicHandler} className="addEditForm__opts__cancel" type="button">
+                Cancel
+              </button>
+            )}
+          </div>
 
           <div className="addEditForm__opts__acts">
             {currentStep !== 'General' && (
@@ -207,7 +309,16 @@ export default function AddEditProjectForm(props: any) {
             )}
             {currentStep === 'More Details' && (
               <div>
-                <button type="submit">Submit</button>{' '}
+                {type === 'Add' && (
+                  <button className="addEditForm__opts__acts__next" type="submit">
+                    Add Project
+                  </button>
+                )}
+                {type === 'Edit' && (
+                  <button className="addEditForm__opts__acts__next" type="submit">
+                    Edit Project
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -228,6 +339,7 @@ export default function AddEditProjectForm(props: any) {
           .addEditForm__container__general {
             background-color: white;
             padding: 24px 26px;
+            padding-bottom: 80px;
           }
 
           .addEditForm__opts {
@@ -237,6 +349,11 @@ export default function AddEditProjectForm(props: any) {
             position: fixed;
             bottom: 0;
             width: 100%;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            display: flex;
+            gap: 8px;
           }
 
           .addEditForm__opts__acts {
@@ -264,6 +381,7 @@ export default function AddEditProjectForm(props: any) {
             font-weight: 500;
             background-color: white;
             color: #0f172a;
+            height: fit-content;
           }
 
           .addEditForm__opts__acts__back {
@@ -281,6 +399,10 @@ export default function AddEditProjectForm(props: any) {
             .addEditForm__container {
               width: 656px;
               border-radius: 8px;
+            }
+
+            . .addEditForm__container__general {
+              padding-bottom: unset;
             }
 
             .addEditForm__container__general {

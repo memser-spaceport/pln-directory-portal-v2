@@ -7,6 +7,7 @@ import { FormStepIndicatorWeb } from './form-step-indicator-web';
 
 export default function AddEditProjectContainer(props: any) {
   const project = props?.project;
+  const type = props?.type; 
 
   return (
     <>
@@ -20,7 +21,7 @@ export default function AddEditProjectContainer(props: any) {
         </div>
 
         <div className="addEditPc__formCon">
-          <AddEditProjectForm />
+          <AddEditProjectForm type={type} project={project} />
         </div>
       </div>
 

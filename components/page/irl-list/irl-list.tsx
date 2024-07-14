@@ -1,7 +1,7 @@
 'use client';
 
 import { IIrlCard } from '@/types/irl.types';
-import { ADMIN_ROLE } from '@/utils/constants';
+import { ADMIN_ROLE, INVITE_ONLY_RESTRICTION_ERRORS } from '@/utils/constants';
 import { isPastDate } from '@/utils/irl.utils';
 import { useRef } from 'react';
 import { IUserInfo } from '@/types/shared.types';
@@ -10,6 +10,8 @@ import Modal from '@/components/core/modal';
 import { IrlInviteOnlyLoggedOut } from './irl-invite-only-logged-out';
 import IrlCard from './irl-card';
 import Link from 'next/link';
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface IIrlList {
   conference: any;
@@ -24,16 +26,12 @@ export default function IrlList(props: IIrlList) {
   const user = props?.userInfo;
 
   //variable
-  // const pastEvents = conference?.filter((item) => isPastDate(item.endDate));
-  // const upcomingEvents = conference?.filter((item) => !isPastDate(item.endDate));
-
   const pastEvents = conference?.pastEvents ?? [];
   const upcomingEvents = conference?.upcomingEvents ?? [];
 
   const inviteOnlyRef = useRef<HTMLDialogElement>(null);
   const inviteOnlyLogOutRef = useRef<HTMLDialogElement>(null);
-  // const analytics = useAppAnalytics();
-  // const user = getUserInfo();
+  const analytics = useIrlAnalytics();
 
   //methods
   const onCardClick = (event: any, item: any) => {
@@ -44,24 +42,38 @@ export default function IrlList(props: IIrlList) {
       event.preventDefault();
       if (inviteOnlyLogOutRef.current) {
         inviteOnlyLogOutRef.current.showModal();
+        analytics.irlCardClicked(getAnalyticsUserInfo(user), {
+          uid: item.id,
+          name: item.name,
+          slugUrl: item.slugUrl,
+          isInviteOnly,
+          isPastEvent,
+          restrictedReason: INVITE_ONLY_RESTRICTION_ERRORS.NOT_LOGGED_IN,
+        });
       }
     } else if (isInviteOnly && !userEvents.includes(item.id) && user.roles && !user.roles.includes(ADMIN_ROLE)) {
       event.preventDefault();
       if (inviteOnlyRef.current) {
         event.preventDefault();
         inviteOnlyRef.current.showModal();
+        analytics.irlCardClicked(getAnalyticsUserInfo(user), {
+          uid: item.id,
+          name: item.name,
+          slugUrl: item.slugUrl,
+          isInviteOnly,
+          isPastEvent,
+          restrictedReason: INVITE_ONLY_RESTRICTION_ERRORS.UNAUTHORIZED,
+        });
       }
     }
 
-    // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_GATHERING_CARD_CLICKED, {
-    //   uid: item.id,
-    //   name: item.name,
-    //   slugUrl: item.slugUrl,
-    //   isInviteOnly,
-    //   user: user,
-    //   isPastEvent,
-    //   restrictedReason,
-    // });
+    analytics.irlCardClicked(getAnalyticsUserInfo(user), {
+      uid: item.id,
+      name: item.name,
+      slugUrl: item.slugUrl,
+      isInviteOnly,
+      isPastEvent,
+    });
   };
 
   const onCloseInviteOnlyModal = () => {

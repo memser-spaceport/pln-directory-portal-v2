@@ -1,18 +1,16 @@
 'use client';
 
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import Link from 'next/link';
 
 const Navbar = (props: any) => {
-  // const analytics = useAppAnalytics();
+  const analytics = useIrlAnalytics();
   const eventDetails = props?.eventDetails;
-  // const user = getUserInfo();
+  const userInfo = props?.userInfo;
 
   const onNavigate = () => {
-    // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_NAVBAR_BACK_BTN_CLICKED, {
-    //   eventId: eventDetails?.id,
-    //   eventName: eventDetails?.name,
-    //   user,
-    // });
+    analytics.irlNavbarBackBtnClicked(getAnalyticsUserInfo(userInfo), getAnalyticsEventInfo(eventDetails));
   };
 
   return (

@@ -199,10 +199,7 @@ const GuestTableRow = (props: any) => {
         .gtr {
           display: flex;
           width: fit-content;
-          padding-top: 12px;
-          padding-bottom: 12px;
-          padding-left: 20px;
-          padding-right: 20px;
+          padding: 12px 20px;
           font-size: 13px;
           font-weight: 400;
         }

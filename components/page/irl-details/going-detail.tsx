@@ -4,28 +4,29 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
-import { useSearchParams } from 'next/navigation';
-import { getMember } from '@/services/members.service';
+import { useParams } from 'next/navigation';
+import { getMember, getMemberInfo } from '@/services/members.service';
 import { getEventDetailBySlug, createEventGuest, editEventGuest } from '@/services/irl.service';
 import { formatDateRangeForDescription, formatDateToISO, getArrivalDepartureDateRange, getTelegramUsername, removeAt } from '@/utils/irl.utils';
 import TextArea from '@/components/form/text-area';
-import { OH_GUIDELINE_URL } from '@/utils/constants';
+import { EVENTS, OH_GUIDELINE_URL } from '@/utils/constants';
 import TagsPicker from './tags-picker';
 import useTagsPicker from '@/hooks/irl/use-tags-picker';
 import { getParsedValue, triggerLoader } from '@/utils/common.utils';
 import SingleSelect from '@/components/form/single-select';
+import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 
 interface GoingProps {
   isUserGoing: boolean;
   registeredGuest: any;
   eventDetails: any;
-  teams?: any;
+  teams: any;
   showTelegram: boolean;
-  onClose: ()=>void;
+  onClose: () => void;
   focusOHField: boolean;
 }
 
-const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, eventDetails, teams = [{ id: 'cly4dxr1200191402qvz2ywhj', name: 'Test Team' }], showTelegram, onClose, focusOHField }) => {
+const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, eventDetails, teams, showTelegram, onClose, focusOHField }) => {
   const [formErrors, setFormErrors] = useState<any>({});
   const [connectDetail, setConnectDetail] = useState<any>({});
   const [formValues, setFormValues] = useState({
@@ -40,10 +41,9 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
     },
   });
   const officeHoursRef = useRef<HTMLInputElement>(null);
-
-  const params = useSearchParams();
+  const { id } = useParams();
   const userInfo = getParsedValue(Cookies.get('userInfo') || '');
-  const slug = params.get('id') as string;
+  const slug = id as string;
   const departureMinDate = formatDateToISO(eventDetails?.startDate);
   const arrivalMaxDate = formatDateToISO(eventDetails?.endDate);
   const startAndEndDateInfo = formatDateRangeForDescription(eventDetails?.startDate, eventDetails?.endDate);
@@ -52,8 +52,9 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
     defaultTags,
     selectedItems: formValues?.topics,
   });
-  const intialTeamValue = teams?.find((team: any) => team?.id === registeredGuest?.teamUid);
+  const intialTeamValue = teams?.find((team:any) => team?.id === formValues?.teamUid);
   const dateRange = getArrivalDepartureDateRange(eventDetails?.startDate, eventDetails?.endDate, 5, 4);
+
 
   const getEventDetails = async () => {
     const authToken = getParsedValue(Cookies.get('authToken') || '');
@@ -82,7 +83,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
 
   const handleTeamChange = (option: any) => {
     setFormValues((prevFormData) => ({ ...prevFormData, teamUid: option?.id }));
-  }
+  };
 
   const onClearDate = (key: string) => {
     setFormValues((prev) => ({
@@ -135,6 +136,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
 
   //edit guest details
   const onEditGuestDetails = async () => {
+    const authToken = getParsedValue(Cookies.get('authToken') || '');
     // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_RSVP_POPUP_UPDATE_BTN_CLICKED, {
     //   type: 'clicked',
     //   eventId: eventDetails?.id,
@@ -151,7 +153,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
       uid: registeredGuest.uid,
     };
 
-    const team = teams?.find((team:any) => team.id === payload?.teamUid);
+    const team = teams?.find((team: any) => team.id === payload?.teamUid);
     const teamName = team?.name;
     const isValid = validateForm(payload);
 
@@ -165,9 +167,9 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
       //   teamName,
       // });
 
-      const response = await editEventGuest(eventDetails?.slugUrl, registeredGuest.uid, payload);
+      const response = await editEventGuest(eventDetails?.slugUrl, registeredGuest.uid, payload, authToken);
 
-      if (response.status === 200 || response.status === 201) {
+      if (response) {
         // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_RSVP_POPUP_UPDATE_BTN_CLICKED, {
         //   type: 'api_success',
         //   eventId: eventDetails?.id,
@@ -178,18 +180,18 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
         // });
         await getEventDetails();
         onClose();
-        triggerLoader(false);
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
         toast.success('Your details has been updated successfully');
       }
     } else {
-      triggerLoader(false);
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
     }
   };
 
   //validate form
   const validateForm = (formValues: any) => {
     const errors = {} as any;
-    const initialTeamValue = teams?.find((team:any) => team?.id === formValues?.teamUid);
+    const initialTeamValue = teams?.find((team: any) => team?.id === formValues?.teamUid);
     const urlRE = /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?(\/\S*)?)(?![.\S])/gi;
     if (!formValues?.teamUid?.trim() || !initialTeamValue) {
       errors.teamUid = 'Team is required';
@@ -227,6 +229,8 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
     //   user,
     // });
 
+    const authToken = getParsedValue(Cookies.get('authToken') || '');
+
     const payload = {
       ...formValues,
       topics: topicsProps?.selectedItems,
@@ -235,7 +239,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
       eventUid: eventDetails?.id,
     };
 
-    const team = teams?.find((team:any) => team.id === payload?.teamUid);
+    const team = teams?.find((team: any) => team.id === payload?.teamUid);
     const teamName = team?.name;
     const isValid = validateForm(payload);
 
@@ -249,8 +253,8 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
       //   teamName,
       // });
 
-      const response = await createEventGuest(eventDetails?.slugUrl, payload);
-      if (response.status === 201) {
+      const response = await createEventGuest(eventDetails?.slugUrl, payload, authToken);
+      if (response) {
         // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_BTN_CLICKED, {
         //   type: 'api_success',
         //   eventId: eventDetails?.id,
@@ -261,18 +265,18 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
         // });
         await getEventDetails();
         onClose();
-        triggerLoader(false);
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
         toast.success('Your details has been added successfully');
       }
     } else {
-      triggerLoader(false);
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
     }
   };
 
   //form submit
   const onSubmit = async (event: any) => {
     event.preventDefault();
-    triggerLoader(true);
+    document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     try {
       if (!isUserGoing) {
         await onAddGuestDetails();
@@ -280,25 +284,46 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
         await onEditGuestDetails();
       }
     } catch {
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       onClose();
       toast.error('Something went wrong');
     }
   };
 
   useEffect(() => {
+    if (isUserGoing) {
+      const data = {
+        teamUid: registeredGuest?.teamUid,
+        telegramId: '',
+        reason: registeredGuest.reason ? registeredGuest?.reason?.trim() : '',
+        topics: registeredGuest?.topics,
+        officeHours: registeredGuest?.officeHours ? registeredGuest?.officeHours : '',
+        additionalInfo: {
+          ...formValues.additionalInfo,
+          checkInDate: registeredGuest?.additionalInfo?.checkInDate,
+          checkOutDate: registeredGuest?.additionalInfo?.checkOutDate,
+        },
+      };
+      setFormValues(data);
+    } else {
+      const teamUid = teams?.find((team: any) => team?.mainTeam)?.id;
+      setFormValues((prev) => ({ ...prev, teamUid }));
+    }
+  }, []);
+
+  useEffect(() => {
     const getMemberConnectDetails = async () => {
-      triggerLoader(true);
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
       try {
-        const response = await getMember('cly4e1fep001l1402g95sufyv', {});
-        console.log('responnse member>>>>>>>>>>>>>', response);
-        const telegram = response?.data?.formattedData?.telegramHandle ? removeAt(getTelegramUsername(response?.data?.formattedData?.telegramHandle)) : '';
-        setConnectDetail({ telegramId: telegram, officeHours: response?.data?.formattedData?.officeHours ?? '' });
+        const response = await getMemberInfo(userInfo?.uid);
+        const telegram = response?.data?.telegramHandler ? removeAt(getTelegramUsername(response?.data?.telegramHandler)) : '';
+        setConnectDetail({ telegramId: telegram, officeHours: response?.data?.officeHours ?? '' });
         setFormValues((prevFormData) => ({
           ...prevFormData,
           telegramId: !registeredGuest?.isTelegramRemoved ? telegram : '',
-          officeHours: registeredGuest?.officeHours === '' ? '' : response?.data?.formattedData?.officeHours ?? '',
+          officeHours: registeredGuest?.officeHours === '' ? '' : response?.data?.officeHours ?? '',
         }));
-        triggerLoader(false);
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       } catch (error) {
         console.error(error);
       }
@@ -343,7 +368,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
                 id="going-telegram"
                 placeholder={registeredGuest?.isTelegramRemoved && connectDetail.telegramId !== '' ? connectDetail.telegramId : 'Enter handle here'}
                 className="details__cn__telegram__field"
-                defaultValue={formValues?.telegramId}
+                value={formValues?.telegramId}
                 onChange={handleChange}
                 // onKeyDown={handleKeyDown}
                 onFocus={handleTelegramFocus}
@@ -397,10 +422,10 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
               <input
                 type="text"
                 name="officeHours"
-                className='details__cn__oh__field'
+                className="details__cn__oh__field"
                 id="going-office-hours"
                 placeholder={registeredGuest?.officeHours === '' && connectDetail?.officeHours !== '' ? connectDetail.officeHours : 'Enter link here'}
-                defaultValue={formValues?.officeHours}
+                value={formValues?.officeHours}
                 onChange={handleChange}
                 ref={officeHoursRef}
                 onFocus={handleOfficeHoursFocus}
@@ -484,10 +509,15 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
           </div>
         </div>
         <div className="details__btns">
-          <button className="details__btns__close" type="button">Close</button>
-          <button className='details__btns__save' type="submit">{isUserGoing ? 'Update' : 'Save'}</button>
+          <button onClick={onClose} className="details__btns__close" type="button">
+            Close
+          </button>
+          <button className="details__btns__save" type="submit">
+            {isUserGoing ? 'Update' : 'Save'}
+          </button>
         </div>
       </form>
+      <RegsiterFormLoader />
       <style jsx>
         {`
           .details {
@@ -555,7 +585,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
           .details__cn__telegram__field:focus-visible,
           .details__cn__telegram__field:focus,
           .details__cn__oh__field:focus-visible,
-          .details__cn__oh__field:focus{
+          .details__cn__oh__field:focus {
             outline: none;
           }
           ::placeholder {
@@ -751,36 +781,36 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
             gap: 8px;
           }
 
-          .details__btns__close{
+          .details__btns__close {
             padding: 10px 24px;
             border-radius: 8px;
-            border: 1px solid #CBD5E1;
+            border: 1px solid #cbd5e1;
             background-color: #ffffff;
-            color: #0F172A;
-            box-shadow: 0px 1px 1px 0px #0F172A14;
+            color: #0f172a;
+            box-shadow: 0px 1px 1px 0px #0f172a14;
             display: flex;
             align-items: center;
             justify-content: center;
           }
 
-          .details__btns__close:hover{
-            border: 1px solid #94A3B8;
+          .details__btns__close:hover {
+            border: 1px solid #94a3b8;
           }
 
-          .details__btns__save{
+          .details__btns__save {
             padding: 10px 24px;
             border-radius: 8px;
-            border: 1px solid #CBD5E1;
-            background-color: #156FF7;
+            border: 1px solid #cbd5e1;
+            background-color: #156ff7;
             color: #ffffff;
-            box-shadow: 0px 1px 1px 0px #0F172A14;
+            box-shadow: 0px 1px 1px 0px #0f172a14;
             display: flex;
             align-items: center;
             justify-content: center;
           }
 
-          .details__btns__save:hover{
-            background-color: #1D4ED8;
+          .details__btns__save:hover {
+            background-color: #1d4ed8;
           }
 
           .hidden-message {

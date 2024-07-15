@@ -7,8 +7,6 @@ const GuestList = (props: any) => {
   const showTelegram = props?.showTelegram;
   const filteredList = props?.items;
 
-  console.log(isExclusionEvent)
-
   return (
     <>
       <div className="guestList">

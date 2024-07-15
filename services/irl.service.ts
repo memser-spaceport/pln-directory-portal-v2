@@ -103,27 +103,31 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
   };
 };
 
-export const createEventGuest = async (slug: string, payload: any) => {
+export const createEventGuest = async (slug: string, payload: any, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest`, {
     method: 'POST',
     body: JSON.stringify(payload),
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getHeader(authToken),
   });
-  return await response.json();
+
+  if (!response.ok) {
+    return false;
+  }
+  return true;
 };
 
-export const editEventGuest = async (slug: string, uid: string, payload: any) => {
+export const editEventGuest = async (slug: string, uid: string, payload: any, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest/${uid}`, {
     method: 'PUT',
     body: JSON.stringify(payload),
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getHeader(authToken),
   });
 
-  return await response.json();
+  if (!response.ok) {
+    return false;
+  }
+
+  return true;
 };
 
 export const getUserEvents = async (token: string) => {

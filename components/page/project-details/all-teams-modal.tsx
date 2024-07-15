@@ -92,7 +92,7 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
                 </div>
               ))}
 
-            {contributingTeams.length === 0 && (
+            {(contributingTeams.length === 0) &&  (!project.maintainingTeam?.name.toLowerCase().includes(searchTerm.toLowerCase()))  && (
               <div className="tm__body__teams__notFound">No team found.</div>
             )}
           </div>

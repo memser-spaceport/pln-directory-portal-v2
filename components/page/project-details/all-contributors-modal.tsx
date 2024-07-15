@@ -39,8 +39,8 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
 
   const onInputchangeHandler = (event: any) => {
     const searchTerm = event?.target.value;
+    setSearchTerm(event.target.value);
     if (searchTerm) {
-      setSearchTerm(event.target.value);
       const filteredMembers = contributorsList?.filter((member: IMember) => member?.name?.toLowerCase()?.includes(searchTerm));
       setFilteredContriList(filteredMembers);
     }
@@ -63,7 +63,7 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
               <div className="cm__body__search__icon">
                 <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
               </div>
-              <input value={searchTerm} type="search" className="cm__body__search__input" placeholder="Search" onChange={(event) => onInputchangeHandler(event)} />
+              <input value={searchTerm} type="search" className="cm__body__search__input" placeholder="Search" onChange={onInputchangeHandler} />
             </div>
           </div>
           <div className="cm__body__contributors">

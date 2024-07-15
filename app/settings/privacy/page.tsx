@@ -25,8 +25,6 @@ async function PrivacyPage() {
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
   const preferences = await getPageData(userInfo, JSON.parse(rawAuthToken));
-  const memberPreferences = preferences.memberPreferences;
-  console.log(preferences);
 
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },

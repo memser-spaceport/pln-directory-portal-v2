@@ -64,17 +64,19 @@ export default async function ManageTeams(props: any) {
     return 'Error'
   }
 
+
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'Settings', url: '/settings' },
-    { text: 'Profile', url: '/settings/profile' },
-  ];
+    { text: 'Members', url: '/members' },
+    { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
+    { text: 'Manage Teams', url: '/settings/teams' },
+  ]
   return (
     <>
       <div className={styles.ps}>
       <div className={styles.ps__breadcrumbs}>
           <div className={styles.ps__breadcrumbs__desktop}>
-            <Breadcrumbs items={breadcrumbItems} />
+            <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
           </div>
           <Link className={styles.ps__breadcrumbs__mobile} href="/settings">
             <img width="16" height="16" src="/icons/arrow-left-blue.svg" />

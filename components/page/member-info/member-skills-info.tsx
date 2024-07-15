@@ -26,8 +26,8 @@ interface MemberSkillsInfoProps {
 }
 
 function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions = [], errors = [] }: MemberSkillsInfoProps) {
-  const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>([]);
-  const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>([]);
+  const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>(initialValues?.teamsAndRoles ?? []);
+  const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>(initialValues?.skills ?? []);
 
   const getTeamRoleDefaultValue = (teamUid: string) => {
     const teamIndex = initialValues.teamsAndRoles.findIndex((v:any) => v.teamUid === teamUid);

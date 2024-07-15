@@ -469,7 +469,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
             height: fit-content;
             min-height: calc(100svh - 128px);
           }
-          @media (min-width: 1200px) {
+          @media (min-width: 1024px) {
             .ms {
               width: 656px;
               border: 1px solid #e2e8f0;

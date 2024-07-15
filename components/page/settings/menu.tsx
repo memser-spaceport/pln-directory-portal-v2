@@ -52,8 +52,9 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: Setti
        {(isAdmin || isTeamLead) &&   <div className="sm__group">
           <h3 className="sm__group__title">Admin Settings</h3>
           <div className="sm__group__list">
-            {(isTeamLead || isAdmin) &&
-              teamAdminSettings.map((pref) => (
+            
+            {isAdmin &&
+              appAdminSettings.map((pref) => (
                 <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
                   {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
                   {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
@@ -61,8 +62,8 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: Setti
                   <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
                 </div>
               ))}
-            {isAdmin &&
-              appAdminSettings.map((pref) => (
+              {(isTeamLead || isAdmin) &&
+              teamAdminSettings.map((pref) => (
                 <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
                   {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
                   {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}

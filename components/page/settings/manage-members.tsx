@@ -1,7 +1,7 @@
 'use client';
 import Tabs from '@/components/ui/tabs';
 import MemberBasicInfo from '../member-info/member-basic-info';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MemberSkillsInfo from '../member-info/member-skills-info';
 import MemberContributionInfo from '../member-info/member-contributions-info';
 import MemberSocialInfo from '../member-info/member-social-info';
@@ -17,6 +17,7 @@ import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } f
 import Modal from '@/components/core/modal';
 import { saveRegistrationImage } from '@/services/registration.service';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
+import useObserver from '@/hooks/useObserver';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
@@ -38,12 +39,22 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   };
   const router = useRouter();
   const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
+  useObserver({callback: onFormChange, observeItem: formRef})
+
 
   const onMemberChanged = (uid: string) => {
+    let proceed = true;
+    if(actionRef.current?.style.visibility === 'visible') {
+      proceed = confirm('There are unsaved changed. Do you wish to proceed?')
+    }
+    if(!proceed) {
+      return false;
+    }
     if (formRef.current) {
       formRef.current.reset();
       onResetForm();
     }
+    triggerLoader(true)
     router.push(`/settings/members?id=${uid}`, { scroll: false });
   };
 
@@ -119,6 +130,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           }
+          setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] })
           toast.success('Member updated successfully');
           router.refresh();
         }
@@ -223,7 +235,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
       errorDialogRef.current.showModal();
     }
   };
-  const onFormChange = async () => {
+  async function onFormChange(){
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
@@ -243,35 +255,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   };
 
   useEffect(() => {
-    // MutationObserver callback
-    const observerCallback = async (mutationsList: any) => {
-      for (let mutation of mutationsList) {
-        if (mutation.type === 'childList' || mutation.type === 'attributes') {
-          await onFormChange();
-        }
-      }
-    };
-
-    // Create a MutationObserver
-    const observer = new MutationObserver(observerCallback);
-
-    // Observe changes in the form
-    if (formRef.current) {
-      observer.observe(formRef.current, { childList: true, subtree: true, attributes: true });
-    }
-
-    // Cleanup function to disconnect the observer when the component unmounts
-    return () => {
-      if (observer) {
-        observer.disconnect();
-      }
-    };
-  }, [initialValues]);
-
-  useEffect(() => {
-    onFormChange()
-    .then(() => {})
-    .catch(() => {})
+    triggerLoader(false)
     getMemberInfoFormValues()
       .then((d) => {
         if (!d.isError) {
@@ -280,6 +264,11 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
       })
       .catch((e) => console.error(e));
   }, []);
+
+  useEffect(() => {
+    triggerLoader(false)
+  }, [initialValues])
+
   return (
     <>
       <form noValidate onInput={onFormChange} onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms">
@@ -535,7 +524,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             height: fit-content;
             min-height: calc(100svh - 128px);
           }
-          @media (min-width: 1200px) {
+          @media (min-width: 1024px) {
             .ms {
               width: 656px;
               border: 1px solid #e2e8f0;

@@ -97,7 +97,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                 )}
               </label>
               
-              <input id="team-info-basic-image" value={formImage} hidden name="imageFile"  />
+              <input readOnly id="team-info-basic-image" value={formImage} hidden name="imageFile"  />
               <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" /> 
             </div>
             <div className="teaminfo__form__item">

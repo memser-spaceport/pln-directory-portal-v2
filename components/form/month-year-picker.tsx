@@ -52,7 +52,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
   const disabled = !initialDate;
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
-
+  const currentMonth = initialMonthYear?.month  ? initialMonthYear?.month - 1 : 1;
 
 
   const onMonthSelected = (e: any, index: number) => {
@@ -95,7 +95,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
+ 
 
   return (
     <>
@@ -107,7 +107,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
             className={`month-year-field__dropdown month-dropdown ${disabled ? 'dropdown--disabled' : ''}`}
             onClick={() => !disabled && setMonthDpStatus((v) => !v)}
           >
-            {!disabled && <p className="month-year-field__dropdown-text">{monthNames[initialMonthYear?.month ?? 1 - 1]}</p>}
+            {!disabled && <p className="month-year-field__dropdown-text">{monthNames[currentMonth]}</p>}
             {disabled && <p className="month-year-field__dropdown-text">Month</p>}
             {!disabled && <img className="month-year-field__dropdown-icon" src="/icons/arrow-down.svg" alt="expand icon" />}
             {isMonthDpActive && !disabled && (
@@ -115,7 +115,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
                 {monthNames.map((monthName, index) => (
                   <div
                     key={`month-${index}`}
-                    className={`month-year-field__dropdown-item dropdown-item ${initialMonthYear?.month ?? 1 - 1 === index ? 'active' : ''}`}
+                    className={`month-year-field__dropdown-item dropdown-item ${currentMonth === index ? 'active' : ''}`}
                     onClick={(e) => onMonthSelected(e, index + 1)}
                   >
                     <p>{monthName}</p>

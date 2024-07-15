@@ -84,7 +84,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 </span>
               )}
             </label>
-            <input type='text' value={formImage} id="member-info-basic-image" hidden name="imageFile" />
+            <input type='text' readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
             <input onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
             <div className="memberinfo__form__item">
               <TextField

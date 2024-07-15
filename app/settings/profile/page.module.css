@@ -52,7 +52,7 @@
   width: 100%;
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1024px) {
   .ps__main__aside {
     display: block;
   }

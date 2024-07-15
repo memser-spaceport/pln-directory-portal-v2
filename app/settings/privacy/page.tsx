@@ -30,16 +30,17 @@ async function PrivacyPage() {
 
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'Settings', url: '/settings' },
+    { text: 'Members', url: '/members' },
+    { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
     { text: 'Privacy', url: '/settings/privacy' },
-  ];
+  ]
 
   return (
     <>
       <div className={styles.privacy}>
         <div className={styles.privacy__breadcrumbs}>
           <div className={styles.privacy__breadcrumbs__desktop}>
-            <Breadcrumbs items={breadcrumbItems} />
+            <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
           </div>
           <Link className={styles.privacy__breadcrumbs__mobile} href="/settings">
             <img width="16" height="16" src="/icons/arrow-left-blue.svg" />

@@ -9,7 +9,7 @@ interface BreadcrumbItem {
 
 interface BreadcrumbProps {
   items: BreadcrumbItem[];
-  LinkComponent?: React.ComponentType<{ href: string; children: ReactNode }>;
+  LinkComponent?: any;
 }
 
 const Breadcrumbs: React.FC<BreadcrumbProps> = ({ items, LinkComponent }) => {
@@ -22,10 +22,10 @@ const Breadcrumbs: React.FC<BreadcrumbProps> = ({ items, LinkComponent }) => {
               {index < items.length - 1 ? (
                 LinkComponent ? (
                   <LinkComponent href={item.url}>
-                    <a>
+                    <>
                       {item.icon && <img src={item.icon} alt="" style={{ marginRight: '5px' }} />}
                       {item.text ? item.text : ''}
-                    </a>
+                    </>
                   </LinkComponent>
                 ) : (
                   <a href={item.url}>

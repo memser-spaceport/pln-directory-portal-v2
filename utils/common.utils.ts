@@ -55,7 +55,7 @@ export const getUniqueId = () => {
   return dateString + randomness;
 };
 
-export const getParsedValue = (value: string) => {
+export const getParsedValue = (value: string | undefined) => {
   try {
     if (value) {
       return JSON.parse(value);

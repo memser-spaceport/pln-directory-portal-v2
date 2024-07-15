@@ -107,8 +107,6 @@ export default function ProjectContributorsInfo(props: any) {
     onClose();
   };
 
-
-
   return (
     <>
       <div className="projectContributorsc">
@@ -171,7 +169,7 @@ export default function ProjectContributorsInfo(props: any) {
                       className="projectContributorsc__teams__selectedTeams__teamc__namec__profile"
                       height={20}
                       width={20}
-                      src={selectedMaintainingTeam?.logo ? selectedMaintainingTeam.logo : '/icons/team-default-profile.svg'}
+                      src={team?.logo ? team.logo : '/icons/team-default-profile.svg'}
                     />
                     <div className="projectContributorsc__teams__selectedTeams__teamc__namec__name">{team.name}</div>
                   </div>

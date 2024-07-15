@@ -48,7 +48,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
         </button>
         <button className="teams__mTeam" onClick={() => onMaintainerTeamClick(maintainingTeam)}>
           <div className="teams__mTeam__info">
-            <img height={40} width={40} className="teams__mTeam__info__logo" src={maintainingTeam?.logo || '/icons/team-default-profile.svg'} alt="team image" />
+            <img height={40} width={40} className="teams__mTeam__info__logo" src={maintainingTeam?.logo?.url || '/icons/team-default-profile.svg'} alt="team image" />
             <div title="Maintainer" className="teams__mTeam__info__name">
               {maintainingTeam?.name}
             </div>

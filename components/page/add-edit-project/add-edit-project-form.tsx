@@ -127,7 +127,7 @@ export default function AddEditProjectForm(props: any) {
         const imgResponse = await saveRegistrationImage(formattedData?.projectProfile);
         const image = imgResponse?.image;
         formattedData.logoUid = image.uid;
-      } else {
+      } else if (!formattedData?.logoUid) {
         formattedData.logoUid = null;
       }
 

@@ -18,11 +18,11 @@ export default async function EditProject({ params }: any) {
     <Error />;
   }
   return (
-    <div className={styles?.addProject}>
-      <div className={styles.addProject__breadcrumb}>
-        <BreadCrumb backLink="/projects" directoryName="project" pageName="Add Project" />
+    <div className={styles?.editProject}>
+      <div className={styles.editProject__breadcrumb}>
+        <BreadCrumb backLink="/projects" directoryName="project" pageName="Edit Project" />
       </div>
-      <div>
+        <div className={styles.editProject__cnt}>
         <AddEditProjectContainer project={project} type="Edit" />
       </div>
     </div>

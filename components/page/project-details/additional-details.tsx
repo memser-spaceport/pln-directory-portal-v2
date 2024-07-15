@@ -1,14 +1,13 @@
 'use client';
 
-import Cookies from 'js-cookie';
-import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import 'md-editor-rt/lib/style.css';
-import { IAnalyticsUserInfo, IUserInfo } from '@/types/shared.types';
-import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { updateProject } from '@/services/projects.service';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
+import { updateProject } from '@/services/projects.service';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import 'md-editor-rt/lib/style.css';
+import dynamic from 'next/dynamic';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
 
 const MdEditor = dynamic(() => import('md-editor-rt').then((mod) => mod.MdEditor));
 const MdPreview = dynamic(() => import('md-editor-rt').then((mod) => mod.MdPreview));
@@ -63,8 +62,8 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
       const res = await updateProject(project?.uid, { readMe: text }, authToken);
       if (res.status === 200 || res.status === 201) {
         triggerLoader(false);
-        analytics.onProjectDetailReadMeEditSuccess(getAnalyticsUserInfo(userInfo), project?.id);
         toast.success('Additional Details updated successfully.');
+        analytics.onProjectDetailReadMeEditSuccess(getAnalyticsUserInfo(userInfo), project?.id);
       }
     } catch (er) {
       triggerLoader(false);

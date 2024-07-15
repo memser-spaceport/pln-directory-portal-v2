@@ -63,8 +63,9 @@ const FocusArea = (props: IFocusArea) => {
                 setIsExpand(!isExpand);
               }}
               type="submit"
+              className='fa__cn__item__toggleBtn'
             >
-              {focusArea?.children.length > 0 && <img alt="expand" src={`${isExpand ? '/icons/arrow-down-blue.svg' : '/icons/arrow-right.svg'}`} />}
+              {focusArea?.children.length > 0 && <img alt="expand" src={`${isExpand ? '/icons/down_arrow_blue.svg' : '/icons/right_arrow_blue.svg'}`} />}
             </button>
 
             <div className="fa__cn__item__title">
@@ -143,6 +144,11 @@ const FocusArea = (props: IFocusArea) => {
             align-items: center;
             justify-content: center;
             border-radius: 4px;
+            background:transparent;
+          }
+
+          .fa__cn__item__toggleBtn {
+            background:transparent;
           }
           .fa__cn__item__btn--parent {
             background: #156ff7;

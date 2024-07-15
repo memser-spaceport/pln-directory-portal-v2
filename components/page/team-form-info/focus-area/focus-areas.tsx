@@ -193,6 +193,7 @@ const FocusAreas = (props: IFocusAreas) => {
              font-size: 14px;
              font-weight: 500;
              color: #0F172A;
+             background:transparent;
              }
               .fas__cn__action__items__save {
              display: flex;

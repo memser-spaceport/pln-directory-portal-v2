@@ -12,7 +12,7 @@ interface ToggleProps {
 }
 
 const FormToggle: React.FC<ToggleProps> = ({ id, label, name, disabled = false, onChange, checked = false }) => {
-  const handleToggle = (e) => {
+  const handleToggle = (e: any) => {
     if (onChange) {
       onChange(!checked);
     }

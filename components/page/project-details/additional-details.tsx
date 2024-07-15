@@ -34,12 +34,11 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
 
   const [isEditorVisible, setIsEditorVisible] = useState(false);
   const [text, setText] = useState(initialReadme);
-  
 
   function getIsTeamOfTheProject() {
     try {
       if (userInfo?.leadingTeams) {
-        return userInfo?.leadingTeams?.includes(project.maintainingTeam?.uid)
+        return userInfo?.leadingTeams?.includes(project.maintainingTeam?.uid);
       }
       return false;
     } catch (e) {
@@ -120,6 +119,9 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
         )}
       </div>
       <style jsx>{`
+        button {
+          background-color: inherit;
+        }
         .addDetails {
           display: flex;
           flex-direction: column;

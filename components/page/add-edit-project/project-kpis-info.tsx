@@ -6,7 +6,9 @@ export default function ProjectKpisInfo(props: any) {
   const project = props?.project;
   const errors = props?.errors;
 
-  const [projectKpis, setProjectKpis] = useState(project?.kpis);
+  const kpis = props?.kpis?.length > 0 ? props?.kpis : [{ key: '', value: '' }];
+
+  const [projectKpis, setProjectKpis] = useState(kpis);
 
   const onKpiKeyChange = (index: number, value: string) => {
     setProjectKpis((old: any) => {

@@ -14,7 +14,9 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
   const errors = props.errors;
   const project = props.project;
   const uploadImageRef = useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string>(project?.logo);
+  const [profileImage, setProfileImage] = useState<string>(project?.logo)
+
+  const links = project?.projectLinks > 0 ? project?.projectLinks : [{ text: '', url: '' }]
 
   const [projectLinks, setProjectLinks] = useState(project?.projectLinks);
 

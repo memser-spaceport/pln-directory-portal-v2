@@ -31,6 +31,7 @@ const IrlMain = (props: any) => {
   const goingRef = useRef<HTMLDialogElement>(null);
 
   const onCloseGoingModal = () => {
+    setIsOpen(false);
     if (goingRef.current) {
       goingRef.current.close();
     }
@@ -67,6 +68,7 @@ const IrlMain = (props: any) => {
       const isOpen = e.detail.isOpen;
       const isOHFocused = e.detail?.isOHFocused ?? false;
       if (goingRef.current && isOpen) {
+        setIsOpen(true);
         goingRef.current.showModal();
       }
       setFocusOHField(isOHFocused);
@@ -98,18 +100,29 @@ const IrlMain = (props: any) => {
           </div>
           <div className={`irl__table  ${isUserLoggedIn ? 'table__login' : 'table__not-login'} `}>
             <TableHeader userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} eventDetails={updatedEventDetails} filteredList={filteredList} sortConfig={sortConfig} />
-            <div className={`relative -mt-[4px] ${isUserLoggedIn ? 'w-fit' : 'w-full'} lg-rounded-[8px] bg-white shadow-sm lg:w-[calc(100%_-_2px)]`}>
+            <div className={`irl__table__body  ${isUserLoggedIn ? 'w-fit' : 'w-full'}`}>
               {isUserLoggedIn && <GuestList userInfo={userInfo} items={filteredList} eventDetails={updatedEventDetails} showTelegram={showTelegram} />}
               {!isUserLoggedIn && <EmptyList onLogin={onLogin} items={filteredList} eventDetails={updatedEventDetails} />}
             </div>
           </div>
         </>
       )}
-      {
-        <Modal modalRef={goingRef} onClose={onCloseGoingModal}>
-          <GoingDetail isUserGoing={isUserGoing} registeredGuest={updatedUser} eventDetails={eventDetails} onClose={onCloseGoingModal} focusOHField={focusOHField} showTelegram={showTelegram}/>
-        </Modal>
-      }
+      <Modal modalRef={goingRef} onClose={onCloseGoingModal}>
+        {isOpen ? (
+          <GoingDetail
+            teams={teams}
+            isUserGoing={isUserGoing}
+            registeredGuest={updatedUser}
+            eventDetails={eventDetails}
+            onClose={onCloseGoingModal}
+            focusOHField={focusOHField}
+            showTelegram={showTelegram}
+          />
+        ) : (
+          <></>
+        )}
+      </Modal>
+
       <style jsx>
         {`
           .irl__joinEvntstrp {
@@ -132,12 +145,27 @@ const IrlMain = (props: any) => {
             width: calc(100% - 2px);
           }
 
+          .irl__table__body {
+            background-color: white;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            position: relative;
+            margin-top: -4px;
+          }
+
           .table__login {
             height: calc(100svh - 205px);
           }
 
           .table__not-login {
             height: calc(100svh - 236px);
+          }
+
+          .w-full {
+            width: 100%;
+          }
+
+          .w-fit {
+            width: fit-content;
           }
 
           @media (min-width: 1024px) {
@@ -147,6 +175,11 @@ const IrlMain = (props: any) => {
 
             .irl__table {
               overflow-x: hidden;
+            }
+
+            .irl__table__body {
+              border-radius: 8px;
+              width: calc(100% - 2px);
             }
 
             .table__login {

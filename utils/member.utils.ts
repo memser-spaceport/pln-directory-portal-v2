@@ -370,7 +370,6 @@ export function apiObjsToMemberObj(obj: any) {
 }
 
 export function formInputsToMemberObj(obj: any) {
-  console.log(obj);
   const result: any = {};
   const teamAndRoles: any = {};
   const projectContributions: any = {};

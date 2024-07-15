@@ -13,7 +13,7 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { addProject, updateProject } from '@/services/projects.service';
 import { useRouter } from 'next/navigation';
-import { triggerLoader } from '@/utils/common.utils';
+import { getParsedValue, triggerLoader } from '@/utils/common.utils';
 
 export default function AddEditProjectForm(props: any) {
   const addFormRef = useRef(null);
@@ -130,7 +130,7 @@ export default function AddEditProjectForm(props: any) {
         formattedData.logoUid = null;
       }
 
-      const authToken = Cookies.get('authToken');
+      const authToken = getParsedValue(Cookies.get('authToken'));
 
       if (!authToken) {
         toast.success(TOAST_MESSAGES.LOGOUT_MSG);

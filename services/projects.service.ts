@@ -55,7 +55,6 @@ const getFormattedProject = (project: any) => {
     try {
         const formattedProject: any = {};
         if (project) {
-
             formattedProject['id'] = project.uid ?? '';
             formattedProject['name'] = project.name ?? '';
             formattedProject['tagline'] = project.tagline ?? '';

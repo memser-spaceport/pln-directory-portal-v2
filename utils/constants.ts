@@ -341,3 +341,5 @@ export const INVITE_ONLY_RESTRICTION_ERRORS = {
 export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
 };
+
+export const OH_GUIDELINE_URL ='';

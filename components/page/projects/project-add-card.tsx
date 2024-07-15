@@ -16,7 +16,6 @@ const ProjectAddCard = (props: any) => {
 
   //method
   const onAddClick = () => {
-    triggerLoader(true);
     analytics.onProjectAddClicked(getAnalyticsUserInfo(userInfo), { from: 'list' });
   };
 
@@ -33,7 +32,7 @@ const ProjectAddCard = (props: any) => {
         {`
           .projectcard {
             margin-bottom: 8px;
-            width: 289px;
+            width: 167px;
             background-color: #fff;
             border-radius: 12px;
             border: 1px #156ff7;
@@ -44,7 +43,7 @@ const ProjectAddCard = (props: any) => {
             justify-content: center;
             flex-direction: column;
             padding: 24px;
-            height: 285px;
+            height: 166px;
           }
 
           .projectcard--list {
@@ -68,6 +67,13 @@ const ProjectAddCard = (props: any) => {
             font-size: 14px;
             line-height: 20px;
             color: #64748b;
+          }
+
+          @media(min-width: 1024px) {
+          
+          .projectcard {
+            height: 285px;
+            width: 289px;}
           }
         `}
       </style>

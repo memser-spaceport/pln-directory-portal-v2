@@ -151,7 +151,7 @@ export const getUniqueFilterValues = (uniqueValues: string[], newValues?: string
   return [...new Set([...uniqueValues, ...(newValues || [])])];
 };
 
-export const getHeader = (authToken: string) => {
+export const getHeader = (authToken: string | undefined) => {
   const headers = new Headers();
   headers.append("Content-Type", "application/json");
   if (authToken) {

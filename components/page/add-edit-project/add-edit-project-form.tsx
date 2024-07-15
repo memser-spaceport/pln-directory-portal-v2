@@ -17,15 +17,15 @@ import { triggerLoader } from '@/utils/common.utils';
 
 export default function AddEditProjectForm(props: any) {
   const addFormRef = useRef(null);
+  const userInfo = props.userInfo;
   const initialValue = {
     name: '',
     tagline: '',
     description: '',
     lookingForFunding: false,
-    readMe:
-      '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n',
+    readMe: '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n',
     maintainingTeamUid: '',
-    contactEmail: '',
+    contactEmail: userInfo?.email ?? null,
     kpis: [{ key: '', value: '' }],
     logoUid: '',
     projectLinks: [{ text: '', url: '' }],
@@ -127,7 +127,7 @@ export default function AddEditProjectForm(props: any) {
         const image = imgResponse?.image;
         formattedData.logoUid = image.uid;
       } else {
-        formattedData.logoUid = '';
+        formattedData.logoUid = null;
       }
 
       const authToken = Cookies.get('authToken');
@@ -215,7 +215,6 @@ export default function AddEditProjectForm(props: any) {
           }
         }
       } else if (key.startsWith('contributions')) {
-        // name={`contributions${index}-memberUid`}s
         const [teamContributions, subKey] = key.split('-');
         const contributionsIndexMatch = teamContributions.match(/\d+$/);
         if (contributionsIndexMatch) {
@@ -254,6 +253,7 @@ export default function AddEditProjectForm(props: any) {
 
     result.contributingTeams = Object.values(contributingTeams);
     result.contributions = Object.values(contributions);
+    result.focusAreas = [];
     return result;
   }
 

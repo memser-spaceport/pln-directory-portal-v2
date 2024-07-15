@@ -107,6 +107,8 @@ export default function ProjectContributorsInfo(props: any) {
     onClose();
   };
 
+
+
   return (
     <>
       <div className="projectContributorsc">
@@ -218,6 +220,8 @@ export default function ProjectContributorsInfo(props: any) {
                   <div key={`${contributor} + ${index}`}>
                     <img className="projectContributorsc__contributors__sContributors__profile" height={32} width={32} src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} />
                     <HiddenField value={contributor?.uid} defaultValue={contributor?.uid} name={`contributions${index}-memberUid`} />
+                    <HiddenField value={contributor?.cuid} defaultValue={contributor?.cuid} name={`contributions${index}-uid`} />
+
                   </div>
                 ))}
               </div>

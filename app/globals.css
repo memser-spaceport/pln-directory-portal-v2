@@ -140,3 +140,8 @@ dialog {
 ::-webkit-scrollbar-thumb:hover {
   background: #cbd5e1;
 }
+
+
+#md-editor-rt-preview {
+  word-break: break-word;
+}

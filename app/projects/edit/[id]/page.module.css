@@ -1,4 +1,4 @@
-.addProject__breadcrumb {
+.editProject__breadcrumb {
     /* display: none; */
     height: 48px;
     border-bottom: 1px solid #e2e8f0;
@@ -9,12 +9,17 @@
     background-color: #fff;
   }
   
-  .addProject {
+  .editProject {
     background-color:  #F1F5F9;
+  }
+
+  .editProject__cnt {
+    display: flex;
+    justify-content: center;
   }
   
   @media (min-width: 1024px) {
-    .addProject__breadcrumb {
+    .editProject__breadcrumb {
       display: unset;
       height: 48px;
       display: flex;

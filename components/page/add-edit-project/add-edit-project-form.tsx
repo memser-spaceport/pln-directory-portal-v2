@@ -23,7 +23,8 @@ export default function AddEditProjectForm(props: any) {
     tagline: '',
     description: '',
     lookingForFunding: false,
-    readMe: '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n',
+    readMe:
+      '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n',
     maintainingTeamUid: '',
     contactEmail: userInfo?.email ?? null,
     kpis: [{ key: '', value: '' }],
@@ -159,7 +160,7 @@ export default function AddEditProjectForm(props: any) {
           return;
         }
         triggerLoader(false);
-        toast.info("Project updated successfully.");
+        toast.info('Project updated successfully.');
         router.push(`/projects/${project?.id}`);
       }
     } catch (error) {

@@ -32,8 +32,7 @@ const SortByDropdown = (props: any) => {
       <style jsx>
         {`
           .dropdown {
-            position: relative;
-            width: 140px;
+            position: relative;            
           }
 
           .dropdown__option__container__option {
@@ -62,13 +61,12 @@ const SortByDropdown = (props: any) => {
           .dropdown__options {
             position: absolute;
             top: 45px;
-            right: 0px;
-            width: inherit;
+            left: 0;
+            width: 160px;
             display: flex;
             padding: 8px;
             flex-direction: column;
             border-radius: 8px;
-            width: 100%;
             box-shadow: 0px 2px 6px 0px rgba(15, 23, 42, 0.16);
             background: #fff;
           }
@@ -80,7 +78,6 @@ const SortByDropdown = (props: any) => {
             align-items: center;
             gap: 8px;
             width: 100%;
-            justify-content: space-between;
             border-radius: 8px;
             background: #fff;
             border: none;

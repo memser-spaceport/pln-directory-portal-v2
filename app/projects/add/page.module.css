@@ -13,6 +13,11 @@
   background-color:  #F1F5F9;
 }
 
+.addProject__cnt {
+  display: flex;
+  justify-content: center;
+}
+
 @media (min-width: 1024px) {
   .addProject__breadcrumb {
     display: unset;

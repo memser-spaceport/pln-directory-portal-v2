@@ -228,7 +228,7 @@ export default function ContributorsPopup(props: any) {
           }
           .cpc {
             height: 80vh;
-            width: 50vw;
+            width: 80vw;
             display: flex;
             padding: 24px 10px 24px 24px;
             flex-direction: column;

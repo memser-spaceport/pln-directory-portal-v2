@@ -45,7 +45,6 @@ const Header = (props: IHeader) => {
   };
 
   const onEditProject = () => {
-    triggerLoader(true);
     analytics.onProjectDetailEditClicked(getAnalyticsUserInfo(user), id);
     router.push(`/projects/edit/${id}`);
   };
@@ -199,7 +198,7 @@ const Header = (props: IHeader) => {
         .header__tags {
           grid-row: span 1 / span 1;
           grid-column: span 5 / span 5;
-          padding-top: 24px;
+          padding-top: ${lookingForFunding ? '24px' : '0px'};
           border-top: 1px solid #e2e8f0;
         }
 

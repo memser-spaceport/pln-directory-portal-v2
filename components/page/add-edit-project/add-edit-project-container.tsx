@@ -7,7 +7,7 @@ import { FormStepIndicatorWeb } from './form-step-indicator-web';
 
 export default function AddEditProjectContainer(props: any) {
   const project = props?.project;
-  const type = props?.type; 
+  const type = props?.type;
 
   return (
     <>
@@ -27,8 +27,8 @@ export default function AddEditProjectContainer(props: any) {
 
       <style jsx>
         {`
-        
           .addEditPc {
+            width: 100%;
           }
 
           .addEditPc__webInd {
@@ -40,6 +40,7 @@ export default function AddEditProjectContainer(props: any) {
               display: flex;
               gap: 24px;
               padding: 24px;
+              width: unset;
             }
 
             .addEditPc__mobInd {
@@ -49,14 +50,13 @@ export default function AddEditProjectContainer(props: any) {
             .addEditPc__webInd {
               display: unset;
               width: 296px;
-              border: 1px solid #CBD5E1;
+              border: 1px solid #cbd5e1;
               border-radius: 8px;
               height: fit-content;
               background-color: white;
               padding: 24px 20px 29px 20px;
               position: sticky;
               top: 140px;
-
             }
           }
         `}

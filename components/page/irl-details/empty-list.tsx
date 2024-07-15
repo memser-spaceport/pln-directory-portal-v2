@@ -1,8 +1,15 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { IGuest, IIrlTeam } from '@/types/irl.types';
 import { getAnalyticsEventInfo } from '@/utils/common.utils';
 import Link from 'next/link';
 
-const EmptyList = (props: any) => {
+interface IEmptyList {
+  onLogin: () => void;
+  items: IGuest[];
+  eventDetails: any;
+}
+
+const EmptyList = (props: IEmptyList) => {
   const items = props?.items ?? [];
   const onLogin = props.onLogin;
   const eventDetails = props?.eventDetails;
@@ -23,7 +30,7 @@ const EmptyList = (props: any) => {
   return (
     <>
       <div className="empList">
-        {items.map((item: any, itemIndex: number) => (
+        {items.map((item: IGuest, itemIndex: number) => (
           <div key={`${itemIndex}-event-list`} className="empList__item">
             <div className="empList__item__team">
               <Link passHref legacyBehavior href={`/teams/${item.teamUid}`}>

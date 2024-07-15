@@ -4,8 +4,19 @@ import { useEffect, useState } from 'react';
 import Search from './search';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { IUserInfo } from '@/types/shared.types';
+import { IGuest } from '@/types/irl.types';
 
-const Toolbar = (props: any) => {
+interface IToolbar {
+  onLogin: () => void;
+  userInfo: IUserInfo;
+  isUserGoing: boolean;
+  filteredList: IGuest[];
+  isUserLoggedIn: boolean;
+  eventDetails: any;
+}
+
+const Toolbar = (props: IToolbar) => {
   const eventDetails = props?.eventDetails;
   const onLogin = props.onLogin;
   const userInfo = props?.userInfo;
@@ -43,7 +54,7 @@ const Toolbar = (props: any) => {
     );
   };
 
-  const getValue = (event: any) => {
+  const getValue = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event?.target?.value;
     setSearchTerm(searchValue);
     document.dispatchEvent(

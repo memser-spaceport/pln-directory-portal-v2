@@ -1,6 +1,15 @@
+import { IUserInfo } from '@/types/shared.types';
 import GuestTableRow from './guest-table-row';
+import { IGuest } from '@/types/irl.types';
 
-const GuestList = (props: any) => {
+interface IGuestList {
+  userInfo: IUserInfo;
+  eventDetails: any;
+  showTelegram: boolean;
+  items: IGuest[];
+}
+
+const GuestList = (props: IGuestList) => {
   const userInfo = props?.userInfo;
   const eventDetails = props?.eventDetails;
   const isExclusionEvent = eventDetails?.isExclusionEvent;
@@ -11,7 +20,7 @@ const GuestList = (props: any) => {
     <>
       <div className="guestList">
         {filteredList?.length > 0 &&
-          filteredList?.map((guest: any, index: number) => {
+          filteredList?.map((guest: IGuest, index: number) => {
             return (
               <div className={`${filteredList.length - 1 !== index ? 'divider' : ''}`} key={`guest-${index}`}>
                 <GuestTableRow eventDetails={eventDetails} guest={guest} userInfo={userInfo} isExclusionEvent={isExclusionEvent} showTelegram={showTelegram} />
@@ -25,7 +34,7 @@ const GuestList = (props: any) => {
           .guestList {
             display: flex;
             flex-direction: column;
-            background:#fff;
+            background: #fff;
           }
 
           .guestList__empty {

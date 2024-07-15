@@ -82,6 +82,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_DRAWER_BTN_CLICKED: 'navbar-drawer-btn-clicked',
   FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked',
   SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: 'session-expired-popup-login-btn-clicked',
+  GO_TO_TOP_BTN_CLICKED:"go-to-top-btn-clicked",
 };
 
 export const PROJECT_ANALYTICS_EVENTS = {

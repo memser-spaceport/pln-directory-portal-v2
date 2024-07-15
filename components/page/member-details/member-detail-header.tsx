@@ -8,6 +8,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
 import { parseMemberLocation } from '@/utils/member.utils';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useEffect } from 'react';
 
@@ -79,7 +80,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
                         <>
                           {otherTeams?.map((team: any, index: number) => (
                             <div key={`${team} + ${index}`}>
-                              {team}{index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
+                              {team}
+                              {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
                             </div>
                           ))}
                         </>
@@ -103,10 +105,12 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
               <img loading="lazy" src="/icons/notification.svg" alt="notification icon" />
             </button> */}
             {(isAdmin || isOwner) && (
-              <a href={`${PAGE_ROUTES.SETTINGS}`} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
-                <img loading="lazy" alt="Edit profile" src="/icons/edit.svg" />
-                Edit Profile
-              </a>
+              <Link legacyBehavior passHref href={`${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}`}>
+                <a href={`${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}`} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
+                  <img loading="lazy" alt="Edit profile" src="/icons/edit.svg" />
+                  Edit Profile
+                </a>
+              </Link>
             )}
           </div>
         </div>

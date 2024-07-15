@@ -12,8 +12,9 @@ import Resources from '@/components/page/irl-details/resources';
 import HeaderStrip from '@/components/page/irl-details/header-strip';
 import IrlMain from '@/components/page/irl-details/irl-main';
 import ScrollToTop from '@/components/page/irl-details/scroll-to-top';
+import { Metadata, ResolvingMetadata } from 'next';
 
-export default async function IrlDetails({ params }: { params: any }) {
+export default async function IrlDetails({ params }: { params: { id: string } }) {
   const eventId = params?.id;
 
   const { isError, eventDetails, isLoggedIn, userInfo, isUserGoing, teams, showTelegram } = await getPageData(eventId);
@@ -43,7 +44,7 @@ export default async function IrlDetails({ params }: { params: any }) {
         )}
         <IrlMain eventDetails={eventDetails} userInfo={userInfo} isUserGoing={isUserGoing} isUserLoggedIn={isLoggedIn} teams={teams} showTelegram={showTelegram} />
         <div>
-          <ScrollToTop pageName="Irl Detail" />
+          <ScrollToTop userInfo={userInfo} pageName="Irl Detail" />
         </div>
       </div>
     </div>
@@ -56,63 +57,70 @@ const getPageData = async (eventId: string) => {
   let teams = [];
   let showTelegram = true;
   let isError: boolean = false;
-  const eventDetails = await getEventDetailBySlug(eventId, authToken);
-  const resources = eventDetails?.resources ?? [];
-  const publicResources = splitResources(resources)?.publicResources;
-  const totalResources = isLoggedIn ? [...resources] : [...publicResources];
-  eventDetails.resources = totalResources;
+  let eventDetails;
+  let isUserGoing: boolean = false;
 
-  if (eventDetails.isError) {
+  try {
+    eventDetails = await getEventDetailBySlug(eventId, authToken);
+    const resources = eventDetails?.resources ?? [];
+    const publicResources = splitResources(resources)?.publicResources;
+    const totalResources = isLoggedIn ? [...resources] : [...publicResources];
+    eventDetails.resources = totalResources;
+
+    if (eventDetails.isError) {
+      return { isError: true };
+    }
+
+    const type = eventDetails?.type;
+    const sortedList = sortByDefault(eventDetails?.guests);
+    eventDetails.guests = sortedList;
+
+    //has current user is going for an event
+    isUserGoing = sortedList?.some((guest) => guest.memberUid === userInfo?.uid && guest?.memberUid);
+
+    if (type === 'INVITE_ONLY' && !isLoggedIn) {
+      return {
+        redirect: {
+          permanent: true,
+          destination: '/irl',
+        },
+      };
+    }
+
+    if (type === 'INVITE_ONLY' && isLoggedIn && !userInfo?.roles?.includes(ADMIN_ROLE) && !isUserGoing) {
+      return {
+        redirect: {
+          permanent: true,
+          destination: '/irl',
+        },
+      };
+    }
+
+    if (isUserGoing) {
+      const currentUser = [...sortedList]?.find((v) => v.memberUid === userInfo?.uid);
+      if (currentUser) {
+        const filteredList = [...sortedList].filter((v) => v.memberUid !== userInfo?.uid);
+        const formattedGuests = [currentUser, ...filteredList];
+        eventDetails.guests = formattedGuests;
+      }
+    }
+
+    if (isLoggedIn) {
+      const { uid } = userInfo;
+      const [memberResponse, memberPreferencesResponse] = await Promise.all([
+        getMember(uid, {
+          with: 'teamMemberRoles.team',
+        }),
+        getMemberPreferences(uid, authToken),
+      ]);
+      if (memberResponse.error || memberPreferencesResponse.isError) {
+        isError = true;
+      }
+      teams = memberResponse?.data?.formattedData.teams;
+      showTelegram = memberPreferencesResponse.memberPreferences?.telegram ?? true;
+    }
+  } catch {
     return { isError: true };
-  }
-
-  const type = eventDetails?.type;
-  const sortedList = sortByDefault(eventDetails?.guests);
-  eventDetails.guests = sortedList;
-
-  //has current user is going for an event
-  const isUserGoing = sortedList?.some((guest) => guest.memberUid === userInfo?.uid && guest?.memberUid);
-
-  if (type === 'INVITE_ONLY' && !isLoggedIn) {
-    return {
-      redirect: {
-        permanent: true,
-        destination: '/irl',
-      },
-    };
-  }
-
-  if (type === 'INVITE_ONLY' && isLoggedIn && !userInfo?.roles?.includes(ADMIN_ROLE) && !isUserGoing) {
-    return {
-      redirect: {
-        permanent: true,
-        destination: '/irl',
-      },
-    };
-  }
-
-  if (isUserGoing) {
-    const currentUser = [...sortedList]?.find((v) => v.memberUid === userInfo?.uid);
-    if (currentUser) {
-      const filteredList = [...sortedList].filter((v) => v.memberUid !== userInfo?.uid);
-      const formattedGuests = [currentUser, ...filteredList];
-      eventDetails.guests = formattedGuests;
-    }
-  }
-
-  if (isLoggedIn) {
-    const { uid } = userInfo;
-    const [memberResponse, memberPreferencesResponse] = await Promise.all([
-      getMember(uid, {
-        with: 'teamMemberRoles.team',
-      }),
-      getMemberPreferences(uid, authToken),
-    ]);
-    if (memberResponse.error || memberPreferencesResponse.isError) {
-      isError = true;
-    }
-    teams = memberResponse?.data?.formattedData.teams;
-    showTelegram = memberPreferencesResponse.memberPreferences?.telegram ?? true;
   }
 
   return { isError, userInfo, isLoggedIn, teams, eventDetails, isUserGoing, showTelegram };
@@ -123,7 +131,7 @@ interface IGenerateMetadata {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: any): Promise<any> {
+export async function generateMetadata({ params }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
   const eventId = params?.id;
   const eventDetailResponse = await await getEventDetailBySlug(eventId, '');
   if (eventDetailResponse?.isError) {

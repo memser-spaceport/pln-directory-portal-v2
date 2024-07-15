@@ -10,22 +10,39 @@ import GuestList from './guest-list';
 import EmptyList from './empty-list';
 import Modal from '@/components/core/modal';
 import GoingDetail from './going-detail';
+import Cookies from 'js-cookie';
+import { TOAST_MESSAGES } from '@/utils/constants';
+import { toast } from 'react-toastify';
+import { IUserInfo } from '@/types/shared.types';
+import { useRouter } from 'next/navigation';
+import { IGuest, IIrlTeam } from '@/types/irl.types';
 
-const IrlMain = (props: any) => {
+interface IIrlMain {
+  isUserLoggedIn: boolean;
+  showTelegram: boolean | undefined;
+  teams: IIrlTeam[];
+  userInfo: IUserInfo;
+  isUserGoing: boolean | undefined;
+  eventDetails: any;
+}
+
+const IrlMain = (props: IIrlMain) => {
   const eventDetails = props?.eventDetails;
-  const onLogin = props?.onLogin;
   const userInfo = props?.userInfo;
   const teams = props?.teams;
   const isUserLoggedIn = props?.isUserLoggedIn;
-  const showTelegram = props?.showTelegram;
+  const showTelegram = props?.showTelegram as boolean;
+
+  console.log('teams', teams);
+
   // const telegram = eventDetails?.telegram;
   // const resources = eventDetails?.resources ?? [];
-  const registeredGuest = eventDetails.guests.find((guest: any) => guest?.memberUid === userInfo?.uid);
+  const registeredGuest = eventDetails.guests.find((guest: IGuest) => guest?.memberUid === userInfo?.uid);
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
   const [isOpen, setIsOpen] = useState(false);
   const [updatedUser, setUpdatedUser] = useState(registeredGuest);
-  const [isUserGoing, setIsGoing] = useState(props?.isUserGoing);
+  const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const [focusOHField, setFocusOHField] = useState(false);
   const { filteredList, sortConfig } = useIrlDetails(updatedEventDetails.guests, userInfo);
   const goingRef = useRef<HTMLDialogElement>(null);
@@ -36,12 +53,22 @@ const IrlMain = (props: any) => {
       goingRef.current.close();
     }
   };
+  const router = useRouter();
+
+  const onLogin = () => {
+    if (Cookies.get('refreshToken')) {
+      toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
+      window.location.reload();
+    } else {
+      router.push(`${window.location.pathname}${window.location.search}#login`);
+    }
+  };
 
   //update event details when form submit
   useEffect(() => {
     const handler = (e: any) => {
       const eventInfo = e.detail?.eventDetails;
-      const goingGuest = eventInfo?.guests.find((guest: any) => guest.memberUid === userInfo.uid);
+      const goingGuest = eventInfo?.guests.find((guest: IGuest) => guest.memberUid === userInfo.uid);
       const sortedGuests = sortByDefault(eventInfo?.guests);
       if (goingGuest) {
         setIsGoing(true);
@@ -81,7 +108,7 @@ const IrlMain = (props: any) => {
 
   useEffect(() => {
     setUpdatedEventDetails(eventDetails);
-    setIsGoing(props?.isUserGoing);
+    setIsGoing(props?.isUserGoing as boolean);
     setUpdatedUser(registeredGuest);
   }, [eventDetails]);
 
@@ -96,10 +123,10 @@ const IrlMain = (props: any) => {
       {updatedEventDetails?.guests.length > 0 && (
         <>
           <div className="irl__toolbar">
-            <Toolbar eventDetails={updatedEventDetails} teams={teams} userInfo={userInfo} isUserGoing={isUserGoing} isUserLoggedIn={isUserLoggedIn} onLogin={onLogin} filteredList={filteredList} />
+            <Toolbar eventDetails={updatedEventDetails} userInfo={userInfo} isUserGoing={isUserGoing} isUserLoggedIn={isUserLoggedIn} onLogin={onLogin} filteredList={filteredList} />
           </div>
           <div className={`irl__table  ${isUserLoggedIn ? 'table__login' : 'table__not-login'} `}>
-            <TableHeader userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} eventDetails={updatedEventDetails} filteredList={filteredList} sortConfig={sortConfig} />
+            <TableHeader userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} />
             <div className={`irl__table__body  ${isUserLoggedIn ? 'w-fit' : 'w-full'}`}>
               {isUserLoggedIn && <GuestList userInfo={userInfo} items={filteredList} eventDetails={updatedEventDetails} showTelegram={showTelegram} />}
               {!isUserLoggedIn && <EmptyList onLogin={onLogin} items={filteredList} eventDetails={updatedEventDetails} />}

@@ -1,6 +1,5 @@
 'use client';
 
-import { isPastDate } from '@/utils/irl.utils';
 import { useRef, useState } from 'react';
 import ResourcesPopup from './resources-popup';
 import Modal from '@/components/core/modal';
@@ -10,8 +9,21 @@ import { toast } from 'react-toastify';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { IUserInfo } from '@/types/shared.types';
+import { IResource } from '@/types/irl.types';
 
-const Resources = (props: any) => {
+interface IResourcesProps {
+  eventDetails: any;
+  userInfo: IUserInfo;
+  isUserLoggedIn: boolean;
+}
+
+interface IResourceLink {
+  resource: IResource;
+  onClick: (resource: IResource) => void;
+}
+
+const Resources = (props: IResourcesProps) => {
   const eventDetails = props?.eventDetails;
   const isUserLoggedIn = props?.isUserLoggedIn;
   const userInfo = props?.userInfo;
@@ -23,18 +35,17 @@ const Resources = (props: any) => {
   const resourcesRef = useRef<HTMLDialogElement>(null);
   const resourcesNeedToShow = isUserLoggedIn ? 5 : resources?.length < 5 ? resources?.length : 5;
 
-
   const onCloseModal = () => {
     if (resourcesRef.current) {
       resourcesRef.current.close();
     }
   };
 
-  const onResourceClick = (resource: any) => {
+  const onResourceClick = (resource: IResource) => {
     analytics.resourceClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), ...resource });
   };
 
-  const onPopupResourceClick = (resource: any) => {
+  const onPopupResourceClick = (resource: IResource) => {
     analytics.resourcePopupResourceClicked(getAnalyticsUserInfo(userInfo), {
       ...getAnalyticsEventInfo(eventDetails),
       ...resource,
@@ -59,7 +70,7 @@ const Resources = (props: any) => {
     setIsOpen((prev) => !prev);
   };
 
-  const ResourceLink = (props: any) => {
+  const ResourceLink = (props: IResourceLink) => {
     const resource = props?.resource;
     const onClick = props?.onClick;
     return (
@@ -93,7 +104,7 @@ const Resources = (props: any) => {
         <h6 className="resources__ttl">Resources</h6>
         {resources?.length > 0 && (
           <div className="resources__list">
-            {resources?.slice(0, resourcesNeedToShow)?.map((item: any, index: number) => (
+            {resources?.slice(0, resourcesNeedToShow)?.map((item: IResource, index: number) => (
               <div className="resources__list__item" key={`resource-${index}`}>
                 <ResourceLink resource={item} onClick={onResourceClick} />
               </div>

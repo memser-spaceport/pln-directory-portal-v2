@@ -4,20 +4,27 @@ import { useState } from 'react';
 import FloatingMultiSelect from './floating-multi-select';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { IUserInfo } from '@/types/shared.types';
 
-const TableHeader = (props: any) => {
+interface ITableHeader {
+  isUserLoggedIn: boolean;
+  userInfo: IUserInfo;
+  eventDetails: any;
+  sortConfig: { key: string; order: string };
+}
+
+const TableHeader = (props: ITableHeader) => {
   const isUserLoggedIn = props.isUserLoggedIn ?? false;
   const eventDetails = props?.eventDetails;
   const sortConfig = props?.sortConfig;
   const userInfo = props?.userInfo;
 
   const analytics = useIrlAnalytics();
-  // const user = getUserInfo();
 
   const roles = getUniqueRoles([...eventDetails?.guests]);
   const topics = getTopics([...eventDetails?.guests]);
   const [roleFilterItems, setRoleFilterItems] = useState([]);
-  const [topicFilterItems, setTopicFilterItems] = useState([]);
+  const [topicFilterItems, setTopicFilterItems] = useState<string[]>([]);
 
   const roleFilterProps = useFloatingMultiSelect({
     items: roles,
@@ -58,7 +65,7 @@ const TableHeader = (props: any) => {
   };
 
   //filter column by topics
-  const onFilterByTopics = (items: any, from: string) => {
+  const onFilterByTopics = (items: string[], from: string) => {
     if (from !== 'reset') {
       analytics.guestListFilterApplyClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), column: 'topics', filterValues: items });
     }

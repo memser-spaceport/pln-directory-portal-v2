@@ -13,21 +13,21 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
 
     const rawPreferences = await result.json();
     const preferenceSettings = {
-        email: rawPreferences.email,
-        github: rawPreferences.github,
-        telegram: rawPreferences.telegram,
-        discord: rawPreferences.discord,
-        linkedin: rawPreferences.linkedin,
-        twitter: rawPreferences.twitter
+        email: rawPreferences?.email ?? false,
+        github: rawPreferences?.github ?? false,
+        telegram: rawPreferences?.telegram ?? false,
+        discord: rawPreferences?.discord ?? false,
+        linkedin: rawPreferences?.linkedin ?? false,
+        twitter: rawPreferences?.twitter ?? false
     }
     const memberPreferences = {
-        email: rawPreferences.showEmail,
-        github: rawPreferences.showGithubHandle,
-        githubProjects: rawPreferences.showGithubProjects,
-        telegram: rawPreferences.showTelegram,
-        discord: rawPreferences.showDiscord,
-        linkedin: rawPreferences.showLinkedin,
-        twitter: rawPreferences.showTwitter,
+        email: rawPreferences?.showEmail ?? false,
+        github: rawPreferences?.showGithubHandle ?? false,
+        githubProjects: rawPreferences?.showGithubProjects ?? false,
+        telegram: rawPreferences?.showTelegram ?? false,
+        discord: rawPreferences?.showDiscord ?? false,
+        linkedin: rawPreferences?.showLinkedin ?? false,
+        twitter: rawPreferences?.showTwitter ?? false,
     }
 
     return {

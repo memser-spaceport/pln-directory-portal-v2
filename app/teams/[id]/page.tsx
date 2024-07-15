@@ -15,10 +15,14 @@ import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { BreadCrumb } from '@/components/core/bread-crumb';
+import { getFocusAreas } from '@/services/common.service';
+import { IFocusArea } from '@/types/shared.types';
+import SelectedFocusAreas from '@/components/core/selected-focus-area';
+import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
-  const { team, members, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess = false, redirectTeamUid, isError, isNotFound } = await getPageData(teamId);
+  const { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess = false, redirectTeamUid, isError, isNotFound, officeHoursFlag } = await getPageData(teamId);
 
   if (redirectTeamUid) {
     redirect(`/teams/${redirectTeamUid}`, RedirectType.replace);
@@ -42,6 +46,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
             <ContactInfo team={team} userInfo={userInfo} />
+            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
           </div>
           {/* Funding */}
           {team?.fundingStage || team?.membershipSources?.length ? (
@@ -49,16 +54,21 @@ async function Page({ params }: { params: ITeamDetailParams }) {
               <Funding team={team} />
             </div>
           ) : null}
+          {/* Focus Area */}
+          {team.teamFocusAreas && team?.teamFocusAreas?.length > 0 && focusAreas && focusAreas?.length > 0 && (
+            <div className={styles?.teamDetail__container__focusarea}>
+              <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={team.teamFocusAreas} />
+            </div>
+          )}
           {/* Member */}
           <div className={styles?.teamDetail__container__member}>
             <TeamMembers team={team} userInfo={userInfo} members={members} teamId={teamId} />
           </div>
-          
+
           {/* Projects */}
           <div className={styles?.teamDetail__container__projects}>
             <Projects isLoggedIn={isLoggedIn} projects={teamProjectList} team={team} userInfo={userInfo} hasProjectsEditAccess={hasProjectsEditAccess} />
           </div>
-
         </div>
       </div>
     </>
@@ -87,12 +97,16 @@ async function getPageData(teamId: string) {
     role: '',
     maintainingProjects: [],
     contributingProjects: [],
+    officeHours: '',
+    teamFocusAreas: [],
   };
   let members: IMember[] = [];
+  let focusAreas: IFocusArea[] = [];
   let hasProjectsEditAccess = false;
   let teamProjectList: IFormatedTeamProject[] = [];
   let isError = false;
   let isNotFound = false;
+  let officeHoursFlag = false;
   let memberTeams: never[] = [];
 
   try {
@@ -106,7 +120,7 @@ async function getPageData(teamId: string) {
       return { redirectTeamUid, team, members, hasProjectsEditAccess, teamProjectList, userInfo };
     }
 
-    const [teamResponse, teamMembersResponse] = await Promise.all([
+    const [teamResponse, teamMembersResponse, focusAreaResponse] = await Promise.all([
       getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' }),
       getMembers(
         {
@@ -119,6 +133,7 @@ async function getPageData(teamId: string) {
         0,
         isLoggedIn
       ),
+      getFocusAreas('Team', {}),
     ]);
 
     if (isLoggedIn) {
@@ -137,13 +152,20 @@ async function getPageData(teamId: string) {
       }
     }
 
-    if (teamResponse?.error || teamMembersResponse?.error) {
+    if (teamResponse?.error || teamMembersResponse?.error || focusAreaResponse?.error) {
       isError = true;
       return { isError, team, userInfo };
     }
 
     team = teamResponse?.data?.formatedData;
+    officeHoursFlag = team['officeHours'] ? true : false;
+    if (!isLoggedIn && team['officeHours']) {
+      delete team['officeHours'];
+    }
+
     members = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
+    focusAreas = focusAreaResponse.data;
+    focusAreas = focusAreas.filter((data: IFocusArea) => !data.parentUid);
     const maintainingProjects = team?.maintainingProjects?.map((project: any) => {
       return {
         ...project,
@@ -163,12 +185,12 @@ async function getPageData(teamId: string) {
       return {
         ...project,
         hasEditAccess: hasProjectEditAccess(userInfo, project, isLoggedIn, memberTeams),
-      }
-    })
+      };
+    });
     if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes(ADMIN_ROLE) && authToken) {
       hasProjectsEditAccess = true;
     }
-    return { team, members, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess };
+    return { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess, officeHoursFlag };
   } catch (error: any) {
     console.error(error);
     isNotFound = true;
@@ -184,30 +206,30 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
   const teamId = params.id;
   const teamResonse = await getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' });
   if (teamResonse?.error) {
-  return {
-    title: 'Protocol Labs Directory',
-    description:
-      'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
-    openGraph: {
-      images: [
-        {
-          url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
-          width: 1280,
-          height: 640,
-          alt: 'Protocol Labs Directory',
-          type: 'image/jpeg',
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
-    },
-  };
+    return {
+      title: 'Protocol Labs Directory',
+      description:
+        'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+      openGraph: {
+        images: [
+          {
+            url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+            width: 1280,
+            height: 640,
+            alt: 'Protocol Labs Directory',
+            type: 'image/jpeg',
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+      },
+    };
   }
   const team = teamResonse?.data?.formatedData;
   const previousImages = (await parent).openGraph?.images || [];
-  const logo = team?.logo || "https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg";
+  const logo = team?.logo || 'https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg';
   return {
     title: `${team?.name} | Protocol Labs Directory`,
     openGraph: {

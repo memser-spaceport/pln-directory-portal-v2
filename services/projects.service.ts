@@ -70,6 +70,7 @@ const getFormattedProject = (project: any) => {
             formattedProject['lookingForFunding'] = project.lookingForFunding ?? false;
             formattedProject['createdBy'] = project.createdBy ?? null;
             formattedProject['score'] = project.score ?? null;
+            formattedProject['projectFocusAreas']= project.projectFocusAreas ?? [];
 
             const tempContributors: any = [];
             project?.contributions?.map((mem: any) => {

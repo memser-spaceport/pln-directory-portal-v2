@@ -10,7 +10,7 @@
 .teamDetail__breadcrumb {
   /* display: none; */
   height: 48px;
-  border-bottom: 1px solid  #E2E8F0;
+  border-bottom: 1px solid #E2E8F0;
   width: 100%;
   position: sticky;
   top: 80px;
@@ -29,7 +29,10 @@
 .teamDetail__Container__details {
   min-height: 100px;
 }
+
 .teamDetail__container__contact {
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  background: #fff;
 }
 
 .teamDetail__container__funding {
@@ -48,6 +51,7 @@
   .teamDetail {
     align-items: center;
   }
+
   .teamDetail__container {
     width: 900px;
     padding-top: 38px;
@@ -57,7 +61,12 @@
     display: unset;
     height: 48px;
     display: flex;
-    align-items:center;
+    align-items: center;
+  }
+
+
+  .teamDetail__container__contact {
+    border-radius: 8px;
   }
 
 }

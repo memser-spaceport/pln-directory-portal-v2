@@ -43,6 +43,8 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const [selectedFundingStage, setSelectedFundingStage] = useState<IFundingStage | null>({...initialValues.fundingStage});
   const [selectedFocusAreas, setSelectedFocusAreas] = useState<any[]>([])
 
+  const [isFocusAreaModalOpen, setIsFocusAreaModalOpen] = useState(false);
+
   const addItem = (setState: React.Dispatch<React.SetStateAction<any[]>>, itemToAdd: any) => {
     setState((prevItems: any[]) => {
       return [...prevItems, itemToAdd];
@@ -60,6 +62,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
     setSelectedFocusAreas([...items])
   }
   const onEditFocusArea =() => {
+    setIsFocusAreaModalOpen(true)
     if (focusAreaDialogRef.current) {
       focusAreaDialogRef.current.showModal()
     }
@@ -68,6 +71,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const onFocusAreaClose = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
+    setIsFocusAreaModalOpen(false);
     if (focusAreaDialogRef.current) {
        focusAreaDialogRef.current.close();
     }
@@ -217,7 +221,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
         </div>}
       </div>
       <Modal onClose={onFocusAreaClose} modalRef={focusAreaDialogRef}>
-          <FocusAreasPopup handleFoucsAreaSave={onFocusAreaChanged}  onClose={onFocusAreaClose} selectedItems={selectedFocusAreas} focusAreas={[...focusAreas]}/>
+         {isFocusAreaModalOpen && <FocusAreasPopup handleFoucsAreaSave={onFocusAreaChanged}  onClose={onFocusAreaClose} selectedItems={selectedFocusAreas} focusAreas={[...focusAreas]}/>}
       </Modal>
       <style jsx>{`
         .teamProject__form {

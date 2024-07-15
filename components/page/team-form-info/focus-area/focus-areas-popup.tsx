@@ -23,9 +23,16 @@ const FocusAreasPopup = (props: IFocusAreasPopup) => {
         `
         .fp {
          height: 70vh;
-         width: 640px;
+         width: 90vw;
          border-radius: 8px;
          background: white;
+        }
+
+        @media(min-width:1024px) {
+        .fp {
+         width: 640px;
+      }
+
         }
         
         

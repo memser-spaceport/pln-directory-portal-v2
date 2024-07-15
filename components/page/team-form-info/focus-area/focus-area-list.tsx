@@ -197,9 +197,9 @@ const FocusAreasList = (props: IFocusAreasList) => {
             margin-left: 12px;
           }
           .fl__list__path__text {
-            border-radius: 4px;
+            border-radius: 24px;
             background: #f3f4f6;
-            padding: 8px 6px;
+            padding: 6px 8px;
             font-size: 14px;
             font-weight: 500;
             color: #4b5563;
@@ -258,9 +258,10 @@ const FocusAreasList = (props: IFocusAreasList) => {
             color: #475569;
           }
           .fl__head__btn {
-            font-size: 12px;
-            font-weight: 500;
+            font-size: 14px;
+            font-weight: 600;
             color: #156ff7;
+            cursor:pointer;
           }
         `}
       </style>

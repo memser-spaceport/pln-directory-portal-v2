@@ -38,15 +38,17 @@ export default async function ProfileSettings() {
 
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'Settings', url: '/settings' },
-    { text: 'Profile', url: '/settings/profile' },
-  ];
+    { text: 'Members', url: '/members' },
+    { text: `${memberInfo.name}`, url: `/members/${memberInfo.uid}` },
+    { text: 'Profile', url: `/settings/profile` },
+  ]
+
   return (
     <>
       <div className={styles.ps}>
         <div className={styles.ps__breadcrumbs}>
           <div className={styles.ps__breadcrumbs__desktop}>
-            <Breadcrumbs items={breadcrumbItems} />
+            <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
           </div>
           <Link className={styles.ps__breadcrumbs__mobile} href="/settings">
             <img width="16" height="16" src="/icons/arrow-left-blue.svg" />

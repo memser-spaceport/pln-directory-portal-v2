@@ -29,7 +29,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
     currentProject: false,
     description: '',
     role: '',
-    startDate: new Date('1990-01-01').toISOString(),
+    startDate: new Date('1970-01-01').toISOString(),
     endDate: new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth() + 1, 0)).toISOString(),
   };
 

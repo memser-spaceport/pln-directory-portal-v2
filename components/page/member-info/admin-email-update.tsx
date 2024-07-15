@@ -56,7 +56,7 @@ const AdminEmailUpdate: React.FC<EmailUpdateProps> = ({ email }) => {
               </button>
             </div>
             <p className="eu__input">{email}</p>
-            <input name="email" type="email" hidden value={email} />
+            <input name="email" type="email" readOnly hidden value={email} />
           </div>
         ) : (
           <div className="eu">

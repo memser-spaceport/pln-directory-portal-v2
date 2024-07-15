@@ -36,7 +36,7 @@ export const updateProject = async (
     const requestOptions = {
         method: "PUT",
         headers: getHeader(authToken),
-        body: JSON.stringify(payload),
+        body: JSON.stringify(formatToSave(payload)),
     };
     const response = await fetch(
         `${process.env.DIRECTORY_API_URL}/v1/projects/${uid}`,
@@ -155,15 +155,43 @@ export const getAllProjects = async (queryParams: any, currentPage: number, limi
 export const addProject = async (data: any, authToken: string | undefined) => {
     const requestOptions: RequestInit = {
         method: "POST", cache: "no-store",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify(data)
+        headers: getHeader(authToken),
+
+        body: JSON.stringify(formatToSave(data))
     };
     const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/projects`, requestOptions);
-    if(!response.ok) {
-        return {error: {status: response.status}}
+    if (!response.ok) {
+        return { error: { status: response.status } }
     }
     return await response.json();
+}
+
+
+const formatToSave = (payload: any) => {
+
+    const objectToSave: any = {
+        "name": payload?.name,
+        "tagline": payload?.tagline,
+        "description": payload?.description,
+        "lookingForFunding": payload?.lookingForFunding,
+        "readMe": payload?.readMe,
+        "maintainingTeamUid": payload?.maintainingTeamUid,
+    }
+
+    if (payload?.contactEmail) {
+        objectToSave['contactEmail'] = payload.contactEmail;
+    } else {
+        objectToSave['contactEmail'] = null;
+    }
+    objectToSave['kpis'] = payload?.kpis;
+    objectToSave['logoUid'] = payload?.logoUid;
+
+
+    objectToSave['projectLinks'] = payload.projectLinks;
+
+
+    objectToSave['contributingTeams'] = payload?.contributingTeams;
+    objectToSave['contributions'] = payload?.contributions;
+    objectToSave['focusAreas'] = [];
+    return objectToSave;
 }

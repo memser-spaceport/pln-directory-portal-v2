@@ -9,7 +9,7 @@ import { RedirectType, redirect } from 'next/navigation';
 import { PAGE_ROUTES } from '@/utils/constants';
 
 export default function AddProject(props: any) {
-  const { isError, isLoggedIn } = getPageData();
+  const { isError, isLoggedIn, userInfo} = getPageData();
 
   if(!isLoggedIn) {
       redirect(`${PAGE_ROUTES.TEAMS}`, RedirectType.replace);
@@ -25,7 +25,7 @@ export default function AddProject(props: any) {
         <BreadCrumb backLink="/projects" directoryName="project" pageName="Add Project" />
       </div>
       <div>
-        <AddEditProjectContainer project={null} type="Add" />
+        <AddEditProjectContainer project={null} type="Add" userInfo={userInfo}/>
       </div>
     </div>
   );
@@ -33,15 +33,16 @@ export default function AddProject(props: any) {
 
 function getPageData() {
   const isError = false;
-  const { isLoggedIn } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo} = getCookiesFromHeaders();
   try {
     return {
-      isLoggedIn
+      isLoggedIn, userInfo
     };
   } catch (error) {
     console.error(error);
     return {
       isError: true,
+      userInfo
     };
   }
 }

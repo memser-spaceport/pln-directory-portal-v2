@@ -3,7 +3,11 @@
 import { EVENT_TYPE } from '@/utils/constants';
 import { formatIrlEventDate } from '@/utils/irl.utils';
 
-const Banner = (props: any) => {
+interface IBanner {
+  eventDetails: any;
+}
+
+const Banner = (props: IBanner) => {
   const eventDetails = props?.eventDetails;
   const description = eventDetails?.description;
   const name = eventDetails?.name;

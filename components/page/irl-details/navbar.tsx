@@ -1,10 +1,17 @@
 'use client';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { IEventDetails } from '@/types/irl.types';
+import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import Link from 'next/link';
 
-const Navbar = (props: any) => {
+interface INavbar {
+  userInfo: IUserInfo;
+  eventDetails: any;
+}
+
+const Navbar = (props: INavbar) => {
   const analytics = useIrlAnalytics();
   const eventDetails = props?.eventDetails;
   const userInfo = props?.userInfo;

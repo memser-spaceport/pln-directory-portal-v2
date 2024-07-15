@@ -1,12 +1,20 @@
 'use client';
 
+import { useCommonAnalytics } from '@/analytics/common.analytics';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useEffect, useState } from 'react';
 
-const ScrollToTop = (props: any) => {
+interface IScrollToTop {
+  pageName: string;
+  userInfo: IUserInfo;
+}
+
+const ScrollToTop = (props: IScrollToTop) => {
   const pageName = props?.pageName;
-  // const analytics = useAppAnalytics();
-  // const user = getUserInfo();
+  const userInfo = props?.userInfo;
   const [showTopBtn, setShowTopBtn] = useState(false);
+  const analytics = useCommonAnalytics();
 
   useEffect(() => {
     const handler = () => {
@@ -24,10 +32,7 @@ const ScrollToTop = (props: any) => {
   }, []);
 
   const scrollToTop = () => {
-    // analytics.captureEvent(APP_ANALYTICS_EVENTS.GO_TO_TOP_BTN_CLICKED, {
-    //   pageName,
-    //   user,
-    // });
+    analytics.goToTopBtnClicked(getAnalyticsUserInfo(userInfo), pageName);
 
     window.scrollTo({
       top: 0,
@@ -38,10 +43,7 @@ const ScrollToTop = (props: any) => {
   return (
     <>
       {showTopBtn && (
-        <button
-          onClick={scrollToTop}
-          className="scroll-to-top-button"
-        >
+        <button onClick={scrollToTop} className="scroll-to-top-button">
           <img src="/icons/up-arrow-black.svg" alt="arrow" />
           Go to Top
         </button>
@@ -58,8 +60,8 @@ const ScrollToTop = (props: any) => {
           border-radius: 68px;
           border: 1px solid #156ff7;
           background-color: #ffffff;
-          padding:8px 20px;
-          font-size: 14px; 
+          padding: 8px 20px;
+          font-size: 14px;
           font-weight: 500;
           color: #0f172a;
         }

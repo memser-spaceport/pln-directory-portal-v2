@@ -3,7 +3,11 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsEventInfo } from '@/utils/common.utils';
 
-function HeaderStrip(props: any) {
+interface IHeaderStrip {
+  eventDetails: any;
+}
+
+function HeaderStrip(props: IHeaderStrip) {
   const analytics = useIrlAnalytics();
   const eventDetails = props?.eventDetails;
   const requestFormLink = process.env.IRL_PGF_FORM_URL;

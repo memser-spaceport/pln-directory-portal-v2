@@ -1,8 +1,17 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENT_TYPE } from '@/utils/constants';
 
-const JoinEventStrip = (props: any) => {
+interface IJoinEventStrip {
+  onLogin: () => void;
+  isUserLoggedIn: boolean;
+  isUserGoing: boolean | undefined;
+  userInfo: IUserInfo;
+  eventDetails: any;
+}
+
+const JoinEventStrip = (props: IJoinEventStrip) => {
   const onLogin = props?.onLogin;
   const isUserLoggedIn = props?.isUserLoggedIn;
   const isUserGoing = props?.isUserGoing;

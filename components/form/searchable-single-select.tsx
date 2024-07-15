@@ -9,7 +9,7 @@ interface Option {
 interface SearchableSingleSelectProps {
   options: Option[];
   selectedOption: Option | null;
-  onChange: (selectedOption: Option | null) =>  boolean | undefined;
+  onChange: (selectedOption: Option | null) => any;
   onClick?: () => void;
   onClear: () => void;
   uniqueKey: string;
@@ -64,7 +64,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
     }
   };
 
-  const onInputClicked = (e: ChangeEvent<HTMLInputElement>) => {
+  const onInputClicked = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
     setShowOptions((v) => !v)

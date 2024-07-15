@@ -47,7 +47,7 @@ const Header = (props: IHeader) => {
   const onEditProject = () => {
     triggerLoader(true);
     analytics.onProjectDetailEditClicked(getAnalyticsUserInfo(user), id);
-    router.push(`/projects/update/${id}`);
+    router.push(`/projects/edit/${id}`);
   };
 
   const onDeleteProject = async () => {

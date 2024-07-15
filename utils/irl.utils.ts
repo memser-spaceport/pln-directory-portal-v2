@@ -168,3 +168,50 @@ export const splitResources = (resources: any) => {
 
   return { publicResources, privateResources };
 };
+
+export function formatDateToISO(dateStr: any, timeZone = 'America/Los_Angeles') {
+  const date = new Date(dateStr);
+
+  const options = { timeZone: timeZone };
+  const yearFormatter = new Intl.DateTimeFormat('en-US', { year: 'numeric', ...options });
+  const monthFormatter = new Intl.DateTimeFormat('en-US', { month: '2-digit', ...options });
+  const dayFormatter = new Intl.DateTimeFormat('en-US', { day: '2-digit', ...options });
+
+  const year = yearFormatter.format(date);
+  const month = monthFormatter.format(date);
+  const day = dayFormatter.format(date);
+  return `${year}-${month}-${day}`;
+}
+
+export function formatDateRangeForDescription(startDateStr: any, endDateStr: any, timeZone = 'America/Los_Angeles') {
+  const startDate = new Date(startDateStr);
+  const endDate = new Date(endDateStr);
+
+  const startMonth = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: timeZone }).format(startDate);
+  const endMonth = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: timeZone }).format(endDate);
+
+  const startDay = new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: timeZone }).format(startDate);
+  const endDay = new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: timeZone }).format(endDate);
+
+  const endYear = new Intl.DateTimeFormat('en-US', { year: 'numeric', timeZone: timeZone }).format(endDate);
+
+  const startDayWithSuffix = getDayWithSuffix(startDay as unknown as number);
+  const endDayWithSuffix = getDayWithSuffix(endDay as unknown as number);
+
+  // Format the final string with month and day suffixes
+  const startFormattedWithSuffix = `${startMonth} ${startDayWithSuffix}`;
+  const endFormattedWithSuffix = `${endMonth} ${endDayWithSuffix}`;
+
+  return `${startFormattedWithSuffix} - ${endFormattedWithSuffix}, ${endYear}`;
+}
+
+export function getArrivalDepartureDateRange(startDate: string | number | Date, endDate: string | number | Date, startInterval: number, endInterval: number) {
+  const newStartDate = new Date(startDate);
+  const newEndDate = new Date(endDate);
+  const dateFrom = new Date(newStartDate.getTime() - startInterval * 24 * 60 * 60 * 1000)?.toISOString();
+  const dateTo = new Date(newEndDate.getTime() + endInterval * 24 * 60 * 60 * 1000)?.toISOString();
+  return {
+    dateFrom: dateFrom.split('T')[0],
+    dateTo: dateTo.split('T')[0],
+  };
+}

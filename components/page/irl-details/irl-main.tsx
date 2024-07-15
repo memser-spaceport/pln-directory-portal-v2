@@ -1,13 +1,15 @@
 'use client';
 
 import { useIrlDetails } from '@/hooks/irl/use-irl-details';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import JoinEventStrip from './join-event-strip';
 import { sortByDefault } from '@/utils/irl.utils';
 import Toolbar from './toolbar';
 import TableHeader from './table-header';
 import GuestList from './guest-list';
 import EmptyList from './empty-list';
+import Modal from '@/components/core/modal';
+import GoingDetail from './going-detail';
 
 const IrlMain = (props: any) => {
   const eventDetails = props?.eventDetails;
@@ -26,6 +28,13 @@ const IrlMain = (props: any) => {
   const [isUserGoing, setIsGoing] = useState(props?.isUserGoing);
   const [focusOHField, setFocusOHField] = useState(false);
   const { filteredList, sortConfig } = useIrlDetails(updatedEventDetails.guests, userInfo);
+  const goingRef = useRef<HTMLDialogElement>(null);
+
+  const onCloseGoingModal = () => {
+    if (goingRef.current) {
+      goingRef.current.close();
+    }
+  };
 
   //update event details when form submit
   useEffect(() => {
@@ -57,7 +66,9 @@ const IrlMain = (props: any) => {
     const handler = (e: any) => {
       const isOpen = e.detail.isOpen;
       const isOHFocused = e.detail?.isOHFocused ?? false;
-      setIsOpen(isOpen);
+      if (goingRef.current && isOpen) {
+        goingRef.current.showModal();
+      }
       setFocusOHField(isOHFocused);
     };
     document.addEventListener('openRsvpModal', handler);
@@ -86,13 +97,7 @@ const IrlMain = (props: any) => {
             <Toolbar eventDetails={updatedEventDetails} teams={teams} userInfo={userInfo} isUserGoing={isUserGoing} isUserLoggedIn={isUserLoggedIn} onLogin={onLogin} filteredList={filteredList} />
           </div>
           <div className={`irl__table  ${isUserLoggedIn ? 'table__login' : 'table__not-login'} `}>
-            <TableHeader
-              userInfo={userInfo}
-              isUserLoggedIn={isUserLoggedIn}
-              eventDetails={updatedEventDetails}
-              filteredList={filteredList}
-              sortConfig={sortConfig}
-            />
+            <TableHeader userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} eventDetails={updatedEventDetails} filteredList={filteredList} sortConfig={sortConfig} />
             <div className={`relative -mt-[4px] ${isUserLoggedIn ? 'w-fit' : 'w-full'} lg-rounded-[8px] bg-white shadow-sm lg:w-[calc(100%_-_2px)]`}>
               {isUserLoggedIn && <GuestList userInfo={userInfo} items={filteredList} eventDetails={updatedEventDetails} showTelegram={showTelegram} />}
               {!isUserLoggedIn && <EmptyList onLogin={onLogin} items={filteredList} eventDetails={updatedEventDetails} />}
@@ -100,6 +105,11 @@ const IrlMain = (props: any) => {
           </div>
         </>
       )}
+      {
+        <Modal modalRef={goingRef} onClose={onCloseGoingModal}>
+          <GoingDetail isUserGoing={isUserGoing} registeredGuest={updatedUser} eventDetails={eventDetails} onClose={onCloseGoingModal} focusOHField={focusOHField} showTelegram={showTelegram}/>
+        </Modal>
+      }
       <style jsx>
         {`
           .irl__joinEvntstrp {

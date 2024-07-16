@@ -1,6 +1,7 @@
 
 export const getMemberPreferences = async (uid: string, authToken: string) => {
     const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}/preferences`, {
+        cache: 'no-store',
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${authToken}`
@@ -19,7 +20,7 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
         discord: rawPreferences?.discord ?? false,
         linkedin: rawPreferences?.linkedin ?? false,
         twitter: rawPreferences?.twitter ?? false,
-        githubProjects: rawPreferences?.github ?? false
+        githubProjects: rawPreferences?.githubProjects ?? false
     }
     const memberPreferences = {
         email: rawPreferences?.showEmail ?? true,

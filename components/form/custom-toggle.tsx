@@ -7,10 +7,10 @@ interface CustomToggleProps {
   defaultChecked?: boolean;
   disabled?: boolean;
   checked?: boolean;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (event: any) => void;
 }
 
-const CustomToggle: FC<CustomToggleProps> = ({ id, name, checked, disabled = false, defaultChecked = false, onChange }) => {
+const CustomToggle: FC<CustomToggleProps> = ({ id, name, checked, disabled = false, defaultChecked = false, onChange = () => {} }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   
   useEffect(() => {
@@ -21,8 +21,8 @@ const CustomToggle: FC<CustomToggleProps> = ({ id, name, checked, disabled = fal
 
   return (
     <>
-      <label className="custom-toggle" htmlFor={id}>
-        <input ref={inputRef} type="checkbox" id={id} name={name} disabled={disabled} {...((defaultChecked === true || defaultChecked === false)) && {defaultChecked: defaultChecked}} onChange={onChange} />
+      <label className="custom-toggle" style={{'pointerEvents': `${disabled ? 'none': 'auto'}`}} htmlFor={id}>
+        <input ref={inputRef} type="checkbox" id={id} name={name} style={{'pointerEvents': `${disabled ? 'none': 'auto'}`}} {...((defaultChecked === true || defaultChecked === false)) && {defaultChecked: defaultChecked}} onClick={onChange} />
         <span className="slider" />
       </label>
       <style jsx>

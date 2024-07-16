@@ -1,4 +1,5 @@
 'use client';
+import CustomToggle from '@/components/form/custom-toggle';
 import HiddenField from '@/components/form/hidden-field';
 import MultiSelect from '@/components/form/multi-select';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
@@ -211,7 +212,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
        {isEdit &&  <div className="msf__ps__ow">
           <div className="msf__ps__ow__head">
             <label> Are you open to collaborate?</label>
-            <input type="checkbox" name="openToWork" defaultChecked={initialValues?.openToWork ?? false} />
+            <CustomToggle defaultChecked={initialValues?.openToWork ?? false}  name="openToWork"  id="members-opentowork-form-item"/>
           </div>
 
           <p className="info">

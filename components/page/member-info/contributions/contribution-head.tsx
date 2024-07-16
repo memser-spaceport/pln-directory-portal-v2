@@ -35,31 +35,13 @@ function ContributionHead(props: ContributionHeadProps) {
         <div className="cb__projects">
           <div title={`${contribution.currentProject === false && currentProjectsCount === 5 ? 'Max 5 projects can be set as current' : 'On/Off'} `}>
             {/* <Toggle onChange={onProjectStatusChanged} disabled={contribution.currentProject === false && currentProjectsCount === 5} checked={contribution.currentProject} name={`contributionInfo${contributionIndex}-currentProject`} id={`member-register-contribution-currentproject-${contributionIndex}`}/> */}
-            {contribution.currentProject === false && (
-              <input
-                type="checkbox"
-                onChange={(e) => {
-                  console.log(e.target.value, e.target.checked);
-                  onProjectStatusChanged(e.target.checked);
-                }}
-                disabled={contribution.currentProject === false && currentProjectsCount === 5 }
-                name={`contributionInfo${contributionIndex}-currentProject`}
-                id={`member-register-contribution-currentproject-${contributionIndex}`}
-                checked={false}
-              />
-            )}
-            {contribution.currentProject === true && (
-              <input
-                type="checkbox"
-                onChange={(e) => {
-                  console.log(e.target.value, e.target.checked);
-                  onProjectStatusChanged(e.target.checked);
-                }}
-                name={`contributionInfo${contributionIndex}-currentProject`}
-                id={`member-register-contribution-currentproject-${contributionIndex}`}
-                checked={true}
-              />
-            )}
+            <CustomToggle
+              name={`contributionInfo${contributionIndex}-currentProject`}
+              id={`member-register-contribution-currentproject-${contributionIndex}`}
+              defaultChecked={contribution.currentProject}
+              disabled={contribution.currentProject === false && currentProjectsCount === 5}
+              onChange={(e) => onProjectStatusChanged(e.target.checked)}
+            />
           </div>
           <label className="">Current Project</label>
         </div>

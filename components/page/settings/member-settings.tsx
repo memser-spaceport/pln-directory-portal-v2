@@ -306,16 +306,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
             <MemberSocialInfo initialValues={initialValues.socialInfo} />
           </div>
         </div>
-        <div id="settings-actions" ref={actionRef} className="fa">
-          <div className="fa__action">
-            <button className="fa__action__cancel" type="reset">
-              Reset
-            </button>
-            <button className="fa__action__save" type="submit">
-              Save Changes
-            </button>
-          </div>
-        </div>
+        <SettingsAction/>
       </form>
       <Modal modalRef={errorDialogRef} onClose={onModalClose}>
         <div className="error">

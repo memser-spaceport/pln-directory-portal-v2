@@ -7,33 +7,38 @@ import { getMemberInfo, getMembersInfoForDp } from '@/services/members.service';
 import { redirect } from 'next/navigation';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { getMemberPreferences } from '@/services/preferences.service';
 
-
-const getPageData = async (selectedMemberId: string) => {
+const getPageData = async (selectedMemberId: string, profileType: string, authToken: string) => {
   const dpResult = await getMembersInfoForDp();
-  let selectedMember;
-  if(dpResult.error) {
-    return {isError: true}
+  let selectedMember; 
+  let preferences: any = {};
+  if (dpResult.error) {
+    return { isError: true };
   }
 
   const members = dpResult.data ?? [];
-  const memberResult = await getMemberInfo(selectedMemberId ?? members[0].id);
-  if(memberResult.isError) {
+  const [memberResult, preferenceResult] = await Promise.all([getMemberInfo(selectedMemberId ?? members[0].id), getMemberPreferences(selectedMemberId ?? members[0].id, authToken)]);
+  if (memberResult.isError || preferenceResult.isError) {
     return {
-      isError: true
-    }
+      isError: true,
+    };
   }
   selectedMember = memberResult.data;
-  console.log(selectedMember)
+  preferences.memberPreferences = preferenceResult.memberPreferences
+  preferences.preferenceSettings = preferenceResult.preferenceSettings
+  console.log(selectedMember);
   return {
     members,
-    selectedMember
-  }
-}
+    selectedMember,
+    preferences,
+  };
+};
 
 export default async function ManageMembers(props: any) {
   const selectedMemberId = props?.searchParams?.id;
-  const {userInfo, isLoggedIn} = getCookiesFromHeaders();
+  const profileType = props?.searchParams?.profileType ?? 'info';
+  const { userInfo, isLoggedIn, authToken } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     redirect('/teams');
@@ -42,14 +47,14 @@ export default async function ManageMembers(props: any) {
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
   const isAdmin = roles.includes('DIRECTORYADMIN');
-  
-  if(!isAdmin) {
+
+  if (!isAdmin) {
     redirect('/teams');
   }
-  const { members, isError, selectedMember } = await getPageData(selectedMemberId);
+  const { members, isError, selectedMember, preferences } = await getPageData(selectedMemberId, profileType, authToken);
 
-  if(isError) {
-    return 'Error'
+  if (isError) {
+    return 'Error';
   }
 
   const breadcrumbItems = [
@@ -57,7 +62,7 @@ export default async function ManageMembers(props: any) {
     { text: 'Members', url: '/members' },
     { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
     { text: 'Manage Members', url: '/settings/members' },
-  ]
+  ];
   return (
     <>
       <div className={styles.ps}>
@@ -74,7 +79,7 @@ export default async function ManageMembers(props: any) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" />
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageMembersSettings selectedMember={selectedMember} members={members ?? []} />
+            <ManageMembersSettings preferences={preferences} profileType={profileType} selectedMember={selectedMember} members={members ?? []} />
           </div>
         </div>
       </div>

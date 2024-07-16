@@ -39,17 +39,19 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   };
   const router = useRouter();
   const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
-  useObserver({callback: onFormChange, observeItem: formRef})
+  //useObserver({callback: onFormChange, observeItem: formRef})
 
 
   const onMemberChanged = (uid: string) => {
     let proceed = true;
-    if(actionRef.current?.style.visibility === 'visible') {
-      proceed = confirm('There are unsaved changed. Do you wish to proceed?')
+    const isSame = onFormChange();
+    if(!isSame) {
+      proceed = confirm("There are some unsaved changes. Do you wish to continue");
     }
     if(!proceed) {
-      return false;
+      return proceed;
     }
+    setActiveTab({ name: 'basic' })
     if (formRef.current) {
       formRef.current.reset();
       onResetForm();
@@ -59,9 +61,9 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   };
 
   const onResetForm = async () => {
-    if (actionRef.current) {
+    /* if (actionRef.current) {
       actionRef.current.style.visibility = 'hidden';
-    }
+    } */
     setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
     document.dispatchEvent(new CustomEvent('reset-member-register-form'));
   };
@@ -95,20 +97,31 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           onShowErrorModal();
           return;
         }
-
+        setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] })
+        const isSame = onFormChange();
+        if(isSame) {
+          triggerLoader(false);
+          toast.info("No changes to save");
+          return;
+        }
         if (formattedInputValues.memberProfile && formattedInputValues.memberProfile.size > 0) {
           const imgResponse = await saveRegistrationImage(formattedInputValues.memberProfile);
           const image = imgResponse?.image;
           formattedInputValues.imageUid = image.uid;
           formattedInputValues.image = image.url;
-          delete formattedInputValues.memberProfile;
-          delete formattedInputValues.imageFile;
+         
           const imgEle: any = document.getElementById('member-info-basic-image');
           if (imgEle) {
             imgEle.value = image.url;
           }
         }
 
+        else if (selectedMember?.image?.uid && selectedMember?.image?.url && formattedInputValues.imageFile === selectedMember?.image?.url) {
+          formattedInputValues.imageUid = selectedMember?.image?.uid;
+        }
+       
+        delete formattedInputValues.memberProfile;
+        delete formattedInputValues.imageFile;
 
         const payload = {
           participantType: 'MEMBER',
@@ -127,9 +140,9 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
         if (isError) {
           toast.error('Member updated failed. Something went wrong, please try again later');
         } else {
-          if (actionRef.current) {
+          /* if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
-          }
+          } */
           setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] })
           toast.success('Member updated successfully');
           router.refresh();
@@ -235,7 +248,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
       errorDialogRef.current.showModal();
     }
   };
-  async function onFormChange(){
+   function onFormChange(){
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
@@ -248,9 +261,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
       const isBothSame = compareObjsIfSame(apiObjs, formattedInputValues);
 
       console.log('form change', isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formattedInputValues));
-      if (actionRef.current) {
-        actionRef.current.style.visibility = isBothSame ? 'hidden' : 'visible';
-      }
+      return isBothSame;
     }
   };
 
@@ -271,7 +282,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
 
   return (
     <>
-      <form noValidate onInput={onFormChange} onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms">
+      <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms">
         <div className="ms__member-selection">
           <div className="ms__member-selection__dp">
             <SearchableSingleSelect
@@ -285,6 +296,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
               options={members}
               selectedOption={selectedMember}
               uniqueKey="id"
+              iconKey='image'
             />
           </div>
         </div>
@@ -319,13 +331,9 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           </div>
         </div>
         <div ref={actionRef} className="fa">
-          <div className="fa__info">
-            <img alt="save icon" src="/icons/save.svg" width="16" height="16" />
-            <p>Attention! You have unsaved changes!</p>
-          </div>
           <div className="fa__action">
             <button className="fa__action__cancel" type="reset">
-              Cancel
+              Reset
             </button>
             <button className="fa__action__save" type="submit">
               Save Changes
@@ -397,7 +405,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             font-size: 12px;
             color: #ef4444;
           }
-          .fa {
+         .fa {
             position: sticky;
             border-top: 2px solid #ff820e;
             margin: 0;
@@ -410,7 +418,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             display: flex;
             justify-content: space-between;
             align-items: center;
-            visibility: hidden;
+            //visibility: hidden;
           }
           .fa__info {
             display: flex;
@@ -423,7 +431,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
 
           .fa__action {
             display: flex;
-            gap: 6px;
+            gap: 16px;
           }
           .fa__action__save {
             padding: 10px 24px;
@@ -547,17 +555,15 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             .ms__tab__mobile {
               display: none;
             }
-            .fa {
-              height: 72px;
-              bottom: 16px;
+             .fa {
+              height: 68px;
               flex-direction: row;
               left: auto;
-              border-radius: 8px;
-              justify-content: space-between;
+              justify-content: center;
               align-items: center;
-              width: calc(100% - 48px);
-              margin: 0 24px;
-              border: 2px solid #ff820e;
+             
+             
+             
             }
           }
         `}

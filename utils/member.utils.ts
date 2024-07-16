@@ -334,6 +334,7 @@ export function utcDateToDateFieldString(isoString: string) {
 }
 
 export function apiObjsToMemberObj(obj: any) {
+  console.log(JSON.stringify(obj), 'rawww')
   const formatted = {
     ...obj.basicInfo,
     ...obj.socialInfo,
@@ -356,6 +357,7 @@ export function apiObjsToMemberObj(obj: any) {
       };
     }),
     teamAndRoles: obj.skillsInfo.teamsAndRoles,
+    openToWork: obj?.skillsInfo?.openToWork ?? false
   };
 
   if (!formatted.imageFile) {
@@ -418,6 +420,7 @@ export function formInputsToMemberObj(obj: any) {
     }
   }
 
+  result['openToWork'] = result.openToWork  === 'on' ? true : false;
   result.teamAndRoles = Object.values(teamAndRoles);
   result.projectContributions = Object.values(projectContributions);
   result.skills = Object.values(skills);
@@ -474,6 +477,7 @@ export const getInitialMemberFormValues = (selectedMember: any) => {
     skillsInfo: {
       teamsAndRoles: selectedMember.teamMemberRoles ?? [],
       skills: selectedMember.skills ?? [],
+      openToWork: selectedMember?.openToWork ?? false,
     },
     contributionInfo: selectedMember?.projectContributions ?? [],
     basicInfo: {

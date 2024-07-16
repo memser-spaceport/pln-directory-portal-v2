@@ -148,6 +148,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       }
       const formData = new FormData(formRef.current);
       const formValues = formInputsToMemberObj(Object.fromEntries(formData));
+      console.log(formValues, 'formmmmm');
       const formattedForms = { ...formValues };
 
       const basicErrors: any[] = await checkBasicInfoForm({ ...formattedForms });
@@ -200,7 +201,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         participantType: 'MEMBER',
         referenceUid: memberInfo.uid,
         uniqueIdentifier: formattedForms.email,
-        newData: { ...formattedForms, openToWork: false },
+        newData: { ...formattedForms},
       };
 
       const rawAuthToken = Cookies.get('authToken');
@@ -296,7 +297,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
             <MemberBasicInfo errors={[]} uid={memberInfo.uid} isMemberSelfEdit={true} initialValues={initialValues.basicInfo} />
           </div>
           <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
-            <MemberSkillsInfo errors={[]} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
+            <MemberSkillsInfo errors={[]} isEdit={true} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
           </div>
           <div className={`${activeTab.name !== 'contributions' ? 'hidden' : ''}`}>
             <MemberContributionInfo errors={[]} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />

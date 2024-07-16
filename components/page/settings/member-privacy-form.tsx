@@ -11,7 +11,6 @@ function MemberPrivacyForm(props: any) {
   const preferences = props?.preferences ?? {};
   const settings = preferences?.preferenceSettings ?? {};
   const memberSettings = preferences?.memberPreferences ?? {};
-  const isPreferenceEmpty = preferences?.isPreferenceAvailable
   const formRef = useRef<HTMLFormElement | null>(null);
   const actionRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
@@ -47,14 +46,14 @@ function MemberPrivacyForm(props: any) {
   };
 
   const onFormReset = () => {
-   /*  if (actionRef.current) {
+    /*  if (actionRef.current) {
       actionRef.current.style.visibility = 'hidden';
     } */
   };
 
   const onFormSubmitted = async (e: any) => {
     try {
-      triggerLoader(true);
+      //triggerLoader(true);
       e.stopPropagation();
       e.preventDefault();
       if (formRef.current) {
@@ -63,62 +62,22 @@ function MemberPrivacyForm(props: any) {
         let payload = {
           ...settings,
         };
-        if(typeof memberSettings.github === 'undefined') {
-          payload.showGithub = true;
-        } else {
-          payload.showGithub = formValues.github === 'on' ? true : false;
-        }
-
-        if(typeof memberSettings.showEmail === 'undefined') {
-          payload.showEmail = true;
-        } else {
-          payload.showEmail = formValues.email === 'on' ? true : false;
-        }
-
-        if(typeof memberSettings.showDiscord === 'undefined') {
-          payload.showDiscord = true
-        } else {
-          payload.showDiscord = formValues.discord === 'on' ? true : false;
-        }
-
-        if(typeof memberSettings.showTwitter === 'undefined') {
-          payload.showTwitter = true
-        } else {
-          payload.showTwitter = formValues.twitter === 'on' ? true : false;
-        }
-
-        if(typeof memberSettings.showLinkedin === 'undefined') {
-          payload.showLinkedin = true
-        } else {
-          payload.showLinkedin = formValues.linkedin === 'on' ? true : false;
-        }
-
-        if(typeof memberSettings.showTelegram === 'undefined') {
-          payload.showTelegram = true
-        } else {
-          payload.showTelegram = formValues.telegram === 'on' ? true : false;
-        }
-
-        if(typeof memberSettings.showGithubHandle === 'undefined') {
-          payload.showGithubHandle = true
-        } else {
-          payload.showGithubHandle = formValues.github === 'on' ? true : false;
-        }
-
-        if(typeof memberSettings.showGithubProjects === 'undefined') {
-          payload.showGithubProjects = true
-        } else {
-          payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
-        }
-       
-        console.log(payload, formValues, memberSettings)
-
-        const authToken:any = Cookies.get('authToken');
-        if(!authToken) {
+        delete payload.githubHandle
+        payload.showGithub = formValues.github === 'on' ? true : false;
+        payload.showEmail = formValues.email === 'on' ? true : false;
+        payload.showDiscord = formValues.discord === 'on' ? true : false;
+        payload.showTwitter = formValues.twitter === 'on' ? true : false;
+        payload.showLinkedin = formValues.linkedin === 'on' ? true : false;
+        payload.showTelegram = formValues.telegram === 'on' ? true : false;
+        payload.showGithubHandle = formValues.github === 'on' ? true : false;
+        payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
+        const authToken: any = Cookies.get('authToken');
+        if (!authToken) {
           return;
         }
         const apiResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}/preferences`, {
           method: 'PATCH',
+          cache: 'no-store',
           body: JSON.stringify(payload),
           headers: {
             'Content-Type': 'application/json',
@@ -127,7 +86,7 @@ function MemberPrivacyForm(props: any) {
         });
         triggerLoader(false);
         if (apiResult.ok) {
-         /*  if (actionRef.current) {
+          /*  if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */
           toast.success('Preferences updated successfully');
@@ -142,26 +101,47 @@ function MemberPrivacyForm(props: any) {
     }
   };
 
+  const onItemChange = (e: any) => {
+    const currentValue = !e.target.checked;
+    const itemName = e.target.name;
+    console.log(itemName, currentValue)
+    if (itemName === 'github' && currentValue === true) {
+      const proceed = confirm('Hiding GitHub handle will automatically disable visibility of your projects. Do you wish to proceed?');
+      if (!proceed) {
+        e.target.checked = !e.target.checked;
+      } else {
+        const elem = document.getElementById('privacy-githubProjects') as HTMLInputElement | null;
+        if (elem !== null) {
+          elem.checked = false;
+        }
+      }
+    } else if( itemName === 'githubProjects' && currentValue === false) {
+      const elem = document.getElementById('privacy-github') as HTMLInputElement | null;
+      if (elem !== null && elem.checked === false) {
+        e.target.checked = !e.target.checked;
+      }
+    }
+  };
+
   useEffect(() => {
     function handleNavigate(e: any) {
       const url = e.detail.url;
       let proceed = true;
       const isChanged = onFormChange();
       console.log(isChanged, e.detail);
-      if(isChanged) {
-        proceed = confirm('There are some unsaved changed. Do you want to proceed?')
+      if (isChanged) {
+        proceed = confirm('There are some unsaved changed. Do you want to proceed?');
       }
-      if(!proceed) {
+      if (!proceed) {
         return;
       }
       router.push(url);
     }
-    document.addEventListener('settings-navigate', handleNavigate)
-    return function() {
-      document.removeEventListener('settings-navigate', handleNavigate)
-    }
-  }, [preferences])
-
+    document.addEventListener('settings-navigate', handleNavigate);
+    return function () {
+      document.removeEventListener('settings-navigate', handleNavigate);
+    };
+  }, [preferences]);
 
   return (
     <>
@@ -173,14 +153,7 @@ function MemberPrivacyForm(props: any) {
               {prefForm.items.map((pref: any) => (
                 <div className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`} key={`pref-${pref.name}`}>
                   <div>
-                    <CustomToggle 
-                    disabled={!settings[pref.name]} 
-                    onChange={(value) => console.log(value)} 
-                    name={pref.name} 
-                    id={`privacy-${pref.name}`} 
-                    defaultChecked={memberSettings[pref.name] ?? true} 
-                  />
-                 
+                    <CustomToggle disabled={!settings[pref.name]} onChange={onItemChange} name={pref.name} id={`privacy-${pref.name}`} defaultChecked={memberSettings[pref.name] ?? true} />
                   </div>
                   <div className="pf__field__item__cn">
                     <label className="pf__field__item__cn__label">{pref.title}</label>
@@ -300,12 +273,10 @@ function MemberPrivacyForm(props: any) {
               left: auto;
               justify-content: center;
               align-items: center;
-             
             }
-                .pf {
-            width: 656px;
-           
-          }
+            .pf {
+              width: 656px;
+            }
           }
         `}
       </style>

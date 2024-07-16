@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import MemberPrivacyForm from '@/components/page/settings/member-privacy-form';
 import Link from 'next/link';
+import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 
 const getPageData = async (userInfo: any, authToken: string) => {
   return await getMemberPreferences(userInfo.uid, authToken);
@@ -25,13 +26,13 @@ async function PrivacyPage() {
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
   const preferences = await getPageData(userInfo, JSON.parse(rawAuthToken));
-  console.log(preferences)
+  console.log(preferences);
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
     { text: 'Members', url: '/members' },
     { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
     { text: 'Privacy', url: '/settings/privacy' },
-  ]
+  ];
 
   return (
     <>
@@ -40,10 +41,9 @@ async function PrivacyPage() {
           <div className={styles.privacy__breadcrumbs__desktop}>
             <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
           </div>
-          <Link className={styles.privacy__breadcrumbs__mobile} href="/settings">
-            <img width="16" height="16" src="/icons/arrow-left-blue.svg" />
-            <p>Settings</p>
-          </Link>
+          <div className={styles.privacy__backbtn}>
+            <SettingsBackButton title="Member Privacy" />
+          </div>
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>

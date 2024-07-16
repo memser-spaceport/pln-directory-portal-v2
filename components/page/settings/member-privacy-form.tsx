@@ -3,7 +3,7 @@ import CustomToggle from '@/components/form/custom-toggle';
 import { triggerLoader } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 
 function MemberPrivacyForm(props: any) {
@@ -30,11 +30,11 @@ function MemberPrivacyForm(props: any) {
   ];
 
   const onFormChange = () => {
+    let isFormChanged = false;
     if (formRef.current) {
       const keys = Object.keys(memberSettings);
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
-      let isFormChanged = false;
       [...keys].forEach((key) => {
         const formValueForKey = formValues[key] === 'on' ? true : false;
         if (memberSettings[key] !== formValueForKey && settings[key] !== false) {
@@ -42,6 +42,7 @@ function MemberPrivacyForm(props: any) {
         }
       });
     }
+    return isFormChanged;
   };
 
   const onFormReset = () => {
@@ -99,6 +100,27 @@ function MemberPrivacyForm(props: any) {
       toast.success('Preferences update failed. Something went wrong. Please try again later');
     }
   };
+
+  useEffect(() => {
+    function handleNavigate(e) {
+      const url = e.detail.url;
+      let proceed = true;
+      const isChanged = onFormChange();
+      console.log(isChanged, e.detail);
+      if(isChanged) {
+        proceed = confirm('There are some unsaved changed. Do you want to proceed?')
+      }
+      if(!proceed) {
+        return;
+      }
+      router.push(url);
+    }
+    document.addEventListener('settings-navigate', handleNavigate)
+    return function() {
+      document.removeEventListener('settings-navigate', handleNavigate)
+    }
+  }, [preferences])
+
 
   return (
     <>

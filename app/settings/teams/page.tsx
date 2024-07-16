@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { getTeamInfo, getTeamsInfoForDp } from '@/services/teams.service';
 import { redirect } from 'next/navigation';
+import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 
 
 const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean) => {
@@ -78,10 +79,9 @@ export default async function ManageTeams(props: any) {
           <div className={styles.ps__breadcrumbs__desktop}>
             <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
           </div>
-          <Link className={styles.ps__breadcrumbs__mobile} href="/settings">
-            <img width="16" height="16" src="/icons/arrow-left-blue.svg" />
-            <p>Settings</p>
-          </Link>
+          <div className={styles.ps__backbtn}>
+            <SettingsBackButton title="Manage Teams" />
+          </div>
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>

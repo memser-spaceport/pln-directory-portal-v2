@@ -18,16 +18,21 @@ import Modal from '@/components/core/modal';
 import { saveRegistrationImage } from '@/services/registration.service';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import useObserver from '@/hooks/useObserver';
+import SettingsAction from './actions';
+import MemberPrivacyReadOnly from './member-privacy-readonly';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
+  profileType: 'info' | 'preference';
+  preferences: any;
 }
 
-function ManageMembersSettings({ members, selectedMember }: ManageMembersSettingsProps) {
+function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, profileType = 'info' }: ManageMembersSettingsProps) {
   const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
+  const profileTypeOptions = [{ name: 'info' }, { name: 'preference' }];
+  const selectedProfileType = { name: profileType };
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const formRef = useRef<HTMLFormElement | null>(null);
-  const actionRef = useRef<HTMLDivElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
@@ -41,23 +46,31 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
   //useObserver({callback: onFormChange, observeItem: formRef})
 
+  const updateBasedOnType = useCallback
 
   const onMemberChanged = (uid: string) => {
-    let proceed = true;
-    const isSame = onFormChange();
-    if(!isSame) {
-      proceed = confirm("There are some unsaved changes. Do you wish to continue");
+    if (uid === selectedMember.uid) {
+      return false;
     }
-    if(!proceed) {
-      return proceed;
+
+    if(selectedProfileType.name === 'info') {
+      let proceed = true;
+      const isSame = onFormChange();
+      if (!isSame) {
+        proceed = confirm('There are some unsaved changes. Do you wish to continue');
+      }
+      if (!proceed) {
+        return proceed;
+      }
+      setActiveTab({ name: 'basic' });
+      if (formRef.current) {
+        formRef.current.reset();
+        onResetForm();
+      }
     }
-    setActiveTab({ name: 'basic' })
-    if (formRef.current) {
-      formRef.current.reset();
-      onResetForm();
-    }
-    triggerLoader(true)
-    router.push(`/settings/members?id=${uid}`, { scroll: false });
+    
+    triggerLoader(true);
+    router.push(`/settings/members?id=${uid}&profileType=${selectedProfileType.name}`, { scroll: false });
   };
 
   const onResetForm = async () => {
@@ -83,7 +96,6 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
         const contributionErrors: any = await checkContributionInfoForm({ ...formattedInputValues });
         const allFormErrors = [...basicErrors, ...skillsErrors, ...Object.keys(contributionErrors)];
 
-       
         if (allFormErrors.length > 0) {
           setErrors((v: any) => {
             return {
@@ -97,11 +109,11 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           onShowErrorModal();
           return;
         }
-        setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] })
+        setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
         const isSame = onFormChange();
-        if(isSame) {
+        if (isSame) {
           triggerLoader(false);
-          toast.info("No changes to save");
+          toast.info('No changes to save');
           return;
         }
         if (formattedInputValues.memberProfile && formattedInputValues.memberProfile.size > 0) {
@@ -109,17 +121,15 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           const image = imgResponse?.image;
           formattedInputValues.imageUid = image.uid;
           formattedInputValues.image = image.url;
-         
+
           const imgEle: any = document.getElementById('member-info-basic-image');
           if (imgEle) {
             imgEle.value = image.url;
           }
-        }
-
-        else if (selectedMember?.image?.uid && selectedMember?.image?.url && formattedInputValues.imageFile === selectedMember?.image?.url) {
+        } else if (selectedMember?.image?.uid && selectedMember?.image?.url && formattedInputValues.imageFile === selectedMember?.image?.url) {
           formattedInputValues.imageUid = selectedMember?.image?.uid;
         }
-       
+
         delete formattedInputValues.memberProfile;
         delete formattedInputValues.imageFile;
 
@@ -143,7 +153,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           /* if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */
-          setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] })
+          setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
           toast.success('Member updated successfully');
           router.refresh();
         }
@@ -248,25 +258,36 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
       errorDialogRef.current.showModal();
     }
   };
-   function onFormChange(){
+  function onFormChange() {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const apiObjs = apiObjsToMemberObj({ ...initialValues });
       const formattedInputValues = formInputsToMemberObj(formValues);
       delete formattedInputValues.memberProfile;
-      if(!formattedInputValues.imageFile) {
-        formattedInputValues.imageFile = ''
+      if (!formattedInputValues.imageFile) {
+        formattedInputValues.imageFile = '';
       }
       const isBothSame = compareObjsIfSame(apiObjs, formattedInputValues);
 
       console.log('form change', initialValues, apiObjs, isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formattedInputValues));
       return isBothSame;
     }
-  };
+  }
+
+  const onProfileTypeSelected = useCallback(
+    (item: any) => {
+      if (item.name === profileType) {
+        return false;
+      }
+
+      router.push(`/settings/members?id=${selectedMember.uid}&profileType=${item.name}`);
+    },
+    [profileType, selectedMember]
+  );
 
   useEffect(() => {
-    triggerLoader(false)
+    triggerLoader(false);
     getMemberInfoFormValues()
       .then((d) => {
         if (!d.isError) {
@@ -277,33 +298,34 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   }, []);
 
   useEffect(() => {
-    triggerLoader(false)
-  }, [initialValues])
+    triggerLoader(false);
+  }, [initialValues]);
 
   useEffect(() => {
     function handleNavigate(e: any) {
       const url = e.detail.url;
-      let proceed = true;
-      const isSame = onFormChange();
-      console.log(isSame, e.detail);
-      if(!isSame) {
-        proceed = confirm('There are some unsaved changed. Do you want to proceed?')
-      }
-      if(!proceed) {
-        return;
-      }
+      if(profileType === 'info') {
+        let proceed = true;
+        const isSame = onFormChange();
+        console.log(isSame, e.detail);
+        if (!isSame) {
+          proceed = confirm('There are some unsaved changed. Do you want to proceed?');
+        }
+        if (!proceed) {
+          return;
+        }
+      } 
       router.push(url);
     }
-    document.addEventListener('settings-navigate', handleNavigate)
-    return function() {
-      document.removeEventListener('settings-navigate', handleNavigate)
-    }
-  }, [initialValues])
-
+    document.addEventListener('settings-navigate', handleNavigate);
+    return function () {
+      document.removeEventListener('settings-navigate', handleNavigate);
+    };
+  }, [initialValues, profileType]);
 
   return (
     <>
-      <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms">
+      <div className="ms">
         <div className="ms__member-selection">
           <div className="ms__member-selection__dp">
             <SearchableSingleSelect
@@ -317,12 +339,23 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
               options={members}
               selectedOption={selectedMember}
               uniqueKey="id"
-              iconKey='imageUrl'
-              defaultImage='/icons/default-user-profile.svg'
+              iconKey="imageUrl"
+              defaultImage="/icons/default-user-profile.svg"
+            />
+          </div>
+          <div className="ms__member-selection__dp">
+            <SingleSelect
+              displayKey="name"
+              arrowImgUrl="/icons/arrow-down.svg"
+              id="manage-teams-settings-profiletype-selection"
+              onItemSelect={onProfileTypeSelected}
+              options={[...profileTypeOptions]}
+              selectedOption={selectedProfileType}
+              uniqueKey="name"
             />
           </div>
         </div>
-        <div className="ms__tab">
+        {profileType === 'info' && <div className="ms__tab">
           <div className="ms__tab__desktop">
             <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
           </div>
@@ -337,32 +370,29 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
               id="settings-member-steps"
             />
           </div>
-        </div>
-        <div className="ms__content">
-          <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <MemberBasicInfo isAdminEdit={true} errors={[]} initialValues={initialValues.basicInfo} />
-          </div>
-          <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
-            <MemberSkillsInfo isEdit={true} errors={[]} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
-          </div>
-          <div className={`${activeTab.name !== 'contributions' ? 'hidden' : ''}`}>
-            <MemberContributionInfo errors={[]} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />
-          </div>
-          <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
-            <MemberSocialInfo initialValues={initialValues.socialInfo} />
-          </div>
-        </div>
-        <div ref={actionRef} className="fa">
-          <div className="fa__action">
-            <button className="fa__action__cancel" type="reset">
-              Reset
-            </button>
-            <button className="fa__action__save" type="submit">
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </form>
+        </div>}
+        {profileType === 'info' && (
+          <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms__content">
+            <div className="ms__content__cn">
+              <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
+                <MemberBasicInfo isAdminEdit={true} errors={[]} initialValues={initialValues.basicInfo} />
+              </div>
+              <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
+                <MemberSkillsInfo isEdit={true} errors={[]} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
+              </div>
+              <div className={`${activeTab.name !== 'contributions' ? 'hidden' : ''}`}>
+                <MemberContributionInfo errors={[]} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />
+              </div>
+              <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
+                <MemberSocialInfo initialValues={initialValues.socialInfo} />
+              </div>
+            </div>
+            <SettingsAction />
+          </form>
+        )}
+        {profileType === 'preference' && <MemberPrivacyReadOnly preferences={preferences}/>}
+      </div>
+
       <Modal modalRef={errorDialogRef} onClose={onModalClose}>
         <div className="error">
           <h2 className="error__title">Validation Errors</h2>
@@ -427,51 +457,6 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             font-size: 12px;
             color: #ef4444;
           }
-         .fa {
-            position: sticky;
-            border-top: 2px solid #ff820e;
-            margin: 0;
-            width: 100%;
-            flex-direction: column;
-            bottom: 0px;
-            padding: 16px;
-            left: auto;
-            background: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            //visibility: hidden;
-          }
-          .fa__info {
-            display: flex;
-            color: #64748b;
-            font-size: 14px;
-            font-weight: 500;
-            align-items: center;
-            gap: 6px;
-          }
-
-          .fa__action {
-            display: flex;
-            gap: 16px;
-          }
-          .fa__action__save {
-            padding: 10px 24px;
-            background: #156ff7;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            border-radius: 8px;
-          }
-          .fa__action__cancel {
-            padding: 10px 24px;
-            background: white;
-            color: #0f172a;
-            font-size: 14px;
-            border: 1px solid #cbd5e1;
-            font-weight: 500;
-            border-radius: 8px;
-          }
 
           .hidden {
             visibility: hidden;
@@ -494,7 +479,8 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
           .ms__member-selection {
             padding: 0 24px;
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
+            gap: 4px;
             width: 100%;
           }
 
@@ -550,9 +536,11 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             padding-top: 10px;
           }
           .ms__content {
-            padding: 32px 24px;
             height: fit-content;
             min-height: calc(100svh - 128px);
+          }
+          .ms__content__cn {
+            padding: 32px 24px;
           }
           @media (min-width: 1024px) {
             .ms {
@@ -561,6 +549,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             }
             .ms__member-selection {
               padding: 16px;
+              justify-content: space-between;
             }
             .ms__member-selection__dp {
               width: 250px;
@@ -576,16 +565,6 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             }
             .ms__tab__mobile {
               display: none;
-            }
-             .fa {
-              height: 68px;
-              flex-direction: row;
-              left: auto;
-              justify-content: center;
-              align-items: center;
-             
-             
-             
             }
           }
         `}

@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
+import SettingsAction from './actions';
 
 function MemberPrivacyForm(props: any) {
   const uid = props?.uid;
@@ -12,7 +13,6 @@ function MemberPrivacyForm(props: any) {
   const settings = preferences?.preferenceSettings ?? {};
   const memberSettings = preferences?.memberPreferences ?? {};
   const formRef = useRef<HTMLFormElement | null>(null);
-  const actionRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const preferenceFormItems = [
     {
@@ -53,7 +53,7 @@ function MemberPrivacyForm(props: any) {
 
   const onFormSubmitted = async (e: any) => {
     try {
-      //triggerLoader(true);
+      triggerLoader(true);
       e.stopPropagation();
       e.preventDefault();
       if (formRef.current) {
@@ -164,16 +164,7 @@ function MemberPrivacyForm(props: any) {
             </div>
           </div>
         ))}
-        <div ref={actionRef} className="fa">
-          <div className="fa__action">
-            <button className="fa__action__cancel" type="reset">
-              Reset
-            </button>
-            <button className="fa__action__save" type="submit">
-              Save Changes
-            </button>
-          </div>
-        </div>
+        <SettingsAction/>
       </form>
       <style jsx>
         {`
@@ -224,11 +215,11 @@ function MemberPrivacyForm(props: any) {
 
           .pf {
             width: 100%;
-            padding: 16px;
+           
           }
           .pf__cn {
             padding: 24px 20px;
-            border: 1px solid #e2e8f0;
+          
             margin-bottom: 16px;
             border-radius: 8px;
           }
@@ -276,6 +267,7 @@ function MemberPrivacyForm(props: any) {
             }
             .pf {
               width: 656px;
+              border: 1px solid #e2e8f0;
             }
           }
         `}

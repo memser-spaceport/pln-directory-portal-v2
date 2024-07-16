@@ -15,6 +15,7 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { projectDetailsSchema, socialSchema, basicInfoSchema } from '@/schema/team-forms';
 import Modal from '@/components/core/modal';
+import SettingsAction from './actions';
 
 function ManageTeamsSettings(props: any) {
   const teams = props.teams ?? [];
@@ -23,7 +24,6 @@ function ManageTeamsSettings(props: any) {
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
-  const actionRef = useRef<HTMLDivElement | null>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], focusAreas: [], isError: false });
   const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], projectErrors: [] });
   const tabsWithError = {
@@ -35,6 +35,9 @@ function ManageTeamsSettings(props: any) {
   const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
 
   const onTeamChanged = (uid: string) => {
+    if(uid === selectedTeam.uid) {
+      return false;
+    }
     let proceed = true;
     const isSame = onFormChange();
     if(!isSame) {
@@ -313,16 +316,7 @@ function ManageTeamsSettings(props: any) {
             <TeamSocialInfo initialValues={initialValues.socialInfo} errors={errors.socialErrors} />
           </div>
         </div>
-        <div ref={actionRef} className="fa">
-          <div className="fa__action">
-            <button className="fa__action__cancel" type="reset">
-              Reset
-            </button>
-            <button className="fa__action__save" type="submit">
-              Save Changes
-            </button>
-          </div>
-        </div>
+        <SettingsAction/>
       </form>
 
       <Modal modalRef={errorDialogRef} onClose={() => onModalClose()}>

@@ -164,6 +164,7 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_DETAIL_PROJECT_CLICKED: 'project-clicked',
   TEAM_DETAIL_SEE_ALL_MEMBERS_CLICKED: 'team-detail-members-see-all-clicked',
   TEAM_DETAIL_MEMBER_CLICKED: 'team-detail-member-clicked',
+  TEAM_OFFICEHOURS_CLICKED: 'team-officehours-clicked',
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
 };
 
@@ -331,6 +332,7 @@ export const PRIVACY_CONSTANTS = {
 
 export const ROLE_FILTER_QUERY_NAME = 'memberRoles';
 export const OFFICE_HOURS_MSG = 'Schedule a one on one office hours discussion with';
+export const TEAM_OFFICE_HOURS_MSG = 'Join office hours discussion with';
 
 export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Details'];
 

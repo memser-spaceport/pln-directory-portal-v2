@@ -75,6 +75,8 @@ export interface ITeamsSearchParams {
     linkedinHandle?: string | null;
     maintainingProjects: any [];
     contributingProjects: any [];
+    officeHours?: string | null;
+    teamFocusAreas: any [];
   }
 
   export interface ITeamDetailParams {

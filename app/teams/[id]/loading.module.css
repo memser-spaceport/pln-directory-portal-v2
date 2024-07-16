@@ -182,6 +182,52 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+.teamDetail__container__contacts__ohours {
+  background: #F8FAFC;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.teamDetail__container__contacts__ohours__left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.teamDetail__container__contacts__ohour__left__cldr {
+  height: 28px;
+  width: 28px;
+  border-radius: 4px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0; 
+}
+
+.teamDetail__container__contacts__ohours__left__title {
+  height: 28px;
+  width: 113px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0; 
+}
+
+.teamDetail__container__contacts__ohour__right {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.teamDetail__container__contacts__ohour__right__scmeeting {
+  height: 40px;
+  width: 169px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0;
+}
+
 .teamDetail__container__funding {
   padding: 16px;
   display: flex;

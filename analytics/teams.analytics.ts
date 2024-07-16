@@ -185,6 +185,14 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_FOCUS_AREA_HELP_CLICKED, params);
       }
 
+      function onScheduleMeetingClicked(user: IAnalyticsUserInfo | null, team: IAnalyticsTeamInfo | null) {
+        const params = {
+          user,
+          team,
+        };
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_OFFICEHOURS_CLICKED, params);
+      }
+
       // function onTeamDetailProjectEditClicked(params: any) {
       //   captureEvent(TEAMS_ANALYTICS_EVENTS.PROJECT_EDIT_CLICKED, params);
       // }
@@ -214,6 +222,7 @@ export const useTeamAnalytics = () => {
         onTeamDetailMemberClicked,
         onFocusAreaFilterClicked,
         onTeamFocusAreaHelpClicked,
+        onScheduleMeetingClicked,
         // onTeamDetailProjectEditClicked
       }
 

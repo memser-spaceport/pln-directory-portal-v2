@@ -13,10 +13,13 @@ import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import styles from './page.module.css';
+import { getFocusAreas } from '@/services/common.service';
+import { IFocusArea } from '@/types/shared.types';
+import SelectedFocusAreas from '@/components/core/selected-focus-area';
 
 export default async function ProjectDetails({ params }: any) {
   const projectId = params?.id;
-  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, authToken } = await getPageData(projectId);
+  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken } = await getPageData(projectId);
 
   if (isError) {
     return <Error />;
@@ -40,6 +43,13 @@ export default async function ProjectDetails({ params }: any) {
             </div>
           )}
 
+          {/* Focus Areas */}
+          {project.projectFocusAreas && project?.projectFocusAreas?.length > 0 && focusAreas && focusAreas?.length > 0 && (
+            <div className={styles?.project__container__details__focusarea}>
+              <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={project.TeamFocusAreas} />
+            </div>
+          )}
+
           {project?.kpis.length > 0 && (
             <div className={styles.project__container__details__kpis}>
               <KPIs kpis={project?.kpis} />
@@ -53,7 +63,7 @@ export default async function ProjectDetails({ params }: any) {
         <div className={styles.project__container__info}>
           {project?.contributors?.length > 0 && (
             <div className={styles.project__container__info__contributors}>
-              <Contributors project={project}  contributors={project?.contributors} user={userInfo} />
+              <Contributors project={project} contributors={project?.contributors} user={userInfo} />
             </div>
           )}
           <div className={styles.project__container__info__teams}>
@@ -77,11 +87,12 @@ const getPageData = async (projectId: string) => {
   let hasEditAccess = false;
   let hasDeleteAccess = false;
   let loggedInMemberTeams = [];
+  let focusAreas: IFocusArea[] = [];
 
   try {
-    const [projectResponse] = await Promise.all([getProject(projectId, {})]);
+    const [projectResponse, focusAreaResponse] = await Promise.all([getProject(projectId, {}), getFocusAreas('Project', {})]);
 
-    if (projectResponse?.error) {
+    if (projectResponse?.error || focusAreaResponse?.error) {
       return {
         isError: true,
         isLoggedIn,
@@ -110,6 +121,7 @@ const getPageData = async (projectId: string) => {
     }
 
     project = projectResponse?.data?.formattedData;
+    focusAreas = focusAreaResponse?.data?.filter((data: IFocusArea) => !data.parentUid);
 
     hasEditAccess = hasProjectEditAccess(userInfo, project, isLoggedIn, loggedInMemberTeams);
     hasDeleteAccess = hasProjectDeleteAccess(userInfo, project, isLoggedIn);
@@ -121,6 +133,7 @@ const getPageData = async (projectId: string) => {
       hasEditAccess,
       hasDeleteAccess,
       project,
+      focusAreas,
       authToken,
     };
   } catch (error) {
@@ -131,6 +144,7 @@ const getPageData = async (projectId: string) => {
       hasEditAccess,
       hasDeleteAccess,
       project,
+      focusAreas,
       authToken,
     };
   }

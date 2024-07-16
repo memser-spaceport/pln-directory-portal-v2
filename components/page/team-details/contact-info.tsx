@@ -50,14 +50,13 @@ const ContactInfo = (props: IContactInfo) => {
       <style jsx>
         {`
             .contact-info-container {
-                padding: 20px;
+                padding: 20px 20px 0px 20px;
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
                 background: #fff;
                 border-radius: 8px;
                 background: #FFF;
-                box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
             }
 
             .contact-info-container {

@@ -22,9 +22,9 @@ export const kpiSchema = z.object({
 
 export const generalInfoSchema = z.object({
     name: z
-        .string({ errorMap: () => ({ message: 'Please provide valid name' }) }).regex(/^[a-zA-Z\s]*$/)
+        .string({ errorMap: () => ({ message: 'Please provide valid name' }) })
         .trim()
-        .min(2)
+        .min(1)
         .max(64),
     tagline: z
         .string({ errorMap: () => ({ message: 'Please provide valid tag line' }) })

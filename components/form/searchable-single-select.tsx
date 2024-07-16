@@ -23,6 +23,7 @@ interface SearchableSingleSelectProps {
   isFormElement?: boolean;
   id: string;
   name: string;
+  onSearchHandler?: any;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -42,6 +43,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   iconKey,
   name,
   id,
+  onSearchHandler
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);

@@ -145,6 +145,7 @@ export const getAllProjects = async (queryParams: any, currentPage: number, limi
             description: project?.description,
             maintainingTeam: project?.maintainingTeam,
             lookingForFunding: project?.lookingForFunding,
+            tagline: project?.tagline,
         };
     });
     return { data: { formattedData, totalProjects: result?.length } };

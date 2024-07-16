@@ -69,11 +69,16 @@ const ProjectAddCard = (props: any) => {
             color: #64748b;
           }
 
-          @media(min-width: 1024px) {
-          
-          .projectcard {
-            height: 285px;
-            width: 289px;}
+          @media (min-width: 1024px) {
+            .projectcard {
+              height: 285px;
+              width: 289px;
+            }
+
+            .projectcard--list {
+              width: 100%;
+              height: 112px;
+            }
           }
         `}
       </style>

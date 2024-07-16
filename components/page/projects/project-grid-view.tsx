@@ -1,5 +1,7 @@
 'use client';
 
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+
 // import { IProjectView } from "../../../../../../types";
 
 const ProjectGridView = (props: any) => {
@@ -10,7 +12,7 @@ const ProjectGridView = (props: any) => {
   //variables
   const profile = project?.logo ?? '/icons/project-default.svg';
   const projectName = project?.name;
-  const description = project?.description;
+  const description = project?.tagine;
   const maintainerLogo = project?.maintainingTeam?.logo?.url ?? '/icons/project-default.svg';
   const maintainerName = project?.maintainingTeam?.name;
   const lookingForFunding = project?.lookingForFunding;
@@ -20,7 +22,7 @@ const ProjectGridView = (props: any) => {
       <div className="projectgrid">
         <div className="projectgrid__profile">
           <img className="projectgrid__profile__img" alt="profile" src={profile} />
-          {lookingForFunding && <img className="projectgrid__profile__fund" alt="profile" src="/icons/raising-fund-indicator.svg" />}
+          {lookingForFunding && <Tooltip side='top' asChild trigger={<img className="projectgrid__profile__fund" alt="profile" src="/icons/raising-fund-indicator.svg" />} content={'Raising Funds'} />}
         </div>
         <div className="projectgrid__detail">
           <div className="projectgrid__detail__cn">

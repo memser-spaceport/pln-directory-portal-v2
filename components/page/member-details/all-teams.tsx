@@ -76,7 +76,7 @@ const AllTeams = (props: IAllTeams) => {
           })}
           {allTeams.length === 0 && (
             <div className="all-teams__container__empty-result">
-              <p>No Teams found.</p>
+              <p>No Team found.</p>
             </div>
           )}
         </div>

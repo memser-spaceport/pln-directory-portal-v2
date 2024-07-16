@@ -51,7 +51,7 @@ export function MaintainingTeamPopup(props: any) {
   const onSelectTeamHandler = async (team: any) => {
     setTempMaintainingTeam(team);
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-    const members = await getAllContributors(team?.uid);
+    const members = await getAllContributors(team);
     setAllContributors(Array.isArray(members) ? members : members);
     setStep('Contributors');
   };

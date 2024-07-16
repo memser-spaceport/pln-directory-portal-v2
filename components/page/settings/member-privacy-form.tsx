@@ -10,7 +10,6 @@ function MemberPrivacyForm(props: any) {
   const uid = props?.uid;
   const preferences = props?.preferences ?? {};
   const settings = preferences?.preferenceSettings ?? {};
-  settings.githubProjects = true;
   const memberSettings = preferences?.memberPreferences ?? {};
   const formRef = useRef<HTMLFormElement | null>(null);
   const actionRef = useRef<HTMLDivElement | null>(null);
@@ -42,16 +41,13 @@ function MemberPrivacyForm(props: any) {
           isFormChanged = true;
         }
       });
-      if (actionRef.current) {
-        actionRef.current.style.visibility = isFormChanged ? 'visible' : 'hidden';
-      }
     }
   };
 
   const onFormReset = () => {
-    if (actionRef.current) {
+   /*  if (actionRef.current) {
       actionRef.current.style.visibility = 'hidden';
-    }
+    } */
   };
 
   const onFormSubmitted = async (e: any) => {
@@ -60,7 +56,6 @@ function MemberPrivacyForm(props: any) {
       e.stopPropagation();
       e.preventDefault();
       if (formRef.current) {
-        const keys: string[] = Object.keys(memberSettings);
         const formData = new FormData(formRef.current);
         const formValues = Object.fromEntries(formData);
         let payload = {
@@ -90,9 +85,9 @@ function MemberPrivacyForm(props: any) {
         });
         triggerLoader(false);
         if (apiResult.ok) {
-          if (actionRef.current) {
+         /*  if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
-          }
+          } */
           toast.success('Preferences updated successfully');
           router.refresh();
         } else {
@@ -107,14 +102,23 @@ function MemberPrivacyForm(props: any) {
 
   return (
     <>
-      <form onInput={onFormChange} onSubmit={onFormSubmitted} onReset={onFormReset} ref={formRef} className="pf">
+      <form onSubmit={onFormSubmitted} onReset={onFormReset} ref={formRef} className="pf">
         {preferenceFormItems.map((prefForm: any, index: number) => (
           <div className="pf__cn" key={`pref-form-${index}`}>
             <h2 className="pf__title">{prefForm.title}</h2>
             <div className="pf__fields">
               {prefForm.items.map((pref: any) => (
                 <div className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`} key={`pref-${pref.name}`}>
-                  <div><CustomToggle disabled={!settings[pref.name]} onChange={(value) => console.log(value)} name={pref.name} id={`privacy-${pref.name}`} defaultChecked={memberSettings[pref.name]} /></div>
+                  <div>
+                    <CustomToggle 
+                    disabled={!settings[pref.name]} 
+                    onChange={(value) => console.log(value)} 
+                    name={pref.name} 
+                    id={`privacy-${pref.name}`} 
+                    defaultChecked={memberSettings[pref.name]} 
+                  />
+                 
+                  </div>
                   <div className="pf__field__item__cn">
                     <label className="pf__field__item__cn__label">{pref.title}</label>
                     <div className="pf__field__item__cn__info">{pref.info}</div>
@@ -125,13 +129,9 @@ function MemberPrivacyForm(props: any) {
           </div>
         ))}
         <div ref={actionRef} className="fa">
-          <div className="fa__info">
-            <img alt="save icon" src="/icons/save.svg" width="16" height="16" />
-            <p>Attention! You have unsaved changes!</p>
-          </div>
           <div className="fa__action">
             <button className="fa__action__cancel" type="reset">
-              Cancel
+              Reset
             </button>
             <button className="fa__action__save" type="submit">
               Save Changes
@@ -154,7 +154,6 @@ function MemberPrivacyForm(props: any) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            visibility: hidden;
           }
           .fa__info {
             display: flex;
@@ -233,16 +232,12 @@ function MemberPrivacyForm(props: any) {
 
           @media (min-width: 1024px) {
             .fa {
-              height: 72px;
-              bottom: 16px;
+              height: 68px;
               flex-direction: row;
               left: auto;
-              border-radius: 8px;
-              justify-content: space-between;
+              justify-content: center;
               align-items: center;
-              width: calc(100% - 48px);
-              margin: 0 24px;
-              border: 2px solid #ff820e;
+             
             }
                 .pf {
             width: 656px;

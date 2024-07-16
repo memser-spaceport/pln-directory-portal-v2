@@ -247,7 +247,7 @@ export const updateUserDirectoryEmail = async (payload: any, uid: string, header
 }
 
 export const getMembersInfoForDp = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&select=uid,name,image`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),
@@ -261,7 +261,7 @@ export const getMembersInfoForDp = async () => {
       return {
         id: info.uid,
         name: info.name,
-        profile: info.image?.url,
+        image: info?.image?.url ?? '/icons/default_profile.svg',
       };
     })
     .sort((a: any, b: any) => a.name.localeCompare(b.name));

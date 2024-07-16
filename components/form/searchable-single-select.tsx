@@ -147,7 +147,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           {showOptions && (
             <ul className="select__options">
               {filteredOptions.map((option) => (
-                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
+                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}>
                   {iconKey && <img className="select__options__item__img" src={option[iconKey]} alt={option[displayKey]} />}
                   <span> {option[displayKey]}</span>
                 </li>
@@ -176,11 +176,11 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             width: fit-content;
           }
           .selected__icon {
-            width: 26px;
+            width: 24px;
             object-fit: cover;
             object-position: top;
-            border-radius: 8px;
-            height: 26px;
+            border-radius: 50%;
+            height: 24px;
             position: absolute;
             left: 8px;
             background: lightgrey;
@@ -239,9 +239,9 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             word-break: break-all;
           }
           .select__options__item__img {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
             object-fit: cover;
             object-position: top;
             background: lightgrey;

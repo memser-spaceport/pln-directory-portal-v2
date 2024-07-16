@@ -23,7 +23,7 @@ const getPageData = async (selectedMemberId: string) => {
     }
   }
   selectedMember = memberResult.data;
- 
+  console.log(selectedMember)
   return {
     members,
     selectedMember

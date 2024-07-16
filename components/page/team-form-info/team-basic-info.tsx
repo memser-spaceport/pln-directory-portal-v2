@@ -40,14 +40,14 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   };
 
   useEffect(() => {
-    setSavedImage(initialValues?.imageFile)
+    console.log('initial values changed', initialValues)
+    setSavedImage(initialValues?.imageFile ?? '')
     setProfileImage('');
     function resetHandler() {
+      console.log('initial values reset')
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
-        setTimeout(() => {
-          setSavedImage(initialValues?.imageFile)
-        }, 500)
+        setSavedImage(initialValues?.imageFile ?? '')
         setProfileImage('');
       }
     }

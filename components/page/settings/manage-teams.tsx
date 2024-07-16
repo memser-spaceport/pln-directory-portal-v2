@@ -35,10 +35,20 @@ function ManageTeamsSettings(props: any) {
   const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
 
   const onTeamChanged = (uid: string) => {
+    let proceed = true;
+    const isSame = onFormChange();
+    if(!isSame) {
+      proceed = confirm("There are some unsaved changes. Do you wish to continue");
+    }
+    if(!proceed) {
+      return proceed;
+    }
+    setActiveTab({ name: 'basic' })
     if (formRef.current) {
       formRef.current.reset();
       onResetForm();
     }
+    triggerLoader(true)
     router.push(`/settings/teams?id=${uid}`, { scroll: false });
   };
 
@@ -54,9 +64,9 @@ function ManageTeamsSettings(props: any) {
   };
 
   const onResetForm = async () => {
-    if (actionRef.current) {
+   /*  if (actionRef.current) {
       actionRef.current.style.visibility = 'hidden';
-    }
+    } */
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
     setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
   };
@@ -133,6 +143,12 @@ function ManageTeamsSettings(props: any) {
           return;
         }
         setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
+        const isSame = onFormChange();
+        if(isSame) {
+          triggerLoader(false);
+          toast.info("No changes to save");
+          return;
+        }
         if (formattedInputValues.teamFocusAreas) {
           formattedInputValues.focusAreas = [...formattedInputValues.teamFocusAreas];
           delete formattedInputValues.teamFocusAreas;
@@ -143,13 +159,17 @@ function ManageTeamsSettings(props: any) {
           const image = imgResponse?.image;
           formattedInputValues.logoUid = image.uid;
           formattedInputValues.logoUrl = image.url;
-          delete formattedInputValues.teamProfile;
-          delete formattedInputValues.imageFile;
           const imgEle: any = document.getElementById('team-info-basic-image');
           if (imgEle) {
             imgEle.value = image.url;
           }
+        } else if (selectedTeam?.logo?.uid && selectedTeam?.logo?.url && formattedInputValues.imageFile === selectedTeam?.logo?.url) {
+          formattedInputValues.logoUid = selectedTeam?.logo?.uid;
+          formattedInputValues.logoUrl = selectedTeam?.logo?.url;
         }
+       
+        delete formattedInputValues.teamProfile;
+        delete formattedInputValues.imageFile;
         const payload = {
           participantType: 'TEAM',
           referenceUid: selectedTeam?.uid,
@@ -166,9 +186,9 @@ function ManageTeamsSettings(props: any) {
         if (isError) {
           toast.error('Team updated failed. Something went wrong, please try again later');
         } else {
-          if (actionRef.current) {
+         /*  if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
-          }
+          } */
           toast.success('Team updated successfully');
           router.refresh();
         }
@@ -179,7 +199,9 @@ function ManageTeamsSettings(props: any) {
     }
   };
 
-  const onFormChange = async () => {
+  
+
+  const onFormChange =  () => {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
@@ -194,43 +216,11 @@ function ManageTeamsSettings(props: any) {
       }
       const isBothSame = compareObjsIfSame(apiObjs, formattedInputValues);
 
-      console.log('form change', isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formattedInputValues));
-      if (actionRef.current) {
-        actionRef.current.style.visibility = isBothSame ? 'hidden' : 'visible';
-      }
+      return isBothSame;
     }
   };
 
   useEffect(() => {
-    // MutationObserver callback
-    const observerCallback = async (mutationsList: any) => {
-      for (let mutation of mutationsList) {
-        if (mutation.type === 'childList' || mutation.type === 'attributes') {
-          await onFormChange();
-        }
-      }
-    };
-
-    // Create a MutationObserver
-    const observer = new MutationObserver(observerCallback);
-
-    // Observe changes in the form
-    if (formRef.current) {
-      observer.observe(formRef.current, { childList: true, subtree: true });
-    }
-
-    // Cleanup function to disconnect the observer when the component unmounts
-    return () => {
-      if (observer) {
-        observer.disconnect();
-      }
-    };
-  }, [initialValues]);
-
-  useEffect(() => {
-    onFormChange()
-      .then(() => {})
-      .catch(() => {});
     getTeamsFormOptions()
       .then((data) => {
         if (!data.isError) {
@@ -239,9 +229,13 @@ function ManageTeamsSettings(props: any) {
       })
       .catch((e) => console.error(e));
   }, []);
+
+  useEffect(() => {
+    triggerLoader(false)
+  }, [initialValues])
   return (
     <>
-      <form noValidate onSubmit={onFormSubmitted} onChange={onFormChange} onReset={onResetForm} ref={formRef} className="ms">
+      <form noValidate onSubmit={onFormSubmitted}  onReset={onResetForm} ref={formRef} className="ms">
         <div className="ms__member-selection">
           <div className="ms__member-selection__dp">
             <SearchableSingleSelect
@@ -297,13 +291,9 @@ function ManageTeamsSettings(props: any) {
           </div>
         </div>
         <div ref={actionRef} className="fa">
-          <div className="fa__info">
-            <img alt="save icon" src="/icons/save.svg" width="16" height="16" />
-            <p>Attention! You have unsaved changes!</p>
-          </div>
           <div className="fa__action">
             <button className="fa__action__cancel" type="reset">
-              Cancel
+              Reset
             </button>
             <button className="fa__action__save" type="submit">
               Save Changes
@@ -387,7 +377,7 @@ function ManageTeamsSettings(props: any) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            visibility: hidden;
+            //visibility: hidden;
           }
           .fa__info {
             display: flex;
@@ -400,7 +390,7 @@ function ManageTeamsSettings(props: any) {
 
           .fa__action {
             display: flex;
-            gap: 6px;
+            gap: 16px;
           }
           .fa__action__save {
             padding: 10px 24px;
@@ -525,16 +515,14 @@ function ManageTeamsSettings(props: any) {
               display: none;
             }
             .fa {
-              height: 72px;
-              bottom: 16px;
+              height: 68px;
               flex-direction: row;
               left: auto;
-              border-radius: 8px;
-              justify-content: space-between;
+              justify-content: center;
               align-items: center;
-              width: calc(100% - 48px);
-              margin: 0 24px;
-              border: 2px solid #ff820e;
+             
+             
+             
             }
           }
         `}

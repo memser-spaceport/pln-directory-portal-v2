@@ -67,6 +67,9 @@ const ProjectsToolbar = (props: any) => {
 
   const onClearSearchClicked = () => {
     setSearchInput('');
+    if(searchParams["searchBy"]) {
+      triggerLoader(true);
+    }
     updateQueryParams('searchBy', '', searchParams);
   };
 
@@ -96,6 +99,9 @@ const ProjectsToolbar = (props: any) => {
   };
 
   const onSortOptionClickHandler = (option: any) => {
+    if(option.name !== searchParams['sort']) {
+      triggerLoader(true);
+    }
     if (option.name === SORT_OPTIONS.ASCENDING || option.name === SORT_OPTIONS.DESCENDING) {
       analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), option.name);
       updateQueryParams('sort', option.name, searchParams);

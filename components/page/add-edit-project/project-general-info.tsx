@@ -106,7 +106,6 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             {/* Name */}
             <div className="projectinfo__form__item">
               <TextField
-                pattern="^[a-zA-Z\s]*$"
                 maxLength={64}
                 isMandatory={true}
                 id="add-project-name"

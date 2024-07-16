@@ -20,7 +20,7 @@ export default function AddProject(props: any) {
   return (
     <div className={styles?.addProject}>
       <div className={styles.addProject__breadcrumb}>
-        <BreadCrumb backLink="/projects" directoryName="project" pageName="Add Project" />
+        <BreadCrumb backLink="/projects" directoryName="Project" pageName="Add Project" />
       </div>
       <div className={styles.addProject__cnt}>
         <AddEditProjectContainer project={null} type="Add" userInfo={userInfo}/>

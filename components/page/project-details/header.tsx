@@ -98,13 +98,13 @@ const Header = (props: IHeader) => {
                 {userHasEditRights && (
                   <button className="header__details__controls__edit" onClick={onEditProject}>
                     <img width={14} height={14} src="/icons/edit-blue.svg" alt="edit icon" />
-                    <span>Edit</span>
+                    <p>Edit</p>
                   </button>
                 )}
                 {userHasDeleteRights && (
                   <button onClick={onOpenDeleteModal} className="header__details__controls__delete">
                     <img width={14} height={14} src="/icons/delete.svg" alt="delete icon" />
-                    <span>Delete</span>
+                    <p>Delete</p>
                   </button>
                 )}
               </>

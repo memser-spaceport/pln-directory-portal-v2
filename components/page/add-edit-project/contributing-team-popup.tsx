@@ -54,7 +54,7 @@ export function ContributingTeamPopup(props: any) {
       return [...prev, team];
     });
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-    const members = await getAllContributors(team?.uid);
+    const members = await getAllContributors(team);
     setAllContributors(Array.isArray(members) ? members : members);
     setStep('Contributors');
   };
@@ -92,6 +92,10 @@ export function ContributingTeamPopup(props: any) {
     setFilteredTeams(teams.filter((team: any) => team.name.toLowerCase().includes(name)));
   };
 
+  const onBackClickHandler = () => {
+    setTempContributingTeams([...selectedContributingTeams]);
+  }
+
   return (
     <>
       {step === 'Teams' && (
@@ -109,7 +113,7 @@ export function ContributingTeamPopup(props: any) {
             </div>
 
             <div className="mtcSec__teams">
-              {filteredTeams?.length === 0 && <div className="mtcSec__teams__etr">No teams found</div>}
+              {filteredTeams?.length === 0 && <div className="mtcSec__teams__etr">No team found</div>}
               {filteredTeams?.length > 0 && (
                 <div className="mtc__tamCtrSec">
                   {filteredTeams.map((team: any, index: number) => {
@@ -156,8 +160,8 @@ export function ContributingTeamPopup(props: any) {
           selectedContributors={[...selectedContributors]}
           setSelectedContributors={setSelectedContributors}
           contributors={allContributors}
-          const
           from="Teams"
+          onBackClicked={onBackClickHandler}
         />
       )}
 

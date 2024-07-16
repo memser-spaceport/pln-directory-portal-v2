@@ -19,7 +19,7 @@ function FormStepIndicatorMob(props: any) {
             </div>
             <p className="mri__stepsm__stepname">{currentStep}</p>
           </div>
-          <p className="mri__stepsm__stepinfo">{`Step ${currentStepIndex + 1} of ${PROJECT_FORM_STEPS.length - 1}`}</p>
+          <p className="mri__stepsm__stepinfo">{`Step ${currentStepIndex + 1} of ${PROJECT_FORM_STEPS.length}`}</p>
         </div>
 
         <div className='mri__stepsm__titles'>

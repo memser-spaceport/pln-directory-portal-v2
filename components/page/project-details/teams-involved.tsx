@@ -21,7 +21,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
   const analytics = useProjectAnalytics();
 
   const onContributingTeamClick = (cteam: any) => {
-    analytics.onProjectDetailContributingTeamClicked(getAnalyticsUserInfo(user), project?.id, getAnalyticsTeamInfo(cteam))
+    analytics.onProjectDetailContributingTeamClicked(getAnalyticsUserInfo(user), project?.id, getAnalyticsTeamInfo(cteam));
     window.open('/teams/' + cteam.uid);
   };
 
@@ -35,7 +35,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
   };
 
   const onOpenTeamsModal = () => {
-    analytics.onProjectDetailSeeAllTeamsClicked(getAnalyticsUserInfo(user), project?.id)
+    analytics.onProjectDetailSeeAllTeamsClicked(getAnalyticsUserInfo(user), project?.id);
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE, { detail: true }));
   };
 
@@ -54,7 +54,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
             </div>
           </div>
           <div className="teams__mTeam__settings">
-            <img width={20} height={20} src="/icons/configuration.svg" alt="image" />
+            <img width={20} height={20} className="teams__mTeam__settings__logo" src="/icons/configuration.svg" alt="image" />
           </div>
         </button>
         {contributingTeams.length > 0 &&
@@ -82,6 +82,21 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
           background: none;
           border: none;
           outline: none;
+        }
+
+        .teams__mTeam__info__logo:hover {
+          border: 2px solid #156ff7;
+          border-radius: 4px;
+        }
+
+        .teams__mTeam__settings__logo:hover {
+          border: 2px solid #156ff7;
+          border-radius: 50%;
+        }
+
+        .cteam__info__logo:hover {
+          border: 2px solid #156ff7;
+          border-radius: 4px;
         }
 
         .teams {

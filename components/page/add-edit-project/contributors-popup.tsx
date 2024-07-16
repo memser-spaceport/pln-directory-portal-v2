@@ -1,4 +1,5 @@
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
+import useClickedOutside from '@/hooks/useClickedOutside';
 import { getMembersForProjectForm } from '@/services/members.service';
 import { triggerLoader } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
@@ -7,6 +8,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 export default function ContributorsPopup(props: any) {
   const selectedContributors = [...props?.selectedContributors];
   const setSelectedContributors = props?.setSelectedContributors;
+  const onBackClicked = props.onBackClicked;
 
   const getAllContributors = props?.getAllContributors;
 
@@ -23,10 +25,7 @@ export default function ContributorsPopup(props: any) {
   const [filteredContributors, setFilteredContributors] = useState([...contributors]);
   const currentSelectedContributors = getSelectedCountributorsCount();
   const inputRef = useRef<any>(null);
-
-  // useEffect(() => {
-  //   setTempContributors([...selectedContributors])
-  // }, [allTeams])
+  const singleSelectRef = useRef<any>(null);
 
   useEffect(() => {
     document.addEventListener(EVENTS.UPDATE_SELECTED_CONTRIBUTORS, (e: any) => setTempContributors(e.detail));
@@ -70,6 +69,9 @@ export default function ContributorsPopup(props: any) {
     if (from === 'Contributors') {
       onClose();
     }
+    if (onBackClicked) {
+      onBackClicked();
+    }
   };
 
   const onSkipAndSaveClickHandler = () => {
@@ -78,8 +80,8 @@ export default function ContributorsPopup(props: any) {
   };
 
   const onSaveClickHandler = () => {
-    setSelectedContributors(tempContributors);
-    if(from === "Contributors") {
+    setSelectedContributors([...tempContributors]);
+    if (from === 'Contributors') {
       onClose();
       return;
     }
@@ -132,7 +134,7 @@ export default function ContributorsPopup(props: any) {
 
           <div className="cpc__header__flts">
             {from === 'Contributors' && (
-              <div className="cpc__header__flts__sSelect">
+              <div className="cpc__header__flts__sSelect" ref={singleSelectRef}>
                 <SearchableSingleSelect
                   id="project-register-contributor-info"
                   placeholder="All Team"
@@ -156,18 +158,14 @@ export default function ContributorsPopup(props: any) {
 
           <div className="cpc__header__info">
             <div className="cpc__header__info__count">
-              {selectedContributors.length > 0 && (
-                <>
-                  <span>{currentSelectedContributors?.length} SELECTED</span>
-                </>
-              )}
+              <>
+                <span>{currentSelectedContributors?.length} SELECTED</span>
+              </>
             </div>
-            {selectedContributors.length > 0 && (
-              <div className="cpc__header__info__optns">
-                <input type="checkbox" className="cpc__header__info__optns__shopt" checked={isOnlySelectedContributors} onChange={() => setIsOnlySelectedContributors(!isOnlySelectedContributors)} />
-                <span>Show selected</span>
-              </div>
-            )}
+            <div className="cpc__header__info__optns">
+              <input type="checkbox" className="cpc__header__info__optns__shopt" checked={isOnlySelectedContributors} onChange={() => setIsOnlySelectedContributors(!isOnlySelectedContributors)} />
+              <span>Show selected</span>
+            </div>
           </div>
         </div>
 
@@ -179,17 +177,21 @@ export default function ContributorsPopup(props: any) {
                 return (
                   <div className="cpt__cnt__cptr" key={`${contributor} + ${index}`}>
                     <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
-                    <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.profile ? contributor.profile : '/icons/default_profile.svg'} height={40} width={40} />
+                    <div className="cpt__cnt__cptr__pflctr">
+                      <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} height={40} width={40} />
+                      {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={16} width={16} />}
+                    </div>
                     <div className="cpt__cnt__cptr__dtls">
                       <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
                       <div className="cpt__cnt__cptr__roles">
                         <div>{contributor.teamMemberRoles[0]?.role}</div>
+                        <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles[0]?.role?.length - 1}</div>
                       </div>
                     </div>
                   </div>
                 );
               })}
-              {!filteredContributors?.length && <div className="cpc__cnt__nrf">No contributors found.</div>}
+              {!filteredContributors?.length && <div className="cpc__cnt__nrf">No contributor found.</div>}
             </>
           )}
           {isOnlySelectedContributors && (
@@ -202,11 +204,15 @@ export default function ContributorsPopup(props: any) {
                     {contributor?.name.includes(value.toLowerCase()) && (
                       <div className="cpt__cnt__cptr">
                         <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
-                        <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.profile ? contributor.profile : '/icons/default_profile.svg'} height={40} width={40} />
+                        <div className="cpt__cnt__cptr__pflctr">
+                          <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} height={40} width={40} />
+                          {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={16} width={16} />}
+                        </div>
                         <div className="cpt__cnt__cptr__dtls">
                           <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
                           <div className="cpt__cnt__cptr__roles">
                             <div>{contributor.teamMemberRoles[0]?.role}</div>
+                            <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles[0]?.role?.length - 1}</div>
                           </div>
                         </div>
                       </div>
@@ -214,7 +220,7 @@ export default function ContributorsPopup(props: any) {
                   </Fragment>
                 );
               })}
-              {!currentSelectedContributors?.length && <div className="cpc__cnt__nrf">No contributors found.</div>}
+              {!currentSelectedContributors?.length && <div className="cpc__cnt__nrf">No contributor found.</div>}
             </>
           )}
         </div>
@@ -241,6 +247,27 @@ export default function ContributorsPopup(props: any) {
             margin-top: 2px;
           }
 
+          .cpt__cnt__cptr__pflctr {
+            position: relative;
+          }
+
+          .cpt__cnt__cptr__pflctr__lead {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+          }
+
+          .cpt__cnt__cptr__roles__count {
+            background: #f1f5f9;
+            border-radius: 24px;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 14px;
+            padding: 2px 8px;
+            display: flex;
+            align-items: center;
+          }
+
           .cpc__header__titlSec {
             display: flex;
             justify-content: space-between;
@@ -256,6 +283,7 @@ export default function ContributorsPopup(props: any) {
             align-items: center;
             margin-right: 24px;
             position: absolute;
+            z-index: 2;
             bottom: 0;
             justify-conent: end;
             padding-right: 12px;
@@ -389,6 +417,7 @@ export default function ContributorsPopup(props: any) {
             width: 16px;
             border-radius: 4px;
             cursor: pointer;
+            border: 1px solid #cbd5e1;
           }
 
           .cpt__cnt__cptr__dtls__name {
@@ -411,6 +440,11 @@ export default function ContributorsPopup(props: any) {
 
           .cpc__cnt__nrf {
             text-align: center;
+          }
+
+          .cpt__cnt__cptr__roles {
+            display: flex;
+            gap: 4px;
           }
 
           @media (min-width: 1024px) {

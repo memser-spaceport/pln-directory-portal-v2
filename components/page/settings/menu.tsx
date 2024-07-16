@@ -22,7 +22,11 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: Setti
   ];
 
   const onItemClicked = (url: string) => {
-    document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: url}}))
+    if(window.innerWidth < 1024) {
+      router.push(url);
+    } else {
+      document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: url}}))
+    }
   };
   return (
     <>

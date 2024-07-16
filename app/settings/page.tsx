@@ -9,6 +9,7 @@ export default function Settings() {
   if (!rawAuthToken || !rawUserInfo) {
     redirect('/teams');
   }
+
   
   const userInfo = JSON.parse(rawUserInfo);
   const roles = userInfo.roles ?? [];

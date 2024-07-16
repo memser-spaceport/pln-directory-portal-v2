@@ -86,7 +86,7 @@ const GuestTableRow = (props: any) => {
           <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
             <a target="_blank" title={teamName} className="gtr__team__link" onClick={() => onTeamClick(teamUid, teamName)}>
               <div className="gtr__team__link__imgWrpr">
-                <img width={32} height={32} alt="team logo" src={teamLogo} loading="lazy" />
+                <img className='gtr__team__link__img' width={32} height={32} alt="team logo" src={teamLogo} loading="lazy" />
               </div>
               <div className="break-word">{teamName}</div>
             </a>
@@ -272,6 +272,10 @@ const GuestTableRow = (props: any) => {
           border-radius: 4px;
         }
 
+        .gtr__team__link__img {
+          border-radius: 4px;
+        }
+
         .gtr__topic {
           display: flex;
           width: 340px;
@@ -292,7 +296,6 @@ const GuestTableRow = (props: any) => {
           padding: 2px 8px;
           max-width: 200px;
           border-radius: 8px;
-          background-color: #1e293b;
           font-size: 12px;
           font-weight: 500;
           color: white;

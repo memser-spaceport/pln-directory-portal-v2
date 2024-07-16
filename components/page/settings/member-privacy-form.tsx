@@ -11,6 +11,7 @@ function MemberPrivacyForm(props: any) {
   const preferences = props?.preferences ?? {};
   const settings = preferences?.preferenceSettings ?? {};
   const memberSettings = preferences?.memberPreferences ?? {};
+  const isPreferenceEmpty = preferences?.isPreferenceAvailable
   const formRef = useRef<HTMLFormElement | null>(null);
   const actionRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
@@ -62,19 +63,57 @@ function MemberPrivacyForm(props: any) {
         let payload = {
           ...settings,
         };
-        payload.showGithub = formValues.github === 'on' ? true : false;
-        payload.showEmail = formValues.email === 'on' ? true : false;
-        payload.showDiscord = formValues.discord === 'on' ? true : false;
-        payload.showTwitter = formValues.twitter === 'on' ? true : false;
-        payload.showLinkedin = formValues.linkedin === 'on' ? true : false;
-        payload.showTelegram = formValues.telegram === 'on' ? true : false;
-        payload.showGithubHandle = formValues.github === 'on' ? true : false;
-        payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
+        if(typeof memberSettings.github === 'undefined') {
+          payload.showGithub = true;
+        } else {
+          payload.showGithub = formValues.github === 'on' ? true : false;
+        }
 
+        if(typeof memberSettings.showEmail === 'undefined') {
+          payload.showEmail = true;
+        } else {
+          payload.showEmail = formValues.email === 'on' ? true : false;
+        }
+
+        if(typeof memberSettings.showDiscord === 'undefined') {
+          payload.showDiscord = true
+        } else {
+          payload.showDiscord = formValues.discord === 'on' ? true : false;
+        }
+
+        if(typeof memberSettings.showTwitter === 'undefined') {
+          payload.showTwitter = true
+        } else {
+          payload.showTwitter = formValues.twitter === 'on' ? true : false;
+        }
+
+        if(typeof memberSettings.showLinkedin === 'undefined') {
+          payload.showLinkedin = true
+        } else {
+          payload.showLinkedin = formValues.linkedin === 'on' ? true : false;
+        }
+
+        if(typeof memberSettings.showTelegram === 'undefined') {
+          payload.showTelegram = true
+        } else {
+          payload.showTelegram = formValues.telegram === 'on' ? true : false;
+        }
+
+        if(typeof memberSettings.showGithubHandle === 'undefined') {
+          payload.showGithubHandle = true
+        } else {
+          payload.showGithubHandle = formValues.github === 'on' ? true : false;
+        }
+
+        if(typeof memberSettings.showGithubProjects === 'undefined') {
+          payload.showGithubProjects = true
+        } else {
+          payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
+        }
+       
         console.log(payload, formValues, memberSettings)
-        return;
 
-        const authToken = Cookies.get('authToken');
+        const authToken:any = Cookies.get('authToken');
         if(!authToken) {
           return;
         }

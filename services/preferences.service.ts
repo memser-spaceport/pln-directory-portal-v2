@@ -22,7 +22,7 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
         githubProjects: rawPreferences?.github ?? false
     }
     const memberPreferences = {
-        email: rawPreferences?.showEmail ,
+        email: rawPreferences?.showEmail ?? true,
         github: rawPreferences?.showGithubHandle,
         githubProjects: rawPreferences?.showGithubProjects,
         telegram: rawPreferences?.showTelegram,

@@ -229,7 +229,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
     }
   };
 
-  const onFormChange = async (e?: any) => {
+  const onFormChange = (e?: any) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -246,11 +246,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
     formValues.imageFile = imgEle?.value
 
     const isBothSame = compareObjsIfSame(apiObjs, formValues);
-
-    console.log('form change', isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formValues));
-    if (actionRef.current) {
-      actionRef.current.style.visibility = isBothSame ? 'hidden' : 'visible';
-    }
+    return isBothSame;
   };
 
   useEffect(() => {
@@ -261,7 +257,28 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         }
       })
       .catch((e) => console.error(e));
+     
   }, []);
+
+  useEffect(() => {
+    function handleNavigate(e) {
+      const url = e.detail.url;
+      let proceed = true;
+      const isSame = onFormChange();
+      console.log(isSame, e.detail);
+      if(!isSame) {
+        proceed = confirm('There are some unsaved changed. Do you want to proceed?')
+      }
+      if(!proceed) {
+        return;
+      }
+      router.push(url);
+    }
+    document.addEventListener('settings-navigate', handleNavigate)
+    return function() {
+      document.removeEventListener('settings-navigate', handleNavigate)
+    }
+  }, [initialValues])
 
   return (
     <>

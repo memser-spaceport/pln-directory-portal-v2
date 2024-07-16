@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getMemberInfo } from '@/services/members.service';
+import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 
 const getPageData = async (userId: string) => {
   const memberInfo = await getMemberInfo(userId);
@@ -50,10 +51,9 @@ export default async function ProfileSettings() {
           <div className={styles.ps__breadcrumbs__desktop}>
             <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
           </div>
-          <Link className={styles.ps__breadcrumbs__mobile} href="/settings">
-            <img width="16" height="16" src="/icons/arrow-left-blue.svg" />
-            <p>Settings</p>
-          </Link>
+          <div className={styles.ps__backbtn}>
+            <SettingsBackButton title="Member Profile" />
+          </div>
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>

@@ -233,6 +233,27 @@ function ManageTeamsSettings(props: any) {
   useEffect(() => {
     triggerLoader(false)
   }, [initialValues])
+
+  useEffect(() => {
+    function handleNavigate(e) {
+      const url = e.detail.url;
+      let proceed = true;
+      const isSame = onFormChange();
+      console.log(isSame, e.detail);
+      if(!isSame) {
+        proceed = confirm('There are some unsaved changed. Do you want to proceed?')
+      }
+      if(!proceed) {
+        return;
+      }
+      router.push(url);
+    }
+    document.addEventListener('settings-navigate', handleNavigate)
+    return function() {
+      document.removeEventListener('settings-navigate', handleNavigate)
+    }
+  }, [initialValues])
+
   return (
     <>
       <form noValidate onSubmit={onFormSubmitted}  onReset={onResetForm} ref={formRef} className="ms">

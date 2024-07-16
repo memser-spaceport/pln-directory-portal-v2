@@ -1,6 +1,16 @@
 .privacy {
   position: relative;
   background: white;
+  padding-top: 48px;
+}
+
+.privacy__backbtn {
+  position: fixed;
+  top: 80px;
+  left:0;
+  right: 6px;
+  width: calc(100% - 6px);
+  height:48px;
 }
 .privacy__breadcrumbs {
   display: flex;
@@ -53,6 +63,12 @@
 }
 
 @media (min-width: 1024px) {
+  .privacy {
+    padding-top: 0px;
+  }
+  .privacy__backbtn {
+    display: none;
+  }
   .privacy__main__aside {
     display: block;
   }

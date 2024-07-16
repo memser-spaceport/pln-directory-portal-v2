@@ -1,6 +1,17 @@
+
 .ps {
   position: relative;
   background: white;
+  padding-top: 48px;
+}
+
+.ps__backbtn {
+  position: fixed;
+  top: 80px;
+  left:0;
+  right: 6px;
+  width: calc(100% - 6px);
+  height:48px;
 }
 .ps__breadcrumbs {
   display: flex;
@@ -53,6 +64,12 @@
 }
 
 @media (min-width: 1024px) {
+  .ps {
+    padding-top: 0;
+  }
+  .ps__backbtn {
+    display: none;
+  }
   .ps__main__aside {
     display: block;
   }

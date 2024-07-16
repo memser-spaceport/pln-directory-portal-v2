@@ -22,16 +22,7 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: Setti
   ];
 
   const onItemClicked = (url: string) => {
-    let skip = false;
-    const actionElement = document.getElementById('settings-actions');
-    if(actionElement?.style.visibility === 'visible') {
-      skip = !confirm("There are some unsaved changed. Do you want to proceed?");
-    }
-   
-    if(skip) {
-      return;
-    }
-    router.push(url);
+    document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: url}}))
   };
   return (
     <>

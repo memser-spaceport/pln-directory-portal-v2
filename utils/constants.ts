@@ -82,7 +82,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_DRAWER_BTN_CLICKED: 'navbar-drawer-btn-clicked',
   FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked',
   SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: 'session-expired-popup-login-btn-clicked',
-  GO_TO_TOP_BTN_CLICKED:"go-to-top-btn-clicked",
+  GO_TO_TOP_BTN_CLICKED: 'go-to-top-btn-clicked',
 };
 
 export const PROJECT_ANALYTICS_EVENTS = {
@@ -345,4 +345,163 @@ export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
 };
 
-export const OH_GUIDELINE_URL ='';
+export const OH_GUIDELINE_URL = '';
+
+export const ChangeLogList = [
+  {
+    title: 'Version 2.1.3 - Enhancements',
+    tag: 'Improvements',
+    date: '12, Jul 2024 ',
+    shortContent: `<p style="font-size: 14px; line-height:24px;">
+    Users can now find the Focus Area details on the Teams and Projects detail pages.
+    </p>`,
+  },
+  {
+    title: 'Version 2.1.2 - Enhancements',
+    tag: 'Improvements',
+    date: '05, Jul 2024 ',
+    shortContent: `<p style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px; line-height:23px;">Feel free to connect with your fellow attendees at the events by</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Scheduling Office Hours</li>
+    <li>Connecting via Telegram</li>
+    </ul>
+    <span style="font-size: 14px; line-height:23px;">Additionally, your Telegram Handles will be automatically displayed at the IRL events you attend, per the related Privacy Settings.</span>
+    </p>`,
+  },
+  {
+    title: 'Version 2.1.1 - Enhancements',
+    tag: 'Improvements',
+    date: '14, Jun 2024 ',
+    shortContent: `<p style="font-size: 14px; line-height:23px;">
+    We are excited to introduce office hours for teams. With this option, you can now schedule office hours with other teams to drop in, ask questions, discuss projects, or seek guidance.
+    </p>`,
+  },
+  {
+    title: 'Version 2.1.0 - Enhancements',
+    tag: 'Improvements',
+    date: '31, May 2024 ',
+    shortContent: `<p style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">IRL Gatherings - Enhanced Detail Page View</span><br/>
+      <ul style="padding-left:32px; font-size:14px; line-height:23px; list-style: disc;">
+      <li>A dedicated "Resources" section now lists all important URLs.</li>
+      <li>The "Attendees" section features UI improvements and allows searching by name, team, or project.</li>
+      <li>Attendees can now tag topics of interest and filter others using these tags.</li>
+      </ul>
+      <br/>
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">Updated Authentication Service (for both the Directory & ProtoSphere)</span>
+      <br/>
+      <p style="padding-left: 16px; font-size:14px; line-height:23px;">We have updated our Authentication Service. Please verify and link your directory membership email to a login method of your choice. If you can't remember your membership email, <a style="text-decoration:underline; color:#156ff7" href="https://www.plnetwork.io/contact?showModal=getSupport" target="_blank"> contact us here</a> for assistance.</p>
+      </p>`,
+  },
+  {
+    title: 'Version 2.0.8 - Introducing Landing Page for IRL Gatherings',
+    tag: 'Improvements',
+    date: '10, May 2024',
+    shortContent: `<p style="font-size: 14px; line-height:23px;">
+    We're excited to unveil our new landing page dedicated to IRL Gatherings! Our new landing page serves as a one-stop destination for all upcoming IRL gatherings hosted within our network. Network members can easily navigate through a curated list of events, each accompanied by detailed information and RSVP options.
+    </p>`,
+  },
+  {
+    title: 'Version 2.0.7 - Enhancements to Project module & Member Search',
+    tag: 'Improvements',
+    date: '30, Apr 2024',
+    shortContent: `<div>
+      <ul style="list-style: disc; font-size: 14px; line-height:23px; padding-left:20px;">
+      <li>We have added a new filter in Project's page to search projects based on the focus areas that they contribute to.</li>
+      <ul style="padding-left: 16px; font-size: 14px; line-height:23px;">Projects are categorized into one of these categories-
+      <ul style="list-style: lower-alpha; padding:revert; font-size: 14px; line-height:23px">
+      <li>Digital Human Rights: Building a foundation of freedom and safety in the digital age.</li>
+      <li>Public Goods: Creating more efficient and equitable structures for global progress.</li>
+      <li>Advanced Technologies: Ensuring responsible advancement in AI, AR, VR, BCI, and other emerging fields.</li>
+      <li>Innovation Network: Projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
+      </ul>
+      </ul>
+      <li>We can add a member as a contributor in Project module and the contribution details would get reflected automatically in the related member details page.</li>
+      <li>In addition to the current capability of searching members by member name & team name, this enhancement will allow the members to be searched using a project name as well. Every member associated with the project as a contributor would be returned in the search result.</li>
+      </ul></div>`,
+  },
+  {
+    title: 'Version 2.0.6 - Enhanced Edit feature for Teams',
+    tag: 'Improvements',
+    date: '19, Apr 2024',
+    shortContent: `<p style="font-size: 14px; line-height:23px;">
+    Team leads can use this update to make changes to the Focus and Sub focus areas within their teams. Additionally, a quick access feature to submit a support request from the directory has been enabled.
+    </p>`,
+  },
+  {
+    title: 'Version 2.0.5 - Enhanced search on Member roles',
+    tag: 'Improvements',
+    date: '17, Apr 2024',
+    shortContent: `<div>
+      <ul style="list-style: disc; font-size: 14px; line-height:23px;">
+      This release is an further improvement on the filters based on member roles which was released as <a style="text-decoration:underline; color:#156ff7" href='#version-2.0.1'>Version 2.0.1</a> on 22, Mar 2024. This feature update enables users to type and search roles they are looking for into the Role filter's search bar.
+      </ul></div>`,
+  },
+  {
+    title: 'Version 2.0.4 - IRL Gatherings',
+    tag: 'New Feature',
+    date: '12, Apr 2024',
+    isBeta: true,
+    shortContent: `<div>
+      <ul style="list-style: disc; font-size: 14px;  line-height:23px;">
+      Exciting news! We've rolled out a feature (Beta) that brings detailed participation information to our IRL Gatherings. Network members can now view a list of attendees for upcoming conferences and events, empowering them to see who else is attending and facilitating networking opportunities. With this new feature, network members can now connect with like-minded individuals, plan meetups, and maximize their conference experience.
+      </ul></div>`,
+  },
+  {
+    title: 'Version 2.0.3 - Improved Member Search',
+    tag: 'Improvements',
+    date: '03, Apr 2024',
+    shortContent: `<div>
+      <ul style="list-style: disc; font-size: 14px;  line-height:23px;">
+      With this update, in addition to the current capability of searching by member name, this enhancement will allow the members to be searched using a team name as well. Every member of the team would be returned in the search result.
+      </ul></div>`,
+  },
+  {
+    title: "Version 2.0.2 - Filters based on Teams' Focus areas",
+    tag: 'New Feature',
+    date: '29, Mar 2024',
+    shortContent: `<div>
+      <ul style="list-style: disc; font-size: 14px;  line-height:23px; padding-left:20px;">
+      <li>Added a new filter in Team's page to search teams based on the focus areas/sub focus areas that they contribute to.</li>
+      <li>Teams are categorized into one of these categories-
+      <ul style="list-style: lower-alpha; padding:revert; font-size: 14px; line-height:23px">
+      <li> Digital Human Rights: Building a foundation of freedom and safety in the digital age.</li>
+      <li>Public Goods: Creating more efficient and equitable structures for global progress.</li>
+      <li>Advanced Technologies: Ensuring responsible advancement in AI, AR, VR, BCI, and other emerging fields.</li>
+      <li>Innovation Network: Teams, members, and projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
+      </ul>
+      </li>
+      </ul></div>`,
+  },
+  {
+    title: 'Version 2.0.1 - Filters based on Member roles',
+    tag: 'New Feature',
+    date: '22, Mar 2024 ',
+    shortContent: `<div id='version-2.0.1'>
+      <ul style="list-style: disc; font-size: 14px; line-height:23px; padding-left:20px;">
+      <li>Added a new filter in Member's page to search members based on their role.</li>
+      <li>Roles that are currently supported in the filter are
+      <ul style="list-style: lower-alpha; padding:revert; font-size: 14px;  line-height:23px;">
+      <li>Founder/Co-Founder</li>
+      <li>CEO</li>
+      <li>CTO</li>
+      <li>COO</li>
+      </ul>
+      </li>
+      </ul></div>`,
+  },
+];
+
+export const tagColors = [
+  {
+    name: 'New Feature',
+    color: '#2ABC76',
+  },
+  {
+    name: 'Improvements',
+    color: '#35BAE4',
+  },
+  { name: 'Beta', color: '#C169D7' },
+  { name: 'Fixed', color: '#4871D9' },
+];

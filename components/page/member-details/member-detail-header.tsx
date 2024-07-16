@@ -104,9 +104,18 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
             {/* <button className="header__details__notice__button">
               <img loading="lazy" src="/icons/notification.svg" alt="notification icon" />
             </button> */}
-            {(isAdmin || isOwner) && (
+            {isAdmin && !isOwner && (
               <Link legacyBehavior passHref href={`${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}`}>
                 <a href={`${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}`} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
+                  <img loading="lazy" alt="Edit profile" src="/icons/edit.svg" />
+                  Edit Profile
+                </a>
+              </Link>
+            )}
+
+            {isOwner && (
+              <Link legacyBehavior passHref href={`${PAGE_ROUTES.SETTINGS}/profile`}>
+                <a href={`${PAGE_ROUTES.SETTINGS}/profile`} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
                   <img loading="lazy" alt="Edit profile" src="/icons/edit.svg" />
                   Edit Profile
                 </a>

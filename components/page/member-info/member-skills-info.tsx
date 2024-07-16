@@ -23,20 +23,21 @@ interface MemberSkillsInfoProps {
   teamsOptions: TeamAndRoleOptions[];
   skillsOptions: SkillsOptions[];
   errors: string[];
+  isEdit?: boolean;
 }
 
-function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions = [], errors = [] }: MemberSkillsInfoProps) {
+function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions = [], errors = [], isEdit = false }: MemberSkillsInfoProps) {
   const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>(initialValues?.teamsAndRoles ?? []);
   const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>(initialValues?.skills ?? []);
 
   const getTeamRoleDefaultValue = (teamUid: string) => {
-    const teamIndex = initialValues.teamsAndRoles.findIndex((v:any) => v.teamUid === teamUid);
-    if(teamIndex < 0) {
-      return ""
+    const teamIndex = initialValues.teamsAndRoles.findIndex((v: any) => v.teamUid === teamUid);
+    if (teamIndex < 0) {
+      return '';
     }
 
     return initialValues.teamsAndRoles[teamIndex].role;
-  }
+  };
 
   const onAddTeam = () => {
     setTeamsInfo((v) => {
@@ -97,7 +98,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
   };
 
   useEffect(() => {
-    console.log('skills reset called')
+    console.log('skills reset called');
     setTeamsInfo(structuredClone(initialValues.teamsAndRoles) ?? []);
     setSelectedSkills(structuredClone(initialValues.skills) ?? []);
     function resetHandler() {
@@ -206,6 +207,18 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
             </div>
           ))}
         </div>
+
+       {isEdit &&  <div className="msf__ps__ow">
+          <div className="msf__ps__ow__head">
+            <label> Are you open to collaborate?</label>
+            <input type="checkbox" name="openToWork" defaultChecked={initialValues?.openToWork ?? false} />
+          </div>
+
+          <p className="info">
+          <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="">Enabling this implies you are open to collaborate on shared ideas & projects with other members. This is one way to join forces & reach a common goal.</span>
+          </p>
+        </div>}
       </div>
       <style jsx>
         {`
@@ -213,6 +226,23 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
             display: flex;
             flex-direction: column;
             gap: 4px;
+          }
+            .info {
+             display: flex;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 400;
+            align-items: flex-start;
+            gap: 4px;
+            margin-top: 12px;}
+          .msf__ps__ow__head {
+            display: flex;
+            width: 100%;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+            align-items: center;
+            justify-content: space-between;
           }
           .msf__errors {
             color: red;

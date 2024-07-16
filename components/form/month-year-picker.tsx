@@ -14,10 +14,15 @@ interface MonthYearPickerProps {
 }
 
 const parseISODate = (isoDate: string) => {
-  const date = new Date(isoDate);
-  return { month: date.getMonth() + 1, year: date.getFullYear() };
+  const regex = /^(\d{4})-(\d{2})/;
+  const match = isoDate.match(regex);
+  if (match) {
+    console.log({ year: parseInt(match[1], 10), month: parseInt(match[2], 10) }, isoDate)
+    return { year: parseInt(match[1], 10), month: parseInt(match[2], 10) };
+  } else {
+    throw new Error('Invalid ISO date string');
+  }
 };
-
 const formatISODate = (month: number, year: number, dayValue: 'start' | 'end' = 'start') => {
   const validatedMonth = Math.max(1, Math.min(12, month));
   const validatedYear = Math.max(1, year);
@@ -43,6 +48,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
   id,
   onDateChange
 }) => {
+  console.log('initial date', initialDate)
   const initialMonthYear = initialDate ? parseISODate(initialDate) : null;
   const [selectedDate, setSelectedDate] = useState(initialMonthYear);
   const [isMonthDpActive, setMonthDpStatus] = useState(false);

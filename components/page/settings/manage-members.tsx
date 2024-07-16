@@ -260,7 +260,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
       }
       const isBothSame = compareObjsIfSame(apiObjs, formattedInputValues);
 
-      console.log('form change', isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formattedInputValues));
+      console.log('form change', initialValues, apiObjs, isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formattedInputValues));
       return isBothSame;
     }
   };
@@ -342,7 +342,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
             <MemberBasicInfo isAdminEdit={true} errors={[]} initialValues={initialValues.basicInfo} />
           </div>
           <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
-            <MemberSkillsInfo errors={[]} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
+            <MemberSkillsInfo isEdit={true} errors={[]} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
           </div>
           <div className={`${activeTab.name !== 'contributions' ? 'hidden' : ''}`}>
             <MemberContributionInfo errors={[]} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />

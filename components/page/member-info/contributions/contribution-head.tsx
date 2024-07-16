@@ -42,6 +42,7 @@ function ContributionHead(props: ContributionHeadProps) {
                   console.log(e.target.value, e.target.checked);
                   onProjectStatusChanged(e.target.checked);
                 }}
+                disabled={contribution.currentProject === false && currentProjectsCount === 5 }
                 name={`contributionInfo${contributionIndex}-currentProject`}
                 id={`member-register-contribution-currentproject-${contributionIndex}`}
                 checked={false}

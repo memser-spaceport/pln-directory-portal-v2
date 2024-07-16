@@ -222,7 +222,7 @@ export const getMemberInfo = async (memberUid: string) => {
       currentProject: pc?.currentProject ?? false
     }
   })
-  const formatted = { ...result, moreDetails: result.moreDetails ?? '', officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills };
+  const formatted = { ...result, moreDetails: result.moreDetails ?? '', openToWork: result.openToWork ?? false, officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills };
 
   return { data: formatted };
 };

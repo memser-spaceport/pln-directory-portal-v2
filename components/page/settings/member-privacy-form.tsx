@@ -62,7 +62,6 @@ function MemberPrivacyForm(props: any) {
         let payload = {
           ...settings,
         };
-
         payload.showGithub = formValues.github === 'on' ? true : false;
         payload.showEmail = formValues.email === 'on' ? true : false;
         payload.showDiscord = formValues.discord === 'on' ? true : false;
@@ -71,6 +70,9 @@ function MemberPrivacyForm(props: any) {
         payload.showTelegram = formValues.telegram === 'on' ? true : false;
         payload.showGithubHandle = formValues.github === 'on' ? true : false;
         payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
+
+        console.log(payload, formValues, memberSettings)
+        return;
 
         const authToken = Cookies.get('authToken');
         if(!authToken) {
@@ -137,7 +139,7 @@ function MemberPrivacyForm(props: any) {
                     onChange={(value) => console.log(value)} 
                     name={pref.name} 
                     id={`privacy-${pref.name}`} 
-                    defaultChecked={memberSettings[pref.name]} 
+                    defaultChecked={memberSettings[pref.name] ?? true} 
                   />
                  
                   </div>

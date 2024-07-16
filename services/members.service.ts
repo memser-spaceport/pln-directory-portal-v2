@@ -91,11 +91,11 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     name: result.name,
     email: result.email,
     profile: result.image?.url,
-    githubHandle: result.githubHandler,
-    discordHandle: result.discordHandler,
-    telegramHandle: result.telegramHandler,
-    twitter: result.twitterHandler,
-    officeHours: result.officeHours,
+    githubHandle: result.githubHandler || null,
+    discordHandle: result.discordHandler || null,
+    telegramHandle: result.telegramHandler || null,
+    twitter: result.twitterHandler || null,
+    officeHours: result.officeHours || null,
     location: result?.location,
     skills: result.skills || [],
     teamLead,
@@ -222,7 +222,8 @@ export const getMemberInfo = async (memberUid: string) => {
       currentProject: pc?.currentProject ?? false
     }
   })
-  const formatted = { ...result, moreDetails: result.moreDetails ?? '', openToWork: result.openToWork ?? false, officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills };
+  
+  const formatted = { ...result, imageUrl: result?.image?.url, moreDetails: result.moreDetails ?? '', openToWork: result.openToWork ?? false, officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills };
 
   return { data: formatted };
 };
@@ -261,7 +262,8 @@ export const getMembersInfoForDp = async () => {
       return {
         id: info.uid,
         name: info.name,
-        image: info?.image?.url ?? '/icons/default_profile.svg',
+        image: info?.image?.url ?? '/icons/default-user-profile.svg',
+        imageUrl: info?.image?.url ?? '/icons/default-user-profile.svg',
       };
     })
     .sort((a: any, b: any) => a.name.localeCompare(b.name));

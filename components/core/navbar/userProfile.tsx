@@ -14,7 +14,6 @@ import { createLogoutChannel } from '../login/broadcast-channel';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-
 interface IProfile {
   userInfo: IUserInfo;
 }
@@ -22,7 +21,7 @@ interface IProfile {
 export default function UserProfile(props: Readonly<IProfile>) {
   const [isDropdown, setIsDropdown] = useState(false);
   const profileMenuRef = useRef(null);
-  const router = useRouter()
+  const router = useRouter();
 
   const analytics = useCommonAnalytics();
   const userInfo = props?.userInfo;
@@ -43,7 +42,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
   };
 
   const onAccountOptionsClickHandler = (name: string) => {
-    router.push('/settings/profile')
+    router.push('/settings/profile');
     analytics.onNavAccountItemClicked(name, getAnalyticsUserInfo(userInfo));
   };
 
@@ -56,10 +55,10 @@ export default function UserProfile(props: Readonly<IProfile>) {
         </button>
         {isDropdown && (
           <div className="profile__profileimagesection__ddown">
-             <button className="profile__profileimagesection__ddown__settings" onClick={() => onAccountOptionsClickHandler('settings')}>
-                <Image height={16} width={16} loading="lazy" alt="settings" src="/icons/settings.svg" />
-                Account Settings
-              </button>
+            <button className="profile__profileimagesection__ddown__settings" onClick={() => onAccountOptionsClickHandler('settings')}>
+              <Image height={16} width={16} loading="lazy" alt="settings" src="/icons/settings.svg" />
+              Account Settings
+            </button>
             <div className="profile__profileimagesection__ddown__bl"> </div>
             <div className="profile__profieimagesection__ddown__louts">
               <button onClick={onLogoutHandler} className="profile__profieimagesection__ddown__louts__loutbtn" onClickCapture={() => onAccountOptionsClickHandler('logout')}>
@@ -106,6 +105,8 @@ export default function UserProfile(props: Readonly<IProfile>) {
             background-color: #e2e8f0;
             height: 40px;
             width: 40px;
+            object-fit: cover;
+            object-position: center;
           }
 
           .profile__profileimgsection__dropdownbtn {
@@ -140,7 +141,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
             font-weight: 400;
             line-height: 20px;
             padding: 8px;
-            width:100%;
+            width: 100%;
           }
 
           .profile__profileimagesection__ddown__settings:hover {

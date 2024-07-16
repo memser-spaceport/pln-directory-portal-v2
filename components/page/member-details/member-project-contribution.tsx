@@ -51,7 +51,7 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
     if (isOwner) {
       analytics.onProjectContributionEditClicked(member);
     }
-    router.push('/settings');
+    router.push('/settings/profile');
   };
 
   return (

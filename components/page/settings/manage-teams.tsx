@@ -271,6 +271,8 @@ function ManageTeamsSettings(props: any) {
               options={teams}
               selectedOption={selectedTeam}
               uniqueKey="id"
+              iconKey='imageFile'
+              defaultImage='/icons/team-default-profile.svg'
             />
           </div>
         </div>

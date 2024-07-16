@@ -38,6 +38,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
 
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
+  const editUrl = isAdmin && !isOwner ? `${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}` : `${PAGE_ROUTES.SETTINGS}/profile`;
+
   const analytics = useMemberAnalytics();
 
   const onEditProfileClick = () => {
@@ -104,20 +106,12 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
             {/* <button className="header__details__notice__button">
               <img loading="lazy" src="/icons/notification.svg" alt="notification icon" />
             </button> */}
-            {isAdmin && !isOwner && (
-              <Link legacyBehavior passHref href={`${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}`}>
-                <a href={`${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}`} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
-                  <img loading="lazy" alt="Edit profile" src="/icons/edit.svg" />
-                  Edit Profile
-                </a>
-              </Link>
-            )}
-
-            {isOwner && (
-              <Link legacyBehavior passHref href={`${PAGE_ROUTES.SETTINGS}/profile`}>
-                <a href={`${PAGE_ROUTES.SETTINGS}/profile`} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
-                  <img loading="lazy" alt="Edit profile" src="/icons/edit.svg" />
-                  Edit Profile
+            {isLoggedIn && (isAdmin || isOwner) && (
+              <Link legacyBehavior passHref href={editUrl}>
+                <a href={editUrl} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
+                  <img loading="lazy" alt="Edit" src="/icons/edit.svg" />
+                  <span className="header__detials__edit-and-notification__edit__txt--mob">Edit</span>
+                  <span className="header__detials__edit-and-notification__edit__txt--desc">Edit Profile</span>
                 </a>
               </Link>
             )}
@@ -191,6 +185,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           width: 48px;
           height: 48px;
           border-radius: 100%;
+          object-fit:cover;
+          object-position:center;
         }
 
         .header__details {
@@ -343,6 +339,14 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           padding: 1px 8px 1px 0px;
         }
 
+        .header__detials__edit-and-notification__edit__txt--mob {
+          display: block;
+        }
+
+        .header__detials__edit-and-notification__edit__txt--desc {
+          display: none;
+        }
+
         @media (min-width: 1024px) {
           .header {
             // grid-template-columns: repeat(10, minmax(0, 1fr));
@@ -376,6 +380,14 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
             padding-top: 16px;
             margin-top: unset;
             padding: 16px 0px 0px 0px;
+          }
+
+          .header__detials__edit-and-notification__edit__txt--mob {
+            display: none;
+          }
+
+          .header__detials__edit-and-notification__edit__txt--desc {
+            display: block;
           }
         }
       `}</style>

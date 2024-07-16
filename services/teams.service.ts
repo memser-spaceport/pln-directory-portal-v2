@@ -189,7 +189,7 @@ export const getTeamInfo = async (teamUid: string) => {
 };
 
 export const getTeamsInfoForDp = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false&select=uid,name,logo.url`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),
@@ -201,11 +201,12 @@ export const getTeamsInfoForDp = async () => {
   const formattedData: any = result
     .map((info: any) => {
       return {
-        id: info.uid,
-        name: info.name,
+        id: info?.uid,
+        name: info?.name,
+        imageFile: info?.logo?.url
       };
     })
-    .sort((a: any, b: any) => a.name.localeCompare(b.name));
+    .sort((a: any, b: any) => a?.name?.localeCompare(b?.name));
   return { data: formattedData };
 };
 export const searchTeamsByName = async (searchTerm: string) => {

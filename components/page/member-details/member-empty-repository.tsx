@@ -25,7 +25,6 @@ const MemberEmptyProject = (props: IMemberEmptyProject) => {
 
   return (
     <>
-
       <>
         {isOwner && member?.githubHandle ? (
           <div className="member-empty-project">

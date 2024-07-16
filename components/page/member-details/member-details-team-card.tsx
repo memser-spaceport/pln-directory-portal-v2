@@ -131,6 +131,8 @@ const MemberDetailsTeamCard = (props: IMemberTeamCard) => {
             border-radius: 8px;
             background-color: #e2e8f0;
             border: 1px solid #e2e8f0;
+            object-fit: cover;
+            object-position: center;
           }
 
           .member-teamn-card__profile-details__profile-container__main-team-badge {

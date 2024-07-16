@@ -317,7 +317,8 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
               options={members}
               selectedOption={selectedMember}
               uniqueKey="id"
-              iconKey='image'
+              iconKey='imageUrl'
+              defaultImage='/icons/default-user-profile.svg'
             />
           </div>
         </div>

@@ -3,10 +3,10 @@ import styles from './page.module.css';
 import SettingsMenu from '@/components/page/settings/menu';
 import MemberSettings from '@/components/page/settings/member-settings';
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getMemberInfo } from '@/services/members.service';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 const getPageData = async (userId: string) => {
   const memberInfo = await getMemberInfo(userId);
@@ -23,19 +23,17 @@ const getPageData = async (userId: string) => {
 }
 
 export default async function ProfileSettings() {
-  const cookieStore = cookies();
-  const rawAuthToken: any = cookieStore.get('authToken')?.value;
-  const rawUserInfo: any = cookieStore.get('userInfo')?.value;
-  if(!rawAuthToken || !rawUserInfo) {
+  const {isLoggedIn, userInfo} = getCookiesFromHeaders();
+
+  if(!isLoggedIn) {
     redirect('/teams')
   }
-  const userInfo = JSON.parse(rawUserInfo);
+
   const roles = userInfo.roles ?? [];
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
   const { memberInfo } = await getPageData(userInfo.uid)
-  console.log(memberInfo)
 
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },

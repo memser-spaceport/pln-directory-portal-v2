@@ -1,17 +1,14 @@
-import { cookies } from 'next/headers';
 import styles from './page.module.css'
 import SettingsMenu from '@/components/page/settings/menu'
 import { redirect } from 'next/navigation';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 export default function Settings() {
-  const cookieStore = cookies();
-  const rawAuthToken: any = cookieStore.get('authToken')?.value;
-  const rawUserInfo: any = cookieStore.get('userInfo')?.value;
-  if (!rawAuthToken || !rawUserInfo) {
+  const {isLoggedIn, userInfo} = getCookiesFromHeaders();
+
+  if (!isLoggedIn) {
     redirect('/teams');
   }
 
-  
-  const userInfo = JSON.parse(rawUserInfo);
   const roles = userInfo.roles ?? [];
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;

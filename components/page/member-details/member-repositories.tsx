@@ -22,6 +22,7 @@ const MemberRepositories = (props: IMemberRepositories) => {
 
   const modalRef = useRef<HTMLDialogElement>(null);
   const analytics = useMemberAnalytics();
+  const itemsToShow = repositories?.slice(0, 3);
 
   const onClose = () => {
     if (modalRef.current) {
@@ -61,14 +62,12 @@ const MemberRepositories = (props: IMemberRepositories) => {
           {Array.isArray(repositories) &&
             (repositories?.length > 0 ? (
               <div className="member-repo__repo-container">
-                {repositories?.map((repository: any, index: number) => {
+                {itemsToShow?.map((repository: any, index: number) => {
                   return (
                     <Fragment key={`${repository}+${index}`}>
-                      {index <= 2 && (
-                        <div className={`member-repo__repo-container__repo ${repositories.length - 1 !== index ? 'member-repo__repo-container__repo__border-set' : ''}`}>
-                          <MemberDetailsRepoCard repo={repository} userInfo={userInfo} memebr={member} />
-                        </div>
-                      )}
+                      <div className={`member-repo__repo-container__repo ${itemsToShow.length - 1 !== index ? 'member-repo__repo-container__repo__border-set' : ''}`}>
+                        <MemberDetailsRepoCard repo={repository} userInfo={userInfo} memebr={member} />
+                      </div>
                     </Fragment>
                   );
                 })}

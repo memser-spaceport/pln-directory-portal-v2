@@ -77,6 +77,7 @@ const MembersList = (props: IMembersList) => {
           column-gap: 16px;
           width: 100%;
           justify-content: center;
+          padding: 2px;
         }
 
         .members-list__list {
@@ -98,6 +99,7 @@ const MembersList = (props: IMembersList) => {
 
           .members-list__grid {
             grid-template-columns: repeat(auto-fit, 289px);
+            padding: unset;
           }
 
           .members-list__titlesec {

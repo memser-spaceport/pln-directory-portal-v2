@@ -188,6 +188,8 @@ const MemberGridView = (props: IMemberGridView) => {
           }
 
           .member-grid__profile-container__outer-section__inner-circle__profile {
+            object-fit: cover;
+            object-position: center;
             border: 1px solid #e2e8f0;
             border-radius: 50%;
             height: 36px;

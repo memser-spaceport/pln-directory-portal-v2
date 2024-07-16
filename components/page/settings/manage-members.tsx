@@ -281,7 +281,7 @@ function ManageMembersSettings({ members, selectedMember }: ManageMembersSetting
   }, [initialValues])
 
   useEffect(() => {
-    function handleNavigate(e) {
+    function handleNavigate(e: any) {
       const url = e.detail.url;
       let proceed = true;
       const isSame = onFormChange();

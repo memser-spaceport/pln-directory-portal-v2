@@ -261,7 +261,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
   }, []);
 
   useEffect(() => {
-    function handleNavigate(e) {
+    function handleNavigate(e: any) {
       const url = e.detail.url;
       let proceed = true;
       const isSame = onFormChange();

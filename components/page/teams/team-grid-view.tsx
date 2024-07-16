@@ -87,7 +87,7 @@ const TeamGridView = (props: ITeamGridView) => {
           }
 
           .team-grid__details-container {
-            padding: 0 20px 20px 20px;
+            padding: 0 12px 12px 12px;
             margin-top: 16px;
             display: flex;
             flex-direction: column;
@@ -159,6 +159,7 @@ const TeamGridView = (props: ITeamGridView) => {
             }
 
             .team-grid__details-container {
+              padding: 0 20px 20px 20px;
               margin-top: 38px;
             }
 

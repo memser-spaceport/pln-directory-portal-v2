@@ -91,6 +91,7 @@ export default function ContributorsPopup(props: any) {
   const onClearTeamSearch = () => {};
 
   const onTeamSelectionChanged = async (item: any) => {
+    setSelectedTeam(item);
     inputRef.current.value = '';
     getAllContributors(item.uid);
   };
@@ -147,6 +148,8 @@ export default function ContributorsPopup(props: any) {
                   onClear={() => onClearTeamSearch()}
                   onChange={(item) => onTeamSelectionChanged(item)}
                   arrowImgUrl="/icons/arrow-down.svg"
+                  iconKey='logo'
+                  defaultImage='/icons/team-default-profile.svg'
                 />
               </div>
             )}

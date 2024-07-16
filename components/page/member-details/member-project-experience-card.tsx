@@ -23,7 +23,7 @@ const MemberProjectExperienceCard = (props: any) => {
         {!experience?.isDeleted && (
           <a className="member-project-experience__container" onClick={onProjectClickHandler} href={`${PAGE_ROUTES.PROJECTS}/${experience?.project?.uid}`}>
             <div className="member-project-experience__container__project">
-              <img loading="lazy" alt="project profile" src={logo} height={40} width={40} />
+              <img className="member-project-experience__container__project__img" loading="lazy" alt="project profile" src={logo} height={40} width={40} />
             </div>
             <div className="member-project-experience__project__desc">
               <Tooltip asChild trigger={<p className="member-project-experience__project__desc__name">{experience?.project?.name}</p>} content={experience?.project?.name} />
@@ -47,7 +47,7 @@ const MemberProjectExperienceCard = (props: any) => {
             trigger={
               <div className="member-project-experience__container">
                 <div className="member-project-experience__container__project">
-                  <img loading="lazy" alt="project profile" src={logo} height={40} width={40} />
+                  <img className="member-project-experience__container__project__img" loading="lazy" alt="project profile" src={logo} height={40} width={40} />
                 </div>
                 <div className="member-project-experience__project__desc">
                   <p className="member-project-experience__project__desc__name">{experience?.project?.name}</p>
@@ -88,6 +88,11 @@ const MemberProjectExperienceCard = (props: any) => {
             display: flex;
           }
 
+          .member-project-experience__container__project__img {
+            object-fit: cover;
+            object-position: center;
+          }
+
           .member-project-experience__project__desc {
             font-size: 14px;
             display: flex;
@@ -102,7 +107,7 @@ const MemberProjectExperienceCard = (props: any) => {
             color: #0f172a;
             font-weight: 600;
             white-space: nowrap;
-            max-width: 80%;
+            max-width: 250px;
             text-overflow: ellipsis;
             overflow: hidden;
             text-transform: capitalize;
@@ -126,6 +131,11 @@ const MemberProjectExperienceCard = (props: any) => {
             display: flex;
             gap: 5px;
             align-items: center;
+          }
+          @media (min-width: 1024px) {
+            .member-project-experience__project__desc__name {
+              max-width: 80%;
+            }
           }
         `}
       </style>

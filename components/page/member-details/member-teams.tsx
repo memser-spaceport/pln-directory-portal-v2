@@ -28,13 +28,15 @@ const MemberTeams = (props: IMemberTeams) => {
 
   const analytics = useMemberAnalytics();
 
-  const sortedTeams = member.teams.sort((teamA: any, teamB: any) => {
+  const sortedTeams = member?.teams.sort((teamA: any, teamB: any) => {
     if (teamA.mainTeam === teamB.mainTeam) {
       return teamA?.name.localeCompare(teamB?.name);
     } else {
       return teamB?.mainTeam - teamA?.mainTeam;
     }
   });
+
+  const itemsToShow = sortedTeams?.slice(0, 3);
 
   const onClose = () => {
     if (teamsRef.current) {
@@ -62,24 +64,22 @@ const MemberTeams = (props: IMemberTeams) => {
           )}
         </div>
         <div className="member-teams__teams-container">
-          {sortedTeams?.map((team: any, index: number) => {
+          {itemsToShow?.map((team: any, index: number) => {
             const teamDetails = teams.find((memberTeam) => memberTeam.id === team.id);
             return (
               <Fragment key={`${team}+${index}`}>
-                {index < 3 && (
-                  <div className={`memberteam ${sortedTeams.length - 1 !== index ? 'memberteam__border-set' : ''}`}>
-                    <MemberDetailsTeamCard
-                      member={member}
-                      userInfo={userInfo}
-                      url={`${PAGE_ROUTES?.TEAMS}/${team?.id}`}
-                      team={teamDetails}
-                      tags={teamDetails?.industryTags}
-                      role={team?.role}
-                      isLoggedIn={isLoggedIn}
-                      isMainTeam={team.mainTeam && sortedTeams.length > 1}
-                    />
-                  </div>
-                )}
+                <div className={`memberteam ${itemsToShow.length - 1 !== index ? 'memberteam__border-set' : ''}`}>
+                  <MemberDetailsTeamCard
+                    member={member}
+                    userInfo={userInfo}
+                    url={`${PAGE_ROUTES?.TEAMS}/${team?.id}`}
+                    team={teamDetails}
+                    tags={teamDetails?.industryTags}
+                    role={team?.role}
+                    isLoggedIn={isLoggedIn}
+                    isMainTeam={team.mainTeam && sortedTeams.length > 1}
+                  />
+                </div>
               </Fragment>
             );
           })}

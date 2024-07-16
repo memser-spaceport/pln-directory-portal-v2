@@ -32,9 +32,6 @@ const IrlMain = (props: IIrlMain) => {
   const teams = props?.teams;
   const isUserLoggedIn = props?.isUserLoggedIn;
   const showTelegram = props?.showTelegram as boolean;
-
-  console.log('teams', teams);
-
   // const telegram = eventDetails?.telegram;
   // const resources = eventDetails?.resources ?? [];
   const registeredGuest = eventDetails.guests.find((guest: IGuest) => guest?.memberUid === userInfo?.uid);

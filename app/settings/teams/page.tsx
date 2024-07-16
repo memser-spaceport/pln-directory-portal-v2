@@ -4,10 +4,10 @@ import SettingsMenu from '@/components/page/settings/menu';
 import MemberSettings from '@/components/page/settings/member-settings';
 import ManageTeamsSettings from '@/components/page/settings/manage-teams';
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import { getTeamInfo, getTeamsInfoForDp } from '@/services/teams.service';
 import { redirect } from 'next/navigation';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 
 const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean) => {
@@ -40,15 +40,13 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
 
 
 export default async function ManageTeams(props: any) {
-  const selectedTeamId = props?.searchParams?.id
-  const cookieStore = cookies();
-  const rawAuthToken: any = cookieStore.get('authToken')?.value;
-  const rawUserInfo: any = cookieStore.get('userInfo')?.value;
-  if (!rawAuthToken || !rawUserInfo) {
+  const selectedTeamId = props?.searchParams?.id;
+  const {userInfo, isLoggedIn} = getCookiesFromHeaders();
+
+  if (!isLoggedIn) {
     redirect('/teams');
   }
   
-  const userInfo = JSON.parse(rawUserInfo);
   const roles = userInfo.roles ?? [];
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;

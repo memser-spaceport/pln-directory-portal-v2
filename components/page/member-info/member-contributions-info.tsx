@@ -171,6 +171,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
                       displayKey="projectName"
                       id={`member-contribution-project-${index}`}
                       onChange={(item) => onProjectSelectionChanged(index, item)}
+                      defaultImage='/icons/project-default.svg'
                     />
                   </div>
                   <div className="pc__list__item__form__item">

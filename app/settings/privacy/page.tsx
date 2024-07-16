@@ -2,31 +2,28 @@ import SettingsMenu from '@/components/page/settings/menu';
 import Breadcrumbs from '@/components/ui/breadcrumbs';
 import { getMemberPreferences } from '@/services/preferences.service';
 import styles from './page.module.css';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import MemberPrivacyForm from '@/components/page/settings/member-privacy-form';
 import Link from 'next/link';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 const getPageData = async (userInfo: any, authToken: string) => {
   return await getMemberPreferences(userInfo.uid, authToken);
 };
 
 async function PrivacyPage() {
-  const cookieStore = cookies();
-  const rawAuthToken: any = cookieStore.get('authToken')?.value;
-  const rawUserInfo: any = cookieStore.get('userInfo')?.value;
-  if (!rawAuthToken || !rawUserInfo) {
+  const {isLoggedIn, userInfo, authToken} = getCookiesFromHeaders();
+
+  if (!isLoggedIn) {
     redirect('/teams');
   }
 
-  const userInfo = JSON.parse(rawUserInfo);
   const roles = userInfo.roles ?? [];
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
-  const preferences = await getPageData(userInfo, JSON.parse(rawAuthToken));
-  console.log(preferences);
+  const preferences = await getPageData(userInfo, authToken);
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
     { text: 'Members', url: '/members' },

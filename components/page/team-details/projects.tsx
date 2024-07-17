@@ -58,7 +58,7 @@ const Projects = (props: IProjects) => {
 
   const onEditProjectClicked = (project: any) => {
     analytics.onTeamDetailProjectEditClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team), getAnalyticsProjectInfo(project))
-    router.push(`/projects/edit/${project.id}`)
+    router.push(`/projects/update/${project.uid}`)
   }
 
   return (

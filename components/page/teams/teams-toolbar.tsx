@@ -128,7 +128,7 @@ const TeamsToolbar = (props: IToolbar) => {
                 value={searchInput}
                 onChange={(e) => onInputChange(e)}
                 className="toolbar__left__search-container__searchfrm__input"
-                placeholder="Search"
+                placeholder="Search for a team"
                 onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
               />
 

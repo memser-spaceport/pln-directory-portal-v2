@@ -6,6 +6,7 @@ import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { EVENTS } from '@/utils/constants';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 interface ITeamsInvolved {
   project: any;
@@ -54,7 +55,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
             </div>
           </div>
           <div className="teams__mTeam__settings">
-            <img width={20} height={20} className="teams__mTeam__settings__logo" src="/icons/configuration.svg" alt="image" />
+            <Tooltip asChild trigger={<img width={20} height={20} className="teams__mTeam__settings__logo" src="/icons/configuration.svg" alt="image" />} content={'Maintainer'} side="top" />
           </div>
         </button>
         {contributingTeams.length > 0 &&

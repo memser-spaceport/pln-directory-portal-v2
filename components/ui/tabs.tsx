@@ -14,7 +14,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, errorInfo = {}, activeTab, onTabClick
         {tabs.map((tab, index) => (
           <div
             key={`${tab}-${index}`}
-            className={`tabs__tab ${tab === activeTab ? 'tabs__tab--active' : ''} ${errorInfo[tab] === true ? 'tabs__tab--error': ''}`}
+            className={`tabs__tab ${tab === activeTab ? 'tabs__tab--active' : ''} ${(errorInfo[tab] === true && tab === activeTab) ? 'tabs__tab--error': ''}`}
             onClick={() => onTabClick(tab)}
           >
             <p className={`tabs__tab__text ${tab === activeTab ? 'tabs__tab__text--active': ''} ${errorInfo[tab] === true ? 'tabs__tab__text--error': ''}`}>{tab}</p>

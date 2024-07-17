@@ -85,7 +85,7 @@ const TagsPicker: React.FC<TagsPickerProps> = ({ selectedItems, inputValue, plac
                 <div title={item} className="picker__selected__item__name">
                   {item}
                 </div>
-                <button type="button" onClick={() => onItemsSelected(item)} className="picker__selected__item__name">
+                <button type="button" onClick={() => onItemsSelected(item)} className="picker__selected__item__btn">
                   <img src="/icons/close-tags.svg" height={10} width={10} alt="close" />
                 </button>
               </div>
@@ -120,7 +120,7 @@ const TagsPicker: React.FC<TagsPickerProps> = ({ selectedItems, inputValue, plac
 
           .picker__cn__input:focus-visible,
           .picker__cn__input:focus {
-            outline: none;
+            outline: 1px solid #156FF7;
           }
           ::placeholder {
             color: #aab0b8;
@@ -168,6 +168,10 @@ const TagsPicker: React.FC<TagsPickerProps> = ({ selectedItems, inputValue, plac
             max-width: 180px;
             overflow: hidden;
             text-overflow: ellipsis;
+          }
+
+          .picker__selected__item__btn{
+            margin-top: 2px;
           }
 
           .picker__cn__options__empty {
@@ -245,6 +249,9 @@ const TagsPicker: React.FC<TagsPickerProps> = ({ selectedItems, inputValue, plac
           ::-webkit-scrollbar-thumb {
             background-color: #cbd5e1;
             border-radius: 10px;
+          }
+          button{
+            background-color: transparent;
           }
         `}
       </style>

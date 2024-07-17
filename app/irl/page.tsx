@@ -28,7 +28,7 @@ export default async function Page() {
 }
 
 const getPageData = async () => {
-  let conference = { pastEvents: [], upComingEvents: [] } as any;
+  let conference = [] as any;
   let userEvents = null;
   let error = false;
 

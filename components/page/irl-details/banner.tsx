@@ -127,7 +127,7 @@ const Banner = (props: IBanner) => {
         .banner__info__tags__location__txt {
           height: 100%;
           max-width: 100px;
-          over-flow: hidden;
+          overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }

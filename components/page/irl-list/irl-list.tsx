@@ -26,8 +26,8 @@ export default function IrlList(props: IIrlList) {
   const user = props?.userInfo;
 
   //variable
-  const pastEvents = conference?.pastEvents ?? [];
-  const upcomingEvents = conference?.upcomingEvents ?? [];
+  const pastEvents = conference?.filter((item: any) => isPastDate(item.endDate)) ?? [];
+  const upcomingEvents = conference?.filter((item: any) => !isPastDate(item.endDate)) ?? [];
 
   const inviteOnlyRef = useRef<HTMLDialogElement>(null);
   const inviteOnlyLogOutRef = useRef<HTMLDialogElement>(null);

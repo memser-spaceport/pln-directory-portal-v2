@@ -239,6 +239,7 @@ export const IRL_ANALYTICS_EVENTS = {
 
   IRL_RSVP_POPUP_SAVE_BTN_CLICKED: 'irl-rsvp-popup-save-btn-clicked',
   IRL_RSVP_POPUP_UPDATE_BTN_CLICKED: 'irl-rsvp-popup-update-btn-clicked',
+  IRL_RSVP_POPUP_SAVE_ERROR: 'irl-rsvp-popup-save-error',
   IRL_RSVP_POPUP_OH_GUIDELINE_URL_CLICKED: 'irl-rsvp-popup-oh-guideline-url-clicked',
   IRL_RSVP_POPUP_PRIVACY_SETTING_LINK_CLICKED: 'irl-rsvp-popup-privacy-setting-link-clicked',
 };

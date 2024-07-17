@@ -82,6 +82,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
       role: teamMemberRole.role || 'Contributor',
       teamLead: !!teamMemberRole.teamLead,
       mainTeam: !!teamMemberRole.mainTeam,
+      logo: teamMemberRole?.team?.logo?.url ?? '',
     })) || [];
 
   const mainTeam = teams.find((team: any) => team?.mainTeam);

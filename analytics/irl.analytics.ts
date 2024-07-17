@@ -215,6 +215,51 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_INVITE_ONLY_RESTRICTION_POPUP_LOGIN_CLICKED);
   }
 
+  function irlGuestDetailEditBtnClick(user: IAnalyticsUserInfo | null, event: any, type: string, payload?: any) {
+    const params = {
+      user,
+      ...event,
+      ...payload,
+      type
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_UPDATE_BTN_CLICKED, params);
+  }
+
+  function irlGuestDetailSaveBtnClick(user: IAnalyticsUserInfo | null, event: any, type: string, payload?: any) {
+    const params = {
+      user,
+      ...event,
+      ...payload,
+      type
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_BTN_CLICKED, params);
+  }
+
+  function irlGuestDetailSaveError(user: IAnalyticsUserInfo | null, event: any, type: string) {
+    const params = {
+      user,
+      ...event,
+      type
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_ERROR, params);
+  }
+
+  function irlGuestDetailOHGuidelineClick(user: IAnalyticsUserInfo | null, event: any) {
+    const params = {
+      user,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_OH_GUIDELINE_URL_CLICKED, params);
+  }
+
+  function irlGuestDetailPrivacySettingClick(user: IAnalyticsUserInfo | null, event: any) {
+    const params = {
+      user,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_PRIVACY_SETTING_LINK_CLICKED, params);
+  }
+
   return {
     guestListTeamClicked,
     guestListMemberClicked,
@@ -240,6 +285,11 @@ export const useIrlAnalytics = () => {
     resourcesPopupLoginClicked,
     irlNavbarBackBtnClicked,
     irlCardClicked,
-    irlRestrictionPopupLoginBtnClicked
+    irlRestrictionPopupLoginBtnClicked,
+    irlGuestDetailEditBtnClick,
+    irlGuestDetailSaveBtnClick,
+    irlGuestDetailSaveError,
+    irlGuestDetailOHGuidelineClick,
+    irlGuestDetailPrivacySettingClick
   };
 };

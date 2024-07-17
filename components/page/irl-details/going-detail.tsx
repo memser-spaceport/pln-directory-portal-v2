@@ -5,16 +5,18 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import { useParams } from 'next/navigation';
-import { getMember, getMemberInfo } from '@/services/members.service';
+import TagsPicker from './tags-picker';
+import { getMemberInfo } from '@/services/members.service';
 import { getEventDetailBySlug, createEventGuest, editEventGuest } from '@/services/irl.service';
 import { formatDateRangeForDescription, formatDateToISO, getArrivalDepartureDateRange, getTelegramUsername, removeAt } from '@/utils/irl.utils';
 import TextArea from '@/components/form/text-area';
-import { EVENTS, OH_GUIDELINE_URL } from '@/utils/constants';
-import TagsPicker from './tags-picker';
+import { EVENTS, OH_GUIDELINE_URL, TOAST_MESSAGES } from '@/utils/constants';
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import useTagsPicker from '@/hooks/irl/use-tags-picker';
-import { getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
 import SingleSelect from '@/components/form/single-select';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
+import SingleSelectWithImage from '@/components/form/single-select-with-image';
 
 interface GoingProps {
   isUserGoing: boolean;
@@ -27,6 +29,7 @@ interface GoingProps {
 }
 
 const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, eventDetails, teams, showTelegram, onClose, focusOHField }) => {
+  //variables
   const [formErrors, setFormErrors] = useState<any>({});
   const [connectDetail, setConnectDetail] = useState<any>({});
   const [formValues, setFormValues] = useState({
@@ -40,6 +43,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
       checkOutDate: '',
     },
   });
+  const analytics = useIrlAnalytics();
   const officeHoursRef = useRef<HTMLInputElement>(null);
   const { id } = useParams();
   const userInfo = getParsedValue(Cookies.get('userInfo') || '');
@@ -52,10 +56,10 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
     defaultTags,
     selectedItems: formValues?.topics,
   });
-  const intialTeamValue = teams?.find((team:any) => team?.id === formValues?.teamUid);
+  const intialTeamValue = teams?.find((team: any) => team?.id === formValues?.teamUid);
   const dateRange = getArrivalDepartureDateRange(eventDetails?.startDate, eventDetails?.endDate, 5, 4);
 
-
+  //methods
   const getEventDetails = async () => {
     const authToken = getParsedValue(Cookies.get('authToken') || '');
     const eventDetails = await getEventDetailBySlug(slug, authToken);
@@ -130,19 +134,18 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
     handleDisplayWarning('oh-message');
   };
 
-  const handleOHGuidlineClick = () => {};
+  const handleOHGuidlineClick = () => {
+    analytics.irlGuestDetailOHGuidelineClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name });
+  };
 
-  const handlePrivacySettingClick = () => {};
+  const handlePrivacySettingClick = () => {
+    analytics.irlGuestDetailPrivacySettingClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name });
+  };
 
   //edit guest details
   const onEditGuestDetails = async () => {
     const authToken = getParsedValue(Cookies.get('authToken') || '');
-    // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_RSVP_POPUP_UPDATE_BTN_CLICKED, {
-    //   type: 'clicked',
-    //   eventId: eventDetails?.id,
-    //   eventName: eventDetails?.name,
-    //   user,
-    // });
+    analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name }, 'clicked');
 
     const payload = {
       ...formValues,
@@ -158,26 +161,11 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
     const isValid = validateForm(payload);
 
     if (isValid) {
-      // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_RSVP_POPUP_UPDATE_BTN_CLICKED, {
-      //   type: 'api_initiated',
-      //   eventId: eventDetails?.id,
-      //   eventName: eventDetails?.name,
-      //   user,
-      //   ...payload,
-      //   teamName,
-      // });
-
+      analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name, teamName }, 'api_initiated', payload);
       const response = await editEventGuest(eventDetails?.slugUrl, registeredGuest.uid, payload, authToken);
 
       if (response) {
-        // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_RSVP_POPUP_UPDATE_BTN_CLICKED, {
-        //   type: 'api_success',
-        //   eventId: eventDetails?.id,
-        //   eventName: eventDetails?.name,
-        //   user,
-        //   ...payload,
-        //   teamName,
-        // });
+        analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name, teamName }, 'api_success', payload);
         await getEventDetails();
         onClose();
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
@@ -222,12 +210,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
 
   //add event details
   const onAddGuestDetails = async () => {
-    // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_BTN_CLICKED, {
-    //   type: 'clicked',
-    //   eventId: eventDetails?.id,
-    //   eventName: eventDetails?.name,
-    //   user,
-    // });
+    analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name }, 'clicked');
 
     const authToken = getParsedValue(Cookies.get('authToken') || '');
 
@@ -241,28 +224,15 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
 
     const team = teams?.find((team: any) => team.id === payload?.teamUid);
     const teamName = team?.name;
+
     const isValid = validateForm(payload);
 
     if (isValid) {
-      // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_BTN_CLICKED, {
-      //   type: 'api_initiated',
-      //   eventId: eventDetails?.id,
-      //   eventName: eventDetails?.name,
-      //   user,
-      //   ...payload,
-      //   teamName,
-      // });
+      analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name, teamName }, 'api_initiated', payload);
 
       const response = await createEventGuest(eventDetails?.slugUrl, payload, authToken);
       if (response) {
-        // analytics.captureEvent(APP_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_BTN_CLICKED, {
-        //   type: 'api_success',
-        //   eventId: eventDetails?.id,
-        //   eventName: eventDetails?.name,
-        //   user,
-        //   ...payload,
-        //   teamName,
-        // });
+        analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name, teamName }, 'api_success', payload);
         await getEventDetails();
         onClose();
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
@@ -285,8 +255,9 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
       }
     } catch {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+      analytics.irlGuestDetailSaveError(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name }, !isUserGoing ? 'Save' : 'Edit');
       onClose();
-      toast.error('Something went wrong');
+      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
     }
   };
 
@@ -346,7 +317,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
           <div className="details__cn">
             <div className="details__cn__team">
               <label className="label details__cn__team__label">Team</label>
-              <SingleSelect
+              <SingleSelectWithImage
                 id="going-team-info"
                 isMandatory={true}
                 placeholder="Select a team"
@@ -354,6 +325,8 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
                 options={teams}
                 selectedOption={intialTeamValue || {}}
                 uniqueKey="id"
+                iconKey="logo"
+                defaultIcon="/icons/team-default-profile.svg"
                 onItemSelect={handleTeamChange}
                 arrowImgUrl="/icons/arrow-down.svg"
               />
@@ -523,7 +496,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
           .details {
             padding: 24px 0;
             width: 320px;
-            height: 80svh;
+            max-height: 80svh;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -554,7 +527,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
             font-weight: 400;
             font-size: 13px;
             line-height: 18px;
-            color: #f97316;
+            color: #ef4444;
           }
 
           .details__cn__team {
@@ -572,10 +545,18 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
             position: relative;
           }
 
-          .details__cn__telegram__field,
-          .details__cn__oh__field {
+          .details__cn__telegram__field {
             width: 100%;
             padding: 8px 12px 8px 24px;
+            border: 1px solid lightgrey;
+            border-radius: 8px;
+            min-height: 40px;
+            font-size: 14px;
+          }
+
+          .details__cn__oh__field {
+            width: 100%;
+            padding: 8px 12px;
             border: 1px solid lightgrey;
             border-radius: 8px;
             min-height: 40px;
@@ -586,7 +567,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
           .details__cn__telegram__field:focus,
           .details__cn__oh__field:focus-visible,
           .details__cn__oh__field:focus {
-            outline: none;
+            outline: 1px solid #156ff7;
           }
           ::placeholder {
             color: #aab0b8;
@@ -646,6 +627,12 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
             display: flex;
             flex-direction: column;
             gap: 12px;
+          }
+
+          .details__cn__desc {
+            textarea:focus {
+              outline: 1px solid #156ff7;
+            }
           }
 
           .details__cn__desc__count {
@@ -749,13 +736,14 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
             border-radius: 8px;
             min-height: 40px;
             font-size: 14px;
+            font-family: inherit;
           }
 
           .details__cn__spl__date__in__field:focus-visible,
           .details__cn__spl__date__in__field:focus,
           .details__cn__spl__date__out__field:focus-visible,
           .details__cn__spl__date__out__field:focus {
-            outline: none;
+            outline: 1px solid #156ff7;
           }
 
           .details__cn__spl__info {
@@ -827,7 +815,6 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
             }
 
             .details__cn__spl__date {
-              align-items: center;
               flex-direction: row;
               justify-content: space-between;
             }

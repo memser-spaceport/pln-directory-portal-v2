@@ -31,10 +31,7 @@ export const getAllEvents = async () => {
     };
   });
 
-  const pastEvents = events?.filter((item: any) => isPastDate(item.endDate));
-  const upcomingEvents = events?.filter((item: any) => !isPastDate(item.endDate));
-
-  return { pastEvents, upcomingEvents };
+  return events;
 };
 
 export const getEventDetailBySlug = async (slug: string, token: string) => {

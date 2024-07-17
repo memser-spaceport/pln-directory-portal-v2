@@ -60,20 +60,15 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       if (!proceed) {
         return proceed;
       }
-      //setActiveTab({ name: 'basic' });
-      if (formRef.current) {
-        formRef.current.reset();
-        setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
-        document.dispatchEvent(new CustomEvent('reset-member-register-form'));
-      }
+      
     }
 
     triggerLoader(true);
-    router.push(`/settings/members?id=${uid}&profileType=${selectedProfileType.name}`, { scroll: false });
+    window.location.href = `/settings/members?id=${uid}&profileType=${selectedProfileType.name}`
   };
 
   const onResetForm = async (e?: any) => {
-    /* const isSame = onFormChange();
+     const isSame = onFormChange();
     if (isSame) {
       e.preventDefault();
       toast.info('There are no changes to reset');
@@ -83,7 +78,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     if (!proceed && e) {
       e.preventDefault();
       return;
-    } */
+    }
     setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
     document.dispatchEvent(new CustomEvent('reset-member-register-form'));
   };
@@ -95,12 +90,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       if (!formRef.current) {
         return;
       }
-      const isBothSame = onFormChange();
-      if(isBothSame) {
-        toast.info("There are no changes to save")
-        return;
-      }
-      triggerLoader(true);
+     
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const formattedInputValues = formInputsToMemberObj(formValues);
@@ -124,12 +114,12 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         return;
       }
       setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
-      const isSame = onFormChange();
-      if (isSame) {
-        triggerLoader(false);
-        toast.info('No changes to save');
+      const isBothSame = onFormChange();
+      if(isBothSame) {
+        toast.info("There are no changes to save")
         return;
       }
+      triggerLoader(true);
       if (formattedInputValues.memberProfile && formattedInputValues.memberProfile.size > 0) {
         const imgResponse = await saveRegistrationImage(formattedInputValues.memberProfile);
         const image = imgResponse?.image;
@@ -329,6 +319,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         }
       }
       router.push(url);
+      router.refresh();
     }
     document.addEventListener('settings-navigate', handleNavigate);
     return function () {
@@ -411,6 +402,10 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       <Modal modalRef={errorDialogRef} onClose={onModalClose}>
         <div className="error">
           <h2 className="error__title">Validation Errors</h2>
+          <div className='error__info'>
+            <img width="16" height="16" src='/icons/alert-red.svg'/>
+            <p>Some fields require your attention. Please review the fields below & submit again.</p>
+          </div>
           {errors.basicErrors.length > 0 && (
             <div className="error__item">
               <h3 className="error__item__title">Basic Info</h3>
@@ -454,9 +449,21 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       <style jsx>
         {`
           .error {
-            width: 50vw;
+            width: calc(100vw - 32px);
             height: auto;
+
             padding: 16px;
+          }
+          .error__info {
+            color: #0F172A;
+            background: #DD2C5A1A;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 24px 0 18px 0;
           }
           .error__item {
             padding: 8px 0;
@@ -558,6 +565,10 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             padding: 32px 24px;
           }
           @media (min-width: 1024px) {
+            .error {
+             width: 60vw;
+             padding: 24px;
+            }
             .ms {
               width: 656px;
               border: 1px solid #e2e8f0;

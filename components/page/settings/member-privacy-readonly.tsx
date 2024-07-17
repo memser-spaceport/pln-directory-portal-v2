@@ -1,11 +1,4 @@
 'use client';
-import CustomToggle from '@/components/form/custom-toggle';
-import { triggerLoader } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
-import { toast } from 'react-toastify';
-import SettingsAction from './actions';
 import ToggleReadonly from '@/components/form/toggle-readonly';
 
 function MemberPrivacyReadOnly(props: any) {

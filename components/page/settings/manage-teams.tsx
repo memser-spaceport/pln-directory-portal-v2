@@ -199,7 +199,7 @@ function ManageTeamsSettings(props: any) {
             actionRef.current.style.visibility = 'hidden';
           } */
         toast.success('Team updated successfully');
-        router.refresh();
+        window.location.href = `/settings/teams?id=${selectedTeam.uid}`
       }
     } catch (e) {
       triggerLoader(false);

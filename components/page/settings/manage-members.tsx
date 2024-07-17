@@ -159,7 +159,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           } */
         setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
         toast.success('Member updated successfully');
-        router.refresh();
+        window.location.href = `/settings/members?id=${selectedMember.uid}`
       }
       console.log(data, isError);
     } catch (e) {

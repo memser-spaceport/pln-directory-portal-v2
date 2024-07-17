@@ -78,6 +78,7 @@ export const getTeamUIDByAirtableId = async (id: string) => {
 
 export const updateTeam = async (payload: any, authToken: string, teamUid: string) => {
   const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${teamUid}`, {
+    cache: 'no-store',
     method: 'PUT',
     body: JSON.stringify(payload),
     headers: {

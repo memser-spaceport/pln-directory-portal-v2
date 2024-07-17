@@ -274,6 +274,7 @@ export const getMembersInfoForDp = async () => {
 
 export const updateMember = async (uid: string, payload: any, authToken: string) => {
  const result =  await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}`, {
+    cache: 'no-store',
     method: 'PUT',
     body: JSON.stringify(payload),
     credentials: 'include',

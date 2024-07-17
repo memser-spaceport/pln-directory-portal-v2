@@ -16,13 +16,14 @@
   }
   
   .settings__aside {
+    display:none;
     height: 378px;
     width: 300px;
     padding: 24px;
   }
   
   .settings__main {
-    width: 650px;
+    width: 100%;
     border: 1px solid #e2e8f0;
     overflow: hidden;
   }
@@ -158,4 +159,13 @@
     width: 100%;
     background-color: #e2e8f0;
     border-radius: 8px;
+  }
+
+  @media(min-width: 1024px) {
+    .settings__aside {
+      display: block;
+    }
+    .settings__main {
+      width: 650px;
+    }
   }

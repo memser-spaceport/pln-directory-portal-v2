@@ -106,7 +106,6 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   useEffect(() => {
     setContributionInfos(structuredClone(initialValues) ?? []);
     function resetHandler() {
-      console.log('changedinfo', structuredClone(initialValues))
       setContributionInfos(structuredClone(initialValues) ?? []);
     }
     document.addEventListener('reset-member-register-form', resetHandler);

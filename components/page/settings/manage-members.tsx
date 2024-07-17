@@ -23,14 +23,14 @@ import MemberPrivacyReadOnly from './member-privacy-readonly';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
-  profileType: 'info' | 'preference';
+  viewType: 'profile' | 'privacy';
   preferences: any;
 }
 
-function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, profileType = 'info' }: ManageMembersSettingsProps) {
+function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile' }: ManageMembersSettingsProps) {
   const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
-  const profileTypeOptions = [{ name: 'info' }, { name: 'preference' }];
-  const selectedProfileType = { name: profileType };
+  const profileTypeOptions = [{ name: 'profile' }, { name: 'privacy' }];
+  const selectedProfileType = { name: viewType };
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
@@ -51,7 +51,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       return false;
     }
 
-    if (selectedProfileType.name === 'info') {
+    if (selectedProfileType.name === 'profile') {
       let proceed = true;
       const isSame = onFormChange();
       if (!isSame) {
@@ -64,7 +64,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     }
 
     triggerLoader(true);
-    window.location.href = `/settings/members?id=${uid}&profileType=${selectedProfileType.name}`
+    window.location.href = `/settings/members?id=${uid}&viewType=${selectedProfileType.name}`
   };
 
   const onResetForm = async (e?: any) => {
@@ -280,13 +280,13 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
   const onProfileTypeSelected = useCallback(
     (item: any) => {
-      if (item.name === profileType) {
+      if (item.name === viewType) {
         return false;
       }
 
-      router.push(`/settings/members?id=${selectedMember.uid}&profileType=${item.name}`);
+      router.push(`/settings/members?id=${selectedMember.uid}&viewType=${item.name}`);
     },
-    [profileType, selectedMember]
+    [viewType, selectedMember]
   );
 
   useEffect(() => {
@@ -307,7 +307,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
   useEffect(() => {
     function handleNavigate(e: any) {
       const url = e.detail.url;
-      if (profileType === 'info') {
+      if (viewType === 'profile') {
         let proceed = true;
         const isSame = onFormChange();
         console.log(isSame, e.detail);
@@ -325,7 +325,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     return function () {
       document.removeEventListener('settings-navigate', handleNavigate);
     };
-  }, [initialValues, profileType]);
+  }, [initialValues, viewType]);
 
   return (
     <>
@@ -359,7 +359,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             />
           </div>
         </div>
-        {profileType === 'info' && (
+        {viewType === 'profile' && (
           <div className="ms__tab">
             <div className="ms__tab__desktop">
               <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
@@ -377,17 +377,17 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             </div>
           </div>
         )}
-        {profileType === 'info' && (
+        {viewType === 'profile' && (
           <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms__content">
             <div className="ms__content__cn">
               <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-                <MemberBasicInfo isAdminEdit={true} errors={[]} initialValues={initialValues.basicInfo} />
+                <MemberBasicInfo isAdminEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} />
               </div>
               <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
-                <MemberSkillsInfo isEdit={true} errors={[]} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
+                <MemberSkillsInfo isEdit={true} errors={errors.skillsErrors} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
               </div>
               <div className={`${activeTab.name !== 'contributions' ? 'hidden' : ''}`}>
-                <MemberContributionInfo errors={[]} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />
+                <MemberContributionInfo errors={errors.contributionErrors} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />
               </div>
               <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
                 <MemberSocialInfo initialValues={initialValues.socialInfo} />
@@ -396,7 +396,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             <SettingsAction />
           </form>
         )}
-        {profileType === 'preference' && <MemberPrivacyReadOnly preferences={preferences} />}
+        {viewType === 'privacy' && <MemberPrivacyReadOnly preferences={preferences} />}
       </div>
 
       <Modal modalRef={errorDialogRef} onClose={onModalClose}>

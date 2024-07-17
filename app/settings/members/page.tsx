@@ -9,7 +9,7 @@ import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMemberPreferences } from '@/services/preferences.service';
 
-const getPageData = async (selectedMemberId: string, profileType: string, authToken: string) => {
+const getPageData = async (selectedMemberId: string, authToken: string) => {
   const dpResult = await getMembersInfoForDp();
   let selectedMember; 
   let preferences: any = {};
@@ -37,7 +37,7 @@ const getPageData = async (selectedMemberId: string, profileType: string, authTo
 
 export default async function ManageMembers(props: any) {
   const selectedMemberId = props?.searchParams?.id;
-  const profileType = props?.searchParams?.profileType ?? 'info';
+  const viewType = props?.searchParams?.viewType ?? 'profile';
   const { userInfo, isLoggedIn, authToken } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
@@ -51,7 +51,7 @@ export default async function ManageMembers(props: any) {
   if (!isAdmin) {
     redirect('/teams');
   }
-  const { members, isError, selectedMember, preferences } = await getPageData(selectedMemberId, profileType, authToken);
+  const { members, isError, selectedMember, preferences } = await getPageData(selectedMemberId, authToken);
 
   if (isError) {
     return 'Error';
@@ -79,7 +79,7 @@ export default async function ManageMembers(props: any) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" />
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageMembersSettings preferences={preferences} profileType={profileType} selectedMember={selectedMember} members={members ?? []} />
+            <ManageMembersSettings preferences={preferences} viewType={viewType} selectedMember={selectedMember} members={members ?? []} />
           </div>
         </div>
       </div>

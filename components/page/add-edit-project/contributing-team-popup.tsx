@@ -113,7 +113,7 @@ export function ContributingTeamPopup(props: any) {
             </div>
 
             <div className="mtcSec__teams">
-              {filteredTeams?.length === 0 && <div className="mtcSec__teams__etr">No team found</div>}
+              {filteredTeams?.length === 0 && <div className="mtcSec__teams__etr">No Teams found</div>}
               {filteredTeams?.length > 0 && (
                 <div className="mtc__tamCtrSec">
                   {filteredTeams.map((team: any, index: number) => {

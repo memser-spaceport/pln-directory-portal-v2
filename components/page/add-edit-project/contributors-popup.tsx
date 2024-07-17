@@ -194,7 +194,7 @@ export default function ContributorsPopup(props: any) {
                   </div>
                 );
               })}
-              {!filteredContributors?.length && <div className="cpc__cnt__nrf">No contributor found.</div>}
+              {!filteredContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
             </>
           )}
           {isOnlySelectedContributors && (
@@ -223,7 +223,7 @@ export default function ContributorsPopup(props: any) {
                   </Fragment>
                 );
               })}
-              {!currentSelectedContributors?.length && <div className="cpc__cnt__nrf">No contributor found.</div>}
+              {!currentSelectedContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
             </>
           )}
         </div>

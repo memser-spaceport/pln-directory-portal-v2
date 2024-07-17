@@ -89,7 +89,7 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
                 </div>
               );
             })}
-            {filteredContriList.length === 0 && <div className="cm__body__contributors__notFound">No contributor found.</div>}
+            {filteredContriList.length === 0 && <div className="cm__body__contributors__notFound">No Contributors found.</div>}
           </div>
         </div>
       </Modal>

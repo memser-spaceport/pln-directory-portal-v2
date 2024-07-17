@@ -149,22 +149,24 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
 
   const onFormSubmitted = async (e: any) => {
     try {
-    
+      triggerLoader(true);
       e.preventDefault();
       e.stopPropagation();
       console.log('form submitted');
       if(!formRef.current) {
+        triggerLoader(false);
         return;
       }
       const isBothSame = onFormChange();
       if(isBothSame) {
         toast.info("There are no changes to save")
+        triggerLoader(false);
         return;
       }
-      triggerLoader(true);
+     
       const formData = new FormData(formRef.current);
       const formValues = formInputsToMemberObj(Object.fromEntries(formData));
-      console.log(formValues, 'formmmmm');
+   
       const formattedForms = { ...formValues };
 
       const basicErrors: any[] = await checkBasicInfoForm({ ...formattedForms });

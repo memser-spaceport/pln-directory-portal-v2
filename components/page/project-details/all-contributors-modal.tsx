@@ -38,12 +38,11 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
   }, []);
 
   const onInputchangeHandler = (event: any) => {
-    const searchTerm = event?.target.value;
+    const searchTerm = event?.target.value.toLowerCase();
     setSearchTerm(event.target.value);
-    if (searchTerm) {
       const filteredMembers = contributorsList?.filter((member: IMember) => member?.name?.toLowerCase()?.includes(searchTerm));
       setFilteredContriList(filteredMembers);
-    }
+
   };
 
   const onModalCloseClickHandler = () => {

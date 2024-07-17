@@ -24,7 +24,7 @@ interface SearchableSingleSelectProps {
   id: string;
   name: string;
   onSearchHandler?: any;
-  defaultImage?:string;
+  defaultImage?: string;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -45,7 +45,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   name,
   id,
   onSearchHandler,
-  defaultImage
+  defaultImage,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -56,7 +56,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
 
   const handleOptionClick = (option: Option) => {
     const isAllowed = onChange(option);
-    if(isAllowed === false) {
+    if (isAllowed === false) {
       setShowOptions(false);
       setFilteredOptions(options);
     } else {
@@ -71,16 +71,16 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   const onInputClicked = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
-    setShowOptions((v) => !v)
-    if(onClick) {
-      onClick()
+    setShowOptions((v) => true);
+    if (onClick) {
+      onClick();
     }
-  }
+  };
 
   const onSearch = (e: ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value;
     if (showOptions) {
-      if (selectedOption && selectedOption[uniqueKey]) {
+      if (selectedOption && selectedOption[uniqueKey] && selectedOption[displayKey]) {
         onClear();
       }
       if (searchTerm === '') {
@@ -93,6 +93,10 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
 
   const onSearchFocus = () => {
     setShowOptions(true);
+  };
+
+  const onToggleOptions = () => {
+    setShowOptions((v) => !v);
   };
 
   useEffect(() => {
@@ -121,8 +125,6 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
     };
   }, []);
 
-
-
   return (
     <>
       <div className="select">
@@ -135,29 +137,40 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           {iconKey && selectedOption && <img className="selected__icon" src={selectedOption[iconKey] || defaultImage} alt={selectedOption[displayKey]} />}
           <input
             id={id}
-            className={`select__search ${iconKey ? "hasDefaultImg": ""} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${(isMandatory && !selectedOption?.[uniqueKey]) || (isMandatory && searchRef.current?.value === '') ? 'select__search--error' : ''}`}
+            className={`select__search ${iconKey ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
+              (isMandatory && !selectedOption?.[uniqueKey]) || (isMandatory && searchRef.current?.value === '') ? 'select__search--error' : ''
+            }`}
             ref={searchRef}
             defaultValue={selectedOption ? selectedOption[displayKey] : ''}
             onChange={onSearch}
             onClick={onInputClicked}
-            onBlur={()=> {
-              if(selectedOption && searchRef.current) {
-                searchRef.current.value = selectedOption[displayKey]
-                setFilteredOptions(options);
-              }
-            }}
-            //onFocus={onSearchFocus}
+            onFocus={onSearchFocus}
             placeholder={placeholder}
             required={isMandatory}
             autoComplete="off"
+            onBlur={(e) => {
+              e.stopPropagation();
+              if (selectedOption && searchRef.current) {
+                searchRef.current.value = selectedOption[displayKey] ?? '';
+                setFilteredOptions(options);
+              }
+              setShowOptions(false);
+            }}
           />
           <input ref={inputRef} type="text" hidden defaultValue={defaultSelectedValue} name={name} />
 
-          {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+          {arrowImgUrl && <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
           {showOptions && (
             <ul className="select__options">
               {filteredOptions.map((option) => (
-                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}>
+                <li
+                  key={option[uniqueKey]}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleOptionClick(option);
+                  }}
+                  className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}
+                >
                   {iconKey && <img className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
                   <span> {option[displayKey]}</span>
                 </li>

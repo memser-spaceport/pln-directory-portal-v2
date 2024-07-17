@@ -46,8 +46,6 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
   const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
   //useObserver({callback: onFormChange, observeItem: formRef})
 
-  const updateBasedOnType = useCallback;
-
   const onMemberChanged = (uid: string) => {
     if (uid === selectedMember.uid) {
       return false;
@@ -62,7 +60,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       if (!proceed) {
         return proceed;
       }
-      setActiveTab({ name: 'basic' });
+      //setActiveTab({ name: 'basic' });
       if (formRef.current) {
         formRef.current.reset();
         setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
@@ -75,17 +73,17 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
   };
 
   const onResetForm = async (e?: any) => {
-    const isSame = onFormChange();
+    /* const isSame = onFormChange();
     if (isSame) {
       e.preventDefault();
       toast.info('There are no changes to reset');
       return;
     }
     const proceed = confirm('Do you want to reset the changes ?');
-    if (!proceed) {
+    if (!proceed && e) {
       e.preventDefault();
       return;
-    }
+    } */
     setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
     document.dispatchEvent(new CustomEvent('reset-member-register-form'));
   };

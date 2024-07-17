@@ -1,5 +1,6 @@
 .settings {
     background: white;
+    min-height: calc(100vh - 80px);
 }
 
 .settings__title {

@@ -154,6 +154,7 @@ function MemberPrivacyForm(props: any) {
         return;
       }
       router.push(url);
+      router.refresh();
     }
     document.addEventListener('settings-navigate', handleNavigate);
     return function () {
@@ -238,8 +239,8 @@ function MemberPrivacyForm(props: any) {
             padding: 24px 20px;
 
             margin-bottom: 16px;
-            border-radius: 8px;
-            border-bottom: 1px solid #cbd5e1;
+         
+            border-top: 1px solid #cbd5e1;
           }
           .pf__title {
             font-size: 16px;

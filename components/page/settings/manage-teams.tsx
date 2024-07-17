@@ -46,14 +46,9 @@ function ManageTeamsSettings(props: any) {
     if (!proceed) {
       return proceed;
     }
-    //setActiveTab({ name: 'basic' });
-    if (formRef.current) {
-      formRef.current.reset();
-      document.dispatchEvent(new CustomEvent('reset-team-register-form'));
-      setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
-    }
+   
     triggerLoader(true);
-    router.push(`/settings/teams?id=${uid}`, { scroll: false });
+    window.location.href = `/settings/teams?id=${uid}`
   };
 
   const onModalClose = () => {
@@ -68,7 +63,7 @@ function ManageTeamsSettings(props: any) {
   };
 
   const onResetForm = async (e?: any) => {
-   /*  const isSame = onFormChange();
+     const isSame = onFormChange();
     if (isSame) {
       e.preventDefault();
       toast.info('There are no changes to reset');
@@ -78,7 +73,7 @@ function ManageTeamsSettings(props: any) {
     if (!proceed) {
       e.preventDefault();
       return;
-    } */
+    }
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
     setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
   };
@@ -138,12 +133,7 @@ function ManageTeamsSettings(props: any) {
       if (!formRef.current) {
         return;
       }
-      const isBothSame = onFormChange();
-      if (isBothSame) {
-        toast.info('There are no changes to save');
-        return;
-      }
-      triggerLoader(true);
+      
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const formattedInputValues = transformRawInputsToFormObj(formValues);
@@ -162,12 +152,12 @@ function ManageTeamsSettings(props: any) {
         return;
       }
       setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
-      const isSame = onFormChange();
-      if (isSame) {
-        triggerLoader(false);
-        toast.info('No changes to save');
+      const isBothSame = onFormChange();
+      if (isBothSame) {
+        toast.info('There are no changes to save');
         return;
       }
+      triggerLoader(true);
       if (formattedInputValues.teamFocusAreas) {
         formattedInputValues.focusAreas = [...formattedInputValues.teamFocusAreas];
         delete formattedInputValues.teamFocusAreas;
@@ -263,6 +253,7 @@ function ManageTeamsSettings(props: any) {
         return;
       }
       router.push(url);
+      router.refresh();
     }
     document.addEventListener('settings-navigate', handleNavigate);
     return function () {
@@ -335,6 +326,10 @@ function ManageTeamsSettings(props: any) {
       <Modal modalRef={errorDialogRef} onClose={() => onModalClose()}>
         <div className="error">
           <h2 className="error__title">Validation Errors</h2>
+          <div className='error__info'>
+            <img width="16" height="16" src='/icons/alert-red.svg'/>
+            <p>Some fields require your attention. Please review the fields below & submit again.</p>
+          </div>
           {errors.basicErrors.length > 0 && (
             <div className="error__item">
               <h3 className="error__item__title">Basic Info</h3>
@@ -375,10 +370,21 @@ function ManageTeamsSettings(props: any) {
       </Modal>
       <style jsx>
         {`
-          .error {
-            width: 50vw;
+           .error {
+            width: calc(100vw - 32px);
             height: auto;
             padding: 16px;
+          }
+          .error__info {
+            color: #0F172A;
+            background: #DD2C5A1A;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 24px 0 18px 0;
           }
           .error__item {
             padding: 8px 0;
@@ -522,6 +528,10 @@ function ManageTeamsSettings(props: any) {
             min-height: calc(100svh - 128px);
           }
           @media (min-width: 1024px) {
+           .error {
+             width: 60vw;
+             padding: 24px;
+            }
             .ms {
               width: 656px;
               border: 1px solid #e2e8f0;

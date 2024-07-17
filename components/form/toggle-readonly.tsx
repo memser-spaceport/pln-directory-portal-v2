@@ -10,11 +10,11 @@ const ToggleReadonly: FC<ToggleReadonlyProps> = ({ checked = false}) => {
   return (
     <>
       <label className="custom-toggle" style={{pointerEvents: 'none'}}>
-        <input type="checkbox" style={{pointerEvents: 'none'}} checked={checked} />
+        <input readOnly type="checkbox" style={{pointerEvents: 'none'}} checked={checked} />
         <span className="slider" />
       </label>
       <style jsx>
-        {`
+        {` 
           .custom-toggle {
             position: relative;
             display: inline-block;

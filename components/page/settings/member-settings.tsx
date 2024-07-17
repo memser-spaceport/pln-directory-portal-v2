@@ -29,7 +29,6 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
-  const actionRef = useRef<HTMLDivElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const [allErrors, setAllErrors] = useState<any[]>([]);
@@ -291,6 +290,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         return;
       }
       router.push(url);
+      router.refresh();
     }
     document.addEventListener('settings-navigate', handleNavigate)
     return function() {
@@ -306,7 +306,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
             <Tabs activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
           </div>
           <div className="ms__tab__mobile">
-            <SingleSelect uniqueKey="name" onItemSelect={(item: any) => setActiveTab(item)} displayKey="name" options={steps} selectedOption={activeTab} id="settings-member-steps" />
+            <SingleSelect uniqueKey="name" arrowImgUrl="/icons/arrow-down.svg" onItemSelect={(item: any) => setActiveTab(item)} displayKey="name" options={steps} selectedOption={activeTab} id="settings-member-steps" />
           </div>
         </div>
         <div className="ms__content">
@@ -328,6 +328,10 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       <Modal modalRef={errorDialogRef} onClose={onModalClose}>
         <div className="error">
           <h2 className="error__title">Validation Errors</h2>
+          <div className='error__info'>
+            <img width="16" height="16" src='/icons/alert-red.svg'/>
+            <p>Some fields require your attention. Please review the fields below & submit again.</p>
+          </div>
           {errors.basicErrors.length > 0 && (
             <div className="error__item">
               <h3 className="error__item__title">Basic Info</h3>
@@ -369,7 +373,21 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       <style jsx>
         {`
           .error {
-          padding: 16px;}
+            width: calc(100vw - 32px);
+            height: auto;
+             padding: 16px;
+          }
+          .error__info {
+            color: #0F172A;
+            background: #DD2C5A1A;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 24px 0 18px 0;
+          }
           .error__item {
             padding: 8px 0;
           }
@@ -381,8 +399,9 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
               padding: 8px 16px;
             }
             .error__item__list__msg {
-            font-size: 12px;
-            color: #ef4444;
+            font-size: 14px;
+            color: #DD2C5A;
+            
             }
           .fa {
             position: sticky;
@@ -430,10 +449,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
             border-radius: 8px;
           }
 
-          .error {
-            width: 50vw;
-            height: 70svh;
-          }
+          
 
           .hidden {
             visibility: hidden;
@@ -462,6 +478,10 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
             min-height: calc(100svh - 128px);
           }
           @media (min-width: 1024px) {
+           .error {
+             width: 60vw;
+              padding: 24px;
+            }
             .ms {
               width: 656px;
               border: 1px solid #e2e8f0;

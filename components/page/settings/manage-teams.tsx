@@ -91,11 +91,11 @@ function ManageTeamsSettings(props: any) {
     const errors = [];
     formattedData.requestorEmail = 'test@test.com';
     const validationResponse = validateForm(basicInfoSchema, formattedData);
-    const nameVerification = await validatePariticipantsEmail(formattedData.name, ENROLLMENT_TYPE.TEAM);
+   /*  const nameVerification = await validatePariticipantsEmail(formattedData.name, ENROLLMENT_TYPE.TEAM);
   
     if (!nameVerification.isValid) {
       errors.push('Name Already exists!');
-    }
+    } */
     const imageFile = formattedData?.teamProfile;
     if (!validationResponse.success) {
       errors.push(...validationResponse.errors);

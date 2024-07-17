@@ -112,7 +112,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
           {/* INFO */}
           <p className="profileInfo__web">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="profileInfo__web__text">The uploaded image must be 1:1 ratio in PNG or JPEG format. Max file size is 4MB.</span>
+            <span className="profileInfo__web__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
 
           {/* Tag line */}

@@ -22,7 +22,7 @@ const MemberRepositories = (props: IMemberRepositories) => {
 
   const modalRef = useRef<HTMLDialogElement>(null);
   const analytics = useMemberAnalytics();
-  const itemsToShow = repositories?.slice(0, 3);
+  const itemsToShow = Array.isArray(repositories) ? repositories?.slice(0, 3) : [];
 
   const onClose = () => {
     if (modalRef.current) {

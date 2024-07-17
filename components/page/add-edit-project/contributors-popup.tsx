@@ -16,7 +16,7 @@ export default function ContributorsPopup(props: any) {
 
   const [tempContributors, setTempContributors] = useState<any>([...selectedContributors]);
 
-  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [isOnlySelectedContributors, setIsOnlySelectedContributors] = useState(false);
 
   const contributors = props?.contributors;
@@ -25,10 +25,11 @@ export default function ContributorsPopup(props: any) {
   const [filteredContributors, setFilteredContributors] = useState([...contributors]);
   const currentSelectedContributors = getSelectedCountributorsCount();
   const inputRef = useRef<any>(null);
-  const singleSelectRef = useRef<any>(null);
 
   useEffect(() => {
     document.addEventListener(EVENTS.UPDATE_SELECTED_CONTRIBUTORS, (e: any) => setTempContributors(e.detail));
+
+    document.addEventListener(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT, (e: any) => reset());
   }, []);
 
   const from = props?.from;
@@ -47,6 +48,16 @@ export default function ContributorsPopup(props: any) {
 
     setTempContributors((pre: any) => {
       return [...pre, contributor];
+    });
+  };
+
+  const reset = () => {
+    if (getAllContributors) {
+      getAllContributors(null);
+      inputRef.current.value = '';
+    }
+    setSelectedTeam({
+      name: '',
     });
   };
 
@@ -135,7 +146,7 @@ export default function ContributorsPopup(props: any) {
 
           <div className="cpc__header__flts">
             {from === 'Contributors' && (
-              <div className="cpc__header__flts__sSelect" ref={singleSelectRef}>
+              <div className="cpc__header__flts__sSelect">
                 <SearchableSingleSelect
                   id="project-register-contributor-info"
                   placeholder="All Team"
@@ -148,8 +159,8 @@ export default function ContributorsPopup(props: any) {
                   onClear={() => onClearTeamSearch()}
                   onChange={(item) => onTeamSelectionChanged(item)}
                   arrowImgUrl="/icons/arrow-down.svg"
-                  iconKey='logo'
-                  defaultImage='/icons/team-default-profile.svg'
+                  iconKey="logo"
+                  defaultImage="/icons/team-default-profile.svg"
                 />
               </div>
             )}
@@ -162,7 +173,7 @@ export default function ContributorsPopup(props: any) {
           <div className="cpc__header__info">
             <div className="cpc__header__info__count">
               <>
-                <span>{currentSelectedContributors?.length} SELECTED</span>
+                <span>{tempContributors?.length} SELECTED</span>
               </>
             </div>
             <div className="cpc__header__info__optns">
@@ -199,7 +210,7 @@ export default function ContributorsPopup(props: any) {
           )}
           {isOnlySelectedContributors && (
             <>
-              {currentSelectedContributors?.map((contributor: any, index: any) => {
+              {tempContributors?.map((contributor: any, index: any) => {
                 const isSelected = getIsSelected(contributor);
                 const value = inputRef.current.value.toLowerCase() ?? '';
                 return (
@@ -223,7 +234,7 @@ export default function ContributorsPopup(props: any) {
                   </Fragment>
                 );
               })}
-              {!currentSelectedContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
+              {!tempContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
             </>
           )}
         </div>
@@ -286,7 +297,7 @@ export default function ContributorsPopup(props: any) {
             align-items: center;
             margin-right: 24px;
             position: absolute;
-            z-index: 2;
+            z-index: 1;
             bottom: 0;
             justify-conent: end;
             padding-right: 12px;
@@ -396,7 +407,7 @@ export default function ContributorsPopup(props: any) {
           }
 
           .cpc__cnt {
-            margin-top: 12px;
+            padding-top: 12px;
             gap: 10px;
             display: flex;
             flex-direction: column;
@@ -443,6 +454,8 @@ export default function ContributorsPopup(props: any) {
 
           .cpc__cnt__nrf {
             text-align: center;
+            font-size: 14px;
+            margin-top: 10px;
           }
 
           .cpt__cnt__cptr__roles {

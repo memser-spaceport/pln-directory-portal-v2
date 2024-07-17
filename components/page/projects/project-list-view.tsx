@@ -9,7 +9,7 @@ const ProjectListView = (props: any) => {
   //variables
   const profile = project?.logo ?? '/icons/project-default.svg';
   const projectName = project?.name;
-  const description = project?.description;
+  const description = project?.tagline;
   const lookingForFunding = project?.lookingForFunding;
   const maintainerLogo = project?.maintainingTeam?.logo?.url ?? '/icons/project-default.svg';
   const maintainerName = project?.maintainingTeam?.name;

@@ -1,4 +1,4 @@
-import CustomToggle from '@/components/form/custom-toogle';
+import CustomToggle from '@/components/form/custom-toggle';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
 import { IProjectLinks, IProjectResponse } from '@/types/project.types';
@@ -14,9 +14,9 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
   const errors = props.errors;
   const project = props.project;
   const uploadImageRef = useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string>(project?.logo)
+  const [profileImage, setProfileImage] = useState<string>(project?.logo);
 
-  const links = project?.projectLinks?.length > 0 ? project?.projectLinks : [{ text: '', url: '' }]
+  const links = project?.projectLinks?.length > 0 ? project?.projectLinks : [{ text: '', url: '' }];
 
   const [projectLinks, setProjectLinks] = useState(project?.projectLinks);
 
@@ -105,23 +105,14 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
             {/* Name */}
             <div className="projectinfo__form__item">
-              <TextField
-                maxLength={64}
-                isMandatory={true}
-                id="add-project-name"
-                label="Project Name*"
-                defaultValue={project.name}
-                name="name"
-                type="text"
-                placeholder="Enter Project Name Here"
-              />
+              <TextField maxLength={64} isMandatory={true} id="add-project-name" label="Project Name*" defaultValue={project.name} name="name" type="text" placeholder="Enter Project Name Here" />
             </div>
           </div>
 
           {/* INFO */}
           <p className="profileInfo__web">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="profileInfo__web__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
+            <span className="profileInfo__web__text">The uploaded image must be 1:1 ratio in PNG or JPEG format. Max file size is 4MB.</span>
           </p>
 
           {/* Tag line */}
@@ -136,8 +127,8 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
               isMandatory
               id="register-project-shortDescription"
               name="description"
-              label="Detailed description of your project*"
-              placeholder="Enter description of your project"
+              label="Detailed Description Of Your Project*"
+              placeholder="Enter Detailed Description Of Your Project"
             />
           </div>
 
@@ -165,7 +156,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                         defaultValue={projectLink.name}
                         isMandatory={projectLink?.url ? true : false}
                         name={`projectLinks${index}-name`}
-                        placeholder="Enter Your Project Link Text"
+                        placeholder="Enter Link Text"
                         type="text"
                         onChange={(e) => onProjectLinkTextChange(index, e.target.value)}
                       />
@@ -177,7 +168,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                         defaultValue={projectLink.url}
                         isMandatory={projectLink?.name ? true : false}
                         name={`projectLinks${index}-url`}
-                        placeholder="Enter your project link url"
+                        placeholder="Enter Link"
                         onChange={(e) => onProjectLinkUrlChange(index, e.target.value)}
                         type="url"
                       />
@@ -232,6 +223,12 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             text-align: left;
             font-size: 13px;
             opacity: 0.4;
+          }
+
+          .projectinfo__form__item__description {
+            textarea {
+              height: 80px;
+            }
           }
 
           .projectinfo__errors {
@@ -407,6 +404,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             font-size: 14px;
             font-weight: 600;
             line-height: 20px;
+            max-width: 80%;
           }
 
           .functiongInfo {
@@ -425,6 +423,12 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             .projectinfo__form__user {
               flex-direction: row;
               gap: 20px;
+            }
+
+            .projectinfo__form__item__description {
+              textarea {
+                height: 200px;
+              }
             }
 
             .profileInfo__mob {

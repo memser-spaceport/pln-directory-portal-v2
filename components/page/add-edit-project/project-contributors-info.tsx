@@ -2,7 +2,7 @@ import Modal from '@/components/core/modal';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import { getMembersForProjectForm } from '@/services/members.service';
 import { getTeamsForProject } from '@/services/teams.service';
-import { EVENTS } from '@/utils/constants';
+import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import { useEffect, useRef, useState } from 'react';
 import { Adddropdown } from './add-drop-down';
 import { ContributingTeamPopup } from './contributing-team-popup';
@@ -115,6 +115,10 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
     onClose();
   };
 
+  const onContributorClicked = (contributor: any) => {
+    window.open('/members/' + contributor?.uid, '_blank');
+  }
+
   return (
     <>
       <div className="projectContributorsc">
@@ -173,12 +177,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
               <div key={`${team}+${index}`} className={`projectContributorsc__teams__selectedTeams__team ${index < selectedContributingTeams.length - 1 ? 'border-bottom' : ''}`}>
                 <div className="projectContributorsc__teams__selectedTeams__teamc">
                   <div className="projectContributorsc__teams__selectedTeams__teamc__namec">
-                    <img
-                      className="projectContributorsc__teams__selectedTeams__teamc__namec__profile"
-                      height={20}
-                      width={20}
-                      src={team?.logo ? team.logo : '/icons/team-default-profile.svg'}
-                    />
+                    <img className="projectContributorsc__teams__selectedTeams__teamc__namec__profile" height={20} width={20} src={team?.logo ? team.logo : '/icons/team-default-profile.svg'} />
                     <div className="projectContributorsc__teams__selectedTeams__teamc__namec__name">{team.name}</div>
                   </div>
 
@@ -186,15 +185,15 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
                     <img height={24} width={24} src={'/icons/delete-gray.svg'} />
                   </button>
                 </div>
-                <HiddenField value={team?.name ?? ""} defaultValue={team?.name ?? ""} name={`contributingTeams${index}-name`} />
+                <HiddenField value={team?.name ?? ''} defaultValue={team?.name ?? ''} name={`contributingTeams${index}-name`} />
                 <HiddenField value={team?.uid} defaultValue={team?.uid} name={`contributingTeams${index}-uid`} />
               </div>
             ))}
           </div>
 
           <div className="projectContributorsc__teams__descSec">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />
-            <span className="projectContributorsc__teams__descSec__desc">Adding a maintainer team is mandatory, and only one team can serve as the maintainer.</span>
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px"  className="projectContributorsc__teams__descSec__nte"/>
+            <span className="projectContributorsc__teams__descSec__desc">Adding a maintainer team is required, and only one team can serve as the maintainer.            </span>
           </div>
         </div>
 
@@ -223,16 +222,22 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
             <>
               <div className="projectContributorsc__contributors__sContributors">
                 {selectedContributors?.map((contributor: any, index: any) => (
-                  <div key={`${contributor} + ${index}`}>
+                  <div onClick={() => onContributorClicked(contributor)} className='projectContributorsc__contributors__sContributors__cptr' key={`${contributor} + ${index}`}>
                     <img className="projectContributorsc__contributors__sContributors__profile" height={32} width={32} src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} />
                     <HiddenField value={contributor?.uid} defaultValue={contributor?.uid} name={`contributions${index}-memberUid`} />
                     <HiddenField value={contributor?.cuid} defaultValue={contributor?.cuid} name={`contributions${index}-uid`} />
-
                   </div>
                 ))}
               </div>
             </>
           )}
+
+<div className="projectContributorsc__contrs__descSec">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" className='projectContributorsc__contrs__descSec__nte' />
+            <span className="projectContributorsc__contrs__descSec__desc">
+            Contributors are individuals who have made past contributions or are currently actively contributing to a project in various ways.
+            </span>
+          </div>
         </div>
       </div>
 
@@ -271,7 +276,8 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
           from={'Contributors'}
           onClose={onClose}
           onSaveClicked={onSaveClickHandler}
-          onSkipAndSaveClicked={onSaveClickHandler} />
+          onSkipAndSaveClicked={onSaveClickHandler}
+        />
         <RegsiterFormLoader />
       </Modal>
 
@@ -283,7 +289,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
           .projectContributorsc {
             display: flex;
             flex-direction: column;
-            padding: 8px 16px;
+            padding: 8px 16px 100px 16px;
             gap: 16px;
           }
 
@@ -350,6 +356,15 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
 
           }
 
+      .projectContributorsc__teams__descSec__nte {
+          margin-top: 2px;}
+
+          .projectContributorsc__contrs__descSec__nte {
+          margin-top: 2px;}
+
+          .projectContributorsc__contributors__sContributors__cptr {
+          cursor: pointer;}
+
           .projectContributorsc__teams__selectedTeams__teamc__namec__profile {
             border-radius: 4px;
             border: 1px solid #e2e8f0;
@@ -389,6 +404,20 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
           }
 
           .projectContributorsc__teams__descSec__desc {
+            font-size: 13px;
+            line-height: 18px;
+            font-weight: 500;
+            color: #0f172a66;
+          }
+
+                   .projectContributorsc__contrs__descSec {
+            display: flex;
+            gap: 6px;
+            align-items: start;
+            margin-top: 8px;
+          }
+
+          .projectContributorsc__contrs__descSec__desc {
             font-size: 13px;
             line-height: 18px;
             font-weight: 500;
@@ -459,8 +488,16 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
           .projectContributorsc__contributors__sContributors__profile {
           border-radius: 50%;
           border: 1px solid #E2E8F0;}
+          
+          .projectContributorsc__contributors__sContributors__profile:hover {
+          border: 2px solid #156ff7;
+          border-radius: 50%;
+        }
 
-
+          @media(min-width: 1024px) {
+          .projectContributorsc {
+          padding: 8px 16px;
+          }}
         `}
       </style>
     </>

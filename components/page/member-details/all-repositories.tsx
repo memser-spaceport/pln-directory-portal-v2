@@ -7,7 +7,7 @@ interface IAllRepos {
   member: any;
 }
 const AllRepositories = (props: IAllRepos) => {
-  const repos = props?.allRepos;
+  const repos = props?.allRepos ?? [];
 
   const userInfo = props?.userInfo;
   const member = props?.member;

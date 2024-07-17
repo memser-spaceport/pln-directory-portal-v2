@@ -17,7 +17,7 @@ interface IMemberRepositories {
 
 const MemberRepositories = (props: IMemberRepositories) => {
   const member = props?.member;
-  const repositories: any = member?.repositories;
+  const repositories: any = member?.repositories ?? [];
   const userInfo = props?.userInfo;
 
   const modalRef = useRef<HTMLDialogElement>(null);

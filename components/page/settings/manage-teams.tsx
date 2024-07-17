@@ -16,6 +16,8 @@ import { toast } from 'react-toastify';
 import { projectDetailsSchema, socialSchema, basicInfoSchema } from '@/schema/team-forms';
 import Modal from '@/components/core/modal';
 import SettingsAction from './actions';
+import { validatePariticipantsEmail } from '@/services/participants-request.service';
+import { ENROLLMENT_TYPE } from '@/utils/constants';
 
 function ManageTeamsSettings(props: any) {
   const teams = props.teams ?? [];
@@ -29,7 +31,7 @@ function ManageTeamsSettings(props: any) {
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
     'project details': errors.projectErrors.length > 0,
-    socail: errors.socialErrors.length > 0,
+    social: errors.socialErrors.length > 0,
   };
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
@@ -89,6 +91,11 @@ function ManageTeamsSettings(props: any) {
     const errors = [];
     formattedData.requestorEmail = 'test@test.com';
     const validationResponse = validateForm(basicInfoSchema, formattedData);
+    const nameVerification = await validatePariticipantsEmail(formattedData.name, ENROLLMENT_TYPE.TEAM);
+  
+    if (!nameVerification.isValid) {
+      errors.push('Name Already exists!');
+    }
     const imageFile = formattedData?.teamProfile;
     if (!validationResponse.success) {
       errors.push(...validationResponse.errors);
@@ -127,10 +134,11 @@ function ManageTeamsSettings(props: any) {
 
   const onFormSubmitted = async (e: any) => {
     try {
-      console.log('form submmited');
+      triggerLoader(true);
       e.stopPropagation();
       e.preventDefault();
       if (!formRef.current) {
+        triggerLoader(false);
         return;
       }
       
@@ -155,9 +163,10 @@ function ManageTeamsSettings(props: any) {
       const isBothSame = onFormChange();
       if (isBothSame) {
         toast.info('There are no changes to save');
+        triggerLoader(false);
         return;
       }
-      triggerLoader(true);
+      
       if (formattedInputValues.teamFocusAreas) {
         formattedInputValues.focusAreas = [...formattedInputValues.teamFocusAreas];
         delete formattedInputValues.teamFocusAreas;
@@ -356,7 +365,7 @@ function ManageTeamsSettings(props: any) {
           )}
           {errors.socialErrors.length > 0 && (
             <div className="error__item">
-              <h3 className="error__item__title">Socail Info</h3>
+              <h3 className="error__item__title">Social Info</h3>
               <ul className="error__item__list">
                 {errors.socialErrors.map((v, i) => (
                   <li className="error__item__list__msg" key={`basic-error-${i}`}>

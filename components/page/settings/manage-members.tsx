@@ -85,9 +85,11 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
   const onFormSubmitted = async (e: any) => {
     try {
+      triggerLoader(true);
       e.stopPropagation();
       e.preventDefault();
       if (!formRef.current) {
+        triggerLoader(false);
         return;
       }
      
@@ -117,9 +119,10 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       const isBothSame = onFormChange();
       if(isBothSame) {
         toast.info("There are no changes to save")
+        triggerLoader(false);
         return;
       }
-      triggerLoader(true);
+     
       if (formattedInputValues.memberProfile && formattedInputValues.memberProfile.size > 0) {
         const imgResponse = await saveRegistrationImage(formattedInputValues.memberProfile);
         const image = imgResponse?.image;

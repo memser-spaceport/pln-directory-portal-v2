@@ -10,6 +10,7 @@ import { IMembersSearchParams } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, SORT_OPTIONS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import Image from 'next/image';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 
 interface IMembersToolbar {
@@ -58,6 +59,14 @@ const MembersToolbar = (props: IMembersToolbar) => {
 
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e?.target?.value);
+  };
+
+  const onClearSearchClicked = () => {
+    setSearchInput('');
+    if(searchParams["searchBy"]) {
+      triggerLoader(true);
+    }
+    updateQueryParams('searchBy', '', searchParams);
   };
 
   const onSubmitHandler = (e: React.SyntheticEvent) => {
@@ -120,9 +129,16 @@ const MembersToolbar = (props: IMembersToolbar) => {
                 placeholder="Search by Member Name, Team, or Project"
                 onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
               />
-              <button className="toolbar__left__search-container__searchfrm__searchbtn" type="submit">
-                <img loading="lazy" alt="search" src="/icons/search.svg" height={16} width={16} />
-              </button>
+              <div className="toolbar__left__search-container__searchfrm__optns">
+                {searchInput && (
+                  <button type="button" onClick={onClearSearchClicked} className="toolbar__left__search-container__searchfrm__optns__clrbtn">
+                    <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
+                  </button>
+                )}
+                <button className="toolbar__left__search-container__searchfrm__searchbtn" type="submit">
+                  <img loading="lazy" alt="search" src="/icons/search.svg" height={16} width={16} />
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -187,6 +203,16 @@ const MembersToolbar = (props: IMembersToolbar) => {
             box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
           }
 
+           .toolbar__left__search-container__searchfrm__optns__clrbtn {
+            background: inherit;
+            outline: none;
+            position: absolute;
+            bottom: 0;
+            height: 16px;
+            left: 0;
+            top: 0;
+          }
+
           .toolbar__left__title-container {
             display: none;
           }
@@ -247,6 +273,15 @@ const MembersToolbar = (props: IMembersToolbar) => {
             font-size: 14px;
             font-weight: 500;
             line-height: 24px;
+          }
+
+          .toolbar__left__search-container__searchfrm__optns {
+            display: flex;
+            width: 40px;
+            justify-content: end;
+            position: relative;
+            align-items: center;
+            gap: 10px;
           }
 
           .toolbar__left__search-container__searchfrm__input {

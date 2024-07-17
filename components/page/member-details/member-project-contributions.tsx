@@ -5,9 +5,11 @@ interface IAllProjectExperience {
   contributions: any;
 }
 const MemberProjectContributions = (props: IAllProjectExperience) => {
-  const contributions = props?.contributions;
+  const contributions = props?.contributions ?? [];
   const [allContributions, setAllContributions] = useState(contributions);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const contributionsLength = contributions.length ?? 0;
 
   const onInputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const name = e?.target?.value?.toLowerCase();
@@ -37,7 +39,10 @@ const MemberProjectContributions = (props: IAllProjectExperience) => {
   return (
     <>
       <div className="project-contributions">
-        <h2 className="project-contributions__title">Project Contributions</h2>
+        <div className="project-contributions__hdr">
+          <h2 className="project-contributions__title">Project Contributions</h2>
+          <span className='project-contributions__hdr__count'>({contributionsLength})</span>
+        </div>
         <div className="project-contributions__search-bar">
           <img loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
           <input value={searchTerm} className="project-contributions__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
@@ -76,6 +81,16 @@ const MemberProjectContributions = (props: IAllProjectExperience) => {
 
           .project-contributions__container__repo:hover {
             background-color: #f8fafc;
+          }
+
+          .project-contributions__hdr__count {
+          margin-top:1px;
+          }
+
+          .project-contributions__hdr {
+            display: flex;
+            gap: 4px;
+            align-items:center;
           }
 
           .project-contributions__title {

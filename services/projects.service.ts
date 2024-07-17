@@ -33,9 +33,10 @@ export const updateProject = async (
     payload: any,
     authToken: string,
 ) => {
-    const requestOptions = {
+    const requestOptions: RequestInit = {
         method: "PUT",
         headers: getHeader(authToken),
+         cache: "no-store",
         body: JSON.stringify(formatToSave(payload)),
     };
     const response = await fetch(

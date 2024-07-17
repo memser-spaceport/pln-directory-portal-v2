@@ -54,7 +54,9 @@ export default function ContributorsPopup(props: any) {
   const reset = () => {
     if (getAllContributors) {
       getAllContributors(null);
-      inputRef.current.value = '';
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
     }
     setSelectedTeam({
       name: '',

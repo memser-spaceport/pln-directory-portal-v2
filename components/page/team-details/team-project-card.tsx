@@ -3,7 +3,8 @@
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { RaisingFunds } from '@/components/ui/raising-funds';
-import { IFormatedTeamProject } from '@/types/teams.types';
+import { IUserInfo } from '@/types/shared.types';
+import { IFormatedTeamProject, ITeam } from '@/types/teams.types';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -45,8 +46,8 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
               <Tooltip asChild trigger={<h2 className="team-project-card__profilec__name-and-tagline__name">{name}</h2>} content={name} />
               {project?.isMaintainingProject && <Tooltip side='top' asChild trigger={<div className='team-project-card__profilec__name-and-tagline__name-and-raising-funds__mtr'><Image src="/icons/badge/maintainer.svg" alt="maintainer image" width={20} height={20} className="rounded" /> </div>} content={"Maintainer"} />}
               {lookingForFunding && (
-                <div className="team-project-card__goto__btn-section__web">
-                  <Tooltip asChild trigger={<div><RaisingFunds/> </div>} content={"Raising Funds"}/>
+                <div onClick={(e) => {e.stopPropagation(); e.preventDefault()}} className="team-project-card__goto__btn-section__web">
+                  <Tooltip asChild side='top' trigger={<div><RaisingFunds/> </div>} content={"Raising Funds"}/>
                 </div>
               )}
             </div>

@@ -64,7 +64,7 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
               <div>
                 {skills?.slice(3, skills?.length)?.map((skill, index) => (
                   <div key={`${skill} + ${skill} + ${index}`}>
-                    {skill?.title} {index !== skills?.slice(3, skills?.length - 1)?.length ? "," : ""}
+                    {skill?.title}{index !== skills?.slice(3, skills?.length - 1)?.length ? "," : ""}
                   </div>
                 ))}
               </div>

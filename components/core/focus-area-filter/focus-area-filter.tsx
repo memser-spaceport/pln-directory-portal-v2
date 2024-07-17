@@ -141,7 +141,7 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
       <div className="faf">
         <div className="faf__ttls">
           <h2 className="faf__ttls__ttl">{title}</h2>
-          <button onClick={onHelpActiveClick}>
+          <button className='faf__ttls__ttl__btn' onClick={onHelpActiveClick}>
             <Image height={16} width={16} src={isHelpActive ? '/icons/help-active.svg' : '/icons/help-inactive.svg'} alt="help" />
           </button>
         </div>
@@ -186,6 +186,9 @@ const FocusAreaFilter = (props: IFocusAreaFilter) => {
             font-weight: 600;
             line-height: 20px;
           }
+
+          .faf__ttls__ttl__btn {
+          height: 16px;}
 
           .faf__fa {
             display: flex;

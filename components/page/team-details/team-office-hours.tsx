@@ -78,7 +78,7 @@ const TeamOfficeHours = (props: any) => {
           background: #f8fafc;
           border-radius: 12px;
           gap: 8px;
-          margin: 20px;
+          margin: 4px 20px 20px 20px;
           align-items: center;
           justify-content: space-between;
         }

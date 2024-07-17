@@ -2,7 +2,11 @@ import { MdEditor } from 'md-editor-rt';
 import 'md-editor-rt/lib/style.css';
 import { useState } from 'react';
 
-export function ProjectMoreDetails(props: any) {
+interface IProjectMoreDetails {
+  readMe: string;
+}
+
+export function ProjectMoreDetails(props: IProjectMoreDetails) {
   const readMe = props?.readMe;
 
   const [readMeContent, setReadMeContent] = useState(readMe);

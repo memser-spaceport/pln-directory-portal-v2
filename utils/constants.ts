@@ -113,6 +113,12 @@ export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_LIST_SORT_CLICKED: 'project-list-sort-clicked',
   PROJECT_FILTER_PANEL_CLOSE_CLICKED: 'project-filter-panel-close-clicked',
   PROJECT_VIEW_FILTER_RESULT_CLICKED: 'project-view-filter-result-clicked',
+  PROJECT_ADD_INITIATED: 'project-add-initiated',
+  PROJECT_ADD_SUCCESS: 'project-add-success',
+  PROJECT_ADD_FAILED: 'project-add-failed',
+  PROJECT_EDIT_INITIATED: 'project-edit-initiated',
+  PROJECT_EDIT_SUCCESS: 'project-edit-success',
+  PROJECT_EDIT_FAILED: 'project-edit-failed',
 };
 
 export const TOAST_MESSAGES = {
@@ -163,6 +169,7 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_DETAIL_SEE_ALL_PROJECTS_CLICKED: 'team-detail-projects-see-all-clicked',
   TEAM_DETAIL_PROJECT_CLICKED: 'project-clicked',
   TEAM_DETAIL_SEE_ALL_MEMBERS_CLICKED: 'team-detail-members-see-all-clicked',
+  TEAM_DETAIL_ADD_PROJECT_CLICKED: 'team-detail-add-project-clicked',
   TEAM_DETAIL_MEMBER_CLICKED: 'team-detail-member-clicked',
   TEAM_OFFICEHOURS_CLICKED: 'team-officehours-clicked',
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',

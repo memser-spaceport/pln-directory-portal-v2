@@ -30,6 +30,7 @@ const TeamDetails = (props: ITeamDetails) => {
   const about = team?.longDescription ?? '';
   const technologies = team?.technologies?.map((item) => ({ name: item?.title, url: getTechnologyImage(item?.title) })) ?? [];
   const hasTeamEditAccess = getHasTeamEditAccess();
+
   const [isTechnologyPopup, setIsTechnologyPopup] = useState(false);
   const analytics = useTeamAnalytics();
 
@@ -51,13 +52,14 @@ const TeamDetails = (props: ITeamDetails) => {
   }
 
   const onEditTeamClickHandler = () => {
-    if(userInfo?.roles?.includes(ADMIN_ROLE)) {
+    if (userInfo?.roles?.includes(ADMIN_ROLE)) {
       analytics.onEditTeamByAdmin(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
-      return;
+    } else {
+      analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
     }
-    analytics.onEditTeamByLead(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
+    triggerLoader(true);
+    router.push(`/settings/teams?id=${team?.id}`);
   };
-
 
   useEffect(() => {
     triggerLoader(false);

@@ -18,6 +18,56 @@ export const useProjectAnalytics = () => {
     }
   };
 
+  function onProjectAddInitiated(user: IAnalyticsUserInfo | null, project: any) {
+    const params = {
+      user,
+      project
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_ADD_INITIATED, params);
+  }
+
+  function onProjectAddSuccess(user: IAnalyticsUserInfo | null, project: any) {
+    const params = {
+      user,
+      project,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_ADD_SUCCESS, params);
+  }
+
+  function onProjectAddFailed(user: IAnalyticsUserInfo | null, project: any) {
+    const params = {
+      user,
+      project,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_ADD_FAILED, params);
+  }
+
+  function onProjectEditInitiated(user: IAnalyticsUserInfo | null, project: any) {
+    const params = {
+      user,
+      project,
+    };
+
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_INITIATED, params);
+  }
+
+  function onProjectEditSuccess(user: IAnalyticsUserInfo | null, project: any) {
+    const params = {
+      user,
+      project,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_SUCCESS, params);
+  }
+
+  function onProjectEditFailed(user: IAnalyticsUserInfo | null, project: any) {
+    const params = {
+      user,
+      project,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_FAILED, params);
+  }
+
+
   function onProjectDeleteBtnClicked(user: IAnalyticsUserInfo | null, projectId: string) {
     const params = {
       user,
@@ -205,7 +255,7 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_LIST_VIEW_TYPE_CLCIKED, params);
   }
 
-  function onSorByClicked(user: IAnalyticsUserInfo| null, option: string) {
+  function onSorByClicked(user: IAnalyticsUserInfo | null, option: string) {
     const params = {
       option,
       user,
@@ -213,14 +263,14 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_LIST_SORT_CLICKED, params);
   }
 
-  function onProjectShowFilterResultClicked(user: IAnalyticsUserInfo| null) {
+  function onProjectShowFilterResultClicked(user: IAnalyticsUserInfo | null) {
     const params = {
       user
     }
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_VIEW_FILTER_RESULT_CLICKED, params);
   }
 
-  function onProjectFilterCloseClicked(user: IAnalyticsUserInfo| null) {
+  function onProjectFilterCloseClicked(user: IAnalyticsUserInfo | null) {
     const params = {
       user
     }
@@ -253,6 +303,12 @@ export const useProjectAnalytics = () => {
     onViewTypeClicked,
     onSorByClicked,
     onProjectShowFilterResultClicked,
-    onProjectFilterCloseClicked
+    onProjectFilterCloseClicked,
+    onProjectAddInitiated,
+    onProjectAddSuccess,
+    onProjectAddFailed,
+    onProjectEditInitiated,
+    onProjectEditFailed,
+    onProjectEditSuccess,
   };
 };

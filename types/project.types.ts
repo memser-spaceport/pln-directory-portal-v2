@@ -1,4 +1,5 @@
-import { IImageResponse } from "./shared.types";
+import { IMember } from "./members.types";
+import { ITeam } from "./teams.types";
 
 export interface IProjectResponse {
     contactEmail: string;
@@ -7,16 +8,16 @@ export interface IProjectResponse {
     creator: {
         name: string;
         uid: string;
-        image: IImageResponse;
+        image: string
     };
     description: string;
     isDeleted: boolean;
     kpis: [{key: string, value: string}];
-    logo: IImageResponse;
+    logo: string;
     logoUid: string;
     lookingForFunding: boolean;
     maintainingTeam: {
-        logo: IImageResponse;
+        logo: string;
         name: string;
         uid: string;
     }
@@ -27,6 +28,8 @@ export interface IProjectResponse {
     tagline: string;
     uid: string;
     updatedAt: string;
+    contributingTeams: ITeam[];
+    contributions: IMember[]
 }
 
 export interface IProjectLinks {

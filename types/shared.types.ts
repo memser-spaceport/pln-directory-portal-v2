@@ -65,18 +65,3 @@ export interface IUserInfo {
     name: string;
     shortDescription: string;
   }
-
-
-  export interface IImageResponse {
-    cid: string;
-    createdAt: string;
-    filename: string;
-    height: number;
-    size: number;
-    type: string;
-    uid: string;
-    updatedAt: string;
-    url: string;
-    version: string;
-    width: number;
-  }

@@ -9,7 +9,7 @@ import { RedirectType, redirect } from 'next/navigation';
 
 export default async function EditProject({ params }: any) {
   const projectId = params.id;
-  const { isError, project, isLoggedIn } = await getPageData(projectId);
+  const { isError, project, isLoggedIn, userInfo } = await getPageData(projectId);
 
   if (!isLoggedIn) {
     redirect(`${PAGE_ROUTES.TEAMS}`, RedirectType.replace);
@@ -23,7 +23,7 @@ export default async function EditProject({ params }: any) {
         <BreadCrumb backLink="/projects" directoryName="Project" pageName="Edit Project" />
       </div>
         <div className={styles.editProject__cnt}>
-        <AddEditProjectContainer project={project} type="Edit" />
+        <AddEditProjectContainer project={project} type="Edit"  userInfo={userInfo}/>
       </div>
     </div>
   );
@@ -31,12 +31,12 @@ export default async function EditProject({ params }: any) {
 
 async function getPageData(projectId: string) {
   const isError = false;
-  const { isLoggedIn } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo} = getCookiesFromHeaders();
   let project = null;
   try {
     const [projectResponse] = await Promise.all([getProject(projectId, {})]);
     if (projectResponse?.error) {
-      return { isError: true, project, isLoggedIn };
+      return { isError: true, project, isLoggedIn, userInfo };
     }
     const result: any = projectResponse.data.formattedData;
     project = { ...result, contributions: result?.contributors, maintainingTeam: {...result?.maintainingTeam, logo: result?.maintainingTeam?.logo?.url  }};
@@ -45,6 +45,7 @@ async function getPageData(projectId: string) {
       isError,
       project,
       isLoggedIn,
+      userInfo
     };
   } catch (error) {
     console.error(error);
@@ -52,6 +53,7 @@ async function getPageData(projectId: string) {
       isError: true,
       project,
       isLoggedIn,
+      userInfo
     };
   }
 }

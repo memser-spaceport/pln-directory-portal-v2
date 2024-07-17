@@ -193,9 +193,22 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_OFFICEHOURS_CLICKED, params);
       }
 
-      // function onTeamDetailProjectEditClicked(params: any) {
-      //   captureEvent(TEAMS_ANALYTICS_EVENTS.PROJECT_EDIT_CLICKED, params);
-      // }
+      function onTeamDetailAddProjectClicked(user: IAnalyticsUserInfo | null, team: IAnalyticsTeamInfo | null) {
+        const params = {
+          user,
+          team,
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ADD_PROJECT_CLICKED, params);
+      }
+
+      function onTeamDetailProjectEditClicked(user: IAnalyticsUserInfo | null, team: IAnalyticsTeamInfo | null, project: IAnalyticsProjectInfo | null) {
+        const params = {
+          user,
+          team,
+          project,
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.PROJECT_EDIT_CLICKED, params);
+      }
 
 
       return {
@@ -223,7 +236,8 @@ export const useTeamAnalytics = () => {
         onFocusAreaFilterClicked,
         onTeamFocusAreaHelpClicked,
         onScheduleMeetingClicked,
-        // onTeamDetailProjectEditClicked
+        onTeamDetailAddProjectClicked,
+        onTeamDetailProjectEditClicked
       }
 
 }

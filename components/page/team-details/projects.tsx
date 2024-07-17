@@ -10,6 +10,7 @@ import { useRef } from 'react';
 import AllProjects from './all-projects';
 import TeamProjectCard from './team-project-card';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface IProjects {
   projects: IFormatedTeamProject[] | undefined;
@@ -28,6 +29,7 @@ const Projects = (props: IProjects) => {
   const allProjectsRef = useRef<HTMLDialogElement>(null);
 
   const analytics = useTeamAnalytics();
+  const router = useRouter();
 
   const onSeeAllClickHandler = () => {
     analytics.onTeamDetailSeeAllProjectsClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
@@ -48,6 +50,17 @@ const Projects = (props: IProjects) => {
     analytics.onTeamDetailProjectClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
   };
 
+  
+  const onAddProjectClicked = () => {
+    analytics.onTeamDetailAddProjectClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team))
+    router.push("/projects/add")
+  }
+
+  const onEditProjectClicked = (project: any) => {
+    analytics.onTeamDetailProjectEditClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team), getAnalyticsProjectInfo(project))
+    router.push(`/projects/edit/${project.id}`)
+  }
+
   return (
     <>
       <div className="projects-container">
@@ -56,7 +69,7 @@ const Projects = (props: IProjects) => {
           <div className="projects-container__header__edit-and-seeallcontainer">
             {isLoggedIn && (
               <div className="projects-container__header__eidt-access">
-                <button className="projects-container__header__eidt-access__edit-btn">
+                <button className="projects-container__header__eidt-access__edit-btn" onClick={onAddProjectClicked}>
                   <Image loading="lazy" alt="edit" src="/icons/add-blue.svg" height={16} width={16} />
                   <p className='projects-container__header__eidt-access__edit-btn__cnt'>Add Project</p>
                 </button>
@@ -77,7 +90,7 @@ const Projects = (props: IProjects) => {
           <div className="projects-container__projects-web">
             {projects?.slice(0, 3).map((project: IFormatedTeamProject, index: number) => (
               <div key={`${project} + ${index}`} className={`${index < projects?.length - 1 ? 'projects-container__projects__project__border-set' : ''}`}>
-                <TeamProjectCard onCardClicked={onProjectCardClicked} url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
+                <TeamProjectCard onEditClicked={onEditProjectClicked} onCardClicked={onProjectCardClicked} url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
               </div>
             ))}
           </div>

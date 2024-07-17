@@ -2,7 +2,7 @@
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
 import { EVENTS, PROJECT_FORM_STEPS, TOAST_MESSAGES } from '@/utils/constants';
-import { useRef, useState } from 'react';
+import { SyntheticEvent, useRef, useState } from 'react';
 import ProjectGeneralInfo from './project-general-info';
 import ProjectContributorsInfo from './project-contributors-info';
 import ProjectKpisInfo from './project-kpis-info';
@@ -13,7 +13,15 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { addProject, updateProject } from '@/services/projects.service';
 import { useRouter } from 'next/navigation';
-import { getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { useProjectAnalytics } from '@/analytics/project.analytics';
+import { IUserInfo } from '@/types/shared.types';
+import { IProjectResponse } from '@/types/project.types';
+
+interface IAddEditProjectForm {
+  userInfo: IUserInfo;
+  project: IProjectResponse;
+}
 
 export default function AddEditProjectForm(props: any) {
   const addFormRef = useRef(null);
@@ -38,9 +46,11 @@ export default function AddEditProjectForm(props: any) {
   const project = props?.project ?? initialValue;
   const type = props?.type;
 
-  const [generalErrors, setGeneralErrors] = useState<any>([]);
-  const [kpiErrors, setKpiErrors] = useState<any>([]);
-  const [contributorsErrors, setcontributorsErrors] = useState<any>([]);
+  const [generalErrors, setGeneralErrors] = useState<string[]>([]);
+  const [kpiErrors, setKpiErrors] = useState<string[]>([]);
+  const [contributorsErrors, setcontributorsErrors] = useState<string[]>([]);
+
+  const analytics = useProjectAnalytics();
 
   const router = useRouter();
 
@@ -57,7 +67,7 @@ export default function AddEditProjectForm(props: any) {
     const formData = new FormData(addFormRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
     if (currentStep === 'General') {
-      let errors: any = [];
+      let errors: string[] = [];
       const result = generalInfoSchema.safeParse(formattedData);
       if (!result.success) {
         errors = result.error.errors.map((v) => v.message);
@@ -84,7 +94,7 @@ export default function AddEditProjectForm(props: any) {
       setGeneralErrors([]);
       goToNextStep();
     } else if (currentStep === 'KPIs') {
-      let errors: any = [];
+      let errors: string[] = [];
       const result = kpiSchema.safeParse(formattedData);
       if (!result.success) {
         errors = result.error.errors.map((v) => v.message);
@@ -112,7 +122,7 @@ export default function AddEditProjectForm(props: any) {
     goToNextStep();
   };
 
-  const onFormSubmitHandler = async (event: any) => {
+  const onFormSubmitHandler = async (event: SyntheticEvent) => {
     event.preventDefault();
     if (!addFormRef?.current) {
       return;
@@ -141,24 +151,30 @@ export default function AddEditProjectForm(props: any) {
       }
 
       if (type === 'Add') {
+        analytics.onProjectAddInitiated(getAnalyticsUserInfo(userInfo), formattedData)
         const result = await addProject(formattedData, authToken);
         if (result?.error) {
+          analytics.onProjectAddFailed(getAnalyticsUserInfo(userInfo), formattedData);
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           triggerLoader(false);
           return;
         }
+        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData)
         triggerLoader(false);
         router.push('/projects');
         toast.info('Project added successfully.');
       }
 
       if (type === 'Edit') {
+        analytics.onProjectEditInitiated(getAnalyticsUserInfo(userInfo), formattedData)
         const result = await updateProject(project?.id, formattedData, authToken);
         if (result?.error) {
+          analytics.onProjectEditFailed(getAnalyticsUserInfo(userInfo), formattedData);
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           triggerLoader(false);
           return;
         }
+        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData)
         triggerLoader(false);
         toast.info('Project updated successfully.');
         router.push(`/projects/${project?.id}`);
@@ -171,7 +187,6 @@ export default function AddEditProjectForm(props: any) {
 
   function transformObject(object: any) {
     let result: any = {};
-
     const projectLinks: any = {};
     const kpis: any = {};
     const contributingTeams: any = {};

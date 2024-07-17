@@ -1,31 +1,37 @@
 import TextField from '@/components/form/text-field';
+import { IProjectResponse } from '@/types/project.types';
 import Image from 'next/image';
 import { useState } from 'react';
 
-export default function ProjectKpisInfo(props: any) {
+interface IProjectContributorsInfo {
+  project: IProjectResponse;
+  errors: string[];
+}
+
+export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
   const project = props?.project;
   const errors = props?.errors;
 
-  const kpis = props?.kpis?.length > 0 ? props?.kpis : [{ key: '', value: '' }];
+  const kpis = project?.kpis?.length > 0 ? project?.kpis : [{ key: '', value: '' }];
 
   const [projectKpis, setProjectKpis] = useState(kpis);
 
   const onKpiKeyChange = (index: number, value: string) => {
-    setProjectKpis((old: any) => {
+    setProjectKpis((old) => {
       old[index].key = value;
       return [...old];
     });
   };
 
   const onKpiValueChange = (index: number, value: string) => {
-    setProjectKpis((old: any) => {
+    setProjectKpis((old) => {
       old[index].value = value;
       return [...old];
     });
   };
 
   const onDeleteKpi = (index: number) => {
-    setProjectKpis((old: any) => {
+    setProjectKpis((old) => {
       const newLinks = [...old];
       newLinks.splice(index, 1);
       return newLinks;
@@ -33,7 +39,7 @@ export default function ProjectKpisInfo(props: any) {
   };
 
   const onAddProjectLink = () => {
-    setProjectKpis((v: any) => {
+    setProjectKpis((v) => {
       const nv = structuredClone(v);
       nv.push({ key: '', value: '' });
       return nv;
@@ -50,7 +56,7 @@ export default function ProjectKpisInfo(props: any) {
           </ul>
         )}
       <div className="kpiContainer">
-        {projectKpis.map((kpi: any, index: any) => (
+        {projectKpis.map((kpi: {key: string, value: string}, index: number) => (
           <div key={`teams-role-${index}`} className="kpiContainer__kpi">
             <div className="kpiContainer__kpi__header">
               <h2 className="kpiContainer__kpi__header__title">KPI {index + 1}</h2>

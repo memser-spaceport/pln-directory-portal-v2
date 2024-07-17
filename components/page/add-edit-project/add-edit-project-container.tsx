@@ -1,13 +1,20 @@
 'use client';
 
-import RegsiterFormLoader from '@/components/core/register/register-form-loader';
+import { IProjectResponse } from '@/types/project.types';
+import { IUserInfo } from '@/types/shared.types';
 import AddEditProjectForm from './add-edit-project-form';
 import FormStepIndicatorMob from './form-step-indicator-mob';
 import { FormStepIndicatorWeb } from './form-step-indicator-web';
 
+interface IAddEditProjectContainer {
+  project: IProjectResponse
+  type: string;
+  userInfo: IUserInfo;
+}
 export default function AddEditProjectContainer(props: any) {
   const project = props?.project;
   const type = props?.type;
+  const userInfo = props?.userInfo;
 
   return (
     <>
@@ -21,7 +28,7 @@ export default function AddEditProjectContainer(props: any) {
         </div>
 
         <div className="addEditPc__formCon">
-          <AddEditProjectForm type={type} project={project} />
+          <AddEditProjectForm type={type} project={project} userInfo={userInfo} />
         </div>
       </div>
 

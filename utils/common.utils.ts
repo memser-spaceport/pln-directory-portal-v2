@@ -92,7 +92,7 @@ export const getAnalyticsMemberInfo = (member: any) => {
 
 export const getAnalyticsProjectInfo = (project: any) => {
   if (project?.name && project?.description) {
-    return { id: project?.id, name: project?.name ?? '', description: project?.description };
+    return { id: project?.uid, name: project?.name ?? '', description: project?.description };
   }
   return null;
 };

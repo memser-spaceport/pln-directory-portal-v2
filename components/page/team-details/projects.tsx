@@ -102,18 +102,18 @@ const Projects = (props: IProjects) => {
               <p className="projects-container__empty__project__member-message">
                 No projects added.&nbsp;
                 <a href={PAGE_ROUTES.PROJECTS} className="projects-container__empty__project__member-message__link">
-                  Click Here
+                  Click here
                 </a>
-                &nbsp; to add a new project.
+                &nbsp;to add a new project.
               </p>
             ) : (
-              <p className="projects-container__empty__project__member-message">No Projects added yet.</p>
+              <p className="projects-container__empty__project__member-message">No projects added.</p>
             )}
           </div>
         )}
 
         <Modal modalRef={allProjectsRef} onClose={onClosePopupClicked}>
-          <AllProjects onCardClicked={onProjectCardClicked} hasProjectsEditAccess={hasProjectsEditAccess} projects={projects} />
+          <AllProjects onEditClicked={onEditProjectClicked}  onCardClicked={onProjectCardClicked} hasProjectsEditAccess={hasProjectsEditAccess} projects={projects} />
         </Modal>
       </div>
 

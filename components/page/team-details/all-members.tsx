@@ -57,7 +57,7 @@ const AllMembers = (props: IAllMembers) => {
               </Fragment>
             );
           })}
-          {allMembers.length === 0 && <div className="all-members__members__empty-result"><p>No member found.</p></div>}
+          {allMembers.length === 0 && <div className="all-members__members__empty-result"><p>No Members found.</p></div>}
         </div>
       </div>
 

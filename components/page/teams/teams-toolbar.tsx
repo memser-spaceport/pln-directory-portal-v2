@@ -187,6 +187,9 @@ const TeamsToolbar = (props: IToolbar) => {
             width: 100%;
           }
 
+          .toolbar__right__web__sord-by__name {
+          line-height: 20px;}
+
           .toolbar__left {
             display: flex;
             gap: 8px;
@@ -370,7 +373,6 @@ const TeamsToolbar = (props: IToolbar) => {
               padding: 8px 12px;
               align-items: center;
               gap: 8px;
-              width: 160px;
               justify-content: space-between;
               border-radius: 8px;
               background: #fff;
@@ -395,6 +397,7 @@ const TeamsToolbar = (props: IToolbar) => {
             .toolbar__right__web__drop-downc {
               position: absolute;
               top: 45px;
+              width: inherit;
               right: 0px;
               width: inherit;
             }

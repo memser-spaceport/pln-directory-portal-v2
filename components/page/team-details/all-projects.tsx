@@ -1,13 +1,14 @@
-import { ChangeEvent, Fragment, useEffect, useState } from "react";
-import { EVENTS, PAGE_ROUTES } from "@/utils/constants";
 import { IFormatedTeamProject } from "@/types/teams.types";
-import TeamProjectCard from "./team-project-card";
+import { EVENTS, PAGE_ROUTES } from "@/utils/constants";
 import Image from "next/image";
+import { ChangeEvent, Fragment, useEffect, useState } from "react";
+import TeamProjectCard from "./team-project-card";
 
 interface IAllProjects {
   projects: IFormatedTeamProject[];
   hasProjectsEditAccess: boolean;
   onCardClicked: (project: any) => void;
+  onEditClicked: any;
 }
 const AllProjects = (props: IAllProjects) => {
   const projects = props?.projects ?? [];
@@ -15,6 +16,8 @@ const AllProjects = (props: IAllProjects) => {
   const [allProjects, setAllProjects] = useState(projects);
   const callback = props?.onCardClicked;
   const [searchValue, setSearchValue] = useState("");
+
+  const onEditClicked = props?.onEditClicked;
 
   const onInputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const name = e?.target?.value?.toLowerCase();
@@ -34,6 +37,7 @@ const AllProjects = (props: IAllProjects) => {
     }));
     document.removeEventListener(EVENTS.TRIGGER_LOADER, () => {});
   }, []);
+
   return (
     <>
       <div className="all-projects">
@@ -48,14 +52,14 @@ const AllProjects = (props: IAllProjects) => {
             return (
               <Fragment key={`${project} + ${index}`}>
                 <div className={`${index < allProjects?.length - 1 ? "all-projects__border-set" : ""}`}>
-                  <TeamProjectCard onCardClicked={() => callback(project)} url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
+                  <TeamProjectCard onEditClicked={onEditClicked}   onCardClicked={() => callback(project)} url={`${PAGE_ROUTES.PROJECTS}/${project?.uid}`} hasProjectsEditAccess={hasProjectsEditAccess} project={project} />
                 </div>
               </Fragment>
             );
           })}
           {allProjects.length === 0 && (
             <div className="all-projects__projects__empty-result">
-              <p>No project found.</p>
+              <p>No Projects found.</p>
             </div>
           )}
         </div>

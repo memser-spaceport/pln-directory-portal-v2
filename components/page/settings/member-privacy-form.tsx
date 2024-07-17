@@ -45,55 +45,70 @@ function MemberPrivacyForm(props: any) {
     return isFormChanged;
   };
 
-  const onFormReset = () => {
-    /*  if (actionRef.current) {
-      actionRef.current.style.visibility = 'hidden';
-    } */
+  const onFormReset = (e: any) => {
+    const isFormChanged = onFormChange();
+    if(!isFormChanged) {
+      e.preventDefault()
+      toast.info('There are no changes to reset')
+      return;
+    }
+    const proceed = confirm('Do you want to reset the changes ?');
+    if(!proceed) {
+      e.preventDefault()
+      return;
+    }
   };
 
   const onFormSubmitted = async (e: any) => {
     try {
-      triggerLoader(true);
       e.stopPropagation();
       e.preventDefault();
-      if (formRef.current) {
-        const formData = new FormData(formRef.current);
-        const formValues = Object.fromEntries(formData);
-        let payload = {
-          ...settings,
-        };
-        delete payload.githubHandle
-        payload.showGithub = formValues.github === 'on' ? true : false;
-        payload.showEmail = formValues.email === 'on' ? true : false;
-        payload.showDiscord = formValues.discord === 'on' ? true : false;
-        payload.showTwitter = formValues.twitter === 'on' ? true : false;
-        payload.showLinkedin = formValues.linkedin === 'on' ? true : false;
-        payload.showTelegram = formValues.telegram === 'on' ? true : false;
-        payload.showGithubHandle = formValues.github === 'on' ? true : false;
-        payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
-        const authToken: any = Cookies.get('authToken');
-        if (!authToken) {
-          return;
-        }
-        const apiResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}/preferences`, {
-          method: 'PATCH',
-          cache: 'no-store',
-          body: JSON.stringify(payload),
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${JSON.parse(authToken)}`,
-          },
-        });
-        triggerLoader(false);
-        if (apiResult.ok) {
-          /*  if (actionRef.current) {
+      if (!formRef.current) {
+        return;
+      }
+      const isFormChanged = onFormChange();
+      if(!isFormChanged) {
+        toast.info("There are no changes to save")
+        return;
+      }
+      triggerLoader(true);
+
+      const formData = new FormData(formRef.current);
+      const formValues = Object.fromEntries(formData);
+      let payload = {
+        ...settings,
+      };
+      delete payload.githubHandle;
+      payload.showGithub = formValues.github === 'on' ? true : false;
+      payload.showEmail = formValues.email === 'on' ? true : false;
+      payload.showDiscord = formValues.discord === 'on' ? true : false;
+      payload.showTwitter = formValues.twitter === 'on' ? true : false;
+      payload.showLinkedin = formValues.linkedin === 'on' ? true : false;
+      payload.showTelegram = formValues.telegram === 'on' ? true : false;
+      payload.showGithubHandle = formValues.github === 'on' ? true : false;
+      payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
+      const authToken: any = Cookies.get('authToken');
+      if (!authToken) {
+        return;
+      }
+      const apiResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}/preferences`, {
+        method: 'PATCH',
+        cache: 'no-store',
+        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${JSON.parse(authToken)}`,
+        },
+      });
+      triggerLoader(false);
+      if (apiResult.ok) {
+        /*  if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */
-          toast.success('Preferences updated successfully');
-          router.refresh();
-        } else {
-          toast.success('Preferences update failed. Something went wrong. Please try again later');
-        }
+        toast.success('Preferences updated successfully');
+        router.refresh();
+      } else {
+        toast.success('Preferences update failed. Something went wrong. Please try again later');
       }
     } catch (e) {
       triggerLoader(false);
@@ -104,7 +119,7 @@ function MemberPrivacyForm(props: any) {
   const onItemChange = (e: any) => {
     const currentValue = !e.target.checked;
     const itemName = e.target.name;
-    console.log(itemName, currentValue)
+    console.log(itemName, currentValue);
     if (itemName === 'github' && currentValue === true) {
       const proceed = confirm('Hiding GitHub handle will automatically disable visibility of your projects. Do you wish to proceed?');
       if (!proceed) {
@@ -115,7 +130,7 @@ function MemberPrivacyForm(props: any) {
           elem.checked = false;
         }
       }
-    } else if( itemName === 'githubProjects' && currentValue === false) {
+    } else if (itemName === 'githubProjects' && currentValue === false) {
       const elem = document.getElementById('privacy-github') as HTMLInputElement | null;
       if (elem !== null && elem.checked === false) {
         e.target.checked = !e.target.checked;
@@ -164,7 +179,7 @@ function MemberPrivacyForm(props: any) {
             </div>
           </div>
         ))}
-        <SettingsAction/>
+        <SettingsAction />
       </form>
       <style jsx>
         {`
@@ -215,11 +230,10 @@ function MemberPrivacyForm(props: any) {
 
           .pf {
             width: 100%;
-           
           }
           .pf__cn {
             padding: 24px 20px;
-          
+
             margin-bottom: 16px;
             border-radius: 8px;
           }

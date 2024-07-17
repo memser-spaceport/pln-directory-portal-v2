@@ -48,10 +48,21 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
     }
   };
 
-  const onResetForm = async () => {
-    /* if (actionRef.current) {
-      actionRef.current.style.visibility = 'hidden';
-    } */
+  const onResetForm = async (e: any) => {
+    const isSame = onFormChange();
+    if(isSame) {
+      e.preventDefault()
+      toast.info('There are no changes to reset')
+      return;
+    }
+    const proceed = confirm('Do you want to reset the changes ?');
+    if(!proceed) {
+      e.preventDefault()
+      return;
+    }
+    if(formRef.current) {
+      formRef.current.reset()
+    }
     document.dispatchEvent(new CustomEvent('reset-member-register-form'));
   };
 
@@ -139,13 +150,19 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
 
   const onFormSubmitted = async (e: any) => {
     try {
-      triggerLoader(true);
+    
       e.preventDefault();
       e.stopPropagation();
       console.log('form submitted');
       if(!formRef.current) {
         return;
       }
+      const isBothSame = onFormChange();
+      if(isBothSame) {
+        toast.info("There are no changes to save")
+        return;
+      }
+      triggerLoader(true);
       const formData = new FormData(formRef.current);
       const formValues = formInputsToMemberObj(Object.fromEntries(formData));
       console.log(formValues, 'formmmmm');

@@ -35,23 +35,24 @@ function ManageTeamsSettings(props: any) {
   const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
 
   const onTeamChanged = (uid: string) => {
-    if(uid === selectedTeam.uid) {
+    if (uid === selectedTeam.uid) {
       return false;
     }
     let proceed = true;
     const isSame = onFormChange();
-    if(!isSame) {
-      proceed = confirm("There are some unsaved changes. Do you wish to continue");
+    if (!isSame) {
+      proceed = confirm('There are some unsaved changes. Do you wish to continue');
     }
-    if(!proceed) {
+    if (!proceed) {
       return proceed;
     }
-    setActiveTab({ name: 'basic' })
+    setActiveTab({ name: 'basic' });
     if (formRef.current) {
       formRef.current.reset();
-      onResetForm();
+      document.dispatchEvent(new CustomEvent('reset-team-register-form'));
+      setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
     }
-    triggerLoader(true)
+    triggerLoader(true);
     router.push(`/settings/teams?id=${uid}`, { scroll: false });
   };
 
@@ -66,10 +67,18 @@ function ManageTeamsSettings(props: any) {
     }
   };
 
-  const onResetForm = async () => {
-   /*  if (actionRef.current) {
-      actionRef.current.style.visibility = 'hidden';
-    } */
+  const onResetForm = async (e?: any) => {
+    const isSame = onFormChange();
+    if (isSame) {
+      e.preventDefault();
+      toast.info('There are no changes to reset');
+      return;
+    }
+    const proceed = confirm('Do you want to reset the changes ?');
+    if (!proceed) {
+      e.preventDefault();
+      return;
+    }
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
     setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
   };
@@ -126,75 +135,81 @@ function ManageTeamsSettings(props: any) {
       console.log('form submmited');
       e.stopPropagation();
       e.preventDefault();
+      if (!formRef.current) {
+        return;
+      }
+      const isBothSame = onFormChange();
+      if (isBothSame) {
+        toast.info('There are no changes to save');
+        return;
+      }
       triggerLoader(true);
-      if (formRef.current) {
-        const formData = new FormData(formRef.current);
-        const formValues = Object.fromEntries(formData);
-        const formattedInputValues = transformRawInputsToFormObj(formValues);
-        const basicInfoErrors: any = await validateBasicInfo({ ...formattedInputValues });
-        const projectInfoErrors: any = await validateProjectsInfo({ ...formattedInputValues });
-        const socialInfoErrors: any = await validateSocial({ ...formattedInputValues });
-        const allErrors = [...basicInfoErrors, ...projectInfoErrors, ...socialInfoErrors];
-        if (allErrors.length > 0) {
-          setErrors({
-            basicErrors: basicInfoErrors,
-            projectErrors: projectInfoErrors,
-            socialErrors: socialInfoErrors,
-          });
-          onShowErrorModal();
-          triggerLoader(false);
-          return;
-        }
-        setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
-        const isSame = onFormChange();
-        if(isSame) {
-          triggerLoader(false);
-          toast.info("No changes to save");
-          return;
-        }
-        if (formattedInputValues.teamFocusAreas) {
-          formattedInputValues.focusAreas = [...formattedInputValues.teamFocusAreas];
-          delete formattedInputValues.teamFocusAreas;
-        }
-
-        if (formattedInputValues.teamProfile && formattedInputValues.teamProfile.size > 0) {
-          const imgResponse = await saveRegistrationImage(formattedInputValues.teamProfile);
-          const image = imgResponse?.image;
-          formattedInputValues.logoUid = image.uid;
-          formattedInputValues.logoUrl = image.url;
-          const imgEle: any = document.getElementById('team-info-basic-image');
-          if (imgEle) {
-            imgEle.value = image.url;
-          }
-        } else if (selectedTeam?.logo?.uid && selectedTeam?.logo?.url && formattedInputValues.imageFile === selectedTeam?.logo?.url) {
-          formattedInputValues.logoUid = selectedTeam?.logo?.uid;
-          formattedInputValues.logoUrl = selectedTeam?.logo?.url;
-        }
-       
-        delete formattedInputValues.teamProfile;
-        delete formattedInputValues.imageFile;
-        const payload = {
-          participantType: 'TEAM',
-          referenceUid: selectedTeam?.uid,
-          uniqueIdentifier: selectedTeam?.name,
-          newData: { ...formattedInputValues },
-        };
-
-        const authToken = Cookies.get('authToken');
-        if (!authToken) {
-          return;
-        }
-        const { data, isError } = await updateTeam(payload, JSON.parse(authToken), selectedTeam.uid);
+      const formData = new FormData(formRef.current);
+      const formValues = Object.fromEntries(formData);
+      const formattedInputValues = transformRawInputsToFormObj(formValues);
+      const basicInfoErrors: any = await validateBasicInfo({ ...formattedInputValues });
+      const projectInfoErrors: any = await validateProjectsInfo({ ...formattedInputValues });
+      const socialInfoErrors: any = await validateSocial({ ...formattedInputValues });
+      const allErrors = [...basicInfoErrors, ...projectInfoErrors, ...socialInfoErrors];
+      if (allErrors.length > 0) {
+        setErrors({
+          basicErrors: basicInfoErrors,
+          projectErrors: projectInfoErrors,
+          socialErrors: socialInfoErrors,
+        });
+        onShowErrorModal();
         triggerLoader(false);
-        if (isError) {
-          toast.error('Team updated failed. Something went wrong, please try again later');
-        } else {
-         /*  if (actionRef.current) {
+        return;
+      }
+      setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
+      const isSame = onFormChange();
+      if (isSame) {
+        triggerLoader(false);
+        toast.info('No changes to save');
+        return;
+      }
+      if (formattedInputValues.teamFocusAreas) {
+        formattedInputValues.focusAreas = [...formattedInputValues.teamFocusAreas];
+        delete formattedInputValues.teamFocusAreas;
+      }
+
+      if (formattedInputValues.teamProfile && formattedInputValues.teamProfile.size > 0) {
+        const imgResponse = await saveRegistrationImage(formattedInputValues.teamProfile);
+        const image = imgResponse?.image;
+        formattedInputValues.logoUid = image.uid;
+        formattedInputValues.logoUrl = image.url;
+        const imgEle: any = document.getElementById('team-info-basic-image');
+        if (imgEle) {
+          imgEle.value = image.url;
+        }
+      } else if (selectedTeam?.logo?.uid && selectedTeam?.logo?.url && formattedInputValues.imageFile === selectedTeam?.logo?.url) {
+        formattedInputValues.logoUid = selectedTeam?.logo?.uid;
+        formattedInputValues.logoUrl = selectedTeam?.logo?.url;
+      }
+
+      delete formattedInputValues.teamProfile;
+      delete formattedInputValues.imageFile;
+      const payload = {
+        participantType: 'TEAM',
+        referenceUid: selectedTeam?.uid,
+        uniqueIdentifier: selectedTeam?.name,
+        newData: { ...formattedInputValues },
+      };
+
+      const authToken = Cookies.get('authToken');
+      if (!authToken) {
+        return;
+      }
+      const { data, isError } = await updateTeam(payload, JSON.parse(authToken), selectedTeam.uid);
+      triggerLoader(false);
+      if (isError) {
+        toast.error('Team updated failed. Something went wrong, please try again later');
+      } else {
+        /*  if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */
-          toast.success('Team updated successfully');
-          router.refresh();
-        }
+        toast.success('Team updated successfully');
+        router.refresh();
       }
     } catch (e) {
       triggerLoader(false);
@@ -202,9 +217,7 @@ function ManageTeamsSettings(props: any) {
     }
   };
 
-  
-
-  const onFormChange =  () => {
+  const onFormChange = () => {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
@@ -234,8 +247,8 @@ function ManageTeamsSettings(props: any) {
   }, []);
 
   useEffect(() => {
-    triggerLoader(false)
-  }, [initialValues])
+    triggerLoader(false);
+  }, [initialValues]);
 
   useEffect(() => {
     function handleNavigate(e: any) {
@@ -243,23 +256,23 @@ function ManageTeamsSettings(props: any) {
       let proceed = true;
       const isSame = onFormChange();
       console.log(isSame, e.detail);
-      if(!isSame) {
-        proceed = confirm('There are some unsaved changed. Do you want to proceed?')
+      if (!isSame) {
+        proceed = confirm('There are some unsaved changed. Do you want to proceed?');
       }
-      if(!proceed) {
+      if (!proceed) {
         return;
       }
       router.push(url);
     }
-    document.addEventListener('settings-navigate', handleNavigate)
-    return function() {
-      document.removeEventListener('settings-navigate', handleNavigate)
-    }
-  }, [initialValues])
+    document.addEventListener('settings-navigate', handleNavigate);
+    return function () {
+      document.removeEventListener('settings-navigate', handleNavigate);
+    };
+  }, [initialValues]);
 
   return (
     <>
-      <form noValidate onSubmit={onFormSubmitted}  onReset={onResetForm} ref={formRef} className="ms">
+      <form noValidate onSubmit={onFormSubmitted} onReset={onResetForm} ref={formRef} className="ms">
         <div className="ms__member-selection">
           <div className="ms__member-selection__dp">
             <SearchableSingleSelect
@@ -274,8 +287,8 @@ function ManageTeamsSettings(props: any) {
               options={teams}
               selectedOption={selectedTeam}
               uniqueKey="id"
-              iconKey='imageFile'
-              defaultImage='/icons/team-default-profile.svg'
+              iconKey="imageFile"
+              defaultImage="/icons/team-default-profile.svg"
             />
           </div>
         </div>
@@ -316,7 +329,7 @@ function ManageTeamsSettings(props: any) {
             <TeamSocialInfo initialValues={initialValues.socialInfo} errors={errors.socialErrors} />
           </div>
         </div>
-        <SettingsAction/>
+        <SettingsAction />
       </form>
 
       <Modal modalRef={errorDialogRef} onClose={() => onModalClose()}>
@@ -537,9 +550,6 @@ function ManageTeamsSettings(props: any) {
               left: auto;
               justify-content: center;
               align-items: center;
-             
-             
-             
             }
           }
         `}

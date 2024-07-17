@@ -46,14 +46,14 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
   const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
   //useObserver({callback: onFormChange, observeItem: formRef})
 
-  const updateBasedOnType = useCallback
+  const updateBasedOnType = useCallback;
 
   const onMemberChanged = (uid: string) => {
     if (uid === selectedMember.uid) {
       return false;
     }
 
-    if(selectedProfileType.name === 'info') {
+    if (selectedProfileType.name === 'info') {
       let proceed = true;
       const isSame = onFormChange();
       if (!isSame) {
@@ -65,18 +65,27 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       setActiveTab({ name: 'basic' });
       if (formRef.current) {
         formRef.current.reset();
-        onResetForm();
+        setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+        document.dispatchEvent(new CustomEvent('reset-member-register-form'));
       }
     }
-    
+
     triggerLoader(true);
     router.push(`/settings/members?id=${uid}&profileType=${selectedProfileType.name}`, { scroll: false });
   };
 
-  const onResetForm = async () => {
-    /* if (actionRef.current) {
-      actionRef.current.style.visibility = 'hidden';
-    } */
+  const onResetForm = async (e?: any) => {
+    const isSame = onFormChange();
+    if (isSame) {
+      e.preventDefault();
+      toast.info('There are no changes to reset');
+      return;
+    }
+    const proceed = confirm('Do you want to reset the changes ?');
+    if (!proceed) {
+      e.preventDefault();
+      return;
+    }
     setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
     document.dispatchEvent(new CustomEvent('reset-member-register-form'));
   };
@@ -85,80 +94,86 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     try {
       e.stopPropagation();
       e.preventDefault();
+      if (!formRef.current) {
+        return;
+      }
+      const isBothSame = onFormChange();
+      if(isBothSame) {
+        toast.info("There are no changes to save")
+        return;
+      }
       triggerLoader(true);
-      if (formRef.current) {
-        const formData = new FormData(formRef.current);
-        const formValues = Object.fromEntries(formData);
-        const formattedInputValues = formInputsToMemberObj(formValues);
+      const formData = new FormData(formRef.current);
+      const formValues = Object.fromEntries(formData);
+      const formattedInputValues = formInputsToMemberObj(formValues);
 
-        const basicErrors: any[] = await checkBasicInfoForm({ ...formattedInputValues });
-        const skillsErrors: any[] = await checkSkillInfoForm({ ...formattedInputValues });
-        const contributionErrors: any = await checkContributionInfoForm({ ...formattedInputValues });
-        const allFormErrors = [...basicErrors, ...skillsErrors, ...Object.keys(contributionErrors)];
+      const basicErrors: any[] = await checkBasicInfoForm({ ...formattedInputValues });
+      const skillsErrors: any[] = await checkSkillInfoForm({ ...formattedInputValues });
+      const contributionErrors: any = await checkContributionInfoForm({ ...formattedInputValues });
+      const allFormErrors = [...basicErrors, ...skillsErrors, ...Object.keys(contributionErrors)];
 
-        if (allFormErrors.length > 0) {
-          setErrors((v: any) => {
-            return {
-              ...v,
-              basicErrors: [...basicErrors],
-              skillsErrors: [...skillsErrors],
-              contributionErrors: { ...contributionErrors },
-            };
-          });
-          triggerLoader(false);
-          onShowErrorModal();
-          return;
-        }
-        setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
-        const isSame = onFormChange();
-        if (isSame) {
-          triggerLoader(false);
-          toast.info('No changes to save');
-          return;
-        }
-        if (formattedInputValues.memberProfile && formattedInputValues.memberProfile.size > 0) {
-          const imgResponse = await saveRegistrationImage(formattedInputValues.memberProfile);
-          const image = imgResponse?.image;
-          formattedInputValues.imageUid = image.uid;
-          formattedInputValues.image = image.url;
-
-          const imgEle: any = document.getElementById('member-info-basic-image');
-          if (imgEle) {
-            imgEle.value = image.url;
-          }
-        } else if (selectedMember?.image?.uid && selectedMember?.image?.url && formattedInputValues.imageFile === selectedMember?.image?.url) {
-          formattedInputValues.imageUid = selectedMember?.image?.uid;
-        }
-
-        delete formattedInputValues.memberProfile;
-        delete formattedInputValues.imageFile;
-
-        const payload = {
-          participantType: 'MEMBER',
-          referenceUid: selectedMember.uid,
-          uniqueIdentifier: selectedMember.email,
-          newData: { ...formattedInputValues },
-        };
-
-        const rawToken = Cookies.get('authToken');
-        if (!rawToken) {
-          return;
-        }
-        const authToken = JSON.parse(rawToken);
-        const { data, isError } = await updateMember(selectedMember.uid, payload, authToken);
+      if (allFormErrors.length > 0) {
+        setErrors((v: any) => {
+          return {
+            ...v,
+            basicErrors: [...basicErrors],
+            skillsErrors: [...skillsErrors],
+            contributionErrors: { ...contributionErrors },
+          };
+        });
         triggerLoader(false);
-        if (isError) {
-          toast.error('Member updated failed. Something went wrong, please try again later');
-        } else {
-          /* if (actionRef.current) {
+        onShowErrorModal();
+        return;
+      }
+      setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+      const isSame = onFormChange();
+      if (isSame) {
+        triggerLoader(false);
+        toast.info('No changes to save');
+        return;
+      }
+      if (formattedInputValues.memberProfile && formattedInputValues.memberProfile.size > 0) {
+        const imgResponse = await saveRegistrationImage(formattedInputValues.memberProfile);
+        const image = imgResponse?.image;
+        formattedInputValues.imageUid = image.uid;
+        formattedInputValues.image = image.url;
+
+        const imgEle: any = document.getElementById('member-info-basic-image');
+        if (imgEle) {
+          imgEle.value = image.url;
+        }
+      } else if (selectedMember?.image?.uid && selectedMember?.image?.url && formattedInputValues.imageFile === selectedMember?.image?.url) {
+        formattedInputValues.imageUid = selectedMember?.image?.uid;
+      }
+
+      delete formattedInputValues.memberProfile;
+      delete formattedInputValues.imageFile;
+
+      const payload = {
+        participantType: 'MEMBER',
+        referenceUid: selectedMember.uid,
+        uniqueIdentifier: selectedMember.email,
+        newData: { ...formattedInputValues },
+      };
+
+      const rawToken = Cookies.get('authToken');
+      if (!rawToken) {
+        return;
+      }
+      const authToken = JSON.parse(rawToken);
+      const { data, isError } = await updateMember(selectedMember.uid, payload, authToken);
+      triggerLoader(false);
+      if (isError) {
+        toast.error('Member updated failed. Something went wrong, please try again later');
+      } else {
+        /* if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */
-          setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
-          toast.success('Member updated successfully');
-          router.refresh();
-        }
-        console.log(data, isError);
+        setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+        toast.success('Member updated successfully');
+        router.refresh();
       }
+      console.log(data, isError);
     } catch (e) {
       console.log(e);
       triggerLoader(false);
@@ -304,7 +319,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
   useEffect(() => {
     function handleNavigate(e: any) {
       const url = e.detail.url;
-      if(profileType === 'info') {
+      if (profileType === 'info') {
         let proceed = true;
         const isSame = onFormChange();
         console.log(isSame, e.detail);
@@ -314,7 +329,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         if (!proceed) {
           return;
         }
-      } 
+      }
       router.push(url);
     }
     document.addEventListener('settings-navigate', handleNavigate);
@@ -355,22 +370,24 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             />
           </div>
         </div>
-        {profileType === 'info' && <div className="ms__tab">
-          <div className="ms__tab__desktop">
-            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+        {profileType === 'info' && (
+          <div className="ms__tab">
+            <div className="ms__tab__desktop">
+              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+            </div>
+            <div className="ms__tab__mobile">
+              <SingleSelect
+                arrowImgUrl="/icons/arrow-down.svg"
+                uniqueKey="name"
+                onItemSelect={(item: any) => setActiveTab(item)}
+                displayKey="name"
+                options={steps}
+                selectedOption={activeTab}
+                id="settings-member-steps"
+              />
+            </div>
           </div>
-          <div className="ms__tab__mobile">
-            <SingleSelect
-              arrowImgUrl="/icons/arrow-down.svg"
-              uniqueKey="name"
-              onItemSelect={(item: any) => setActiveTab(item)}
-              displayKey="name"
-              options={steps}
-              selectedOption={activeTab}
-              id="settings-member-steps"
-            />
-          </div>
-        </div>}
+        )}
         {profileType === 'info' && (
           <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms__content">
             <div className="ms__content__cn">
@@ -390,7 +407,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             <SettingsAction />
           </form>
         )}
-        {profileType === 'preference' && <MemberPrivacyReadOnly preferences={preferences}/>}
+        {profileType === 'preference' && <MemberPrivacyReadOnly preferences={preferences} />}
       </div>
 
       <Modal modalRef={errorDialogRef} onClose={onModalClose}>

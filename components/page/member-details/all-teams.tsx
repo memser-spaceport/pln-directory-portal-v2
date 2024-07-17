@@ -11,13 +11,15 @@ interface IAllTeams {
 }
 
 const AllTeams = (props: IAllTeams) => {
-  const teams = props?.teams;
+  const teams = props?.teams ?? [];
   const sortedTeams = props?.sortedTeams;
   const [allTeams, setAllTeams] = useState(sortedTeams);
   const [searchTerm, setSearchTerm] = useState('');
   const isLoggedIn = props?.isLoggedIn;
   const userInfo = props?.userInfo;
   const member = props?.member;
+
+  const teamsLength = teams.length ?? 0;
 
   const onInputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const name = e?.target?.value?.toLowerCase();
@@ -47,7 +49,10 @@ const AllTeams = (props: IAllTeams) => {
   return (
     <>
       <div className="all-teams">
-        <h2 className="all-teams__title">Teams</h2>
+        <div className="all-teams__hdr">
+          <h2 className="all-teams__title">Teams</h2>
+          <span className="all-teams__hdr__count">({teamsLength})</span>
+        </div>
         <div className="all-teams__search-bar">
           <img loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
           <input value={searchTerm} className="all-teams__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
@@ -94,6 +99,16 @@ const AllTeams = (props: IAllTeams) => {
             overflow: auto;
             border-radius: 12px;
             background: #fff;
+          }
+
+          .all-teams__hdr {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+          }
+
+          .all-teams__hdr__count {
+            margin-top: 1px;
           }
 
           .all-teams__title {

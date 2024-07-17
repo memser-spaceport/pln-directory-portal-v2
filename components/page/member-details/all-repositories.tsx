@@ -14,6 +14,7 @@ const AllRepositories = (props: IAllRepos) => {
 
   const [allRepos, setAllRepos] = useState(repos);
   const [searchTerm, setSearchTerm] = useState('');
+  const repositoriesLength = repos?.length ?? 0;
 
   const onInputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const name = e?.target?.value?.toLowerCase();
@@ -49,7 +50,10 @@ const AllRepositories = (props: IAllRepos) => {
   return (
     <>
       <div className="all-repos">
-        <h2 className="all-repos__title">Repositories</h2>
+        <div className="all-repos__hdr">
+          <h2 className="all-repos__title">Repositories</h2>
+          <span className="all-repos__hdr__count">({repositoriesLength})</span>
+        </div>
         <div className="all-repos__search-bar">
           <img loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
           <input value={searchTerm} className="all-repos__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
@@ -85,6 +89,16 @@ const AllRepositories = (props: IAllRepos) => {
             overflow: auto;
             border-radius: 12px;
             background: #fff;
+          }
+
+          .all-repos__hdr {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+
+          .all-repos__hdr__count {
+            margin-top: 1px;
           }
 
           .all-repos__title {

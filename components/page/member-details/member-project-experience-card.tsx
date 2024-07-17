@@ -91,6 +91,7 @@ const MemberProjectExperienceCard = (props: any) => {
           .member-project-experience__container__project__img {
             object-fit: cover;
             object-position: center;
+            border-radius:4px;
           }
 
           .member-project-experience__project__desc {

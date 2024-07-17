@@ -1,6 +1,6 @@
 'use client';
 import CustomToggle from '@/components/form/custom-toggle';
-import { triggerLoader } from '@/utils/common.utils';
+import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
@@ -14,6 +14,7 @@ function MemberPrivacyForm(props: any) {
   const memberSettings = preferences?.memberPreferences ?? {};
   const formRef = useRef<HTMLFormElement | null>(null);
   const router = useRouter();
+  console.log(preferences)
   const preferenceFormItems = [
     {
       title: 'Contact details',
@@ -30,31 +31,34 @@ function MemberPrivacyForm(props: any) {
   ];
 
   const onFormChange = () => {
-    let isFormChanged = false;
-    if (formRef.current) {
-      const keys = Object.keys(memberSettings);
-      const formData = new FormData(formRef.current);
-      const formValues = Object.fromEntries(formData);
-      [...keys].forEach((key) => {
-        const formValueForKey = formValues[key] === 'on' ? true : false;
-        if (memberSettings[key] !== formValueForKey && settings[key] !== false) {
-          isFormChanged = true;
-        }
-      });
+    if (!formRef.current) {
+      return false;
     }
-    return isFormChanged;
+    const keys = Object.keys(preferences.preferenceSettings );
+    const formData = new FormData(formRef.current);
+    const formValues = Object.fromEntries(formData);
+    let formattedFormValues: any = {};
+    let formattedMemberSettings: any = {};
+    [...keys].forEach((key) => {
+      formattedMemberSettings[key] = memberSettings[key] ?? true;
+      formattedFormValues[key] = formValues[key] === 'on' ? true : false;
+    });
+    console.log(memberSettings, formValues, keys )
+    console.log(JSON.stringify(formattedMemberSettings), '-----------', JSON.stringify(formattedFormValues))
+    const isBothSame = compareObjsIfSame(formattedMemberSettings, formattedFormValues);
+    return isBothSame;
   };
 
   const onFormReset = (e: any) => {
-    const isFormChanged = onFormChange();
-    if(!isFormChanged) {
-      e.preventDefault()
-      toast.info('There are no changes to reset')
+    const isBothSame = onFormChange();
+    console.log(isBothSame, 'form changed');
+    if (isBothSame) {
+      toast.info('There are no changes to reset');
       return;
     }
     const proceed = confirm('Do you want to reset the changes ?');
-    if(!proceed) {
-      e.preventDefault()
+    if (!proceed) {
+      e.preventDefault();
       return;
     }
   };
@@ -66,9 +70,9 @@ function MemberPrivacyForm(props: any) {
       if (!formRef.current) {
         return;
       }
-      const isFormChanged = onFormChange();
-      if(!isFormChanged) {
-        toast.info("There are no changes to save")
+      const isBothSame = onFormChange();
+      if (isBothSame) {
+        toast.info('There are no changes to save');
         return;
       }
       triggerLoader(true);
@@ -142,9 +146,8 @@ function MemberPrivacyForm(props: any) {
     function handleNavigate(e: any) {
       const url = e.detail.url;
       let proceed = true;
-      const isChanged = onFormChange();
-      console.log(isChanged, e.detail);
-      if (isChanged) {
+      const isBothSame = onFormChange();
+      if (!isBothSame) {
         proceed = confirm('There are some unsaved changed. Do you want to proceed?');
       }
       if (!proceed) {
@@ -236,6 +239,7 @@ function MemberPrivacyForm(props: any) {
 
             margin-bottom: 16px;
             border-radius: 8px;
+            border-bottom: 1px solid #cbd5e1;
           }
           .pf__title {
             font-size: 16px;

@@ -46,7 +46,7 @@ function ManageTeamsSettings(props: any) {
     if (!proceed) {
       return proceed;
     }
-    setActiveTab({ name: 'basic' });
+    //setActiveTab({ name: 'basic' });
     if (formRef.current) {
       formRef.current.reset();
       document.dispatchEvent(new CustomEvent('reset-team-register-form'));
@@ -68,7 +68,7 @@ function ManageTeamsSettings(props: any) {
   };
 
   const onResetForm = async (e?: any) => {
-    const isSame = onFormChange();
+   /*  const isSame = onFormChange();
     if (isSame) {
       e.preventDefault();
       toast.info('There are no changes to reset');
@@ -78,7 +78,7 @@ function ManageTeamsSettings(props: any) {
     if (!proceed) {
       e.preventDefault();
       return;
-    }
+    } */
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
     setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
   };

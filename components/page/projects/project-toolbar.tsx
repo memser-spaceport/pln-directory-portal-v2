@@ -85,6 +85,7 @@ const ProjectsToolbar = (props: any) => {
   };
 
   const onSortClickHandler = () => {
+    triggerLoader(true);
     if (sortBy === SORT_OPTIONS.DEFAULT) {
       analytics.onSorByClicked(getAnalyticsUserInfo(userInfo), SORT_OPTIONS.ASCENDING);
       updateQueryParams('sort', SORT_OPTIONS.ASCENDING, searchParams);

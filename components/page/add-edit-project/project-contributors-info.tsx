@@ -9,8 +9,16 @@ import { ContributingTeamPopup } from './contributing-team-popup';
 import ContributorsPopup from './contributors-popup';
 import { MaintainingTeamPopup } from './maintaining-team-popup';
 import HiddenField from '@/components/form/hidden-field';
+import { IProjectResponse } from '@/types/project.types';
+import { ITeam } from '@/types/teams.types';
+import { IMemberResponse } from '@/types/members.types';
 
-export default function ProjectContributorsInfo(props: any) {
+interface IProjectContributorsInfo {
+  project: IProjectResponse;
+  errors: string[];
+}
+
+export default function ProjectContributorsInfo(props: IProjectContributorsInfo) {
   const maintainingTeamRef = useRef<HTMLDialogElement>(null);
   const contributingTeamRef = useRef<HTMLDialogElement>(null);
   const contributorsPopupRef = useRef<HTMLDialogElement>(null);
@@ -161,7 +169,7 @@ export default function ProjectContributorsInfo(props: any) {
             )}
             <HiddenField value={selectedMaintainingTeam?.uid} defaultValue={''} name={`maintainingTeamUid`} />
 
-            {selectedContributingTeams?.map((team: any, index: any) => (
+            {selectedContributingTeams?.map((team: any, index: number) => (
               <div key={`${team}+${index}`} className={`projectContributorsc__teams__selectedTeams__team ${index < selectedContributingTeams.length - 1 ? 'border-bottom' : ''}`}>
                 <div className="projectContributorsc__teams__selectedTeams__teamc">
                   <div className="projectContributorsc__teams__selectedTeams__teamc__namec">
@@ -178,7 +186,7 @@ export default function ProjectContributorsInfo(props: any) {
                     <img height={24} width={24} src={'/icons/delete-gray.svg'} />
                   </button>
                 </div>
-                <HiddenField value={team?.name} defaultValue={team?.name} name={`contributingTeams${index}-name`} />
+                <HiddenField value={team?.name ?? ""} defaultValue={team?.name ?? ""} name={`contributingTeams${index}-name`} />
                 <HiddenField value={team?.uid} defaultValue={team?.uid} name={`contributingTeams${index}-uid`} />
               </div>
             ))}

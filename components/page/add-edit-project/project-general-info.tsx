@@ -1,13 +1,13 @@
 import CustomToggle from '@/components/form/custom-toogle';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
-import Toggle from '@/components/form/toggle';
+import { IProjectLinks, IProjectResponse } from '@/types/project.types';
 import Image from 'next/image';
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 interface ProjectBasicInfoProps {
   errors: string[];
-  project: any;
+  project: IProjectResponse;
 }
 
 function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
@@ -16,7 +16,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string>(project?.logo)
 
-  const links = project?.projectLinks > 0 ? project?.projectLinks : [{ text: '', url: '' }]
+  const links = project?.projectLinks?.length > 0 ? project?.projectLinks : [{ text: '', url: '' }]
 
   const [projectLinks, setProjectLinks] = useState(project?.projectLinks);
 
@@ -41,21 +41,21 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
   };
 
   const onProjectLinkUrlChange = (index: number, value: string) => {
-    setProjectLinks((old: any) => {
+    setProjectLinks((old) => {
       old[index].url = value;
       return [...old];
     });
   };
 
   const onProjectLinkTextChange = (index: number, value: string) => {
-    setProjectLinks((old: any) => {
+    setProjectLinks((old) => {
       old[index].name = value;
       return [...old];
     });
   };
 
   const onDeleteProjectLink = (index: number) => {
-    setProjectLinks((old: any) => {
+    setProjectLinks((old) => {
       const newLinks = [...old];
       newLinks.splice(index, 1);
       return newLinks;
@@ -145,7 +145,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
           <div className="msf__tr">
             <div className="msf__tr__links">
-              {projectLinks?.map((projectLink: any, index: any) => (
+              {projectLinks?.map((projectLink: IProjectLinks, index: number) => (
                 <div key={`teams-role-${index}`} className="msf__tr__links__link">
                   <div className="msf__tr__links__link__header">
                     <div>PROJECT {index + 1}</div>

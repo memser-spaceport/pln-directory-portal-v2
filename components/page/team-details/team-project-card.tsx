@@ -1,15 +1,18 @@
 'use client';
 
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { RaisingFunds } from '@/components/ui/raising-funds';
 import { IFormatedTeamProject } from '@/types/teams.types';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface ITeamProjectCard {
   project: IFormatedTeamProject;
   hasProjectsEditAccess: boolean;
   url: string;
   onCardClicked: any;
+  onEditClicked: any;
 }
 const TeamProjectCard = (props: ITeamProjectCard) => {
   const project = props?.project;
@@ -19,6 +22,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
   const lookingForFunding = project?.lookingForFunding;
   const url = props?.url;
   const callback = props?.onCardClicked;
+  const onEditClicked = props?.onEditClicked;
 
   function getLogo() {
     if (project?.isDeleted) {
@@ -53,7 +57,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
           <div>
             {project?.hasEditAccess && !project?.isDeleted && (
               <div className="team-project-card__goto__options">
-                <button className="team-project-card__goto__options__edit">
+                <button className="team-project-card__goto__options__edit" onClick={(e) => {e.stopPropagation(); e.preventDefault(); onEditClicked(project)}}>
                   <img loading="lazy" src="/icons/edit-black.svg" />
                 </button>
               </div>

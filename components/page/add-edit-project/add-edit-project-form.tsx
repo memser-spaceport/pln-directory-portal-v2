@@ -151,7 +151,7 @@ export default function AddEditProjectForm(props: any) {
       }
 
       if (type === 'Add') {
-        analytics.onProjectAddInitiated(getAnalyticsUserInfo(userInfo), formattedData)
+        analytics.onProjectAddInitiated(getAnalyticsUserInfo(userInfo), formattedData);
         const result = await addProject(formattedData, authToken);
         if (result?.error) {
           analytics.onProjectAddFailed(getAnalyticsUserInfo(userInfo), formattedData);
@@ -159,14 +159,38 @@ export default function AddEditProjectForm(props: any) {
           triggerLoader(false);
           return;
         }
-        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData)
+        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData);
         triggerLoader(false);
         router.push('/projects');
         toast.info('Project added successfully.');
       }
 
       if (type === 'Edit') {
-        analytics.onProjectEditInitiated(getAnalyticsUserInfo(userInfo), formattedData)
+        analytics.onProjectEditInitiated(getAnalyticsUserInfo(userInfo), formattedData);
+        const deletedContributorsIds: string[] = [];
+        const previousContributors = project?.contributions ?? [];
+        const currentContributors = formattedData?.contributions ?? [];
+
+        for (const contributor of previousContributors) {
+          const isDeleted = !currentContributors.some((crt: any) => crt?.memberUid === contributor.uid);
+          if (isDeleted) {
+            deletedContributorsIds.push(contributor.uid);
+          }
+        }
+        const updatedCurrentContributors = previousContributors
+          ?.filter((contributor: any) => deletedContributorsIds?.includes(contributor?.uid))
+          .map((ctr: any) => {
+            return {
+              memberUid: ctr.uid,
+              uid: ctr.cuid,
+              isDeleted: true,
+            };
+          });
+
+        formattedData = {
+          ...formattedData,
+          contributions: [...updatedCurrentContributors, ...currentContributors],
+        };
         const result = await updateProject(project?.id, formattedData, authToken);
         if (result?.error) {
           analytics.onProjectEditFailed(getAnalyticsUserInfo(userInfo), formattedData);
@@ -174,10 +198,11 @@ export default function AddEditProjectForm(props: any) {
           triggerLoader(false);
           return;
         }
-        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData)
+        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData);
         triggerLoader(false);
         toast.info('Project updated successfully.');
         router.push(`/projects/${project?.id}`);
+        router.refresh();
       }
     } catch (error) {
       console.error(error);

@@ -117,7 +117,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
 
   const onContributorClicked = (contributor: any) => {
     window.open('/members/' + contributor?.uid, '_blank');
-  }
+  };
 
   return (
     <>
@@ -192,8 +192,8 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
           </div>
 
           <div className="projectContributorsc__teams__descSec">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px"  className="projectContributorsc__teams__descSec__nte"/>
-            <span className="projectContributorsc__teams__descSec__desc">Adding a maintainer team is required, and only one team can serve as the maintainer.            </span>
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" className="projectContributorsc__teams__descSec__nte" />
+            <span className="projectContributorsc__teams__descSec__desc">Adding a maintainer team is required, and only one team can serve as the maintainer. </span>
           </div>
         </div>
 
@@ -232,10 +232,10 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
             </>
           )}
 
-<div className="projectContributorsc__contrs__descSec">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" className='projectContributorsc__contrs__descSec__nte' />
+          <div className="projectContributorsc__contrs__descSec">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" className="projectContributorsc__contrs__descSec__nte" />
             <span className="projectContributorsc__contrs__descSec__desc">
-            Contributors are individuals who have made past contributions or are currently actively contributing to a project in various ways.
+              Contributors are individuals who have made past contributions or are currently actively contributing to a project in various ways.
             </span>
           </div>
         </div>

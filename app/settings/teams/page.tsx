@@ -19,7 +19,6 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
 
   let teams = dpResult.data ?? [];
   if(isTeamLead) {
-    console.log(teams[0], leadingTeams)
     teams = [...structuredClone(teams)].filter(v => leadingTeams.includes(v.id))
   }
   const teamResult = await getTeamInfo(selectedTeamId ?? teams[0].id);
@@ -30,8 +29,6 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
   }
   selectedTeam = teamResult.data;
  
-
-  console.log(selectedTeam)
   return {
     teams,
     selectedTeam
@@ -83,10 +80,10 @@ export default async function ManageTeams(props: any) {
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage teams" />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage teams" userInfo={userInfo}/>
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageTeamsSettings selectedTeam={selectedTeam} teams={teams} />
+            <ManageTeamsSettings selectedTeam={selectedTeam} teams={teams} userInfo={userInfo}/>
           </div>
         </div>
       </div>

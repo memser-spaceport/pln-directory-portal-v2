@@ -1,16 +1,20 @@
 'use client';
 
-import Link from 'next/link';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 
 interface SettingsMenuProps {
   activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams';
   isAdmin?:boolean
   isTeamLead?: boolean
+  userInfo: IUserInfo;
 }
 
-function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: SettingsMenuProps) {
+function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInfo }: SettingsMenuProps) {
   const router = useRouter();
+  const analytics = useSettingsAnalytics();
   const preferences = [
     { name: 'profile', url: '/settings/profile', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
     { name: 'privacy', url: '/settings/privacy', icon: '/icons/privacy.svg', activeIcon: '/icons/privacy-blue.svg' },
@@ -21,12 +25,13 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: Setti
     { name: 'manage members', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
   ];
 
-  const onItemClicked = (url: string) => {
+  const onItemClicked = (url: string, name: string) => {
     if(window.innerWidth < 1024) {
       router.push(url);
     } else {
       document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: url}}))
     }
+    analytics.recordSettingsSideMenuClick(name, url, getAnalyticsUserInfo(userInfo))
   };
   return (
     <>
@@ -35,7 +40,7 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: Setti
           <h3 className="sm__group__title">Preferences</h3>
           <div className="sm__group__list">
             {preferences.map((pref) => (
-              <div onClick={() => onItemClicked(pref.url)} key={`settings-${pref.name}`} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
+              <div onClick={() => onItemClicked(pref.url, pref.name)} key={`settings-${pref.name}`} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
                 {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
                 {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
                 <p className="sm__group__list__item__text">{pref.name}</p>
@@ -50,7 +55,7 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: Setti
             
             {isAdmin &&
               appAdminSettings.map((pref) => (
-                <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
+                <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url, pref.name)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
                   {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
                   {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
                   <p className="sm__group__list__item__text">{pref.name}</p>
@@ -59,7 +64,7 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false }: Setti
               ))}
               {(isTeamLead || isAdmin) &&
               teamAdminSettings.map((pref) => (
-                <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
+                <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url, pref.name)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
                   {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
                   {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
                   <p className="sm__group__list__item__text">{pref.name}</p>

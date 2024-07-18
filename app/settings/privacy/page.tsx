@@ -44,7 +44,7 @@ async function PrivacyPage() {
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="privacy" />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="privacy" userInfo={userInfo}/>
           </aside>
           <div className={styles.privacy__main__content}>
             <MemberPrivacyForm uid={userInfo.uid} preferences={preferences} />

@@ -85,6 +85,24 @@ export const COMMON_ANALYTICS_EVENTS = {
   GO_TO_TOP_BTN_CLICKED: 'go-to-top-btn-clicked',
 };
 
+export const SETTINGS_ANALYTICS_EVENTS = {
+  SETTINGS_SIDE_MENU_CLICK: 'settings-side-menu-click',
+  SETTINGS_MANAGE_TEAMS_TEAM_CHANGE: 'settings-manage-teams-team-change',
+  SETTINGS_MANAGE_TEAMS_SAVE: 'settings-manage-teams-save',
+  SETTINGS_MANAGE_MEMBERS_MEMBER_CHANGE: 'settings-manage-members-member-change',
+  SETTINGS_MANAGE_MEMBERS_SAVE: 'settings-manage-members-save',
+  SETTINGS_MEMBER_PROFILE_SAVE: 'settings-member-profile-save'
+}
+
+export const JOIN_NETWORK_ANALYTICS_EVENTS = {
+  MEMBER_JOIN_NETWORK_NEXT_CLICK: 'member-join-network-next-click',
+  MEMBER_JOIN_NETWORK_BACK_CLICK: 'member-join-network-back-click',
+  MEMBER_JOIN_NETWORK_SAVE: 'member-join-network-save',
+  TEAM_JOIN_NETWORK_NEXT_CLICK: 'team-join-network-next-click',
+  TEAM_JOIN_NETWORK_BACK_CLICK: 'team-join-network-back-click',
+  TEAM_JOIN_NETWORK_SAVE: 'member-join-network-save',
+}
+
 export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_DETAIL_DELETE_SUCCESS: 'project-detail-delete-success',
   PROJECT_DETAIL_DELETE_FAILED: 'project-detail-delete-failed',
@@ -353,7 +371,7 @@ export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
 };
 
-export const OH_GUIDELINE_URL = '';
+export const OH_GUIDELINE_URL = "https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq"
 
 export const ChangeLogList = [
   {

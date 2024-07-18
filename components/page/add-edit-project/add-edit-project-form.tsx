@@ -36,7 +36,7 @@ export default function AddEditProjectForm(props: any) {
     maintainingTeamUid: '',
     contactEmail: userInfo?.email ?? null,
     kpis: [{ key: '', value: '' }],
-    logoUid: '',
+    logoUid: null,
     projectLinks: [{ text: '', url: '' }],
     contributingTeams: [],
     contributions: [],
@@ -137,6 +137,10 @@ export default function AddEditProjectForm(props: any) {
       const formData = new FormData(addFormRef.current);
 
       let formattedData = transformObject(Object.fromEntries(formData));
+      formattedData = {
+        ...formattedData,
+        logoUid: project?.logoUid,
+      }
 
       if (formattedData?.projectProfile?.size > 0) {
         const imgResponse = await saveRegistrationImage(formattedData?.projectProfile);

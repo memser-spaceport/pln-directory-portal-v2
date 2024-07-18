@@ -22,6 +22,8 @@ export function ContributingTeamPopup(props: any) {
   const [step, setStep] = useState('Teams');
   const [tempContributingTeams, setTempContributingTeams] = useState<any>([...selectedContributingTeams]);
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const [teams, setTeams] = useState([]);
   const [filteredTeams, setFilteredTeams] = useState([]);
   const [allContributors, setAllContributors] = useState<any>([]);
@@ -29,10 +31,17 @@ export function ContributingTeamPopup(props: any) {
   useEffect(() => {
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     getAllTeams();
-    document.addEventListener(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT, () => setStep('Teams'));
+    document.addEventListener(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT, () => reset());
     document.addEventListener(EVENTS.UPDATE_SELECTED_CONTRIBUTING_TEAM, (e: any) => setTempContributingTeams([...e.detail]));
   }, []);
 
+  const reset = () => {
+    setStep('Teams');
+    getAllTeams();
+    if (searchInputRef?.current) {
+      searchInputRef.current.value = '';
+    }
+  };
   const getAllTeams = async () => {
     try {
       const result = await getTeamsForProject();
@@ -94,7 +103,7 @@ export function ContributingTeamPopup(props: any) {
 
   const onBackClickHandler = () => {
     setTempContributingTeams([...selectedContributingTeams]);
-  }
+  };
 
   return (
     <>
@@ -108,7 +117,7 @@ export function ContributingTeamPopup(props: any) {
               </div>
               <div className="mtc__search">
                 <img height={15} width={15} src="/icons/search-gray.svg"></img>
-                <input onChange={onSearchChangeHandler} className="mtc__search__input" placeholder="Search"></input>
+                <input ref={searchInputRef} onChange={onSearchChangeHandler} className="mtc__search__input" placeholder="Search"></input>
               </div>
             </div>
 
@@ -202,7 +211,8 @@ export function ContributingTeamPopup(props: any) {
           }
 
           .mtc__search__input {
-          width: 100%;}
+            width: 100%;
+          }
 
           .mtc__team {
             height: 60px;

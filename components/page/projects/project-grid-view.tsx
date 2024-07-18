@@ -98,6 +98,7 @@ const ProjectGridView = (props: any) => {
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
             text-overflow: ellipsis;
+            word-break: break-word;
           }
 
           .projectgrid__detail__cn__desc {

@@ -119,6 +119,16 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
     window.open('/members/' + contributor?.uid, '_blank');
   };
 
+  const getTeamsCount = () => {
+    let selectedTeamsCount = selectedContributingTeams?.length;
+
+    if(selectedContributingTeams) {
+      selectedTeamsCount += 1;
+    }
+    
+    return selectedTeamsCount
+  }
+
   return (
     <>
       <div className="projectContributorsc">
@@ -132,7 +142,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
 
         <div className="projectContributorsc__teams">
           <div className="projectContributorsc__teams__titlesec">
-            <h2 className="projectContributorsc__teams__title">TEAMS</h2>
+            <h2 className="projectContributorsc__teams__title">TEAMS ({getTeamsCount()})</h2>
             {(selectedContributingTeams.length > 0 || selectedMaintainingTeam) && <Adddropdown onOpenPopup={onOpenPopup} maintainerTeam={selectedMaintainingTeam} />}
           </div>
 
@@ -199,7 +209,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
 
         <div className="projectContributorsc__contributors">
           <div className="projectContributorsc__contributors__titlesec">
-            <div className="projectContributorsc__contributors__titlesec__title">CONTRIBUTORS</div>
+            <div className="projectContributorsc__contributors__titlesec__title">CONTRIBUTORS ({selectedContributors?.length})</div>
             {selectedContributors?.length > 0 && (
               <button type="button" className="projectContributorsc__contributors__titlesec__addBtn" onClick={onAddRemoveContributorClickHandler}>
                 Add/Remove

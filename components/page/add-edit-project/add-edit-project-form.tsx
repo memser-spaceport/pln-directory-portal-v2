@@ -305,7 +305,7 @@ export default function AddEditProjectForm(props: any) {
   }
 
   const onCancelClicHandler = () => {
-    router.push('/projects');
+    router.back();
   };
 
   return (
@@ -357,7 +357,7 @@ export default function AddEditProjectForm(props: any) {
                 )}
                 {type === 'Edit' && (
                   <button className="addEditForm__opts__acts__next" type="submit">
-                    Edit Project
+                    Update Project
                   </button>
                 )}
               </div>

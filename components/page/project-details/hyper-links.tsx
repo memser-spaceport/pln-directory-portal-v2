@@ -32,6 +32,7 @@ const Hyperlinks = (props: IHyperlinks) => {
               href={link?.url}
               target="_blank"
               onClick={() => onLinkClick(link?.url)}
+              title={link?.url}
             >
               <img
                 width={20}
@@ -85,6 +86,11 @@ const Hyperlinks = (props: IHyperlinks) => {
           line-height: 20px;
           letter-spacing: 0px;
           color: #156ff7;
+          max-width: 250px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          word-break: break-word;
+          white-space: nowrap;
         }
 
         @media (min-width: 1024px) {

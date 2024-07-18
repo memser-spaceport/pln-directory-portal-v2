@@ -174,7 +174,12 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
         }
 
         .teams__mTeam__info__name {
-          max-width: 168px;
+          width: 168px;
+          overflow: hidden;
+          text-align: left;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          word-break: break-word;
           color: #64748b;
           font-size: 14px;
           font-weight: 400;
@@ -195,10 +200,16 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
         .cteam__info__name {
           max-width: 188px;
           color: #64748b;
+          text-align: left;
           font-size: 14px;
           font-weight: 400;
           //   line-height: 32px;
           letter-spacing: 0em;
+                    width: 168px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          word-break: break-word;
         }
 
         .teams__remaining {

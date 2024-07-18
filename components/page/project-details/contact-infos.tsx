@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Tooltip } from "@/components/core/tooltip/tooltip";
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 interface IContactInfos {
   contactEmail: string;
@@ -20,15 +20,7 @@ const ContactInfos = (props: IContactInfos) => {
             <span className="contacts__body__emailInfo__icon">
               <img src="/icons/message-blue.svg" alt="message icon" />
             </span>
-            <Tooltip
-              asChild
-              content={contactEmail}
-              trigger={
-                <span className="contacts__body__emailInfo__email">
-                  {contactEmail}
-                </span>
-              }
-            />
+            <Tooltip asChild content={contactEmail} trigger={<span className="contacts__body__emailInfo__email">{contactEmail}</span>} />
           </div>
         </div>
       </div>
@@ -84,8 +76,14 @@ const ContactInfos = (props: IContactInfos) => {
           text-overflow: ellipsis;
           overflow: hidden;
           white-space: nowrap;
-          width: 217px;
+          width: 85vw;
           display: inline-block;
+        }
+
+        @media (min-width: 1024px) {
+          .contacts__body__emailInfo__email {
+            width: 217px;
+          }
         }
       `}</style>
     </>

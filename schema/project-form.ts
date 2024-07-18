@@ -11,8 +11,8 @@ const projectLinkSchema = z.object({
 
 
 export const projectKpiSchema =z.object({
-    key: z.string({errorMap: () => ({message: 'please provide valid values for the kpi'})}).trim().min(1),
-    value: z.string({errorMap: () => ({message: 'please provide valid values for the kpi'})})
+    key: z.string({errorMap: () => ({message: 'Please provide valid values for the kpi'})}).trim().min(1),
+    value: z.string({errorMap: () => ({message: 'Please provide valid values for the kpi'})})
 })
 
 export const kpiSchema = z.object({
@@ -22,21 +22,21 @@ export const kpiSchema = z.object({
 
 export const generalInfoSchema = z.object({
     name: z
-        .string({ errorMap: () => ({ message: 'Please provide valid name' }) })
+        .string({ errorMap: () => ({ message: 'Please provide a valid name' }) })
         .trim()
         .min(1)
         .max(64),
     tagline: z
-        .string({ errorMap: () => ({ message: 'Please provide valid tag line' }) })
+        .string({ errorMap: () => ({ message: 'Please provide a valid tagline' }) })
         .trim()
         .min(1),
     description: z
-        .string({ errorMap: () => ({ message: 'Please provide valid description' }) })
+        .string({ errorMap: () => ({ message: 'Please provide a valid description' }) })
         .trim()
         .min(1),
     projectLinks: z.array(projectLinkSchema),
     contactEmail: z.union([
-        z.string().email({ message: "Invalid email address" }).optional(),
+        z.string().email({ message: "Please provide a valid email address" }).optional(),
         z.literal("").optional(),
         z.null().optional()
     ]),

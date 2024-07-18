@@ -53,8 +53,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
         uploadImageRef.current.value = '';
         setSavedImage(initialValues?.imageFile ?? '')
         setProfileImage('');
-      }
-     
+      }    
     }
     document.addEventListener('reset-member-register-form', resetHandler);
     return function () {

@@ -91,7 +91,9 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_MANAGE_TEAMS_SAVE: 'settings-manage-teams-save',
   SETTINGS_MANAGE_MEMBERS_MEMBER_CHANGE: 'settings-manage-members-member-change',
   SETTINGS_MANAGE_MEMBERS_SAVE: 'settings-manage-members-save',
-  SETTINGS_MEMBER_PROFILE_SAVE: 'settings-member-profile-save'
+  SETTINGS_MEMBER_PROFILE_SAVE: 'settings-member-profile-save',
+  SETTINGS_MEMBER_PREFERENCE_CHANGE: 'settings-member-preference-change',
+  SETTINGS_MEMBER_EMAIL_ADMIN_EDIT: 'settings-member-email-admin-edit',
 }
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {

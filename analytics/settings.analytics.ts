@@ -68,6 +68,24 @@ export const useSettingsAnalytics = () => {
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_PROFILE_SAVE, params);
   }
+
+  function recordMemberEmailAdminEdit(type: string, oldEmail: string, user: IAnalyticsUserInfo | null){
+    const params = {
+      type,
+      oldEmail,
+      user
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_EMAIL_ADMIN_EDIT, params);
+  }
+
+  function recordMemberPreferenceChange(type: string, user: IAnalyticsUserInfo | null, payload?:any) {
+    const params = {
+      type,
+      user,
+      ...payload
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_PREFERENCE_CHANGE, params);
+  }
   
   return {
     recordSettingsSideMenuClick,
@@ -75,6 +93,8 @@ export const useSettingsAnalytics = () => {
     recordManageTeamSave,
     recordManageMembersMemberChange,
     recordManageMemberSave,
-    recordMemberProfileSave
+    recordMemberProfileSave,
+    recordMemberEmailAdminEdit,
+    recordMemberPreferenceChange
   };
 };

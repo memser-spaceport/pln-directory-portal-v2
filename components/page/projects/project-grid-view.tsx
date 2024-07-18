@@ -10,7 +10,7 @@ const ProjectGridView = (props: any) => {
   //variables
   const profile = project?.logo ?? '/icons/project-default.svg';
   const projectName = project?.name;
-  const description = project?.tagine;
+  const description = project?.tagline;
   const maintainerLogo = project?.maintainingTeam?.logo?.url ?? '/icons/team-default-profile.svg';
   const maintainerName = project?.maintainingTeam?.name;
   const lookingForFunding = project?.lookingForFunding;

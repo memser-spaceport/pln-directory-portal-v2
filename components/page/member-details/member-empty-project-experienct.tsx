@@ -21,7 +21,7 @@ const MemberEmptyProjectExperience = (props: IMemberEmptyProjectExperience) => {
     if (isOwner) {
       analytics.onProjectContributionAddlicked(member);
     }
-    router.push('/settings');
+    router.push('/settings/profile');
   };
 
   return (

@@ -56,7 +56,7 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
   const guests = output?.eventGuests?.map((guest: any) => {
     const memberRole = guest?.member?.teamMemberRoles?.find((teamRole: any) => guest?.teamUid === teamRole?.teamUid)?.role;
 
-    const projectContributions = guest?.member?.projectContributions.map((item: any) => item?.project?.name);
+    const projectContributions = guest?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name);
 
     return {
       uid: guest?.uid,

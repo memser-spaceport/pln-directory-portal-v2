@@ -66,8 +66,8 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
               <div className="tm__body__teams__mainTeam__wrpr" onClick={() => onMaintainerTeamClicked(project?.maintainingTeam)}>
                 <div className="tm__body__teams__mainTeam">
                   <div className="tm__body__teams__mainTeam__info">
-                    <img width={40} className="tm__body__teams__cteam__info__profile" height={40} src={project.maintainingTeam?.logo?.url || '/icons/team-default-profile.svg'} />
-                    <div className="tm__body__teams__mainTeam__info__name">{project.maintainingTeam.name}</div>
+                    <img width={40} className="tm__body__teams__cteam__info__profile" height={40} src={project?.maintainingTeam?.logo?.url || '/icons/team-default-profile.svg'} />
+                    <div className="tm__body__teams__mainTeam__info__name">{project?.maintainingTeam.name}</div>
                   </div>
                   <div className="tm__body__teams__mainTeam__nav">
                     <img src="/icons/right-arrow-gray.svg" alt="icon" />
@@ -75,7 +75,7 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
                 </div>
               </div>
             )}
-            {contributingTeams.map((cteam: any, index: number) => (
+            {contributingTeams?.map((cteam: any, index: number) => (
               <div
                 key={`tm-cteam-${index}`}
                 onClick={() => {
@@ -96,7 +96,7 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
               </div>
             ))}
 
-            {contributingTeams.length === 0 && !project.maintainingTeam?.name.toLowerCase().includes(searchTerm.toLowerCase()) && <div className="tm__body__teams__notFound">No Teams found.</div>}
+            {contributingTeams?.length === 0 && !project?.maintainingTeam?.name.toLowerCase().includes(searchTerm.toLowerCase()) && <div className="tm__body__teams__notFound">No Teams found.</div>}
           </div>
         </div>
       </Modal>

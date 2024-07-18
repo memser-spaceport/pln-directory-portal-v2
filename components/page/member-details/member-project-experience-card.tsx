@@ -9,7 +9,7 @@ const MemberProjectExperienceCard = (props: any) => {
   const experience = props?.experience;
   const userInfo = props?.userInfo;
   const member = props?.member;
-  const logo = experience.project?.logo?.url ?? '/icons/repo-project-icon.svg';
+  const logo = experience.project?.logo?.url ?? '/icons/default-project.svg';
 
   const analytics = useMemberAnalytics();
 
@@ -20,7 +20,7 @@ const MemberProjectExperienceCard = (props: any) => {
   return (
     <>
       <div className="member-project-experience">
-        {!experience?.isDeleted && (
+        {!experience?.project?.isDeleted && (
           <a className="member-project-experience__container" onClick={onProjectClickHandler} href={`${PAGE_ROUTES.PROJECTS}/${experience?.project?.uid}`}>
             <div className="member-project-experience__container__project">
               <img className="member-project-experience__container__project__img" loading="lazy" alt="project profile" src={logo} height={40} width={40} />
@@ -41,13 +41,13 @@ const MemberProjectExperienceCard = (props: any) => {
           </a>
         )}
 
-        {experience?.isDeleted && (
+        {experience?.project?.isDeleted && (
           <Tooltip
             asChild
             trigger={
               <div className="member-project-experience__container">
                 <div className="member-project-experience__container__project">
-                  <img className="member-project-experience__container__project__img" loading="lazy" alt="project profile" src={logo} height={40} width={40} />
+                  <img className="member-project-experience__container__project__img" loading="lazy" alt="project profile" src='/icons/deleted-project-logo.svg' height={40} width={40} />
                 </div>
                 <div className="member-project-experience__project__desc">
                   <p className="member-project-experience__project__desc__name">{experience?.project?.name}</p>

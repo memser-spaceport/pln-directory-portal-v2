@@ -48,9 +48,9 @@ function ManageTeamsSettings(props: any) {
     if (!proceed) {
       return proceed;
     }
-   
+
     triggerLoader(true);
-    window.location.href = `/settings/teams?id=${uid}`
+    window.location.href = `/settings/teams?id=${uid}`;
   };
 
   const onModalClose = () => {
@@ -65,7 +65,7 @@ function ManageTeamsSettings(props: any) {
   };
 
   const onResetForm = async (e?: any) => {
-     const isSame = onFormChange();
+    const isSame = onFormChange();
     if (isSame) {
       e.preventDefault();
       toast.info('There are no changes to reset');
@@ -91,11 +91,13 @@ function ManageTeamsSettings(props: any) {
     const errors = [];
     formattedData.requestorEmail = 'test@test.com';
     const validationResponse = validateForm(basicInfoSchema, formattedData);
-   /*  const nameVerification = await validatePariticipantsEmail(formattedData.name, ENROLLMENT_TYPE.TEAM);
-  
-    if (!nameVerification.isValid) {
-      errors.push('Name Already exists!');
-    } */
+    if (formattedData.name.trim() !== initialValues.basicInfo.name.trim()) {
+      const nameVerification = await validatePariticipantsEmail(formattedData.name, ENROLLMENT_TYPE.TEAM);
+
+      if (!nameVerification.isValid) {
+        errors.push('Name Already exists!');
+      }
+    }
     const imageFile = formattedData?.teamProfile;
     if (!validationResponse.success) {
       errors.push(...validationResponse.errors);
@@ -141,7 +143,7 @@ function ManageTeamsSettings(props: any) {
         triggerLoader(false);
         return;
       }
-      
+
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const formattedInputValues = transformRawInputsToFormObj(formValues);
@@ -166,7 +168,7 @@ function ManageTeamsSettings(props: any) {
         triggerLoader(false);
         return;
       }
-      
+
       if (formattedInputValues.teamFocusAreas) {
         formattedInputValues.focusAreas = [...formattedInputValues.teamFocusAreas];
         delete formattedInputValues.teamFocusAreas;
@@ -208,7 +210,7 @@ function ManageTeamsSettings(props: any) {
             actionRef.current.style.visibility = 'hidden';
           } */
         toast.success('Team updated successfully');
-        window.location.href = `/settings/teams?id=${selectedTeam.uid}`
+        window.location.href = `/settings/teams?id=${selectedTeam.uid}`;
       }
     } catch (e) {
       triggerLoader(false);
@@ -335,8 +337,8 @@ function ManageTeamsSettings(props: any) {
       <Modal modalRef={errorDialogRef} onClose={() => onModalClose()}>
         <div className="error">
           <h2 className="error__title">Validation Errors</h2>
-          <div className='error__info'>
-            <img width="16" height="16" src='/icons/alert-red.svg'/>
+          <div className="error__info">
+            <img width="16" height="16" src="/icons/alert-red.svg" />
             <p>Some fields require your attention. Please review the fields below & submit again.</p>
           </div>
           {errors.basicErrors.length > 0 && (
@@ -379,14 +381,14 @@ function ManageTeamsSettings(props: any) {
       </Modal>
       <style jsx>
         {`
-           .error {
+          .error {
             width: calc(100vw - 32px);
             height: auto;
             padding: 16px;
           }
           .error__info {
-            color: #0F172A;
-            background: #DD2C5A1A;
+            color: #0f172a;
+            background: #dd2c5a1a;
             padding: 8px 16px;
             font-size: 14px;
             font-weight: 400;
@@ -537,9 +539,9 @@ function ManageTeamsSettings(props: any) {
             min-height: calc(100svh - 128px);
           }
           @media (min-width: 1024px) {
-           .error {
-             width: 60vw;
-             padding: 24px;
+            .error {
+              width: 60vw;
+              padding: 24px;
             }
             .ms {
               width: 656px;

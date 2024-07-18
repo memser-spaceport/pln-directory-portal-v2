@@ -283,10 +283,12 @@ export const updateMember = async (uid: string, payload: any, authToken: string)
       Authorization: `Bearer ${authToken}`,
     },
   });
-
+  
   if(!result.ok) {
+    const errorData = await result.json();
     return {
       isError: true,
+      errorData, 
       errorMessage: result.statusText,
       status: result.status
     }

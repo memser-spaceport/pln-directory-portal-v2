@@ -32,7 +32,12 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const [allErrors, setAllErrors] = useState<any[]>([]);
-
+  const tabsWithError = {
+    basic: errors.basicErrors.length > 0,
+    skills: errors.skillsErrors.length > 0,
+    contributions: Object.keys(errors.contributionErrors).length > 0,
+    social: errors.socialErrors.length > 0,
+  };
   const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo])
 
   const onModalClose = () => {
@@ -305,7 +310,7 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       <form ref={formRef} onSubmit={onFormSubmitted} onReset={onResetForm}  className="ms" noValidate>
         <div className="ms__tab">
           <div className="ms__tab__desktop">
-            <Tabs activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
           </div>
           <div className="ms__tab__mobile">
             <SingleSelect uniqueKey="name" arrowImgUrl="/icons/arrow-down.svg" onItemSelect={(item: any) => setActiveTab(item)} displayKey="name" options={steps} selectedOption={activeTab} id="settings-member-steps" />

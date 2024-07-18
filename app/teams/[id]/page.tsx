@@ -169,6 +169,7 @@ async function getPageData(teamId: string) {
     const maintainingProjects = team?.maintainingProjects?.map((project: any) => {
       return {
         ...project,
+        teamUid: project?.maintainingTeamUid,
         isMaintainingProject: true,
       };
     });

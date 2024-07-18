@@ -58,6 +58,7 @@ export default function ContributorsPopup(props: any) {
         inputRef.current.value = '';
       }
     }
+    setIsOnlySelectedContributors(false);
     setSelectedTeam({
       name: '',
     });
@@ -111,12 +112,21 @@ export default function ContributorsPopup(props: any) {
 
   const onSearchChangeHandler = (e: any) => {
     const searchQuery = e.target.value.toLowerCase();
-    setFilteredContributors(contributors.filter((contributor: any) => contributor.name.toLowerCase().includes(searchQuery)));
+    console.log("contri is", contributors, searchQuery);
+    const filteredValues = [...contributors].filter((contributor) => contributor?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+    setFilteredContributors([...filteredValues]);
   };
 
   useEffect(() => {
     setFilteredContributors([...contributors]);
   }, [contributors]);
+
+
+  const getSelectedCount = () => {
+    const selectedItems = filteredContributors?.filter((ctr: any) =>  getIsSelected(ctr))
+
+    return selectedItems?.length;
+  }
 
   return (
     <>
@@ -175,7 +185,7 @@ export default function ContributorsPopup(props: any) {
           <div className="cpc__header__info">
             <div className="cpc__header__info__count">
               <>
-                <span>{tempContributors?.length} SELECTED</span>
+                <span>{getSelectedCount()} SELECTED</span>
               </>
             </div>
             <div className="cpc__header__info__optns">
@@ -212,12 +222,12 @@ export default function ContributorsPopup(props: any) {
           )}
           {isOnlySelectedContributors && (
             <>
-              {tempContributors?.map((contributor: any, index: any) => {
+              {filteredContributors?.map((contributor: any, index: any) => {
                 const isSelected = getIsSelected(contributor);
                 const value = inputRef.current.value.toLowerCase() ?? '';
                 return (
                   <Fragment key={`${contributor} + ${index}`}>
-                    {contributor?.name.includes(value.toLowerCase()) && (
+                    {(contributor?.name.toLowerCase().includes(value.toLowerCase()) && isSelected) && (
                       <div className="cpt__cnt__cptr">
                         <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
                         <div className="cpt__cnt__cptr__pflctr">

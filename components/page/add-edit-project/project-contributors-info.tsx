@@ -122,7 +122,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
   const getTeamsCount = () => {
     let selectedTeamsCount = selectedContributingTeams?.length;
 
-    if(selectedContributingTeams) {
+    if(selectedMaintainingTeam) {
       selectedTeamsCount += 1;
     }
     

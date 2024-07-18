@@ -7,6 +7,8 @@ import Link from 'next/link';
 import ProjectList from './project-list';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const ProjectlistWrapper = (props: any) => {
   const searchParams = props?.searchParams;
@@ -15,6 +17,7 @@ const ProjectlistWrapper = (props: any) => {
   const userInfo = props?.userInfo;
 
   const analytics = useProjectAnalytics();
+  const router = useRouter();
 
   const onNavigateToProject = (project: any) => {
     triggerLoader(true);
@@ -24,6 +27,11 @@ const ProjectlistWrapper = (props: any) => {
       from: 'project-list',
     });
   };
+
+
+  useEffect(() => {
+    triggerLoader(false);
+  }, [router, searchParams]);
 
   return (
     <>

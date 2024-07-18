@@ -118,9 +118,14 @@ export default function AddEditProjectForm(props: any) {
         setcontributorsErrors([]);
       }
     }
-
+    document.body.scrollTop = 0;
     goToNextStep();
   };
+
+  const onBackClicked = () => {
+    document.body.scrollTop = 0;
+    goToPreviousStep();
+  }
 
   const onFormSubmitHandler = async (event: SyntheticEvent) => {
     event.preventDefault();
@@ -159,7 +164,7 @@ export default function AddEditProjectForm(props: any) {
           triggerLoader(false);
           return;
         }
-        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData);
+        analytics.onProjectAddSuccess(getAnalyticsUserInfo(userInfo), formattedData);
         triggerLoader(false);
         router.push('/projects');
         toast.info('Project added successfully.');
@@ -299,8 +304,6 @@ export default function AddEditProjectForm(props: any) {
   }
 
   function scrollToTop() {
-    // window.scrollTo({ top: 0, behavior: 'smooth' });
-
     document.body.scrollTop = 0;
   }
 
@@ -338,7 +341,7 @@ export default function AddEditProjectForm(props: any) {
           <div className="addEditForm__opts__acts">
             {currentStep !== 'General' && (
               <div>
-                <button type="button" className="addEditForm__opts__acts__back" onClick={goToPreviousStep}>
+                <button type="button" className="addEditForm__opts__acts__back" onClick={onBackClicked}>
                   Back
                 </button>
               </div>

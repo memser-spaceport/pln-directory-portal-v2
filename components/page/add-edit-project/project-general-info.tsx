@@ -18,7 +18,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
   const links = project?.projectLinks?.length > 0 ? project?.projectLinks : [{ text: '', url: '' }];
 
-  const [projectLinks, setProjectLinks] = useState(project?.projectLinks);
+  const [projectLinks, setProjectLinks] = useState<any>(links);
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -41,21 +41,21 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
   };
 
   const onProjectLinkUrlChange = (index: number, value: string) => {
-    setProjectLinks((old) => {
+    setProjectLinks((old: any) => {
       old[index].url = value;
       return [...old];
     });
   };
 
   const onProjectLinkTextChange = (index: number, value: string) => {
-    setProjectLinks((old) => {
+    setProjectLinks((old: any) => {
       old[index].name = value;
       return [...old];
     });
   };
 
   const onDeleteProjectLink = (index: number) => {
-    setProjectLinks((old) => {
+    setProjectLinks((old: any) => {
       const newLinks = [...old];
       newLinks.splice(index, 1);
       return newLinks;
@@ -117,7 +117,16 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
           {/* Tag line */}
           <div className="projectinfo__form__item__tabLine">
-            <TextField defaultValue={project.tagline} isMandatory={true} id="register-Project-tagline" label="Project Tagline*" name="tagline" type="text" placeholder="Enter Your Project Tagline" />
+            <TextField
+              maxLength={100}
+              defaultValue={project.tagline}
+              isMandatory={true}
+              id="register-Project-tagline"
+              label="Project Tagline*"
+              name="tagline"
+              type="text"
+              placeholder="Enter Your Project Tagline"
+            />
           </div>
 
           <div className="projectinfo__form__item__description">
@@ -152,6 +161,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                     <div className="msf__tr__links__link__cn__linkText">
                       <div>Project Link Text</div>
                       <TextField
+                        maxLength={74}
                         id="register-project-link-text"
                         defaultValue={projectLink.name}
                         isMandatory={projectLink?.url ? true : false}
@@ -164,6 +174,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                     <div className="msf__tr__links__link__cn__link">
                       <div>Project Link</div>
                       <TextField
+                        maxLength={74}
                         id="register-project-link-url"
                         defaultValue={projectLink.url}
                         isMandatory={projectLink?.name ? true : false}

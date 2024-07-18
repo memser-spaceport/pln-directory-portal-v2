@@ -152,14 +152,20 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         return;
       }
       const authToken = JSON.parse(rawToken);
-      const { data, isError } = await updateMember(selectedMember.uid, payload, authToken);
+      const { data, isError, errorMessage, errorData } = await updateMember(selectedMember.uid, payload, authToken);
       triggerLoader(false);
       if (isError) {
-        toast.error('Member updated failed. Something went wrong, please try again later');
+        if(errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
+          toast.error('Email already exists. Please try again with different email')
+        } else {
+          toast.error('Member updated failed. Something went wrong, please try again later');
+        }
+        
       } else {
         /* if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */
+        
         setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
         toast.success('Member updated successfully');
         window.location.href = `/settings/members?id=${selectedMember.uid}`

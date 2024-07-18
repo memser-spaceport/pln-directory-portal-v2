@@ -27,7 +27,6 @@ const getPageData = async (selectedMemberId: string, authToken: string) => {
   selectedMember = memberResult.data;
   preferences.memberPreferences = preferenceResult.memberPreferences
   preferences.preferenceSettings = preferenceResult.preferenceSettings
-  console.log(selectedMember);
   return {
     members,
     selectedMember,
@@ -76,10 +75,10 @@ export default async function ManageMembers(props: any) {
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" userInfo={userInfo}/>
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageMembersSettings preferences={preferences} viewType={viewType} selectedMember={selectedMember} members={members ?? []} />
+            <ManageMembersSettings preferences={preferences} viewType={viewType} selectedMember={selectedMember} members={members ?? []} userInfo={userInfo}/>
           </div>
         </div>
       </div>

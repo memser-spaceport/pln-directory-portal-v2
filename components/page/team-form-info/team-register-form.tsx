@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import { teamRegisterDefault, transformRawInputsToFormObj } from '@/utils/team.utils';
 import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';
+import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
 
 interface ITeamRegisterForm {
   onCloseForm: () => void;
@@ -28,6 +29,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
   const [initialValues, setInitialValues] = useState({...teamRegisterDefault});
+  const analytics = useJoinNetworkAnalytics();
 
   const scrollToTop = () => {
     if (formContainerRef.current) {
@@ -40,11 +42,13 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
+      analytics.recordTeamJoinNetworkSave("save-click", formattedData);
       if (currentStep === 'social') {
         const validationResponse = validateForm(socialSchema, formattedData);
         if (!validationResponse?.success) {
           setSocialErrors(validationResponse.errors);
           scrollToTop();
+          analytics.recordTeamJoinNetworkSave("validation-error", formattedData);
           return;
         }
         setSocialErrors([]);
@@ -73,13 +77,16 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           if (response.ok) {
             goToNextStep();
             document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+            analytics.recordTeamJoinNetworkSave("save-success", data);
           } else {
             document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
             toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+            analytics.recordTeamJoinNetworkSave("save-error", data);
           }
         } catch (err) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          analytics.recordTeamJoinNetworkSave("save-error");
         }
       }
     }
@@ -133,6 +140,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           setBasicErrors([...teamBasicInfoErrors]);
           scrollToTop();
+          analytics.recordTeamJoinNetworkNextClick(currentStep, 'error');
           return;
         }
         setBasicErrors([]);
@@ -142,17 +150,20 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           setProjectDetailsErrors(validationResponse.errors);
           scrollToTop();
+          analytics.recordTeamJoinNetworkNextClick(currentStep, 'error');
           return;
         }
         setProjectDetailsErrors([]);
       }
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       goToNextStep();
+      analytics.recordTeamJoinNetworkNextClick(currentStep, 'success');
     }
   };
 
   const onBackClicked = () => {
     goToPreviousStep();
+    analytics.recordTeamJoinNetworkBackClick(currentStep);
   };
 
   useEffect(() => {

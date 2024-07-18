@@ -3,20 +3,25 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
-import { triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { decodeToken } from '@/utils/auth.utils';
 import { useRouter } from 'next/navigation';
 import { updateUserDirectoryEmail } from '@/services/members.service';
+import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { getUserInfo } from '@/utils/third-party.helper';
 function SelfEmailUpdate(props: any) {
   const email = props.email;
   const uid = props.uid;
   const [currentEmail, setCurrentEmail] = useState(email);
   const router = useRouter();
+  const userInfo = getUserInfo();
+  const analytics = useAuthAnalytics();
+
   const onEmailEdit = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
 
-    //analytics.captureEvent(APP_ANALYTICS_EVENTS.SETTINGS_USER_CHANGE_EMAIL_CLICKED, {});
+    analytics.onUpdateEmailClicked(getAnalyticsUserInfo(userInfo));
     const authToken = Cookies.get('authToken');
     if (!authToken) {
       return;
@@ -42,7 +47,7 @@ function SelfEmailUpdate(props: any) {
           'Content-Type': 'application/json',
         };
         if (newEmail === email) {
-          //analytics.onUpdateSameEmailProvided({newEmail, oldEmail:userInfo.email})
+          analytics.onUpdateSameEmailProvided({newEmail, oldEmail:currentEmail})
           triggerLoader(false);
           toast.error('New and current email cannot be same');
           return;
@@ -66,13 +71,13 @@ function SelfEmailUpdate(props: any) {
             domain: process.env.COOKIE_DOMAIN || '',
           });
           document.dispatchEvent(new CustomEvent('app-loader-status'));
-          //analytics.onUpdateEmailSuccess({newEmail, oldEmail:userInfo.email})
+          analytics.onUpdateEmailSuccess({newEmail, oldEmail:currentEmail})
           toast.success('Email Updated Successfully');
           router.refresh();
         }
       } catch (err) {
         const newEmail = e.detail.newEmail;
-        //analytics.onUpdateEmailFailure({newEmail, oldEmail:userInfo.email})
+        analytics.onUpdateEmailFailure({newEmail, oldEmail:currentEmail})
         document.dispatchEvent(new CustomEvent('app-loader-status'));
         toast.error('Email Update Failed');
       }

@@ -8,7 +8,7 @@ import MemberSocialInfo from '../member-info/member-social-info';
 import { getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString, getInitialMemberFormValues } from '@/utils/member.utils';
 import SingleSelect from '@/components/form/single-select';
 import { useRouter } from 'next/navigation';
-import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
+import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { updateMember } from '@/services/members.service';
 import Cookies from 'js-cookie';
@@ -20,14 +20,17 @@ import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import useObserver from '@/hooks/useObserver';
 import SettingsAction from './actions';
 import MemberPrivacyReadOnly from './member-privacy-readonly';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { IUserInfo } from '@/types/shared.types';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
   viewType: 'profile' | 'privacy';
   preferences: any;
+  userInfo: IUserInfo
 }
 
-function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile' }: ManageMembersSettingsProps) {
+function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile', userInfo }: ManageMembersSettingsProps) {
   const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
   const profileTypeOptions = [{ name: 'profile' }, { name: 'privacy' }];
   const selectedProfileType = { name: viewType };
@@ -43,10 +46,12 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     social: errors.socialErrors.length > 0,
   };
   const router = useRouter();
+  const analytics = useSettingsAnalytics();
   const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
   //useObserver({callback: onFormChange, observeItem: formRef})
 
-  const onMemberChanged = (uid: string) => {
+  const onMemberChanged = (member: any) => {
+    const uid = member?.id;
     if (uid === selectedMember.uid) {
       return false;
     }
@@ -65,6 +70,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
     triggerLoader(true);
     window.location.href = `/settings/members?id=${uid}&viewType=${selectedProfileType.name}`
+    analytics.recordManageMembersMemberChange(member, getAnalyticsUserInfo(userInfo));
   };
 
   const onResetForm = async (e?: any) => {
@@ -96,6 +102,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const formattedInputValues = formInputsToMemberObj(formValues);
+      analytics.recordManageMemberSave("save-click", getAnalyticsUserInfo(userInfo), formattedInputValues);
 
       const basicErrors: any[] = await checkBasicInfoForm({ ...formattedInputValues });
       const skillsErrors: any[] = await checkSkillInfoForm({ ...formattedInputValues });
@@ -113,6 +120,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         });
         triggerLoader(false);
         onShowErrorModal();
+        analytics.recordManageMemberSave("validation-error", getAnalyticsUserInfo(userInfo), formattedInputValues);
         return;
       }
       setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
@@ -161,6 +169,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           toast.error('Member updated failed. Something went wrong, please try again later');
         }
         
+        analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo), payload);
       } else {
         /* if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
@@ -168,13 +177,14 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         
         setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
         toast.success('Member updated successfully');
+        analytics.recordManageMemberSave("save-success", getAnalyticsUserInfo(userInfo), payload);
         window.location.href = `/settings/members?id=${selectedMember.uid}`
       }
-      console.log(data, isError);
     } catch (e) {
-      console.log(e);
+      console.error(e);
       triggerLoader(false);
       toast.error('Member updated failed. Something went wrong, please try again later');
+      analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo));
     }
   };
 
@@ -281,8 +291,6 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         formattedInputValues.imageFile = '';
       }
       const isBothSame = compareObjsIfSame(apiObjs, formattedInputValues);
-
-      console.log('form change', initialValues, apiObjs, isBothSame, JSON.stringify(apiObjs), '-----------------', JSON.stringify(formattedInputValues));
       return isBothSame;
     }
   }
@@ -319,7 +327,6 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       if (viewType === 'profile') {
         let proceed = true;
         const isSame = onFormChange();
-        console.log(isSame, e.detail);
         if (!isSame) {
           proceed = confirm('There are some unsaved changed. Do you want to proceed?');
         }
@@ -345,7 +352,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
               arrowImgUrl="/icons/arrow-down.svg"
               displayKey="name"
               id="manage-teams-settings"
-              onChange={(item: any) => onMemberChanged(item.id)}
+              onChange={(item: any) => onMemberChanged(item)}
               name=""
               formKey="name"
               onClear={() => {}}

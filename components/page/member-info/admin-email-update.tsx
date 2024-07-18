@@ -1,4 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { getUserInfo } from '@/utils/third-party.helper';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 type EmailUpdateProps = {
   email: string;
@@ -9,6 +12,9 @@ const AdminEmailUpdate: React.FC<EmailUpdateProps> = ({ email }) => {
   const confirmEmailRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
+  const analytics = useSettingsAnalytics();
+
+  const userInfo = getUserInfo();
 
   const checkEmailsMatch = () => {
     const newEmail = newEmailRef.current?.value || '';
@@ -21,13 +27,13 @@ const AdminEmailUpdate: React.FC<EmailUpdateProps> = ({ email }) => {
   };
 
   useEffect(() => {
-    console.log(email, 'email updated');
     setIsEditing(false);
   }, [email]);
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    analytics.recordMemberEmailAdminEdit("button-clicked", email, getAnalyticsUserInfo(userInfo));
     setIsEditing(true);
   };
 

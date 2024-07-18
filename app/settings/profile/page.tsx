@@ -11,7 +11,6 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 const getPageData = async (userId: string) => {
   const memberInfo = await getMemberInfo(userId);
   if(memberInfo.isError) {
-    console.log(memberInfo)
     return {
       isError: true
     }
@@ -55,10 +54,10 @@ export default async function ProfileSettings() {
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="profile" />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="profile" userInfo={userInfo}/>
           </aside>
           <div className={styles.ps__main__content}>
-            <MemberSettings memberInfo={memberInfo} />
+            <MemberSettings memberInfo={memberInfo} userInfo={userInfo}/>
           </div>
         </div>
       </div>

@@ -1,20 +1,22 @@
 'use client';
 import CustomToggle from '@/components/form/custom-toggle';
-import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
+import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import SettingsAction from './actions';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 
 function MemberPrivacyForm(props: any) {
   const uid = props?.uid;
   const preferences = props?.preferences ?? {};
+  const userInfo = props?.userInfo;
   const settings = preferences?.preferenceSettings ?? {};
   const memberSettings = preferences?.memberPreferences ?? {};
   const formRef = useRef<HTMLFormElement | null>(null);
   const router = useRouter();
-  console.log(preferences)
+  const analytics = useSettingsAnalytics();
   const preferenceFormItems = [
     {
       title: 'Contact details',
@@ -75,6 +77,7 @@ function MemberPrivacyForm(props: any) {
         toast.info('There are no changes to save');
         return;
       }
+      analytics.recordMemberPreferenceChange('save-click', getAnalyticsUserInfo(userInfo));
       triggerLoader(true);
 
       const formData = new FormData(formRef.current);
@@ -91,8 +94,10 @@ function MemberPrivacyForm(props: any) {
       payload.showTelegram = formValues.telegram === 'on' ? true : false;
       payload.showGithubHandle = formValues.github === 'on' ? true : false;
       payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
+
       const authToken: any = Cookies.get('authToken');
       if (!authToken) {
+        analytics.recordMemberPreferenceChange('error', getAnalyticsUserInfo(userInfo), payload);
         return;
       }
       const apiResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}/preferences`, {
@@ -110,13 +115,16 @@ function MemberPrivacyForm(props: any) {
             actionRef.current.style.visibility = 'hidden';
           } */
         toast.success('Preferences updated successfully');
+        analytics.recordMemberPreferenceChange('success', getAnalyticsUserInfo(userInfo), payload);
         router.refresh();
       } else {
         toast.success('Preferences update failed. Something went wrong. Please try again later');
+        analytics.recordMemberPreferenceChange('error', getAnalyticsUserInfo(userInfo), payload);
       }
     } catch (e) {
       triggerLoader(false);
       toast.success('Preferences update failed. Something went wrong. Please try again later');
+      analytics.recordMemberPreferenceChange('success', getAnalyticsUserInfo(userInfo));
     }
   };
 

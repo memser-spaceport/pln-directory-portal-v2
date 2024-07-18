@@ -17,7 +17,6 @@ const parseISODate = (isoDate: string) => {
   const regex = /^(\d{4})-(\d{2})/;
   const match = isoDate.match(regex);
   if (match) {
-    console.log({ year: parseInt(match[1], 10), month: parseInt(match[2], 10) }, isoDate)
     return { year: parseInt(match[1], 10), month: parseInt(match[2], 10) };
   } else {
     throw new Error('Invalid ISO date string');
@@ -48,7 +47,6 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
   id,
   onDateChange
 }) => {
-  console.log('initial date', initialDate)
   const initialMonthYear = initialDate ? parseISODate(initialDate) : null;
   const [selectedDate, setSelectedDate] = useState(initialMonthYear);
   const [isMonthDpActive, setMonthDpStatus] = useState(false);

@@ -99,7 +99,6 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
   };
 
   useEffect(() => {
-    console.log('skills reset called');
     setTeamsInfo(structuredClone(initialValues.teamsAndRoles) ?? []);
     setSelectedSkills(structuredClone(initialValues.skills) ?? []);
     function resetHandler() {

@@ -40,11 +40,9 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   };
 
   useEffect(() => {
-    console.log('initial values changed', initialValues)
     setSavedImage(initialValues?.imageFile ?? '')
     setProfileImage('');
     function resetHandler() {
-      console.log('initial values reset')
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
         setSavedImage(initialValues?.imageFile ?? '')

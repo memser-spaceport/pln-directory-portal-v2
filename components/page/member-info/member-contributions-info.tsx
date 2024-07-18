@@ -46,7 +46,6 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   const onAddContribution = () => {
     const newExp = [...contributionInfos];
     newExp.push(defaultValues);
-    console.log(newExp, 'new contri')
     setExpandedId(newExp.length - 1);
     setContributionInfos([...newExp]);
   };
@@ -90,14 +89,12 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
     if (contributionInfos[index]) {
       setContributionInfos((old: any) => {
         const newV = structuredClone(old);
-        console.log(old, newV);
         newV[index][key] = value;
         if(key === 'currentProject' && value === false) {
           newV[index]['endDate'] =  new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth() + 1, 0)).toISOString();
         } else if (key === 'currentProject' && value === true) {
           newV[index]['endDate'] = null;
         }
-        console.log('changed info', newV)
         return [...newV];
       });
     }

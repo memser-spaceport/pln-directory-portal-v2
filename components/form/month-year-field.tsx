@@ -71,7 +71,6 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
 
   // Effect for updating input field and parent component on change
   useEffect(() => {
-    console.log(selectedMonth, selectedYear)
     if(selectedYear && selectedMonth) {
       const formattedDate = formatDate(selectedYear, selectedMonth);
       if (inputRef.current) {

@@ -65,6 +65,7 @@ const Breadcrumbs: React.FC<BreadcrumbProps> = ({ items, LinkComponent }) => {
           }
           .breadcrumb__cn__item__active {
             color: black;
+            font-weight: 500;
           }
         `}
       </style>

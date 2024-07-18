@@ -7,7 +7,6 @@ function SettingsBackButton(props: any) {
   const router = useRouter();
 
   const onBackClicked = () => {
-    console.log('back clicked')
     document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: '/settings'}}))
   };
 

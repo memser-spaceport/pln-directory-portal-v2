@@ -334,7 +334,6 @@ export function utcDateToDateFieldString(isoString: string) {
 }
 
 export function apiObjsToMemberObj(obj: any) {
-  console.log(JSON.stringify(obj), 'rawww')
   const formatted = {
     ...obj.basicInfo,
     ...obj.socialInfo,

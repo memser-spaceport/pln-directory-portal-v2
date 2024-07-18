@@ -181,7 +181,6 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         window.location.href = `/settings/members?id=${selectedMember.uid}`
       }
     } catch (e) {
-      console.error(e);
       triggerLoader(false);
       toast.error('Member updated failed. Something went wrong, please try again later');
       analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo));
@@ -402,7 +401,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
               <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
                 <MemberSkillsInfo isEdit={true} errors={errors.skillsErrors} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
               </div>
-              <div className={`${activeTab.name !== 'contributions' ? 'hidden' : ''}`}>
+              <div className={`${activeTab.name !== 'contributions' ? 'hidden' : 'contribution'}`}>
                 <MemberContributionInfo errors={errors.contributionErrors} initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} />
               </div>
               <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
@@ -470,6 +469,9 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
             padding: 16px;
           }
+            .contribution {
+             min-height: calc(100vh - 250px);
+            }
           .error__info {
             color: #0F172A;
             background: #DD2C5A1A;

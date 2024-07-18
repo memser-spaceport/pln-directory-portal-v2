@@ -51,7 +51,7 @@ export default async function ManageMembers(props: any) {
     redirect('/teams');
   }
   const { members, isError, selectedMember, preferences } = await getPageData(selectedMemberId, authToken);
-
+  const formattedMembers = [...members].filter(v => v.id !== userInfo.uid)
   if (isError) {
     return 'Error';
   }
@@ -78,7 +78,7 @@ export default async function ManageMembers(props: any) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" userInfo={userInfo}/>
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageMembersSettings preferences={preferences} viewType={viewType} selectedMember={selectedMember} members={members ?? []} userInfo={userInfo}/>
+            <ManageMembersSettings preferences={preferences} viewType={viewType} selectedMember={selectedMember} members={formattedMembers ?? []} userInfo={userInfo}/>
           </div>
         </div>
       </div>

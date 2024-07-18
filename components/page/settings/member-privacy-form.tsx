@@ -7,6 +7,7 @@ import { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import SettingsAction from './actions';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 function MemberPrivacyForm(props: any) {
   const uid = props?.uid;
@@ -45,15 +46,12 @@ function MemberPrivacyForm(props: any) {
       formattedMemberSettings[key] = memberSettings[key] ?? true;
       formattedFormValues[key] = formValues[key] === 'on' ? true : false;
     });
-    console.log(memberSettings, formValues, keys )
-    console.log(JSON.stringify(formattedMemberSettings), '-----------', JSON.stringify(formattedFormValues))
     const isBothSame = compareObjsIfSame(formattedMemberSettings, formattedFormValues);
     return isBothSame;
   };
 
   const onFormReset = (e: any) => {
     const isBothSame = onFormChange();
-    console.log(isBothSame, 'form changed');
     if (isBothSame) {
       toast.info('There are no changes to reset');
       return;
@@ -131,7 +129,6 @@ function MemberPrivacyForm(props: any) {
   const onItemChange = (e: any) => {
     const currentValue = !e.target.checked;
     const itemName = e.target.name;
-    console.log(itemName, currentValue);
     if (itemName === 'github' && currentValue === true) {
       const proceed = confirm('Hiding GitHub handle will automatically disable visibility of your projects. Do you wish to proceed?');
       if (!proceed) {
@@ -175,7 +172,10 @@ function MemberPrivacyForm(props: any) {
       <form onSubmit={onFormSubmitted} onReset={onFormReset} ref={formRef} className="pf">
         {preferenceFormItems.map((prefForm: any, index: number) => (
           <div className="pf__cn" key={`pref-form-${index}`}>
-            <h2 className="pf__title">{prefForm.title}</h2>
+            <h2 className="pf__title">
+              <span>{prefForm.title}</span>
+              <span><Tooltip asChild trigger={<img className='pf__title__img' src='/icons/info.svg'/>} content="Privacy settings only enabled for available contact details."/></span>
+            </h2>
             <div className="pf__fields">
               {prefForm.items.map((pref: any) => (
                 <div className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`} key={`pref-${pref.name}`}>
@@ -254,7 +254,11 @@ function MemberPrivacyForm(props: any) {
             font-size: 16px;
             font-weight: 700;
             color: #0f172a;
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
           }
+            .pf__title__img {margin-top: 1px;}
           .pf__fields {
             padding: 18px 0;
           }

@@ -179,7 +179,6 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       const basicErrors: any[] = await checkBasicInfoForm({ ...formattedForms });
       const skillsErrors: any[] = await checkSkillInfoForm({ ...formattedForms });
       const contributionErrors: any = await checkContributionInfoForm({ ...formattedForms });
-
       const allFormErrors = [...basicErrors, ...skillsErrors, ...Object.keys(contributionErrors)];
       setAllErrors([...allErrors]);
       setErrors((v: any) => {
@@ -249,7 +248,6 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo), bodyData);
       }
     } catch (e) {
-      console.error(e);
       toast.error('Failed to update profile. Something went wrong');
       analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo));
       triggerLoader(false);

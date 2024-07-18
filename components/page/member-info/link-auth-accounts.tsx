@@ -31,7 +31,6 @@ function LinkAuthAccounts() {
       setUserLinkedAccounts([]);
     }
     function authAccountsHandler(e: any) {
-      console.log('linking accounts', e.detail);
       const refreshToken = Cookies.get('refreshToken');
       if (refreshToken) {
         const refreshTokenExpiry = decodeToken(JSON.parse(refreshToken));
@@ -41,7 +40,6 @@ function LinkAuthAccounts() {
           domain: process.env.COOKIE_DOMAIN || '',
         });
         const accounts = e.detail.split(',');
-        console.log(accounts, 'linked accounts')
         setUserLinkedAccounts(accounts);
       }
     }

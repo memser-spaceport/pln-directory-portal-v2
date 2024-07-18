@@ -112,7 +112,6 @@ export default function ContributorsPopup(props: any) {
 
   const onSearchChangeHandler = (e: any) => {
     const searchQuery = e.target.value.toLowerCase();
-    console.log("contri is", contributors, searchQuery);
     const filteredValues = [...contributors].filter((contributor) => contributor?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
     setFilteredContributors([...filteredValues]);
   };

@@ -131,6 +131,7 @@ const ProjectListView = (props: any) => {
               text-overflow: ellipsis;
               margin-top: 5px;
               margin-left: -39px;
+              word-break: break-word;
             }
 
             .projectlist__details__maintainer {

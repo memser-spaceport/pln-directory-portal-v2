@@ -286,6 +286,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   }, []);
 
   useEffect(() => {
+    triggerLoader(false)
     function handleNavigate(e: any) {
       const url = e.detail.url;
       let proceed = true;
@@ -296,6 +297,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       if(!proceed) {
         return;
       }
+      triggerLoader(true)
       router.push(url);
       router.refresh();
     }

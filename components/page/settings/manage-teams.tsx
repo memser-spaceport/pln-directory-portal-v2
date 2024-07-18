@@ -275,6 +275,7 @@ function ManageTeamsSettings(props: any) {
       if (!proceed) {
         return;
       }
+      triggerLoader(true)
       router.push(url);
       router.refresh();
     }

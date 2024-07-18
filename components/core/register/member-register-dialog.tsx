@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import RegisterForm from '../../page/member-info/register-form';
 import StepsIndicatorDesktop from './steps-indicator-desktop';
 import StepsIndicatorMobile from './steps-indicator-mobile';
@@ -9,21 +9,24 @@ import { EVENTS } from '@/utils/constants';
 
 function MemberRegisterDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [showForm, setFormStatus] = useState(false);
   const steps = ['basic', 'skills', 'contributions', 'social', 'success'];
 
   const onDialogClose = () => {
-    document.dispatchEvent(new CustomEvent('reset-member-register-form'))
-  }
+    document.dispatchEvent(new CustomEvent('reset-member-register-form'));
+  };
   const onCloseRegister = () => {
     if (dialogRef.current) {
       dialogRef.current.close();
+      setFormStatus(false)
     }
   };
 
   useEffect(() => {
-    function dialogHandler(e:any) {
+    function dialogHandler(e: any) {
       if (dialogRef.current) {
         dialogRef.current.showModal();
+        setFormStatus(true)
       }
     }
     document.addEventListener(EVENTS.OPEN_MEMBER_REGISTER_DIALOG, dialogHandler);
@@ -35,25 +38,29 @@ function MemberRegisterDialog() {
   return (
     <>
       <dialog onClose={onDialogClose} ref={dialogRef} className="register">
-        <div className="register__cn">
-          <div className="register__cn__mobile">
-            <StepsIndicatorMobile skip={['success']} steps={steps} />
-          </div>
-          <aside className="register__cn__desktop">
-            <div className="register__cn__desktop__info">
-              <h2 className="register__cn__desktop__info__title">Join the Protocol Labs</h2>
-              <p className="register__cn__desktop__info__desc">Tell us about yourself</p>
-              <div className="register__cn__desktop__info__sep"></div>
+        {showForm && (
+          <>
+            <div className="register__cn">
+              <div className="register__cn__mobile">
+                <StepsIndicatorMobile skip={['success']} steps={steps} />
+              </div>
+              <aside className="register__cn__desktop">
+                <div className="register__cn__desktop__info">
+                  <h2 className="register__cn__desktop__info__title">Join the Protocol Labs</h2>
+                  <p className="register__cn__desktop__info__desc">Tell us about yourself</p>
+                  <div className="register__cn__desktop__info__sep"></div>
+                </div>
+                <StepsIndicatorDesktop skip={['success']} steps={steps} />
+              </aside>
+              <section className="register__cn__content">
+                <RegisterForm onCloseForm={onCloseRegister} />
+              </section>
             </div>
-            <StepsIndicatorDesktop skip={['success']} steps={steps} />
-          </aside>
-          <section className="register__cn__content">
-            <RegisterForm onCloseForm={onCloseRegister} />
-          </section>
-        </div>
-        <div onClick={onCloseRegister} className="register__close">
-          <Image width="20" height="20" alt="register popup close" src="/icons/close.svg" />
-        </div>
+            <div onClick={onCloseRegister} className="register__close">
+              <Image width="20" height="20" alt="register popup close" src="/icons/close.svg" />
+            </div>{' '}
+          </>
+        )}
       </dialog>
       <style jsx>
         {`
@@ -139,7 +146,6 @@ function MemberRegisterDialog() {
               width: 100%;
               background: white;
               opacity: 0.2;
-             
             }
           }
         `}

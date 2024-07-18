@@ -63,6 +63,10 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_PRIVY_ACCOUNT_LINK, { ...privyUser });
   };
 
+  const onUpdateEmailClicked = (privyUser:any) => {
+    captureEvent(AUTH_ANALYTICS.SETTINGS_USER_CHANGE_EMAIL_CLICKED, { ...privyUser });
+  };
+
   const onUpdateEmailSuccess = (privyUser:any) => {
     captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS, { ...privyUser });
   };
@@ -88,6 +92,7 @@ export const useAuthAnalytics = () => {
     onDirectoryLoginFailure,
     onAccountLinkError,
     onPrivyAccountLink,
+    onUpdateEmailClicked,
     onUpdateEmailSuccess,
     onUpdateEmailFailure,
     onUpdateSameEmailProvided

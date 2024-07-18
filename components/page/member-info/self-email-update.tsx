@@ -3,23 +3,25 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
-import { triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { decodeToken } from '@/utils/auth.utils';
 import { useRouter } from 'next/navigation';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { getUserInfo } from '@/utils/third-party.helper';
 function SelfEmailUpdate(props: any) {
   const email = props.email;
   const uid = props.uid;
   const [currentEmail, setCurrentEmail] = useState(email);
   const router = useRouter();
+  const userInfo = getUserInfo();
   const analytics = useAuthAnalytics();
 
   const onEmailEdit = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
 
-    analytics.captureEvent(APP_ANALYTICS_EVENTS.SETTINGS_USER_CHANGE_EMAIL_CLICKED, {});
+    analytics.onUpdateEmailClicked(getAnalyticsUserInfo(userInfo));
     const authToken = Cookies.get('authToken');
     if (!authToken) {
       return;

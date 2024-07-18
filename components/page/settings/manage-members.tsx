@@ -333,6 +333,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           return;
         }
       }
+      triggerLoader(true)
       router.push(url);
       router.refresh();
     }

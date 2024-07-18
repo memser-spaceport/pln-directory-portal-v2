@@ -2,6 +2,8 @@ import styles from './page.module.css'
 import SettingsMenu from '@/components/page/settings/menu'
 import { redirect } from 'next/navigation';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import SettingsMobileHandler from '@/components/page/settings/settings-mobile-handler';
+
 export default function Settings() {
   const {isLoggedIn, userInfo} = getCookiesFromHeaders();
 
@@ -20,6 +22,7 @@ export default function Settings() {
         </div>
         <div>
             <SettingsMenu isAdmin={isAdmin} isTeamLead={isTeamLead} userInfo={userInfo} />
+            <SettingsMobileHandler/>
         </div>
     </div>
   </>

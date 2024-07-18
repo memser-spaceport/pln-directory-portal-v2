@@ -12,6 +12,7 @@ import { EVENTS } from '@/utils/constants';
 function TeamRegisterDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const steps = ['basic', 'project details', 'social', 'success'];
+  const [showForm, setFormStatus] = useState(false);
 
   const onDialogClose = () => {
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
@@ -20,6 +21,7 @@ function TeamRegisterDialog() {
   const onCloseRegister = () => {
     if (dialogRef.current) {
       dialogRef.current.close();
+      setFormStatus(false)
     }
   };
 
@@ -27,6 +29,7 @@ function TeamRegisterDialog() {
     function dialogHandler(e: CustomEvent) {
       if (dialogRef.current) {
         dialogRef.current.showModal();
+        setFormStatus(true)
       }
     }
     document.addEventListener(EVENTS.OPEN_TEAM_REGISTER_DIALOG, dialogHandler as EventListener);
@@ -38,7 +41,8 @@ function TeamRegisterDialog() {
   return (
     <>
       <dialog onClose={onDialogClose} ref={dialogRef} className="teamReg">
-        <div className="teamReg__cn">
+        {showForm && <>
+          <div className="teamReg__cn">
           <div className="teamReg__cn__mobile">
             <StepsIndicatorMobile steps={steps} />
           </div>
@@ -54,6 +58,7 @@ function TeamRegisterDialog() {
         <div onClick={onCloseRegister} className="teamReg__close">
           <Image width="20" height="20" alt="close" src="/icons/close.svg" />
         </div>
+        </>}
       </dialog>
       <style jsx>{`
         .teamReg {

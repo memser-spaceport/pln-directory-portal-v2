@@ -148,6 +148,7 @@ function MemberPrivacyForm(props: any) {
   };
 
   useEffect(() => {
+    triggerLoader(false)
     function handleNavigate(e: any) {
       const url = e.detail.url;
       let proceed = true;
@@ -158,6 +159,7 @@ function MemberPrivacyForm(props: any) {
       if (!proceed) {
         return;
       }
+      triggerLoader(true)
       router.push(url);
       router.refresh();
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 
 function SettingsBackButton(props: any) {
@@ -7,6 +8,7 @@ function SettingsBackButton(props: any) {
   const router = useRouter();
 
   const onBackClicked = () => {
+    triggerLoader(true)
     document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: '/settings'}}))
   };
 

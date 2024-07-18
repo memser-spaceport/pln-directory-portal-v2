@@ -2,7 +2,7 @@
 
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 
 interface SettingsMenuProps {
@@ -27,6 +27,7 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
 
   const onItemClicked = (url: string, name: string) => {
     if(window.innerWidth < 1024) {
+      triggerLoader(true)
       router.push(url);
     } else {
       document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: url}}))

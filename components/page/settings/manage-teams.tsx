@@ -8,7 +8,7 @@ import TeamSocialInfo from '../team-form-info/team-social-info';
 import { useRouter } from 'next/navigation';
 import { getTeamsFormOptions, saveRegistrationImage } from '@/services/registration.service';
 import { getTeamInitialValue, transformRawInputsToFormObj, transformTeamApiToFormObj } from '@/utils/team.utils';
-import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
+import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { updateTeam } from '@/services/teams.service';
 import Cookies from 'js-cookie';
@@ -18,10 +18,15 @@ import Modal from '@/components/core/modal';
 import SettingsAction from './actions';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 
 function ManageTeamsSettings(props: any) {
+  //props
   const teams = props.teams ?? [];
   const selectedTeam = props.selectedTeam;
+  const userInfo = props?.userInfo ?? {};
+
+  //variables
   const steps = [{ name: 'basic' }, { name: 'project details' }, { name: 'social' }];
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const router = useRouter();
@@ -35,8 +40,10 @@ function ManageTeamsSettings(props: any) {
   };
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
+  const analytics = useSettingsAnalytics();
 
-  const onTeamChanged = (uid: string) => {
+  const onTeamChanged = (team: any) => {
+    const uid = team?.id;
     if (uid === selectedTeam.uid) {
       return false;
     }
@@ -51,6 +58,7 @@ function ManageTeamsSettings(props: any) {
    
     triggerLoader(true);
     window.location.href = `/settings/teams?id=${uid}`
+    analytics.recordManageTeamsTeamChange(team, getAnalyticsUserInfo(userInfo));
   };
 
   const onModalClose = () => {
@@ -145,6 +153,7 @@ function ManageTeamsSettings(props: any) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const formattedInputValues = transformRawInputsToFormObj(formValues);
+      analytics.recordManageTeamSave("save-click", getAnalyticsUserInfo(userInfo), formattedInputValues);
       const basicInfoErrors: any = await validateBasicInfo({ ...formattedInputValues });
       const projectInfoErrors: any = await validateProjectsInfo({ ...formattedInputValues });
       const socialInfoErrors: any = await validateSocial({ ...formattedInputValues });
@@ -157,6 +166,7 @@ function ManageTeamsSettings(props: any) {
         });
         onShowErrorModal();
         triggerLoader(false);
+        analytics.recordManageTeamSave("validation-error", getAnalyticsUserInfo(userInfo), formattedInputValues);
         return;
       }
       setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
@@ -203,16 +213,19 @@ function ManageTeamsSettings(props: any) {
       triggerLoader(false);
       if (isError) {
         toast.error('Team updated failed. Something went wrong, please try again later');
+        analytics.recordManageTeamSave("save-error", getAnalyticsUserInfo(userInfo), payload);
       } else {
         /*  if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */
         toast.success('Team updated successfully');
         window.location.href = `/settings/teams?id=${selectedTeam.uid}`
+        analytics.recordManageTeamSave("save-success", getAnalyticsUserInfo(userInfo), payload);
       }
     } catch (e) {
       triggerLoader(false);
       toast.error('Team updated failed. Something went wrong, please try again later');
+      analytics.recordManageTeamSave("save-error", getAnalyticsUserInfo(userInfo));
     }
   };
 
@@ -254,7 +267,6 @@ function ManageTeamsSettings(props: any) {
       const url = e.detail.url;
       let proceed = true;
       const isSame = onFormChange();
-      console.log(isSame, e.detail);
       if (!isSame) {
         proceed = confirm('There are some unsaved changed. Do you want to proceed?');
       }
@@ -279,7 +291,7 @@ function ManageTeamsSettings(props: any) {
               arrowImgUrl="/icons/arrow-down.svg"
               displayKey="name"
               id="manage-teams-settings"
-              onChange={(item: any) => onTeamChanged(item.id)}
+              onChange={(item: any) => onTeamChanged(item)}
               name=""
               formKey="name"
               onClear={() => {}}

@@ -353,7 +353,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
                   <img src="/icons/info.svg" alt="info" width={16} height={16} />
                   <p className="details__cn__telegram__info__text">
                     Your Telegram handle is hidden. Unhide it in your profile&apos;s{' '}
-                    <Link href="/settings" legacyBehavior>
+                    <Link href="/settings/privacy" legacyBehavior>
                       <a target="_blank" className="details__cn__telegram__info__text__link" onClick={handlePrivacySettingClick}>
                         privacy settings
                       </a>

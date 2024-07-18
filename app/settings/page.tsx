@@ -19,7 +19,7 @@ export default function Settings() {
             <h2 className={styles.settings__title__text}>Account Settings</h2>
         </div>
         <div>
-            <SettingsMenu isAdmin={isAdmin} isTeamLead={isTeamLead} />
+            <SettingsMenu isAdmin={isAdmin} isTeamLead={isTeamLead} userInfo={userInfo} />
         </div>
     </div>
   </>

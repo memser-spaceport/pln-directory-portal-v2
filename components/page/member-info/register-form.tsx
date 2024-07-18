@@ -13,6 +13,7 @@ import { formInputsToMemberObj, getMemberInfoFormValues, memberRegistrationDefau
 import { toast } from 'react-toastify';
 import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';
+import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
 
 
 interface RegisterFormProps {
@@ -48,6 +49,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
   const [initialValues, setInitialValues] = useState<InitialValues>({ ...memberRegistrationDefaults });
+  const analytics = useJoinNetworkAnalytics();
 
   const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,6 +58,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
       if (formRef.current) {
         const formData = new FormData(formRef.current);
         const formValues = formInputsToMemberObj(Object.fromEntries(formData));
+        analytics.recordMemberJoinNetworkSave("save-click", formValues);
 
         // Upload image if available
         if (formValues.memberProfile && formValues.memberProfile.size > 0) {
@@ -84,13 +87,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
         if (formResult.ok) {
           formRef.current.reset();
           setCurrentStep('success');
+          analytics.recordMemberJoinNetworkSave("save-success", bodyData);
         } else {
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          analytics.recordMemberJoinNetworkSave("save-error", bodyData);
         }
       }
     } catch (err) {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      analytics.recordMemberJoinNetworkSave("save-error");
     }
   };
 
@@ -113,6 +119,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
         setBasicErrors(basicInfoErrors);
         scrollToTop();
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        analytics.recordMemberJoinNetworkNextClick(currentStep, 'error');
         return;
       }
       setBasicErrors([]);
@@ -122,6 +129,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
         setSkillsErrors(teamAndSkillsErrors);
         scrollToTop();
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        analytics.recordMemberJoinNetworkNextClick(currentStep, 'error');
         return;
       }
       setSkillsErrors([]);
@@ -131,16 +139,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
         setContributionErrors(contributionErrorsObj);
         scrollToTop();
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        analytics.recordMemberJoinNetworkNextClick(currentStep, 'error');
         return;
       }
       setContributionErrors({});
     }
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
     goToNextStep();
+    analytics.recordMemberJoinNetworkNextClick(currentStep, 'success');
   };
 
   const onBackClicked = () => {
     goToPreviousStep();
+    analytics.recordMemberJoinNetworkBackClick(currentStep);
   };
 
   useEffect(() => {

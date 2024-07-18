@@ -11,19 +11,22 @@ import SingleSelect from '@/components/form/single-select';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { saveRegistrationImage } from '@/services/registration.service';
-import { compareObjsIfSame, triggerLoader } from '@/utils/common.utils';
+import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { updateMember } from '@/services/members.service';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { validateLocation } from '@/services/location.service';
 import Modal from '@/components/core/modal';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { IUserInfo } from '@/types/shared.types';
 
 interface MemberSettingsProps {
   memberInfo: any;
+  userInfo: IUserInfo
 }
 
-function MemberSettings({ memberInfo }: MemberSettingsProps) {
+function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
@@ -33,7 +36,8 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const [allErrors, setAllErrors] = useState<any[]>([]);
 
-  const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo])
+  const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo]);
+  const analytics = useSettingsAnalytics();
 
   const onModalClose = () => {
     if (errorDialogRef.current) {
@@ -82,7 +86,6 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         allErrorObj[index].push('Your contribution start date cannot be greater than current date');
       }
     });
-    console.log(allErrorObj)
     const result = projectContributionSchema.safeParse(formattedData);
     if (!result.success) {
       result.error.errors.reduce((acc: any, error) => {
@@ -152,7 +155,6 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       triggerLoader(true);
       e.preventDefault();
       e.stopPropagation();
-      console.log('form submitted');
       if(!formRef.current) {
         triggerLoader(false);
         return;
@@ -166,16 +168,14 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
      
       const formData = new FormData(formRef.current);
       const formValues = formInputsToMemberObj(Object.fromEntries(formData));
-   
       const formattedForms = { ...formValues };
+      analytics.recordManageMemberSave("save-click", getAnalyticsUserInfo(userInfo), formattedForms);
 
       const basicErrors: any[] = await checkBasicInfoForm({ ...formattedForms });
       const skillsErrors: any[] = await checkSkillInfoForm({ ...formattedForms });
       const contributionErrors: any = await checkContributionInfoForm({ ...formattedForms });
-      console.log(contributionErrors, 'contribution errors', formattedForms);
 
       const allFormErrors = [...basicErrors, ...skillsErrors, ...Object.keys(contributionErrors)];
-      console.log(allFormErrors)
       setAllErrors([...allErrors]);
       setErrors((v: any) => {
         return {
@@ -185,10 +185,10 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
           contributionErrors: { ...contributionErrors },
         };
       });
-      console.log(allFormErrors);
       if (allFormErrors.length > 0) {
         triggerLoader(false);
         onShowErrorModal();
+        analytics.recordManageMemberSave("validation-error", getAnalyticsUserInfo(userInfo), formattedForms);
         return;
       }
 
@@ -236,14 +236,17 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
         } */
         triggerLoader(false);
         toast.success('Profile has been updated successfully');
+        analytics.recordManageMemberSave("save-success", getAnalyticsUserInfo(userInfo), bodyData);
         router.refresh();
       } else {
         triggerLoader(false);
         toast.error('Profile updated failed. Please try again later.');
+        analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo), bodyData);
       }
     } catch (e) {
-      console.log(e);
+      console.error(e);
       toast.error('Failed to update profile. Something went wrong');
+      analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo));
       triggerLoader(false);
     }
   };
@@ -284,7 +287,6 @@ function MemberSettings({ memberInfo }: MemberSettingsProps) {
       const url = e.detail.url;
       let proceed = true;
       const isSame = onFormChange();
-      console.log(isSame, e.detail);
       if(!isSame) {
         proceed = confirm('There are some unsaved changed. Do you want to proceed?')
       }

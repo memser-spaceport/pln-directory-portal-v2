@@ -322,13 +322,14 @@ const GuestTableRow = (props: any) => {
         .gtr__topic__tags__re__tp {
           max-height: 250px;
           max-width: 200px;
-          overflow: auto;
+          // overflow: auto;
           border-radius: 8px;
           background-color: #1e293b;
           padding: 4px 8px;
           font-size: 12px;
           font-weight: 500;
           color: white;
+          background:transparent;
         }
 
         .gtr__topic__tags__re {

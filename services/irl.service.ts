@@ -103,6 +103,7 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
 export const createEventGuest = async (slug: string, payload: any, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest`, {
     method: 'POST',
+    cache: 'no-store',
     body: JSON.stringify(payload),
     headers: getHeader(authToken),
   });
@@ -116,6 +117,7 @@ export const createEventGuest = async (slug: string, payload: any, authToken: st
 export const editEventGuest = async (slug: string, uid: string, payload: any, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest/${uid}`, {
     method: 'PUT',
+    cache: 'no-store',
     body: JSON.stringify(payload),
     headers: getHeader(authToken),
   });

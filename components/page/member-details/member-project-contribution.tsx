@@ -8,7 +8,7 @@ import MemberProjectContributions from './member-project-contributions';
 import Modal from '@/components/core/modal';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useRouter } from 'next/navigation';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
 
 dynamic(() => import('@/components/core/modal'), { ssr: false });

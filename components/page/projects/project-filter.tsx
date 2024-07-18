@@ -39,7 +39,6 @@ const ProjectFilter = (props: any) => {
   const [isTeamActive, setIsTeamActive] = useState(false);
   const debouncedSearchText = useDebounce(searchText, 300);
 
-
   //methods
   useClickedOutside({ callback: () => setIsTeamActive(false), ref: projectPaneRef });
 
@@ -136,6 +135,10 @@ const ProjectFilter = (props: any) => {
     setSearchText('');
     updateQueryParams("team", "", searchParams);
   }
+
+  useEffect(() => {
+    setSearchText(selectedTeam?.label)
+  }, [router, searchParams])
 
   return (
     <>

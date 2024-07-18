@@ -48,20 +48,20 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
 
   return (
     <>
-            {errors.length > 0 && (
-          <ul className="kpi__errors">
-            {errors.map((error: string, index: number) => (
-              <li key={`project-error-${index}`}>{error}</li>
-            ))}
-          </ul>
-        )}
+      {errors.length > 0 && (
+        <ul className="kpi__errors">
+          {errors.map((error: string, index: number) => (
+            <li key={`project-error-${index}`}>{error}</li>
+          ))}
+        </ul>
+      )}
       <div className="kpiContainer">
-        {projectKpis.map((kpi: {key: string, value: string}, index: number) => (
+        {projectKpis.map((kpi: { key: string; value: string }, index: number) => (
           <div key={`teams-role-${index}`} className="kpiContainer__kpi">
             <div className="kpiContainer__kpi__header">
               <h2 className="kpiContainer__kpi__header__title">KPI {index + 1}</h2>
               {index !== 0 && (
-                <button  className="kpiContainer__kpi__header__delete" onClick={() => onDeleteKpi(index)} type="button">
+                <button className="kpiContainer__kpi__header__delete" onClick={() => onDeleteKpi(index)} type="button">
                   <Image src="/icons/delete-brown.svg" alt="delete team role" width="12" height="12" />
                 </button>
               )}
@@ -71,6 +71,7 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
               <div className="kpiContainer__kpi__keyAndValue__key">
                 <div className="kpiContainer__kpi__keyAndValue__key__ttl">Enter KPI Name</div>
                 <TextField
+                  maxLength={64}
                   id="register-project-kpi-text"
                   defaultValue={kpi.key}
                   isMandatory={kpi?.value ? true : false}
@@ -83,6 +84,7 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
               <div className="kpiContainer__kpi__keyAndValue__value">
                 <div className="kpiContainer__kpi__keyAndValue__value__ttl">Enter KPI Value</div>
                 <TextField
+                  maxLength={64}
                   id="register-project-link-value"
                   defaultValue={kpi.value}
                   isMandatory={kpi?.key ? true : false}
@@ -97,24 +99,24 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
         ))}
 
         {projectKpis.length < 5 && (
-          <button type='button' onClick={onAddProjectLink} className="kpiContainer__addOptBtn">
+          <button type="button" onClick={onAddProjectLink} className="kpiContainer__addOptBtn">
             <Image src="/icons/add.svg" width="16" height="16" alt="Add New" />
-            <div className='kpiContainer__addOptBtn__addTxt'>Add KPI</div>
-            <div className='kpiContainer__addOptBtn__remTxt'>(Max 5 KPIs)</div>
+            <div className="kpiContainer__addOptBtn__addTxt">Add KPI</div>
+            <div className="kpiContainer__addOptBtn__remTxt">(Max 5 KPIs)</div>
           </button>
         )}
       </div>
 
       <style jsx>
         {`
-
-            .kpi__errors {
+          .kpi__errors {
             color: red;
             font-size: 12px;
             padding: 0 16px 16px 16px;
           }
           .kpiContainer {
             display: flex;
+            padding-bottom: 100px;
             flex-direction: column;
             gap: 12px;
           }
@@ -185,7 +187,7 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
           }
 
           .kpiContainer__addOptBtn {
-             display: flex;
+            display: flex;
             gap: 4px;
             width: fit-content;
             align-items: center;
@@ -193,14 +195,16 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
             font-size: 14px;
             font-weight: 500;
             line-height: 24px;
+            padding-left: 26px;
           }
 
           .kpiContainer__addOptBtn__addTxt {
-          color: #156FF7;
+            color: #156ff7;
           }
 
-          .kpiContainer__addOptBtn__remTxt{
-          color:  #94A3B8;}
+          .kpiContainer__addOptBtn__remTxt {
+            color: #94a3b8;
+          }
 
           @media (min-width: 1024px) {
             .kpiContainer__kpi__keyAndValue {
@@ -213,6 +217,12 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
 
             .kpiContainer__kpi__keyAndValue__value {
               width: 50%;
+            }
+          }
+
+          @media (min-width: 1024px) {
+            .kpiContainer__addOptBtn {
+              padding: unset;
             }
           }
         `}

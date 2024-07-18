@@ -13,7 +13,7 @@ const MemberDetailsRepoCard = (props: IMemberRepoCard) => {
   const repo = props?.repo;
   const userInfo = props?.userInfo;
   const member = props.memebr;
-  const profile = '/icons/repo-project-icon.svg';
+  const profile = '/icons/repository.svg';
 
   const analytics = useMemberAnalytics();
 

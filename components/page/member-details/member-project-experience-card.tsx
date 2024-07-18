@@ -9,7 +9,7 @@ const MemberProjectExperienceCard = (props: any) => {
   const experience = props?.experience;
   const userInfo = props?.userInfo;
   const member = props?.member;
-  const logo = experience.project?.logo?.url ?? '/icons/team-detail-default-project-logo.svg';
+  const logo = experience.project?.logo?.url ?? '/icons/repo-project-icon.svg';
 
   const analytics = useMemberAnalytics();
 
@@ -89,8 +89,6 @@ const MemberProjectExperienceCard = (props: any) => {
           }
 
           .member-project-experience__container__project__img {
-            object-fit: cover;
-            object-position: center;
             border-radius:4px;
           }
 

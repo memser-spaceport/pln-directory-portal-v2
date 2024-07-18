@@ -5,7 +5,6 @@ import { IUserInfo } from '@/types/shared.types';
 import { getMembersListOptions, getMembersOptionsFromQuery, parseMemberFilters } from '@/utils/member.utils';
 import { getMemberRoles, getMembers, getMembersFilters } from '@/services/members.service';
 import Error from '@/components/core/error';
-import MembersList from '@/components/page/members/members-list';
 import MembersToolbar from '@/components/page/members/members-toolbar';
 import FilterWrapper from '@/components/page/members/filter-wrapper';
 import EmptyResult from '@/components/core/empty-result';

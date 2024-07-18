@@ -60,8 +60,8 @@ export default function UserProfile(props: Readonly<IProfile>) {
               Account Settings
             </button>
             <div className="profile__profileimagesection__ddown__bl"> </div>
-            <div className="profile__profieimagesection__ddown__louts">
-              <button onClick={onLogoutHandler} className="profile__profieimagesection__ddown__louts__loutbtn" onClickCapture={() => onAccountOptionsClickHandler('logout')}>
+            <div onClick={onLogoutHandler} className="profile__profieimagesection__ddown__louts">
+              <button className="profile__profieimagesection__ddown__louts__loutbtn" onClickCapture={() => onAccountOptionsClickHandler('logout')}>
                 <Image height={16} width={16} loading="lazy" alt="logout" src="/icons/logout.svg" />
                 Logout
               </button>

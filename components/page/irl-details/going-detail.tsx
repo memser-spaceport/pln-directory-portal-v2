@@ -193,10 +193,6 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
       errors.checkInDate = 'Arrival date is required';
     }
 
-    if (formValues.officeHours !== '' && !formValues.officeHours.match(urlRE)) {
-      errors.officeHours = 'Enter valid link';
-    }
-
     const checkInDate = new Date(formValues.additionalInfo.checkInDate).getTime();
     const checkOutDate = new Date(formValues.additionalInfo.checkOutDate).getTime();
 

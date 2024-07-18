@@ -37,9 +37,9 @@ const MemberOfficeHours = (props: any) => {
             <img loading="lazy" alt="calendar" className="office-hours__left__calendar__icon" src="/icons/calendar.svg" />
           </div>
           {!isLoggedIn ? (
-            <p className="office-hours__left__msg">
-              {OFFICE_HOURS_MSG}{' '}{member?.name}
-            </p>
+              <p suppressHydrationWarning className="office-hours__left__msg">
+                {OFFICE_HOURS_MSG} <p title={member?.name} className="office-hours__left__msg__mem">{member?.name}</p>
+              </p>
           ) : (
             <h2 className="office-hours__left__calendar__title">Office Hours</h2>
           )}

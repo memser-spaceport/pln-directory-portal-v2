@@ -3,8 +3,10 @@
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
-import { TEAM_OFFICE_HOURS_MSG } from '@/utils/constants';
+import { TEAM_OFFICE_HOURS_MSG, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
 
 const TeamOfficeHours = (props: any) => {
   const team = props?.team;
@@ -17,8 +19,14 @@ const TeamOfficeHours = (props: any) => {
   const router = useRouter();
 
   const onLoginClickHandler = () => {
-    authAnalytics.onLoginBtnClicked();
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    const userInfo = Cookies.get('userInfo');
+    if (userInfo) {
+      toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
+      router.refresh();
+    } else {
+      authAnalytics.onLoginBtnClicked();
+      router.push(`${window.location.pathname}${window.location.search}#login`);
+    }
   };
 
   const onScheduleMeeting = () => {
@@ -38,7 +46,7 @@ const TeamOfficeHours = (props: any) => {
           </div>
           {!isLoggedIn ? (
             <p className="office-hours__left__msg">
-              {TEAM_OFFICE_HOURS_MSG}{' '}{team?.name}
+              {TEAM_OFFICE_HOURS_MSG} {team?.name}
             </p>
           ) : (
             <h2 className="office-hours__left__calendar__title">Office Hours</h2>

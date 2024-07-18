@@ -73,6 +73,7 @@ function PrivyModals() {
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',
     });
+
     Cookies.set('userInfo', JSON.stringify(output.userInfo), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       path: '/',
@@ -153,7 +154,9 @@ function PrivyModals() {
             await deleteUser('email-changed');
           }
         } else {
-          saveTokensAndUserInfo(result, user as User);
+          const formattedResult = structuredClone(result);
+          delete formattedResult.userInfo.isFirstTimeLogin;
+          saveTokensAndUserInfo(formattedResult, user as User);
           loginInUser(result);
           analytics.onDirectoryLoginSuccess();
         }

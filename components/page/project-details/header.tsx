@@ -155,7 +155,7 @@ const Header = (props: IHeader) => {
         }
 
         .header__details__specifics__hdr {
-          height: 40px;
+          height: 23px;
           display: flex;
           align-items: center;
         }
@@ -251,6 +251,9 @@ const Header = (props: IHeader) => {
             grid-template-columns: 80px auto;
             column-gap: 24px;
           }
+
+          .header__details__specifics__hdr {
+          height: 40px;}
 
           .header__profile {
             grid-row: span 3 / span 3;

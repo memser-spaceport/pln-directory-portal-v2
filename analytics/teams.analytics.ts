@@ -91,7 +91,7 @@ export const useTeamAnalytics = () => {
 
       function onTeamCardClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
         const params = {
-          team,
+          ...team,
           user
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_CLICKED, params);
@@ -99,7 +99,7 @@ export const useTeamAnalytics = () => {
 
       function onEditTeamByLead(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
         const params = {
-          team,
+          ...team,
           user
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_EDIT_BY_LEAD, params);
@@ -107,7 +107,7 @@ export const useTeamAnalytics = () => {
 
       function onEditTeamByAdmin(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
         const params = {
-          team,
+          ...team,
           user
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_EDIT_BY_ADMIN, params);
@@ -115,7 +115,7 @@ export const useTeamAnalytics = () => {
 
       function onTeamDetailAboutShowMoreClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
         const params =  {
-          team,
+          ...team,
           user
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_SHOW_MORE_CLICKED, params);
@@ -123,7 +123,7 @@ export const useTeamAnalytics = () => {
 
       function onTeamDetailAboutShowLessClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
         const params = {
-          team,
+          ...team,
           user
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_SHOW_LESS_CLICKED, params)
@@ -131,7 +131,7 @@ export const useTeamAnalytics = () => {
 
       function onTeamDetailShowMoreTechnologiesClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
         const params = {
-          team,
+          ...team,
           user
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SHOW_MORE_TECHNOLOGY_CLICKED, params)
@@ -139,7 +139,7 @@ export const useTeamAnalytics = () => {
 
       function onTeamDetailContactClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null, type: string, value: string) {
         const params = {
-          team,
+          ...team,
           user,
           type,
           value
@@ -149,15 +149,16 @@ export const useTeamAnalytics = () => {
 
       function onTeamDetailSeeAllProjectsClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
         const params = {
-          team,
-          user
+          ...team,
+          user,
+          from:"teams-details"
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SEE_ALL_PROJECTS_CLICKED, params);
       }
 
       function onTeamDetailProjectClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null, project: IAnalyticsProjectInfo | null) {
         const params = {
-          team,
+          ...team,
           user,
           project
         }
@@ -166,7 +167,7 @@ export const useTeamAnalytics = () => {
 
       function onTeamDetailSeeAllMemberClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null)  {
         const params = {
-          team,
+          ...team,
           user
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SEE_ALL_MEMBERS_CLICKED, params);
@@ -174,7 +175,7 @@ export const useTeamAnalytics = () => {
 
       function onTeamDetailMemberClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
         const params = {
-          team,
+          ...team,
           user,
           member
         }
@@ -188,7 +189,7 @@ export const useTeamAnalytics = () => {
       function onScheduleMeetingClicked(user: IAnalyticsUserInfo | null, team: IAnalyticsTeamInfo | null) {
         const params = {
           user,
-          team,
+          ...team,
         };
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_OFFICEHOURS_CLICKED, params);
       }
@@ -196,7 +197,7 @@ export const useTeamAnalytics = () => {
       function onTeamDetailAddProjectClicked(user: IAnalyticsUserInfo | null, team: IAnalyticsTeamInfo | null) {
         const params = {
           user,
-          team,
+          ...team,
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ADD_PROJECT_CLICKED, params);
       }
@@ -204,11 +205,19 @@ export const useTeamAnalytics = () => {
       function onTeamDetailProjectEditClicked(user: IAnalyticsUserInfo | null, team: IAnalyticsTeamInfo | null, project: IAnalyticsProjectInfo | null) {
         const params = {
           user,
-          team,
+          ...team,
           project,
         }
         captureEvent(TEAMS_ANALYTICS_EVENTS.PROJECT_EDIT_CLICKED, params);
       }
+
+      function onTeamDetailOfficeHoursLoginClicked( team: IAnalyticsTeamInfo | null) {
+        const params = {
+          ...team,
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED, params);
+      }
+
 
 
       return {
@@ -237,7 +246,8 @@ export const useTeamAnalytics = () => {
         onTeamFocusAreaHelpClicked,
         onScheduleMeetingClicked,
         onTeamDetailAddProjectClicked,
-        onTeamDetailProjectEditClicked
+        onTeamDetailProjectEditClicked,
+        onTeamDetailOfficeHoursLoginClicked
       }
 
 }

@@ -21,28 +21,28 @@ export const useMemberAnalytics = () => {
   function onOfficeHourClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      member,
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_OFFICEHOURS_CLICKED, params);
   }
 
   function onProjectContributionEditClicked(member: IMember) {
     const params = {
-      member,
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_EDIT, params);
   }
 
   function onProjectContributionAddlicked(member: IMember) {
     const params = {
-      member,
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_ADD, params);
   }
 
   function onGithubSeeAllClicked(member: any, user: IAnalyticsUserInfo | null) {
     const params = {
-      member,
+      ...member,
       user,
     };
 
@@ -51,7 +51,7 @@ export const useMemberAnalytics = () => {
 
   function onGithubProjectItemClicked(member: any, user: IAnalyticsUserInfo | null) {
     const params = {
-      member,
+      ...member,
       user,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_GITHUB_PROJECT_ITEM_CLICKED, params);
@@ -60,7 +60,7 @@ export const useMemberAnalytics = () => {
   function onEditProfileClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      member,
+      ...member,
     };
 
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_PROFILE_CLICKED, params);
@@ -69,7 +69,7 @@ export const useMemberAnalytics = () => {
   function onSocialProfileLinkClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, type: string, link: string) {
     const params = {
       user,
-      member,
+      ...member,
       type,
       link,
     };
@@ -79,7 +79,7 @@ export const useMemberAnalytics = () => {
   function onLearnMoreClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      member,
+      ...member,
     };
 
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_LEARN_MORE_BTN_CLICKED, params);
@@ -88,7 +88,7 @@ export const useMemberAnalytics = () => {
   function onTeamsSeeAllClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      member,
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_TEAMS_SEE_ALL_CLICKED, params);
   }
@@ -96,7 +96,7 @@ export const useMemberAnalytics = () => {
   function onTeamClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, team: IAnalyticsTeamInfo | null) {
     const params = {
       user,
-      member,
+      ...member,
       team,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_TEAM_CLICKED, params);
@@ -105,7 +105,7 @@ export const useMemberAnalytics = () => {
   function onSeeAllProjectContributionsClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      member,
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_SEE_ALL_CLICKED, params);
   }
@@ -113,7 +113,7 @@ export const useMemberAnalytics = () => {
   function onProjectClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, project: IAnalyticsProjectInfo | null) {
     const params = {
       user,
-      member,
+      ...member,
       project,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_PROJECT_CLICKED, params);
@@ -122,7 +122,7 @@ export const useMemberAnalytics = () => {
   function onUpdateGitHubHandle(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      member,
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_GITHUB_HANDLE_UPDATE_CLICKED, params);
   }
@@ -130,7 +130,7 @@ export const useMemberAnalytics = () => {
   function onMemberCardClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, viewType: string) {
     const params = {
       user,
-      member,
+      ...member,
       viewType,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_LIST_MEMEBR_CLICKED, params);
@@ -244,6 +244,23 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_LIST_CLOSE_FILTER_PANEL_CLICKED, params);
   }
 
+  function onMemberEditBySelf(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,) {
+    const params = {
+      user,
+      ...member
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_BY_SELF, params);
+  }
+
+  function onMemberEditByAdmin(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,) {
+    const params = {
+      user,
+      ...member
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_BY_ADMIN, params);
+  }
+
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -270,6 +287,8 @@ export const useMemberAnalytics = () => {
     onTagSelected,
     onClearAllClicked,
     onShowFilterResultClicked,
-    onFilterCloseClicked
+    onFilterCloseClicked,
+    onMemberEditBySelf,
+    onMemberEditByAdmin
   };
 };

@@ -43,7 +43,11 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const analytics = useMemberAnalytics();
 
   const onEditProfileClick = () => {
-    analytics.onEditProfileClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+    if (isOwner) {
+      analytics.onMemberEditBySelf(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+    } else if (isAdmin) {
+      analytics.onMemberEditByAdmin(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+    }
   };
 
   useEffect(() => {
@@ -185,8 +189,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           width: 48px;
           height: 48px;
           border-radius: 100%;
-          object-fit:cover;
-          object-position:center;
+          object-fit: cover;
+          object-position: center;
         }
 
         .header__details {

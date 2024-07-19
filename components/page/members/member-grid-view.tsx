@@ -35,7 +35,7 @@ const MemberGridView = (props: IMemberGridView) => {
         <div className="member-grid__profile-container">
           <div className="member-grid__profile-container__outer-section">
             <div className={`${isBorder ? 'gradiant-border-rounded' : ''} member-grid__profile-container__outer-section__inner-circle`}>
-              <img loading="lazy" className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
+              <img className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
               {isTeamLead && (
                 <Tooltip
                   asChild
@@ -71,7 +71,8 @@ const MemberGridView = (props: IMemberGridView) => {
                     }
                     content={otherTeams?.map((team, index) => (
                       <div key={`${team} + ${index}`}>
-                        {team}{index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
+                        {team}
+                        {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
                       </div>
                     ))}
                   />
@@ -223,13 +224,12 @@ const MemberGridView = (props: IMemberGridView) => {
           }
 
           .member-grid__details__name {
-            font-size: 18px;
+            font-size: 12px;
             font-weight: 600;
-            line-height: 28px;
+            line-height: 22px;
             color: #000;
             max-width: 200px;
             text-align: center;
-            line-height: 20px;
             max-width: 150px;
             overflow: hidden;
             white-space: nowrap;
@@ -244,7 +244,7 @@ const MemberGridView = (props: IMemberGridView) => {
           }
 
           .member-grid__details__member-details__team-name-container__team-name {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
             color: #000;
             max-width: 200px;
@@ -255,17 +255,17 @@ const MemberGridView = (props: IMemberGridView) => {
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
             text-overflow: ellipsis;
-            line-height: 20px;
+            line-height: 18px;
             text-align: center;
           }
 
           .member-grid__details__member-details__role {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 400;
-            line-height: 20px;
+            line-height: 18px;
             color: #000;
             text-align: center;
-            max-width: 67px;
+            max-width: 135px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
@@ -307,6 +307,16 @@ const MemberGridView = (props: IMemberGridView) => {
 
             .member-grid__profile-container {
               height: 94px;
+            }
+
+            .member-grid__details__name {
+              font-size: 18px;
+              line-height: 28px;
+            }
+
+            .member-grid__details__member-details__team-name-container__team-name {
+              font-size: 14px;
+              line-height: 20px;
             }
 
             .gradiant-border-rounded {
@@ -364,6 +374,8 @@ const MemberGridView = (props: IMemberGridView) => {
             }
 
             .member-grid__details__member-details__role {
+              font-size: 14px;
+              line-height: 20px;
               max-width: 200px;
             }
 

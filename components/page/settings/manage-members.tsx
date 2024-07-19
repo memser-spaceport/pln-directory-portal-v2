@@ -50,6 +50,11 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
   const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
   //useObserver({callback: onFormChange, observeItem: formRef})
 
+  const handleTabClick = (v: string) => {
+    analytics.recordMemberProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
+    setActiveTab({ name: v })
+  }
+
   const onMemberChanged = (member: any) => {
     const uid = member?.id;
     if (uid === selectedMember.uid) {
@@ -93,6 +98,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       triggerLoader(true);
       e.stopPropagation();
       e.preventDefault();
+      analytics.recordMemberProfileFormEdit(getAnalyticsUserInfo(userInfo), 'COMPLETED');
       if (!formRef.current) {
         triggerLoader(false);
         return;
@@ -306,6 +312,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
   useEffect(() => {
     triggerLoader(false);
+    analytics.recordMemberProfileFormEdit(getAnalyticsUserInfo(userInfo), 'BASIC');
     getMemberInfoFormValues()
       .then((d) => {
         if (!d.isError) {
@@ -378,7 +385,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           {viewType === 'profile' && (
             <div className="ms__tab">
               <div className="ms__tab__desktop">
-                <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+                <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps.map((v) => v.name)} />
               </div>
               <div className="ms__tab__mobile">
                 <SingleSelect

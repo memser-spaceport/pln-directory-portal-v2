@@ -1,5 +1,7 @@
 'use client';
 
+import Link from "next/link";
+
 interface IBreadcrumb {
   backLink: string;
   directoryName: string;
@@ -23,9 +25,9 @@ export function BreadCrumb(props: IBreadcrumb) {
         {breadcrumbItems.map((item, itemIndex: number) => (
           <div key={item.label} className={`breadcrumb__item ${itemIndex === breadcrumbItems.length - 1 ? 'breadcrumb__item--last' : ''}`}>
             {item.href && (
-              <a href={item.href} className="breadcrumb__item__link">
+              <Link href={item.href} className="breadcrumb__item__link">
                 {item.label}
-              </a>
+              </Link>
             )}
             {!item.href && <p className="breadcrumb__name">{item.label}</p>}
             {itemIndex !== breadcrumbItems.length - 1 && <span className="breadcrumb__item__separator">/</span>}

@@ -33,13 +33,14 @@ const AdminEmailUpdate: React.FC<EmailUpdateProps> = ({ email }) => {
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    analytics.recordMemberEmailAdminEdit("button-clicked", email, getAnalyticsUserInfo(userInfo));
+    analytics.recordMemberEmailAdminEditClick(email, getAnalyticsUserInfo(userInfo));
     setIsEditing(true);
   };
 
   const handleCancelClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    analytics.recordMemberEmailAdminEditCancel(email, getAnalyticsUserInfo(userInfo));
     if (newEmailRef.current) newEmailRef.current.value = '';
     if (confirmEmailRef.current) confirmEmailRef.current.value = '';
     setError('');

@@ -21,7 +21,8 @@ const nextConfig = {
     APPLICATION_BASE_URL: process.env.APPLICATION_BASE_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
-    IRL_DEFAULT_TOPICS:process.env.IRL_DEFAULT_TOPICS
+    IRL_DEFAULT_TOPICS: process.env.IRL_DEFAULT_TOPICS,
+    IRL_PGF_FORM_URL: process.env.IRL_PGF_FORM_URL,
   },
   images: {
     remotePatterns: [

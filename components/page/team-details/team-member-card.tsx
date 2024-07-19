@@ -150,10 +150,10 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
             font-weight: 600;
             line-height: 20px;
             overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
+            max-width: 100px;
             text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
           }
 
           .team-members-card__profile-details__profile__name-role__role {

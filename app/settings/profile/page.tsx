@@ -48,9 +48,9 @@ export default async function ProfileSettings() {
           <div className={styles.ps__breadcrumbs__desktop}>
             <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
           </div>
-          <div className={styles.ps__backbtn}>
+        </div>
+        <div className={styles.ps__backbtn}>
             <SettingsBackButton title="Member Profile" />
-          </div>
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>

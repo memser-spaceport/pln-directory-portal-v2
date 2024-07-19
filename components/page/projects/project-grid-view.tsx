@@ -15,12 +15,18 @@ const ProjectGridView = (props: any) => {
   const maintainerName = project?.maintainingTeam?.name;
   const lookingForFunding = project?.lookingForFunding;
 
+  //methods
+  const handleIconClick = (e:any) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   return (
     <>
       <div className="projectgrid">
         <div className="projectgrid__profile">
           <img className="projectgrid__profile__img" alt="profile" src={profile} />
-          {lookingForFunding && <Tooltip side="top" asChild trigger={<img className="projectgrid__profile__fund" alt="profile" src="/icons/raising-fund-indicator.svg" />} content={'Raising Funds'} />}
+          {lookingForFunding && <Tooltip side="top" asChild trigger={<img className="projectgrid__profile__fund" onClick={handleIconClick} alt="profile" src="/icons/raising-fund-indicator.svg" />} content={'Raising Funds'} />}
         </div>
         <div className="projectgrid__detail">
           <div className="projectgrid__detail__cn">
@@ -159,7 +165,12 @@ const ProjectGridView = (props: any) => {
           }
 
           .projectgrid__profile__fund {
-            display: none;
+            display: block;
+            position: absolute;
+            top: 6px;
+            right: 56px;
+            height: 20px;
+            width: 20px;
           }
 
           @media (min-width: 1024px) {
@@ -222,6 +233,8 @@ const ProjectGridView = (props: any) => {
               position: absolute;
               top: 10px;
               right: 98px;
+              height: 24px;
+              width: 24px;
             }
           }
         `}

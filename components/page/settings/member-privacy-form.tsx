@@ -56,6 +56,7 @@ function MemberPrivacyForm(props: any) {
       toast.info('There are no changes to reset');
       return;
     }
+    analytics.recordMemberPreferenceReset(getAnalyticsUserInfo(userInfo));
     const proceed = confirm('Do you want to reset the changes ?');
     if (!proceed) {
       e.preventDefault();

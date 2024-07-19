@@ -44,6 +44,11 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo]);
   const analytics = useSettingsAnalytics();
 
+  const handleTabClick = (v: string) => {
+    analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
+    setActiveTab({ name: v })
+  }
+
   const onModalClose = () => {
     if (errorDialogRef.current) {
       errorDialogRef.current.close();
@@ -160,6 +165,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       triggerLoader(true);
       e.preventDefault();
       e.stopPropagation();
+      analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), 'COMPLETED');
       if(!formRef.current) {
         triggerLoader(false);
         return;
@@ -275,6 +281,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   };
 
   useEffect(() => {
+    analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), 'BASIC');
     getMemberInfoFormValues()
       .then((d) => {
         if (!d.isError) {
@@ -312,7 +319,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       <form ref={formRef} onSubmit={onFormSubmitted} onReset={onResetForm}  className="ms" noValidate>
         <div className="ms__tab">
           <div className="ms__tab__desktop">
-            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps.map((v) => v.name)} />
           </div>
           <div className="ms__tab__mobile">
             <SingleSelect uniqueKey="name" arrowImgUrl="/icons/arrow-down.svg" onItemSelect={(item: any) => setActiveTab(item)} displayKey="name" options={steps} selectedOption={activeTab} id="settings-member-steps" />

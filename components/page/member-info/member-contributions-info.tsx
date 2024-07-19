@@ -9,7 +9,9 @@ import TextArea from '@/components/form/text-area';
 import HiddenField from '@/components/form/hidden-field';
 import TextAreaEditor from '@/components/form/text-area-editor';
 import MonthYearPicker from '@/components/form/month-year-picker';
-import { getUniqueId } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, getUniqueId } from '@/utils/common.utils';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { getUserInfo } from '@/utils/third-party.helper';
 
 interface MemberContributionInfoProps {
   initialValues: any;
@@ -21,6 +23,8 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   const [contributionInfos, setContributionInfos] = useState(initialValues ?? []);
   const currentProjectsCount = contributionInfos?.filter((v: any) => v.currentProject === true).length;
   const [expandedId, setExpandedId] = useState(-1);
+  const analytics = useSettingsAnalytics();
+  const userInfo = getUserInfo();
  
   const defaultValues = {
     projectUid: getUniqueId(),
@@ -44,6 +48,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
   };
 
   const onAddContribution = () => {
+    analytics.recordMemberProjectContributionAdd('', getAnalyticsUserInfo(userInfo));
     const newExp = [...contributionInfos];
     newExp.push(defaultValues);
     setExpandedId(newExp.length - 1);
@@ -60,6 +65,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
       newItem.splice(index, 1);
       return newItem;
     });
+    analytics.recordMemberProjectContributionDelete('', getAnalyticsUserInfo(userInfo));
   };
 
   const getAvailableContributionOptions = () => {

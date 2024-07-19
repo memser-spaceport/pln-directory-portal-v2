@@ -44,7 +44,7 @@ const TeamGridView = (props: ITeamGridView) => {
         {`
           .team-grid {
             width: 167.5px;
-            height: 162px;
+            height: 168px;
             background-color: #fff;
             border-radius: 12px;
             box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
@@ -91,7 +91,7 @@ const TeamGridView = (props: ITeamGridView) => {
             margin-top: 16px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 6px;
             text-align: center;
           }
 
@@ -102,9 +102,9 @@ const TeamGridView = (props: ITeamGridView) => {
 
           .team-grid__details-container__team-detail__team-name {
             color: #0f172a;
-            font-size: 18px;
+            font-size: 12px;
             font-weight: 600;
-            line-height: 28px;
+            line-height: 22px;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 1;
@@ -114,12 +114,12 @@ const TeamGridView = (props: ITeamGridView) => {
 
           .team-grid__details-container__team-detail__team-desc {
             color: #475569;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 400;
-            line-height: 20px;
-            height: 40px;
+            line-height: 18px;
+            height: 54px;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -154,6 +154,11 @@ const TeamGridView = (props: ITeamGridView) => {
               top: 20px;
             }
 
+            .team-grid__details-container__team-detail__team-name {
+              font-size: 18px;
+              line-height: 28px;
+            }
+
             .team-grid__profile-container {
               height: 64px;
             }
@@ -161,6 +166,7 @@ const TeamGridView = (props: ITeamGridView) => {
             .team-grid__details-container {
               padding: 0 20px 20px 20px;
               margin-top: 38px;
+              gap: 10px;
             }
 
             .team-grid__details-container__team-detail {
@@ -169,8 +175,9 @@ const TeamGridView = (props: ITeamGridView) => {
             }
 
             .team-grid__details-container__team-detail__team-desc {
-              -webkit-line-clamp: 1;
+              font-size: 14px;
               height: 60px;
+              line-height: 20px;
               margin-bottom: 10px;
             }
 

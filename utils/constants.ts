@@ -97,10 +97,10 @@ export const SETTINGS_ANALYTICS_EVENTS = {
 }
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
-  MEMBER_JOIN_NETWORK_NEXT_CLICK: 'member-join-network-next-click',
+  MEMBER_JOIN_NETWORK_NEXT_CLICK: 'member-join-network-form-steps',
   MEMBER_JOIN_NETWORK_BACK_CLICK: 'member-join-network-back-click',
   MEMBER_JOIN_NETWORK_SAVE: 'member-join-network-save',
-  TEAM_JOIN_NETWORK_NEXT_CLICK: 'team-join-network-next-click',
+  TEAM_JOIN_NETWORK_NEXT_CLICK: 'team-join-network-form-steps',
   TEAM_JOIN_NETWORK_BACK_CLICK: 'team-join-network-back-click',
   TEAM_JOIN_NETWORK_SAVE: 'member-join-network-save',
 }
@@ -198,6 +198,7 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_DETAIL_MEMBER_CLICKED: 'team-detail-member-clicked',
   TEAM_OFFICEHOURS_CLICKED: 'team-officehours-clicked',
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
+  TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED: 'team-officehours-login-btn-clicked',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -221,6 +222,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_ADD: 'member-pr-contributions-add',
   MEMBER_DETAIL_GITHUB_PROJECT_VIEW_ALL_CLICKED: 'member-github-project-view-all-clicked',
   MEMBER_DETAIL_GITHUB_PROJECT_ITEM_CLICKED: 'member-github-project-view-item-clicked',
+  MEMBER_DETAIL_EDIT_BY_SELF: 'member-edit-by-self',
+  MEMBER_DETAIL_EDIT_BY_ADMIN: 'member-edit-by-admin',
 
   MEMBER_DETAIL_EDIT_PROFILE_CLICKED: 'member-detail-edit-profile-clicked',
   MEMBER_DETAIL_SOCIAL_LINK_CLICKED: 'member-detail-social-link_clicked',

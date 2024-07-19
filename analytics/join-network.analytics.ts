@@ -18,7 +18,7 @@ export const useJoinNetworkAnalytics = () => {
 
   function recordMemberJoinNetworkNextClick(currentStep: string, type: string) {
     const params = {
-      currentStep,
+      itemName: currentStep,
       type
     };
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.MEMBER_JOIN_NETWORK_NEXT_CLICK, params);
@@ -41,7 +41,7 @@ export const useJoinNetworkAnalytics = () => {
 
   function recordTeamJoinNetworkNextClick(currentStep: string, type: string) {
     const params = {
-      currentStep,
+      name: currentStep,
       type
     };
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.TEAM_JOIN_NETWORK_NEXT_CLICK, params);

@@ -40,6 +40,7 @@ export default function IrlList(props: IIrlList) {
     const isInviteOnly = item.type === 'INVITE_ONLY';
 
     if (isInviteOnly && !user.email) {
+      triggerLoader(false);
       event.preventDefault();
       if (inviteOnlyLogOutRef.current) {
         inviteOnlyLogOutRef.current.showModal();
@@ -53,6 +54,7 @@ export default function IrlList(props: IIrlList) {
         });
       }
     } else if (isInviteOnly && !userEvents.includes(item.id) && user.roles && !user.roles.includes(ADMIN_ROLE)) {
+      triggerLoader(false);
       event.preventDefault();
       if (inviteOnlyRef.current) {
         event.preventDefault();

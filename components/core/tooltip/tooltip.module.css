@@ -1,0 +1,31 @@
+.tp {
+    z-index: 2;
+    max-width: 260px;
+    overflow: auto;
+    max-height:220px;
+    flex-shrink: 0;
+    overflow-wrap: break-word;
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    text-align: left;
+    background-color: #000;
+    cursor: default;
+  }
+
+  .tooltip__trigger__web {
+    display: none;
+}
+
+
+  @media (min-width: 1024px) {
+    .tooltip__trigger__mob {
+        display: none;
+    }
+
+    .tooltip__trigger__web {
+        display: unset;
+    }
+  }

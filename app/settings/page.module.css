@@ -1,0 +1,18 @@
+.settings {
+    background: white;
+    min-height: calc(100vh - 80px);
+}
+
+.settings__title {
+    height: 56px;
+    display: flex;
+    justify-self: start;
+    align-items: center;
+    border-bottom: 1px solid #F1F5F9;
+    padding: 16px;
+}
+
+.settings__title__text {
+    font-size: 16px;
+    font-weight: 500;
+}

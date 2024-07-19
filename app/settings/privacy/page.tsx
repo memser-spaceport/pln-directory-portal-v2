@@ -13,7 +13,7 @@ const getPageData = async (userInfo: any, authToken: string) => {
 };
 
 async function PrivacyPage() {
-  const {isLoggedIn, userInfo, authToken} = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     redirect('/teams');
@@ -38,13 +38,13 @@ async function PrivacyPage() {
           <div className={styles.privacy__breadcrumbs__desktop}>
             <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
           </div>
-          <div className={styles.privacy__backbtn}>
-            <SettingsBackButton title="Member Privacy" />
-          </div>
+        </div>
+        <div className={styles.privacy__backbtn}>
+          <SettingsBackButton title="Member Privacy" />
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="privacy" userInfo={userInfo}/>
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="privacy" userInfo={userInfo} />
           </aside>
           <div className={styles.privacy__main__content}>
             <MemberPrivacyForm uid={userInfo.uid} preferences={preferences} userInfo={userInfo} />

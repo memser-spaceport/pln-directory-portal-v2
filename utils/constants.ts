@@ -53,18 +53,21 @@ export const HELPER_MENU_OPTIONS = [
     name: 'ProtoSphere',
     type: '_blank',
     url: process.env.PROTOSPHERE_URL,
+    isExternal: true,
   },
   {
     icon: '/icons/question-circle-grey.svg',
     name: 'Get Support',
     type: '_blank',
     url: process.env.GET_SUPPORT_URL,
+    isExternal: true,
   },
   {
     icon: '/icons/changelog.svg',
     name: 'Changelog',
     url: '/changelog',
     type: '',
+    isExternal: false,
   },
 ];
 
@@ -92,15 +95,25 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_MANAGE_MEMBERS_MEMBER_CHANGE: 'settings-manage-members-member-change',
   SETTINGS_MANAGE_MEMBERS_SAVE: 'settings-manage-members-save',
   SETTINGS_MEMBER_PROFILE_SAVE: 'settings-member-profile-save',
-  SETTINGS_MEMBER_PREFERENCE_CHANGE: 'settings-member-preference-change',
-  SETTINGS_MEMBER_EMAIL_ADMIN_EDIT: 'settings-member-email-admin-edit',
+  SETTINGS_USER_PREFERENCES: 'settings-user-preferences',
+  SETTINGS_USER_PREFERENCES_RESET: 'settings-user-reset',
+  SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CLICK: 'settings-member-change-email-clicked',
+  SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CANCEL: 'settings-member-change-email-cancelled',
+  SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_SUCCESS: 'settings-member-change-email-success',
+  SETTINGS_USER_PROFILE_EDIT_FORM: 'settings-user-profile-edit-form',
+  SETTINGS_MEMBER_PROFILE_EDIT_FORM: 'settings-member-profile-edit-form',
+  SETTINGS_TEAM_PROFILE_EDIT_FORM: 'settings-team-profile-edit-form',
+
+  PR_CONRTIBUTIONS_LIST_ITEM_ADD: 'pr-contributions-list-item-add',
+  PR_CONRTIBUTIONS_LIST_ITEM_DELETE: 'pr-contributions-list-item-delete',
+  PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT: 'pr-contributions-list-item-addproject',
 }
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
-  MEMBER_JOIN_NETWORK_NEXT_CLICK: 'member-join-network-next-click',
+  MEMBER_JOIN_NETWORK_NEXT_CLICK: 'member-join-network-form-steps',
   MEMBER_JOIN_NETWORK_BACK_CLICK: 'member-join-network-back-click',
   MEMBER_JOIN_NETWORK_SAVE: 'member-join-network-save',
-  TEAM_JOIN_NETWORK_NEXT_CLICK: 'team-join-network-next-click',
+  TEAM_JOIN_NETWORK_NEXT_CLICK: 'team-join-network-form-steps',
   TEAM_JOIN_NETWORK_BACK_CLICK: 'team-join-network-back-click',
   TEAM_JOIN_NETWORK_SAVE: 'member-join-network-save',
 }
@@ -165,7 +178,7 @@ export const AUTH_ANALYTICS = {
   AUTH_PRIVY_DELETE_USER: 'AUTH_PRIVY_DELETE_USER',
   AUTH_PRIVY_LINK_ERROR: 'AUTH_PRIVY_LINK_ERROR',
   AUTH_SETTINGS_PRIVY_ACCOUNT_LINK: 'AUTH_SETTINGS_PRIVY_ACCOUNT_LINK',
-  SETTINGS_USER_CHANGE_EMAIL_CLICKED: 'SUTH_SETTINGS_EMAIL_UPDATE_CLICKED',
+  SETTINGS_USER_CHANGE_EMAIL_CLICKED: 'AUTH_SETTINGS_EMAIL_UPDATE_CLICKED',
   AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS: 'AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS',
   AUTH_SETTINGS_EMAIL_UPDATE_FAILED: 'AUTH_SETTINGS_EMAIL_UPDATE_FAILED',
   AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD: 'AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD',
@@ -198,6 +211,7 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_DETAIL_MEMBER_CLICKED: 'team-detail-member-clicked',
   TEAM_OFFICEHOURS_CLICKED: 'team-officehours-clicked',
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
+  TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED: 'team-officehours-login-btn-clicked',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -221,6 +235,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_ADD: 'member-pr-contributions-add',
   MEMBER_DETAIL_GITHUB_PROJECT_VIEW_ALL_CLICKED: 'member-github-project-view-all-clicked',
   MEMBER_DETAIL_GITHUB_PROJECT_ITEM_CLICKED: 'member-github-project-view-item-clicked',
+  MEMBER_DETAIL_EDIT_BY_SELF: 'member-edit-by-self',
+  MEMBER_DETAIL_EDIT_BY_ADMIN: 'member-edit-by-admin',
 
   MEMBER_DETAIL_EDIT_PROFILE_CLICKED: 'member-detail-edit-profile-clicked',
   MEMBER_DETAIL_SOCIAL_LINK_CLICKED: 'member-detail-social-link_clicked',
@@ -381,6 +397,16 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = "https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq"
 
 export const ChangeLogList = [
+  {
+    title: 'Version 3.0.0 - Enhancements',
+    tag: 'Improvements',
+    date: '19, Jul 2024 ',
+    shortContent: `<ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Introducing improved mobile responsiveness and layout adaptability across all devices.</li>
+    <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience.</li>
+    </ul>`,
+  },
+
   {
     title: 'Version 2.1.3 - Enhancements',
     tag: 'Improvements',

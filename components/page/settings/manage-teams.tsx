@@ -42,6 +42,11 @@ function ManageTeamsSettings(props: any) {
   const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
   const analytics = useSettingsAnalytics();
 
+  const handleTabClick = (v: string) => {
+    analytics.recordTeamProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
+    setActiveTab({ name: v })
+  }
+
   const onTeamChanged = (team: any) => {
     const uid = team?.id;
     if (uid === selectedTeam.uid) {
@@ -147,6 +152,7 @@ function ManageTeamsSettings(props: any) {
       triggerLoader(true);
       e.stopPropagation();
       e.preventDefault();
+      analytics.recordTeamProfileFormEdit(getAnalyticsUserInfo(userInfo), 'COMPLETED');
       if (!formRef.current) {
         triggerLoader(false);
         return;
@@ -251,6 +257,7 @@ function ManageTeamsSettings(props: any) {
   };
 
   useEffect(() => {
+    analytics.recordTeamProfileFormEdit(getAnalyticsUserInfo(userInfo), 'BASIC');
     getTeamsFormOptions()
       .then((data) => {
         if (!data.isError) {
@@ -311,7 +318,7 @@ function ManageTeamsSettings(props: any) {
 
           <div className="ms__tab">
             <div className="ms__tab__desktop">
-              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps.map((v) => v.name)} />
             </div>
             <div className="ms__tab__mobile">
               <SingleSelect

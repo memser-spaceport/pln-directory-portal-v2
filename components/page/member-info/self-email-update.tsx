@@ -22,7 +22,7 @@ function SelfEmailUpdate(props: any) {
     e.preventDefault();
 
     analytics.onUpdateEmailClicked(getAnalyticsUserInfo(userInfo));
-    const authToken = Cookies.get('authToken');
+    const authToken = Cookies.get('authTokeSETTINGS_USER_CHANGE_EMAIL_CLICKEDn');
     if (!authToken) {
       return;
     }

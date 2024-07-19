@@ -15,27 +15,14 @@ export default function IrlBanner() {
       <div className="irlBnr">
         <div className="irlBnr__img">
           <picture>
-            <source
-              media="(min-width: 1280px)"
-              srcSet="/images/irl/irl-header.png"
-            />
-            <img
-              className="irlBnr__img__src"
-              src="/images/irl/irl-header-mobile.png"
-              alt="IRL Header"
-            />
+            <source media="(min-width: 1280px)" srcSet="/images/irl/irl-header.png" />
+            <img className="irlBnr__img__src" src="/images/irl/irl-header-mobile.png" alt="IRL Header" />
           </picture>
         </div>
         <div className="irlBnr__text">
           <div className="irlBnr__text__cn">
-            <h1 className="irlBnr__text__cn__title">
-              Enhance Your Event Experience
-            </h1>
-            <p className="irlBnr__text__cn__desc">
-              Explore key network events, find out who will be attending, and
-              plan out meetings in advance to get the most out of your time
-              together in-person
-            </p>
+            <h1 className="irlBnr__text__cn__title">Enhance Your Event Experience</h1>
+            <p className="irlBnr__text__cn__desc">Explore key network events, find out who will be attending, and plan out meetings in advance to get the most out of your time together in-person</p>
           </div>
         </div>
       </div>
@@ -66,7 +53,6 @@ export default function IrlBanner() {
             top: 0;
             left: 0;
             display: flex;
-            justify-content: center;
             align-items: center;
             padding: 0 18px;
           }
@@ -96,6 +82,10 @@ export default function IrlBanner() {
             .irlBnr__img__src {
               border-radius: 10px;
               object-fit: cover;
+            }
+
+            .irlBnr__text {
+              justify-content: center;
             }
 
             .irlBnr__text__cn__title {

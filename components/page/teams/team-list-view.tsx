@@ -23,7 +23,7 @@ const TeamListView = (props: ITeamListView) => {
     <>
       <div className="team-list">
         <div className="team-list__profile-container">
-          <img loading="lazy" className="team-list__profile-container__profile" alt="profile" src={profile} />
+          <img className="team-list__profile-container__profile" alt="profile" src={profile} />
         </div>
         <div className="team-list__details-container">
           <div className="team-list__details-container__team-detail">

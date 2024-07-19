@@ -14,7 +14,6 @@ const TeamOfficeHours = (props: any) => {
   const isLoggedIn = props?.isLoggedIn;
   const userInfo = props?.userInfo;
 
-  const authAnalytics = useAuthAnalytics();
   const teamAnalytics = useTeamAnalytics();
   const router = useRouter();
 
@@ -24,7 +23,7 @@ const TeamOfficeHours = (props: any) => {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      authAnalytics.onLoginBtnClicked();
+      teamAnalytics.onTeamDetailOfficeHoursLoginClicked(getAnalyticsTeamInfo(team));
       router.push(`${window.location.pathname}${window.location.search}#login`);
     }
   };

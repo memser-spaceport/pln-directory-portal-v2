@@ -15,12 +15,18 @@ const ProjectGridView = (props: any) => {
   const maintainerName = project?.maintainingTeam?.name;
   const lookingForFunding = project?.lookingForFunding;
 
+  //methods
+  const handleIconClick = (e:any) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   return (
     <>
       <div className="projectgrid">
         <div className="projectgrid__profile">
           <img className="projectgrid__profile__img" alt="profile" src={profile} />
-          {lookingForFunding && <Tooltip side="top" asChild trigger={<img className="projectgrid__profile__fund" alt="profile" src="/icons/raising-fund-indicator.svg" />} content={'Raising Funds'} />}
+          {lookingForFunding && <Tooltip side="top" asChild trigger={<img className="projectgrid__profile__fund" onClick={handleIconClick} alt="profile" src="/icons/raising-fund-indicator.svg" />} content={'Raising Funds'} />}
         </div>
         <div className="projectgrid__detail">
           <div className="projectgrid__detail__cn">
@@ -40,7 +46,7 @@ const ProjectGridView = (props: any) => {
         {`
           .projectgrid {
             width: 167.5px;
-            height: 166px;
+            height: 184px;
             background-color: #fff;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
@@ -80,19 +86,20 @@ const ProjectGridView = (props: any) => {
             display: flex;
             flex-direction: column;
             text-align: center;
-            gap: 5px;
+            gap: 8px;
           }
 
           .projectgrid__detail__cn {
             display: flex;
             flex-direction: column;
+            gap: 2px;
           }
 
           .projectgrid__detail__cn__name {
             color: #0f172a;
-            font-size: 18px;
+            font-size: 12px;
             font-weight: 600;
-            line-height: 28px;
+            line-height: 22px;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 1;
@@ -106,9 +113,9 @@ const ProjectGridView = (props: any) => {
             font-size: 12px;
             font-weight: 400;
             line-height: 18px;
-            height: 36px;
+            height: 54px;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -130,7 +137,7 @@ const ProjectGridView = (props: any) => {
             white-space: nowrap;
             overflow: hidden;
             display: inline-block;
-            // line-height: 12px;
+            line-height: 18px;
           }
 
           .projectgrid__maintainer__cn__title {
@@ -139,7 +146,7 @@ const ProjectGridView = (props: any) => {
             line-height: 20px;
             color: #94a3b8;
             text-align: left;
-            // line-height: 12px;
+            line-height: 18px;
           }
 
           .projectgrid__maintainer__img {
@@ -158,7 +165,12 @@ const ProjectGridView = (props: any) => {
           }
 
           .projectgrid__profile__fund {
-            display: none;
+            display: block;
+            position: absolute;
+            top: 6px;
+            right: 56px;
+            height: 20px;
+            width: 20px;
           }
 
           @media (min-width: 1024px) {
@@ -169,6 +181,11 @@ const ProjectGridView = (props: any) => {
 
             .projectgrid__profile {
               height: 64px;
+            }
+
+            .projectgrid__detail__cn__name {
+              font-size: 18px;
+              line-height: 28px;
             }
 
             .projectgrid__profile__img {
@@ -193,7 +210,6 @@ const ProjectGridView = (props: any) => {
               line-height: 20px;
               height: 60px;
               font-size: 14px;
-              -webkit-line-clamp: 3;
             }
 
             .projectgrid__maintainer__img {
@@ -217,6 +233,8 @@ const ProjectGridView = (props: any) => {
               position: absolute;
               top: 10px;
               right: 98px;
+              height: 24px;
+              width: 24px;
             }
           }
         `}

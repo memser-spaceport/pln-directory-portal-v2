@@ -44,10 +44,36 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
           <div className="team-project-card__profilec__name-and-tagline">
             <div className="team-project-card__profilec__name-and-tagline__name-and-raising-funds">
               <Tooltip asChild trigger={<h2 className="team-project-card__profilec__name-and-tagline__name">{name}</h2>} content={name} />
-              {project?.isMaintainingProject && <Tooltip side='top' asChild trigger={<div className='team-project-card__profilec__name-and-tagline__name-and-raising-funds__mtr'><Image src="/icons/badge/maintainer.svg" alt="maintainer image" width={20} height={20} className="rounded" /> </div>} content={"Maintainer"} />}
+              {project?.isMaintainingProject && (
+                <Tooltip
+                  side="top"
+                  asChild
+                  trigger={
+                    <div className="team-project-card__profilec__name-and-tagline__name-and-raising-funds__mtr">
+                      <Image src="/icons/badge/maintainer.svg" alt="maintainer image" width={20} height={20} className="rounded" />{' '}
+                    </div>
+                  }
+                  content={'Maintainer'}
+                />
+              )}
               {lookingForFunding && (
-                <div onClick={(e) => {e.stopPropagation(); e.preventDefault()}} className="team-project-card__goto__btn-section__web">
-                  <Tooltip asChild side='top' trigger={<div><RaisingFunds/> </div>} content={"Raising Funds"}/>
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
+                  className="team-project-card__goto__btn-section__web"
+                >
+                  <Tooltip
+                    asChild
+                    side="top"
+                    trigger={
+                      <div>
+                        <RaisingFunds />{' '}
+                      </div>
+                    }
+                    content={'Raising Funds'}
+                  />
                 </div>
               )}
             </div>
@@ -58,7 +84,14 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
           <div>
             {project?.hasEditAccess && !project?.isDeleted && (
               <div className="team-project-card__goto__options">
-                <button className="team-project-card__goto__options__edit" onClick={(e) => {e.stopPropagation(); e.preventDefault(); onEditClicked(project)}}>
+                <button
+                  className="team-project-card__goto__options__edit"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onEditClicked(project);
+                  }}
+                >
                   <img loading="lazy" src="/icons/edit-black.svg" />
                 </button>
               </div>
@@ -112,12 +145,19 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
             font-size: 14px;
             font-weight: 600;
             line-height: 20px;
+            word-break: break-word;
+            max-width: 100px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
           }
 
           .team-project-card__profilec__name-and-tagline__tagline {
             color: #475569;
             font-size: 12px;
             font-weight: 400;
+            word-break: break-word;
+            white-space: wrap;
             line-height: 14px;
           }
 
@@ -133,14 +173,14 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
           }
 
           .team-project-card__goto__btn {
-          background: inherit;}
+            background: inherit;
+          }
 
           .team-project-card__goto__btn-section {
             display: flex;
             align-items: center;
             justify-content: center;
           }
-
 
           .team-project-card__goto__btn-section__mob {
             display: flex;
@@ -179,7 +219,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
           }
 
           .team-project-card__profilec__name-and-tagline__name-and-raising-funds__mtr {
-          height: 20px;
+            height: 20px;
           }
 
           @media (min-width: 1024px) {
@@ -187,6 +227,10 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
               justify-content: space-between;
               flex-direction: row;
               align-items: center;
+            }
+
+            .team-project-card__profilec__name-and-tagline__name {
+              max-width: 250px;
             }
 
             .team-project-card__goto__btn-section__web {

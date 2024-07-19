@@ -115,6 +115,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
                     <li className="md__container__bdy__supandset__optn">
                       <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
                       <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
+                      {helperMenu.isExternal && <Image width={20} height={20} alt="arrow-right" src="/icons/arrow-up-gray.svg" />}
                     </li>
                   </Link>
                 ))}

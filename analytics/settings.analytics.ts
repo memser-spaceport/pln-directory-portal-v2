@@ -69,13 +69,27 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_PROFILE_SAVE, params);
   }
 
-  function recordMemberEmailAdminEdit(type: string, oldEmail: string, user: IAnalyticsUserInfo | null){
+  function recordMemberEmailAdminEditClick(email: string, user: IAnalyticsUserInfo | null){
     const params = {
-      type,
-      oldEmail,
+      email,
       user
     };
-    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_EMAIL_ADMIN_EDIT, params);
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CLICK, params);
+  }
+
+  function recordMemberEmailAdminEditCancel(email: string, user: IAnalyticsUserInfo | null){
+    const params = {
+      email,
+      user
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CANCEL, params);
+  }
+
+  function recordMemberEmailAdminEditSuccess(user: IAnalyticsUserInfo | null){
+    const params = {
+      user
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_SUCCESS, params);
   }
 
   function recordMemberPreferenceChange(type: string, user: IAnalyticsUserInfo | null, payload?:any) {
@@ -84,7 +98,65 @@ export const useSettingsAnalytics = () => {
       user,
       ...payload
     };
-    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_PREFERENCE_CHANGE, params);
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_USER_PREFERENCES, params);
+  }
+
+  function recordMemberPreferenceReset(user: IAnalyticsUserInfo | null) {
+    const params = {
+      user,
+      name: "reset",
+      value: true
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_USER_PREFERENCES_RESET, params);
+  }
+
+  function recordMemberProfileFormEdit(user: IAnalyticsUserInfo | null, tabName: string){
+    const params = {
+      user,
+      name: tabName
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_MEMBER_PROFILE_EDIT_FORM, params);
+  }
+
+
+  function recordUserProfileFormEdit(user: IAnalyticsUserInfo | null, tabName: string){
+    const params = {
+      user,
+      name: tabName
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_USER_PROFILE_EDIT_FORM, params);
+  }
+
+  function recordTeamProfileFormEdit(user: IAnalyticsUserInfo | null, tabName: string){
+    const params = {
+      user,
+      itemName: tabName
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_TEAM_PROFILE_EDIT_FORM, params);
+  }
+
+  function recordMemberProjectContributionAdd(type: string, user:IAnalyticsUserInfo|null) {
+    const params = {
+      user,
+      type
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.PR_CONRTIBUTIONS_LIST_ITEM_ADD, params);
+  }
+
+  function recordMemberProjectContributionDelete(type: string, user:IAnalyticsUserInfo|null) {
+    const params = {
+      user,
+      type
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.PR_CONRTIBUTIONS_LIST_ITEM_DELETE, params);
+  }
+
+  function recordMemberProjectContributionAddProject(type: string, user:IAnalyticsUserInfo|null) {
+    const params = {
+      user,
+      type
+    };
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT, params);
   }
   
   return {
@@ -94,7 +166,15 @@ export const useSettingsAnalytics = () => {
     recordManageMembersMemberChange,
     recordManageMemberSave,
     recordMemberProfileSave,
-    recordMemberEmailAdminEdit,
-    recordMemberPreferenceChange
+    recordMemberEmailAdminEditClick,
+    recordMemberEmailAdminEditCancel,
+    recordMemberPreferenceChange,
+    recordMemberPreferenceReset,
+    recordMemberProfileFormEdit,
+    recordUserProfileFormEdit,
+    recordTeamProfileFormEdit,
+    recordMemberProjectContributionAdd,
+    recordMemberProjectContributionDelete,
+    recordMemberProjectContributionAddProject
   };
 };

@@ -21,7 +21,7 @@ const MemberEmptyProjectExperience = (props: IMemberEmptyProjectExperience) => {
     if (isOwner) {
       analytics.onProjectContributionAddlicked(member);
     }
-    router.push('/settings/profile');
+    // router.push('/settings/profile');
   };
 
   return (
@@ -29,7 +29,7 @@ const MemberEmptyProjectExperience = (props: IMemberEmptyProjectExperience) => {
       {(isOwner || isAdmin) && (
         <div className="member-empty-contribution">
           <p>
-            <a href={PAGE_ROUTES.SETTINGS} className="member-empty-contribution__update" onClick={onEditOrAdd}>
+            <a href={`${PAGE_ROUTES.SETTINGS}/profile`} className="member-empty-contribution__update" onClick={onEditOrAdd}>
               Click here
             </a>
             to add project experience & contribution details.

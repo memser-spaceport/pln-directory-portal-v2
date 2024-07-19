@@ -155,7 +155,7 @@ function ManageTeamsSettings(props: any) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const formattedInputValues = transformRawInputsToFormObj(formValues);
-      analytics.recordManageTeamSave("save-click", getAnalyticsUserInfo(userInfo), formattedInputValues);
+      analytics.recordManageTeamSave('save-click', getAnalyticsUserInfo(userInfo), formattedInputValues);
       const basicInfoErrors: any = await validateBasicInfo({ ...formattedInputValues });
       const projectInfoErrors: any = await validateProjectsInfo({ ...formattedInputValues });
       const socialInfoErrors: any = await validateSocial({ ...formattedInputValues });
@@ -168,7 +168,7 @@ function ManageTeamsSettings(props: any) {
         });
         onShowErrorModal();
         triggerLoader(false);
-        analytics.recordManageTeamSave("validation-error", getAnalyticsUserInfo(userInfo), formattedInputValues);
+        analytics.recordManageTeamSave('validation-error', getAnalyticsUserInfo(userInfo), formattedInputValues);
         return;
       }
       setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
@@ -215,19 +215,19 @@ function ManageTeamsSettings(props: any) {
       triggerLoader(false);
       if (isError) {
         toast.error('Team updated failed. Something went wrong, please try again later');
-        analytics.recordManageTeamSave("save-error", getAnalyticsUserInfo(userInfo), payload);
+        analytics.recordManageTeamSave('save-error', getAnalyticsUserInfo(userInfo), payload);
       } else {
         /*  if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */
         toast.success('Team updated successfully');
         window.location.href = `/settings/teams?id=${selectedTeam.uid}`;
-        analytics.recordManageTeamSave("save-success", getAnalyticsUserInfo(userInfo), payload);
+        analytics.recordManageTeamSave('save-success', getAnalyticsUserInfo(userInfo), payload);
       }
     } catch (e) {
       triggerLoader(false);
       toast.error('Team updated failed. Something went wrong, please try again later');
-      analytics.recordManageTeamSave("save-error", getAnalyticsUserInfo(userInfo));
+      analytics.recordManageTeamSave('save-error', getAnalyticsUserInfo(userInfo));
     }
   };
 
@@ -275,7 +275,7 @@ function ManageTeamsSettings(props: any) {
       if (!proceed) {
         return;
       }
-      triggerLoader(true)
+      triggerLoader(true);
       router.push(url);
       router.refresh();
     }
@@ -288,40 +288,42 @@ function ManageTeamsSettings(props: any) {
   return (
     <>
       <form noValidate onSubmit={onFormSubmitted} onReset={onResetForm} ref={formRef} className="ms">
-        <div className="ms__member-selection">
-          <div className="ms__member-selection__dp">
-            <SearchableSingleSelect
-              arrowImgUrl="/icons/arrow-down.svg"
-              displayKey="name"
-              id="manage-teams-settings"
-              onChange={(item: any) => onTeamChanged(item)}
-              name=""
-              formKey="name"
-              onClear={() => {}}
-              // onItemSelect=
-              options={teams}
-              selectedOption={selectedTeam}
-              uniqueKey="id"
-              iconKey="imageFile"
-              defaultImage="/icons/team-default-profile.svg"
-            />
+        <div className="ms__head">
+          <div className="ms__member-selection">
+            <div className="ms__member-selection__dp">
+              <SearchableSingleSelect
+                arrowImgUrl="/icons/arrow-down.svg"
+                displayKey="name"
+                id="manage-teams-settings"
+                onChange={(item: any) => onTeamChanged(item)}
+                name=""
+                formKey="name"
+                onClear={() => {}}
+                // onItemSelect=
+                options={teams}
+                selectedOption={selectedTeam}
+                uniqueKey="id"
+                iconKey="imageFile"
+                defaultImage="/icons/team-default-profile.svg"
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="ms__tab">
-          <div className="ms__tab__desktop">
-            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
-          </div>
-          <div className="ms__tab__mobile">
-            <SingleSelect
-              arrowImgUrl="/icons/arrow-down.svg"
-              uniqueKey="name"
-              onItemSelect={(item: any) => setActiveTab(item)}
-              displayKey="name"
-              options={steps}
-              selectedOption={activeTab}
-              id="settings-teams-steps"
-            />
+          <div className="ms__tab">
+            <div className="ms__tab__desktop">
+              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+            </div>
+            <div className="ms__tab__mobile">
+              <SingleSelect
+                arrowImgUrl="/icons/arrow-down.svg"
+                uniqueKey="name"
+                onItemSelect={(item: any) => setActiveTab(item)}
+                displayKey="name"
+                options={steps}
+                selectedOption={activeTab}
+                id="settings-teams-steps"
+              />
+            </div>
           </div>
         </div>
         <div className="ms__content">
@@ -487,11 +489,20 @@ function ManageTeamsSettings(props: any) {
             display: block;
             padding: 0 24px;
           }
+            .ms__head {
+            background: white;
+            position: sticky;
+            top: 128px;
+            z-index: 3;
+            padding-bottom: 8px;
+          }
 
           .ms__member-selection {
             padding: 0 24px;
+            padding-top: 8px;
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
+            gap: 4px;
             width: 100%;
           }
 
@@ -547,7 +558,8 @@ function ManageTeamsSettings(props: any) {
             padding-top: 10px;
           }
           .ms__content {
-            padding: 32px 24px;
+            padding: 0px 24px;
+            padding-bottom: 32px;
             height: fit-content;
             min-height: calc(100svh - 128px);
           }
@@ -560,9 +572,18 @@ function ManageTeamsSettings(props: any) {
               width: 656px;
               border: 1px solid #e2e8f0;
             }
-            .ms__member-selection {
-              padding: 16px;
+              .ms__tab {
+            padding-top: 0px;
+          }
+            .ms__head {
+              top: 128.5px;
+              padding-bottom: 0px;
             }
+            .ms__member-selection {
+              padding: 8px 16px;
+              
+            }
+           
             .ms__member-selection__dp {
               width: 250px;
             }

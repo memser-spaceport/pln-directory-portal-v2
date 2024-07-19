@@ -21,13 +21,14 @@ function SettingsAction() {
             width: 100%;
             flex-direction: column;
             bottom: 0px;
-            padding: 16px;
+            padding: 8px 16px;
             left: auto;
             background: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
             //visibility: hidden;
+            z-index: 2;
           }
           .fa__info {
             display: flex;
@@ -66,6 +67,7 @@ function SettingsAction() {
               left: auto;
               justify-content: flex-end;
               align-items: center;
+              padding: 16px;
             }
           }
         `}

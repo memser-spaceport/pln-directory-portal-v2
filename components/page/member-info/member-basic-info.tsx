@@ -150,7 +150,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
           .memberinfo__errors {
             color: red;
             font-size: 12px;
-            padding: 0 16px 16px 16px;
+            padding: 8px 16px 16px 16px;
           }
           .memberinfo__form {
             display: flex;

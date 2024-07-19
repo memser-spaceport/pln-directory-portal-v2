@@ -27,7 +27,7 @@ interface ManageMembersSettingsProps {
   selectedMember: any;
   viewType: 'profile' | 'privacy';
   preferences: any;
-  userInfo: IUserInfo
+  userInfo: IUserInfo;
 }
 
 function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile', userInfo }: ManageMembersSettingsProps) {
@@ -65,16 +65,15 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       if (!proceed) {
         return proceed;
       }
-      
     }
 
     triggerLoader(true);
-    window.location.href = `/settings/members?id=${uid}&viewType=${selectedProfileType.name}`
+    window.location.href = `/settings/members?id=${uid}&viewType=${selectedProfileType.name}`;
     analytics.recordManageMembersMemberChange(member, getAnalyticsUserInfo(userInfo));
   };
 
   const onResetForm = async (e?: any) => {
-     const isSame = onFormChange();
+    const isSame = onFormChange();
     if (isSame) {
       e.preventDefault();
       toast.info('There are no changes to reset');
@@ -98,11 +97,11 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         triggerLoader(false);
         return;
       }
-     
+
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       const formattedInputValues = formInputsToMemberObj(formValues);
-      analytics.recordManageMemberSave("save-click", getAnalyticsUserInfo(userInfo), formattedInputValues);
+      analytics.recordManageMemberSave('save-click', getAnalyticsUserInfo(userInfo), formattedInputValues);
 
       const basicErrors: any[] = await checkBasicInfoForm({ ...formattedInputValues });
       const skillsErrors: any[] = await checkSkillInfoForm({ ...formattedInputValues });
@@ -120,17 +119,17 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         });
         triggerLoader(false);
         onShowErrorModal();
-        analytics.recordManageMemberSave("validation-error", getAnalyticsUserInfo(userInfo), formattedInputValues);
+        analytics.recordManageMemberSave('validation-error', getAnalyticsUserInfo(userInfo), formattedInputValues);
         return;
       }
       setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
       const isBothSame = onFormChange();
-      if(isBothSame) {
-        toast.info("There are no changes to save")
+      if (isBothSame) {
+        toast.info('There are no changes to save');
         triggerLoader(false);
         return;
       }
-     
+
       if (formattedInputValues.memberProfile && formattedInputValues.memberProfile.size > 0) {
         const imgResponse = await saveRegistrationImage(formattedInputValues.memberProfile);
         const image = imgResponse?.image;
@@ -163,27 +162,27 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       const { data, isError, errorMessage, errorData } = await updateMember(selectedMember.uid, payload, authToken);
       triggerLoader(false);
       if (isError) {
-        if(errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
-          toast.error('Email already exists. Please try again with different email')
+        if (errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
+          toast.error('Email already exists. Please try again with different email');
         } else {
           toast.error('Member updated failed. Something went wrong, please try again later');
         }
-        
-        analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo), payload);
+
+        analytics.recordManageMemberSave('save-error', getAnalyticsUserInfo(userInfo), payload);
       } else {
         /* if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */
-        
+
         setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
         toast.success('Member updated successfully');
-        analytics.recordManageMemberSave("save-success", getAnalyticsUserInfo(userInfo), payload);
-        window.location.href = `/settings/members?id=${selectedMember.uid}`
+        analytics.recordManageMemberSave('save-success', getAnalyticsUserInfo(userInfo), payload);
+        window.location.href = `/settings/members?id=${selectedMember.uid}`;
       }
     } catch (e) {
       triggerLoader(false);
       toast.error('Member updated failed. Something went wrong, please try again later');
-      analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo));
+      analytics.recordManageMemberSave('save-error', getAnalyticsUserInfo(userInfo));
     }
   };
 
@@ -333,7 +332,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           return;
         }
       }
-      triggerLoader(true)
+      triggerLoader(true);
       router.push(url);
       router.refresh();
     }
@@ -346,53 +345,55 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
   return (
     <>
       <div className="ms">
-        <div className="ms__member-selection">
-          <div className="ms__member-selection__dp">
-            <SearchableSingleSelect
-              arrowImgUrl="/icons/arrow-down.svg"
-              displayKey="name"
-              id="manage-teams-settings"
-              onChange={(item: any) => onMemberChanged(item)}
-              name=""
-              formKey="name"
-              onClear={() => {}}
-              options={members}
-              selectedOption={selectedMember}
-              uniqueKey="id"
-              iconKey="imageUrl"
-              defaultImage="/icons/default-user-profile.svg"
-            />
-          </div>
-          <div className="ms__member-selection__dp">
-            <SingleSelect
-              displayKey="name"
-              arrowImgUrl="/icons/arrow-down.svg"
-              id="manage-teams-settings-profiletype-selection"
-              onItemSelect={onProfileTypeSelected}
-              options={[...profileTypeOptions]}
-              selectedOption={selectedProfileType}
-              uniqueKey="name"
-            />
-          </div>
-        </div>
-        {viewType === 'profile' && (
-          <div className="ms__tab">
-            <div className="ms__tab__desktop">
-              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
-            </div>
-            <div className="ms__tab__mobile">
-              <SingleSelect
+        <div className="ms__head">
+          <div className="ms__member-selection">
+            <div className="ms__member-selection__dp">
+              <SearchableSingleSelect
                 arrowImgUrl="/icons/arrow-down.svg"
-                uniqueKey="name"
-                onItemSelect={(item: any) => setActiveTab(item)}
                 displayKey="name"
-                options={steps}
-                selectedOption={activeTab}
-                id="settings-member-steps"
+                id="manage-teams-settings"
+                onChange={(item: any) => onMemberChanged(item)}
+                name=""
+                formKey="name"
+                onClear={() => {}}
+                options={members}
+                selectedOption={selectedMember}
+                uniqueKey="id"
+                iconKey="imageUrl"
+                defaultImage="/icons/default-user-profile.svg"
+              />
+            </div>
+            <div className="ms__member-selection__dp">
+              <SingleSelect
+                displayKey="name"
+                arrowImgUrl="/icons/arrow-down.svg"
+                id="manage-teams-settings-profiletype-selection"
+                onItemSelect={onProfileTypeSelected}
+                options={[...profileTypeOptions]}
+                selectedOption={selectedProfileType}
+                uniqueKey="name"
               />
             </div>
           </div>
-        )}
+          {viewType === 'profile' && (
+            <div className="ms__tab">
+              <div className="ms__tab__desktop">
+                <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => setActiveTab({ name: v })} tabs={steps.map((v) => v.name)} />
+              </div>
+              <div className="ms__tab__mobile">
+                <SingleSelect
+                  arrowImgUrl="/icons/arrow-down.svg"
+                  uniqueKey="name"
+                  onItemSelect={(item: any) => setActiveTab(item)}
+                  displayKey="name"
+                  options={steps}
+                  selectedOption={activeTab}
+                  id="settings-member-steps"
+                />
+              </div>
+            </div>
+          )}
+        </div>
         {viewType === 'profile' && (
           <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms__content">
             <div className="ms__content__cn">
@@ -418,8 +419,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       <Modal modalRef={errorDialogRef} onClose={onModalClose}>
         <div className="error">
           <h2 className="error__title">Validation Errors</h2>
-          <div className='error__info'>
-            <img width="16" height="16" src='/icons/alert-red.svg'/>
+          <div className="error__info">
+            <img width="16" height="16" src="/icons/alert-red.svg" />
             <p>Some fields require your attention. Please review the fields below & submit again.</p>
           </div>
           {errors.basicErrors.length > 0 && (
@@ -470,12 +471,12 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
             padding: 16px;
           }
-            .contribution {
-             min-height: calc(100vh - 250px);
-            }
+          .contribution {
+            min-height: calc(100vh - 250px);
+          }
           .error__info {
-            color: #0F172A;
-            background: #DD2C5A1A;
+            color: #0f172a;
+            background: #dd2c5a1a;
             padding: 8px 16px;
             font-size: 14px;
             font-weight: 400;
@@ -516,9 +517,17 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             display: block;
             padding: 0 24px;
           }
+          .ms__head {
+            background: white;
+            position: sticky;
+            top: 128px;
+            z-index: 3;
+            padding-bottom: 8px;
+          }
 
           .ms__member-selection {
             padding: 0 24px;
+            padding-top: 8px;
             display: flex;
             justify-content: space-between;
             gap: 4px;
@@ -581,19 +590,24 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             min-height: calc(100svh - 128px);
           }
           .ms__content__cn {
-            padding: 32px 24px;
+            padding: 0px 24px;
+            padding-bottom: 32px;
           }
           @media (min-width: 1024px) {
             .error {
-             width: 60vw;
-             padding: 24px;
+              width: 60vw;
+              padding: 24px;
             }
             .ms {
               width: 656px;
               border: 1px solid #e2e8f0;
             }
+            .ms__head {
+              top: 128.5px;
+              padding-bottom: 0px;
+            }
             .ms__member-selection {
-              padding: 16px;
+              padding: 8px 16px;
               justify-content: space-between;
             }
             .ms__member-selection__dp {
@@ -604,6 +618,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             }
             .ms__tab {
               border-bottom: 1px solid #e2e8f0;
+              padding-top: 0;
             }
             .ms__tab__desktop {
               display: block;

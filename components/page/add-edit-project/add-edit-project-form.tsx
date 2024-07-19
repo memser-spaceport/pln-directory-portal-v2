@@ -142,6 +142,12 @@ export default function AddEditProjectForm(props: any) {
         logoUid: project?.logoUid,
       }
 
+      if(type === "Add") {
+        analytics.onProjectAddSaveClicked();
+      } else {
+        analytics.onProjectEditSaveClicked(project?.id);
+      }
+
       if (formattedData?.projectProfile?.size > 0) {
         const imgResponse = await saveRegistrationImage(formattedData?.projectProfile);
         const image = imgResponse?.image;
@@ -202,12 +208,12 @@ export default function AddEditProjectForm(props: any) {
         };
         const result = await updateProject(project?.id, formattedData, authToken);
         if (result?.error) {
-          analytics.onProjectEditFailed(getAnalyticsUserInfo(userInfo), formattedData);
+          analytics.onProjectEditFailed(getAnalyticsUserInfo(userInfo), formattedData, project?.id);
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           triggerLoader(false);
           return;
         }
-        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData);
+        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData, project?.id);
         triggerLoader(false);
         toast.info('Project updated successfully.');
         router.push(`/projects/${project?.id}`);
@@ -312,6 +318,11 @@ export default function AddEditProjectForm(props: any) {
   }
 
   const onCancelClicHandler = () => {
+    if (type === 'Edit') {
+      analytics.onProjectEditCancelClicked(project?.id);
+    } else {
+      analytics.onProjectAddCancelClicked();
+    }
     router.back();
   };
 

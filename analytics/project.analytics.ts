@@ -51,18 +51,20 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_INITIATED, params);
   }
 
-  function onProjectEditSuccess(user: IAnalyticsUserInfo | null, project: any) {
+  function onProjectEditSuccess(user: IAnalyticsUserInfo | null, project: any, projectId: string) {
     const params = {
       user,
       project,
+      projectId,
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_SUCCESS, params);
   }
 
-  function onProjectEditFailed(user: IAnalyticsUserInfo | null, project: any) {
+  function onProjectEditFailed(user: IAnalyticsUserInfo | null, project: any, projectId: string) {
     const params = {
       user,
       project,
+      projectId
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_FAILED, params);
   }
@@ -105,7 +107,7 @@ export const useProjectAnalytics = () => {
       user,
       projectId,
     };
-    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_EDIT_CONFIRM_CLICKED, params);
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_DELETE_CONFIRM_CLICKED, params);
   }
 
   function onProjectDetailEditClicked(user: IAnalyticsUserInfo | null, projectId: string) {
@@ -116,19 +118,20 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_EDIT_CLICKED, params);
   }
 
-  function onProjectDetailContactClicked(user: IAnalyticsUserInfo | null, projectId: string, link: string) {
+  function onProjectDetailContactClicked(user: IAnalyticsUserInfo | null, projectId: string, linkUrl: string) {
     const params = {
       user,
       projectId,
-      link,
+      linkUrl,
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_LINKS_CLICKED, params);
   }
 
-  function onProjectDetailEditReadMeClicked(user: IAnalyticsUserInfo | null, projectId: string) {
+  function onProjectDetailEditReadMeClicked(user: IAnalyticsUserInfo | null, projectId: string, from: string) {
     const params = {
       user,
       projectId,
+      from
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_CLICKED, params);
   }
@@ -169,7 +172,7 @@ export const useProjectAnalytics = () => {
     const params = {
       user,
       projectId,
-      team,
+      ...team,
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_MAINTAINER_TEAM_CLICKED, params);
   }
@@ -178,7 +181,7 @@ export const useProjectAnalytics = () => {
     const params = {
       user,
       projectId,
-      team,
+      ...team
     };
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_CONTRIBUTING_TEAM_CLICKED, params);
   }
@@ -277,6 +280,28 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_FILTER_PANEL_CLOSE_CLICKED, params)
   }
 
+  function onProjectAddCancelClicked() {
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_ADD_CANCEL);
+  }
+
+  function onProjectEditCancelClicked(projectId: string) { 
+    const params = {
+      projectId,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_CANCEL, params);
+  }
+
+  const onProjectAddSaveClicked = () => {
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_ADD_SAVE_CLICKED);
+  }
+
+  const onProjectEditSaveClicked = (projectId: string) => {
+    const params = {
+      projectId,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_SAVE_CLICKED, params);
+  }
+
   return {
     onProjectDeleteSuccess,
     onProjectDeleteFailed,
@@ -310,5 +335,9 @@ export const useProjectAnalytics = () => {
     onProjectEditInitiated,
     onProjectEditFailed,
     onProjectEditSuccess,
+    onProjectAddCancelClicked,
+    onProjectEditCancelClicked,
+    onProjectAddSaveClicked,
+    onProjectEditSaveClicked
   };
 };

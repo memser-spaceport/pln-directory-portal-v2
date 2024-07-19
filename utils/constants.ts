@@ -98,7 +98,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_USER_PREFERENCES: 'settings-user-preferences',
   SETTINGS_USER_PREFERENCES_RESET: 'settings-user-reset',
   SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CLICK: 'settings-member-change-email-clicked',
-  SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CANCEL: 'settings-member-change-email-cancelled',  
+  SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CANCEL: 'settings-member-change-email-cancelled',
   SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_SUCCESS: 'settings-member-change-email-success',
   SETTINGS_USER_PROFILE_EDIT_FORM: 'settings-user-profile-edit-form',
   SETTINGS_MEMBER_PROFILE_EDIT_FORM: 'settings-member-profile-edit-form',
@@ -397,6 +397,16 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = "https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq"
 
 export const ChangeLogList = [
+  {
+    title: 'Version 3.0.0 - Enhancements',
+    tag: 'Improvements',
+    date: '19, Jul 2024 ',
+    shortContent: `<ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Introducing improved mobile responsiveness and layout adaptability across all devices.</li>
+    <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience.</li>
+    </ul>`,
+  },
+
   {
     title: 'Version 2.1.3 - Enhancements',
     tag: 'Improvements',

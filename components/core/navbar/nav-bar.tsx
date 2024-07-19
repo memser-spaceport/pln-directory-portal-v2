@@ -31,7 +31,7 @@ export default function Navbar(props: Readonly<INavbar>) {
   useClickedOutside({ callback: () => setIsHelperMenuOpen(false), ref: helpMenuRef });
 
   const onNavItemClickHandler = (url: string, name: string) => {
-    if(pathName !== name) {
+    if(pathName !== url) {
       triggerLoader(true);
     }
     if (pathName !== url) {

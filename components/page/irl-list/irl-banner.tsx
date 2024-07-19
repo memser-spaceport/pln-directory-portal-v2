@@ -1,6 +1,15 @@
 'use client';
 
+import { triggerLoader } from "@/utils/common.utils";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+
 export default function IrlBanner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    triggerLoader(false);
+  }, [router, searchParams])
   return (
     <>
       <div className="irlBnr">

@@ -53,18 +53,21 @@ export const HELPER_MENU_OPTIONS = [
     name: 'ProtoSphere',
     type: '_blank',
     url: process.env.PROTOSPHERE_URL,
+    isExternal: true,
   },
   {
     icon: '/icons/question-circle-grey.svg',
     name: 'Get Support',
     type: '_blank',
     url: process.env.GET_SUPPORT_URL,
+    isExternal: true,
   },
   {
     icon: '/icons/changelog.svg',
     name: 'Changelog',
     url: '/changelog',
     type: '',
+    isExternal: false,
   },
 ];
 

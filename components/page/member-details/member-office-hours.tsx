@@ -37,9 +37,9 @@ const MemberOfficeHours = (props: any) => {
             <img loading="lazy" alt="calendar" className="office-hours__left__calendar__icon" src="/icons/calendar.svg" />
           </div>
           {!isLoggedIn ? (
-              <p suppressHydrationWarning className="office-hours__left__msg">
-                {OFFICE_HOURS_MSG} <p title={member?.name} className="office-hours__left__msg__mem">{member?.name}</p>
-              </p>
+            <span suppressHydrationWarning className="office-hours__left__msg">
+              {OFFICE_HOURS_MSG} {member?.name}
+            </span>
           ) : (
             <h2 className="office-hours__left__calendar__title">Office Hours</h2>
           )}
@@ -86,6 +86,7 @@ const MemberOfficeHours = (props: any) => {
         .office-hours__left {
           display: flex;
           gap: 16px;
+          align-items: center;
         }
 
         .office-hours__left__msg {
@@ -93,6 +94,7 @@ const MemberOfficeHours = (props: any) => {
           align-items: center;
           gap: 4px;
           font-size: 13px;
+          word-break: break-word;
         }
 
         .office-hours__left__msg__mem {
@@ -159,6 +161,16 @@ const MemberOfficeHours = (props: any) => {
 
         .disabled {
           opacity: 0.5;
+        }
+
+        @media (min-width: 1024px) {
+          .office-hours__left__msg {
+            max-width: 400px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            display:inline-block;
+          }
         }
       `}</style>
     </>

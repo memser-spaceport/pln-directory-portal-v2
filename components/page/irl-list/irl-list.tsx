@@ -11,7 +11,7 @@ import { IrlInviteOnlyLoggedOut } from './irl-invite-only-logged-out';
 import IrlCard from './irl-card';
 import Link from 'next/link';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
 interface IIrlList {
   conference: any;
@@ -35,6 +35,7 @@ export default function IrlList(props: IIrlList) {
 
   //methods
   const onCardClick = (event: any, item: any) => {
+    triggerLoader(true);
     const isPastEvent = isPastDate(item.endDate);
     const isInviteOnly = item.type === 'INVITE_ONLY';
 

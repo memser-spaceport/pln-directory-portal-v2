@@ -1,0 +1,144 @@
+.irl {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  height: calc(100vh - 80px);
+}
+
+.irl__main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: inherit;
+  overflow: hidden;
+}
+
+.irl__banner {
+  min-height: 230px;
+  background-color: #e2e8f0;
+  border-radius: 8px;
+  border: 8px solid #fff;
+}
+
+.irl__events {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.irl__events__hdr {
+  width: 300px;
+  height: 40px;
+  margin-left: 20px;
+  background-color: #e2e8f0;
+}
+
+.irl__events__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.irl__events__list__card {
+  height: 311px;
+  width: 289px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.irl__events__list__card__hdr {
+  height: 92px;
+  background-color: #e2e8f0;
+  border-radius: 8px 8px 0px 0px;
+  opacity: 0.8;
+}
+
+.irl__events__list__card__body__ttl {
+  height: 25px;
+  background-color: #e2e8f0;
+  width: 180px;
+}
+
+.irl__events__list__card__body {
+  flex: 1;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.irl__events__list__card__ftr {
+  height: 60px;
+}
+
+.irl__events__list__card__body__desc {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.irl__events__list__card__body__desc__first {
+  height: 20px;
+  background-color: #e2e8f0;
+  width: 250px;
+}
+
+.irl__events__list__card__body__desc__second {
+  height: 20px;
+  background-color: #e2e8f0;
+  width: 180px;
+}
+
+.irl__events__list__card__body__location {
+  height: 20px;
+  background-color: #e2e8f0;
+  width: 120px;
+}
+
+.irl__events__list__card__ftr {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.irl__events__list__card__ftr__tag {
+  width: 100px;
+  height: 28px;
+  background-color: #e2e8f0;
+  border-radius: 24px;
+}
+
+@media (min-width: 1024px) {
+  .irl__main {
+    padding-block: 40px;
+    width: 900px;
+  }
+
+  .irl__banner {
+    min-height: 184px;
+  }
+
+  .irl__events__hdr {
+    margin: unset;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

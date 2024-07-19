@@ -1,0 +1,66 @@
+import Breadcrumbs from '@/components/ui/breadcrumbs';
+import styles from './page.module.css';
+import SettingsMenu from '@/components/page/settings/menu';
+import MemberSettings from '@/components/page/settings/member-settings';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getMemberInfo } from '@/services/members.service';
+import SettingsBackButton from '@/components/page/settings/settings-back-btn';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+
+const getPageData = async (userId: string) => {
+  const memberInfo = await getMemberInfo(userId);
+  if(memberInfo.isError) {
+    return {
+      isError: true
+    }
+  }
+
+  return {
+    memberInfo: memberInfo.data
+  }
+}
+
+export default async function ProfileSettings() {
+  const {isLoggedIn, userInfo} = getCookiesFromHeaders();
+
+  if(!isLoggedIn) {
+    redirect('/teams')
+  }
+
+  const roles = userInfo.roles ?? [];
+  const isAdmin = roles.includes('DIRECTORYADMIN');
+  const leadingTeams = userInfo.leadingTeams ?? [];
+  const isTeamLead = leadingTeams.length > 0;
+  const { memberInfo } = await getPageData(userInfo.uid)
+
+  const breadcrumbItems = [
+    { url: '/', icon: '/icons/home.svg' },
+    { text: 'Members', url: '/members' },
+    { text: `${memberInfo.name}`, url: `/members/${memberInfo.uid}` },
+    { text: 'Profile', url: `/settings/profile` },
+  ]
+
+  return (
+    <>
+      <div className={styles.ps}>
+        <div className={styles.ps__breadcrumbs}>
+          <div className={styles.ps__breadcrumbs__desktop}>
+            <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
+          </div>
+        </div>
+        <div className={styles.ps__backbtn}>
+            <SettingsBackButton title="Member Profile" />
+        </div>
+        <div className={styles.ps__main}>
+          <aside className={styles.ps__main__aside}>
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="profile" userInfo={userInfo}/>
+          </aside>
+          <div className={styles.ps__main__content}>
+            <MemberSettings memberInfo={memberInfo} userInfo={userInfo}/>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

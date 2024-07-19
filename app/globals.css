@@ -1,0 +1,147 @@
+:root {
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+  }
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+
+ button {
+  cursor: pointer;
+ }
+
+ .layout {
+  height: 100dvh;
+  position: relative;
+  background-color:  #F1F5F9;
+ }
+
+html,
+body {
+  max-width: 100vw;
+  min-height: 100dvh;
+  height: 100dvh;
+  overflow-x: hidden;
+}
+
+.layout__header {
+  height: 80px;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 5;
+}
+
+.layout__main {
+  min-height: calc(100vh - 80px);
+}
+
+.toast__body {
+  font-size: 14px;
+}
+
+.toast_progress {
+  background-color: #30c593;
+}
+
+.toast__toaster {
+  border-radius: 8px;
+  background-color: #1e293b;
+}
+
+.toast__class {
+  margin-top: 60px;
+}
+
+body {
+  overflow-y: auto;
+}
+
+body:has(dialog[open]) {
+  overflow: hidden !important; /* Disable scrolling when dialog is open */
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  border: unset;
+}
+
+::backdrop {
+  background: black;
+  display: flex;
+  align-items: center;
+  opacity: 0.6;
+}
+
+::placeholder {
+  color: #aab0b8;
+}
+
+dialog {
+  outline: none;
+}
+
+.med__text {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    font-size: 14px !important;
+    line-height: 24px;
+    color: #475569;
+  }
+}
+
+.all-member-container dialog {
+  overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+
+}
+
+
+.list {
+  height: 4000px;
+}
+@media (prefers-color-scheme: dark) {
+  
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px whitesmoke;
+  border-radius: 23px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 23px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+
+#md-editor-rt-preview {
+  word-break: break-word;
+}

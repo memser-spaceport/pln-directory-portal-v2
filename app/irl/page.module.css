@@ -1,0 +1,40 @@
+.irl {
+  display: flex;
+  flex-direction: column;
+  width: 100dvw;
+  background-color: #f1f5f9;
+}
+
+.irl__banner {
+  height: 230px;
+  border: 8px solid #ffffff;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+}
+
+.irl__header {
+  width: 100%;
+  padding: 16px 20px;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+@media (min-width: 1024px) {
+  .irl {
+    padding-top: 40px;
+    width: 900px;
+    margin: auto;
+  }
+
+  .irlWrpr {
+    background-color: #f1f5f9;
+  }
+
+  .irl__banner {
+    height: 200px;
+    border-radius: 16px;
+  }
+
+  .irl__header {
+    margin-top: 12px;
+    padding: 18px 0px;
+  }
+}

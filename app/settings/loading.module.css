@@ -1,0 +1,171 @@
+.settings {
+    display: flex;
+    height: auto;
+    height: 100%;
+    width: 100%;
+    justify-content: center;
+  }
+  .settings__wrpr {
+    background-color: #fff;
+    height: calc(100vh - 80px);
+    overflow: hidden;
+  }
+  
+  .settings__breadcrumbs {
+    height: 50px;
+  }
+  
+  .settings__aside {
+    display:none;
+    height: 378px;
+    width: 300px;
+    padding: 24px;
+  }
+  
+  .settings__main {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+  }
+  
+  .settings__aside__pref {
+    height: 165px;
+  }
+  
+  .settings__aside__set {
+    height: 165px;
+  }
+  
+  .settings__aside__pref,
+  .settings__aside__set {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .settings__aside__pref__ttl,
+  .settings__aside__set__ttl {
+    height: 16px;
+    width: 92px;
+    background-color: #e2e8f0;
+  }
+  
+  .settings__aside__pref__cn,
+  .settings__aside__set__cn {
+    height: 50px;
+    background-color: #e2e8f0;
+  }
+  
+  .settings__main__hdr {
+    display: flex;
+    height: 40px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .settings__main__hdr__item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .settings__main__hdr__item__ttl {
+    width: 120px;
+    height: 17px;
+    background-color: #e2e8f0;
+  }
+  
+  .settings__main__body {
+    padding: 32px 54px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  
+  .settings__main__body__profile {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .settings__main__body__profile__img {
+    width: 100px;
+    height: 100px;
+    background-color: #e2e8f0;
+    border-radius: 50%;
+  }
+  
+  .settings__main__body__profile__wrpr {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+  
+  .settings__main__body__profile__txt {
+    width: 90px;
+    height: 17px;
+    background-color: #e2e8f0;
+  }
+  
+  .settings__main__body__profile__input {
+    height: 40px;
+    width: 100%;
+    background-color: #e2e8f0;
+  }
+  
+  .settings__main__body__email {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .settings__main__body__email__lbl {
+    width: 90px;
+    height: 17px;
+    background-color: #e2e8f0;
+  }
+  
+  .settings__main__body__email__input {
+    height: 40px;
+    width: 100%;
+    background-color: #e2e8f0;
+  }
+  
+  .settings__main__body__link {
+    background: #fff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .settings__main__body__link__hdr {
+    width: 120px;
+    height: 17px;
+    background-color: #e2e8f0;
+  }
+  
+  .settings__main__body__link__types {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .settings__main__body__link__type {
+    height: 44px;
+    width: 100%;
+    background-color: #e2e8f0;
+    border-radius: 8px;
+  }
+
+  @media(min-width: 1024px) {
+    .settings__aside {
+      display: block;
+    }
+    .settings__main {
+      width: 650px;
+    }
+  }

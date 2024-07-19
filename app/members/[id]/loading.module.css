@@ -1,0 +1,296 @@
+.mbrLoading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 40px;
+  background-color: #f1f5f9;
+  min-height: calc(100vh - 80px);
+}
+
+.mbrLoading__breadcrumb {
+  display: none;
+}
+
+.mbrLoading__container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mbrLoading__container__contact {
+  min-height: 20px;
+  padding: 20px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fff;
+}
+
+.mbrLoading__container__header {
+  min-height: 20px;
+  padding: 20px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  border-radius: 0px 0px 8px 8px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 48px auto;
+  column-gap: 8px;
+}
+
+.mbrLoading__container__teams {
+  min-height: 20px;
+  padding: 20px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mbrLoading__container__repositories {
+  min-height: 20px;
+  padding: 16px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.mbrLoading__projectContribution {
+  min-height: 20px;
+  padding: 16px;
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.membeDetailLoading__container__headerDetails {
+  display: grid;
+  grid-template-columns: 48px auto;
+  column-gap: 8px;
+}
+
+
+.mbrLoading__container__header__profile__logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 100%;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0;
+}
+
+.mbrLoading__container__header__details {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  grid-row: span 2 / span 2;
+  grid-column: span 4 / span 4;
+  margin-bottom: 16px;
+}
+
+.mbrLoading__container__header__details__specifis__nameAndRole {
+  display: flex;
+  gap: 4px;
+  flex-direction: column;
+}
+
+.mbrLoading__container__header__details__specifis__nameAndRole__roles {
+  display: flex;
+  gap: 26px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mbrLoading__container__header__detais__specifis__name {
+  width: 200px;
+  height: 25px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0;
+}
+
+.mbrLoading__container__header__details__specifis__nameAndRole__roles__role {
+  height: 20px;
+  width: 40px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0;
+}
+
+.mbrLoading__container__header__tags {
+  grid-row: span 1 / span 1;
+  grid-column: span 5 / span 5;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mbrLoading__container__header__tags__tag {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0;
+  height: 26px;
+  width: 80px;
+  border-radius: 24px;
+}
+
+.mbrLoading__container__contact__title {
+  height: 20px;
+  width: 150px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0;
+}
+
+.mbrLoading__container__contact__container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mbrLoading__container__contact__contacts__socialscnt {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mbrLoading__container__contact__container__socialcnt__social {
+  height: 26px;
+  width: 60px;
+  border-radius: 4px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0;
+}
+
+.mbrLoading__container__contacts__ohours {
+  background: #F8FAFC;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.mbrLoading__container__contacts__ohours__left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.mbrLoading__container__contacts__ohour__left__cldr {
+  height: 28px;
+  width: 28px;
+  border-radius: 4px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0; 
+}
+
+.mbrLoading__container__contacts__ohours__left__title {
+  height: 28px;
+  width: 113px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0; 
+}
+
+.mbrLoading__container__contacts__ohour__right {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+
+.mbrLoading__container__contacts__ohour__right__learnMore {
+  height: 20px;
+  width: 80px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0;
+}
+
+.mbrLoading__container__contacts__ohour__right__scmeeting {
+  height: 40px;
+  width: 169px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0;
+}
+
+.mbrLoading__container__teams__title {
+  height: 20px;
+  width: 113px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e2e8f0; 
+}
+
+.mbrLoading__container__teams__container {
+  border-radius: 12px;
+  box-shadow: 0px 4px 4px 0px #0F172A0A;
+}
+
+@media (min-width: 1024px) {
+  .mbrLoading {
+    align-items: center;
+  }
+
+  .mbrLoading__breadcrumb {
+    height: 48px;
+    width: 100%;
+    position: sticky;
+    top: 80px;
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+  }
+
+  .mbrLoading__container {
+    width: 900px;
+    padding-top: 38px;
+  }
+
+  .header {
+    grid-template-columns: 80px auto;
+  }
+
+  .mbrLoading__container__header {
+    grid-template-columns: 80px auto;
+    column-gap: 24px;
+
+  }
+
+  .mbrLoading__container__header__profile__logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 100%;
+  }
+
+  .mbrLoading__container__header__details {
+    grid-row: span 2 / span 2;
+    margin-bottom: unset;
+    grid-column: 2 / auto;
+  }
+
+  .mbrLoading__container__header__detais__specifis__name {
+    height: 32px;
+  }
+
+  .mbrLoading__container__header__tags {
+    grid-row: span 1 / span 1;
+    grid-column: 2 / auto;
+    border-top: unset;
+    padding-top: unset;
+    margin-top: unset;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

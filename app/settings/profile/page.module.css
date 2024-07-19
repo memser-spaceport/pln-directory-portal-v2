@@ -1,0 +1,87 @@
+
+.ps {
+  position: relative;
+  background: white;
+}
+
+.ps__backbtn {
+  position: sticky;
+  top: 80px;
+  width: 100%;
+  height:48px;
+  z-index: 3;
+}
+.ps__breadcrumbs {
+  display: flex;
+  position: sticky;
+  top: 80px;
+  padding: 0 16px;
+  width: 100%;
+  background: white;
+  z-index: 2;
+  border: none;
+}
+
+.ps__breadcrumbs__desktop {
+  display: none;
+}
+
+.ps__breadcrumbs__mobile {
+  display: flex;
+  padding: 0 16px;
+  padding-top: 16px;
+  gap: 6px;
+  color: #156FF7;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding-bottom: 8px;
+}
+.ps__main {
+  display: flex;
+  height: auto;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+}
+
+.ps__main__aside {
+  width: 300px;
+  height: 100%;
+  display: none;
+  position: sticky;
+  top: 128px;
+}
+
+.ps__main__aside__menu {
+}
+
+.ps__main__content {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .ps {
+    padding-top: 0;
+  }
+  .ps__backbtn {
+    display: none;
+  }
+  .ps__main__aside {
+    display: block;
+  }
+  .ps__main__content {
+    width: fit-content;
+    display: flex;
+    justify-content: center;
+  }
+  .ps__breadcrumbs {
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .ps__breadcrumbs__desktop {
+    display: block;
+  }
+  .ps__breadcrumbs__mobile {
+    display: none;
+  }
+}

@@ -31,7 +31,6 @@ const ProjectAddCard = (props: any) => {
       <style jsx>
         {`
           .projectcard {
-            margin-bottom: 8px;
             width: 167px;
             background-color: #fff;
             border-radius: 12px;
@@ -43,7 +42,7 @@ const ProjectAddCard = (props: any) => {
             justify-content: center;
             flex-direction: column;
             padding: 24px;
-            height: 166px;
+            height: 184px;
           }
 
           .projectcard--list {

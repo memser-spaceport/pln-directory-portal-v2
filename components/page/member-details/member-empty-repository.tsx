@@ -36,7 +36,7 @@ const MemberEmptyProject = (props: IMemberEmptyProject) => {
               <div className="member-empty-project">
                 <p>
                   GitHub handle is missing. Please update your profile
-                  <a onClick={onUpdateGithub} href={PAGE_ROUTES.SETTINGS} className="member-empty-project__update">
+                  <a onClick={onUpdateGithub} href={`${PAGE_ROUTES.SETTINGS}/profile`} className="member-empty-project__update">
                     here
                   </a>
                 </p>
@@ -49,7 +49,7 @@ const MemberEmptyProject = (props: IMemberEmptyProject) => {
                       <div className="member-empty-project">
                         <p>
                           GitHub handle is missing for the user. If you have the required information, please update
-                          <a onClick={onUpdateGithub} href={PAGE_ROUTES.SETTINGS} className="member-empty-project__update">
+                          <a onClick={onUpdateGithub} href={`${PAGE_ROUTES.SETTINGS}/profile`} className="member-empty-project__update">
                             here
                           </a>
                         </p>
@@ -64,7 +64,7 @@ const MemberEmptyProject = (props: IMemberEmptyProject) => {
                           <div className="member-empty-project">
                             <p>
                               GitHub handle is missing. Please update your profile
-                              <a onClick={onUpdateGithub} href={PAGE_ROUTES.SETTINGS} className="member-empty-project__update">
+                              <a onClick={onUpdateGithub} href={`${PAGE_ROUTES.SETTINGS}/profile`} className="member-empty-project__update">
                                 here
                               </a>
                             </p>

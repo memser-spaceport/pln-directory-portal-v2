@@ -472,7 +472,12 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
           }
 
           .ms__tab {
-            padding-top: 10px;
+            position: sticky;
+            top: 128px;
+            background: white;
+             padding-top: 10px;
+            padding-bottom: 10px;
+            z-index: 3;
           }
           .ms__tab__desktop {
             display: none;
@@ -482,7 +487,8 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
             padding: 0 24px;
           }
           .ms__content {
-            padding: 32px 24px;
+            padding: 0px 24px;
+            padding-bottom: 32px;
             height: fit-content;
             min-height: calc(100svh - 128px);
           }
@@ -499,10 +505,13 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
               width: 656px;
             }
             .ms__content {
-              padding: 32px 54px;
+              padding: 0px 54px;
+              padding-bottom: 32px;
             }
             .ms__tab {
+              top: 128.5px;
               border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 0;
             }
             .ms__tab__desktop {
               display: block;

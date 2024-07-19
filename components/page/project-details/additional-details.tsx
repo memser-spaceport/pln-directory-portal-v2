@@ -45,7 +45,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
     }
   }
   const onEditAction = () => {
-    analytics.onProjectDetailEditReadMeClicked(getAnalyticsUserInfo(userInfo), project?.id);
+    analytics.onProjectDetailEditReadMeClicked(getAnalyticsUserInfo(userInfo), project?.id, "project-details");
     setIsEditorVisible(true);
   };
 

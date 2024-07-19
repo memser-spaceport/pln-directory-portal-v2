@@ -45,14 +45,7 @@ const Modal = (props: IModal) => {
           }
         `}
       </style>
-      <style global jsx>
-        {`
-          html {
-            height: 80vh;
-            overflow: hidden;
-          }
-        `}
-      </style>
+     
     </>
   );
 };

@@ -34,6 +34,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
       onNavMenuClick();
+      triggerLoader(true);
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
   };

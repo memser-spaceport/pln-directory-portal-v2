@@ -177,7 +177,7 @@ function MemberPrivacyForm(props: any) {
           <div className="pf__cn" key={`pref-form-${index}`}>
             <h2 className="pf__title">
               <span>{prefForm.title}</span>
-              <span><Tooltip asChild trigger={<img className='pf__title__img' src='/icons/info.svg'/>} content="Privacy settings only enabled for available contact details."/></span>
+              {index === 0 && <span><Tooltip asChild trigger={<img className='pf__title__img' src='/icons/info.svg'/>} content="Privacy settings only enabled for available contact details."/></span>}
             </h2>
             <div className="pf__fields">
               {prefForm.items.map((pref: any) => (

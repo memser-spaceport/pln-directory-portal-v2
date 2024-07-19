@@ -1,7 +1,10 @@
 'use client';
 
+import { triggerLoader } from '@/utils/common.utils';
 import { EVENT_TYPE } from '@/utils/constants';
 import { formatIrlEventDate } from '@/utils/irl.utils';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 interface IBanner {
   eventDetails: any;
@@ -17,6 +20,12 @@ const Banner = (props: IBanner) => {
   const eventLocation = eventDetails?.eventLocation;
 
   const eventDateRange = formatIrlEventDate(startDate, endDate);
+  const router = useRouter();
+
+  useEffect(() => {
+    triggerLoader(false);
+  }, [router]);
+
   return (
     <>
       <div className="banner">

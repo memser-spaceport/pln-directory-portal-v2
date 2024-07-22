@@ -12,6 +12,8 @@ const ChangelogList = () => {
         <div className="change-logs-container">
           {ChangeLogList.map((changeLog, index) => {
             const tagColor = tagColors.find((item: any) => item.name === changeLog.tag)?.color;
+            const releaseType = changeLog?.releaseType?.name;
+            const releaseTypeImg = changeLog?.releaseType?.icon;
             return (
               <div className={`change-log-entry ${index !== ChangeLogList.length - 1 ? 'change-log-entry-border' : ''}`} key={`changelog-${index}`}>
                 <div className="change-log-header">
@@ -20,9 +22,10 @@ const ChangelogList = () => {
                     <span style={{ backgroundColor: tagColor }} className="change-log-tag-color" />
                     <span className="change-log-tag-text">{changeLog.tag}</span>
                   </span>
-                  {changeLog.isBeta && (
-                    <span>
-                      <img src="/icons/beta-logo.svg" alt="beta logo" />
+                  {releaseType && (
+                    <span className="change-log-tag-releaseType">
+                      <img src={releaseTypeImg} width={14} height={14} alt="tag" />
+                      <span className="change-log-tag-text">{releaseType}</span>
                     </span>
                   )}
                 </div>
@@ -94,13 +97,20 @@ const ChangelogList = () => {
           display: inline-flex;
           height: 27px;
           align-items: center;
+          gap: 7px;
+          border-radius: 24px;
+          border: 1px solid #cbd5e1;
+          padding: 6px 8px;
+        }
+
+        .change-log-tag-releaseType {
+          display: inline-flex;
+          height: 27px;
+          align-items: center;
           gap: 4px;
           border-radius: 24px;
           border: 1px solid #cbd5e1;
-          padding-left: 12px;
-          padding-right: 12px;
-          padding-top: 6px;
-          padding-bottom: 6px;
+          padding: 6px 8px;
         }
 
         .change-log-tag-color {

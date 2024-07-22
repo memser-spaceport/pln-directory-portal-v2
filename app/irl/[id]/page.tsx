@@ -2,7 +2,7 @@ import Error from '@/components/core/error';
 import { getEventDetailBySlug } from '@/services/irl.service';
 import { getMember } from '@/services/members.service';
 import { getMemberPreferences } from '@/services/preferences.service';
-import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
+import { ADMIN_ROLE, EVENT_TYPE, PAGE_ROUTES } from '@/utils/constants';
 import { isPastDate, sortByDefault, splitResources } from '@/utils/irl.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import styles from './page.module.css';
@@ -13,11 +13,22 @@ import HeaderStrip from '@/components/page/irl-details/header-strip';
 import IrlMain from '@/components/page/irl-details/irl-main';
 import ScrollToTop from '@/components/page/irl-details/scroll-to-top';
 import { Metadata, ResolvingMetadata } from 'next';
+import { redirect } from 'next/navigation';
 
 export default async function IrlDetails({ params }: { params: { id: string } }) {
   const eventId = params?.id;
 
   const { isError, eventDetails, isLoggedIn, userInfo, isUserGoing, teams, showTelegram } = await getPageData(eventId);
+
+
+  const type = eventDetails?.type;
+  if (type === EVENT_TYPE.INVITE_ONLY && !isLoggedIn) {
+    redirect('/irl');
+  }
+
+  if (type === EVENT_TYPE.INVITE_ONLY && isLoggedIn && !userInfo?.roles?.includes(ADMIN_ROLE) && !isUserGoing) {
+    redirect('/irl');
+  }
 
   if (isError) {
     return <Error />;
@@ -71,30 +82,11 @@ const getPageData = async (eventId: string) => {
       return { isError: true };
     }
 
-    const type = eventDetails?.type;
     const sortedList = sortByDefault(eventDetails?.guests);
     eventDetails.guests = sortedList;
 
     //has current user is going for an event
     isUserGoing = sortedList?.some((guest) => guest.memberUid === userInfo?.uid && guest?.memberUid);
-
-    if (type === 'INVITE_ONLY' && !isLoggedIn) {
-      return {
-        redirect: {
-          permanent: true,
-          destination: '/irl',
-        },
-      };
-    }
-
-    if (type === 'INVITE_ONLY' && isLoggedIn && !userInfo?.roles?.includes(ADMIN_ROLE) && !isUserGoing) {
-      return {
-        redirect: {
-          permanent: true,
-          destination: '/irl',
-        },
-      };
-    }
 
     if (isUserGoing) {
       const currentUser = [...sortedList]?.find((v) => v.memberUid === userInfo?.uid);

@@ -404,7 +404,7 @@ export const ChangeLogList = [
     date: '19, Jul 2024 ',
     shortContent: `<ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
     <li>Introducing improved mobile responsiveness and layout adaptability across all devices.</li>
-    <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience.</li>
+    <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience</li>
       <ul style="padding-left:32px; list-style: lower-alpha !important; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
         <li>Revamp of UI/UX Design for Account Settings and Registration.</li>
         <li>Cards displayed per row in the list layout is now dynamic and arranged based on the device's width.</li>

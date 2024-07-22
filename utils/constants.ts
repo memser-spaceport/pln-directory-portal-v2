@@ -400,10 +400,15 @@ export const ChangeLogList = [
   {
     title: 'Version 3.0.0 - Enhancements',
     tag: 'Improvements',
+    releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },
     date: '19, Jul 2024 ',
     shortContent: `<ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
     <li>Introducing improved mobile responsiveness and layout adaptability across all devices.</li>
-    <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience.</li>
+    <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience</li>
+      <ul style="padding-left:32px; list-style: lower-alpha !important; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li>Revamp of UI/UX Design for Account Settings and Registration.</li>
+        <li>Cards displayed per row in the list layout is now dynamic and arranged based on the device's width.</li>
+      </ul>
     </ul>`,
   },
 
@@ -500,6 +505,7 @@ export const ChangeLogList = [
   {
     title: 'Version 2.0.4 - IRL Gatherings',
     tag: 'New Feature',
+    releaseType: { name: 'Beta', icon: '/icons/dot-purple.svg' },
     date: '12, Apr 2024',
     isBeta: true,
     shortContent: `<div>
@@ -529,7 +535,7 @@ export const ChangeLogList = [
       <li>Public Goods: Creating more efficient and equitable structures for global progress.</li>
       <li>Advanced Technologies: Ensuring responsible advancement in AI, AR, VR, BCI, and other emerging fields.</li>
       <li>Innovation Network: Teams, members, and projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
-      </ul>
+      </ul> 
       </li>
       </ul></div>`,
   },

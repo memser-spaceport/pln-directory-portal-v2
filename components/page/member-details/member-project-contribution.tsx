@@ -3,7 +3,7 @@
 import { Fragment, useRef, useState } from 'react';
 import MemberEmptyProjectExperience from './member-empty-project-experienct';
 import MemberProjectExperienceCard from './member-project-experience-card';
-import { ADMIN_ROLE } from '@/utils/constants';
+import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
 import MemberProjectContributions from './member-project-contributions';
 import Modal from '@/components/core/modal';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
@@ -48,10 +48,12 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
   };
 
   const onEditOrAdd = () => {
-    if (isOwner) {
-      analytics.onProjectContributionEditClicked(member);
+    analytics.onProjectContributionEditClicked(member);
+    if (isAdmin && !isOwner) {
+      router.push(`${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}`);
+    } else {
+      router.push(`${PAGE_ROUTES.SETTINGS}/profile`);
     }
-    router.push('/settings/profile');
   };
 
   return (

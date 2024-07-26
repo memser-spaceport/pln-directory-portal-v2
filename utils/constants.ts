@@ -587,3 +587,27 @@ export const tagColors = [
 export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
 
 export const SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
+
+export const OFFICE_HOURS_STEPS = {
+  CONFIRMATION: {
+    name: "confirmation",
+  },
+  HAPPENED: {
+    name: "happened",
+  },
+  NOT_HAPPENED: {
+    name: 'not-happened',
+  }
+}
+
+
+export const TROUBLES_INFO = {
+  didntHappened: {
+      name: 'Meeting didn’t happen',
+      reasons: []
+  },
+  technicalIssues: {
+      name: 'Faced Technical Issues',
+      reasons: []
+  }
+}

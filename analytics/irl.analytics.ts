@@ -220,7 +220,7 @@ export const useIrlAnalytics = () => {
       user,
       ...event,
       ...payload,
-      type
+      type,
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_UPDATE_BTN_CLICKED, params);
   }
@@ -230,7 +230,7 @@ export const useIrlAnalytics = () => {
       user,
       ...event,
       ...payload,
-      type
+      type,
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_BTN_CLICKED, params);
   }
@@ -239,7 +239,7 @@ export const useIrlAnalytics = () => {
     const params = {
       user,
       ...event,
-      type
+      type,
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_ERROR, params);
   }
@@ -258,6 +258,55 @@ export const useIrlAnalytics = () => {
       ...event,
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_PRIVACY_SETTING_LINK_CLICKED, params);
+  }
+
+  function addNewMemberBtnClicked(user: IAnalyticsUserInfo | null, event: any) {
+    const params = {
+      user,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_DETAILS_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED, params);
+  }
+
+  function floatingBarOpenClicked(user: IAnalyticsUserInfo | null, event: any) {
+    const params = {
+      user,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_DETAILS_FLOATING_BAR_OPEN, params);
+  }
+
+  function floatingBarDeleteBtnClicked(user: IAnalyticsUserInfo | null, event: any) {
+    const params = {
+      user,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_DETAILS_REMOVE_ATTENDEES_POPUP_OPEN, params);
+  }
+
+  function floatingBarEditBtnClicked(user: IAnalyticsUserInfo | null, event: any) {
+    const params = {
+      user,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_DETAILS_FLOATING_BAR_EDIT_BTN_CLICKED, params);
+  }
+
+  function removeAttendeesPopupRemoveBtnClicked(user: IAnalyticsUserInfo | null, event: any) {
+    const params = {
+      user,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_BTN_CLICKED, params);
+  }
+
+    
+  function removeAttendeesRemoveSuccess(user: IAnalyticsUserInfo | null, event: any) {
+    const params = {
+      user,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_SUCCESS, params);
   }
 
   return {
@@ -290,6 +339,12 @@ export const useIrlAnalytics = () => {
     irlGuestDetailSaveBtnClick,
     irlGuestDetailSaveError,
     irlGuestDetailOHGuidelineClick,
-    irlGuestDetailPrivacySettingClick
+    irlGuestDetailPrivacySettingClick,
+    addNewMemberBtnClicked,
+    floatingBarOpenClicked,
+    floatingBarDeleteBtnClicked,
+    floatingBarEditBtnClicked,
+    removeAttendeesPopupRemoveBtnClicked,
+    removeAttendeesRemoveSuccess
   };
 };

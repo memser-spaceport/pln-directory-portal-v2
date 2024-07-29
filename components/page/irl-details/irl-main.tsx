@@ -1,7 +1,7 @@
 'use client';
 
 import { useIrlDetails } from '@/hooks/irl/use-irl-details';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JoinEventStrip from './join-event-strip';
 import { sortByDefault } from '@/utils/irl.utils';
 import Toolbar from './toolbar';
@@ -11,11 +11,12 @@ import EmptyList from './empty-list';
 import Modal from '@/components/core/modal';
 import GoingDetail from './going-detail';
 import Cookies from 'js-cookie';
-import { TOAST_MESSAGES } from '@/utils/constants';
-import { toast } from 'react-toastify';
+import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { useRouter } from 'next/navigation';
 import { IGuest, IIrlTeam } from '@/types/irl.types';
+import DeleteGuestsPopup from './delete-guests-popup';
+import FloatingBar from './floating-bar';
 
 interface IIrlMain {
   isUserLoggedIn: boolean;
@@ -32,34 +33,48 @@ const IrlMain = (props: IIrlMain) => {
   const teams = props?.teams;
   const isUserLoggedIn = props?.isUserLoggedIn;
   const showTelegram = props?.showTelegram as boolean;
-  // const telegram = eventDetails?.telegram;
-  // const resources = eventDetails?.resources ?? [];
-  const registeredGuest = eventDetails.guests.find((guest: IGuest) => guest?.memberUid === userInfo?.uid);
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
+  const registeredGuest = useMemo(() => {
+    return updatedEventDetails.guests.find((guest: IGuest) => guest?.memberUid === userInfo?.uid);
+  }, [updatedEventDetails.guests, userInfo.uid]);
   const [isOpen, setIsOpen] = useState(false);
   const [updatedUser, setUpdatedUser] = useState(registeredGuest);
   const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const [focusOHField, setFocusOHField] = useState(false);
   const { filteredList, sortConfig } = useIrlDetails(updatedEventDetails.guests, userInfo);
   const goingRef = useRef<HTMLDialogElement>(null);
-
-  const onCloseGoingModal = () => {
-    setIsOpen(false);
-    if (goingRef.current) {
-      goingRef.current.close();
-    }
-  };
+  const deleteRef = useRef<HTMLDialogElement>(null);
+  const [isAllowedToManageGuests, setIsAllowedToManageGuests] = useState(false);
   const router = useRouter();
+  const [showFloaingBar, setShowFloatingBar] = useState(false);
+  const [selectedGuests, setSelectedGuests] = useState([]);
+  const [formType, setFormType] = useState('');
 
-  const onLogin = () => {
+  const onCloseGoingModal = useCallback(() => {
+    setIsOpen(false);
+    setUpdatedUser(registeredGuest);
+    goingRef.current?.close();
+  }, []);
+
+  const onCloseDeleteModal = useCallback(() => {
+    deleteRef.current?.close();
+  }, []);
+
+  const onLogin = useCallback(async () => {
+    const toast = (await import('react-toastify')).toast;
     if (Cookies.get('refreshToken')) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       window.location.reload();
     } else {
       router.push(`${window.location.pathname}${window.location.search}#login`);
     }
-  };
+  }, [router]);
+
+  const onCloseFloatingBar = useCallback(() => {
+    setSelectedGuests([]);
+    setShowFloatingBar(false);
+  }, []);
 
   //update event details when form submit
   useEffect(() => {
@@ -67,13 +82,13 @@ const IrlMain = (props: IIrlMain) => {
       const eventInfo = e.detail?.eventDetails;
       const goingGuest = eventInfo?.guests.find((guest: IGuest) => guest.memberUid === userInfo.uid);
       const sortedGuests = sortByDefault(eventInfo?.guests);
+      eventInfo.guests = sortedGuests;
       if (goingGuest) {
         setIsGoing(true);
         const currentUser = [...sortedGuests]?.find((v) => v.memberUid === userInfo?.uid);
         if (currentUser) {
           const filteredList = [...sortedGuests]?.filter((v) => v.memberUid !== userInfo?.uid);
-          const formattedGuests = [currentUser, ...filteredList];
-          eventInfo.guests = formattedGuests;
+          eventInfo.guests = [currentUser, ...filteredList];
         }
       }
 
@@ -89,17 +104,52 @@ const IrlMain = (props: IIrlMain) => {
   //toggle attendees details modal
   useEffect(() => {
     const handler = (e: any) => {
-      const isOpen = e.detail.isOpen;
-      const isOHFocused = e.detail?.isOHFocused ?? false;
+      const { isOpen, isOHFocused = false, isAllowedToManageGuests = false, selectedGuest, type} = e.detail;
+      setIsAllowedToManageGuests(isAllowedToManageGuests);
       if (goingRef.current && isOpen) {
         setIsOpen(true);
         goingRef.current.showModal();
       }
+      setFormType(type);
+      if (type === 'admin-edit') {
+        const member = filteredList?.find((item: any) => item.uid === selectedGuest);
+        setUpdatedUser(member);
+      }
+
+      if (type === 'self-edit') {
+        const member = filteredList?.find((item: any) => item.memberUid === selectedGuest);
+        setUpdatedUser(member);
+      }
+
       setFocusOHField(isOHFocused);
     };
     document.addEventListener('openRsvpModal', handler);
     return () => {
       document.removeEventListener('openRsvpModal', handler);
+    };
+  }, [filteredList]);
+
+  //toggle remove guests modal
+  useEffect(() => {
+    const handler = (e: any) => {
+      const { isOpen } = e.detail;
+      if (deleteRef.current && isOpen) {
+        deleteRef.current.showModal();
+      }
+    };
+    document.addEventListener(EVENTS.OPEN_REMOVE_GUESTS_POPUP, handler);
+    return () => {
+      document.removeEventListener(EVENTS.OPEN_REMOVE_GUESTS_POPUP, handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      setShowFloatingBar(e.detail.isOpen);
+    };
+    document.addEventListener('openFloatingBar', handler);
+    return () => {
+      document.removeEventListener('openFloatingBar', handler);
     };
   }, []);
 
@@ -125,26 +175,47 @@ const IrlMain = (props: IIrlMain) => {
           <div className={`irl__table  ${isUserLoggedIn ? 'table__login' : 'table__not-login'} `}>
             <TableHeader userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} />
             <div className={`irl__table__body  ${isUserLoggedIn ? 'w-fit' : 'w-full'}`}>
-              {isUserLoggedIn && <GuestList userInfo={userInfo} items={filteredList} eventDetails={updatedEventDetails} showTelegram={showTelegram} />}
+              {isUserLoggedIn && (
+                <GuestList
+                  userInfo={userInfo}
+                  items={filteredList}
+                  eventDetails={updatedEventDetails}
+                  showTelegram={showTelegram}
+                  selectedGuests={selectedGuests}
+                  setSelectedGuests={setSelectedGuests}
+                />
+              )}
               {!isUserLoggedIn && <EmptyList onLogin={onLogin} items={filteredList} eventDetails={updatedEventDetails} />}
             </div>
           </div>
         </>
       )}
+
+      {/* FLOATING BAR */}
+      {showFloaingBar && (
+        <div className="irl__floating-bar">
+          <FloatingBar userInfo={userInfo} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} />
+        </div>
+      )}
+
       <Modal modalRef={goingRef} onClose={onCloseGoingModal}>
-        {isOpen ? (
+        {isOpen && (
           <GoingDetail
-            teams={teams}
+            loggedInUserteams={teams}
             isUserGoing={isUserGoing}
             registeredGuest={updatedUser}
-            eventDetails={eventDetails}
+            eventDetails={updatedEventDetails}
             onClose={onCloseGoingModal}
             focusOHField={focusOHField}
             showTelegram={showTelegram}
+            isAllowedToManageGuests={isAllowedToManageGuests}
+            formType={formType}
           />
-        ) : (
-          <></>
         )}
+      </Modal>
+
+      <Modal modalRef={deleteRef} onClose={onCloseDeleteModal}>
+        <DeleteGuestsPopup userInfo={userInfo} onClose={onCloseDeleteModal} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} setSelectedGuests={setSelectedGuests} />
       </Modal>
 
       <style jsx>
@@ -155,7 +226,7 @@ const IrlMain = (props: IIrlMain) => {
 
           .irl__toolbar {
             position: relative;
-            z-index: 2;
+            z-index: 3;
             width: 100%;
             background-color: #f1f5f9;
             padding: 16px 20px 20px;
@@ -190,6 +261,11 @@ const IrlMain = (props: IIrlMain) => {
 
           .w-fit {
             width: fit-content;
+          }
+
+          .irl__floating-bar {
+            position: fixed;
+            bottom: 40px;
           }
 
           @media (min-width: 1024px) {

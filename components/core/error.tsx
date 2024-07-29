@@ -1,6 +1,5 @@
 "use client";
 import { PAGE_ROUTES } from "@/utils/constants";
-import Image from "next/image";
 
 const Error = () => {
   return (

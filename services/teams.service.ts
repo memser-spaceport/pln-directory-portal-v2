@@ -132,7 +132,9 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
 };
 
 export const getTeamsForProject = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?select=uid,name,shortDescription,logo.url&&pagination=false&&with=teamMemberRoles`);
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?select=uid,name,shortDescription,logo.url&&pagination=false&&with=teamMemberRoles`, {
+    cache:'no-store',
+  });
 
   if (!response.ok) {
     return { isError: true, message: response?.status };

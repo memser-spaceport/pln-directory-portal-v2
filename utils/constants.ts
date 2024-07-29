@@ -45,6 +45,7 @@ export const EVENTS = {
   UPDATE_SELECTED_CONTRIBUTING_TEAM: 'update-selected-contring-team',
   UPDATE_SELECTED_CONTRIBUTORS: 'update-selected-contributors',
   PROJECT_ADD_MODAL_CLOSE_EVENT: 'project-add-modal-close-event',
+  OPEN_REMOVE_GUESTS_POPUP:'open-remove-guests-popup'
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -107,7 +108,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   PR_CONRTIBUTIONS_LIST_ITEM_ADD: 'pr-contributions-list-item-add',
   PR_CONRTIBUTIONS_LIST_ITEM_DELETE: 'pr-contributions-list-item-delete',
   PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT: 'pr-contributions-list-item-addproject',
-}
+};
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
   MEMBER_JOIN_NETWORK_NEXT_CLICK: 'member-join-network-form-steps',
@@ -116,7 +117,7 @@ export const JOIN_NETWORK_ANALYTICS_EVENTS = {
   TEAM_JOIN_NETWORK_NEXT_CLICK: 'team-join-network-form-steps',
   TEAM_JOIN_NETWORK_BACK_CLICK: 'team-join-network-back-click',
   TEAM_JOIN_NETWORK_SAVE: 'member-join-network-save',
-}
+};
 
 export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_DETAIL_DELETE_SUCCESS: 'project-detail-delete-success',
@@ -277,6 +278,12 @@ export const IRL_ANALYTICS_EVENTS = {
   IRL_DETAILS_GUEST_LIST_TABLE_TELEGRAM_LINK_CLICKED: 'irl-guest-list-table-telegram-link-clicked',
   IRL_DETAILS_GUEST_LIST_TABLE_OFFICE_HOURS_LINK_CLICKED: 'irl-guest-list-table-office-hours-link-clicked',
   IRL_DETAILS_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED: 'irl-guest-list-table-add-office-hours-clicked',
+  IRL_DETAILS_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
+  IRL_DETAILS_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
+  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_OPEN:'irl-remove-attendees-popup-open',
+  IRL_DETAILS_FLOATING_BAR_EDIT_BTN_CLICKED:'irl-floating-bar-edit-btn-clicked',
+  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_BTN_CLICKED:'irl-remove-attendees-popup-remove-btn-clicked',
+  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_SUCCESS:'irl-remove-attendees-popup-remove-success',
 
   IRL_RSVP_POPUP_SAVE_BTN_CLICKED: 'irl-rsvp-popup-save-btn-clicked',
   IRL_RSVP_POPUP_UPDATE_BTN_CLICKED: 'irl-rsvp-popup-update-btn-clicked',
@@ -394,7 +401,7 @@ export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
 };
 
-export const OH_GUIDELINE_URL = "https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq"
+export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
   {
@@ -570,3 +577,5 @@ export const tagColors = [
   { name: 'Beta', color: '#C169D7' },
   { name: 'Fixed', color: '#4871D9' },
 ];
+
+export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];

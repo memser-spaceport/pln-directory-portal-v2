@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import { useParams } from 'next/navigation';
 import TagsPicker from './tags-picker';
-import { getMemberInfo } from '@/services/members.service';
+import { getMemberInfo, getMembersForProjectForm } from '@/services/members.service';
 import { getEventDetailBySlug, createEventGuest, editEventGuest } from '@/services/irl.service';
 import { formatDateRangeForDescription, formatDateToISO, getArrivalDepartureDateRange, getTelegramUsername, removeAt } from '@/utils/irl.utils';
 import TextArea from '@/components/form/text-area';
@@ -14,23 +13,48 @@ import { EVENTS, OH_GUIDELINE_URL, TOAST_MESSAGES } from '@/utils/constants';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import useTagsPicker from '@/hooks/irl/use-tags-picker';
 import { getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
-import SingleSelect from '@/components/form/single-select';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import SingleSelectWithImage from '@/components/form/single-select-with-image';
+import SearchableSingleSelect from '@/components/form/searchable-single-select';
+import { getTeamsForProject } from '@/services/teams.service';
 
 interface GoingProps {
   isUserGoing: boolean;
   registeredGuest: any;
   eventDetails: any;
-  teams: any;
+  loggedInUserteams: any;
   showTelegram: boolean;
   onClose: () => void;
   focusOHField: boolean;
+  isAllowedToManageGuests: boolean;
+  formType: string;
 }
 
-const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, eventDetails, teams, showTelegram, onClose, focusOHField }) => {
+const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
+  //props
+  const isAllowedToManageGuests = props?.isAllowedToManageGuests;
+  const isUserGoing = props?.isUserGoing;
+  const registeredGuest = props?.registeredGuest;
+  const eventDetails = props?.eventDetails;
+  const showTelegram = props?.showTelegram;
+  const onClose = props?.onClose;
+  const focusOHField = props?.focusOHField;
+  const formType = props?.formType;
+
   //variables
   const [formErrors, setFormErrors] = useState<any>({});
+  // const initialTeams = isAllowedToManageGuests 
+  // ? [] 
+  // : formType === 'add' 
+  //   ? props?.loggedInUserteams 
+  //   : registeredGuest?.teams;
+    
+  const [teams, setTeams] = useState(isAllowedToManageGuests ? [] : formType === 'add' ? props?.loggedInUserteams : registeredGuest?.teams);
+  const [initialTeams, setInitialTeams] = useState([]);
+  const [initialContributors, setInitialContributors] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState<any>({ name: '' });
+  const [selectedMember, setSelectedMember] = useState<any>({ name: '' });
+  const [isMemberInGuestList, setIsMemberInGuestList] = useState(false);
   const [connectDetail, setConnectDetail] = useState<any>({});
   const [formValues, setFormValues] = useState({
     teamUid: '',
@@ -56,7 +80,10 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
     defaultTags,
     selectedItems: formValues?.topics,
   });
-  const intialTeamValue = teams?.find((team: any) => team?.id === formValues?.teamUid);
+  const intialTeamValue = useMemo(() => {
+    return teams?.find((team: any) => team?.id === formValues?.teamUid);
+  }, [teams, formValues?.teamUid, formType]);
+
   const dateRange = getArrivalDepartureDateRange(eventDetails?.startDate, eventDetails?.endDate, 5, 4);
 
   //methods
@@ -128,7 +155,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
 
   const handleOfficeHoursFocus = () => {
     //update the office hours value when user focus on the field when blank value is saved already
-    if (connectDetail?.officeHours !== '' && registeredGuest?.officeHours === '' && formValues?.officeHours === '') {
+    if (connectDetail?.officeHours !== '' && !registeredGuest?.officeHours && formValues?.officeHours === '') {
       setFormValues((prevFormData) => ({ ...prevFormData, officeHours: connectDetail?.officeHours }));
     }
     handleDisplayWarning('oh-message');
@@ -143,7 +170,8 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
   };
 
   //edit guest details
-  const onEditGuestDetails = async () => {
+  const onEditGuestDetails = async (member: any) => {
+    const toast = (await import('react-toastify')).toast;
     const authToken = getParsedValue(Cookies.get('authToken') || '');
     analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name }, 'clicked');
 
@@ -151,7 +179,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
       ...formValues,
       topics: topicsProps?.selectedItems,
       telegramId: removeAt(formValues?.telegramId),
-      memberUid: userInfo?.uid,
+      memberUid: member?.memberUid,
       eventUid: eventDetails?.id,
       uid: registeredGuest.uid,
     };
@@ -180,7 +208,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
   const validateForm = (formValues: any) => {
     const errors = {} as any;
     const initialTeamValue = teams?.find((team: any) => team?.id === formValues?.teamUid);
-    const urlRE = /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?(\/\S*)?)(?![.\S])/gi;
+    // const urlRE = /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?(\/\S*)?)(?![.\S])/gi;
     if (!formValues?.teamUid?.trim() || !initialTeamValue) {
       errors.teamUid = 'Team is required';
     }
@@ -205,7 +233,8 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
   };
 
   //add event details
-  const onAddGuestDetails = async () => {
+  const onAddGuestDetails = async (member: any) => {
+    const toast = (await import('react-toastify')).toast;
     analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name }, 'clicked');
 
     const authToken = getParsedValue(Cookies.get('authToken') || '');
@@ -214,7 +243,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
       ...formValues,
       topics: topicsProps?.selectedItems,
       telegramId: removeAt(formValues?.telegramId),
-      memberUid: userInfo?.uid,
+      memberUid: member?.uid,
       eventUid: eventDetails?.id,
     };
 
@@ -242,12 +271,13 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
   //form submit
   const onSubmit = async (event: any) => {
     event.preventDefault();
+    const toast = (await import('react-toastify')).toast;
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     try {
-      if (!isUserGoing) {
-        await onAddGuestDetails();
+      if (!registeredGuest || isAllowedToManageGuests) {
+        await onAddGuestDetails(isAllowedToManageGuests ? selectedMember : userInfo);
       } else {
-        await onEditGuestDetails();
+        await onEditGuestDetails(registeredGuest);
       }
     } catch {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
@@ -257,45 +287,130 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
     }
   };
 
-  useEffect(() => {
-    if (isUserGoing) {
-      const data = {
-        teamUid: registeredGuest?.teamUid,
-        telegramId: '',
-        reason: registeredGuest.reason ? registeredGuest?.reason?.trim() : '',
-        topics: registeredGuest?.topics,
-        officeHours: registeredGuest?.officeHours ? registeredGuest?.officeHours : '',
-        additionalInfo: {
-          ...formValues.additionalInfo,
-          checkInDate: registeredGuest?.additionalInfo?.checkInDate,
-          checkOutDate: registeredGuest?.additionalInfo?.checkOutDate,
-        },
-      };
-      setFormValues(data);
+  const onTeamSelectionChanged = async (item: any) => {
+    setSelectedTeam(item);
+    setFormValues({
+      teamUid: '',
+      telegramId: '',
+      reason: '',
+      topics: [],
+      officeHours: '',
+      additionalInfo: {
+        checkInDate: '',
+        checkOutDate: '',
+      },
+    });
+    setSelectedMember({ name: '' });
+    getAllContributors(item.uid);
+    setTeams([]);
+    setIsMemberInGuestList(false);
+  };
+
+  const onMemberSelectionChanged = async (item: any) => {
+    setSelectedMember(item);
+    const isUserAlreadyInGuestList = eventDetails?.guests?.some((guest: any) => guest?.memberUid === item.uid);
+    if (!isUserAlreadyInGuestList) {
+      setTeams(item.teams);
+      setFormValues((prevFormData) => ({ ...prevFormData, teamUid: item?.mainTeam?.team?.uid }));
+      getMemberConnectDetails(item?.uid);
+      setIsMemberInGuestList(false);
     } else {
-      const teamUid = teams?.find((team: any) => team?.mainTeam)?.id;
-      setFormValues((prev) => ({ ...prev, teamUid }));
+      setIsMemberInGuestList(true);
+    }
+  };
+
+  const getAllContributors = async (teamUid: any) => {
+    try {
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
+      const result = await getMembersForProjectForm(teamUid);
+      if (result.isError) {
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        return false;
+      }
+      setInitialContributors(result.data);
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+
+      return true;
+    } catch (e) {
+      console.error(e);
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+
+      return false;
+    }
+  };
+
+  const getMemberConnectDetails = async (memberId: string) => {
+    document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
+    try {
+      const response = await getMemberInfo(memberId);
+      const telegram = response?.data?.telegramHandler ? removeAt(getTelegramUsername(response?.data?.telegramHandler)) : '';
+      setConnectDetail({ telegramId: telegram, officeHours: response?.data?.officeHours ?? '' });
+      setFormValues((prevFormData) => ({
+        ...prevFormData,
+        telegramId: !registeredGuest?.isTelegramRemoved ? telegram : '',
+        officeHours: !registeredGuest?.officeHours ? '' : response?.data?.officeHours ?? '',
+      }));
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getAllTeams = async () => {
+    try {
+      const result = await getTeamsForProject();
+      if (result.isError) {
+        return false;
+      }
+      setInitialTeams(result.data);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (!isAllowedToManageGuests) {
+      if (isUserGoing || registeredGuest) {
+        const data = {
+          teamUid: registeredGuest?.teamUid,
+          telegramId: '',
+          reason: registeredGuest?.reason ? registeredGuest?.reason?.trim() : '',
+          topics: registeredGuest?.topics,
+          officeHours: registeredGuest?.officeHours ? registeredGuest?.officeHours : '',
+          additionalInfo: {
+            ...formValues.additionalInfo,
+            checkInDate: registeredGuest?.additionalInfo?.checkInDate,
+            checkOutDate: registeredGuest?.additionalInfo?.checkOutDate,
+          },
+        };
+        setFormValues(data);
+      } else {
+        const teamUid = teams?.find((team: any) => team?.mainTeam)?.id;
+        setFormValues((prev) => ({ ...prev, teamUid }));
+      }
     }
   }, []);
 
+  const onResetMember = () => {
+    setSelectedMember({ name: '' });
+    setFormValues({
+      teamUid: '',
+      telegramId: '',
+      reason: '',
+      topics: [],
+      officeHours: '',
+      additionalInfo: {
+        checkInDate: '',
+        checkOutDate: '',
+      },
+    });
+  };
+
   useEffect(() => {
-    const getMemberConnectDetails = async () => {
-      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-      try {
-        const response = await getMemberInfo(userInfo?.uid);
-        const telegram = response?.data?.telegramHandler ? removeAt(getTelegramUsername(response?.data?.telegramHandler)) : '';
-        setConnectDetail({ telegramId: telegram, officeHours: response?.data?.officeHours ?? '' });
-        setFormValues((prevFormData) => ({
-          ...prevFormData,
-          telegramId: !registeredGuest?.isTelegramRemoved ? telegram : '',
-          officeHours: registeredGuest?.officeHours === '' ? '' : response?.data?.officeHours ?? '',
-        }));
-        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    getMemberConnectDetails();
+    if (!isAllowedToManageGuests) {
+      getMemberConnectDetails(registeredGuest?.memberUid || userInfo.uid);
+    }
   }, []);
 
   useEffect(() => {
@@ -305,12 +420,56 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
     }
   }, []);
 
+  useEffect(() => {
+    if (isAllowedToManageGuests) {
+      getAllContributors(null);
+      getAllTeams();
+    }
+  }, []);
+
   return (
     <>
       <form onSubmit={onSubmit}>
         <div className="details">
           <h2 className="details__title">Attendee Details</h2>
           <div className="details__cn">
+            {isAllowedToManageGuests && (
+              <div className="details__cn__teams__mems">
+                <SearchableSingleSelect
+                  id="irl-guest-allteams-info"
+                  placeholder="All Teams"
+                  displayKey="name"
+                  options={initialTeams}
+                  selectedOption={selectedTeam}
+                  uniqueKey="teamUid"
+                  formKey="teamTitle"
+                  name={`guest-teamName`}
+                  onChange={(item) => onTeamSelectionChanged(item)}
+                  arrowImgUrl="/icons/arrow-down.svg"
+                  iconKey="logo"
+                  defaultImage="/icons/team-default-profile.svg"
+                  onClear={() => {}}
+                />
+
+                <SearchableSingleSelect
+                  id="irl-member-info"
+                  placeholder="Select Member"
+                  displayKey="name"
+                  options={initialContributors}
+                  selectedOption={selectedMember}
+                  uniqueKey="memberUid"
+                  formKey="memberName"
+                  name={`guest-memberName`}
+                  onChange={(item) => onMemberSelectionChanged(item)}
+                  arrowImgUrl="/icons/arrow-down.svg"
+                  iconKey="logo"
+                  defaultImage="/icons/team-default-profile.svg"
+                  onClear={onResetMember}
+                  showClear
+                />
+              </div>
+            )}
+            {isMemberInGuestList && <div className="error">Member already in the event</div>}
             <div className="details__cn__team">
               <label className="label details__cn__team__label">Team</label>
               <SingleSelectWithImage
@@ -319,7 +478,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
                 placeholder="Select a team"
                 displayKey="name"
                 options={teams}
-                selectedOption={intialTeamValue || {}}
+                selectedOption={intialTeamValue || ''}
                 uniqueKey="id"
                 iconKey="logo"
                 defaultIcon="/icons/team-default-profile.svg"
@@ -393,7 +552,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
                 name="officeHours"
                 className="details__cn__oh__field"
                 id="going-office-hours"
-                placeholder={registeredGuest?.officeHours === '' && connectDetail?.officeHours !== '' ? connectDetail.officeHours : 'Enter link here'}
+                placeholder={!registeredGuest?.officeHours && connectDetail?.officeHours !== '' ? connectDetail.officeHours : 'Enter link here'}
                 value={formValues?.officeHours}
                 onChange={handleChange}
                 ref={officeHoursRef}
@@ -481,8 +640,8 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
           <button onClick={onClose} className="details__btns__close" type="button">
             Close
           </button>
-          <button className="details__btns__save" type="submit">
-            {isUserGoing ? 'Update' : 'Save'}
+          <button disabled={isMemberInGuestList} className="details__btns__save" type="submit">
+            {isAllowedToManageGuests ? 'Add Attendee' : isUserGoing ? 'Update' : 'Save'}
           </button>
         </div>
       </form>
@@ -491,7 +650,7 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
         {`
           .details {
             padding: 24px 0;
-            width: 320px;
+            width: 90vw;
             max-height: 80svh;
             display: flex;
             flex-direction: column;
@@ -524,6 +683,12 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
             font-size: 13px;
             line-height: 18px;
             color: #ef4444;
+          }
+
+          .details__cn__teams__mems {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
           }
 
           .details__cn__team {
@@ -813,6 +978,10 @@ const GoingDetail: React.FC<GoingProps> = ({ isUserGoing, registeredGuest, event
             .details__cn__spl__date {
               flex-direction: row;
               justify-content: space-between;
+            }
+
+            .details__cn__teams__mems {
+              flex-direction: row;
             }
           }
         `}

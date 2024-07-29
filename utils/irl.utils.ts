@@ -153,7 +153,6 @@ export function removeAt(text: string) {
   return modifiedText;
 }
 
-
 export const splitResources = (resources: any) => {
   const publicResources: any = [];
   const privateResources: any = [];
@@ -214,4 +213,9 @@ export function getArrivalDepartureDateRange(startDate: string | number | Date, 
     dateFrom: dateFrom.split('T')[0],
     dateTo: dateTo.split('T')[0],
   };
+}
+
+// Common function to check user access
+export function canUserPerformAction(roles: string[], allowedRoles: string[]): boolean {
+  return roles?.some((role: string) => allowedRoles.includes(role)) ?? false;
 }

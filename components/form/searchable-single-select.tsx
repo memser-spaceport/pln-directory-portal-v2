@@ -25,6 +25,7 @@ interface SearchableSingleSelectProps {
   name: string;
   onSearchHandler?: any;
   defaultImage?: string;
+  showClear?: boolean;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -46,6 +47,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   id,
   onSearchHandler,
   defaultImage,
+  showClear,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -159,7 +161,16 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           />
           <input ref={inputRef} type="text" hidden defaultValue={defaultSelectedValue} name={name} />
 
-          {arrowImgUrl && <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+          {showClear ? (
+            <span onClick={onClear} className="select__reset">
+              Clear
+            </span>
+          ) : arrowImgUrl ? (
+            <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
+          ) : (
+            ''
+          )}
+
           {showOptions && (
             <ul className="select__options">
               {filteredOptions.map((option) => (
@@ -279,6 +290,19 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             cursor: pointer;
             font-size: 15px;
             padding: 4px 8px;
+          }
+
+          .select__reset {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #156ff7;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            right: 8px;
+            display: block;
           }
         `}
       </style>

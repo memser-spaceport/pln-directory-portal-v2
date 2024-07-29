@@ -1,5 +1,4 @@
 import { getHeader } from '@/utils/common.utils';
-import { isPastDate } from '@/utils/irl.utils';
 
 export const getAllEvents = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events?orderBy=priority`, {
@@ -56,6 +55,14 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
   const guests = output?.eventGuests?.map((guest: any) => {
     const memberRole = guest?.member?.teamMemberRoles?.find((teamRole: any) => guest?.teamUid === teamRole?.teamUid)?.role;
 
+    const teamMemberRoles = guest?.member?.teamMemberRoles.map((tm: any) => {
+      return {
+        name: tm.team.name,
+        id: tm.teamUid,
+        role: tm.role,
+      };
+    });
+
     const projectContributions = guest?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name);
 
     return {
@@ -67,6 +74,7 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
       memberName: guest?.member?.name,
       memberLogo: guest?.member?.image?.url,
       memberRole,
+      teams: teamMemberRoles,
       reason: guest?.reason,
       telegramId: guest?.member?.telegramHandler || '',
       isTelegramRemoved: guest?.telegramId === '',
@@ -143,4 +151,19 @@ export const getUserEvents = async (token: string) => {
   }
 
   return await response.json();
+};
+
+export const deleteGuests = async (eventId: string, token: string, payload: { guests: [] }) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${eventId}/guests`, {
+    method: 'POST',
+    cache: 'no-store',
+    headers: getHeader(token),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    return false;
+  }
+
+  return true;
 };

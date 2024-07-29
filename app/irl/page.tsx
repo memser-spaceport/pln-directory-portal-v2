@@ -36,6 +36,8 @@ const getPageData = async () => {
 
   const events = await getAllEvents();
 
+  console.log("evyyy",events)
+
   if (events.errorCode) {
     error = true;
   } else {

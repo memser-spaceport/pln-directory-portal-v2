@@ -119,7 +119,7 @@ interface IGenerateMetadata {
 
 export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: any): Promise<any> {
   const memberId = params?.id;
-  const memberResponse = await getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' });
+  const memberResponse = await getMember(memberId, { with: 'image' });
   if (memberResponse?.error) {
     return {
       title: 'Protocol Labs Directory',
@@ -148,7 +148,7 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
     title: `${member?.name} | Protocol Labs Directory`,
     openGraph: {
       type: 'website',
-      url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${memberId}`,
+      url: `${process.env.APPLICATION_BASE_URL}/${PAGE_ROUTES.MEMBERS}/${memberId}`,
       images: [member?.profile, ...previousImages],
     },
   };

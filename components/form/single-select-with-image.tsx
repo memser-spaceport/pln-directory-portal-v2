@@ -78,7 +78,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({ options, 
             id={id}
             className={`select__search ${selectedOption && iconKey && (selectedOption[iconKey] || defaultIcon) ? 'select__icon' : ''} `}
             ref={searchRef}
-            defaultValue={defaultSelectedValue}
+            value={defaultSelectedValue}
             onClick={onSearchFocus}
             placeholder={placeholder}
             readOnly
@@ -92,7 +92,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({ options, 
                 <span>{option[displayKey]}</span>
               </li>
             ))}
-            {filteredOptions.length === 0 && <p className="select__options__noresults">No Results found</p>}
+            {filteredOptions?.length === 0 && <p className="select__options__noresults">No Results found</p>}
           </ul>
         )}
         </div>

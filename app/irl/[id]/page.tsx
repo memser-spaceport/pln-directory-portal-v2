@@ -20,7 +20,6 @@ export default async function IrlDetails({ params }: { params: { id: string } })
 
   const { isError, eventDetails, isLoggedIn, userInfo, isUserGoing, teams, showTelegram } = await getPageData(eventId);
 
-
   const type = eventDetails?.type;
   if (type === EVENT_TYPE.INVITE_ONLY && !isLoggedIn) {
     redirect('/irl');
@@ -84,7 +83,6 @@ const getPageData = async (eventId: string) => {
 
     const sortedList = sortByDefault(eventDetails?.guests);
     eventDetails.guests = sortedList;
-
     //has current user is going for an event
     isUserGoing = sortedList?.some((guest) => guest.memberUid === userInfo?.uid && guest?.memberUid);
 

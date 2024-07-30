@@ -104,6 +104,7 @@ const Filter = (props: ITeamFilterWeb) => {
       const search = current.toString();
       const query = search ? `?${search}` : '';
       router.push(`${pathname}/${query}`);
+      router.refresh()
     }
   };
 

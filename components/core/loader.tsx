@@ -1,27 +1,36 @@
 'use client';
 import { EVENTS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useOptimistic } from 'react';
 
 const Loader = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useOptimistic(false);
   const router = useRouter();
 
   useEffect(() => {
-    document.addEventListener(EVENTS.TRIGGER_LOADER, ((e: CustomEvent) => loadingHandler(e?.detail)) as EventListener);
-    document.removeEventListener(EVENTS.TRIGGER_LOADER, () => {});
+    function loadingHandler(e: any){
+      if (e?.detail) {
+        startTransition(() => {
+          setIsLoading(e?.detail);
+        })
+      } else {
+        startTransition(() => {
+          setIsLoading(false);
+        })
+      }
+    };
+    document.addEventListener(EVENTS.TRIGGER_LOADER, loadingHandler);
+    return function() {
+      document.removeEventListener(EVENTS.TRIGGER_LOADER, loadingHandler);
+    }
   }, []);
 
-  const loadingHandler = (loadingStatus: boolean) => {
-    if (loadingStatus) {
-      setIsLoading(loadingStatus);
-    } else {
-      setIsLoading(false);
-    }
-  };
+  
 
   useEffect(() => {
-    setIsLoading(false);
+   startTransition(() => {
+    setIsLoading(false)
+   })
   }, [router]);
   return (
     <>

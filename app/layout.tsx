@@ -5,19 +5,19 @@ import Navbar from '../components/core/navbar/nav-bar';
 import './globals.css';
 import StyledJsxRegistry from '../providers/registry';
 import { Suspense } from 'react';
-import { PostHogPageview } from '@/providers/analytics-provider';
+
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
-import CookieChecker from '@/components/core/login/cookie-checker';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 // dynamic components:
-const Loader = dynamic(() => import('../components/core/loader'));
-const AuthBox = dynamic(() => import('@/components/core/login/auth-box'));
-const Toaster = dynamic(() => import('../components/core/toaster'));
-const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'));
-const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'))
-const TeamRegisterDialog = dynamic(()=>import('@/components/page/team-form-info/team-register-dialog'))
+const Loader = dynamic(() => import('../components/core/loader'), {ssr: false});
+const AuthBox = dynamic(() => import('@/components/core/login/auth-box'), {ssr: false});
+const Toaster = dynamic(() => import('../components/core/toaster'), {ssr: false});
+const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'), {ssr: false});
+const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'), {ssr: false})
+const TeamRegisterDialog = dynamic(()=>import('@/components/page/team-form-info/team-register-dialog'), {ssr: false})
+const CookieChecker = dynamic(() => import('@/components/core/login/cookie-checker'), {ssr: false})
+const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then(d => d.PostHogPageview), {ssr: false})
 
 const inter = Inter({ subsets: ['latin'] });
 

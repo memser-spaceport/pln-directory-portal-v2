@@ -38,7 +38,7 @@ const FloatingBar = (props: IFloatingBar) => {
       new CustomEvent('openRsvpModal', {
         detail: {
           isOpen: true,
-          type:'admin-edit',
+          type: 'admin-edit',
           selectedGuest: selectedGuests[0], // Guest whose data will be edited
         },
       })
@@ -50,14 +50,14 @@ const FloatingBar = (props: IFloatingBar) => {
     <>
       <div className="floatingBar">
         <div className="floatingBar__count">{selectedGuests?.length}</div>
-        <div className="floatingBar__text">Attendee selected</div>
+        <div className="floatingBar__text">{`${selectedGuests?.length > 1 ? 'Attendees' : 'Attendee'} selected`}</div>
         <div className="floatingBar__actions">
           <div className="floatingBar__actions__manipulation">
-            {selectedGuests?.length === 1 && (
+            {/* {selectedGuests?.length === 1 && (
               <button onClick={onEditGuest} className="floatingBar__actions__edit">
                 <img src="/icons/edit-blue.svg" alt="edit" />
               </button>
-            )}
+            )} */}
             <button onClick={onDeleteGuests} className="floatingBar__actions__delete">
               <img src="/icons/delete.svg" alt="delete" />
             </button>

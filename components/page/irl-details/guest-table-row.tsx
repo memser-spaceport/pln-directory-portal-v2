@@ -388,7 +388,6 @@ const GuestTableRow = (props: any) => {
           word-break: break-word;
           max-width: 200px;
           border-radius: 8px;
-          background-color: #1e293b;
           padding: 4px 8px;
           font-size: 12px;
           font-weight: 500;

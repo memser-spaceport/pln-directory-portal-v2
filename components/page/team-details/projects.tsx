@@ -46,7 +46,6 @@ const Projects = (props: IProjects) => {
   };
 
   const onProjectCardClicked = (project: any) => {
-    triggerLoader(true);
     analytics.onTeamDetailProjectClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
   };
 

@@ -2,7 +2,7 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENT_TYPE } from '@/utils/constants';
-import { canUserPerformAction } from '@/utils/irl.utils';
+import { canUserPerformAction, isPastDate } from '@/utils/irl.utils';
 
 interface IJoinEventStrip {
   onLogin: () => void;
@@ -19,6 +19,7 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
   const eventDetails = props?.eventDetails;
   const userInfo = props?.userInfo;
   const type = eventDetails?.type;
+  const isPastEvent = isPastDate(eventDetails?.endDate);
 
   const analytics = useIrlAnalytics();
 
@@ -61,13 +62,13 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
           <p className="joinEventStrip__info__text">Kickstart the attendee list and let others know you&apos;re joining. Your presence could inspire others to join in too!</p>
         </div>
         <div className="joinEventStrip__btnWrpr">
-          {isUserLoggedIn && canUserAddAttendees && (
+          {isUserLoggedIn && canUserAddAttendees && !isPastEvent && (
             <button className="joinEventStrip__btnWrpr__add__btn" onClick={onAddMemberClick}>
               <img src="/icons/add-rounded.svg" width={16} height={16} alt="add" />
-              <span className="joinEventStrip__btnWrpr__add__btn__txt">Add New Member</span>
+              <span className="joinEventStrip__btnWrpr__add__btn__txt">Add Member</span>
             </button>
           )}
-          {isUserLoggedIn && !isUserGoing && type !== EVENT_TYPE.INVITE_ONLY && (
+          {isUserLoggedIn && !isUserGoing && type !== EVENT_TYPE.INVITE_ONLY && !isPastEvent && (
             <button onClick={onJoinClick} className="joinEventStrip__btnWrpr__btn">
               I am going
             </button>
@@ -158,7 +159,7 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
         }
 
         .joinEventStrip__btnWrpr__add__btn__txt {
-          font-size: 12px;
+          font-size: 14px;
           font-weight: 500;
           line-height: 24px;
           color: #156ff7;

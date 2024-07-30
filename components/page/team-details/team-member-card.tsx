@@ -3,8 +3,6 @@ import { Tooltip } from "@/components/core/tooltip/tooltip";
 import { ITag, ITeam } from "@/types/teams.types";
 import { IMember } from "@/types/members.types";
 import { Tag } from "@/components/ui/tag";
-import Link from "next/link";
-import Image from "next/image";
 
 interface ITeamMemberCard {
   team: ITeam | undefined;
@@ -23,10 +21,9 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
   const url = props?.url; 
   const callback = props?.onCardClick
   
-
   return (
     <>
-    <Link href={url} onClick={() => callback(member)} >
+    <a target="_blank" href={url} onClick={() => callback(member)} >
       <div className="team-members-card">
         <div className="team-members-card__profile-details">
           <div className="team-members-card__profile-details__profile">
@@ -78,7 +75,7 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
           </button>
         </div>
       </div>
-      </Link>
+      </a>
 
       <style jsx>
         {`

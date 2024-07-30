@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import TagsPicker from './tags-picker';
 import { getMemberInfo, getMembersForProjectForm } from '@/services/members.service';
 import { getEventDetailBySlug, createEventGuest, editEventGuest } from '@/services/irl.service';
@@ -36,20 +36,17 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
   const isUserGoing = props?.isUserGoing;
   const registeredGuest = props?.registeredGuest;
   const eventDetails = props?.eventDetails;
-  const showTelegram = props?.showTelegram;
+  const initialShowTelegram = props?.showTelegram;
   const onClose = props?.onClose;
   const focusOHField = props?.focusOHField;
   const formType = props?.formType;
 
   //variables
   const [formErrors, setFormErrors] = useState<any>({});
-  // const initialTeams = isAllowedToManageGuests 
-  // ? [] 
-  // : formType === 'add' 
-  //   ? props?.loggedInUserteams 
-  //   : registeredGuest?.teams;
-    
-  const [teams, setTeams] = useState(isAllowedToManageGuests ? [] : formType === 'add' ? props?.loggedInUserteams : registeredGuest?.teams);
+  const memberTeams = isAllowedToManageGuests ? [] : formType === 'add' ? props?.loggedInUserteams : registeredGuest?.teams;
+
+  const [teams, setTeams] = useState(memberTeams);
+  const [showTelegram, setShowTelegram] = useState(isAllowedToManageGuests ? true : initialShowTelegram);
   const [initialTeams, setInitialTeams] = useState([]);
   const [initialContributors, setInitialContributors] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState<any>({ name: '' });
@@ -85,6 +82,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
   }, [teams, formValues?.teamUid, formType]);
 
   const dateRange = getArrivalDepartureDateRange(eventDetails?.startDate, eventDetails?.endDate, 5, 4);
+  const router = useRouter();
 
   //methods
   const getEventDetails = async () => {
@@ -97,6 +95,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
         },
       })
     );
+    router.refresh();
   };
 
   const handleChange = (event: any) => {
@@ -311,8 +310,10 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
     const isUserAlreadyInGuestList = eventDetails?.guests?.some((guest: any) => guest?.memberUid === item.uid);
     if (!isUserAlreadyInGuestList) {
       setTeams(item.teams);
+      const showTelegram = item?.preferences === null ? true : item?.preferences?.showTelegram;
+      setShowTelegram(showTelegram);
       setFormValues((prevFormData) => ({ ...prevFormData, teamUid: item?.mainTeam?.team?.uid }));
-      getMemberConnectDetails(item?.uid);
+      await getMemberConnectDetails(item?.uid);
       setIsMemberInGuestList(false);
     } else {
       setIsMemberInGuestList(true);
@@ -348,7 +349,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
       setFormValues((prevFormData) => ({
         ...prevFormData,
         telegramId: !registeredGuest?.isTelegramRemoved ? telegram : '',
-        officeHours: !registeredGuest?.officeHours ? '' : response?.data?.officeHours ?? '',
+        officeHours: registeredGuest?.officeHours === '' ? '' : response?.data?.officeHours ?? '',
       }));
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
     } catch (error) {
@@ -414,16 +415,30 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
   }, []);
 
   useEffect(() => {
+    if (isAllowedToManageGuests) {
+      const fetchTeamsAndMembers = async () => {
+        const toast = (await import('react-toastify')).toast;
+        try {
+          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
+          const [contributorsSuccess, teamsSuccess] = await Promise.all([getAllContributors(null), getAllTeams()]);
+          if (!contributorsSuccess || !teamsSuccess) {
+            toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          }
+        } catch (error) {
+          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        } finally {
+          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        }
+      };
+
+      fetchTeamsAndMembers();
+    }
+  }, [isAllowedToManageGuests]);
+
+  useEffect(() => {
     if (focusOHField && officeHoursRef.current) {
       officeHoursRef.current.focus();
       officeHoursRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isAllowedToManageGuests) {
-      getAllContributors(null);
-      getAllTeams();
     }
   }, []);
 
@@ -435,41 +450,45 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
           <div className="details__cn">
             {isAllowedToManageGuests && (
               <div className="details__cn__teams__mems">
-                <SearchableSingleSelect
-                  id="irl-guest-allteams-info"
-                  placeholder="All Teams"
-                  displayKey="name"
-                  options={initialTeams}
-                  selectedOption={selectedTeam}
-                  uniqueKey="teamUid"
-                  formKey="teamTitle"
-                  name={`guest-teamName`}
-                  onChange={(item) => onTeamSelectionChanged(item)}
-                  arrowImgUrl="/icons/arrow-down.svg"
-                  iconKey="logo"
-                  defaultImage="/icons/team-default-profile.svg"
-                  onClear={() => {}}
-                />
+                <div className="details__cn__teams">
+                  <SearchableSingleSelect
+                    id="irl-guest-allteams-info"
+                    placeholder="All Teams"
+                    displayKey="name"
+                    options={initialTeams}
+                    selectedOption={selectedTeam}
+                    uniqueKey="teamUid"
+                    formKey="teamTitle"
+                    name={`guest-teamName`}
+                    onChange={(item) => onTeamSelectionChanged(item)}
+                    arrowImgUrl="/icons/arrow-down.svg"
+                    iconKey="logo"
+                    defaultImage="/icons/team-default-profile.svg"
+                    onClear={() => {}}
+                  />
+                </div>
 
-                <SearchableSingleSelect
-                  id="irl-member-info"
-                  placeholder="Select Member"
-                  displayKey="name"
-                  options={initialContributors}
-                  selectedOption={selectedMember}
-                  uniqueKey="memberUid"
-                  formKey="memberName"
-                  name={`guest-memberName`}
-                  onChange={(item) => onMemberSelectionChanged(item)}
-                  arrowImgUrl="/icons/arrow-down.svg"
-                  iconKey="logo"
-                  defaultImage="/icons/team-default-profile.svg"
-                  onClear={onResetMember}
-                  showClear
-                />
+                <div className="details__cn__members">
+                  <SearchableSingleSelect
+                    id="irl-member-info"
+                    placeholder="Select Member"
+                    displayKey="name"
+                    options={initialContributors}
+                    selectedOption={selectedMember}
+                    uniqueKey="memberUid"
+                    formKey="memberName"
+                    name={`guest-memberName`}
+                    onChange={(item) => onMemberSelectionChanged(item)}
+                    arrowImgUrl="/icons/arrow-down.svg"
+                    iconKey="logo"
+                    defaultImage="/icons/team-default-profile.svg"
+                    onClear={onResetMember}
+                    showClear
+                  />
+                </div>
               </div>
             )}
-            {isMemberInGuestList && <div className="error">Member already in the event</div>}
+            {isMemberInGuestList && <div className="error">Member already exists.</div>}
             <div className="details__cn__team">
               <label className="label details__cn__team__label">Team</label>
               <SingleSelectWithImage
@@ -552,7 +571,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
                 name="officeHours"
                 className="details__cn__oh__field"
                 id="going-office-hours"
-                placeholder={!registeredGuest?.officeHours && connectDetail?.officeHours !== '' ? connectDetail.officeHours : 'Enter link here'}
+                placeholder={!registeredGuest?.officeHours && connectDetail?.officeHours ? connectDetail.officeHours : 'Enter link here'}
                 value={formValues?.officeHours}
                 onChange={handleChange}
                 ref={officeHoursRef}
@@ -641,7 +660,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
             Close
           </button>
           <button disabled={isMemberInGuestList} className="details__btns__save" type="submit">
-            {isAllowedToManageGuests ? 'Add Attendee' : isUserGoing ? 'Update' : 'Save'}
+            {isAllowedToManageGuests ? 'Add Attendee' : registeredGuest ? 'Update' : 'Save'}
           </button>
         </div>
       </form>
@@ -689,6 +708,14 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
             display: flex;
             flex-direction: column;
             gap: 12px;
+          }
+
+          .details__cn__teams {
+            width: 100%;
+          }
+
+          .details__cn__members {
+            width: 100%;
           }
 
           .details__cn__team {
@@ -973,6 +1000,14 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
           @media (min-width: 820px) {
             .details {
               width: 640px;
+            }
+
+            .details__cn__teams {
+              flex: 2;
+            }
+
+            .details__cn__members {
+              flex: 4;
             }
 
             .details__cn__spl__date {

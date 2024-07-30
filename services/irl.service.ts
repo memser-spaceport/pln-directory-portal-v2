@@ -60,6 +60,7 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
         name: tm.team.name,
         id: tm.teamUid,
         role: tm.role,
+        logo: tm?.team?.logo?.url ?? '',
       };
     });
 

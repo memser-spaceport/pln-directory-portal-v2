@@ -142,7 +142,7 @@ export const formatDateRange = (startDate: string, endDate: string) => {
 
 export function getTelegramUsername(input: string) {
   const regex = /(?:https?:\/\/)?(?:www\.)?t(?:elegram)?\.me\/([a-zA-Z0-9_]+)/;
-  const match = input.match(regex);
+  const match = input?.match(regex);
   return match ? match[1] : input;
 }
 

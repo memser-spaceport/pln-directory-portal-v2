@@ -42,7 +42,6 @@ const TeamMembers = (props: ITeamMembers) => {
   };
 
   const onMemberClickHandler = (member: IMember) => {
-    triggerLoader(true);
     analytics.onTeamDetailMemberClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member))
   };
 

@@ -123,7 +123,7 @@ const Toolbar = (props: IToolbar) => {
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
                 <img src="/icons/add-rounded.svg" width={16} height={16} alt="add" />
-                <span className="toolbar__actionCn__add__btn__txt">Add New Member</span>
+                <span className="toolbar__actionCn__add__btn__txt">Add Member</span>
               </button>
 
               <button className="toolbar__actionCn__add__btn-mob" onClick={onAddMemberClick}>
@@ -203,7 +203,7 @@ const Toolbar = (props: IToolbar) => {
           }
 
           .toolbar__actionCn__add__btn__txt {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
             line-height: 24px;
             color: #156ff7;

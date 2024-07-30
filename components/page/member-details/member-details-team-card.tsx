@@ -40,7 +40,7 @@ const MemberDetailsTeamCard = (props: IMemberTeamCard) => {
 
   return (
     <>
-      <a href={url} className="member-team-card" onClick={() => onTeamClickHandler()}>
+      <a href={url} target='_blank' className="member-team-card" onClick={() => onTeamClickHandler()}>
         <div className="member-team-card__profile-details">
           <div className="member-teamn-card__profile-details__profile-container">
             <img loading="lazy" alt="profile" src={logo} height={40} width={40} className="member-team-card__profile-details__profile" />

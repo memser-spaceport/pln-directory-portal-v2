@@ -26,12 +26,6 @@ const Loader = () => {
   }, []);
 
   
-
-  useEffect(() => {
-   startTransition(() => {
-    setIsLoading(false)
-   })
-  }, [router]);
   return (
     <>
       {isLoading && (

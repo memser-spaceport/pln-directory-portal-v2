@@ -45,7 +45,7 @@ export const EVENTS = {
   UPDATE_SELECTED_CONTRIBUTING_TEAM: 'update-selected-contring-team',
   UPDATE_SELECTED_CONTRIBUTORS: 'update-selected-contributors',
   PROJECT_ADD_MODAL_CLOSE_EVENT: 'project-add-modal-close-event',
-  OPEN_REMOVE_GUESTS_POPUP:'open-remove-guests-popup'
+  OPEN_REMOVE_GUESTS_POPUP: 'open-remove-guests-popup',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -280,10 +280,10 @@ export const IRL_ANALYTICS_EVENTS = {
   IRL_DETAILS_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED: 'irl-guest-list-table-add-office-hours-clicked',
   IRL_DETAILS_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
   IRL_DETAILS_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
-  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_OPEN:'irl-remove-attendees-popup-open',
-  IRL_DETAILS_FLOATING_BAR_EDIT_BTN_CLICKED:'irl-floating-bar-edit-btn-clicked',
-  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_BTN_CLICKED:'irl-remove-attendees-popup-remove-btn-clicked',
-  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_SUCCESS:'irl-remove-attendees-popup-remove-success',
+  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-remove-attendees-popup-open',
+  IRL_DETAILS_FLOATING_BAR_EDIT_BTN_CLICKED: 'irl-floating-bar-edit-btn-clicked',
+  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_BTN_CLICKED: 'irl-remove-attendees-popup-remove-btn-clicked',
+  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_SUCCESS: 'irl-remove-attendees-popup-remove-success',
 
   IRL_RSVP_POPUP_SAVE_BTN_CLICKED: 'irl-rsvp-popup-save-btn-clicked',
   IRL_RSVP_POPUP_UPDATE_BTN_CLICKED: 'irl-rsvp-popup-update-btn-clicked',
@@ -579,3 +579,5 @@ export const tagColors = [
 ];
 
 export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
+
+export const SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';

@@ -2,7 +2,7 @@ import { getAllTeams, getTeamsFilters } from '@/services/teams.service';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
 import { calculateTotalPages } from '@/utils/common.utils';
-import { ITEMS_PER_PAGE, PAGE_ROUTES } from '@/utils/constants';
+import { ITEMS_PER_PAGE, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
 import { Metadata } from 'next';
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
     url: process.env.APPLICATION_BASE_URL,
     images: [
       {
-        url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+        url: SOCIAL_IMAGE_URL,
         width: 1280,
         height: 640,
         alt: 'Protocol Labs Directory',
@@ -98,6 +98,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+    images: [SOCIAL_IMAGE_URL],
   },
 };

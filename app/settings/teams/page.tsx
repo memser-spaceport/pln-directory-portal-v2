@@ -1,7 +1,7 @@
 import Breadcrumbs from '@/components/ui/breadcrumbs';
 import styles from './page.module.css';
 import SettingsMenu from '@/components/page/settings/menu';
-import MemberSettings from '@/components/page/settings/member-settings';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ManageTeamsSettings from '@/components/page/settings/manage-teams';
 import Link from 'next/link';
 import { getTeamInfo, getTeamsInfoForDp } from '@/services/teams.service';
@@ -98,7 +98,7 @@ export const metadata: Metadata = {
     url: process.env.APPLICATION_BASE_URL,
     images: [
       {
-        url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+        url: SOCIAL_IMAGE_URL,
         width: 1280,
         height: 640,
         alt: 'Protocol Labs Directory',
@@ -108,6 +108,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+    images: [SOCIAL_IMAGE_URL],
   },
 };

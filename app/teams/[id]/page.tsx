@@ -9,7 +9,7 @@ import { getAllTeams, getTeam, getTeamUIDByAirtableId } from '@/services/teams.s
 import { IMember } from '@/types/members.types';
 import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.types';
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
-import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES } from '@/utils/constants';
+import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, redirect } from 'next/navigation';
@@ -214,7 +214,7 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
       openGraph: {
         images: [
           {
-            url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+            url: SOCIAL_IMAGE_URL,
             width: 1280,
             height: 640,
             alt: 'Protocol Labs Directory',
@@ -224,13 +224,13 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
       },
       twitter: {
         card: 'summary_large_image',
-        images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+        images: [SOCIAL_IMAGE_URL],
       },
     };
   }
   const team = teamResonse?.data?.formatedData;
   const previousImages = (await parent).openGraph?.images || [];
-  const logo = team?.logo || 'https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg';
+  const logo = team?.logo || SOCIAL_IMAGE_URL;
   return {
     title: `${team?.name} | Protocol Labs Directory`,
     openGraph: {

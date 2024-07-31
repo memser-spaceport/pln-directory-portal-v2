@@ -9,6 +9,7 @@ import { PostHogPageview } from '@/providers/analytics-provider';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import CookieChecker from '@/components/core/login/cookie-checker';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'));
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     url: process.env.APPLICATION_BASE_URL,
     images: [
       {
-        url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+        url: SOCIAL_IMAGE_URL,
         width: 1280,
         height: 640,
         alt: 'Protocol Labs Network',
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+    images: [SOCIAL_IMAGE_URL],
   },
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {

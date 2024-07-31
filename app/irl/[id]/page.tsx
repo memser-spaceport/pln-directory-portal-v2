@@ -2,7 +2,7 @@ import Error from '@/components/core/error';
 import { getEventDetailBySlug } from '@/services/irl.service';
 import { getMember } from '@/services/members.service';
 import { getMemberPreferences } from '@/services/preferences.service';
-import { ADMIN_ROLE, EVENT_TYPE, PAGE_ROUTES } from '@/utils/constants';
+import { ADMIN_ROLE, EVENT_TYPE, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { isPastDate, sortByDefault, splitResources } from '@/utils/irl.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import styles from './page.module.css';
@@ -132,7 +132,7 @@ export async function generateMetadata({ params }: IGenerateMetadata, parent: Re
       openGraph: {
         images: [
           {
-            url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+            url: SOCIAL_IMAGE_URL,
             width: 1280,
             height: 640,
             alt: 'Protocol Labs Directory',
@@ -142,7 +142,7 @@ export async function generateMetadata({ params }: IGenerateMetadata, parent: Re
       },
       twitter: {
         card: 'summary_large_image',
-        images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+        images: [SOCIAL_IMAGE_URL],
       },
     };
   }

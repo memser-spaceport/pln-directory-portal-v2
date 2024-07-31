@@ -8,7 +8,7 @@ import EmptyResult from '@/components/core/empty-result';
 import ProjectlistWrapper from '@/components/page/projects/projectlist-wrapper';
 import FilterWrapper from '@/components/page/projects/filter-wrapper';
 import { getFocusAreas } from '@/services/common.service';
-import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { URL_QUERY_VALUE_SEPARATOR, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata } from 'next';
 import { getTeam, searchTeamsByName } from '@/services/teams.service';
 
@@ -100,7 +100,7 @@ export const metadata: Metadata = {
     url: process.env.APPLICATION_BASE_URL,
     images: [
       {
-        url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+        url: SOCIAL_IMAGE_URL,
         width: 1280,
         height: 640,
         alt: 'Protocol Labs Directory',
@@ -110,6 +110,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+    images: [SOCIAL_IMAGE_URL],
   },
 };

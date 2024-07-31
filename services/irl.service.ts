@@ -54,12 +54,11 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
 
   const guests = output?.eventGuests?.map((guest: any) => {
     const memberRole = guest?.member?.teamMemberRoles?.find((teamRole: any) => guest?.teamUid === teamRole?.teamUid)?.role;
-
     const teamMemberRoles = guest?.member?.teamMemberRoles.map((tm: any) => {
       return {
-        name: tm.team.name,
-        id: tm.teamUid,
-        role: tm.role,
+        name: tm?.team?.name,
+        id: tm?.team?.uid,
+        role: tm?.role,
         logo: tm?.team?.logo?.url ?? '',
       };
     });

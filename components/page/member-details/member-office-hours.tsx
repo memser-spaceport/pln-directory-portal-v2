@@ -2,15 +2,20 @@
 
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { createFollowUp } from '@/services/office-hours.service';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
 import { LEARN_MORE_URL, OFFICE_HOURS_MSG } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
+
 
 const MemberOfficeHours = (props: any) => {
   const member = props?.member;
   const officeHours = member?.officeHours;
   const isLoggedIn = props?.isLoggedIn;
   const userInfo = props?.userInfo;
+
+  console.log("user info", props);
 
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
@@ -21,7 +26,17 @@ const MemberOfficeHours = (props: any) => {
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 
-  const onScheduleMeeting = () => {
+  const onScheduleMeeting = async () => {
+    try {
+      const authToken = Cookies.get("authToken") || "";
+      await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+        data: {},
+        hasFollowUp: true,
+        targetMemberUid: member.id,
+      });
+    } catch (error) {
+      console.error(error);
+    }
     memberAnalytics.onOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
   };
 
@@ -169,7 +184,7 @@ const MemberOfficeHours = (props: any) => {
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            display:inline-block;
+            display: inline-block;
           }
         }
       `}</style>

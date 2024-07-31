@@ -62,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthBox />
           <Toaster />
           <BroadCastChannel />
-          <RatingContainer isLoggedIn={isLoggedIn} authToken={authToken} />
+          <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
           <MemberRegisterDialog />
           <TeamRegisterDialog />
           <CookieChecker isLoggedIn={isLoggedIn} />

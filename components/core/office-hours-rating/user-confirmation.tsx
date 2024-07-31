@@ -1,4 +1,7 @@
-import { OFFICE_HOURS_STEPS } from "@/utils/constants";
+'use client'
+import { createFeedBack } from '@/services/office-hours.service';
+import { OFFICE_HOURS_STEPS } from '@/utils/constants';
+import { useEffect } from 'react';
 
 interface IUserConfirmation {
   onClose: () => void;
@@ -7,23 +10,35 @@ interface IUserConfirmation {
 
 const UserConfirmation = (props: any) => {
   const onClose = props.onClose;
-  const recentlyBooked = props?.recentlyBooked;
-  const name = recentlyBooked?.name ?? '';
+  const currentFollowUp = props?.currentFollowup;
   const setCurrentStep = props?.setCurrentStep;
+  const userInfo = props?.userInfo;
 
-  const onYesClickHandler = () => {
-    setCurrentStep(OFFICE_HOURS_STEPS.HAPPENED.name);
-  }
+  const onYesClickHandler = async () => {
+    console.log(currentFollowUp)
+    await createFeedBack(userInfo.uid, currentFollowUp.interactionUid, userInfo?.authToken ?? '', {
+      data: {},
+      type: `${currentFollowUp?.type}_FEED_BACK`,
+      rating: 3,
+      comments: [],
+      response: 'POSITIVE',
+    });
+    onClose();
+  };
 
   const onNoClickHandler = () => {
     setCurrentStep(OFFICE_HOURS_STEPS.NOT_HAPPENED.name);
-  }
+  };
+
+  useEffect(() => {
+    console.log(currentFollowUp)
+  }, [currentFollowUp])
 
   return (
     <>
       <div className="usercfr">
         <div className="usercfr__titlesec">
-          <h2 className="usercfr__titlesec__title">{`Did you schedule Office Hours with ${name}?`}</h2>
+          <h2 className="usercfr__titlesec__title">{`Did you schedule Office Hours with ${currentFollowUp}?`}</h2>
         </div>
         <div className="usercfr__opts">
           <button className="usercfr__opts__no" onClick={onNoClickHandler}>

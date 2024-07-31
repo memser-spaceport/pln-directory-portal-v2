@@ -589,8 +589,8 @@ export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
 export const SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
 
 export const OFFICE_HOURS_STEPS = {
-  CONFIRMATION: {
-    name: "confirmation",
+  MEETING_INITIATED: {
+    name: "MEETING_INITIATED",
   },
   HAPPENED: {
     name: "happened",
@@ -611,3 +611,36 @@ export const TROUBLES_INFO = {
       reasons: []
   }
 }
+
+
+
+export const DIDNTHAPPENEDOPTIONS = [
+  {
+    name: "Meeting link didn't work",
+  },
+  {
+    name: 'Meeting yet to happen',
+  },
+  {
+    name: 'Got Rescheduled',
+  },
+  {
+    name: 'Got Cancelled',
+  },
+  {
+    name: "Member didn't show up",
+  },
+  {
+    name: 'I did not show up',
+  },
+  {
+    name: 'Other',
+  },
+];
+
+
+export const TECHNICALISSUESOPTIONS = [
+  {name: "Noise or disturbance during the call"},
+  {name: "Network issue"}, 
+  {name: "Other"}
+]

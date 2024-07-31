@@ -184,7 +184,7 @@ const GuestTableRow = (props: any) => {
               -
             </span>
           )}
-          {(userInfo.uid === guestUid || canUserAddAttendees) && !officeHours ? (
+          {(userInfo.uid === guestUid) && !officeHours ? (
             <button onClick={() => handleAddOfficeHoursClick(guest.uid)} className="gtr__connect__add">
               <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
               <span className="gtr__connect__add__txt">Add Office Hours</span>

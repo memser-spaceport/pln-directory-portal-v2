@@ -6,17 +6,20 @@ const RegsiterFormLoader = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    document.addEventListener(EVENTS.TRIGGER_REGISTER_LOADER, ((e: CustomEvent) => loadingHandler(e?.detail)) as EventListener);
-    document.removeEventListener(EVENTS.TRIGGER_REGISTER_LOADER, () => {});
-  }, []);
-
-  const loadingHandler = (loadingStatus: boolean) => {
-    if (loadingStatus) {
-      setIsLoading(loadingStatus);
-    } else {
-      setIsLoading(false);
+    function handler(e: CustomEvent) {
+      const loadingStatus = e.detail;
+      if (loadingStatus) {
+        setIsLoading(loadingStatus);
+      } else {
+        setIsLoading(false);
+      }
     }
-  };
+
+    document.addEventListener(EVENTS.TRIGGER_REGISTER_LOADER, handler as EventListener);
+    return () => {
+      document.removeEventListener(EVENTS.TRIGGER_REGISTER_LOADER, handler as EventListener);
+    };
+  }, []);
 
   return (
     <>

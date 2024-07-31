@@ -147,7 +147,6 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({ options, 
             border-radius: 8px;
             border: 1px solid lightgrey;
             cursor:pointer;
-            text-transform: capitalize;
           }
           .select__search:focus-visible,
           .select__search:focus {

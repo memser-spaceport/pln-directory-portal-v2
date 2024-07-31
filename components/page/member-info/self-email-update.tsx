@@ -73,7 +73,7 @@ function SelfEmailUpdate(props: any) {
           document.dispatchEvent(new CustomEvent('app-loader-status'));
           analytics.onUpdateEmailSuccess({newEmail, oldEmail:currentEmail})
           toast.success('Email Updated Successfully');
-          router.refresh();
+          window.location.reload();
         }
       } catch (err) {
         const newEmail = e.detail.newEmail;

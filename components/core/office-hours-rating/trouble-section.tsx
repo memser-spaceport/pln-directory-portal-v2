@@ -1,9 +1,30 @@
-import SearchableSingleSelect from '@/components/form/searchable-single-select';
-import { TROUBLES_INFO } from '@/utils/constants';
+import SingleSelect from '@/components/form/single-select';
+import TextArea from '@/components/form/text-area';
+import TextField from '@/components/form/text-field';
+import { DIDNTHAPPENEDOPTIONS, TECHNICALISSUESOPTIONS, TROUBLES_INFO } from '@/utils/constants';
+import { Fragment, useState } from 'react';
+import OfficeHoursMultiSelect from './office-hours-multi-select';
+import HiddenField from '@/components/form/hidden-field';
 
 const TroubleSection = (props: any) => {
   const onTroubleOptionClickHandler = props.onTroubleOptionClickHandler;
   const troubles = props?.troubles ?? [];
+
+  const [selectedDidntHappenedOption, setSelectedDidntHappenedOption] = useState('');
+  const [selectedTechnicalIssues, setSelectedTechnicalIssues] = useState<string[]>([]);
+
+  const onDidntHapppenedOptionClickHandler = (option: any) => {
+    setSelectedDidntHappenedOption(option.name);
+  };
+
+  const onTechnicalIssueClickHandler = (issue: any) => {
+    if (selectedTechnicalIssues.includes(issue.name)) {
+      const filteredIssues = selectedTechnicalIssues.filter((techIssue) => techIssue !== issue.name);
+      setSelectedTechnicalIssues(filteredIssues);
+      return;
+    }
+    setSelectedTechnicalIssues([...selectedTechnicalIssues, issue.name]);
+  };
 
   return (
     <>
@@ -20,7 +41,7 @@ const TroubleSection = (props: any) => {
             <div className="trblesec__didnthpn__optn__chckbox">
               {troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
                 <button onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name)} className="trblesec__didnthpn__optn__chckbox__sltdbtn">
-                  <img height={16} width={16} src="/icons/right-white.svg" />
+                  <img src="/icons/right-white.svg" />
                 </button>
               )}
 
@@ -31,44 +52,72 @@ const TroubleSection = (props: any) => {
             <div className="trblesec__didnthpn__optn__cnt">Meeting didn’t happen</div>
           </div>
 
-          {troubles?.includes(TROUBLES_INFO.didntHappened.name) && <div>
-            
-            <SearchableSingleSelect
-                  id="project-register-contributor-info"
-                  placeholder="All Team"
-                  displayKey="name"
-                  options={[{name: "other"}]}
-                  selectedOption={""}
-                  uniqueKey="teamUid"
-                  formKey="teamTitle"
-                  name={`projectInfo-teamTitle`}
-                  onClear={() => () => {}}
-                  onChange={(item) => () => {}}
-                  arrowImgUrl="/icons/arrow-down.svg"
-                  iconKey="logo"
-                  defaultImage="/icons/team-default-profile.svg"
-                />
-            
-            </div>}
+          {troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
+            <div className="trblesec__didnthpn__ddown">
+              <SingleSelect
+                displayKey="name"
+                arrowImgUrl="/icons/arrow-down.svg"
+                id="didnthappendReason"
+                onItemSelect={onDidntHapppenedOptionClickHandler}
+                options={[...DIDNTHAPPENEDOPTIONS]}
+                selectedOption={selectedDidntHappenedOption}
+                uniqueKey="didnthappendReason"
+                placeholder="Select reason"
+              />
+
+              {selectedDidntHappenedOption === 'Got Rescheduled' && (
+                <div>
+                  <TextField defaultValue={''} id="register-member-startDate" label="" name="rescheduledAt" type="date" placeholder="Select Date" />
+                </div>
+              )}
+
+              {selectedDidntHappenedOption === 'Other' && (
+                <div className="trblesec__didnthpn__ddown__othrctr">
+                  <div className="trblesec__didnthpn__ddown__othrctr__ttl">Secify other reason(s)*</div>{' '}
+                  <TextArea isMandatory={true} maxLength={1000} name={'didntHappenedReason'} id={'reason'} placeholder="Enter Details Here" />
+                </div>
+              )}
+            </div>
+          )}
+          <HiddenField value={selectedDidntHappenedOption} defaultValue={selectedDidntHappenedOption} name={`didntHappenedOption`} />
         </div>
 
         {/* Technial issue */}
 
         <div className="trblesec__techisue">
-          <div className="trblesec__didnthpn__optn">
-            <div className="trblesec__didnthpn__optn__chckbox">
+          <div className="trblesec__techisue__optn">
+            <div className="trblesec__techisue__chckbox">
               {troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
-                <button onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name)} className="trblesec__didnthpn__optn__chckbox__sltdbtn">
-                  <img height={16} width={16} src="/icons/right-white.svg" />
+                <button onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name)} className="trblesec__techisue__optn__chckbox__sltdbtn">
+                  <img src="/icons/right-white.svg" />
                 </button>
               )}
 
               {!troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
-                <button onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name)} className="trblesec__didnthpn__optn__chckbox__notsltdbtn"></button>
+                <button onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name)} className="trblesec__techisue__optn__chckbox__notsltdbtn"></button>
               )}
             </div>
-            <div className="trblesec__didnthpn__optn__cnt">Faced technical issues</div>
+            <div className="trblesec__techisue__optn__cnt">Faced technical issues</div>
           </div>
+
+          {troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
+            <div className="trblesec__techisue__ddown">
+              <OfficeHoursMultiSelect displayKey="name" items={TECHNICALISSUESOPTIONS} selectedItems={selectedTechnicalIssues} onItemSelect={onTechnicalIssueClickHandler} />
+            </div>
+          )}
+
+          {selectedTechnicalIssues.includes('Other') && (
+            <div className="trblesec__didnthpn__ddown__othrctr">
+              <div className="trblesec__didnthpn__ddown__othrctr__ttl">Secify other reason(s)*</div>{' '}
+              <TextArea isMandatory={true} maxLength={1000} name={'technnicalIssueReason'} id={'reason'} placeholder="Enter Details Here" />
+            </div>
+          )}
+
+          {selectedTechnicalIssues?.map((technicalIssue: any, index: number) => (
+            <Fragment key={`${technicalIssue}-${index}`}>
+                <HiddenField value={technicalIssue ?? ''} defaultValue={technicalIssue ?? ''} name={`technicalIssue-${index}`} />
+            </Fragment>
+          ))}
         </div>
       </div>
 
@@ -119,6 +168,29 @@ const TroubleSection = (props: any) => {
             height: 20px;
           }
 
+          .trblesec__techisue__chckbox {
+            height: 20px;
+          }
+
+          .trblesec__didnthpn__ddown {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          }
+
+          .trblesec__didnthpn__ddown__othrctr {
+            margin-top: 2px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .trblesec__didnthpn__ddown__othrctr__ttl {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+          }
+
           .trblesec__didnthpn__optn__chckbox__sltdbtn {
             background-color: #156ff7;
             border-radius: 4px;
@@ -139,7 +211,53 @@ const TroubleSection = (props: any) => {
           .trblesec__techisue {
             display: flex;
             gap: 8px;
+          }
+
+          .trblesec__techisue__optn {
+            display: flex;
+            gap: 8px;
             align-items: center;
+          }
+
+          .trblesec__techisue__optn__cnt {
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            line-height: 20px;
+          }
+
+          .trblesec__techisue__optn__chckbox {
+            height: 20px;
+          }
+
+          .trblesec__techisue__optn__chckbox__sltdbtn {
+            background-color: #156ff7;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            height: 20px;
+            width: 20px;
+            justify-content: center;
+          }
+
+          .trblesec__techisue__optn__chckbox__notsltdbtn {
+            border: 1px solid #cbd5e1;
+            height: 20px;
+            width: 20px;
+            border-radius: 4px;
+          }
+
+          .trblesec__techisue__ddown {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          }
+
+          .trblesec__techisue {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
           }
         `}
       </style>

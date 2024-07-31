@@ -39,7 +39,7 @@ const ProjectlistWrapper = (props: any) => {
         {projects?.map((project: any, index: number) => (
           <Link
             href={`/projects/${project.id}`}
-            key={`${project} + ${index}`}
+            key={`projectitem-${project.id}-${index}`}
             prefetch={false}
             className={`project-list__project ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid__project' : 'project-list__list__project'}`}
             onClick={() => onNavigateToProject(project)}

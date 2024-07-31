@@ -28,7 +28,7 @@ const MemberListWrapper = (props: any) => {
       {members?.map((member: any, index: number) => (
         <Link
           href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
-          key={`member-${viewType}-${index}`}
+          key={`memberitem-${member?.id}-${index}`}
           className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
           onClick={() => onMemberOnClickHandler(member)}
         >

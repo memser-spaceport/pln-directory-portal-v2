@@ -25,7 +25,7 @@ const TeamListWrapper = (props: any) => {
     <TeamsList {...props}>
       {allTeams?.map((team: ITeam, index: number) => (
         <div
-          key={`${team} + ${index}`}
+          key={`teamitem-${team.id}-${index}`}
           className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid__team' : 'team-list__list__team'}`}
           onClick={() => onTeamClickHandler(team)}
         >

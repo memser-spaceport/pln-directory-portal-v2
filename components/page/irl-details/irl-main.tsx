@@ -90,8 +90,9 @@ const IrlMain = (props: IIrlMain) => {
           const filteredList = [...sortedGuests]?.filter((v) => v.memberUid !== userInfo?.uid);
           eventInfo.guests = [currentUser, ...filteredList];
         }
+      } else {
+        setIsGoing(false);
       }
-
       setUpdatedUser(goingGuest);
       setUpdatedEventDetails(eventInfo);
     };
@@ -104,7 +105,7 @@ const IrlMain = (props: IIrlMain) => {
   //toggle attendees details modal
   useEffect(() => {
     const handler = (e: any) => {
-      const { isOpen, isOHFocused = false, isAllowedToManageGuests = false, selectedGuest, type} = e.detail;
+      const { isOpen, isOHFocused = false, isAllowedToManageGuests = false, selectedGuest, type } = e.detail;
       setIsAllowedToManageGuests(isAllowedToManageGuests);
       if (goingRef.current && isOpen) {
         setIsOpen(true);
@@ -147,9 +148,9 @@ const IrlMain = (props: IIrlMain) => {
     const handler = (e: any) => {
       setShowFloatingBar(e.detail.isOpen);
     };
-    document.addEventListener('openFloatingBar', handler);
+    document.addEventListener(EVENTS.OPEN_FLOATING_BAR, handler);
     return () => {
-      document.removeEventListener('openFloatingBar', handler);
+      document.removeEventListener(EVENTS.OPEN_FLOATING_BAR, handler);
     };
   }, []);
 
@@ -266,6 +267,7 @@ const IrlMain = (props: IIrlMain) => {
           .irl__floating-bar {
             position: fixed;
             bottom: 40px;
+            z-index: 3;
           }
 
           @media (min-width: 1024px) {

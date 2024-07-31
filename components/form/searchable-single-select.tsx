@@ -26,6 +26,7 @@ interface SearchableSingleSelectProps {
   onSearchHandler?: any;
   defaultImage?: string;
   showClear?: boolean;
+  closeImgUrl?: string;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -48,6 +49,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   onSearchHandler,
   defaultImage,
   showClear,
+  closeImgUrl,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -162,9 +164,13 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           <input ref={inputRef} type="text" hidden defaultValue={defaultSelectedValue} name={name} />
 
           {showClear ? (
-            <span onClick={onClear} className="select__reset">
-              Clear
-            </span>
+            <>
+              {selectedOption && selectedOption[displayKey] ? (
+                <img onClick={onClear} className="select__reset" src={closeImgUrl} width="16" height="16" alt="close" />
+              ) : (
+                <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
+              )}
+            </>
           ) : arrowImgUrl ? (
             <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
           ) : (

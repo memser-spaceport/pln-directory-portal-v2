@@ -4,6 +4,7 @@ import { IGuest } from '@/types/irl.types';
 import { useEffect } from 'react';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { EVENTS } from '@/utils/constants';
 
 interface IGuestList {
   userInfo: IUserInfo;
@@ -37,7 +38,7 @@ const GuestList = (props: IGuestList) => {
 
   useEffect(() => {
     document.dispatchEvent(
-      new CustomEvent('openFloatingBar', {
+      new CustomEvent(EVENTS.OPEN_FLOATING_BAR, {
         detail: {
           isOpen: selectedGuests.length > 0,
         },

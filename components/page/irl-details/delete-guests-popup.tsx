@@ -1,9 +1,10 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import { deleteGuests, getEventDetailBySlug } from '@/services/irl.service';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
+import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
 
 const DeleteGuestsPopup = (props: any) => {
   const eventDetails = props?.eventDetails;
@@ -13,6 +14,8 @@ const DeleteGuestsPopup = (props: any) => {
   const selectedGuests = guests.filter((guest: any) => selectedGuestIds.includes(guest?.uid)) ?? [];
   const setSelectedGuests = props?.setSelectedGuests;
   const userInfo = props?.userInfo;
+  const totalSelectedGuests = selectedGuests.length;
+  const areGuestsPlural = totalSelectedGuests > 1;
 
   const router = useRouter();
   const analytics = useIrlAnalytics();
@@ -27,31 +30,36 @@ const DeleteGuestsPopup = (props: any) => {
         },
       })
     );
+    router.refresh();
+    document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
   };
 
   const onDeleteGuests = async () => {
+    const toast = (await import('react-toastify')).toast;
+    document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     analytics.removeAttendeesPopupRemoveBtnClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), selectedGuests });
     const authToken = getParsedValue(Cookies.get('authToken') || '');
     try {
       const deleteGuestsResponse = await deleteGuests(eventDetails.slugUrl, authToken, { guests: selectedGuestIds });
       if (deleteGuestsResponse) {
-        analytics.removeAttendeesRemoveSuccess(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), selectedGuests });
-        getEventDetails();
-        onClose();
+        await getEventDetails();
         document.dispatchEvent(
-          new CustomEvent('openFloatingBar', {
+          new CustomEvent(EVENTS.OPEN_FLOATING_BAR, {
             detail: {
               isOpen: false,
             },
           })
         );
         setSelectedGuests([]);
-        toast.success('Deleted Successfully');
-        router.refresh();
+        onClose();
+        toast.success(TOAST_MESSAGES.ATTENDEE_DELETED_SUCCESSFULLY);
+        analytics.removeAttendeesRemoveSuccess(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), selectedGuests });
       }
     } catch (err) {
+      onClose();
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       console.log(err);
-      toast.error('Something Went Wrong');
     }
   };
 
@@ -59,7 +67,7 @@ const DeleteGuestsPopup = (props: any) => {
     <>
       <div className="dgp">
         <div className="dgp__hdr">
-          <h3 className="dgp__hdr__ttl">{`Confirm remove attendees (${selectedGuests?.length})`}</h3>
+          <h3 className="dgp__hdr__ttl">{`Confirm remove ${areGuestsPlural ? 'attendees' : 'attendee'} (${totalSelectedGuests})`}</h3>
           <div className="dgp__hdr__info">
             <img src="/icons/info-red.svg" alt="info" />
             <span className="dgp__hdr__info__txt">You will not be able to revert this action</span>
@@ -74,9 +82,10 @@ const DeleteGuestsPopup = (props: any) => {
           <button onClick={onClose} className="dgp__footer__cancel">
             Cancel
           </button>
-          <button onClick={onDeleteGuests} className="dgp__footer__remove">{`Remove ${selectedGuests?.length} Attendees`}</button>
+          <button onClick={onDeleteGuests} className="dgp__footer__remove">{`Remove ${totalSelectedGuests} ${areGuestsPlural ? 'Attendees' : 'Attendee'}`}</button>
         </div>
       </div>
+      <RegsiterFormLoader />
       <style jsx>{`
         .dgp {
           padding: 24px;

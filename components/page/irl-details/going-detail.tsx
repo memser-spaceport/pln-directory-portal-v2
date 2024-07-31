@@ -309,10 +309,18 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
     setSelectedMember(item);
     const isUserAlreadyInGuestList = eventDetails?.guests?.some((guest: any) => guest?.memberUid === item.uid);
     if (!isUserAlreadyInGuestList) {
-      setTeams(item.teams);
+      const memberTeamUids = item?.teams.map((team: any) => team.id);
+      const memberTeams = initialTeams
+        ?.filter((team: any) => memberTeamUids?.includes(team.uid))
+        ?.map((team: any) => ({
+          id: team.uid,
+          name: team.name,
+          logo: team.logo,
+        }));
       const showTelegram = item?.preferences === null ? true : item?.preferences?.showTelegram;
       setShowTelegram(showTelegram);
       setFormValues((prevFormData) => ({ ...prevFormData, teamUid: item?.mainTeam?.team?.uid }));
+      setTeams(memberTeams);
       await getMemberConnectDetails(item?.uid);
       setIsMemberInGuestList(false);
     } else {
@@ -449,42 +457,45 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
           <h2 className="details__title">Attendee Details</h2>
           <div className="details__cn">
             {isAllowedToManageGuests && (
-              <div className="details__cn__teams__mems">
-                <div className="details__cn__teams">
-                  <SearchableSingleSelect
-                    id="irl-guest-allteams-info"
-                    placeholder="All Teams"
-                    displayKey="name"
-                    options={initialTeams}
-                    selectedOption={selectedTeam}
-                    uniqueKey="teamUid"
-                    formKey="teamTitle"
-                    name={`guest-teamName`}
-                    onChange={(item) => onTeamSelectionChanged(item)}
-                    arrowImgUrl="/icons/arrow-down.svg"
-                    iconKey="logo"
-                    defaultImage="/icons/team-default-profile.svg"
-                    onClear={() => {}}
-                  />
-                </div>
+              <div className="details__cn__adminManage">
+                <div className="details__cn__ttl">Select Member</div>
+                <div className="details__cn__teams__mems">
+                  <div className="details__cn__teams">
+                    <SearchableSingleSelect
+                      id="irl-guest-allteams-info"
+                      placeholder="All Teams"
+                      displayKey="name"
+                      options={initialTeams}
+                      selectedOption={selectedTeam}
+                      uniqueKey="teamUid"
+                      formKey="teamTitle"
+                      name={`guest-teamName`}
+                      onChange={(item) => onTeamSelectionChanged(item)}
+                      arrowImgUrl="/icons/arrow-down.svg"
+                      iconKey="logo"
+                      defaultImage="/icons/team-default-profile.svg"
+                      onClear={() => {}}
+                    />
+                  </div>
 
-                <div className="details__cn__members">
-                  <SearchableSingleSelect
-                    id="irl-member-info"
-                    placeholder="Select Member"
-                    displayKey="name"
-                    options={initialContributors}
-                    selectedOption={selectedMember}
-                    uniqueKey="memberUid"
-                    formKey="memberName"
-                    name={`guest-memberName`}
-                    onChange={(item) => onMemberSelectionChanged(item)}
-                    arrowImgUrl="/icons/arrow-down.svg"
-                    iconKey="logo"
-                    defaultImage="/icons/team-default-profile.svg"
-                    onClear={onResetMember}
-                    showClear
-                  />
+                  <div className="details__cn__members">
+                    <SearchableSingleSelect
+                      id="irl-member-info"
+                      placeholder="Select Member"
+                      displayKey="name"
+                      options={initialContributors}
+                      selectedOption={selectedMember}
+                      uniqueKey="memberUid"
+                      formKey="memberName"
+                      name={`guest-memberName`}
+                      onChange={(item) => onMemberSelectionChanged(item)}
+                      arrowImgUrl="/icons/arrow-down.svg"
+                      iconKey="logo"
+                      defaultImage="/icons/team-default-profile.svg"
+                      onClear={onResetMember}
+                      showClear
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -688,6 +699,19 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
             gap: 20px;
             overflow-y: auto;
             padding: 0px 20px;
+          }
+
+          .details__cn__adminManage {
+            display: flex;
+            gap: 12px;
+            flex-direction: column;
+          }
+
+          .details__cn__ttl {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            color: #0f172a;
           }
 
           .label {

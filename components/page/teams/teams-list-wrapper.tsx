@@ -16,8 +16,10 @@ const TeamListWrapper = (props: any) => {
   const userInfo = props?.userInfo;
 
   const analytics = useTeamAnalytics();
-  const onTeamClickHandler = (team: ITeam) => {
-    triggerLoader(true);
+  const onTeamClickHandler = (e: any, team: ITeam) => {
+    if (!e.ctrlKey) {
+      triggerLoader(true);
+    }
     analytics.onTeamCardClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
   };
 
@@ -27,7 +29,7 @@ const TeamListWrapper = (props: any) => {
         <div
           key={`teamitem-${team.id}-${index}`}
           className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid__team' : 'team-list__list__team'}`}
-          onClick={() => onTeamClickHandler(team)}
+          onClick={(e) => onTeamClickHandler(e, team)}
         >
           <Link href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
             {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}

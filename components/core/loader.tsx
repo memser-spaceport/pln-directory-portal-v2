@@ -1,22 +1,18 @@
 'use client';
 import { EVENTS } from '@/utils/constants';
-import { useRouter } from 'next/navigation';
-import { startTransition, useEffect, useOptimistic } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const Loader = () => {
-  const [isLoading, setIsLoading] = useOptimistic(false);
-  const router = useRouter();
-
+  const [isLoading, setIsLoading] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   useEffect(() => {
     function loadingHandler(e: any){
       if (e?.detail) {
-        startTransition(() => {
-          setIsLoading(e?.detail);
-        })
+        setIsLoading(e?.detail);
       } else {
-        startTransition(() => {
-          setIsLoading(false);
-        })
+        setIsLoading(false);
       }
     };
     document.addEventListener(EVENTS.TRIGGER_LOADER, loadingHandler);
@@ -25,6 +21,9 @@ const Loader = () => {
     }
   }, []);
 
+  useEffect(() => {
+    setIsLoading(false)
+  }, [pathname, searchParams]);
   
   return (
     <>

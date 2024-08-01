@@ -123,7 +123,7 @@ interface IGenerateMetadata {
 
 export async function generateMetadata({ params }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
   const eventId = params?.id;
-  const eventDetailResponse = await await getEventDetailBySlug(eventId, '');
+  const eventDetailResponse = await getEventDetailBySlug(eventId, '');
   if (eventDetailResponse?.isError) {
     return {
       title: 'Protocol Labs Directory',

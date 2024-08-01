@@ -21,7 +21,20 @@ interface SingleSelectWithImageProps {
   id: string;
 }
 
-const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({ options, selectedOption, onItemSelect, uniqueKey, displayKey, placeholder = 'Select', isMandatory = false, arrowImgUrl, iconKey, defaultIcon, label = '', id }) => {
+const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
+  options,
+  selectedOption,
+  onItemSelect,
+  uniqueKey,
+  displayKey,
+  placeholder = 'Select',
+  isMandatory = false,
+  arrowImgUrl,
+  iconKey,
+  defaultIcon,
+  label = '',
+  id,
+}) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
@@ -39,6 +52,12 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({ options, 
 
   const onSearchFocus = () => {
     setShowOptions(!showOptions);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
   };
 
   useEffect(() => {
@@ -72,8 +91,8 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({ options, 
             {label}
           </label>
         )}
-        <div ref={containerRef} className='select_cn'>
-        {iconKey && selectedOption && (selectedOption[iconKey] || defaultIcon)  && <img className="selected__icon" src={selectedOption[iconKey] || defaultIcon} alt={selectedOption[displayKey]} />}
+        <div ref={containerRef} className="select_cn">
+          {iconKey && selectedOption && (selectedOption[iconKey] || defaultIcon) && <img className="selected__icon" src={selectedOption[iconKey] || defaultIcon} alt={selectedOption[displayKey]} />}
           <input
             id={id}
             className={`select__search ${selectedOption && iconKey && (selectedOption[iconKey] || defaultIcon) ? 'select__icon' : ''} `}
@@ -81,22 +100,22 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({ options, 
             value={defaultSelectedValue}
             onClick={onSearchFocus}
             placeholder={placeholder}
+            onKeyDown={onKeyDown}
             readOnly
           />
           {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
           {showOptions && (
-          <ul className="select__options">
-            {filteredOptions?.map((option) => (
-              <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
-                {iconKey && (selectedOption[iconKey] || defaultIcon) && <img className="select__options__item__img" src={option[iconKey] || defaultIcon} alt={option[displayKey]} />}
-                <span>{option[displayKey]}</span>
-              </li>
-            ))}
-            {filteredOptions?.length === 0 && <p className="select__options__noresults">No Results found</p>}
-          </ul>
-        )}
+            <ul className="select__options">
+              {filteredOptions?.map((option) => (
+                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
+                  {iconKey && (selectedOption[iconKey] || defaultIcon) && <img className="select__options__item__img" src={option[iconKey] || defaultIcon} alt={option[displayKey]} />}
+                  <span>{option[displayKey]}</span>
+                </li>
+              ))}
+              {filteredOptions?.length === 0 && <p className="select__options__noresults">No Results found</p>}
+            </ul>
+          )}
         </div>
-       
       </div>
       <style jsx>
         {`
@@ -114,9 +133,8 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({ options, 
             font-size: 14px;
             margin-bottom: 12px;
             display: block;
-            width:fit-content;
+            width: fit-content;
           }
-
 
           .selected__icon {
             width: 26px;
@@ -146,7 +164,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({ options, 
             font-weight: 500;
             border-radius: 8px;
             border: 1px solid lightgrey;
-            cursor:pointer;
+            cursor: pointer;
           }
           .select__search:focus-visible,
           .select__search:focus {

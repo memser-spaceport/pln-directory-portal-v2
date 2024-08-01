@@ -107,17 +107,13 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
   }, [searchItem, sortConfig, filterConfig, rawGuestList]);
 
   useEffect(() => {
-    // if (searchItem === '' && filterConfig?.topics?.length > 0 && filteredList?.length === 0) {
-    //   setFilterConfig((prev: any) => ({ ...prev, topics: [] }));
-    // }
     const selectedTopics = new Set(filterConfig['topics']);
-
     const topics = getTopics([...rawGuestList]);
 
     const topicsSet = new Set(topics);
     selectedTopics?.forEach((topic) => {
       if (!topicsSet.has(topic)) {
-        selectedTopics.delete(topic);
+        selectedTopics?.delete(topic);
       }
     });
 

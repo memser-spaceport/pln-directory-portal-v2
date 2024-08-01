@@ -3,7 +3,7 @@
 import { useIrlDetails } from '@/hooks/irl/use-irl-details';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JoinEventStrip from './join-event-strip';
-import { getTopics, sortByDefault } from '@/utils/irl.utils';
+import { sortByDefault } from '@/utils/irl.utils';
 import Toolbar from './toolbar';
 import TableHeader from './table-header';
 import GuestList from './guest-list';
@@ -118,7 +118,6 @@ const IrlMain = (props: IIrlMain) => {
 
       if (type === 'self-edit') {
         const member = updatedEventDetails?.guests?.find((item: any) => item.memberUid === selectedGuest);
-        console.log('788', member);
         setUpdatedUser(member);
       }
 

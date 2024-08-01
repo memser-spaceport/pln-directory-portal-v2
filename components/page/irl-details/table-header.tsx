@@ -1,6 +1,6 @@
 import useFloatingMultiSelect from '@/hooks/irl/use-floating-multi-select';
 import { getTopics, getUniqueRoles } from '@/utils/irl.utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FloatingMultiSelect from './floating-multi-select';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
@@ -11,6 +11,7 @@ interface ITableHeader {
   userInfo: IUserInfo;
   eventDetails: any;
   sortConfig: { key: string; order: string };
+  filterConfig: any;
 }
 
 const TableHeader = (props: ITableHeader) => {
@@ -18,6 +19,7 @@ const TableHeader = (props: ITableHeader) => {
   const eventDetails = props?.eventDetails;
   const sortConfig = props?.sortConfig;
   const userInfo = props?.userInfo;
+  const filterConfig = props?.filterConfig;
 
   const analytics = useIrlAnalytics();
 
@@ -33,7 +35,7 @@ const TableHeader = (props: ITableHeader) => {
 
   const topicFilterProps = useFloatingMultiSelect({
     items: topics,
-    selectedItems: topicFilterItems,
+    selectedItems: filterConfig?.topics,
   });
 
   // sort columns
@@ -78,7 +80,7 @@ const TableHeader = (props: ITableHeader) => {
         },
       })
     );
-    setTopicFilterItems(items);
+    // setTopicFilterItems(items);
     topicFilterProps?.onClosePane();
     topicFilterProps?.setFilteredItems(topics);
   };
@@ -102,6 +104,18 @@ const TableHeader = (props: ITableHeader) => {
     topicFilterProps?.onOpenPane();
     roleFilterProps?.onClosePane();
   };
+
+  // useEffect(() => {
+  //   const isSelectedTopicInTopicList = topicFilterItems.some((item) => topics.includes(item));
+
+  //   if (!isSelectedTopicInTopicList) {
+  //     // topicFilterProps?.setFilteredItems(topics);
+  //     // Perform a state update only if the condition is true
+  //     // if (JSON.stringify(topicFilterProps?.filteredItems) !== JSON.stringify(topics)) {
+  //       setTopicFilterItems(topics);
+  //     // }
+  //   }
+  // }, [topics]);
 
   return (
     <>
@@ -127,9 +141,9 @@ const TableHeader = (props: ITableHeader) => {
                   <button className="tbl__hdr__topics__filter__btn" onClick={onTopicsFilterclicked}>
                     <img width={16} height={16} src="/icons/filter-blue.svg" alt="filter" />
                   </button>
-                  {topicFilterItems?.length > 0 && (
+                  {filterConfig?.topics?.length > 0 && (
                     <div className="tbl__hdr__topics__filter__tag">
-                      {topicFilterItems?.length}
+                      {filterConfig?.topics?.length}
                       <button className="tbl__hdr__topics__filter__tag__btn" onClick={onClearTopicFilter}>
                         <img width={10} height={10} src="/icons/close-white.svg" alt="count" />
                       </button>

@@ -3,7 +3,7 @@
 import { useIrlDetails } from '@/hooks/irl/use-irl-details';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JoinEventStrip from './join-event-strip';
-import { sortByDefault } from '@/utils/irl.utils';
+import { getTopics, sortByDefault } from '@/utils/irl.utils';
 import Toolbar from './toolbar';
 import TableHeader from './table-header';
 import GuestList from './guest-list';
@@ -42,7 +42,7 @@ const IrlMain = (props: IIrlMain) => {
   const [updatedUser, setUpdatedUser] = useState(registeredGuest);
   const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const [focusOHField, setFocusOHField] = useState(false);
-  const { filteredList, sortConfig } = useIrlDetails(updatedEventDetails.guests, userInfo);
+  const { filteredList, sortConfig, filterConfig, setFilterConfig } = useIrlDetails(updatedEventDetails.guests, userInfo);
   const goingRef = useRef<HTMLDialogElement>(null);
   const deleteRef = useRef<HTMLDialogElement>(null);
   const [isAllowedToManageGuests, setIsAllowedToManageGuests] = useState(false);
@@ -50,16 +50,15 @@ const IrlMain = (props: IIrlMain) => {
   const [showFloaingBar, setShowFloatingBar] = useState(false);
   const [selectedGuests, setSelectedGuests] = useState([]);
   const [formType, setFormType] = useState('');
-
   const onCloseGoingModal = useCallback(() => {
     setIsOpen(false);
     setUpdatedUser(registeredGuest);
     goingRef.current?.close();
   }, []);
 
-  const onCloseDeleteModal = useCallback(() => {
+  const onCloseDeleteModal = (e:any) => {
     deleteRef.current?.close();
-  }, []);
+  };
 
   const onLogin = useCallback(async () => {
     const toast = (await import('react-toastify')).toast;
@@ -113,12 +112,13 @@ const IrlMain = (props: IIrlMain) => {
       }
       setFormType(type);
       if (type === 'admin-edit') {
-        const member = filteredList?.find((item: any) => item.uid === selectedGuest);
+        const member = updatedEventDetails?.guests?.find((item: any) => item.uid === selectedGuest);
         setUpdatedUser(member);
       }
 
       if (type === 'self-edit') {
-        const member = filteredList?.find((item: any) => item.memberUid === selectedGuest);
+        const member = updatedEventDetails?.guests?.find((item: any) => item.memberUid === selectedGuest);
+        console.log('788', member);
         setUpdatedUser(member);
       }
 
@@ -128,7 +128,7 @@ const IrlMain = (props: IIrlMain) => {
     return () => {
       document.removeEventListener('openRsvpModal', handler);
     };
-  }, [filteredList]);
+  }, [updatedEventDetails?.guests]);
 
   //toggle remove guests modal
   useEffect(() => {
@@ -174,7 +174,7 @@ const IrlMain = (props: IIrlMain) => {
             <Toolbar eventDetails={updatedEventDetails} userInfo={userInfo} isUserGoing={isUserGoing} isUserLoggedIn={isUserLoggedIn} onLogin={onLogin} filteredList={filteredList} />
           </div>
           <div className={`irl__table  ${isUserLoggedIn ? 'table__login' : 'table__not-login'} `}>
-            <TableHeader userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} />
+            <TableHeader userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} filterConfig={filterConfig} />
             <div className={`irl__table__body  ${isUserLoggedIn ? 'w-fit' : 'w-full'}`}>
               {isUserLoggedIn && (
                 <GuestList

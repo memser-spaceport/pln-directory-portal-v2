@@ -103,6 +103,12 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
     setShowOptions((v) => !v);
   };
 
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
+  };
+
   useEffect(() => {
     setFilteredOptions(options);
   }, [options]);
@@ -151,6 +157,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             onFocus={onSearchFocus}
             placeholder={placeholder}
             required={isMandatory}
+            onKeyDown={onKeyDown}
             autoComplete="off"
             onBlur={(e) => {
               e.stopPropagation();
@@ -188,7 +195,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
                   }}
                   className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}
                 >
-                  {iconKey && <img className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
+                  {iconKey && <img loading='eager' height={24} width={24} className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
                   <span> {option[displayKey]}</span>
                 </li>
               ))}

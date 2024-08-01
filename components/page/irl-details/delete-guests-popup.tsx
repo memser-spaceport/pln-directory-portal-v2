@@ -34,7 +34,7 @@ const DeleteGuestsPopup = (props: any) => {
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
   };
 
-  const onDeleteGuests = async (e:any) => {
+  const onDeleteGuests = async (e: any) => {
     e.preventDefault();
     const toast = (await import('react-toastify')).toast;
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
@@ -83,7 +83,7 @@ const DeleteGuestsPopup = (props: any) => {
           {/* <button type='button' onClick={onClose} className="dgp__footer__cancel">
             Cancel
           </button> */}
-          <button type='button' onClick={onDeleteGuests} className="dgp__footer__remove">{`Remove ${totalSelectedGuests} ${areGuestsPlural ? 'Attendees' : 'Attendee'}`}</button>
+          <button type="button" onClick={onDeleteGuests} className="dgp__footer__remove">{`Remove ${totalSelectedGuests} ${areGuestsPlural ? 'Attendees' : 'Attendee'}`}</button>
         </div>
       </div>
       <RegsiterFormLoader />
@@ -133,7 +133,7 @@ const DeleteGuestsPopup = (props: any) => {
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
-          color:#0F172A;
+          color: #0f172a;
         }
 
         .dgp__footer {

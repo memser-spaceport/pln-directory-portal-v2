@@ -105,18 +105,6 @@ const TableHeader = (props: ITableHeader) => {
     roleFilterProps?.onClosePane();
   };
 
-  // useEffect(() => {
-  //   const isSelectedTopicInTopicList = topicFilterItems.some((item) => topics.includes(item));
-
-  //   if (!isSelectedTopicInTopicList) {
-  //     // topicFilterProps?.setFilteredItems(topics);
-  //     // Perform a state update only if the condition is true
-  //     // if (JSON.stringify(topicFilterProps?.filteredItems) !== JSON.stringify(topics)) {
-  //       setTopicFilterItems(topics);
-  //     // }
-  //   }
-  // }, [topics]);
-
   return (
     <>
       {isUserLoggedIn && (

@@ -48,7 +48,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
   const [showTelegram, setShowTelegram] = useState(isAllowedToManageGuests ? true : initialShowTelegram);
   const [initialTeams, setInitialTeams] = useState([]);
   const [initialContributors, setInitialContributors] = useState([]);
-  const [selectedTeam, setSelectedTeam] = useState<any>({ name: '' });
+  // const [selectedTeam, setSelectedTeam] = useState<any>({ name: '' });
   const [selectedMember, setSelectedMember] = useState<any>({ name: '' });
   const [isMemberInGuestList, setIsMemberInGuestList] = useState(false);
   const [connectDetail, setConnectDetail] = useState<any>({});
@@ -191,6 +191,12 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
       analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name, teamName }, 'api_initiated', payload);
       const response = await editEventGuest(eventDetails?.slugUrl, registeredGuest.uid, payload, authToken);
 
+      if (!response) {
+        onClose();
+        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        window.location.reload();
+      }
+
       if (response) {
         analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name, teamName }, 'api_success', payload);
         await getEventDetails();
@@ -264,6 +270,13 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
       analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name, teamName }, 'api_initiated', payload);
 
       const response = await createEventGuest(eventDetails?.slugUrl, payload, authToken);
+
+      if (!response) {
+        onClose();
+        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        window.location.reload();
+      }
+
       if (response) {
         analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name, teamName }, 'api_success', payload);
         await getEventDetails();
@@ -315,14 +328,14 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
   };
 
   // select team
-  const onTeamSelectionChanged = async (item: any) => {
-    setSelectedTeam(item);
-    resetForm();
-    setSelectedMember({ name: '' });
-    getAllContributors(item.uid);
-    setTeams([]);
-    setIsMemberInGuestList(false);
-  };
+  // const onTeamSelectionChanged = async (item: any) => {
+  //   setSelectedTeam(item);
+  //   resetForm();
+  //   setSelectedMember({ name: '' });
+  //   getAllContributors(item.uid);
+  //   setTeams([]);
+  //   setIsMemberInGuestList(false);
+  // };
 
   // select member
   const onMemberSelectionChanged = async (item: any) => {
@@ -333,9 +346,9 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
       const memberTeams = initialTeams
         ?.filter((team: any) => memberTeamUids?.includes(team.uid))
         ?.map((team: any) => ({
-          id: team.uid,
-          name: team.name,
-          logo: team.logo,
+          id: team?.uid,
+          name: team?.name,
+          logo: team?.logo,
         }));
       const showTelegram = item?.preferences === null ? true : item?.preferences?.showTelegram;
       setShowTelegram(showTelegram);
@@ -385,11 +398,11 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
       const response = await getMemberInfo(memberId);
       const telegram = response?.data?.telegramHandler ? removeAt(getTelegramUsername(response?.data?.telegramHandler)) : '';
       setConnectDetail({ telegramId: telegram, officeHours: response?.data?.officeHours ?? '' });
-        setFormValues((prevFormData) => ({
-          ...prevFormData,
-          telegramId: !registeredGuest?.isTelegramRemoved ? telegram : '',
-          officeHours: registeredGuest?.officeHours === '' ? '' : response?.data?.officeHours ?? '',
-        }));
+      setFormValues((prevFormData) => ({
+        ...prevFormData,
+        telegramId: !registeredGuest?.isTelegramRemoved ? telegram : '',
+        officeHours: registeredGuest?.officeHours === '' ? '' : response?.data?.officeHours ?? '',
+      }));
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
     } catch (error) {
       console.error(error);
@@ -419,14 +432,14 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
   };
 
   //reset team
-  const onResetTeam = async () => {
-    setSelectedTeam({ name: '' });
-    await getAllContributors(null);
-    setSelectedMember({ name: '' });
-    setTeams([]);
-    setIsMemberInGuestList(false);
-    resetForm();
-  };
+  // const onResetTeam = async () => {
+  //   setSelectedTeam({ name: '' });
+  //   await getAllContributors(null);
+  //   setSelectedMember({ name: '' });
+  //   setTeams([]);
+  //   setIsMemberInGuestList(false);
+  //   resetForm();
+  // };
 
   useEffect(() => {
     if (!isAllowedToManageGuests) {
@@ -453,7 +466,8 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
 
   useEffect(() => {
     if (!isAllowedToManageGuests) {
-      getMemberConnectDetails(registeredGuest?.memberUid || userInfo.uid);
+      const userInfo = getParsedValue(Cookies.get('userInfo'));
+      getMemberConnectDetails(registeredGuest?.memberUid || userInfo?.uid);
     }
   }, []);
 
@@ -505,7 +519,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
               <div className="details__cn__adminManage">
                 <div className="details__cn__ttl">Add an Attendee</div>
                 <div className="details__cn__teams__mems">
-                  <div className="details__cn__teams">
+                  {/* <div className="details__cn__teams">
                     <SearchableSingleSelect
                       id="irl-guest-allteams-info"
                       placeholder="All Teams"
@@ -523,7 +537,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
                       showClear
                       closeImgUrl="/icons/close.svg"
                     />
-                  </div>
+                  </div> */}
 
                   <div className="details__cn__members">
                     <SearchableSingleSelect
@@ -675,7 +689,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
                       value={formValues?.additionalInfo?.checkInDate}
                     />
                     {formValues?.additionalInfo?.checkInDate && (
-                      <button type='button' className="details__cn__spl__date__in__close" onClick={() => onClearDate('checkInDate')}>
+                      <button type="button" className="details__cn__spl__date__in__close" onClick={() => onClearDate('checkInDate')}>
                         <img src="/icons/close-tags.svg" alt="close" />
                       </button>
                     )}
@@ -697,7 +711,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
                       value={formValues?.additionalInfo?.checkOutDate}
                     />
                     {formValues?.additionalInfo?.checkOutDate && (
-                      <button type='button' className="details__cn__spl__date__out__close" onClick={() => onClearDate('checkOutDate')}>
+                      <button type="button" className="details__cn__spl__date__out__close" onClick={() => onClearDate('checkOutDate')}>
                         <img src="/icons/close-tags.svg" alt="close" />
                       </button>
                     )}

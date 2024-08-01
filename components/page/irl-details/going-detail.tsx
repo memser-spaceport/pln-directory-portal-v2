@@ -346,7 +346,6 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
         teamUid: item?.mainTeam?.team?.uid,
         reason: '',
         topics: [],
-        officeHours: '',
         additionalInfo: {
           checkInDate: '',
           checkOutDate: '',
@@ -386,11 +385,11 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
       const response = await getMemberInfo(memberId);
       const telegram = response?.data?.telegramHandler ? removeAt(getTelegramUsername(response?.data?.telegramHandler)) : '';
       setConnectDetail({ telegramId: telegram, officeHours: response?.data?.officeHours ?? '' });
-      setFormValues((prevFormData) => ({
-        ...prevFormData,
-        telegramId: !registeredGuest?.isTelegramRemoved ? telegram : '',
-        officeHours: registeredGuest?.officeHours === '' ? '' : response?.data?.officeHours ?? '',
-      }));
+        setFormValues((prevFormData) => ({
+          ...prevFormData,
+          telegramId: !registeredGuest?.isTelegramRemoved ? telegram : '',
+          officeHours: registeredGuest?.officeHours === '' ? '' : response?.data?.officeHours ?? '',
+        }));
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
     } catch (error) {
       console.error(error);
@@ -420,8 +419,9 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
   };
 
   //reset team
-  const onResetTeam = () => {
+  const onResetTeam = async () => {
     setSelectedTeam({ name: '' });
+    await getAllContributors(null);
     setSelectedMember({ name: '' });
     setTeams([]);
     setIsMemberInGuestList(false);
@@ -675,7 +675,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
                       value={formValues?.additionalInfo?.checkInDate}
                     />
                     {formValues?.additionalInfo?.checkInDate && (
-                      <button className="details__cn__spl__date__in__close" onClick={() => onClearDate('checkInDate')}>
+                      <button type='button' className="details__cn__spl__date__in__close" onClick={() => onClearDate('checkInDate')}>
                         <img src="/icons/close-tags.svg" alt="close" />
                       </button>
                     )}
@@ -697,7 +697,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
                       value={formValues?.additionalInfo?.checkOutDate}
                     />
                     {formValues?.additionalInfo?.checkOutDate && (
-                      <button className="details__cn__spl__date__out__close" onClick={() => onClearDate('checkOutDate')}>
+                      <button type='button' className="details__cn__spl__date__out__close" onClick={() => onClearDate('checkOutDate')}>
                         <img src="/icons/close-tags.svg" alt="close" />
                       </button>
                     )}

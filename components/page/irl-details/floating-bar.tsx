@@ -58,12 +58,12 @@ const FloatingBar = (props: IFloatingBar) => {
                 <img src="/icons/edit-blue.svg" alt="edit" />
               </button>
             )} */}
-            <button onClick={onDeleteGuests} className="floatingBar__actions__delete">
+            <button type='button' onClick={onDeleteGuests} className="floatingBar__actions__delete">
               <img src="/icons/delete.svg" alt="delete" />
             </button>
           </div>
           <div className="floatingBar__actions__closeWrpr">
-            <button onClick={onClose} className="floatingBar__actions__close">
+            <button type='button' onClick={onClose} className="floatingBar__actions__close">
               <img src="/icons/close.svg" alt="close" />
             </button>
           </div>

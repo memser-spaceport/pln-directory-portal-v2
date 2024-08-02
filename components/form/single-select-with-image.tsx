@@ -112,7 +112,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
                   <span>{option[displayKey]}</span>
                 </li>
               ))}
-              {filteredOptions?.length === 0 && <p className="select__options__noresults">No Results found</p>}
+              {filteredOptions?.length === 0 && <p className="select__options__noresults">No results found</p>}
             </ul>
           )}
         </div>

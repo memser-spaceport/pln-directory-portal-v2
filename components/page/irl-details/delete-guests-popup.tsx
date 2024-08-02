@@ -80,9 +80,9 @@ const DeleteGuestsPopup = (props: any) => {
           })}
         </div>
         <div className="dgp__footer">
-          {/* <button type='button' onClick={onClose} className="dgp__footer__cancel">
+          <button type='button' onClick={onClose} className="dgp__footer__cancel">
             Cancel
-          </button> */}
+          </button>
           <button type="button" onClick={onDeleteGuests} className="dgp__footer__remove">{`Remove ${totalSelectedGuests} ${areGuestsPlural ? 'Attendees' : 'Attendee'}`}</button>
         </div>
       </div>

@@ -356,6 +356,19 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
       }));
       setIsMemberInGuestList(false);
     } else {
+      setFormValues((prevFormData) => ({
+        ...prevFormData,
+        teamUid: '',
+        telegramId: '',
+        officeHours: '',
+        reason: '',
+        topics: [],
+        additionalInfo: {
+          checkInDate: '',
+          checkOutDate: '',
+        },
+      }));
+      setConnectDetail({ telegramId: '', officeHours: '' });
       setIsMemberInGuestList(true);
     }
   };

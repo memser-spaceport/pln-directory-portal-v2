@@ -45,8 +45,8 @@ export const EVENTS = {
   UPDATE_SELECTED_CONTRIBUTING_TEAM: 'update-selected-contring-team',
   UPDATE_SELECTED_CONTRIBUTORS: 'update-selected-contributors',
   PROJECT_ADD_MODAL_CLOSE_EVENT: 'project-add-modal-close-event',
-  OPEN_REMOVE_GUESTS_POPUP:'open-remove-guests-popup',
-  OPEN_FLOATING_BAR:'open-floating-bar',
+  OPEN_REMOVE_GUESTS_POPUP: 'open-remove-guests-popup',
+  OPEN_FLOATING_BAR: 'open-floating-bar',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -169,7 +169,7 @@ export const TOAST_MESSAGES = {
   ATTENDEE_ADDED_SUCCESSFULLY: 'Attendee added successfully',
   DETAILS_UPDATED_SUCCESSFULLY: 'Your details has been updated successfully',
   ATTENDEE_UPDATED_SUCCESSFULLY: 'Attendee updated successfully',
-  ATTENDEE_DELETED_SUCCESSFULLY:'Attendee deleted successfully'
+  ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee deleted successfully'
 };
 
 export const AUTH_ANALYTICS = {

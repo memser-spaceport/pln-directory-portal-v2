@@ -64,7 +64,7 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
         <div className="joinEventStrip__btnWrpr">
           {isUserLoggedIn && canUserAddAttendees && !isPastEvent && (
             <button className="joinEventStrip__btnWrpr__add__btn" onClick={onAddMemberClick}>
-              <img src="/icons/add-rounded.svg" width={16} height={16} alt="add" />
+              <img src="/icons/add-user-blue.svg" width={16} height={16} alt="add" />
               <span className="joinEventStrip__btnWrpr__add__btn__txt">Add Member</span>
             </button>
           )}
@@ -156,13 +156,18 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
           align-items: center;
           gap: 4px;
           background: transparent;
+          border: 1px solid #cbd5e1;
+          background: #fff;
+          height: 40px;
+          padding: 10px 12px;
+          border-radius: 8px;
         }
 
         .joinEventStrip__btnWrpr__add__btn__txt {
           font-size: 14px;
           font-weight: 500;
           line-height: 24px;
-          color: #156ff7;
+          color: #0f172a;
           font-style: normal;
         }
 

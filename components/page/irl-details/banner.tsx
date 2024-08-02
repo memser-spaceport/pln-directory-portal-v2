@@ -3,7 +3,7 @@
 import { triggerLoader } from '@/utils/common.utils';
 import { EVENT_TYPE } from '@/utils/constants';
 import { formatIrlEventDate } from '@/utils/irl.utils';
-import Image from 'next/image';
+import Image from 'next/legacy/image';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -35,7 +35,7 @@ const Banner = (props: IBanner) => {
     <>
       <div className="banner">
         <div className="banner__imgWrpr">
-          <Image objectFit="cover" objectPosition="center" quality={100} style={imageStyle} priority={true} fill src={bannerUrl} alt="banner" />
+          <Image  objectFit="cover" objectPosition="center" quality={100} style={imageStyle} priority={true} layout='fill' src={bannerUrl} alt="banner" />
         </div>
         <div className="banner__info">
           <p className="banner__info__ttl">{name}</p>

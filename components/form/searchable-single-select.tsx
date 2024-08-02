@@ -83,6 +83,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
 
   const onSearch = (e: ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value;
+    setShowOptions(true);
     if (showOptions) {
       if (selectedOption && selectedOption[uniqueKey] && selectedOption[displayKey]) {
         onClear();

@@ -53,9 +53,6 @@ const Modal = (props: IModal) => {
             background: #fff;
             outline: none;
           }
-          .modal__cn__closebtn:focus {
-            border: 1px solid red;
-          }
         `}
       </style>
     </>

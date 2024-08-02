@@ -25,7 +25,7 @@ const Funding = (props: IFunding) => {
           </div>
 
           <div className="funding__seriescontainer__membership-source-container">
-            <h3 className="funding__seriescontainer__membership-source-container__title">Accelerator Programs:</h3>
+            <h3 className="funding__seriescontainer__membership-source-container__title">Membership Sources:</h3>
             {accelerataorPrograms?.map((program: ITag, index: number) => (
               <Fragment key={`${program} + ${index}`}>
                 <Tooltip

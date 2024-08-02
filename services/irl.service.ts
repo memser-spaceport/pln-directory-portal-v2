@@ -1,4 +1,5 @@
 import { getHeader } from '@/utils/common.utils';
+import { customFetch } from '@/utils/fetch-wrapper';
 
 export const getAllEvents = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events?orderBy=priority`, {
@@ -109,28 +110,40 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
 };
 
 export const createEventGuest = async (slug: string, payload: any, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest`, {
-    method: 'POST',
-    cache: 'no-store',
-    body: JSON.stringify(payload),
-    headers: getHeader(authToken),
-  });
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest`,
+    {
+      method: 'POST',
+      cache: 'no-store',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+    true
+  );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return false;
   }
   return true;
 };
 
 export const editEventGuest = async (slug: string, uid: string, payload: any, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest/${uid}`, {
-    method: 'PUT',
-    cache: 'no-store',
-    body: JSON.stringify(payload),
-    headers: getHeader(authToken),
-  });
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest/${uid}`,
+    {
+      method: 'PUT',
+      cache: 'no-store',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+    true
+  );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return false;
   }
 
@@ -154,14 +167,20 @@ export const getUserEvents = async (token: string) => {
 };
 
 export const deleteGuests = async (eventId: string, token: string, payload: { guests: [] }) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${eventId}/guests`, {
-    method: 'POST',
-    cache: 'no-store',
-    headers: getHeader(token),
-    body: JSON.stringify(payload),
-  });
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/events/${eventId}/guests`,
+    {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+    true
+  );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return false;
   }
 

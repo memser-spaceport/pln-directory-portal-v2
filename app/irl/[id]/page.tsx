@@ -2,7 +2,7 @@ import Error from '@/components/core/error';
 import { getEventDetailBySlug } from '@/services/irl.service';
 import { getMember } from '@/services/members.service';
 import { getMemberPreferences } from '@/services/preferences.service';
-import { ADMIN_ROLE, EVENT_TYPE, PAGE_ROUTES } from '@/utils/constants';
+import { ADMIN_ROLE, EVENT_TYPE, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { isPastDate, sortByDefault, splitResources } from '@/utils/irl.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import styles from './page.module.css';
@@ -19,7 +19,6 @@ export default async function IrlDetails({ params }: { params: { id: string } })
   const eventId = params?.id;
 
   const { isError, eventDetails, isLoggedIn, userInfo, isUserGoing, teams, showTelegram } = await getPageData(eventId);
-
 
   const type = eventDetails?.type;
   if (type === EVENT_TYPE.INVITE_ONLY && !isLoggedIn) {
@@ -84,7 +83,6 @@ const getPageData = async (eventId: string) => {
 
     const sortedList = sortByDefault(eventDetails?.guests);
     eventDetails.guests = sortedList;
-
     //has current user is going for an event
     isUserGoing = sortedList?.some((guest) => guest.memberUid === userInfo?.uid && guest?.memberUid);
 
@@ -125,7 +123,7 @@ interface IGenerateMetadata {
 
 export async function generateMetadata({ params }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
   const eventId = params?.id;
-  const eventDetailResponse = await await getEventDetailBySlug(eventId, '');
+  const eventDetailResponse = await getEventDetailBySlug(eventId, '');
   if (eventDetailResponse?.isError) {
     return {
       title: 'Protocol Labs Directory',
@@ -134,7 +132,7 @@ export async function generateMetadata({ params }: IGenerateMetadata, parent: Re
       openGraph: {
         images: [
           {
-            url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+            url: SOCIAL_IMAGE_URL,
             width: 1280,
             height: 640,
             alt: 'Protocol Labs Directory',
@@ -144,7 +142,7 @@ export async function generateMetadata({ params }: IGenerateMetadata, parent: Re
       },
       twitter: {
         card: 'summary_large_image',
-        images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+        images: [SOCIAL_IMAGE_URL],
       },
     };
   }

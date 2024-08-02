@@ -71,7 +71,6 @@ export function BreadCrumb(props: IBreadcrumb) {
           cursor: default;
           font-size: 14px;
           color: #0f172a;
-          
         }
 
         .breadcrumb__name {

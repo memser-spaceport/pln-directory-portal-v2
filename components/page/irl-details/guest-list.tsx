@@ -1,12 +1,18 @@
 import { IUserInfo } from '@/types/shared.types';
 import GuestTableRow from './guest-table-row';
 import { IGuest } from '@/types/irl.types';
+import { useEffect } from 'react';
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { EVENTS } from '@/utils/constants';
 
 interface IGuestList {
   userInfo: IUserInfo;
   eventDetails: any;
   showTelegram: boolean;
   items: IGuest[];
+  selectedGuests: string[];
+  setSelectedGuests: any;
 }
 
 const GuestList = (props: IGuestList) => {
@@ -15,6 +21,34 @@ const GuestList = (props: IGuestList) => {
   const isExclusionEvent = eventDetails?.isExclusionEvent;
   const showTelegram = props?.showTelegram;
   const filteredList = props?.items;
+  const selectedGuests = props?.selectedGuests;
+  const setSelectedGuests = props?.setSelectedGuests;
+
+  const analytics = useIrlAnalytics();
+
+  const onchangeSelectionStatus = (uid: string) => {
+    setSelectedGuests((prevSelectedIds: string[]) => {
+      if (prevSelectedIds.includes(uid)) {
+        return prevSelectedIds.filter((item: string) => item !== uid);
+      } else {
+        return [...prevSelectedIds, uid];
+      }
+    });
+  };
+
+  useEffect(() => {
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_FLOATING_BAR, {
+        detail: {
+          isOpen: selectedGuests.length > 0,
+        },
+      })
+    );
+
+    if (selectedGuests.length > 0) {
+      analytics.floatingBarOpenClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), selectedGuests });
+    }
+  }, [selectedGuests]);
 
   return (
     <>
@@ -23,7 +57,15 @@ const GuestList = (props: IGuestList) => {
           filteredList?.map((guest: IGuest, index: number) => {
             return (
               <div className={`${filteredList.length - 1 !== index ? 'divider' : ''}`} key={`guest-${index}`}>
-                <GuestTableRow eventDetails={eventDetails} guest={guest} userInfo={userInfo} isExclusionEvent={isExclusionEvent} showTelegram={showTelegram} />
+                <GuestTableRow
+                  eventDetails={eventDetails}
+                  guest={guest}
+                  userInfo={userInfo}
+                  isExclusionEvent={isExclusionEvent}
+                  showTelegram={showTelegram}
+                  selectedGuests={selectedGuests}
+                  onchangeSelectionStatus={onchangeSelectionStatus}
+                />
               </div>
             );
           })}

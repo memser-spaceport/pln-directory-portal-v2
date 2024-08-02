@@ -1,7 +1,6 @@
 'use client';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { IEventDetails } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import Link from 'next/link';
@@ -23,14 +22,14 @@ const Navbar = (props: INavbar) => {
   return (
     <>
       <div className="nav">
-        <Link passHref legacyBehavior href="/irl" onClick={onNavigate}>
-          <a className="nav__backBtn__mob">
+        <Link passHref legacyBehavior href="/irl">
+          <a className="nav__backBtn__mob" onClick={onNavigate}>
             <img src="/icons/left-arrow-blue.svg" alt="left arrow" width={16} height={16} />
             Back
           </a>
         </Link>
-        <Link passHref legacyBehavior href="/irl" onClick={onNavigate}>
-          <a className="nav__backBtn__desc">
+        <Link passHref legacyBehavior href="/irl">
+          <a className="nav__backBtn__desc" onClick={onNavigate}>
             <img src="/icons/left-arrow-blue.svg" alt="left arrow" />
             Back to IRL Gatherings
           </a>

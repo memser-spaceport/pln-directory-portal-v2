@@ -1,7 +1,6 @@
 .irlDetails {
   display: flex;
   justify-content: center;
-  padding-top: px;
   background-color: #f1f5f9;
   min-height: calc(100vh - 80px);
 }

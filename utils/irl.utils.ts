@@ -142,7 +142,7 @@ export const formatDateRange = (startDate: string, endDate: string) => {
 
 export function getTelegramUsername(input: string) {
   const regex = /(?:https?:\/\/)?(?:www\.)?t(?:elegram)?\.me\/([a-zA-Z0-9_]+)/;
-  const match = input.match(regex);
+  const match = input?.match(regex);
   return match ? match[1] : input;
 }
 
@@ -152,7 +152,6 @@ export function removeAt(text: string) {
   const modifiedText = textToBeModified?.replace(/\B@/g, '');
   return modifiedText;
 }
-
 
 export const splitResources = (resources: any) => {
   const publicResources: any = [];
@@ -214,4 +213,9 @@ export function getArrivalDepartureDateRange(startDate: string | number | Date, 
     dateFrom: dateFrom.split('T')[0],
     dateTo: dateTo.split('T')[0],
   };
+}
+
+// Common function to check user access
+export function canUserPerformAction(roles: string[], allowedRoles: string[]): boolean {
+  return roles?.some((role: string) => allowedRoles.includes(role)) ?? false;
 }

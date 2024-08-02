@@ -25,6 +25,8 @@ interface SearchableSingleSelectProps {
   name: string;
   onSearchHandler?: any;
   defaultImage?: string;
+  showClear?: boolean;
+  closeImgUrl?: string;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -46,6 +48,8 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   id,
   onSearchHandler,
   defaultImage,
+  showClear,
+  closeImgUrl,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -79,6 +83,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
 
   const onSearch = (e: ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value;
+    setShowOptions(true);
     if (showOptions) {
       if (selectedOption && selectedOption[uniqueKey] && selectedOption[displayKey]) {
         onClear();
@@ -97,6 +102,12 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
 
   const onToggleOptions = () => {
     setShowOptions((v) => !v);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
   };
 
   useEffect(() => {
@@ -147,6 +158,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             onFocus={onSearchFocus}
             placeholder={placeholder}
             required={isMandatory}
+            onKeyDown={onKeyDown}
             autoComplete="off"
             onBlur={(e) => {
               e.stopPropagation();
@@ -159,7 +171,20 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           />
           <input ref={inputRef} type="text" hidden defaultValue={defaultSelectedValue} name={name} />
 
-          {arrowImgUrl && <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+          {showClear ? (
+            <>
+              {selectedOption && selectedOption[displayKey] ? (
+                <img onClick={onClear} className="select__reset" src={closeImgUrl} width="16" height="16" alt="close" />
+              ) : (
+                <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
+              )}
+            </>
+          ) : arrowImgUrl ? (
+            <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
+          ) : (
+            ''
+          )}
+
           {showOptions && (
             <ul className="select__options">
               {filteredOptions.map((option) => (
@@ -171,11 +196,11 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
                   }}
                   className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}
                 >
-                  {iconKey && <img className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
+                  {iconKey && <img loading='eager' height={24} width={24} className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
                   <span> {option[displayKey]}</span>
                 </li>
               ))}
-              {filteredOptions.length === 0 && <p className="select__options__noresults">No Results found</p>}
+              {filteredOptions.length === 0 && <p className="select__options__noresults">No results found</p>}
             </ul>
           )}
         </div>
@@ -279,6 +304,19 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             cursor: pointer;
             font-size: 15px;
             padding: 4px 8px;
+          }
+
+          .select__reset {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #156ff7;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            right: 8px;
+            display: block;
           }
         `}
       </style>

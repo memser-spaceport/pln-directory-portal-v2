@@ -119,7 +119,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="Join date" name="plnStartDate" type="date" placeholder="Enter Start Date" />
           </div>
           <div className="memberinfo__form__item">
-            <TextField defaultValue={initialValues.city} id="register-member-city" label="City" name="city" type="text" placeholder="Enter your city" />
+            <TextField defaultValue={initialValues.city} id="register-member-city" label="Metro Area/City" name="city" type="text" placeholder="Enter your metro area or city" />
             <p className="info">
               <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
               <span className="info__text">Please share location details to receive invitations for the network events happening in your area.</span>

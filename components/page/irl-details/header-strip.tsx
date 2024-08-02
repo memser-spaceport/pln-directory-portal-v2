@@ -44,6 +44,15 @@ function HeaderStrip(props: IHeaderStrip) {
           font-weight: 400;
         }
 
+        .hdrStrip__info__joinBtn {
+          margin-left: 4px;
+          border-radius: 8px;
+          background-color: white;
+          padding: 6px 10px;
+          font-size: 14px;
+          font-weight: 500;
+        }
+
         @media (min-width: 1024px) {
           .hdrStrip {
             margin-top: 0;
@@ -60,15 +69,6 @@ function HeaderStrip(props: IHeaderStrip) {
             margin-right: 4px;
             margin-top: -2px;
             display: inline;
-          }
-
-          .hdrStrip__info__joinBtn {
-            margin-left: 4px;
-            border-radius: 8px;
-            background-color: white;
-            padding: 6px 10px;
-            font-size: 14px;
-            font-weight: 500;
           }
         }
       `}</style>

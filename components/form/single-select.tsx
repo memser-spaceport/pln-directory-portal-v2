@@ -88,7 +88,7 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
                 {option[displayKey]}
               </li>
             ))}
-            {filteredOptions.length === 0 && <p className="select__options__noresults">No Results found</p>}
+            {filteredOptions.length === 0 && <p className="select__options__noresults">No results found</p>}
           </ul>
         )}
         </div>

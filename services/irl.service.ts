@@ -1,5 +1,5 @@
 import { getHeader } from '@/utils/common.utils';
-import { isPastDate } from '@/utils/irl.utils';
+import { customFetch } from '@/utils/fetch-wrapper';
 
 export const getAllEvents = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events?orderBy=priority`, {
@@ -55,6 +55,14 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
 
   const guests = output?.eventGuests?.map((guest: any) => {
     const memberRole = guest?.member?.teamMemberRoles?.find((teamRole: any) => guest?.teamUid === teamRole?.teamUid)?.role;
+    const teamMemberRoles = guest?.member?.teamMemberRoles.map((tm: any) => {
+      return {
+        name: tm?.team?.name,
+        id: tm?.team?.uid,
+        role: tm?.role,
+        logo: tm?.team?.logo?.url ?? '',
+      };
+    });
 
     const projectContributions = guest?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name);
 
@@ -67,6 +75,7 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
       memberName: guest?.member?.name,
       memberLogo: guest?.member?.image?.url,
       memberRole,
+      teams: teamMemberRoles,
       reason: guest?.reason,
       telegramId: guest?.member?.telegramHandler || '',
       isTelegramRemoved: guest?.telegramId === '',
@@ -101,28 +110,40 @@ export const getEventDetailBySlug = async (slug: string, token: string) => {
 };
 
 export const createEventGuest = async (slug: string, payload: any, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest`, {
-    method: 'POST',
-    cache: 'no-store',
-    body: JSON.stringify(payload),
-    headers: getHeader(authToken),
-  });
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest`,
+    {
+      method: 'POST',
+      cache: 'no-store',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+    true
+  );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return false;
   }
   return true;
 };
 
 export const editEventGuest = async (slug: string, uid: string, payload: any, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest/${uid}`, {
-    method: 'PUT',
-    cache: 'no-store',
-    body: JSON.stringify(payload),
-    headers: getHeader(authToken),
-  });
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest/${uid}`,
+    {
+      method: 'PUT',
+      cache: 'no-store',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+    true
+  );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return false;
   }
 
@@ -143,4 +164,25 @@ export const getUserEvents = async (token: string) => {
   }
 
   return await response.json();
+};
+
+export const deleteGuests = async (eventId: string, token: string, payload: { guests: [] }) => {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/events/${eventId}/guests`,
+    {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+    true
+  );
+
+  if (!response?.ok) {
+    return false;
+  }
+
+  return true;
 };

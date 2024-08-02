@@ -134,7 +134,7 @@
   flex: 1;
   gap: 10px;
   display: flex;
-  justify-content: start;
+  justify-content: flex-start;
   align-items: center;
 }
 
@@ -257,7 +257,7 @@
   .irlDetailMn__tb__btnWrpr {
     order: 3;
     display: flex;
-    justify-content: end;
+    justify-content: flex-end;
     flex: 1;
   }
 }

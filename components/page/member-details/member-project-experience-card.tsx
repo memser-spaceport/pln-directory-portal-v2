@@ -21,7 +21,7 @@ const MemberProjectExperienceCard = (props: any) => {
     <>
       <div className="member-project-experience">
         {!experience?.project?.isDeleted && (
-          <a className="member-project-experience__container" onClick={onProjectClickHandler} href={`${PAGE_ROUTES.PROJECTS}/${experience?.project?.uid}`}>
+          <a target='_blank' className="member-project-experience__container" onClick={onProjectClickHandler} href={`${PAGE_ROUTES.PROJECTS}/${experience?.project?.uid}`}>
             <div className="member-project-experience__container__project">
               <img className="member-project-experience__container__project__img" loading="lazy" alt="project profile" src={logo} height={40} width={40} />
             </div>

@@ -1,7 +1,8 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
-import { EVENT_TYPE } from '@/utils/constants';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENT_TYPE } from '@/utils/constants';
+import { canUserPerformAction, isPastDate } from '@/utils/irl.utils';
 
 interface IJoinEventStrip {
   onLogin: () => void;
@@ -18,8 +19,11 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
   const eventDetails = props?.eventDetails;
   const userInfo = props?.userInfo;
   const type = eventDetails?.type;
+  const isPastEvent = isPastDate(eventDetails?.endDate);
 
   const analytics = useIrlAnalytics();
+
+  const canUserAddAttendees = canUserPerformAction(userInfo.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
   const onJoinClick = () => {
     analytics.joinEventImGoingClicked(getAnalyticsUserInfo(userInfo), getAnalyticsEventInfo(eventDetails));
@@ -27,6 +31,7 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
       new CustomEvent('openRsvpModal', {
         detail: {
           isOpen: true,
+          type: 'add',
         },
       })
     );
@@ -37,6 +42,18 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
     onLogin();
   };
 
+  const onAddMemberClick = () => {
+    analytics.addNewMemberBtnClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails) });
+    document.dispatchEvent(
+      new CustomEvent('openRsvpModal', {
+        detail: {
+          isOpen: true,
+          isAllowedToManageGuests: true,
+        },
+      })
+    );
+  };
+
   return (
     <>
       <div className="joinEventStrip">
@@ -45,7 +62,13 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
           <p className="joinEventStrip__info__text">Kickstart the attendee list and let others know you&apos;re joining. Your presence could inspire others to join in too!</p>
         </div>
         <div className="joinEventStrip__btnWrpr">
-          {isUserLoggedIn && !isUserGoing && type !== EVENT_TYPE.INVITE_ONLY && (
+          {isUserLoggedIn && canUserAddAttendees && !isPastEvent && (
+            <button className="joinEventStrip__btnWrpr__add__btn" onClick={onAddMemberClick}>
+              <img src="/icons/add-user-blue.svg" width={16} height={16} alt="add" />
+              <span className="joinEventStrip__btnWrpr__add__btn__txt">Add Member</span>
+            </button>
+          )}
+          {isUserLoggedIn && !isUserGoing && type !== EVENT_TYPE.INVITE_ONLY && !isPastEvent && (
             <button onClick={onJoinClick} className="joinEventStrip__btnWrpr__btn">
               I am going
             </button>
@@ -73,7 +96,7 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
           display: flex;
           align-items: center;
           gap: 8px;
-          flex: 3;
+          flex: 2;
         }
 
         .joinEventStrip__info__text {
@@ -85,6 +108,9 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
 
         .joinEventStrip__btnWrpr {
           width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .joinEventStrip__btnWrpr {
@@ -94,9 +120,9 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
 
         .joinEventStrip__btnWrpr__btn {
           height: 40px;
-          width: 100%;
           background-color: #156ff7;
           color: #ffffff;
+          padding: 10px 12px;
           border-radius: 8px;
           font-size: 14px;
           font-weight: 500;
@@ -125,6 +151,26 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
           background-color: #1d4ed8;
         }
 
+        .joinEventStrip__btnWrpr__add__btn {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          background: transparent;
+          border: 1px solid #cbd5e1;
+          background: #fff;
+          height: 40px;
+          padding: 10px 12px;
+          border-radius: 8px;
+        }
+
+        .joinEventStrip__btnWrpr__add__btn__txt {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 24px;
+          color: #0f172a;
+          font-style: normal;
+        }
+
         @media (min-width: 1024px) {
           .joinEventStrip {
             flex-direction: row;
@@ -136,6 +182,7 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
 
           .joinEventStrip__btnWrpr {
             flex: 1;
+            gap: 12px;
           }
 
           .joinEventStrip__btnWrpr__loginBtn {

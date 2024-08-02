@@ -1,13 +1,14 @@
 import Breadcrumbs from '@/components/ui/breadcrumbs';
 import styles from './page.module.css';
 import SettingsMenu from '@/components/page/settings/menu';
-import MemberSettings from '@/components/page/settings/member-settings';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ManageTeamsSettings from '@/components/page/settings/manage-teams';
 import Link from 'next/link';
 import { getTeamInfo, getTeamsInfoForDp } from '@/services/teams.service';
 import { redirect } from 'next/navigation';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { Metadata } from 'next';
 
 const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean) => {
   const dpResult = await getTeamsInfoForDp();
@@ -87,3 +88,26 @@ export default async function ManageTeams(props: any) {
     </>
   );
 }
+
+export const metadata: Metadata = {
+  title: 'Settings | Protocol Labs Directory',
+  description:
+    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  openGraph: {
+    type: 'website',
+    url: process.env.APPLICATION_BASE_URL,
+    images: [
+      {
+        url: SOCIAL_IMAGE_URL,
+        width: 1280,
+        height: 640,
+        alt: 'Protocol Labs Directory',
+        type: 'image/jpeg',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [SOCIAL_IMAGE_URL],
+  },
+};

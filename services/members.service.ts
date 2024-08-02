@@ -9,6 +9,7 @@ export const getMembers = async (options: IMemberListOptions, teamId: string, cu
     method: 'GET',
     headers: getHeader(''),
   });
+
   if (!response?.ok) {
     return { error: { status: response?.status, statusText: response?.statusText } };
   }
@@ -162,9 +163,13 @@ export const getMemberRoles = async (options: IMemberListOptions) => {
 export const getMembersForProjectForm = async (teamId = null) => {
   let response;
   if (teamId) {
-    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc`);
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc`, {
+      cache:'no-store'
+    });
   } else {
-    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc`);
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc`, {
+      cache:'no-store'
+    });
   }
 
   if (!response.ok) {
@@ -174,6 +179,11 @@ export const getMembersForProjectForm = async (teamId = null) => {
   const formattedData = result?.map((member: any) => {
     const mainTeam = member.teamMemberRoles.find((team: any) => team.mainTeam) || null;
     const teamLead = member.teamMemberRoles.some((team: any) => team.teamLead);
+    const teams = member.teamMemberRoles?.map((teamMemberRole: any) => ({
+      id: teamMemberRole.team?.uid ?? '',
+      name: teamMemberRole.team?.name ?? '',
+      logo: teamMemberRole?.team?.logo?.url ?? '',
+    })) || [];
     return {
       uid: member.uid,
       name: member.name,
@@ -181,6 +191,8 @@ export const getMembersForProjectForm = async (teamId = null) => {
       teamMemberRoles: member?.teamMemberRoles,
       mainTeam: mainTeam,
       teamLead,
+      teams,
+      preferences:member.preferences,
     }
   });
 

@@ -1,9 +1,10 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { formatDateRange, getTelegramUsername, removeAt } from '@/utils/irl.utils';
+import { canUserPerformAction, formatDateRange, getTelegramUsername, removeAt } from '@/utils/irl.utils';
 import Link from 'next/link';
 import GuestDescription from './guest-description';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS } from '@/utils/constants';
 
 const GuestTableRow = (props: any) => {
   const guest = props?.guest;
@@ -11,6 +12,8 @@ const GuestTableRow = (props: any) => {
   const isExclusionEvent = props?.isExclusionEvent;
   const showTelegram = props?.showTelegram;
   const eventDetails = props?.eventDetails;
+  const onchangeSelectionStatus = props?.onchangeSelectionStatus;
+  const selectedGuests = props?.selectedGuests;
 
   const guestUid = guest?.memberUid;
   const guestName = guest?.memberName ?? '';
@@ -30,8 +33,8 @@ const GuestTableRow = (props: any) => {
   const formattedDate = formatDateRange(checkInDate, checkOutDate);
   const remainingTopics = topics?.slice(topicsNeedToShow, topics?.length)?.map((topic: any) => topic);
   const atRemovedTelegram = removeAt(getTelegramUsername(telegramId));
-
   const analytics = useIrlAnalytics();
+  const canUserAddAttendees = canUserPerformAction(userInfo.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
   const onTeamClick = (teamUid: string, teamName: string) => {
     analytics.guestListTeamClicked(getAnalyticsUserInfo(userInfo), getAnalyticsEventInfo(eventDetails), {
@@ -55,12 +58,14 @@ const GuestTableRow = (props: any) => {
     analytics.guestListOfficeHoursClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), memberUid, officeHoursLink, memberName });
   };
 
-  const handleAddOfficeHoursClick = () => {
+  const handleAddOfficeHoursClick = (uid: string) => {
     document.dispatchEvent(
       new CustomEvent('openRsvpModal', {
         detail: {
           isOpen: true,
           isOHFocused: true,
+          type: canUserAddAttendees ? 'admin-edit' : 'self-edit',
+          selectedGuest: uid,
         },
       })
     );
@@ -71,6 +76,16 @@ const GuestTableRow = (props: any) => {
     <>
       <div className={`gtr ${isUserGoing ? 'user__going' : ''}`}>
         <div className="gtr__guestName">
+          {canUserAddAttendees && (
+            <div className="gtr__guestName__checkbox">
+              {selectedGuests.includes(guest.uid) && (
+                <button onClick={() => onchangeSelectionStatus(guest.uid)} className="notHappenedCtr__bdy__optnCtr__optn__sltd">
+                  <img height={11} width={11} src="/icons/right-white.svg" />
+                </button>
+              )}
+              {!selectedGuests.includes(guest.uid) && <button className="notHappenedCtr__bdy__optnCtr__optn__ntsltd" onClick={() => onchangeSelectionStatus(guest.uid)}></button>}
+            </div>
+          )}
           <Link passHref legacyBehavior href={`/members/${guestUid}`}>
             <a title={guestName} target="_blank" className="gtr__guestName__li" onClick={() => onMemberClick(guestUid, guestName)}>
               <div className="gtr__guestName__li__imgWrpr">
@@ -86,7 +101,7 @@ const GuestTableRow = (props: any) => {
           <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
             <a target="_blank" title={teamName} className="gtr__team__link" onClick={() => onTeamClick(teamUid, teamName)}>
               <div className="gtr__team__link__imgWrpr">
-                <img className='gtr__team__link__img' width={32} height={32} alt="team logo" src={teamLogo} loading="lazy" />
+                <img className="gtr__team__link__img" width={32} height={32} alt="team logo" src={teamLogo} loading="lazy" />
               </div>
               <div className="break-word">{teamName}</div>
             </a>
@@ -169,8 +184,8 @@ const GuestTableRow = (props: any) => {
               -
             </span>
           )}
-          {userInfo.uid === guestUid && !officeHours ? (
-            <button onClick={handleAddOfficeHoursClick} className="gtr__connect__add">
+          {(userInfo.uid === guestUid) && !officeHours ? (
+            <button onClick={() => handleAddOfficeHoursClick(guest.uid)} className="gtr__connect__add">
               <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
               <span className="gtr__connect__add__txt">Add Office Hours</span>
               <Tooltip
@@ -209,7 +224,7 @@ const GuestTableRow = (props: any) => {
           width: 160px;
           align-items: center;
           justify-content: flex-start;
-          gap: 4px;
+          gap: 10px;
           padding-right: 16px;
         }
 
@@ -274,6 +289,7 @@ const GuestTableRow = (props: any) => {
 
         .gtr__team__link__img {
           border-radius: 4px;
+          object-fit: cover;
         }
 
         .gtr__topic {
@@ -329,7 +345,7 @@ const GuestTableRow = (props: any) => {
           font-size: 12px;
           font-weight: 500;
           color: white;
-          background:transparent;
+          background: transparent;
         }
 
         .gtr__topic__tags__re {
@@ -372,7 +388,6 @@ const GuestTableRow = (props: any) => {
           word-break: break-word;
           max-width: 200px;
           border-radius: 8px;
-          background-color: #1e293b;
           padding: 4px 8px;
           font-size: 12px;
           font-weight: 500;
@@ -445,6 +460,24 @@ const GuestTableRow = (props: any) => {
           font-weight: 500;
           line-height: 14px;
           color: #475569;
+        }
+
+        .notHappenedCtr__bdy__optnCtr__optn__sltd {
+          height: 20px;
+          width: 20px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #156ff7;
+        }
+
+        .notHappenedCtr__bdy__optnCtr__optn__ntsltd {
+          height: 20px;
+          width: 20px;
+          border-radius: 4px;
+          border: 1px solid #cbd5e1;
+          background: transparent;
         }
 
         .user__going {

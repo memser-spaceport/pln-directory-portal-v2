@@ -1,6 +1,7 @@
 import ChangelogList from '@/components/page/changelog/changelog-list';
 import styles from './page.module.css'
 import { Metadata } from 'next';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 export default function Changelog() {
   return (
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
     url: process.env.APPLICATION_BASE_URL,
     images: [
       {
-        url: `https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`,
+        url: SOCIAL_IMAGE_URL,
         width: 1280,
         height: 640,
         alt: 'Protocol Labs Directory',
@@ -31,6 +32,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: [`https://plabs-assets.s3.us-west-1.amazonaws.com/logo/protocol-labs-open-graph.jpg`],
+    images: [SOCIAL_IMAGE_URL],
   },
 };

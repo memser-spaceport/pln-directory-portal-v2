@@ -1,7 +1,7 @@
-import { sortByDefault } from '@/utils/irl.utils';
+import { getTopics, sortByDefault } from '@/utils/irl.utils';
 import { useEffect, useState } from 'react';
 
-export const useIrlDetails = (rawGuestList:any, userInfo:any) => {
+export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
   const rawGuest = [...rawGuestList];
   const [sortConfig, setSortConfig] = useState<any>({ key: null, order: 'default' });
   const [filteredList, setFilteredList] = useState([...rawGuestList]);
@@ -15,7 +15,7 @@ export const useIrlDetails = (rawGuestList:any, userInfo:any) => {
 
     const sortHandler = (e: any) => {
       const sortColumn = e.detail.sortColumn;
-      setSortConfig((old:any) => {
+      setSortConfig((old: any) => {
         if (old.key === sortColumn) {
           if (old.order === 'asc') {
             return { key: old.key, order: 'desc' };
@@ -33,7 +33,7 @@ export const useIrlDetails = (rawGuestList:any, userInfo:any) => {
     const filterHandler = (e: any) => {
       const key = e.detail?.key;
       const selectedItems = e.detail?.selectedItems;
-      setFilterConfig((prev:any) => ({ ...prev, [key]: selectedItems }));
+      setFilterConfig((prev: any) => ({ ...prev, [key]: selectedItems }));
     };
 
     document.addEventListener('irl-details-searchlist', searchHandler);
@@ -43,7 +43,7 @@ export const useIrlDetails = (rawGuestList:any, userInfo:any) => {
     return () => {
       document.removeEventListener('irl-details-searchlist', searchHandler);
       document.removeEventListener('irl-details-sortlist', sortHandler);
-      document.removeEventListener('irl-details-filter', filterHandler);
+      document.removeEventListener('irl-details-filterList', filterHandler);
     };
   }, []);
 
@@ -54,19 +54,11 @@ export const useIrlDetails = (rawGuestList:any, userInfo:any) => {
     if (searchItem?.trim() !== '') {
       filteredItems = [...rawGuest].filter(
         (v) =>
-          v?.memberName
-            ?.toLowerCase()
-            ?.includes(searchItem?.toLowerCase()?.trim()) ||
-          v?.teamName
-            ?.toLowerCase()
-            ?.includes(searchItem?.toLowerCase()?.trim()) ||
-          v?.projectContributions?.some((project: string) =>
-            project?.toLowerCase()?.includes(searchItem?.toLowerCase()?.trim())
-          )
+          v?.memberName?.toLowerCase()?.includes(searchItem?.toLowerCase()?.trim()) ||
+          v?.teamName?.toLowerCase()?.includes(searchItem?.toLowerCase()?.trim()) ||
+          v?.projectContributions?.some((project: string) => project?.toLowerCase()?.includes(searchItem?.toLowerCase()?.trim()))
       );
-      filteredItems = filteredItems.sort((a, b) =>
-        a?.memberName.localeCompare(b?.memberName)
-      );
+      filteredItems = filteredItems.sort((a, b) => a?.memberName.localeCompare(b?.memberName));
     }
 
     //sort by team & member
@@ -76,27 +68,19 @@ export const useIrlDetails = (rawGuestList:any, userInfo:any) => {
           const valueA = a[sortConfig.key];
           const valueB = b[sortConfig.key];
 
-          return sortConfig.order === 'asc'
-            ? valueA?.localeCompare(valueB)
-            : valueB?.localeCompare(valueA);
+          return sortConfig.order === 'asc' ? valueA?.localeCompare(valueB) : valueB?.localeCompare(valueA);
         });
         filteredItems = [...sortedData];
       } else {
         const sortedGuests = sortByDefault(filteredItems);
         filteredItems = sortedGuests;
 
-        const isUserGoing = filteredItems.some(
-          (guest) => guest.memberUid === userInfo.uid
-        );
+        const isUserGoing = filteredItems.some((guest) => guest.memberUid === userInfo.uid);
 
         if (isUserGoing) {
-          const currentUser = [...sortedGuests]?.find(
-            (v) => v.memberUid === userInfo?.uid
-          );
+          const currentUser = [...sortedGuests]?.find((v) => v.memberUid === userInfo?.uid);
           if (currentUser) {
-            const filteredList = [...sortedGuests]?.filter(
-              (v) => v.memberUid !== userInfo?.uid
-            );
+            const filteredList = [...sortedGuests]?.filter((v) => v.memberUid !== userInfo?.uid);
             const formattedGuests = [currentUser, ...filteredList];
             filteredItems = formattedGuests;
           }
@@ -109,22 +93,32 @@ export const useIrlDetails = (rawGuestList:any, userInfo:any) => {
     // Roles filter
     if (filterConfig['roles']?.length > 0) {
       const selectedRoles = new Set(filterConfig['roles']);
-      filteredItems = [...filteredItems]?.filter((item) =>
-        selectedRoles.has(item?.memberRole)
-      );
+      filteredItems = [...filteredItems]?.filter((item) => selectedRoles.has(item?.memberRole));
     }
 
     // Topics filter
     if (filterConfig['topics']?.length > 0) {
       const selectedTopics = new Set(filterConfig['topics']);
-      filteredItems = [...filteredItems]?.filter((item) =>
-        item.topics.some((topic:any) => selectedTopics?.has(topic))
-      );
+      filteredItems = [...filteredItems]?.filter((item) => item.topics.some((topic: any) => selectedTopics?.has(topic)));
     }
 
     // Update the filtered list
     setFilteredList(filteredItems);
   }, [searchItem, sortConfig, filterConfig, rawGuestList]);
 
-  return { filteredList, sortConfig, filterConfig };
+  useEffect(() => {
+    const selectedTopics = new Set(filterConfig['topics']);
+    const topics = getTopics([...rawGuestList]);
+
+    const topicsSet = new Set(topics);
+    selectedTopics?.forEach((topic) => {
+      if (!topicsSet.has(topic)) {
+        selectedTopics?.delete(topic);
+      }
+    });
+
+    setFilterConfig((prev: any) => ({ ...prev, topics: Array.from(selectedTopics) }));
+  }, [rawGuestList]);
+
+  return { filteredList, sortConfig, filterConfig, setFilterConfig };
 };

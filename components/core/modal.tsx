@@ -1,8 +1,9 @@
+'use client';
 import Image from 'next/image';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 
 interface IModal {
-  onClose: (e?:any) => void;
+  onClose: (e?: any) => void;
   children: ReactNode;
   modalRef: any;
 }
@@ -13,9 +14,11 @@ const Modal = (props: IModal) => {
 
   return (
     <>
-      <dialog onClose={onClose} ref={ref} className="modal">
+      <dialog autoFocus={true} onClose={onClose} ref={ref} className="modal">
+      <button className="modal__cn__hidden"></button>
         <div className="modal__cn">
-          <button type='button' className="modal__cn__closebtn" onClick={onClose}>
+          {/* for skip button focus */}
+          <button type="button" className="modal__cn__closebtn" onClick={onClose}>
             <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
           </button>
           {children}
@@ -34,6 +37,13 @@ const Modal = (props: IModal) => {
             overflow: hidden;
           }
 
+          .modal__cn__hidden {
+            display: hidden;
+            position:absolute;
+            height:0px;
+            width:0px;
+          }
+
           .modal__cn__closebtn {
             position: absolute;
             border: none;
@@ -45,7 +55,6 @@ const Modal = (props: IModal) => {
           }
         `}
       </style>
-     
     </>
   );
 };

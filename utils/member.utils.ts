@@ -157,7 +157,7 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
         }
       : {}),
     ...(country ? { 'location.country__with': stringifyQueryValues(country) } : {}),
-    ...(metroArea ? { 'location.metroArea__with': stringifyQueryValues(metroArea) } : {}),
+    ...(metroArea ? { 'location.city__with': stringifyQueryValues(metroArea) } : {}),
     ...(includeFriends ? {} : { plnFriend: false }),
     ...(openToWork ? { openToWork: true } : {}),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
@@ -187,7 +187,7 @@ export const getUniqueFilters = (members: IMemberResponse[]) => {
 
       const country = getUniqueFilterValues(values?.country, member?.location?.country ? [member?.location?.country] : []);
 
-      const metroArea = getUniqueFilterValues(values.metroArea, member?.location?.metroArea ? [member?.location?.metroArea] : []);
+      const metroArea = getUniqueFilterValues(values.metroArea, member?.location?.city ? [member?.location?.city] : []);
 
       return { skills, region, country, metroArea };
     },

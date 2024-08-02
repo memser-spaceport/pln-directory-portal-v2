@@ -38,7 +38,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
 
   return (
     <>
-      <a onClick={() => callback(project)} href={url} className={`${project?.isDeleted ? 'deleted' : ''} team-project-card`} title={`${project?.isDeleted ? 'Project does not exist' : ''}`}>
+      <a target='_blank' onClick={() => callback(project)} href={url} className={`${project?.isDeleted ? 'deleted' : ''} team-project-card`} title={`${project?.isDeleted ? 'Project does not exist' : ''}`}>
         <div className="team-project-card__profilec">
           <img loading="lazy" alt="team-logo" className="team-project-card__profilec__profile-logo" src={logo} height={40} width={40} />
           <div className="team-project-card__profilec__name-and-tagline">

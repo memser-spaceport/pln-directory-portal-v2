@@ -1,5 +1,7 @@
+import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import TextArea from '@/components/form/text-area';
 import { createFeedBack } from '@/services/office-hours.service';
+import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, NOT_SCHEDULED_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
 import { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -14,6 +16,7 @@ const NotHappened = (props: any) => {
   const formRef = useRef<any>(null);
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
+  const analytics = useNotificationAnalytics();
 
   const onReasonClickHandler = (reason: string, type: string) => {
     setErrors([]);
@@ -50,18 +53,21 @@ const NotHappened = (props: any) => {
       }
 
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-      const result = await createFeedBack(userInfo.uid, currentFollowup.uid, authToken ?? '', {
+      const feedback = {
         data: {},
         type: `${currentFollowup?.type}_FEED_BACK`,
         rating: 0,
         comments: reasons,
         response: FEEDBACK_RESPONSE_TYPES.negative.name,
-      });
-
+      };
+      analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
+      const result = await createFeedBack(userInfo.uid, currentFollowup.uid, authToken ?? '', feedback);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (!result.error) {
+        analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
         toast.success(TOAST_MESSAGES.FEEDBACK__SUCCESS);
       } else {
+        analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       }
       onClose();

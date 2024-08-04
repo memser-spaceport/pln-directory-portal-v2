@@ -72,6 +72,14 @@ export const getAnalyticsUserInfo = (userInfo: IUserInfo | null | undefined) => 
   return null;
 };
 
+export const getAnalyticsNotificationInfo = (notification: any) => {
+  return {
+    type: notification?.type,
+    status: notification?.status,
+    interaction: notification?.interaction
+  }
+}
+
 export const getAnalyticsTeamInfo = (team: ITeam | undefined) => {
   if (team?.name && team?.shortDescription) {
     return { name: team?.name ?? '', shortDescription: team?.shortDescription ?? '' };

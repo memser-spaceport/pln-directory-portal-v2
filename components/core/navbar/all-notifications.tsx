@@ -1,13 +1,21 @@
 import Link from 'next/link';
 import NotificationCard from './notification-card';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
+import { useNotificationAnalytics } from '@/analytics/notification.analytics';
+import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 const AllNotifications = (props: any) => {
   const allNotifications = props?.allNotifications ?? [];
+  const analytics = useNotificationAnalytics();
+  const userInfo = props?.userInfo;
 
-  const onSeeAllClickHanlder = () => {};
+  const onSeeAllClickHanlder = () => {
+    analytics.onSeeAllNotificationsClicked(getAnalyticsUserInfo(userInfo));
+  };
 
   const onNotificationClickHandler = (notification: any) => {
+    analytics.onNotificationCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(notification))
+
     document.dispatchEvent(
       new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, {
         detail: {

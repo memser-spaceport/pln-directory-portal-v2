@@ -45,6 +45,10 @@ export const EVENTS = {
   UPDATE_SELECTED_CONTRIBUTING_TEAM: 'update-selected-contring-team',
   UPDATE_SELECTED_CONTRIBUTORS: 'update-selected-contributors',
   PROJECT_ADD_MODAL_CLOSE_EVENT: 'project-add-modal-close-event',
+  OPEN_REMOVE_GUESTS_POPUP: 'open-remove-guests-popup',
+  OPEN_FLOATING_BAR: 'open-floating-bar',
+  GET_NOTIFICATIONS: 'get-notifications',
+  TRIGGER_RATING_POPUP: 'trigger-notification-popup'
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -86,7 +90,16 @@ export const COMMON_ANALYTICS_EVENTS = {
   FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked',
   SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: 'session-expired-popup-login-btn-clicked',
   GO_TO_TOP_BTN_CLICKED: 'go-to-top-btn-clicked',
+  NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked'
 };
+
+export const NOTIFICATION_ANALYTICS_EVENTS = {
+  NOTIFICATION_ITEM_CLICKED: 'notification-item-clicked', 
+  NOTIFICATION_SELL_ALL_NOTIFICATIONS_CLICKED: 'notification-see-all-notifications-clicked',
+  OFFICE_HOURS_FEEDBACK_SUBMITTED: 'office-hours-feedback-submitted',
+  OFFICE_HOURS_FEEDBACK_SUCCESS: 'office-hours-feedback-success',
+  OFFICE_HOURS_FEEDBACK_FAILED: 'office-hours-feedback-failed'
+}
 
 export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_SIDE_MENU_CLICK: 'settings-side-menu-click',
@@ -167,7 +180,9 @@ export const TOAST_MESSAGES = {
   ATTENDEE_ADDED_SUCCESSFULLY: 'Attendee added successfully',
   DETAILS_UPDATED_SUCCESSFULLY: 'Your details has been updated successfully',
   ATTENDEE_UPDATED_SUCCESSFULLY: 'Attendee updated successfully',
-  ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee(s) deleted successfully'
+  ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee deleted successfully',
+  FEEDBACK__SUCCESS: 'We will follow up for feedback soon',
+  FEEDBACK_THANK: 'Thank you for your feedback'
 };
 
 export const AUTH_ANALYTICS = {

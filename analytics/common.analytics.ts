@@ -84,6 +84,13 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.GO_TO_TOP_BTN_CLICKED, params);
   }
 
+  function onNotificationMenuClickHandler(user: IAnalyticsUserInfo | null) {
+    const params = {
+      user
+    }
+    captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_NOTIFICATION_MENU_CLICKED, params);
+  }
+
   return {
     onNavItemClicked,
     onNavGetHelpItemClicked,
@@ -94,5 +101,6 @@ export const useCommonAnalytics = () => {
     onPaginationOptionClicked,
     onSessionExpiredLoginClicked,
     goToTopBtnClicked,
+    onNotificationMenuClickHandler
   };
 };

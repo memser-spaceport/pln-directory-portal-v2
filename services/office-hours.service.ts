@@ -31,7 +31,7 @@ export const getFollowUps = async (logInMemberUid: string, authToken: string) =>
         cache: 'no-store',
     }
 
-    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${logInMemberUid}/interactions/${logInMemberUid}/follow-ups`,
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${logInMemberUid}/interactions/follow-ups`,
         requestOptions,
     )
     if (!response.ok) {
@@ -44,7 +44,7 @@ export const getFollowUps = async (logInMemberUid: string, authToken: string) =>
     return { data: result };
 }
 
-export const createFeedBack = async (logInMemberUid: string, interactionUid: string, authToken: string, data: any) => {
+export const createFeedBack = async (logInMemberUid: string, followupUid: string, authToken: string, data: any) => {
     const raw = JSON.stringify(
         data
     )
@@ -54,14 +54,18 @@ export const createFeedBack = async (logInMemberUid: string, interactionUid: str
         body: raw,
         redirect: "follow",
         cache: 'no-store'
-      };
+    };
 
-      const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${logInMemberUid}/interactions/${interactionUid}/feedbacks`,
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${logInMemberUid}/follow-ups/${followupUid}/feedbacks`,
         requestOptions,
-      )
-
-fetch("http://localhost:3000/v1/members/cly5oxx6z000k4602rzey4f6h/follow-ups/clyy9vkoq0002f5wzk29f6vav/feedbacks", requestOptions)
-  .then((response) => response.text())
-  .then((result) => console.log(result))
-  .catch((error) => console.error(error));
+    )
+    if (!response?.ok) {
+        return {
+            error: {
+                status: response.status, statusText: response.statusText,
+            }
+        }
+    }
+    const result = await response.json();
+    return { data: result };
 }

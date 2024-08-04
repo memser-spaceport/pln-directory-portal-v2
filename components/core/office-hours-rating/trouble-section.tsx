@@ -2,29 +2,43 @@ import SingleSelect from '@/components/form/single-select';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
 import { DIDNTHAPPENEDOPTIONS, TECHNICALISSUESOPTIONS, TROUBLES_INFO } from '@/utils/constants';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import OfficeHoursMultiSelect from './office-hours-multi-select';
 import HiddenField from '@/components/form/hidden-field';
 
 const TroubleSection = (props: any) => {
   const onTroubleOptionClickHandler = props.onTroubleOptionClickHandler;
   const troubles = props?.troubles ?? [];
+  const setErrors = props?.setErrors;
+  const currentFollowup = props?.currentFollowup;
 
   const [selectedDidntHappenedOption, setSelectedDidntHappenedOption] = useState('');
   const [selectedTechnicalIssues, setSelectedTechnicalIssues] = useState<string[]>([]);
 
   const onDidntHapppenedOptionClickHandler = (option: any) => {
+    setErrors([]);
     setSelectedDidntHappenedOption(option.name);
   };
 
   const onTechnicalIssueClickHandler = (issue: any) => {
+    setErrors([]);
     if (selectedTechnicalIssues.includes(issue.name)) {
-      const filteredIssues = selectedTechnicalIssues.filter((techIssue) => techIssue !== issue.name);
-      setSelectedTechnicalIssues(filteredIssues);
+      const filteredIssues = [...selectedTechnicalIssues].filter((techIssue) => techIssue !== issue.name);
+      setSelectedTechnicalIssues([...filteredIssues]);
       return;
     }
     setSelectedTechnicalIssues([...selectedTechnicalIssues, issue.name]);
   };
+
+
+  const reset = () => {
+    setSelectedDidntHappenedOption("");
+    setSelectedTechnicalIssues([]);
+  }
+
+  useEffect(() => {
+    reset();
+  }, [currentFollowup])
 
   return (
     <>
@@ -40,13 +54,20 @@ const TroubleSection = (props: any) => {
           <div className="trblesec__didnthpn__optn">
             <div className="trblesec__didnthpn__optn__chckbox">
               {troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
-                <button onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name)} className="trblesec__didnthpn__optn__chckbox__sltdbtn">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDidntHappenedOption('');
+                    onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name);
+                  }}
+                  className="trblesec__didnthpn__optn__chckbox__sltdbtn"
+                >
                   <img src="/icons/right-white.svg" />
                 </button>
               )}
 
               {!troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
-                <button onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name)} className="trblesec__didnthpn__optn__chckbox__notsltdbtn"></button>
+                <button type="button" onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name)} className="trblesec__didnthpn__optn__chckbox__notsltdbtn"></button>
               )}
             </div>
             <div className="trblesec__didnthpn__optn__cnt">Meeting didn’t happen</div>
@@ -67,7 +88,7 @@ const TroubleSection = (props: any) => {
 
               {selectedDidntHappenedOption === 'Got Rescheduled' && (
                 <div>
-                  <TextField defaultValue={''} id="register-member-startDate" label="" name="rescheduledAt" type="date" placeholder="Select Date" />
+                  <TextField isMandatory={true} defaultValue={''} id="register-member-startDate" label="" name="scheduledAt" type="date" placeholder="Select Date" />
                 </div>
               )}
 
@@ -88,13 +109,20 @@ const TroubleSection = (props: any) => {
           <div className="trblesec__techisue__optn">
             <div className="trblesec__techisue__chckbox">
               {troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
-                <button onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name)} className="trblesec__techisue__optn__chckbox__sltdbtn">
-                  <img src="/icons/right-white.svg" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedTechnicalIssues([]);
+                    onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name);
+                  }}
+                  className="trblesec__techisue__optn__chckbox__sltdbtn"
+                >
+                  <img alt="tick" src="/icons/right-white.svg" />
                 </button>
               )}
 
               {!troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
-                <button onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name)} className="trblesec__techisue__optn__chckbox__notsltdbtn"></button>
+                <button type="button" onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.technicalIssues.name)} className="trblesec__techisue__optn__chckbox__notsltdbtn"></button>
               )}
             </div>
             <div className="trblesec__techisue__optn__cnt">Faced technical issues</div>
@@ -115,7 +143,7 @@ const TroubleSection = (props: any) => {
 
           {selectedTechnicalIssues?.map((technicalIssue: any, index: number) => (
             <Fragment key={`${technicalIssue}-${index}`}>
-                <HiddenField value={technicalIssue ?? ''} defaultValue={technicalIssue ?? ''} name={`technicalIssue-${index}`} />
+              <HiddenField value={technicalIssue ?? ''} defaultValue={technicalIssue ?? ''} name={`technicalIssue-${index}`} />
             </Fragment>
           ))}
         </div>

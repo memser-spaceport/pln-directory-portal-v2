@@ -4,18 +4,15 @@ import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { createFollowUp } from '@/services/office-hours.service';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
-import { LEARN_MORE_URL, OFFICE_HOURS_MSG } from '@/utils/constants';
+import { EVENTS, LEARN_MORE_URL, OFFICE_HOURS_MSG } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-
 
 const MemberOfficeHours = (props: any) => {
   const member = props?.member;
   const officeHours = member?.officeHours;
   const isLoggedIn = props?.isLoggedIn;
   const userInfo = props?.userInfo;
-
-  console.log("user info", props);
 
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
@@ -28,12 +25,18 @@ const MemberOfficeHours = (props: any) => {
 
   const onScheduleMeeting = async () => {
     try {
-      const authToken = Cookies.get("authToken") || "";
-      await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+      const authToken = Cookies.get('authToken') || '';
+      const response = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
         data: {},
         hasFollowUp: true,
+        type: 'SCHEDULE_MEETING',
         targetMemberUid: member.id,
       });
+
+      if (!response?.error) {
+        document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
+        router.refresh();
+      }
     } catch (error) {
       console.error(error);
     }

@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <StyledJsxRegistry>
           <header className="layout__header">
-            <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
           </header>
           <main className="layout__main">{children}</main>
           <Loader />

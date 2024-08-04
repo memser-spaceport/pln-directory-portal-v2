@@ -45,8 +45,6 @@ export const EVENTS = {
   UPDATE_SELECTED_CONTRIBUTING_TEAM: 'update-selected-contring-team',
   UPDATE_SELECTED_CONTRIBUTORS: 'update-selected-contributors',
   PROJECT_ADD_MODAL_CLOSE_EVENT: 'project-add-modal-close-event',
-  OPEN_REMOVE_GUESTS_POPUP: 'open-remove-guests-popup',
-  OPEN_FLOATING_BAR: 'open-floating-bar',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -304,6 +302,7 @@ export const PAGE_ROUTES = {
   SETTINGS: '/settings',
   PROJECTS: '/projects',
   IRL: '/irl',
+  NOTIFICATIONS: '/notifications',
 };
 
 export const SORT_OPTIONS = {
@@ -592,8 +591,8 @@ export const OFFICE_HOURS_STEPS = {
   MEETING_INITIATED: {
     name: "MEETING_INITIATED",
   },
-  HAPPENED: {
-    name: "happened",
+  MEETING_SCHEDULED: {
+    name: "MEETING_SCHEDULED",
   },
   NOT_HAPPENED: {
     name: 'not-happened',
@@ -603,16 +602,17 @@ export const OFFICE_HOURS_STEPS = {
 
 export const TROUBLES_INFO = {
   didntHappened: {
-      name: 'Meeting didn’t happen',
-      reasons: []
+    name: 'Meeting didn’t happen',
+    reasons: []
   },
   technicalIssues: {
-      name: 'Faced Technical Issues',
-      reasons: []
+    name: 'Faced Technical Issues',
+    reasons: []
   }
 }
 
 
+export const NOT_SCHEDULED_OPTIONS = ['Broken Link', 'I plan to schedule soon', 'Preferred slot not available', 'Other'];
 
 export const DIDNTHAPPENEDOPTIONS = [
   {
@@ -640,7 +640,58 @@ export const DIDNTHAPPENEDOPTIONS = [
 
 
 export const TECHNICALISSUESOPTIONS = [
-  {name: "Noise or disturbance during the call"},
-  {name: "Network issue"}, 
-  {name: "Other"}
+  { name: "Noise or disturbance during the call" },
+  { name: "Network issue" },
+  { name: "Other" }
 ]
+
+
+export const NOTIFICATION_TYPES = {
+  meetingInitiated: {
+    name: "MEETING_INITIATED"
+  },
+  meetingScheduled: {
+    name: "MEETING_SCHEDULED"
+  }
+}
+
+export const RATINGS = [
+  {
+    value: 1,
+    backgroundColor: '#FFD9C9',
+    disableColor: '#e3e3e3',
+  },
+
+  {
+    value: 2,
+    backgroundColor: '#FFF2C9',
+    disableColor: '#f1f1f1',
+  },
+
+  {
+    value: 3,
+    backgroundColor: '#FFF2C9',
+    disableColor: '#f1f1f1',
+  },
+
+  {
+    value: 4,
+    backgroundColor: '#C5F9D0',
+    disableColor: '#e5e5e5',
+  },
+
+  {
+    value: 5,
+    backgroundColor: '#C5F9D0',
+    disableColor: '#e5e5e5',
+  },
+];
+
+export const FEEDBACK_RESPONSE_TYPES = {
+  positive: {
+    name: "POSITIVE"
+  },
+  negative: {
+    name: "NEGATIVE"
+  }
+}

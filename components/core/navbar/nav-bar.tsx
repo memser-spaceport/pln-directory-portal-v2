@@ -1,21 +1,25 @@
 'use client';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
-import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
+import useClickedOutside from '@/hooks/useClickedOutside';
+import { getFollowUps } from '@/services/office-hours.service';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS } from '@/utils/constants';
+import cookies from 'js-cookie';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { SyntheticEvent, useEffect, useRef, useState } from 'react';
+import AllNotifications from './all-notifications';
 import JoinNetwork from './join-network';
+import LoginBtn from './login-btn';
 import MobileNavDrawer from './mobile-nav-drawer';
 import UserProfile from './userProfile';
-import { SyntheticEvent, useRef, useState } from 'react';
-import { IUserInfo } from '@/types/shared.types';
-import LoginBtn from './login-btn';
-import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import useClickedOutside from '@/hooks/useClickedOutside';
 
 interface INavbar {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
+  authToken: string;
 }
 
 export default function Navbar(props: Readonly<INavbar>) {
@@ -23,15 +27,21 @@ export default function Navbar(props: Readonly<INavbar>) {
   const userInfo = props?.userInfo;
   const isLoggedIn = props?.isLoggedIn;
   const analytics = useCommonAnalytics();
+  const authToken = props?.authToken;
 
   const helpMenuRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLButtonElement>(null);
   const [isHelperMenuOpen, setIsHelperMenuOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobilDrawerOpen] = useState(false);
 
+  const [notifications, setNotification] = useState([]);
+  const [isNotification, setIsNotification] = useState(false);
+
   useClickedOutside({ callback: () => setIsHelperMenuOpen(false), ref: helpMenuRef });
+  useClickedOutside({ callback: () => setIsNotification(false), ref: notificationRef });
 
   const onNavItemClickHandler = (url: string, name: string) => {
-    if(pathName !== url) {
+    if (pathName !== url) {
       triggerLoader(true);
     }
     if (pathName !== url) {
@@ -55,6 +65,34 @@ export default function Navbar(props: Readonly<INavbar>) {
     // document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_MOBILE_NAV, { detail: true }));
     setIsMobilDrawerOpen((prev) => !prev);
     analytics.onNavDrawerBtnClicked(isMobileDrawerOpen);
+  };
+
+  useEffect(() => {
+    async function getAllNotifications() {
+      const response = await getFollowUps(userInfo.uid ?? '', authToken);
+      const result = response?.data ?? [];
+        setNotification(result); 
+    }
+
+    document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
+      if (e.detail) {
+          getAllNotifications();
+      }
+    });
+
+    getAllNotifications();
+    
+    return function ()  {
+      document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
+        if (e.detail) {
+          getAllNotifications();
+        }
+      });
+    };
+  }, []);
+
+  const onNotificationClickHandler = () => {
+    setIsNotification(!isNotification);
   };
 
   return (
@@ -83,6 +121,17 @@ export default function Navbar(props: Readonly<INavbar>) {
           </div>
         </div>
         <div className="nb__right">
+          <div className="nb__right__ntc" >
+            <button ref={notificationRef} className="nb__right__ntc__btn" onClick={onNotificationClickHandler}>
+              <img alt="notification" src="/icons/bell.svg" />
+            </button>
+            {notifications.length > 0 && <div className="nb__right__ntc__new"></div>}
+            {isNotification && (
+              <div className="nb__right__ntc__allntn">
+                <AllNotifications allNotifications={notifications} />
+              </div>
+            )}
+          </div>
           <div className="nb__right__helpc" ref={helpMenuRef}>
             <button onClick={onHelpClickHandler} className="nb__right__helpc__btn">
               <Image className="nb__right__helpc__btn__img" alt="help" loading="lazy" height={24} width={24} src="/icons/help.svg" />
@@ -117,6 +166,9 @@ export default function Navbar(props: Readonly<INavbar>) {
 
       <style jsx>
         {`
+          button {
+            background: inherit;
+          }
           .nb {
             height: 100%;
             width: 100%;
@@ -261,6 +313,38 @@ export default function Navbar(props: Readonly<INavbar>) {
             padding: ${isLoggedIn ? '8px' : '0'};
           }
 
+          .nb__right__ntc {
+            height: 24px;
+            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 4px;
+            position: relative;
+          }
+
+          .nb__right__ntc__new {
+            height: 6px;
+            width: 6px;
+            background: #ff4b23;
+            border-radius: 50%;
+            top: 2px;
+            position: absolute;
+            right: 3px;
+          }
+
+          .nb__right__ntc__allntn {
+            position: absolute;
+            max-height: 534px;
+            width: 250px;
+            z-index: 5;
+            right: -10px;
+            top: 30px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0px 2px 6px 0px #0f172a29;
+          }
+
           @media (min-width: 1024px) {
             .nb {
               padding: 0 48px 0 54px;
@@ -269,6 +353,10 @@ export default function Navbar(props: Readonly<INavbar>) {
               display: flex;
               gap: 92px;
               align-items: center;
+            }
+
+            .nb__right__ntc__allntn {
+              width: 400px;
             }
 
             .nb__right__helpc {
@@ -297,6 +385,12 @@ export default function Navbar(props: Readonly<INavbar>) {
 
             .nb__right__drawerandprofilesec {
               border: none;
+            }
+
+            .nb__right__ntc__allntn {
+              right: 10px;
+              top: 30px;
+                          width: 300px;
             }
           }
         `}

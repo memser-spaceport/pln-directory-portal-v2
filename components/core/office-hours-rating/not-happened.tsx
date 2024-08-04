@@ -1,10 +1,15 @@
 import TextArea from '@/components/form/text-area';
+import { createFeedBack } from '@/services/office-hours.service';
+import { EVENTS, FEEDBACK_RESPONSE_TYPES, NOT_SCHEDULED_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
 import { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
 const NotHappened = (props: any) => {
   const onClose = props?.onClose;
-  const options = ['Broken Link', 'I plan to schedule soon', 'Preferred slot not available', 'Other'];
+  const options = [...NOT_SCHEDULED_OPTIONS];
+  const userInfo = props?.userInfo;
+  const authToken = props?.authToken;
+  const currentFollowup = props?.currentFollowup;
 
   const formRef = useRef<any>(null);
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
@@ -22,27 +27,50 @@ const NotHappened = (props: any) => {
     }
   };
 
-  const onSubmitClickHandler = (e: any) => {
+  const onSubmitClickHandler = async (e: any) => {
     e.preventDefault();
     if (!formRef.current) {
       return;
     }
-    let reasons = [...selectedReasons].filter((reason) => reason !== 'Other');
-    const formData: any = Object.fromEntries(new FormData(formRef.current));
-    if (selectedReasons.includes('Other')) {
-      if (!formData.reason) {
-        setErrors((prev) => Array.from(new Set([...prev, 'Please fill the text area below.'])));
+
+    try {
+      let reasons = [...selectedReasons].filter((reason) => reason !== 'Other');
+      const formData: any = Object.fromEntries(new FormData(formRef.current));
+      if (selectedReasons.includes('Other')) {
+        if (!formData.reason) {
+          setErrors((prev) => Array.from(new Set([...prev, 'Please enter the reason(s)'])));
+          return;
+        }
+        reasons.push(formData?.reason);
+      }
+
+      if (selectedReasons.length === 0) {
+        setErrors((prev) => Array.from(new Set([...prev, 'Please select any reason(s) below.'])));
         return;
       }
-      reasons.push(formData?.reason);
-    }
 
-    if (selectedReasons.length === 0) {
-      setErrors((prev) => Array.from(new Set([...prev, 'Please select any reason below.'])));
-      return;
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
+      const result = await createFeedBack(userInfo.uid, currentFollowup.uid, authToken ?? '', {
+        data: {},
+        type: `${currentFollowup?.type}_FEED_BACK`,
+        rating: 0,
+        comments: reasons,
+        response: FEEDBACK_RESPONSE_TYPES.negative.name,
+      });
+
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+      if (!result.error) {
+        toast.success(TOAST_MESSAGES.FEEDBACK__SUCCESS);
+      } else {
+        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      }
+      onClose();
+    } catch (error) {
+      console.error(error);
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+      onClose();
+      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
     }
-    toast.success('We will follow up for feedback soon.');
-    onClose();
   };
 
   const onCancelClickHandler = () => {
@@ -77,7 +105,7 @@ const NotHappened = (props: any) => {
                   {!selectedReasons.includes(option) && <button className="notHappenedCtr__bdy__optnCtr__optn__ntsltd" onClick={() => onReasonClickHandler(option, 'Add')}></button>}
                   <div className="notHappenedCtr__bdy__optnCtr__optn__name">{option}</div>
                 </div>
-                {option === 'Other' && (
+                {option === 'Other' && selectedReasons?.includes('Other') && (
                   <div className="notHappenedCtr__bdy__optnCtr__othrc">
                     <div className="notHappenedCtr__bdy__optnCtr__othrc__ttl">Specify other reason(s)*</div>
                     <div className="notHappenedCtr__bdy__optnCtr__othrc__rson">
@@ -209,6 +237,12 @@ const NotHappened = (props: any) => {
           textarea {
             height: 80px;
           }
+        }
+
+        .notHappenedCtr__titlectr__ttl {
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 20px;
         }
 
         @media (min-width: 1024px) {

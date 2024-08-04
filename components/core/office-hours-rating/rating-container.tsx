@@ -1,16 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import Modal from '../modal';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { getRecentBookedOfficeHours } from '@/services/common.service';
-import { OFFICE_HOURS_STEPS } from '@/utils/constants';
-import UserConfirmation from './user-confirmation';
-import cookies from 'js-cookie';
-import NotHappened from './not-happened';
-import Happened from './happened';
 import { getFollowUps } from '@/services/office-hours.service';
 import { IUserInfo } from '@/types/shared.types';
+import { EVENTS, OFFICE_HOURS_STEPS } from '@/utils/constants';
+import cookies from 'js-cookie';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import Modal from '../modal';
+import RegsiterFormLoader from '../register/register-form-loader';
+import Happened from './happened';
+import NotHappened from './not-happened';
+import UserConfirmation from './user-confirmation';
 
 interface IRatingContainer {
   isLoggedIn: boolean;
@@ -22,26 +22,16 @@ const RatingContainer = (props: IRatingContainer) => {
   const ratingContainerRef = useRef<HTMLDialogElement>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
-
   const [currentFollowup, setCurrentFollowup] = useState<any>({});
-  const [remainingFollowups, setRemainingFollowups] = useState([]);
   const [currentStep, setCurrentStep] = useState('');
 
   const isLoggedIn = props?.isLoggedIn ?? false;
-
   const authToken = props?.authToken ?? '';
   const userInfo = props?.userInfo ?? {};
 
   const onCloseClickHandler = () => {
-    if(remainingFollowups.length > 0) {
-      const currentFollowup: any = remainingFollowups[0];
-      setCurrentStep(currentFollowup?.type);
-      setCurrentFollowup(currentFollowup);
-      const filteredFollowups = [...remainingFollowups]?.filter((fp: any) => fp.uid !== currentFollowup.uid)
-      setRemainingFollowups([...filteredFollowups]);
-      return;
-    }
-
+    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
+    router.refresh();
     if (ratingContainerRef?.current) {
       ratingContainerRef.current.close();
     }
@@ -53,11 +43,8 @@ const RatingContainer = (props: IRatingContainer) => {
     cookies.set('lastRatingCall', new Date().getTime().toString());
     if (result?.length) {
       const currentFollowup = result[0];
-      console.log("current folowups is", currentFollowup);
       setCurrentStep(currentFollowup.type);
       setCurrentFollowup(currentFollowup);
-      const filteredFollowups = result?.filter((fp: any) => fp.uid !== currentFollowup.uid)
-      setRemainingFollowups(filteredFollowups);
       if (ratingContainerRef?.current) {
         ratingContainerRef.current.showModal();
       }
@@ -83,11 +70,6 @@ const RatingContainer = (props: IRatingContainer) => {
     }
   }, [router, searchParams]);
 
-
-  useEffect(() => {
-    console.log('parent -----', currentFollowup)
-  },[currentFollowup])
-
   const hasOneHourPassed = (storedTime: number) => {
     const currentTime = new Date().getTime();
     const timeDifference = currentTime - storedTime;
@@ -95,13 +77,35 @@ const RatingContainer = (props: IRatingContainer) => {
     return timeDifference > oneHourInMilliseconds;
   };
 
+  useEffect(() => {
+    async function updateNotification(notification: any) {
+      setCurrentStep(notification.type);
+      setCurrentFollowup(notification);
+      if (ratingContainerRef?.current) {
+        ratingContainerRef.current.showModal();
+      }
+    }
+
+    document.addEventListener(EVENTS.TRIGGER_RATING_POPUP, (e: any) => {
+      updateNotification(e?.detail?.notification);
+    });
+
+    return () => {
+      document.removeEventListener(EVENTS.TRIGGER_RATING_POPUP, (e: any) => {
+        updateNotification(e?.detail?.notification);
+      });
+    };
+  }, []);
 
   return (
     <>
       <Modal modalRef={ratingContainerRef} onClose={onCloseClickHandler}>
-        {currentStep === OFFICE_HOURS_STEPS.MEETING_INITIATED.name && <UserConfirmation userInfo={userInfo} setCurrentStep={setCurrentStep} currentFollowup={currentFollowup} />}
-        {currentStep === OFFICE_HOURS_STEPS.NOT_HAPPENED.name && <NotHappened onClose={onCloseClickHandler} />}
-        {currentStep === OFFICE_HOURS_STEPS.HAPPENED.name && <Happened recentlyBooked={currentFollowup} onClose={onCloseClickHandler} />}
+        <RegsiterFormLoader />
+        {currentStep === OFFICE_HOURS_STEPS.MEETING_INITIATED.name && (
+          <UserConfirmation authToken={authToken} onClose={onCloseClickHandler} userInfo={userInfo} setCurrentStep={setCurrentStep} currentFollowup={currentFollowup} />
+        )}
+        {currentStep === OFFICE_HOURS_STEPS.NOT_HAPPENED.name && <NotHappened authToken={authToken} userInfo={userInfo} onClose={onCloseClickHandler} currentFollowup={currentFollowup} />}
+        {currentStep === OFFICE_HOURS_STEPS.MEETING_SCHEDULED.name && <Happened authToken={authToken} userInfo={userInfo} currentFollowup={currentFollowup} onClose={onCloseClickHandler} />}
       </Modal>
     </>
   );

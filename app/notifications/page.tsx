@@ -2,13 +2,19 @@ import { BreadCrumb } from '@/components/core/bread-crumb';
 import Error from '@/components/core/error';
 import AllNotifications from '@/components/page/notifications/all-notifications';
 import { getFollowUps } from '@/services/office-hours.service';
+import { PAGE_ROUTES } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import styles from './page.module.css';
 
 async function Notifications({ searchParams }: { searchParams: any }) {
-  const { isError, userInfo, notifications } = await getPageData();
+  const { isError, userInfo, notifications, isLoggedIn} = await getPageData();
 
+  if(!isLoggedIn) {
+    redirect(PAGE_ROUTES.TEAMS);
+  }
+  
   if (isError) {
     return <Error />;
   }
@@ -20,7 +26,7 @@ async function Notifications({ searchParams }: { searchParams: any }) {
       </div>
 
       <div className={styles?.notifications__body}>
-        <AllNotifications notifications={notifications} />
+        <AllNotifications userInfo={userInfo} notifications={notifications} />
       </div>
     </div>
   );

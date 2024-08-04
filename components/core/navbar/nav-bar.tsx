@@ -92,6 +92,7 @@ export default function Navbar(props: Readonly<INavbar>) {
   }, []);
 
   const onNotificationClickHandler = () => {
+    analytics.onNotificationMenuClickHandler(getAnalyticsUserInfo(userInfo));
     setIsNotification(!isNotification);
   };
 
@@ -128,7 +129,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             {notifications.length > 0 && <div className="nb__right__ntc__new"></div>}
             {isNotification && (
               <div className="nb__right__ntc__allntn">
-                <AllNotifications allNotifications={notifications} />
+                <AllNotifications userInfo={userInfo} allNotifications={notifications} />
               </div>
             )}
           </div>

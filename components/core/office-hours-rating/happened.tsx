@@ -1,10 +1,12 @@
 import HiddenField from '@/components/form/hidden-field';
 import TextArea from '@/components/form/text-area';
 import { createFeedBack } from '@/services/office-hours.service';
-import { EVENTS, FEEDBACK_RESPONSE_TYPES, RATINGS, TOAST_MESSAGES } from '@/utils/constants';
+import { EVENTS, FEEDBACK_RESPONSE_TYPES, RATINGS, TOAST_MESSAGES, TROUBLES_INFO } from '@/utils/constants';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import TroubleSection from './trouble-section';
+import { useNotificationAnalytics } from '@/analytics/notification.analytics';
+import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 const Happened = (props: any) => {
   const onClose = props?.onClose;
@@ -20,11 +22,9 @@ const Happened = (props: any) => {
     comments: [],
     data: {},
   });
-
   const [troubles, setTroubles] = useState<string[]>([]);
   const formRef = useRef<any>(null);
-
-
+  const analytics = useNotificationAnalytics();
 
   const onRatingClickHandler = (rating: number) => {
     setRatingInfo({ ...ratingInfo, rating });
@@ -56,14 +56,10 @@ const Happened = (props: any) => {
     const formattedData = transformObject(Object.fromEntries(formData));
     let response = FEEDBACK_RESPONSE_TYPES.positive.name;
 
-    if (
-      parseInt(formattedData.rating) > 0 ||
-      formattedData.comments.includes('Noise or disturbance during the call') ||
-      formattedData.comments.includes('Network issue')
-    ) {
-      response = FEEDBACK_RESPONSE_TYPES.positive.name;;
+    if (troubles.includes(TROUBLES_INFO.didntHappened.name)) {
+      response = FEEDBACK_RESPONSE_TYPES.negative.name;
     } else {
-      response = FEEDBACK_RESPONSE_TYPES.negative.name;;
+      response = FEEDBACK_RESPONSE_TYPES.positive.name;
     }
 
     if (formattedData?.comments?.length === 0 && formattedData.rating === '0') {
@@ -75,26 +71,30 @@ const Happened = (props: any) => {
       setErrors((prev: any) => Array.from(new Set([...prev, 'Please enter the reason(s)'])));
       return;
     } else if (formattedData.comments.includes('Got Rescheduled') && !formattedData?.data?.scheduledAt) {
-      setErrors((prev: any) => Array.from(new Set([...prev, 'Please provide a date and time for the meeting rescheduled'])));
+      setErrors((prev: any) => Array.from(new Set([...prev, 'Please provide a date for the meeting rescheduled'])));
       return;
     }
     setErrors([]);
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     try {
-      const filteredComments = formattedData?.comments?.filter((comment: string) => comment !== "Other")
-      const result = await createFeedBack(userInfo.uid, currentFollowup.uid, authToken ?? '', {
+      const filteredComments = formattedData?.comments?.filter((comment: string) => comment !== 'Other');
+      const feedback = {
         data: formattedData.data,
         type: `${currentFollowup?.type}_FEED_BACK`,
         rating: parseInt(formattedData.rating),
         comments: filteredComments,
         response,
-      });
+      };
+      analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
+      const result = await createFeedBack(userInfo.uid, currentFollowup.uid, authToken ?? '', feedback);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (result?.error) {
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
         onClose();
         return;
       }
+      analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
       toast.success(TOAST_MESSAGES.FEEDBACK_THANK);
       onClose();
     } catch (error) {
@@ -129,8 +129,8 @@ const Happened = (props: any) => {
         }
       }
 
-      if(key.startsWith('didntHappenedReason') || key.startsWith('technnicalIssueReason')) {
-        if(!object[key]) {
+      if (key.startsWith('didntHappenedReason') || key.startsWith('technnicalIssueReason')) {
+        if (!object[key]) {
           formData.isReasonGiven = false;
         }
       }

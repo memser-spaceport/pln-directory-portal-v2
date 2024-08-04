@@ -1,5 +1,7 @@
 'use client';
+import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { createFeedBack } from '@/services/office-hours.service';
+import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, OFFICE_HOURS_STEPS, TOAST_MESSAGES } from '@/utils/constants';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
@@ -16,24 +18,29 @@ const UserConfirmation = (props: any) => {
   const userInfo = props?.userInfo;
   const authToken = props?.authToken;
   const name = currentFollowUp?.interaction?.targetMember?.name;
+  const analytics = useNotificationAnalytics();
 
   const onYesClickHandler = async () => {
     try {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-      const result = await createFeedBack(userInfo.uid, currentFollowUp.uid, authToken ?? '', {
+      const feedback =  {
         data: {},
         type: `${currentFollowUp?.type}_FEED_BACK`,
         rating: 0,
         comments: [],
         response: FEEDBACK_RESPONSE_TYPES.positive.name,
-      });
+      }
+      const result = await createFeedBack(userInfo.uid, currentFollowUp.uid, authToken ?? '', feedback);
+      analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback )
 
       if (result?.error) {
         console.error(result.error);
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback);
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       }
       if (result?.data) {
+        analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback);
         toast.success(TOAST_MESSAGES.FEEDBACK__SUCCESS);
       }
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));

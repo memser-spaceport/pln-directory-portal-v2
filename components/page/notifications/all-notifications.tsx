@@ -1,13 +1,18 @@
 'use client';
 
+import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import NotificationCard from '@/components/core/navbar/notification-card';
+import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import Link from 'next/link';
 
 const AllNotifications = (props: any) => {
   const notifications = props?.notifications ?? [];
+  const analytics = useNotificationAnalytics();
+  const userInfo = props?.userInfo;
 
   const onNotificationClickHandler = (notification: any) => {
+    analytics.onNotificationCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(notification));
     document.dispatchEvent(
       new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, {
         detail: {

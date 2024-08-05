@@ -24,21 +24,25 @@ const MemberOfficeHours = (props: any) => {
   };
 
   const onScheduleMeeting = async () => {
-    try {
-      const authToken = Cookies.get('authToken') || '';
-      const response = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
-        data: {},
-        hasFollowUp: true,
-        type: 'SCHEDULE_MEETING',
-        targetMemberUid: member.id,
-      });
+    const isLoggedInUser = userInfo?.uid === member?.id;
 
-      if (!response?.error) {
-        document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
-        router.refresh();
+    if (!isLoggedInUser) {
+      try {
+        const authToken = Cookies.get('authToken') || '';
+        const response = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+          data: {},
+          hasFollowUp: true,
+          type: 'SCHEDULE_MEETING',
+          targetMemberUid: member.id,
+        });
+
+        if (!response?.error) {
+          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
+          router.refresh();
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
     }
     memberAnalytics.onOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
   };

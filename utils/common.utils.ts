@@ -272,6 +272,10 @@ export const calculateTime = (inputDate: any) => {
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   };
 
+  if(daysDifference < 0 ) {
+    return `0 day ago`;
+  }
+
   if (daysDifference === 0) {
     return "Today " + formatTime(inputDateTime);
   } else if (daysDifference === 1) {

@@ -105,7 +105,9 @@ const RatingContainer = (props: IRatingContainer) => {
           <UserConfirmation authToken={authToken} onClose={onCloseClickHandler} userInfo={userInfo} setCurrentStep={setCurrentStep} currentFollowup={currentFollowup} />
         )}
         {currentStep === OFFICE_HOURS_STEPS.NOT_HAPPENED.name && <NotHappened authToken={authToken} userInfo={userInfo} onClose={onCloseClickHandler} currentFollowup={currentFollowup} />}
-        {currentStep === OFFICE_HOURS_STEPS.MEETING_SCHEDULED.name && <Happened authToken={authToken} userInfo={userInfo} currentFollowup={currentFollowup} onClose={onCloseClickHandler} />}
+        {(currentStep === OFFICE_HOURS_STEPS.MEETING_SCHEDULED.name || currentStep === OFFICE_HOURS_STEPS.MEETING_RESCHEDULED.name) && (
+          <Happened authToken={authToken} userInfo={userInfo} currentFollowup={currentFollowup} onClose={onCloseClickHandler} />
+        )}
       </Modal>
     </>
   );

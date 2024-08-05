@@ -94,7 +94,7 @@ export const COMMON_ANALYTICS_EVENTS = {
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
-  NOTIFICATION_ITEM_CLICKED: 'notification-item-clicked', 
+  NOTIFICATION_ITEM_CLICKED: 'notification-item-clicked',
   NOTIFICATION_SELL_ALL_NOTIFICATIONS_CLICKED: 'notification-see-all-notifications-clicked',
   OFFICE_HOURS_FEEDBACK_SUBMITTED: 'office-hours-feedback-submitted',
   OFFICE_HOURS_FEEDBACK_SUCCESS: 'office-hours-feedback-success',
@@ -611,6 +611,9 @@ export const OFFICE_HOURS_STEPS = {
   },
   NOT_HAPPENED: {
     name: 'not-happened',
+  },
+  MEETING_RESCHEDULED: {
+    name: 'MEETING_RESCHEDULED'
   }
 }
 
@@ -667,6 +670,9 @@ export const NOTIFICATION_TYPES = {
   },
   meetingScheduled: {
     name: "MEETING_SCHEDULED"
+  },
+  meetingRescheduled: {
+    name: 'MEETING_RESCHEDULED'
   }
 }
 

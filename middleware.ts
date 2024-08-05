@@ -31,7 +31,7 @@ export async function middleware(req: NextRequest) {
 
   try {
     const authToken = authTokenFromCookie?.value.replace(/"/g, '');
-    const isValidAuthToken = true;
+    const isValidAuthToken = await checkIsValidToken(authToken as string);
 
     if (isValidAuthToken) {
       response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);

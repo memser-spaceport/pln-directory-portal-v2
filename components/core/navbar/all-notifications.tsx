@@ -14,7 +14,7 @@ const AllNotifications = (props: any) => {
   };
 
   const onNotificationClickHandler = (notification: any) => {
-    analytics.onNotificationCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(notification))
+    analytics.onNotificationCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(notification));
 
     document.dispatchEvent(
       new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, {
@@ -27,7 +27,7 @@ const AllNotifications = (props: any) => {
 
   return (
     <>
-      <div className="alnot">
+      <div className="allnot">
         <div className="allnot__head">
           <div className="allnot__head__right">
             <div className="allnot__head__right__ttl">All Notification</div>
@@ -67,11 +67,16 @@ const AllNotifications = (props: any) => {
           button {
             background: inherit;
           }
+
           .allnot {
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
             background-color: white;
           }
 
           .allnot__head {
+            height: 52px;
             padding: 16px;
           }
 
@@ -97,9 +102,13 @@ const AllNotifications = (props: any) => {
             background-color: #ff820e;
           }
 
+          .allnot__body {
+            overflow: auto;
+            flex: 1;
+          }
+
           .allnot__body__ntifn {
             border-top: 1px solid #e2e8f0;
-            border-bottom: 1px solid #e2e8f0;
           }
 
           .allnot__body__ntifn:hover {
@@ -110,7 +119,7 @@ const AllNotifications = (props: any) => {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 36px;
+            min-height: 36px;
           }
 
           .allnot__body__ftr__allbtn {

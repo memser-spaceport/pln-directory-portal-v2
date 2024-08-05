@@ -102,6 +102,7 @@ const MembersFilter = (props: IMembersFilter) => {
       const search = current.toString();
       const query = search ? `?${search}` : '';
       router.push(`${pathname}/${query}`);
+      router.refresh();
     }
   };
 

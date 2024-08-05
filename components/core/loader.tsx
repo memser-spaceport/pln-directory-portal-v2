@@ -1,28 +1,30 @@
 'use client';
 import { EVENTS } from '@/utils/constants';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const Loader = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   useEffect(() => {
-    document.addEventListener(EVENTS.TRIGGER_LOADER, ((e: CustomEvent) => loadingHandler(e?.detail)) as EventListener);
-    document.removeEventListener(EVENTS.TRIGGER_LOADER, () => {});
+    function loadingHandler(e: any){
+      if (e?.detail) {
+        setIsLoading(e?.detail);
+      } else {
+        setIsLoading(false);
+      }
+    };
+    document.addEventListener(EVENTS.TRIGGER_LOADER, loadingHandler);
+    return function() {
+      document.removeEventListener(EVENTS.TRIGGER_LOADER, loadingHandler);
+    }
   }, []);
 
-  const loadingHandler = (loadingStatus: boolean) => {
-    if (loadingStatus) {
-      setIsLoading(loadingStatus);
-    } else {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    setIsLoading(false);
-  }, [router]);
+    setIsLoading(false)
+  }, [pathname, searchParams]);
+  
   return (
     <>
       {isLoading && (

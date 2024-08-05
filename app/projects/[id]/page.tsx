@@ -16,6 +16,8 @@ import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
+import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { Metadata, ResolvingMetadata } from 'next';
 
 export default async function ProjectDetails({ params }: any) {
   const projectId = params?.id;
@@ -149,3 +151,46 @@ const getPageData = async (projectId: string) => {
     };
   }
 };
+
+
+type IGenerateMetadata = {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+export async function generateMetadata({ params, searchParams }: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
+  const projectId = params.id;
+  const projectResponse = await getProject(projectId, {});
+  if (projectResponse?.error) {
+    return {
+      title: 'Protocol Labs Directory',
+      description:
+        'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+      openGraph: {
+        images: [
+          {
+            url: SOCIAL_IMAGE_URL,
+            width: 1280,
+            height: 640,
+            alt: 'Protocol Labs Directory',
+            type: 'image/jpeg',
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        images: [SOCIAL_IMAGE_URL],
+      },
+    };
+  }
+  const project = projectResponse?.data?.formattedData;
+  const previousImages = (await parent).openGraph?.images || [];
+  const logo = project?.logo || SOCIAL_IMAGE_URL;
+  return {
+    title: `${project?.name} | Protocol Labs Directory`,
+    openGraph: {
+      type: 'website',
+      url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${projectId}`,
+      images: [logo, ...previousImages],
+    },
+  };
+}

@@ -61,13 +61,12 @@ const AllNotifications = (props: any) => {
 
       <style jsx>
         {`
-
-        button {
-        background: inherit;
-        }
+          button {
+            background: inherit;
+          }
 
           .allnotifins {
-          padding-bottom: 10px;
+            padding-bottom: 10px;
           }
 
           .allnotifins__empty__icon {
@@ -135,10 +134,9 @@ const AllNotifications = (props: any) => {
             color: white;
           }
 
-                  .allnot__body__ntifn {
+          .allnot__body__ntifn {
             border-top: 1px solid #e2e8f0;
             width: 100%;
-            border-bottom: 1px solid #e2e8f0;
           }
 
           .allnot__body__ntifn:hover {

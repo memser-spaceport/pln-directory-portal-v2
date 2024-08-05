@@ -2,11 +2,12 @@
 
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { createFollowUp } from '@/services/office-hours.service';
+import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
 import { EVENTS, LEARN_MORE_URL, OFFICE_HOURS_MSG } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
 
 const MemberOfficeHours = (props: any) => {
   const member = props?.member;
@@ -29,16 +30,28 @@ const MemberOfficeHours = (props: any) => {
     if (!isLoggedInUser) {
       try {
         const authToken = Cookies.get('authToken') || '';
-        const response = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+        const response: any = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
           data: {},
           hasFollowUp: true,
           type: 'SCHEDULE_MEETING',
           targetMemberUid: member.id,
         });
 
-        if (!response?.error) {
-          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
-          router.refresh();
+        if (response?.error) {
+          if (response?.error?.status === 403) {
+            toast.error('Interaction with same user within 30 minutes is restricted');
+          }
+          return;
+        }
+        
+        const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken));
+        if (!allFollowups?.error) {
+          const result = allFollowups?.data ?? [];
+          if (result.length > 0) {
+            document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[result?.length - 1] } }));
+            document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
+            router.refresh();
+          }
         }
       } catch (error) {
         console.error(error);

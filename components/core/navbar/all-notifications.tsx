@@ -30,7 +30,7 @@ const AllNotifications = (props: any) => {
       <div className="allnot">
         <div className="allnot__head">
           <div className="allnot__head__right">
-            <div className="allnot__head__right__ttl">All Notification</div>
+            <div className="allnot__head__right__ttl">All Notifications</div>
             <div className="allnot__head__right__count">{allNotifications.length}</div>
           </div>
         </div>
@@ -73,6 +73,7 @@ const AllNotifications = (props: any) => {
             display: flex;
             flex-direction: column;
             background-color: white;
+            border-radius: 8px;
           }
 
           .allnot__head {

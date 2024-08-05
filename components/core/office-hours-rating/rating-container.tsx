@@ -30,6 +30,8 @@ const RatingContainer = (props: IRatingContainer) => {
   const userInfo = props?.userInfo ?? {};
 
   const onCloseClickHandler = () => {
+    setCurrentFollowup({});
+    setCurrentStep("");
     document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
     router.refresh();
     if (ratingContainerRef?.current) {

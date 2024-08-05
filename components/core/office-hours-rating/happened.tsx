@@ -48,6 +48,7 @@ const Happened = (props: any) => {
   };
 
   const onFormSubmit = async (e: any) => {
+    setErrors([]);
     e.preventDefault();
     if (!formRef.current) {
       return;
@@ -62,22 +63,41 @@ const Happened = (props: any) => {
       response = FEEDBACK_RESPONSE_TYPES.positive.name;
     }
 
-    if (formattedData?.comments?.length === 0 && formattedData.rating === '0') {
-      setErrors((prev: any) => Array.from(new Set([...prev, 'Please provide comment(s) or select a rating'])));
+    const allComments = [
+      ...formattedData?.comments?.ratingComment,
+      ...formattedData?.comments?.technicalIssue,
+      ...formattedData?.comments?.didntHappenedReason,
+      ...formattedData?.comments?.didntHappenedOption,
+      ...formattedData?.comments?.technnicalIssueReason,
+    ];
+
+    if (!isDisable && formattedData.rating === '0') {
+      setErrors((prev: any) => Array.from(new Set([...prev, 'Please provide the rating'])));
+      return;
+    }
+
+    if (troubles.includes(TROUBLES_INFO.didntHappened.name) && formattedData?.didntHappenedReasons?.length === 0) {
+      setErrors((prev: any) => Array.from(new Set([...prev, 'Please select the reason for the meeting not happening'])));
+      return;
+    }
+
+    if (troubles.includes(TROUBLES_INFO.technicalIssues.name) && formattedData?.technnicalIssueReasons?.length === 0) {
+      setErrors((prev: any) => Array.from(new Set([...prev, 'Please select the technical issue reason'])));
       return;
     }
 
     if (!formattedData.isReasonGiven) {
       setErrors((prev: any) => Array.from(new Set([...prev, 'Please enter the reason(s)'])));
       return;
-    } else if (formattedData.comments.includes('Got Rescheduled') && !formattedData?.data?.scheduledAt) {
+    } else if (allComments.includes('Got Rescheduled') && !formattedData?.data?.scheduledAt) {
       setErrors((prev: any) => Array.from(new Set([...prev, 'Please provide a date for the meeting rescheduled'])));
       return;
     }
     setErrors([]);
+
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     try {
-      const filteredComments = formattedData?.comments?.filter((comment: string) => comment !== 'Other');
+      const filteredComments = allComments?.filter((comment: string) => comment !== 'Other');
       const feedback = {
         data: formattedData.data,
         type: `${currentFollowup?.type}_FEED_BACK`,
@@ -107,7 +127,13 @@ const Happened = (props: any) => {
 
   const transformObject = (object: any) => {
     let formData: any = {
-      comments: [],
+      comments: {
+        ratingComment: [],
+        technicalIssue: [],
+        didntHappenedReason: [],
+        didntHappenedOption: [],
+        technnicalIssueReason: [],
+      },
       rating: 0,
       data: {},
       isReasonGiven: true,
@@ -125,7 +151,7 @@ const Happened = (props: any) => {
 
       if (key === 'ratingComment' || key.startsWith('technicalIssue') || key.startsWith('didntHappenedReason') || key.startsWith('didntHappenedOption') || key.startsWith('technnicalIssueReason')) {
         if (object[key]) {
-          formData.comments.push(object[key]);
+          formData?.comments[key?.split('-')[0]]?.push(object[key]);
         }
       }
 
@@ -135,6 +161,12 @@ const Happened = (props: any) => {
         }
       }
     }
+
+    formData = {
+      ...formData,
+      didntHappenedReasons: [...formData.comments.didntHappenedReason, ...formData.comments.didntHappenedOption],
+      technnicalIssueReasons: [...formData.comments.technnicalIssueReason, ...formData.comments.technicalIssue],
+    };
     return formData;
   };
 
@@ -189,8 +221,8 @@ const Happened = (props: any) => {
                 ))}
               </div>
               <div className="hdndC__ratingCndr__cmt">
-                <span>Not Valueable</span>
-                <span>Extremely Valueable</span>
+                <span>Not Valuable</span>
+                <span>Extremely Valuable</span>
               </div>
               <HiddenField value={ratingInfo?.rating.toString()} defaultValue={'0'} name={`rating`} />
             </div>

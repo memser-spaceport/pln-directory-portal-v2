@@ -1,19 +1,27 @@
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import TextArea from '@/components/form/text-area';
 import { createFeedBack } from '@/services/office-hours.service';
+import { IFollowUp } from '@/types/officehours.types';
+import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, NOT_SCHEDULED_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
-import { useRef, useState } from 'react';
+import { FormEvent, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
-const NotHappened = (props: any) => {
+interface INotHappened {
+  onClose: () => void;
+  currentFollowup: IFollowUp | null;
+  userInfo: IUserInfo;
+  authToken: string;
+}
+const NotHappened = (props: INotHappened) => {
   const onClose = props?.onClose;
   const options = [...NOT_SCHEDULED_OPTIONS];
   const userInfo = props?.userInfo;
   const authToken = props?.authToken;
   const currentFollowup = props?.currentFollowup;
 
-  const formRef = useRef<any>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const analytics = useNotificationAnalytics();
@@ -30,7 +38,7 @@ const NotHappened = (props: any) => {
     }
   };
 
-  const onSubmitClickHandler = async (e: any) => {
+  const onSubmitClickHandler = async (e: FormEvent) => {
     e.preventDefault();
     if (!formRef.current) {
       return;
@@ -61,7 +69,7 @@ const NotHappened = (props: any) => {
         response: FEEDBACK_RESPONSE_TYPES.negative.name,
       };
       analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
-      const result = await createFeedBack(userInfo.uid, currentFollowup.uid, authToken ?? '', feedback);
+      const result = await createFeedBack(userInfo?.uid ?? "", currentFollowup?.uid ?? "", authToken ?? '', feedback);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (!result.error) {
         analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
@@ -100,7 +108,7 @@ const NotHappened = (props: any) => {
 
         <form ref={formRef} noValidate onSubmit={onSubmitClickHandler}>
           <div className="notHappenedCtr__bdy">
-            {options?.map((option: any, index: number) => (
+            {options?.map((option: string, index: number) => (
               <div key={`${index}+ ${index}`} className="notHappenedCtr__bdy__optnCtr">
                 <div className="notHappenedCtr__bdy__optnCtr__optn">
                   {selectedReasons.includes(option) && (

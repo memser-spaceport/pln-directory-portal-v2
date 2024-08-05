@@ -2,13 +2,34 @@ import HiddenField from '@/components/form/hidden-field';
 import TextArea from '@/components/form/text-area';
 import { createFeedBack } from '@/services/office-hours.service';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, RATINGS, TOAST_MESSAGES, TROUBLES_INFO } from '@/utils/constants';
-import { useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import TroubleSection from './trouble-section';
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { IFollowUp } from '@/types/officehours.types';
+import { IUserInfo } from '@/types/shared.types';
 
-const Happened = (props: any) => {
+interface IHappened {
+  onClose: () => void;
+  currentFollowup: IFollowUp | null;
+  authToken: string;
+  userInfo: IUserInfo;
+}
+
+interface IRatingInfo {
+  rating: number;
+  comments: string[];
+  data: any;
+}
+
+interface IRating {
+  value: number,
+  backgroundColor: string,
+  disableColor: string,
+}
+
+const Happened = (props: IHappened) => {
   const onClose = props?.onClose;
   const currentFollowup = props?.currentFollowup;
   const authToken = props?.authToken;
@@ -17,13 +38,13 @@ const Happened = (props: any) => {
 
   const [errors, setErrors] = useState<string[]>([]);
   const [isDisable, setIsDisable] = useState<boolean>(false);
-  const [ratingInfo, setRatingInfo] = useState<any>({
+  const [ratingInfo, setRatingInfo] = useState<IRatingInfo>({
     rating: 0,
     comments: [],
     data: {},
   });
   const [troubles, setTroubles] = useState<string[]>([]);
-  const formRef = useRef<any>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const analytics = useNotificationAnalytics();
 
   const onRatingClickHandler = (rating: number) => {
@@ -40,14 +61,14 @@ const Happened = (props: any) => {
     }
     setTroubles(filteredTroubles);
     if (filteredTroubles.includes('Meeting didn’t happen')) {
-      setRatingInfo((prev: any) => ({ ...prev, rating: 0 }));
+      setRatingInfo((prev: IRatingInfo) => ({ ...prev, rating: 0 }));
       setIsDisable(true);
       return;
     }
     setIsDisable(false);
   };
 
-  const onFormSubmit = async (e: any) => {
+  const onFormSubmit = async (e: FormEvent) => {
     setErrors([]);
     e.preventDefault();
     if (!formRef.current) {
@@ -72,29 +93,28 @@ const Happened = (props: any) => {
     ];
 
     if (!isDisable && formattedData.rating === '0') {
-      setErrors((prev: any) => Array.from(new Set([...prev, 'Please provide the rating'])));
+      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please provide the rating'])));
       return;
     }
 
     if (troubles.includes(TROUBLES_INFO.didntHappened.name) && formattedData?.didntHappenedReasons?.length === 0) {
-      setErrors((prev: any) => Array.from(new Set([...prev, 'Please select the reason for the meeting not happening'])));
+      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please select the reason for the meeting not happening'])));
       return;
     }
 
     if (troubles.includes(TROUBLES_INFO.technicalIssues.name) && formattedData?.technnicalIssueReasons?.length === 0) {
-      setErrors((prev: any) => Array.from(new Set([...prev, 'Please select the technical issue reason'])));
+      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please select the technical issue reason'])));
       return;
     }
 
     if (!formattedData.isReasonGiven) {
-      setErrors((prev: any) => Array.from(new Set([...prev, 'Please enter the reason(s)'])));
+      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please enter the reason(s)'])));
       return;
     } else if (allComments.includes('Got Rescheduled') && !formattedData?.data?.scheduledAt) {
-      setErrors((prev: any) => Array.from(new Set([...prev, 'Please provide a date for the meeting rescheduled'])));
+      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please provide a date for the meeting rescheduled'])));
       return;
     }
     setErrors([]);
-
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     try {
       const filteredComments = allComments?.filter((comment: string) => comment !== 'Other');
@@ -106,7 +126,7 @@ const Happened = (props: any) => {
         response,
       };
       analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
-      const result = await createFeedBack(userInfo.uid, currentFollowup.uid, authToken ?? '', feedback);
+      const result = await createFeedBack(userInfo?.uid ?? "", currentFollowup?.uid ?? "", authToken ?? '', feedback);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (result?.error) {
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
@@ -208,7 +228,7 @@ const Happened = (props: any) => {
             {/* Rating */}
             <div className="hdndC__ratingCndr">
               <div className="hdndC__ratingCndr__rts">
-                {ratings?.map((rating: any, index: number) => (
+                {ratings?.map((rating: IRating, index: number) => (
                   <button
                     type="button"
                     onClick={() => onRatingClickHandler(index + 1)}
@@ -239,12 +259,11 @@ const Happened = (props: any) => {
 
             {/* Trouble */}
             <div className="hpndC__trble">
-              <TroubleSection currentFollowup={currentFollowup} setIsDisable={setIsDisable} setErrors={setErrors} troubles={troubles} onTroubleOptionClickHandler={onTroubleOptionClickHandler} />
+              <TroubleSection currentFollowup={currentFollowup} setErrors={setErrors} troubles={troubles} onTroubleOptionClickHandler={onTroubleOptionClickHandler} />
             </div>
           </div>
 
           {/* Options */}
-
           <div className="hdndC__trble__optscon">
             <div className="hdndC__trble__optscon__optns">
               <button type="button" className="hdndc__trble__opts__cancel" onClick={onClose}>

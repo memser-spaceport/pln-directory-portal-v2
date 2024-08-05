@@ -2,16 +2,22 @@
 
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import NotificationCard from '@/components/core/navbar/notification-card';
+import { IFollowUp } from '@/types/officehours.types';
+import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import Link from 'next/link';
 
-const AllNotifications = (props: any) => {
+interface IAllNotifications {
+  notifications: IFollowUp[];
+  userInfo: IUserInfo;
+}
+const AllNotifications = (props: IAllNotifications) => {
   const notifications = props?.notifications ?? [];
   const analytics = useNotificationAnalytics();
   const userInfo = props?.userInfo;
 
-  const onNotificationClickHandler = (notification: any) => {
+  const onNotificationClickHandler = (notification: IFollowUp) => {
     analytics.onNotificationCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(notification));
     document.dispatchEvent(
       new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, {

@@ -1,7 +1,11 @@
+import { IFollowUp } from '@/types/officehours.types';
 import { calculateTime } from '@/utils/common.utils';
 import { NOTIFICATION_TYPES } from '@/utils/constants';
 
-const NotificationCard = (props: any) => {
+interface INotification {
+  notification: IFollowUp;
+}
+const NotificationCard = (props: INotification) => {
   const notification = props?.notification;
   const profile = notification?.interaction?.targetMember?.image?.url ?? '/icons/default_profile.svg';
 

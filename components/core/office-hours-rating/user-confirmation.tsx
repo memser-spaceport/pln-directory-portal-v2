@@ -1,17 +1,22 @@
 'use client';
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { createFeedBack } from '@/services/office-hours.service';
+import { IFollowUp } from '@/types/officehours.types';
+import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, OFFICE_HOURS_STEPS, TOAST_MESSAGES } from '@/utils/constants';
-import { useEffect } from 'react';
+import { SetStateAction, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 interface IUserConfirmation {
   onClose: () => void;
-  setCurrentStep: any;
+  setCurrentStep: SetStateAction<any>;
+  currentFollowup: IFollowUp | null;
+  userInfo: IUserInfo;
+  authToken: string;
 }
 
-const UserConfirmation = (props: any) => {
+const UserConfirmation = (props: IUserConfirmation) => {
   const onClose = props.onClose;
   const currentFollowUp = props?.currentFollowup;
   const setCurrentStep = props?.setCurrentStep;
@@ -30,7 +35,7 @@ const UserConfirmation = (props: any) => {
         comments: [],
         response: FEEDBACK_RESPONSE_TYPES.positive.name,
       }
-      const result = await createFeedBack(userInfo.uid, currentFollowUp.uid, authToken ?? '', feedback);
+      const result = await createFeedBack(userInfo?.uid ?? "", currentFollowUp?.uid ?? "", authToken ?? '', feedback);
       analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback )
 
       if (result?.error) {
@@ -56,7 +61,7 @@ const UserConfirmation = (props: any) => {
 
 
   const onNoClickHandler = () => {
-    setCurrentStep(OFFICE_HOURS_STEPS.NOT_HAPPENED.name);
+    setCurrentStep(OFFICE_HOURS_STEPS?.NOT_HAPPENED?.name);
   };
 
   return (

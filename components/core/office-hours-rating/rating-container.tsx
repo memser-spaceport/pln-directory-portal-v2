@@ -11,6 +11,7 @@ import RegsiterFormLoader from '../register/register-form-loader';
 import Happened from './happened';
 import NotHappened from './not-happened';
 import UserConfirmation from './user-confirmation';
+import { IFollowUp } from '@/types/officehours.types';
 
 interface IRatingContainer {
   isLoggedIn: boolean;
@@ -22,7 +23,7 @@ const RatingContainer = (props: IRatingContainer) => {
   const ratingContainerRef = useRef<HTMLDialogElement>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [currentFollowup, setCurrentFollowup] = useState<any>({});
+  const [currentFollowup, setCurrentFollowup] = useState<IFollowUp | null>(null);
   const [currentStep, setCurrentStep] = useState('');
 
   const isLoggedIn = props?.isLoggedIn ?? false;
@@ -30,8 +31,8 @@ const RatingContainer = (props: IRatingContainer) => {
   const userInfo = props?.userInfo ?? {};
 
   const onCloseClickHandler = () => {
-    setCurrentFollowup({});
-    setCurrentStep("");
+    setCurrentFollowup(null);
+    setCurrentStep('');
     document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
     router.refresh();
     if (ratingContainerRef?.current) {
@@ -80,7 +81,7 @@ const RatingContainer = (props: IRatingContainer) => {
   };
 
   useEffect(() => {
-    async function updateNotification(notification: any) {
+    async function updateNotification(notification: IFollowUp) {
       setCurrentStep(notification.type);
       setCurrentFollowup(notification);
       if (ratingContainerRef?.current) {

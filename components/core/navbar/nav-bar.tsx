@@ -71,18 +71,18 @@ export default function Navbar(props: Readonly<INavbar>) {
     async function getAllNotifications() {
       const response = await getFollowUps(userInfo.uid ?? '', authToken);
       const result = response?.data ?? [];
-        setNotification(result); 
+      setNotification(result);
     }
 
     document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
       if (e.detail) {
-          getAllNotifications();
+        getAllNotifications();
       }
     });
 
     getAllNotifications();
-    
-    return function ()  {
+
+    return function () {
       document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
         if (e.detail) {
           getAllNotifications();
@@ -108,13 +108,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             {NAV_OPTIONS.map((option, index) => (
               <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)}>
                 <li key={option.name} tabIndex={0} className={`nb__left__web-optns__optn ${pathName === option.url ? 'nb__left__web-optns__optn--active' : ''}`}>
-                  <Image
-                    height={20}
-                    width={20}
-                    className="nb__left__web-optns__optn__img"
-                    src={pathName === option.url ? option.selectedLogo : option.unSelectedLogo}
-                    alt={option.name}
-                  />
+                  <Image height={20} width={20} className="nb__left__web-optns__optn__img" src={pathName === option.url ? option.selectedLogo : option.unSelectedLogo} alt={option.name} />
                   <p className="nb__left__web-optns__optn__name">{option.name}</p>
                 </li>
               </Link>
@@ -122,17 +116,19 @@ export default function Navbar(props: Readonly<INavbar>) {
           </div>
         </div>
         <div className="nb__right">
-          <div className="nb__right__ntc" >
-            <button ref={notificationRef} className="nb__right__ntc__btn" onClick={onNotificationClickHandler}>
-              <img alt="notification" src="/icons/bell.svg" />
-            </button>
-            {notifications.length > 0 && <div className="nb__right__ntc__new"></div>}
-            {isNotification && (
-              <div className="nb__right__ntc__allntn">
-                <AllNotifications userInfo={userInfo} allNotifications={notifications} />
-              </div>
-            )}
-          </div>
+          {isLoggedIn && (
+            <div className="nb__right__ntc">
+              <button ref={notificationRef} className="nb__right__ntc__btn" onClick={onNotificationClickHandler}>
+                <img alt="notification" src="/icons/bell.svg" />
+              </button>
+              {notifications.length > 0 && <div className="nb__right__ntc__new"></div>}
+              {isNotification && (
+                <div className="nb__right__ntc__allntn">
+                  <AllNotifications userInfo={userInfo} allNotifications={notifications} />
+                </div>
+              )}
+            </div>
+          )}
           <div className="nb__right__helpc" ref={helpMenuRef}>
             <button onClick={onHelpClickHandler} className="nb__right__helpc__btn">
               <Image className="nb__right__helpc__btn__img" alt="help" loading="lazy" height={24} width={24} src="/icons/help.svg" />
@@ -223,6 +219,7 @@ export default function Navbar(props: Readonly<INavbar>) {
 
           .nb__left__web-optns__optn__name {
             display: inline-block;
+            white-space: nowrap;
             vertical-align: middle;
           }
 
@@ -391,7 +388,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             .nb__right__ntc__allntn {
               right: 10px;
               top: 30px;
-                          width: 300px;
+              width: 300px;
             }
           }
         `}

@@ -2,11 +2,25 @@ import SingleSelect from '@/components/form/single-select';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
 import { DIDNTHAPPENEDOPTIONS, TECHNICALISSUESOPTIONS, TROUBLES_INFO } from '@/utils/constants';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, SetStateAction, useEffect, useState } from 'react';
 import OfficeHoursMultiSelect from './office-hours-multi-select';
 import HiddenField from '@/components/form/hidden-field';
+import { IFollowUp } from '@/types/officehours.types';
 
-const TroubleSection = (props: any) => {
+interface Option {
+  [key: string]: any;
+}
+
+interface ITroubleSection {
+  onTroubleOptionClickHandler: (name: string) => void;
+  troubles: string[];
+  setErrors: SetStateAction<any>;
+  currentFollowup: IFollowUp | null;
+}
+
+
+
+const TroubleSection = (props: ITroubleSection) => {
   const onTroubleOptionClickHandler = props.onTroubleOptionClickHandler;
   const troubles = props?.troubles ?? [];
   const setErrors = props?.setErrors;
@@ -15,12 +29,12 @@ const TroubleSection = (props: any) => {
   const [selectedDidntHappenedOption, setSelectedDidntHappenedOption] = useState('');
   const [selectedTechnicalIssues, setSelectedTechnicalIssues] = useState<string[]>([]);
 
-  const onDidntHapppenedOptionClickHandler = (option: any) => {
+  const onDidntHapppenedOptionClickHandler = (option: Option | null) => {
     setErrors([]);
-    setSelectedDidntHappenedOption(option.name);
+    setSelectedDidntHappenedOption(option?.name);
   };
 
-  const onTechnicalIssueClickHandler = (issue: any) => {
+  const onTechnicalIssueClickHandler = (issue: Option) => {
     setErrors([]);
     if (selectedTechnicalIssues.includes(issue.name)) {
       const filteredIssues = [...selectedTechnicalIssues].filter((techIssue) => techIssue !== issue.name);
@@ -104,7 +118,6 @@ const TroubleSection = (props: any) => {
         </div>
 
         {/* Technial issue */}
-
         <div className="trblesec__techisue">
           <div className="trblesec__techisue__optn">
             <div className="trblesec__techisue__chckbox">
@@ -141,7 +154,7 @@ const TroubleSection = (props: any) => {
             </div>
           )}
 
-          {selectedTechnicalIssues?.map((technicalIssue: any, index: number) => (
+          {selectedTechnicalIssues?.map((technicalIssue: string, index: number) => (
             <Fragment key={`${technicalIssue}-${index}`}>
               <HiddenField value={technicalIssue ?? ''} defaultValue={technicalIssue ?? ''} name={`technicalIssue-${index}`} />
             </Fragment>

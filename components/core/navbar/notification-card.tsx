@@ -3,7 +3,7 @@ import { NOTIFICATION_TYPES } from '@/utils/constants';
 
 const NotificationCard = (props: any) => {
   const notification = props?.notification;
-  const profile = '/icons/default_profile.svg';
+  const profile = notification?.interaction?.targetMember?.image?.url ?? '/icons/default_profile.svg';
 
   const text = getTitle(notification) ?? '';
   const daysAgo = calculateTime(notification?.createdAt);
@@ -11,7 +11,7 @@ const NotificationCard = (props: any) => {
   function getTitle(notification: any) {
     if (notification?.type === NOTIFICATION_TYPES.meetingInitiated.name) {
       return `<strong>Help improve </strong> - Did you schedule Office Hours with ${notification?.interaction?.targetMember?.name}?`;
-    } else if(notification?.type === NOTIFICATION_TYPES.meetingScheduled.name) {
+    } else if(notification?.type === NOTIFICATION_TYPES.meetingScheduled.name || notification?.type === NOTIFICATION_TYPES.meetingRescheduled.name) {
       return `<strong>Help improve </strong> - How was your recent meeting with ${notification?.interaction?.targetMember?.name}?`;
     }
   }
@@ -39,6 +39,7 @@ const NotificationCard = (props: any) => {
 
           .noticrd__prflec_prfle {
             border-radius: 50%;
+            object-fit: cover;
           }
 
           .noticrd__cnt {

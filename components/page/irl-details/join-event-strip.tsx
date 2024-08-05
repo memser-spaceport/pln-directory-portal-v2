@@ -62,7 +62,7 @@ const JoinEventStrip = (props: IJoinEventStrip) => {
           <p className="joinEventStrip__info__text">Kickstart the attendee list and let others know you&apos;re joining. Your presence could inspire others to join in too!</p>
         </div>
         <div className="joinEventStrip__btnWrpr">
-          {isUserLoggedIn && canUserAddAttendees && !isPastEvent && (
+          {isUserLoggedIn && canUserAddAttendees && (
             <button className="joinEventStrip__btnWrpr__add__btn" onClick={onAddMemberClick}>
               <img src="/icons/add-user-blue.svg" width={16} height={16} alt="add" />
               <span className="joinEventStrip__btnWrpr__add__btn__txt">Add Member</span>

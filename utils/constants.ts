@@ -169,7 +169,7 @@ export const TOAST_MESSAGES = {
   ATTENDEE_ADDED_SUCCESSFULLY: 'Attendee added successfully',
   DETAILS_UPDATED_SUCCESSFULLY: 'Your details has been updated successfully',
   ATTENDEE_UPDATED_SUCCESSFULLY: 'Attendee updated successfully',
-  ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee deleted successfully'
+  ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee(s) deleted successfully'
 };
 
 export const AUTH_ANALYTICS = {

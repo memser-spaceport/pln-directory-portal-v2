@@ -369,6 +369,7 @@ const GoingDetail: React.FC<GoingProps> = (props: GoingProps) => {
         },
       }));
       setConnectDetail({ telegramId: '', officeHours: '' });
+      setTeams([]);
       setIsMemberInGuestList(true);
     }
   };

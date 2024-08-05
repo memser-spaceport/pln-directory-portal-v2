@@ -63,14 +63,13 @@ export default function Navbar(props: Readonly<INavbar>) {
         {isMobileDrawerOpen && <MobileNavDrawer userInfo={userInfo} isLoggedIn={isLoggedIn} onNavMenuClick={onNavDrawerIconClickHandler} />}
         <div className="nb__left">
           <Link href="/">
-            <Image src="/icons/app-logo.svg" height={35} width={157} alt="app-logo" />
+            <Image quality={60} priority src="/icons/app-logo.svg" height={35} width={157} alt="app-logo" />
           </Link>
           <div className="nb__left__web-optns">
             {NAV_OPTIONS.map((option, index) => (
               <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)}>
                 <li key={option.name} tabIndex={0} className={`nb__left__web-optns__optn ${pathName === option.url ? 'nb__left__web-optns__optn--active' : ''}`}>
                   <Image
-                    loading="lazy"
                     height={20}
                     width={20}
                     className="nb__left__web-optns__optn__img"

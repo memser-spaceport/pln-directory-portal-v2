@@ -119,7 +119,7 @@ const Toolbar = (props: IToolbar) => {
           <span className="toolbar__hdr__count">({filteredList.length})</span>
         </span>
         <div className="toolbar__actionCn">
-          {!isPastEvent && canUserAddAttendees && (
+          {canUserAddAttendees && (
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
                 <img src="/icons/add-user-blue.svg" width={16} height={16} alt="add" />

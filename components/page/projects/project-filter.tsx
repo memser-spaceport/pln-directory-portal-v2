@@ -66,8 +66,10 @@ const ProjectFilter = (props: any) => {
       });
       const search = current.toString();
       const query = search ? `?${search}` : '';
-      router.push(`${pathname}/${query}`);
       analytics.onProjectFilterCleared(getAnalyticsUserInfo(userInfo));
+      router.push(`${pathname}/${query}`);
+      router.refresh()
+      
     }
   };
 

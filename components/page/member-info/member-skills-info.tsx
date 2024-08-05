@@ -150,7 +150,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
                   <TextField
                     id="register-member-role"
                     isMandatory={true}
-                    defaultValue={getTeamRoleDefaultValue(teaminfo.teamUid)}
+                    defaultValue={teaminfo.role}
                     name={`teamInfo${index}-role`}
                     placeholder="Enter your title/role"
                     onChange={(e) => onRoleChange(index, e.target.value)}

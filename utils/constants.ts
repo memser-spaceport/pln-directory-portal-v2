@@ -182,7 +182,8 @@ export const TOAST_MESSAGES = {
   ATTENDEE_UPDATED_SUCCESSFULLY: 'Attendee updated successfully',
   ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee deleted successfully',
   FEEDBACK__SUCCESS: 'We will follow up for feedback soon',
-  FEEDBACK_THANK: 'Thank you for your feedback'
+  FEEDBACK_THANK: 'Thank you for your feedback',
+  INTERACTION_RESTRICTED: 'Interaction with same user within 30 minutes is restricted'
 };
 
 export const AUTH_ANALYTICS = {

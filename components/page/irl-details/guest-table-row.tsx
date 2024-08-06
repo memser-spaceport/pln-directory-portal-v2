@@ -3,8 +3,13 @@ import { canUserPerformAction, formatDateRange, getTelegramUsername, removeAt } 
 import Link from 'next/link';
 import GuestDescription from './guest-description';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { getAnalyticsEventInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS } from '@/utils/constants';
+import { getAnalyticsEventInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
+import cookies from "js-cookie";
+import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
+import { toast } from 'react-toastify';
+import { useRouter } from 'next/navigation';
+
 
 const GuestTableRow = (props: any) => {
   const guest = props?.guest;
@@ -27,6 +32,8 @@ const GuestTableRow = (props: any) => {
   const checkOutDate = guest?.additionalInfo?.checkOutDate;
   const telegramId = guest?.telegramId;
   const officeHours = guest?.officeHours;
+
+  const router = useRouter();
 
   const isUserGoing = guestUid === userInfo?.uid;
   const topicsNeedToShow = 2;
@@ -54,7 +61,38 @@ const GuestTableRow = (props: any) => {
     analytics.guestListTelegramClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), telegramUrl, memberUid, memberName });
   };
 
-  const handleOfficeHoursLinkClick = (officeHoursLink: string, memberUid: string, memberName: string) => {
+  const handleOfficeHoursLinkClick = async (officeHoursLink: string, memberUid: string, memberName: string) => {
+    const isLoggedInUser = userInfo?.uid === memberUid;
+    if (!isLoggedInUser) {
+      try {
+        const authToken = cookies.get('authToken') || '';
+        const response: any = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+          data: {},
+          hasFollowUp: true,
+          type: 'SCHEDULE_MEETING',
+          targetMemberUid: memberUid,
+        });
+
+        if (response?.error) {
+          if (response?.error?.status === 403) {
+            toast.error(TOAST_MESSAGES.INTERACTION_RESTRICTED);
+          }
+          return;
+        }
+        
+        const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken));
+        if (!allFollowups?.error) {
+          const result = allFollowups?.data ?? [];
+          if (result.length > 0) {
+            document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[result?.length - 1] } }));
+            document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
+            router.refresh();
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
     analytics.guestListOfficeHoursClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), memberUid, officeHoursLink, memberName });
   };
 

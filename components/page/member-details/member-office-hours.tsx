@@ -4,7 +4,7 @@ import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
-import { EVENTS, LEARN_MORE_URL, OFFICE_HOURS_MSG } from '@/utils/constants';
+import { EVENTS, LEARN_MORE_URL, OFFICE_HOURS_MSG, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
@@ -26,7 +26,6 @@ const MemberOfficeHours = (props: any) => {
 
   const onScheduleMeeting = async () => {
     const isLoggedInUser = userInfo?.uid === member?.id;
-
     if (!isLoggedInUser) {
       try {
         const authToken = Cookies.get('authToken') || '';
@@ -39,11 +38,11 @@ const MemberOfficeHours = (props: any) => {
 
         if (response?.error) {
           if (response?.error?.status === 403) {
-            toast.error('Interaction with same user within 30 minutes is restricted');
+            toast.error(TOAST_MESSAGES.INTERACTION_RESTRICTED);
           }
           return;
         }
-        
+
         const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken));
         if (!allFollowups?.error) {
           const result = allFollowups?.data ?? [];

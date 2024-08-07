@@ -38,6 +38,7 @@
     .notifications__body {
         margin-top: 40px;
         width: 900px;
+        box-shadow: 0px 2px 6px 0px #0f172a29;
         background-color: white;
         border-radius: 8px;
       }

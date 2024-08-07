@@ -2,15 +2,20 @@ import Link from 'next/link';
 import NotificationCard from './notification-card';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
-import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsNotificationInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { usePathname, useRouter } from 'next/navigation';
 
 const AllNotifications = (props: any) => {
   const allNotifications = props?.allNotifications ?? [];
   const analytics = useNotificationAnalytics();
   const userInfo = props?.userInfo;
+  const pathname = usePathname();
 
   const onSeeAllClickHanlder = () => {
+    if(pathname !== PAGE_ROUTES.NOTIFICATIONS) {
+      triggerLoader(true);
     analytics.onSeeAllNotificationsClicked(getAnalyticsUserInfo(userInfo));
+    }
   };
 
   const onNotificationClickHandler = (notification: any) => {

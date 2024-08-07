@@ -46,7 +46,7 @@ const UserConfirmation = (props: IUserConfirmation) => {
       }
       if (result?.data) {
         analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback);
-        toast.success(TOAST_MESSAGES.FEEDBACK__SUCCESS);
+        toast.success(TOAST_MESSAGES.FEEDBACK_INITIATED_SUCCESS);
       }
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       onClose();

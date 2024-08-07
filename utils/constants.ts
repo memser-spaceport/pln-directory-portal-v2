@@ -182,7 +182,8 @@ export const TOAST_MESSAGES = {
   ATTENDEE_UPDATED_SUCCESSFULLY: 'Attendee updated successfully',
   ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee deleted successfully',
   FEEDBACK__SUCCESS: 'We will follow up for feedback soon',
-  FEEDBACK_THANK: 'Thank you for your feedback',
+  FEEDBACK_INITIATED_SUCCESS: "Great! Enjoy your conversation",
+  FEEDBACK_THANK: 'Thank you for the feedback!',
   INTERACTION_RESTRICTED: 'Interaction with same user within 30 minutes is restricted'
 };
 
@@ -631,27 +632,26 @@ export const TROUBLES_INFO = {
 }
 
 
-export const NOT_SCHEDULED_OPTIONS = ['Broken Link', 'I plan to schedule soon', 'Preferred slot not available', 'Other'];
+export const NOT_SCHEDULED_OPTIONS = ['Link is broken', 'I plan to schedule soon', 'Preferred slot is not available', 'Other'];
 
 export const DIDNTHAPPENEDOPTIONS = [
   {
     name: "Meeting link didn't work",
   },
   {
-    name: 'Meeting yet to happen',
+    name: 'Got rescheduled',
   },
   {
-    name: 'Got Rescheduled',
-  },
-  {
-    name: 'Got Cancelled',
+    name: 'Got cancelled',
   },
   {
     name: "Member didn't show up",
   },
   {
-    name: 'I did not show up',
+    name: 'I could not make it',
   },
+  { name: "Call quality issues" }
+  ,
   {
     name: 'Other',
   },
@@ -661,7 +661,7 @@ export const DIDNTHAPPENEDOPTIONS = [
 export const TECHNICALISSUESOPTIONS = [
   { name: "Noise or disturbance during the call" },
   { name: "Network issue" },
-  { name: "Other" }
+  { name: "Other" },
 ]
 
 

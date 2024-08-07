@@ -14,9 +14,9 @@ const NotificationCard = (props: INotification) => {
 
   function getTitle(notification: any) {
     if (notification?.type === NOTIFICATION_TYPES.meetingInitiated.name) {
-      return `<strong>Help improve </strong> - Did you schedule Office Hours with ${notification?.interaction?.targetMember?.name}?`;
+      return `Did you schedule Office Hours with ${notification?.interaction?.targetMember?.name}?`;
     } else if(notification?.type === NOTIFICATION_TYPES.meetingScheduled.name || notification?.type === NOTIFICATION_TYPES.meetingRescheduled.name) {
-      return `<strong>Help improve </strong> - How was your recent meeting with ${notification?.interaction?.targetMember?.name}?`;
+      return `How was your recent meeting with ${notification?.interaction?.targetMember?.name}?`;
     }
   }
 

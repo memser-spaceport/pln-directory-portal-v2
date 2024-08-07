@@ -60,65 +60,11 @@ const TroubleSection = (props: ITroubleSection) => {
         {/* Title */}
         <div className="trblesec__titlctr">
           <img alt="info" src="/icons/info-outline.svg" />
-          <span className="trblesec__titlctr__ttl">Had trouble with the meeting?</span>
+          <span className="trblesec__titlctr__ttl">Did you experience any issues with the meeting?</span>
         </div>
 
-        {/* Didn't happen */}
-        <div className="trblesec__didnthpn">
-          <div className="trblesec__didnthpn__optn">
-            <div className="trblesec__didnthpn__optn__chckbox">
-              {troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedDidntHappenedOption('');
-                    onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name);
-                  }}
-                  className="trblesec__didnthpn__optn__chckbox__sltdbtn"
-                >
-                  <img src="/icons/right-white.svg" />
-                </button>
-              )}
-
-              {!troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
-                <button type="button" onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name)} className="trblesec__didnthpn__optn__chckbox__notsltdbtn"></button>
-              )}
-            </div>
-            <div className="trblesec__didnthpn__optn__cnt">Meeting didn’t happen</div>
-          </div>
-
-          {troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
-            <div className="trblesec__didnthpn__ddown">
-              <SingleSelect
-                displayKey="name"
-                arrowImgUrl="/icons/arrow-down.svg"
-                id="didnthappendReason"
-                onItemSelect={onDidntHapppenedOptionClickHandler}
-                options={[...DIDNTHAPPENEDOPTIONS]}
-                selectedOption={selectedDidntHappenedOption}
-                uniqueKey="didnthappendReason"
-                placeholder="Select reason"
-              />
-
-              {selectedDidntHappenedOption === 'Got Rescheduled' && (
-                <div>
-                  <TextField isMandatory={true} defaultValue={''} id="register-member-startDate" label="" name="scheduledAt" type="date" placeholder="Select Date" />
-                </div>
-              )}
-
-              {selectedDidntHappenedOption === 'Other' && (
-                <div className="trblesec__didnthpn__ddown__othrctr">
-                  <div className="trblesec__didnthpn__ddown__othrctr__ttl">Secify other reason(s)*</div>{' '}
-                  <TextArea isMandatory={true} maxLength={1000} name={'didntHappenedReason'} id={'reason'} placeholder="Enter Details Here" />
-                </div>
-              )}
-            </div>
-          )}
-          <HiddenField value={selectedDidntHappenedOption} defaultValue={selectedDidntHappenedOption} name={`didntHappenedOption`} />
-        </div>
-
-        {/* Technial issue */}
-        <div className="trblesec__techisue">
+     {/* Technial issue */}
+     <div className="trblesec__techisue">
           <div className="trblesec__techisue__optn">
             <div className="trblesec__techisue__chckbox">
               {troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
@@ -160,6 +106,61 @@ const TroubleSection = (props: ITroubleSection) => {
             </Fragment>
           ))}
         </div>
+        {/* Didn't happen */}
+        <div className="trblesec__didnthpn">
+          <div className="trblesec__didnthpn__optn">
+            <div className="trblesec__didnthpn__optn__chckbox">
+              {troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDidntHappenedOption('');
+                    onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name);
+                  }}
+                  className="trblesec__didnthpn__optn__chckbox__sltdbtn"
+                >
+                  <img src="/icons/right-white.svg" />
+                </button>
+              )}
+
+              {!troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
+                <button type="button" onClick={() => onTroubleOptionClickHandler(TROUBLES_INFO.didntHappened.name)} className="trblesec__didnthpn__optn__chckbox__notsltdbtn"></button>
+              )}
+            </div>
+            <div className="trblesec__didnthpn__optn__cnt">Meeting didn’t happen</div>
+          </div>
+
+          {troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
+            <div className="trblesec__didnthpn__ddown">
+              <SingleSelect
+                displayKey="name"
+                arrowImgUrl="/icons/arrow-down.svg"
+                id="didnthappendReason"
+                onItemSelect={onDidntHapppenedOptionClickHandler}
+                options={[...DIDNTHAPPENEDOPTIONS]}
+                selectedOption={selectedDidntHappenedOption}
+                uniqueKey="didnthappendReason"
+                placeholder="Select reason"
+              />
+
+              {selectedDidntHappenedOption === 'Got rescheduled' && (
+                <div>
+                  <TextField isMandatory={true} defaultValue={''} id="register-member-startDate" label="" name="scheduledAt" type="date" placeholder="Select Date" />
+                </div>
+              )}
+
+              {selectedDidntHappenedOption === 'Other' && (
+                <div className="trblesec__didnthpn__ddown__othrctr">
+                  <div className="trblesec__didnthpn__ddown__othrctr__ttl">Secify other reason(s)*</div>{' '}
+                  <TextArea isMandatory={true} maxLength={1000} name={'didntHappenedReason'} id={'reason'} placeholder="Enter Details Here" />
+                </div>
+              )}
+            </div>
+          )}
+          <HiddenField value={selectedDidntHappenedOption} defaultValue={selectedDidntHappenedOption} name={`didntHappenedOption`} />
+        </div>
+
+   
       </div>
 
       <style jsx>

@@ -73,7 +73,7 @@ const NotHappened = (props: INotHappened) => {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (!result.error) {
         analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
-        toast.success(TOAST_MESSAGES.FEEDBACK__SUCCESS);
+        toast.success(TOAST_MESSAGES.FEEDBACK_THANK);
       } else {
         analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);

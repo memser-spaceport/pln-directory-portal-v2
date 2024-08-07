@@ -129,7 +129,6 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
             border-radius: 8px;
             border: 1px solid lightgrey;
             cursor:pointer;
-            text-transform: capitalize;
           }
           .select__search:focus-visible,
           .select__search:focus {
@@ -158,7 +157,6 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
             cursor: pointer;
             font-size: 14px;
             padding: 4px 8px;
-            text-transform: capitalize;
           }
           .select__options__noresults {
             cursor: pointer;

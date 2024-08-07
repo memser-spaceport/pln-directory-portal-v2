@@ -4,7 +4,7 @@ import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import NotificationCard from '@/components/core/navbar/notification-card';
 import { IFollowUp } from '@/types/officehours.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsNotificationInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import Link from 'next/link';
 
@@ -28,6 +28,10 @@ const AllNotifications = (props: IAllNotifications) => {
     );
   };
 
+  const onGoBackClickHandler = () => {
+    triggerLoader(true);
+  }
+
   return (
     <>
       <div className="allnotifins">
@@ -39,7 +43,7 @@ const AllNotifications = (props: IAllNotifications) => {
             <div className="allnotifins__empty__desc">You have no notifications right now. Come back later</div>
 
             <button className="allnotifins__empty__backbtn">
-              <Link style={{ height: 'inherit', width: 'inherit', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }} href={PAGE_ROUTES.TEAMS}>
+              <Link onClick={onGoBackClickHandler}  style={{ height: 'inherit', width: 'inherit', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }} href={PAGE_ROUTES.TEAMS}>
                 Go back home
               </Link>
             </button>
@@ -69,6 +73,7 @@ const AllNotifications = (props: IAllNotifications) => {
         {`
           button {
             background: inherit;
+            outline: none;
           }
 
           .allnotifins {

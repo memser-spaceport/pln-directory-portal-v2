@@ -9,22 +9,11 @@ export const getFocusAreas = async (type: string, queryParams: any) => {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        cache: 'no-store'
     });
     if (!response?.ok) {
         return { error: { statusText: response?.statusText } };
     }
-    return await { data: await response.json() };
+    return { data: await response.json() };
 };
-
-export const getRecentBookedOfficeHours = async (authToken: string) => {
-
-    return {
-        data: [
-            {
-                name: 'Vellaiyan'
-            }
-        ]
-    }
-
-}

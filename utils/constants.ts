@@ -316,6 +316,7 @@ export const IRL_ANALYTICS_EVENTS = {
 };
 
 export const PAGE_ROUTES = {
+  HOME: '/home',
   MEMBERS: '/members',
   TEAMS: '/teams',
   SETTINGS: '/settings',

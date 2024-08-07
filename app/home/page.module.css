@@ -1,0 +1,28 @@
+
+.home {
+    display: flex;
+    justify-content: center;
+}
+
+.home__body {
+    width: 90%;
+    height: 200px;
+    margin-top: 32px;
+}
+
+
+
+@media(min-width: 1024px) {
+
+    .home__body {
+        margin-top: 40px;
+        width: 900px;
+    }
+
+}
+
+@media(min-width: 1280px) {
+    .home__body {
+        width: 1200px;
+    }
+}

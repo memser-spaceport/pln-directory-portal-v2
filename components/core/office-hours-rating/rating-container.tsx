@@ -1,6 +1,6 @@
 'use client';
 
-import { getFollowUps } from '@/services/office-hours.service';
+import { getFollowUps, patchFollowup } from '@/services/office-hours.service';
 import { IUserInfo } from '@/types/shared.types';
 import { EVENTS, OFFICE_HOURS_STEPS } from '@/utils/constants';
 import cookies from 'js-cookie';
@@ -30,20 +30,26 @@ const RatingContainer = (props: IRatingContainer) => {
   const authToken = props?.authToken ?? '';
   const userInfo = props?.userInfo ?? {};
 
-  const onCloseClickHandler = () => {
-    setCurrentFollowup(null);
-    setCurrentStep('');
-    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
-    router.refresh();
-    if (ratingContainerRef?.current) {
-      ratingContainerRef.current.close();
+  const onCloseClickHandler = async (isUpdateRequired: boolean) => {
+    try {
+      if (isUpdateRequired && currentFollowup?.interactionUid && currentFollowup?.uid && (currentFollowup?.status != "CLOSED")) {
+        const response = await patchFollowup(authToken, userInfo?.uid ?? '', currentFollowup?.interactionUid ?? '', currentFollowup?.uid ?? '');
+      }
+      setCurrentFollowup(null);
+      setCurrentStep('');
+      document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
+      if (ratingContainerRef?.current) {
+        ratingContainerRef.current.close();
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
   const getRecentBooking = async () => {
-    const response = await getFollowUps(userInfo.uid ?? '', authToken);
+    const response = await getFollowUps(userInfo.uid ?? '', authToken, "PENDING");
     const result = response?.data ?? [];
-    cookies.set('lastRatingCall', new Date().getTime().toString());
+    cookies.set('lastNotificationCall', new Date().getTime().toString());
     if (result?.length) {
       const currentFollowup = result[0];
       setCurrentStep(currentFollowup.type);
@@ -57,7 +63,7 @@ const RatingContainer = (props: IRatingContainer) => {
   useEffect(() => {
     try {
       if (isLoggedIn) {
-        const storedTime = cookies.get('lastRatingCall') ?? '';
+        const storedTime = cookies.get('lastNotificationCall') ?? '';
         const storedTimeParsed = parseInt(storedTime, 10);
         if (!storedTime) {
           getRecentBooking();
@@ -66,7 +72,7 @@ const RatingContainer = (props: IRatingContainer) => {
           getRecentBooking();
         }
       } else {
-        cookies.remove('lastRatingCall');
+        cookies.remove('lastNotificationCall');
       }
     } catch (error) {
       console.error(error);
@@ -102,7 +108,7 @@ const RatingContainer = (props: IRatingContainer) => {
 
   return (
     <>
-      <Modal modalRef={ratingContainerRef} onClose={onCloseClickHandler}>
+      <Modal modalRef={ratingContainerRef} onClose={() => onCloseClickHandler(true)}>
         <RegsiterFormLoader />
         {currentStep === OFFICE_HOURS_STEPS.MEETING_INITIATED.name && (
           <UserConfirmation authToken={authToken} onClose={onCloseClickHandler} userInfo={userInfo} setCurrentStep={setCurrentStep} currentFollowup={currentFollowup} />

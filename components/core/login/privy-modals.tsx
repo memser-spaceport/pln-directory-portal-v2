@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { decodeToken } from '@/utils/auth.utils';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
-import { TOAST_MESSAGES } from '@/utils/constants';
+import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { User } from '@privy-io/react-auth';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createLogoutChannel } from './broadcast-channel';
@@ -55,6 +55,7 @@ function PrivyModals() {
     setLinkAccountKey('');
     triggerLoader(false);
     toast.success(TOAST_MESSAGES.LOGIN_MSG);
+    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: true} }));
     router.refresh();
   };
 

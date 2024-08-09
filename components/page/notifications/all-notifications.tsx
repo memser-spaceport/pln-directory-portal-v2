@@ -2,21 +2,25 @@
 
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import NotificationCard from '@/components/core/navbar/notification-card';
+import { getFollowUps } from '@/services/office-hours.service';
 import { IFollowUp } from '@/types/officehours.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface IAllNotifications {
   notifications: IFollowUp[];
   userInfo: IUserInfo;
+  authToken: string;
 }
 const AllNotifications = (props: IAllNotifications) => {
-  const notifications = props?.notifications ?? [];
   const analytics = useNotificationAnalytics();
   const userInfo = props?.userInfo;
+  const authToken = props?.authToken;
 
+  const [notifications, setNotifications] = useState(props?.notifications ?? []);
   const onNotificationClickHandler = (notification: IFollowUp) => {
     analytics.onNotificationCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(notification));
     document.dispatchEvent(
@@ -32,6 +36,29 @@ const AllNotifications = (props: IAllNotifications) => {
     triggerLoader(true);
   }
 
+
+  useEffect(() => {
+    async function getAllNotifications() {
+      const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
+      const result = response?.data ?? [];
+      setNotifications(result);
+    }
+
+    document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
+      if (e?.detail?.status) {
+        getAllNotifications();
+      }
+    });
+
+    return function () {
+      document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
+        if (e?.detail?.status) {
+          getAllNotifications();
+        }
+      });
+    };
+  }, []);
+
   return (
     <>
       <div className="allnotifins">
@@ -39,9 +66,7 @@ const AllNotifications = (props: IAllNotifications) => {
           <div className="allnotifins__empty">
             <img className="allnotifins__empty__icon" src="/icons/notification.svg" alt="notifications" />
             <div className="allnotifins__empty__ttl">No Notifications</div>
-
             <div className="allnotifins__empty__desc">You have no notifications right now. Come back later</div>
-
             <button className="allnotifins__empty__backbtn">
               <Link onClick={onGoBackClickHandler}  style={{ height: 'inherit', width: 'inherit', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }} href={PAGE_ROUTES.TEAMS}>
                 Go back home

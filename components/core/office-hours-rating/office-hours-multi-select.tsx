@@ -5,6 +5,8 @@ const OfficeHoursMultiSelect = (props: any) => {
   const selectedItems = [...props?.selectedItems];
   const onItemSelect = props?.onItemSelect;
   const displayKey = props?.displayKey;
+  const onMultiSelectedClick = props?.onMultiSelectedClick;
+  const side = props?.side;
 
   const selectedItem = getSelectedItem();
 
@@ -26,6 +28,9 @@ const OfficeHoursMultiSelect = (props: any) => {
 
   const onContainerClickHandler = () => {
     setShowOptions(!showOptions);
+    if(onMultiSelectedClick) {
+      onMultiSelectedClick();
+    }
   };
 
   function getSelectedItem() {
@@ -75,7 +80,16 @@ const OfficeHoursMultiSelect = (props: any) => {
                     )}
                   </div>
 
-                  <span className="ohms__optscnt__optn__name">{item[displayKey]}</span>
+                  <button
+                    onClick={() => {
+                      setShowOptions(false);
+                      onItemSelect(item);
+                    }}
+                    type="button"
+                    className="ohms__optscnt__optn__name"
+                  >
+                    {item[displayKey]}
+                  </button>
                 </div>
               ))}
             </div>
@@ -102,7 +116,7 @@ const OfficeHoursMultiSelect = (props: any) => {
             border-radius: 8px;
             padding: 8px;
             box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-            z-index: 2;
+            z-index: 100;
             overflow-y: auto;
             max-height: 150px;
             position: absolute;

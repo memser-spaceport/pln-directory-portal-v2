@@ -24,8 +24,8 @@ interface Interaction {
 
 export interface IFollowUp {
     uid: string;
-    status: "PENDING" | "COMPLETED" | "CANCELLED";
-    type: "MEETING_INITIATED" | "MEETING_ENDED";
+    status: "PENDING" | "COMPLETED" | "CLOSED";
+    type: "MEETING_INITIATED" | "MEETING_SCHEDULED";
     data: Record<string, any>;
     isDelayed: boolean;
     interactionUid: string;

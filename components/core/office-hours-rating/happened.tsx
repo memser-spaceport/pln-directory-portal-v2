@@ -11,7 +11,7 @@ import { IFollowUp } from '@/types/officehours.types';
 import { IUserInfo } from '@/types/shared.types';
 
 interface IHappened {
-  onClose: () => void;
+  onClose: (isUpdateRequired: boolean) => void;
   currentFollowup: IFollowUp | null;
   authToken: string;
   userInfo: IUserInfo;
@@ -24,9 +24,9 @@ interface IRatingInfo {
 }
 
 interface IRating {
-  value: number,
-  backgroundColor: string,
-  disableColor: string,
+  value: number;
+  backgroundColor: string;
+  disableColor: string;
 }
 
 const Happened = (props: IHappened) => {
@@ -92,28 +92,37 @@ const Happened = (props: IHappened) => {
       ...formattedData?.comments?.technnicalIssueReason,
     ];
 
+    let tempErrors = [];
+
     if (!isDisable && formattedData.rating === '0') {
-      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please provide the rating'])));
-      return;
+      tempErrors.push('Please provide the rating');
     }
 
     if (troubles.includes(TROUBLES_INFO.didntHappened.name) && formattedData?.didntHappenedReasons?.length === 0) {
-      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please select the reason for the meeting not happening'])));
-      return;
+      tempErrors.push('Please select the reason for the meeting not happening');
     }
 
     if (troubles.includes(TROUBLES_INFO.technicalIssues.name) && formattedData?.technnicalIssueReasons?.length === 0) {
-      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please select the technical issue reason'])));
-      return;
+      tempErrors.push('Please select the technical issue reason');
     }
 
     if (!formattedData.isReasonGiven) {
-      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please enter the reason(s)'])));
-      return;
+      tempErrors.push('Please enter the reason(s)');
     } else if (allComments.includes('Got Rescheduled') && !formattedData?.data?.scheduledAt) {
-      setErrors((prev: string[]) => Array.from(new Set([...prev, 'Please provide a date for the meeting rescheduled'])));
+      tempErrors.push('Please provide a date for the meeting rescheduled');
+    }
+
+    if (tempErrors.length > 0) {
+      setErrors([...tempErrors]);
+      setTimeout(() => {
+        const filterContainer = document.getElementById('happened-form-con');
+        if (filterContainer) {
+          filterContainer.scrollTop = 0;
+        }
+      }, 50);
       return;
     }
+
     setErrors([]);
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     try {
@@ -126,20 +135,26 @@ const Happened = (props: IHappened) => {
         response,
       };
       analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
-      const result = await createFeedBack(userInfo?.uid ?? "", currentFollowup?.uid ?? "", authToken ?? '', feedback);
+      const result = await createFeedBack(userInfo?.uid ?? '', currentFollowup?.uid ?? '', authToken ?? '', feedback);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (result?.error) {
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
         analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
-        onClose();
+        if (result?.error?.data?.message?.includes('There is no follow-up')) {
+          toast.success(TOAST_MESSAGES.FEEDBACK__ALREADY__RECORDED);
+        } else {
+          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        }
+        onClose(false);
         return;
       }
+      
       analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
       toast.success(TOAST_MESSAGES.FEEDBACK_THANK);
-      onClose();
+      onClose(false);
     } catch (error) {
       console.error(error);
-      onClose();
+      onClose(false);
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
     }
@@ -208,11 +223,20 @@ const Happened = (props: IHappened) => {
     reset();
   }, [currentFollowup]);
 
+  const onMultiSelectClicked = () => {
+    setTimeout(() => {
+      const filterContainer = document.getElementById('happened-form-con');
+      if (filterContainer) {
+        filterContainer.scrollTo({top: filterContainer.scrollHeight, left: 0, behavior: "smooth"});
+      }
+    }, 50);
+  };
+
   return (
     <>
       <div className="hpndC">
         <form noValidate ref={formRef} onSubmit={onFormSubmit}>
-          <div className="hdndC__formc">
+          <div id='happened-form-con' className="hdndC__formc">
             <div className="hpdnC__titleSec">
               <h2 className="hpdnC__titleSec__ttl">{`How was your recent meeting with ${currentFollowup?.interaction?.targetMember?.name}?`}</h2>
             </div>
@@ -259,14 +283,20 @@ const Happened = (props: IHappened) => {
 
             {/* Trouble */}
             <div className="hpndC__trble">
-              <TroubleSection currentFollowup={currentFollowup} setErrors={setErrors} troubles={troubles} onTroubleOptionClickHandler={onTroubleOptionClickHandler} />
+              <TroubleSection
+                onMultiSelectClicked={onMultiSelectClicked}
+                currentFollowup={currentFollowup}
+                setErrors={setErrors}
+                troubles={troubles}
+                onTroubleOptionClickHandler={onTroubleOptionClickHandler}
+              />
             </div>
           </div>
 
           {/* Options */}
           <div className="hdndC__trble__optscon">
             <div className="hdndC__trble__optscon__optns">
-              <button type="button" className="hdndc__trble__opts__cancel" onClick={onClose}>
+              <button type="button" className="hdndc__trble__opts__cancel" onClick={() => onClose(true)}>
                 Cancel
               </button>
 

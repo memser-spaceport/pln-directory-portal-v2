@@ -12,7 +12,7 @@ export const clearAllAuthCookies = () => {
     Cookies.remove('privy-token');
     Cookies.remove('privy-session');
     Cookies.remove('authLinkedAccounts');
-    Cookies.remove('lastRatingCall')
+    Cookies.remove('lastNotificationCall')
     Cookies.remove('privy-refresh-token');
     localStorage.clear();
   };

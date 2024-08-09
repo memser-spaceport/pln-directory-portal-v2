@@ -5,11 +5,10 @@ import GuestDescription from './guest-description';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsEventInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import cookies from "js-cookie";
+import cookies from 'js-cookie';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
-
 
 const GuestTableRow = (props: any) => {
   const guest = props?.guest;
@@ -63,35 +62,33 @@ const GuestTableRow = (props: any) => {
 
   const handleOfficeHoursLinkClick = async (officeHoursLink: string, memberUid: string, memberName: string) => {
     const isLoggedInUser = userInfo?.uid === memberUid;
-    if (!isLoggedInUser) {
-      try {
-        const authToken = cookies.get('authToken') || '';
-        const response: any = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
-          data: {},
-          hasFollowUp: true,
-          type: 'SCHEDULE_MEETING',
-          targetMemberUid: memberUid,
-        });
+    try {
+      const authToken = cookies.get('authToken') || '';
+      const response: any = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+        data: {},
+        hasFollowUp: true,
+        type: 'SCHEDULE_MEETING',
+        targetMemberUid: memberUid,
+      });
 
-        if (response?.error) {
-          if (response?.error?.status === 403) {
-            toast.error(TOAST_MESSAGES.INTERACTION_RESTRICTED);
-          }
-          return;
+      if (response?.error) {
+        if (response?.error?.status === 403) {
+          toast.error(TOAST_MESSAGES.INTERACTION_RESTRICTED);
         }
-        
-        const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken));
-        if (!allFollowups?.error) {
-          const result = allFollowups?.data ?? [];
-          if (result.length > 0) {
-            document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[result?.length - 1] } }));
-            document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: true }));
-            router.refresh();
-          }
-        }
-      } catch (error) {
-        console.error(error);
+        return;
       }
+      window.open(officeHours, '_blank');
+      const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), "PENDING,CLOSED");
+      if (!allFollowups?.error) {
+        const result = allFollowups?.data ?? [];
+        if (result.length > 0) {
+          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[result?.length - 1] } }));
+          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
+          router.refresh();
+        }
+      }
+    } catch (error) {
+      console.error(error);
     }
     analytics.guestListOfficeHoursClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), memberUid, officeHoursLink, memberName });
   };
@@ -222,7 +219,7 @@ const GuestTableRow = (props: any) => {
               -
             </span>
           )}
-          {(userInfo.uid === guestUid) && !officeHours ? (
+          {userInfo.uid === guestUid && !officeHours ? (
             <button onClick={() => handleAddOfficeHoursClick(guest.uid)} className="gtr__connect__add">
               <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
               <span className="gtr__connect__add__txt">Add Office Hours</span>
@@ -239,12 +236,10 @@ const GuestTableRow = (props: any) => {
               />
             </button>
           ) : userInfo.uid !== guestUid && officeHours ? (
-            <Link passHref legacyBehavior href={officeHours}>
-              <a className="gtr__connect__book" target="_blank" onClick={() => handleOfficeHoursLinkClick(officeHours, guestUid, guestName)}>
-                <img src="/icons/video-cam.svg" height={16} width={16} loading="lazy" alt="cam" />
-                <span className="gtr__connect__book__txt">Book Time</span>
-              </a>
-            </Link>
+            <div className="gtr__connect__book" onClick={() => handleOfficeHoursLinkClick(officeHours, guestUid, guestName)}>
+              <img src="/icons/video-cam.svg" height={16} width={16} loading="lazy" alt="cam" />
+              <span className="gtr__connect__book__txt">Book Time</span>
+            </div>
           ) : null}
         </div>
       </div>

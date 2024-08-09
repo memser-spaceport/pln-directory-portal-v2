@@ -53,10 +53,9 @@ function PrivyModals() {
       router.push('/settings/profile');
     }
     setLinkAccountKey('');
-    triggerLoader(false);
     toast.success(TOAST_MESSAGES.LOGIN_MSG);
     document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
-    router.refresh();
+    window.location.reload();
   };
 
   const saveTokensAndUserInfo = (output: any, user: User) => {

@@ -34,7 +34,7 @@ export default function Navbar(props: Readonly<INavbar>) {
   const [isHelperMenuOpen, setIsHelperMenuOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobilDrawerOpen] = useState(false);
 
-  const [notifications, setNotification] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [isNotification, setIsNotification] = useState(false);
 
   useClickedOutside({ callback: () => setIsHelperMenuOpen(false), ref: helpMenuRef });
@@ -71,7 +71,7 @@ export default function Navbar(props: Readonly<INavbar>) {
     async function getAllNotifications() {
       const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
       const result = response?.data ?? [];
-      setNotification(result);
+      setNotifications(result);
     }
 
     document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {

@@ -2,7 +2,7 @@
 
 import { getFollowUps, patchFollowup } from '@/services/office-hours.service';
 import { IUserInfo } from '@/types/shared.types';
-import { EVENTS, OFFICE_HOURS_STEPS } from '@/utils/constants';
+import { EVENTS, NOTIFICATION_REFETCH_TIME, OFFICE_HOURS_STEPS } from '@/utils/constants';
 import cookies from 'js-cookie';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -32,12 +32,12 @@ const RatingContainer = (props: IRatingContainer) => {
 
   const onCloseClickHandler = async (isUpdateRequired: boolean) => {
     try {
-      if (isUpdateRequired && currentFollowup?.interactionUid && currentFollowup?.uid && (currentFollowup?.status != "CLOSED")) {
+      if (isUpdateRequired && currentFollowup?.interactionUid && currentFollowup?.uid && currentFollowup?.status != 'CLOSED') {
         const response = await patchFollowup(authToken, userInfo?.uid ?? '', currentFollowup?.interactionUid ?? '', currentFollowup?.uid ?? '');
       }
       setCurrentFollowup(null);
       setCurrentStep('');
-      document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
+      document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
       if (ratingContainerRef?.current) {
         ratingContainerRef.current.close();
       }
@@ -47,7 +47,7 @@ const RatingContainer = (props: IRatingContainer) => {
   };
 
   const getRecentBooking = async () => {
-    const response = await getFollowUps(userInfo.uid ?? '', authToken, "PENDING");
+    const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING');
     const result = response?.data ?? [];
     cookies.set('lastNotificationCall', new Date().getTime().toString());
     if (result?.length) {
@@ -67,9 +67,11 @@ const RatingContainer = (props: IRatingContainer) => {
         const storedTimeParsed = parseInt(storedTime, 10);
         if (!storedTime) {
           getRecentBooking();
+          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
           return;
         } else if (hasOneHourPassed(storedTimeParsed)) {
           getRecentBooking();
+          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
         }
       } else {
         cookies.remove('lastNotificationCall');
@@ -82,7 +84,7 @@ const RatingContainer = (props: IRatingContainer) => {
   const hasOneHourPassed = (storedTime: number) => {
     const currentTime = new Date().getTime();
     const timeDifference = currentTime - storedTime;
-    const oneHourInMilliseconds = 3600000;
+    const oneHourInMilliseconds = NOTIFICATION_REFETCH_TIME;
     return timeDifference > oneHourInMilliseconds;
   };
 

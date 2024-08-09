@@ -68,26 +68,19 @@ export default function Navbar(props: Readonly<INavbar>) {
   };
 
   useEffect(() => {
-    async function getAllNotifications() {
-      const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
-      const result = response?.data ?? [];
-      setNotifications(result);
+    async function getAllNotifications(status: boolean) {
+      if (status) {
+        const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
+        const result = response?.data ?? [];
+        setNotifications(result);
+      }
     }
 
-    document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
-      if (e?.detail?.status) {
-        getAllNotifications();
-      }
-    });
-
-    getAllNotifications();
-
+    document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
+    getAllNotifications(true);
+    
     return function () {
-      document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
-        if (e?.detail?.status) {
-          getAllNotifications();
-        }
-      });
+      document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
     };
   }, []);
 

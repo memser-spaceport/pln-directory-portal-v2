@@ -82,7 +82,7 @@ const GuestTableRow = (props: any) => {
       if (!allFollowups?.error) {
         const result = allFollowups?.data ?? [];
         if (result.length > 0) {
-          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[result?.length - 1] } }));
+          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[0] } }));
           document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
           router.refresh();
         }
@@ -486,6 +486,7 @@ const GuestTableRow = (props: any) => {
           border: 0.5px solid #cbd5e1;
           background-color: #f1f5f9;
           padding: 4px 8px;
+          cursor: pointer;
         }
 
         .gtr__connect__book__txt {

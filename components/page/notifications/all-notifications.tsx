@@ -34,28 +34,21 @@ const AllNotifications = (props: IAllNotifications) => {
 
   const onGoBackClickHandler = () => {
     triggerLoader(true);
-  }
-
+  };
 
   useEffect(() => {
-    async function getAllNotifications() {
-      const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
-      const result = response?.data ?? [];
-      setNotifications(result);
+    async function getAllNotifications(e: any) {
+      if (e?.detail?.status) {
+        const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
+        const result = response?.data ?? [];
+        setNotifications(result);
+      }
     }
 
-    document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
-      if (e?.detail?.status) {
-        getAllNotifications();
-      }
-    });
+    document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e));
 
     return function () {
-      document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
-        if (e?.detail?.status) {
-          getAllNotifications();
-        }
-      });
+      document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e));
     };
   }, []);
 
@@ -68,7 +61,11 @@ const AllNotifications = (props: IAllNotifications) => {
             <div className="allnotifins__empty__ttl">No Notifications</div>
             <div className="allnotifins__empty__desc">You have no notifications right now. Come back later</div>
             <button className="allnotifins__empty__backbtn">
-              <Link onClick={onGoBackClickHandler}  style={{ height: 'inherit', width: 'inherit', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }} href={PAGE_ROUTES.TEAMS}>
+              <Link
+                onClick={onGoBackClickHandler}
+                style={{ height: 'inherit', width: 'inherit', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                href={PAGE_ROUTES.TEAMS}
+              >
                 Go back home
               </Link>
             </button>

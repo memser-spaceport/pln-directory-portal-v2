@@ -36,6 +36,7 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   const [notifications, setNotification] = useState([]);
   const [isNotification, setIsNotification] = useState(false);
+  const [showNotificationWarning, setShowNotificationWarning] = useState(false);
 
   useClickedOutside({ callback: () => setIsHelperMenuOpen(false), ref: helpMenuRef });
   useClickedOutside({ callback: () => setIsNotification(false), ref: notificationRef });
@@ -69,14 +70,17 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   useEffect(() => {
     async function getAllNotifications() {
-      const response = await getFollowUps(userInfo.uid ?? '', authToken);
+      const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
       const result = response?.data ?? [];
       setNotification(result);
     }
 
     document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
-      if (e.detail) {
+      if (e?.detail?.status) {
         getAllNotifications();
+      }
+      if (e?.detail?.isShowPopup) {
+        setShowNotificationWarning(true);
       }
     });
 
@@ -84,7 +88,7 @@ export default function Navbar(props: Readonly<INavbar>) {
 
     return function () {
       document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
-        if (e.detail) {
+        if (e?.detail?.status) {
           getAllNotifications();
         }
       });
@@ -118,7 +122,7 @@ export default function Navbar(props: Readonly<INavbar>) {
         <div className="nb__right">
           {isLoggedIn && (
             <div className="nb__right__ntc">
-              <button ref={notificationRef} className="nb__right__ntc__btn" onClick={onNotificationClickHandler}>
+              <button ref={notificationRef} className={`nb__right__ntc__btn ${notifications?.length > 0 ? 'shake' : ''}`} onClick={onNotificationClickHandler}>
                 <img alt="notification" src="/icons/bell.svg" />
               </button>
               {notifications.length > 0 && <div className="nb__right__ntc__new"></div>}
@@ -341,6 +345,50 @@ export default function Navbar(props: Readonly<INavbar>) {
             border-radius: 8px;
             background-color: white;
             box-shadow: 0px 2px 6px 0px #0f172a29;
+          }
+
+          @keyframes shake {
+            0% {
+              transform: rotate(0deg);
+            }
+            10% {
+              transform: rotate(-20deg);
+            }
+            20% {
+              transform: rotate(20deg);
+            }
+            30% {
+              transform: rotate(-20deg);
+            }
+            40% {
+              transform: rotate(20deg);
+            }
+            50% {
+              transform: rotate(-20deg);
+            }
+            60% {
+              transform: rotate(20deg);
+            }
+            70% {
+              transform: rotate(-20deg);
+            }
+            80% {
+              transform: rotate(20deg);
+            }
+            90% {
+              transform: rotate(-20deg);
+            }
+            100% {
+              transform: rotate(0deg);
+            }
+          }
+
+          .nb__right__ntc__btn {
+            transition: transform 0.2s ease-in-out;
+          }
+
+          .shake {
+            animation: shake 1s ease-in-out;
           }
 
           @media (min-width: 1024px) {

@@ -9,7 +9,7 @@ import { SetStateAction, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 interface IUserConfirmation {
-  onClose: () => void;
+  onClose: (isUpdateRequired: boolean) => void;
   setCurrentStep: SetStateAction<any>;
   currentFollowup: IFollowUp | null;
   userInfo: IUserInfo;
@@ -28,37 +28,40 @@ const UserConfirmation = (props: IUserConfirmation) => {
   const onYesClickHandler = async () => {
     try {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-      const feedback =  {
+      const feedback = {
         data: {},
         type: `${currentFollowUp?.type}_FEED_BACK`,
         rating: 0,
         comments: [],
         response: FEEDBACK_RESPONSE_TYPES.positive.name,
-      }
-      const result = await createFeedBack(userInfo?.uid ?? "", currentFollowUp?.uid ?? "", authToken ?? '', feedback);
-      analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback )
+      };
+      const result = await createFeedBack(userInfo?.uid ?? '', currentFollowUp?.uid ?? '', authToken ?? '', feedback);
+      analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback);
 
       if (result?.error) {
         console.error(result.error);
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
         analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback);
-        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        if (result?.error?.data?.message?.includes('There is no follow-up')) {
+          toast.success(TOAST_MESSAGES.FEEDBACK__ALREADY__RECORDED);
+        } else {
+          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        }
       }
+      
       if (result?.data) {
         analytics.onOfficeHoursFeedbackSuccess(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowUp), feedback);
         toast.success(TOAST_MESSAGES.FEEDBACK_INITIATED_SUCCESS);
       }
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-      onClose();
+      onClose(false);
     } catch (error) {
       console.error(error);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-      onClose();
+      onClose(false);
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-
     }
   };
-
 
   const onNoClickHandler = () => {
     setCurrentStep(OFFICE_HOURS_STEPS?.NOT_HAPPENED?.name);
@@ -141,6 +144,9 @@ const UserConfirmation = (props: IUserConfirmation) => {
           .usercfr__opts__no__icon {
             font-size: 16px;
           }
+
+          .usercfr__titlesec {
+          padding-top: 10px;}
 
           .usercfr__titlesec__title {
             font-size: 16px;

@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation';
 import styles from './page.module.css';
 
 async function Notifications({ searchParams }: { searchParams: any }) {
-  const { isError, userInfo, notifications, isLoggedIn} = await getPageData();
+  const { isError, userInfo, notifications, isLoggedIn, authToken} = await getPageData();
 
   if(!isLoggedIn) {
     redirect(PAGE_ROUTES.TEAMS);
@@ -26,7 +26,7 @@ async function Notifications({ searchParams }: { searchParams: any }) {
       </div>
 
       <div className={styles?.notifications__body}>
-        <AllNotifications userInfo={userInfo} notifications={notifications} />
+        <AllNotifications authToken={authToken} userInfo={userInfo} notifications={notifications} />
       </div>
     </div>
   );
@@ -38,7 +38,7 @@ async function getPageData() {
   let isError = false;
 
   try {
-    const response = await getFollowUps(userInfo.uid ?? '', authToken);
+    const response = await getFollowUps(userInfo.uid ?? '', authToken, "PENDING,CLOSED");
     const result = response?.data ?? [];
     if (result?.error) {
       return {

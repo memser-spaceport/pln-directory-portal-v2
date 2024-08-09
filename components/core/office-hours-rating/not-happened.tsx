@@ -9,7 +9,7 @@ import { FormEvent, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
 interface INotHappened {
-  onClose: () => void;
+  onClose: (isUpdateRequired: boolean) => void;
   currentFollowup: IFollowUp | null;
   userInfo: IUserInfo;
   authToken: string;
@@ -78,17 +78,17 @@ const NotHappened = (props: INotHappened) => {
         analytics.onOfficeHoursFeedbackFailed(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       }
-      onClose();
+      onClose(false);
     } catch (error) {
       console.error(error);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-      onClose();
+      onClose(false);
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
     }
   };
 
   const onCancelClickHandler = () => {
-    onClose();
+    onClose(false);
   };
 
   return (
@@ -113,7 +113,7 @@ const NotHappened = (props: INotHappened) => {
                 <div className="notHappenedCtr__bdy__optnCtr__optn">
                   {selectedReasons.includes(option) && (
                     <button className="notHappenedCtr__bdy__optnCtr__optn__sltd" onClick={() => onReasonClickHandler(option, 'Remove')}>
-                      <img height={16} width={16} src="/icons/right-white.svg" />
+                      <img  src="/icons/right-white.svg" />
                     </button>
                   )}
                   {!selectedReasons.includes(option) && <button className="notHappenedCtr__bdy__optnCtr__optn__ntsltd" onClick={() => onReasonClickHandler(option, 'Add')}></button>}

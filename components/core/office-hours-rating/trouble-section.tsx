@@ -16,6 +16,7 @@ interface ITroubleSection {
   troubles: string[];
   setErrors: SetStateAction<any>;
   currentFollowup: IFollowUp | null;
+  onMultiSelectClicked: () => void;
 }
 
 
@@ -25,6 +26,7 @@ const TroubleSection = (props: ITroubleSection) => {
   const troubles = props?.troubles ?? [];
   const setErrors = props?.setErrors;
   const currentFollowup = props?.currentFollowup;
+  const onMultiSelectClicked = props?.onMultiSelectClicked
 
   const [selectedDidntHappenedOption, setSelectedDidntHappenedOption] = useState('');
   const [selectedTechnicalIssues, setSelectedTechnicalIssues] = useState<string[]>([]);
@@ -89,13 +91,13 @@ const TroubleSection = (props: ITroubleSection) => {
 
           {troubles?.includes(TROUBLES_INFO.technicalIssues.name) && (
             <div className="trblesec__techisue__ddown">
-              <OfficeHoursMultiSelect displayKey="name" items={TECHNICALISSUESOPTIONS} selectedItems={selectedTechnicalIssues} onItemSelect={onTechnicalIssueClickHandler} />
+              <OfficeHoursMultiSelect side="top" onMultiSelectedClick={onMultiSelectClicked} displayKey="name" items={TECHNICALISSUESOPTIONS} selectedItems={selectedTechnicalIssues} onItemSelect={onTechnicalIssueClickHandler} />
             </div>
           )}
 
           {selectedTechnicalIssues.includes('Other') && (
             <div className="trblesec__didnthpn__ddown__othrctr">
-              <div className="trblesec__didnthpn__ddown__othrctr__ttl">Secify other reason(s)*</div>{' '}
+              <div className="trblesec__didnthpn__ddown__othrctr__ttl">Specify other reason(s)*</div>{' '}
               <TextArea isMandatory={true} maxLength={1000} name={'technnicalIssueReason'} id={'reason'} placeholder="Enter Details Here" />
             </div>
           )}
@@ -133,6 +135,7 @@ const TroubleSection = (props: ITroubleSection) => {
           {troubles?.includes(TROUBLES_INFO.didntHappened.name) && (
             <div className="trblesec__didnthpn__ddown">
               <SingleSelect
+              onSingleSelectClicked={onMultiSelectClicked}
                 displayKey="name"
                 arrowImgUrl="/icons/arrow-down.svg"
                 id="didnthappendReason"
@@ -145,7 +148,7 @@ const TroubleSection = (props: ITroubleSection) => {
 
               {selectedDidntHappenedOption === 'Got rescheduled' && (
                 <div>
-                  <TextField isMandatory={true} defaultValue={''} id="register-member-startDate" label="" name="scheduledAt" type="date" placeholder="Select Date" />
+                  <TextField  isMandatory={true} defaultValue={''} id="register-member-startDate" label="" name="scheduledAt" type="date" placeholder="Select Date" />
                 </div>
               )}
 

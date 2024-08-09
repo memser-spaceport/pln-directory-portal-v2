@@ -115,7 +115,7 @@ const GuestTableRow = (props: any) => {
             <div className="gtr__guestName__checkbox">
               {selectedGuests.includes(guest.uid) && (
                 <button onClick={() => onchangeSelectionStatus(guest.uid)} className="notHappenedCtr__bdy__optnCtr__optn__sltd">
-                  <img height={11} width={11} src="/icons/right-white.svg" />
+                  <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
                 </button>
               )}
               {!selectedGuests.includes(guest.uid) && <button className="notHappenedCtr__bdy__optnCtr__optn__ntsltd" onClick={() => onchangeSelectionStatus(guest.uid)}></button>}
@@ -219,8 +219,8 @@ const GuestTableRow = (props: any) => {
               -
             </span>
           )}
-          {userInfo.uid === guestUid && !officeHours ? (
-            <button onClick={() => handleAddOfficeHoursClick(guest.uid)} className="gtr__connect__add">
+          {(userInfo.uid === guestUid) && !officeHours ? (
+            <button onClick={() => handleAddOfficeHoursClick(canUserAddAttendees ? guest.uid : userInfo.uid)} className="gtr__connect__add">
               <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
               <span className="gtr__connect__add__txt">Add Office Hours</span>
               <Tooltip

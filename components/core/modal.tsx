@@ -14,7 +14,7 @@ const Modal = (props: IModal) => {
 
   return (
     <>
-      <dialog autoFocus={true} onClose={onClose} ref={ref} className="modal">
+      <dialog autoFocus={true} ref={ref} className="modal">
       <button className="modal__cn__hidden"></button>
         <div className="modal__cn">
           {/* for skip button focus */}

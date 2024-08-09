@@ -55,7 +55,7 @@ function PrivyModals() {
     setLinkAccountKey('');
     triggerLoader(false);
     toast.success(TOAST_MESSAGES.LOGIN_MSG);
-    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: true} }));
+    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
     router.refresh();
   };
 

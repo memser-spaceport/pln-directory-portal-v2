@@ -31,7 +31,7 @@ export const getFollowUps = async (logInMemberUid: string, authToken: string, st
         cache: 'no-store',
     }
 
-    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${logInMemberUid}/interactions/follow-ups?status=${status}&?orderBy=-createdAt`,
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${logInMemberUid}/interactions/follow-ups?status=${status}&orderBy=-createdAt`,
         requestOptions,
     )
     if (!response.ok) {

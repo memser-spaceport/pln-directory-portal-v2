@@ -36,7 +36,6 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   const [notifications, setNotification] = useState([]);
   const [isNotification, setIsNotification] = useState(false);
-  const [showNotificationWarning, setShowNotificationWarning] = useState(false);
 
   useClickedOutside({ callback: () => setIsHelperMenuOpen(false), ref: helpMenuRef });
   useClickedOutside({ callback: () => setIsNotification(false), ref: notificationRef });
@@ -78,9 +77,6 @@ export default function Navbar(props: Readonly<INavbar>) {
     document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => {
       if (e?.detail?.status) {
         getAllNotifications();
-      }
-      if (e?.detail?.isShowPopup) {
-        setShowNotificationWarning(true);
       }
     });
 

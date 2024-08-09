@@ -88,7 +88,7 @@ const NotHappened = (props: INotHappened) => {
   };
 
   const onCancelClickHandler = () => {
-    onClose(false);
+    onClose(true);
   };
 
   return (

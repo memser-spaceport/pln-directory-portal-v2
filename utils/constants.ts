@@ -719,3 +719,5 @@ export const FEEDBACK_RESPONSE_TYPES = {
     name: "NEGATIVE"
   }
 }
+
+export const NOTIFICATION_REFETCH_TIME =  300000;

@@ -72,6 +72,14 @@ export const getAnalyticsUserInfo = (userInfo: IUserInfo | null | undefined) => 
   return null;
 };
 
+export const getAnalyticsNotificationInfo = (notification: any) => {
+  return {
+    type: notification?.type,
+    status: notification?.status,
+    interaction: notification?.interaction
+  }
+}
+
 export const getAnalyticsTeamInfo = (team: ITeam | undefined) => {
   if (team?.name && team?.shortDescription) {
     return { name: team?.name ?? '', shortDescription: team?.shortDescription ?? '' };
@@ -247,4 +255,45 @@ export const hasProjectDeleteAccess = (userInfo: any, project: any, isUserLogged
   }
 
   return false;
+};
+
+
+export const calculateTime = (inputDate: any) => {
+  const currentDate = new Date() as any;
+  const inputDateTime = new Date(inputDate) as any;
+
+  const timeDifference = currentDate - inputDateTime;
+
+  const daysDifference = Math.round(timeDifference / (24 * 60 * 60 * 1000));
+
+  const formatTime = (date: any) => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  };
+
+  if(daysDifference < 0 ) {
+    return `0 day ago`;
+  }
+
+  if (daysDifference === 0) {
+    return "Today " + formatTime(inputDateTime);
+  } else if (daysDifference === 1) {
+    return "Yesterday " + formatTime(inputDateTime);
+  } else if (daysDifference <= 7) {
+    return daysDifference + " day" + (daysDifference > 1 ? "s" : "") + " ago";
+  } else {
+    const weeksDifference = Math.floor(daysDifference / 7);
+    if (weeksDifference <= 4) {
+      return weeksDifference + " week" + (weeksDifference > 1 ? "s" : "") + " ago";
+    } else {
+      const monthsDifference = Math.floor(daysDifference / 30);
+      if (monthsDifference <= 12) {
+        return monthsDifference + " month" + (monthsDifference > 1 ? "s" : "") + " ago";
+      } else {
+        const yearsDifference = Math.floor(monthsDifference / 12);
+        return yearsDifference + " year" + (yearsDifference > 1 ? "s" : "") + " ago";
+      }
+    }
+  }
 };

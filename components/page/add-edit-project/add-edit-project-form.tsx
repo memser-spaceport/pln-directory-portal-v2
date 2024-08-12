@@ -142,7 +142,7 @@ export default function AddEditProjectForm(props: any) {
         logoUid: project?.logoUid,
       }
 
-      if(type === "Add") {
+      if (type === 'Add') {
         analytics.onProjectAddSaveClicked();
       } else {
         analytics.onProjectEditSaveClicked(project?.id);
@@ -152,7 +152,7 @@ export default function AddEditProjectForm(props: any) {
         const imgResponse = await saveRegistrationImage(formattedData?.projectProfile);
         const image = imgResponse?.image;
         formattedData.logoUid = image.uid;
-      } else if (!formattedData?.logoUid) {
+      } else if (formattedData?.logoUid && !formattedData?.imageFile) {
         formattedData.logoUid = null;
       }
 
@@ -164,6 +164,9 @@ export default function AddEditProjectForm(props: any) {
         triggerLoader(false);
         return;
       }
+
+      delete formattedData["imageFile"];
+      delete formattedData["projectProfile"];
 
       if (type === 'Add') {
         analytics.onProjectAddInitiated(getAnalyticsUserInfo(userInfo), formattedData);

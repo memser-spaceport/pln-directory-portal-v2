@@ -4,12 +4,13 @@ import { useRouter } from 'next/navigation';
 import { decodeToken } from '@/utils/auth.utils';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
-import { TOAST_MESSAGES } from '@/utils/constants';
+import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { User } from '@privy-io/react-auth';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createLogoutChannel } from './broadcast-channel';
 import { deletePrivyUser } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
+import { getFollowUps } from '@/services/office-hours.service';
 
 function PrivyModals() {
   const { getAccessToken, linkEmail, linkGithub, linkGoogle, linkWallet, login, logout, ready, unlinkEmail, updateEmail, user, PRIVY_CUSTOM_EVENTS } = usePrivyWrapper();
@@ -53,9 +54,10 @@ function PrivyModals() {
       router.push('/settings/profile');
     }
     setLinkAccountKey('');
-    triggerLoader(false);
     toast.success(TOAST_MESSAGES.LOGIN_MSG);
-    router.refresh();
+    Cookies.set('showNotificationPopup', JSON.stringify(true));
+    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
+    window.location.reload();
   };
 
   const saveTokensAndUserInfo = (output: any, user: User) => {

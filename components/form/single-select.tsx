@@ -17,14 +17,28 @@ interface SingleSelectProps {
   arrowImgUrl?: string;
   label?: string;
   id: string;
+  onSingleSelectClicked?: () => void;
 }
 
-const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, onItemSelect, uniqueKey, displayKey, placeholder = 'Select', isMandatory = false, arrowImgUrl, label = '', id }) => {
+const SingleSelect: React.FC<SingleSelectProps> = ({
+  options,
+  selectedOption,
+  onItemSelect,
+  uniqueKey,
+  displayKey,
+  placeholder = 'Select',
+  isMandatory = false,
+  arrowImgUrl,
+  label = '',
+  id,
+  onSingleSelectClicked,
+}) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const defaultSelectedValue = selectedOption ? selectedOption[displayKey] : '';
+  const onContainerClickHandler = onSingleSelectClicked;
 
   const handleOptionClick = (option: Option) => {
     if (searchRef.current) {
@@ -70,7 +84,15 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
             {label}
           </label>
         )}
-        <div ref={containerRef} className='select_cn'>
+        <div
+          onClick={() => {
+            if (onContainerClickHandler) {
+              onContainerClickHandler();
+            }
+          }}
+          ref={containerRef}
+          className="select_cn"
+        >
           <input
             id={id}
             className={`select__search ${isMandatory && !selectedOption?.[uniqueKey] ? 'select__search--error' : ''}`}
@@ -82,17 +104,16 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
           />
           {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
           {showOptions && (
-          <ul className="select__options">
-            {filteredOptions?.map((option) => (
-              <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
-                {option[displayKey]}
-              </li>
-            ))}
-            {filteredOptions.length === 0 && <p className="select__options__noresults">No results found</p>}
-          </ul>
-        )}
+            <ul className="select__options">
+              {filteredOptions?.map((option) => (
+                <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
+                  {option[displayKey]}
+                </li>
+              ))}
+              {filteredOptions.length === 0 && <p className="select__options__noresults">No results found</p>}
+            </ul>
+          )}
         </div>
-       
       </div>
       <style jsx>
         {`
@@ -110,7 +131,7 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
             font-size: 14px;
             margin-bottom: 12px;
             display: block;
-            width:fit-content;
+            width: fit-content;
           }
           .select__arrowimg {
             position: absolute;
@@ -128,8 +149,7 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
             font-weight: 500;
             border-radius: 8px;
             border: 1px solid lightgrey;
-            cursor:pointer;
-            text-transform: capitalize;
+            cursor: pointer;
           }
           .select__search:focus-visible,
           .select__search:focus {
@@ -158,7 +178,6 @@ const SingleSelect: React.FC<SingleSelectProps> = ({ options, selectedOption, on
             cursor: pointer;
             font-size: 14px;
             padding: 4px 8px;
-            text-transform: capitalize;
           }
           .select__options__noresults {
             cursor: pointer;

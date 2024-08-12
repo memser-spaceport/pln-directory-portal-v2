@@ -66,7 +66,7 @@ const AllNotifications = (props: IAllNotifications) => {
                 style={{ height: 'inherit', width: 'inherit', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 href={PAGE_ROUTES.TEAMS}
               >
-                Go back home
+                Go Back Home
               </Link>
             </button>
           </div>
@@ -173,7 +173,8 @@ const AllNotifications = (props: IAllNotifications) => {
           }
 
           .allnot__body__ntifn:hover {
-            background-color: #f1f5f9;
+            background-color:  #F8FAFC;
+
           }
 
           @media (min-width: 1024px) {

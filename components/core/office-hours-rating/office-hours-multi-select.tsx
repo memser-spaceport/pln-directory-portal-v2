@@ -175,6 +175,7 @@ const OfficeHoursMultiSelect = (props: any) => {
 
           .ohms__optscnt__optn__name {
             font-size: 14px;
+            text-align: left;
           }
 
           .ohms__optscnt__optn {

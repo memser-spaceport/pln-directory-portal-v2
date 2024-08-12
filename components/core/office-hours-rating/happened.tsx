@@ -108,7 +108,7 @@ const Happened = (props: IHappened) => {
 
     if (!formattedData.isReasonGiven) {
       tempErrors.push('Please enter the reason(s)');
-    } else if (allComments.includes('Got Rescheduled') && !formattedData?.data?.scheduledAt) {
+    } else if (allComments.includes('Got rescheduled') && !formattedData?.data?.scheduledAt) {
       tempErrors.push('Please provide a date for the meeting rescheduled');
     }
 
@@ -185,13 +185,13 @@ const Happened = (props: IHappened) => {
       }
 
       if (key === 'ratingComment' || key.startsWith('technicalIssue') || key.startsWith('didntHappenedReason') || key.startsWith('didntHappenedOption') || key.startsWith('technnicalIssueReason')) {
-        if (object[key]) {
+        if (object[key].trim()) {
           formData?.comments[key?.split('-')[0]]?.push(object[key]);
         }
       }
 
       if (key.startsWith('didntHappenedReason') || key.startsWith('technnicalIssueReason')) {
-        if (!object[key]) {
+        if (!object[key].trim()) {
           formData.isReasonGiven = false;
         }
       }

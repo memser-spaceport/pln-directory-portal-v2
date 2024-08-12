@@ -89,8 +89,6 @@ const RatingContainer = (props: IRatingContainer) => {
     // } catch (error) {
     //   console.error(error);
     // }
-
-
   }, [router, searchParams]);
 
   const hasOneHourPassed = (storedTime: number) => {

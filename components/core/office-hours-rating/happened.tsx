@@ -85,11 +85,8 @@ const Happened = (props: IHappened) => {
     }
 
     const allComments = [
-      ...formattedData?.comments?.ratingComment,
       ...formattedData?.comments?.technicalIssue,
-      ...formattedData?.comments?.didntHappenedReason,
       ...formattedData?.comments?.didntHappenedOption,
-      ...formattedData?.comments?.technnicalIssueReason,
     ];
 
     let tempErrors = [];
@@ -131,7 +128,7 @@ const Happened = (props: IHappened) => {
         data: formattedData.data,
         type: `${currentFollowup?.type}_FEED_BACK`,
         rating: parseInt(formattedData.rating),
-        comments: filteredComments,
+        comments: [...filteredComments, ...formattedData?.comments?.userReasons],
         response,
       };
       analytics.onOfficeHoursFeedbackSubmitted(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(currentFollowup), feedback);
@@ -168,6 +165,7 @@ const Happened = (props: IHappened) => {
         didntHappenedReason: [],
         didntHappenedOption: [],
         technnicalIssueReason: [],
+        userReasons: [],
       },
       rating: 0,
       data: {},
@@ -184,7 +182,14 @@ const Happened = (props: IHappened) => {
         }
       }
 
-      if (key === 'ratingComment' || key.startsWith('technicalIssue') || key.startsWith('didntHappenedReason') || key.startsWith('didntHappenedOption') || key.startsWith('technnicalIssueReason')) {
+      if(key === 'ratingComment' || key.startsWith('didntHappenedReason') || key.startsWith('technnicalIssueReason') ) {
+        if(object[key].trim()) {
+          formData?.comments?.userReasons?.push(object[key]);
+        }
+
+      }
+
+      if (key.startsWith('technicalIssue')  || key.startsWith('didntHappenedOption')) {
         if (object[key].trim()) {
           formData?.comments[key?.split('-')[0]]?.push(object[key]);
         }

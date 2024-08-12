@@ -118,7 +118,7 @@ const AllNotifications = (props: any) => {
           }
 
           .allnot__body__ntifn:hover {
-            background-color: #f1f5f9;
+            background-color: #F8FAFC;
           }
 
           .allnot__body__ftr {

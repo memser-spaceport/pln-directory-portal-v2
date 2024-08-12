@@ -48,7 +48,7 @@ const NotHappened = (props: INotHappened) => {
       let reasons = [...selectedReasons].filter((reason) => reason !== 'Other');
       const formData: any = Object.fromEntries(new FormData(formRef.current));
       if (selectedReasons.includes('Other')) {
-        if (!formData.reason) {
+        if (!formData.reason.trim()) {
           setErrors((prev) => Array.from(new Set([...prev, 'Please enter the reason(s)'])));
           return;
         }

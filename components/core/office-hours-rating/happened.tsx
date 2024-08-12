@@ -96,17 +96,17 @@ const Happened = (props: IHappened) => {
     }
 
     if (troubles.includes(TROUBLES_INFO.didntHappened.name) && formattedData?.didntHappenedReasons?.length === 0) {
-      tempErrors.push('Please select the reason for the meeting not happening');
+      tempErrors.push('Please select the reason for Meeting didn’t happen');
     }
 
     if (troubles.includes(TROUBLES_INFO.technicalIssues.name) && formattedData?.technnicalIssueReasons?.length === 0) {
-      tempErrors.push('Please select the technical issue reason');
+      tempErrors.push(' Please select the reason(s) for Faced technical issues');
     }
 
     if (!formattedData.isReasonGiven) {
       tempErrors.push('Please enter the reason(s)');
     } else if (allComments.includes('Got rescheduled') && !formattedData?.data?.scheduledAt) {
-      tempErrors.push('Please provide a date for the meeting rescheduled');
+      tempErrors.push('Please provide a valid Date');
     }
 
     if (tempErrors.length > 0) {

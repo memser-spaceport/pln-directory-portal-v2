@@ -114,7 +114,7 @@ export default function Navbar(props: Readonly<INavbar>) {
               <button ref={notificationRef} className={`nb__right__ntc__btn ${notifications?.length > 0 ? 'shake' : ''}`} onClick={onNotificationClickHandler}>
                 <img alt="notification" src="/icons/bell.svg" />
               </button>
-              {notifications.length > 0 && <div className="nb__right__ntc__new"></div>}
+              {notifications?.length > 0 && <div className="nb__right__ntc__new">{notifications?.length}</div>}
               {isNotification && (
                 <div className="nb__right__ntc__allntn">
                   <AllNotifications userInfo={userInfo} allNotifications={notifications} />
@@ -305,8 +305,8 @@ export default function Navbar(props: Readonly<INavbar>) {
           }
 
           .nb__right__ntc {
-            height: 24px;
-            width: 24px;
+            height: 30px;
+            width: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -315,13 +315,25 @@ export default function Navbar(props: Readonly<INavbar>) {
           }
 
           .nb__right__ntc__new {
-            height: 6px;
-            width: 6px;
-            background: #ff4b23;
             border-radius: 50%;
-            top: 2px;
+            background: #ff820e;
+            padding: 3px 2px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            color: white;
+            z-index: 2;
             position: absolute;
-            right: 3px;
+            top: -5px;
+            left: 13px;
+            min-width: 15px;
+            width: fit-content;
+            text-align: center;
+            height: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
           .nb__right__ntc__allntn {

@@ -12,6 +12,7 @@ import Happened from './happened';
 import NotHappened from './not-happened';
 import UserConfirmation from './user-confirmation';
 import { IFollowUp } from '@/types/officehours.types';
+import { getParsedValue } from '@/utils/common.utils';
 
 interface IRatingContainer {
   isLoggedIn: boolean;
@@ -47,38 +48,49 @@ const RatingContainer = (props: IRatingContainer) => {
   };
 
   const getRecentBooking = async () => {
+    const isShow = getParsedValue(cookies.get("showNotificationPopup") ?? '');
+    if(isShow) {
     const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING');
     const result = response?.data ?? [];
-    cookies.set('lastNotificationCall', new Date().getTime().toString());
+    cookies.remove('showNotificationPopup');
     if (result?.length) {
-      const currentFollowup = result[0];
+      const filtereNotifications = result?.filter((notification: IFollowUp) => notification?.type === "MEETING_SCHEDULED");
+      let currentFollowup = result[0];
+      if(filtereNotifications.length > 0) {
+        currentFollowup = filtereNotifications[0];
+      }
       setCurrentStep(currentFollowup.type);
       setCurrentFollowup(currentFollowup);
       if (ratingContainerRef?.current) {
         ratingContainerRef.current.showModal();
       }
     }
+  }
   };
 
   useEffect(() => {
-    try {
-      if (isLoggedIn) {
-        const storedTime = cookies.get('lastNotificationCall') ?? '';
-        const storedTimeParsed = parseInt(storedTime, 10);
-        if (!storedTime) {
-          getRecentBooking();
-          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
-          return;
-        } else if (hasOneHourPassed(storedTimeParsed)) {
-          getRecentBooking();
-          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
-        }
-      } else {
-        cookies.remove('lastNotificationCall');
-      }
-    } catch (error) {
-      console.error(error);
-    }
+    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+    getRecentBooking();
+    // try {
+    //   if (isLoggedIn) {
+    //     const storedTime = cookies.get('lastNotificationCall') ?? '';
+    //     const storedTimeParsed = parseInt(storedTime, 10);
+    //     if (!storedTime) {
+    //       getRecentBooking();
+    //       document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+    //       return;
+    //     } else if (hasOneHourPassed(storedTimeParsed)) {
+    //       getRecentBooking();
+    //       document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+    //     }
+    //   } else {
+    //     cookies.remove('lastNotificationCall');
+    //   }
+    // } catch (error) {
+    //   console.error(error);
+    // }
+
+
   }, [router, searchParams]);
 
   const hasOneHourPassed = (storedTime: number) => {

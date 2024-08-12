@@ -21,9 +21,9 @@ async function Notifications({ searchParams }: { searchParams: any }) {
 
   return (
     <div className={styles?.notifications}>
-      <div className={styles?.notifications__breadcrumb}>
+      {/* <div className={styles?.notifications__breadcrumb}>
         <BreadCrumb backLink="/teams" directoryName="Notifications" pageName={userInfo.name ?? ''} />
-      </div>
+      </div> */}
 
       <div className={styles?.notifications__body}>
         <AllNotifications authToken={authToken} userInfo={userInfo} notifications={notifications} />

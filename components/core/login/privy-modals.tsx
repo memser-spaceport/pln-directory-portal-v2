@@ -10,6 +10,7 @@ import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createLogoutChannel } from './broadcast-channel';
 import { deletePrivyUser } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
+import { getFollowUps } from '@/services/office-hours.service';
 
 function PrivyModals() {
   const { getAccessToken, linkEmail, linkGithub, linkGoogle, linkWallet, login, logout, ready, unlinkEmail, updateEmail, user, PRIVY_CUSTOM_EVENTS } = usePrivyWrapper();
@@ -54,6 +55,7 @@ function PrivyModals() {
     }
     setLinkAccountKey('');
     toast.success(TOAST_MESSAGES.LOGIN_MSG);
+    Cookies.set('showNotificationPopup', JSON.stringify(true));
     document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
     window.location.reload();
   };

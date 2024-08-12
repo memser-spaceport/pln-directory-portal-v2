@@ -154,7 +154,7 @@ const TroubleSection = (props: ITroubleSection) => {
 
               {selectedDidntHappenedOption === 'Other' && (
                 <div className="trblesec__didnthpn__ddown__othrctr">
-                  <div className="trblesec__didnthpn__ddown__othrctr__ttl">Secify other reason(s)*</div>{' '}
+                  <div className="trblesec__didnthpn__ddown__othrctr__ttl">Specify other reason(s)*</div>{' '}
                   <TextArea isMandatory={true} maxLength={1000} name={'didntHappenedReason'} id={'reason'} placeholder="Enter Details Here" />
                 </div>
               )}

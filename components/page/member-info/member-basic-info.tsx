@@ -1,9 +1,12 @@
 'use client';
 import TextField from '@/components/form/text-field';
+import HiddenField from '@/components/form/hidden-field';
+import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { useEffect, useRef, useState } from 'react';
 import LinkAuthAccounts from './link-auth-accounts';
 import SelfEmailUpdate from './self-email-update';
 import AdminEmailUpdate from './admin-email-update';
+import { getStatesByCountry, getCitiesByCountryAndState, getCountries } from '@/services/location.service';
 
 interface MemberBasicInfoProps {
   errors: string[];
@@ -11,11 +14,22 @@ interface MemberBasicInfoProps {
   isMemberSelfEdit?: boolean;
   isAdminEdit?: boolean;
   uid?: string;
+  countries: any[];
+  isStateRequired: boolean;
+  isCityRequired: boolean;
+  setIsStateRequired: (isRequired: boolean)=> void;
+  setIsCityRequired: (isRequired: boolean)=> void;
 }
 
 function MemberBasicInfo(props: MemberBasicInfoProps) {
   const errors = props.errors;
+  const countries = props.countries;
+  const isStateRequired = props.isStateRequired;
+  const isCityRequired = props.isCityRequired;
+  const setIsStateRequired = props.setIsStateRequired;
+  const setIsCityRequired = props.setIsCityRequired;
   const initialValues = props.initialValues;
+  const { country, region, city } = props.initialValues;
   const isMemberSelfEdit = props.isMemberSelfEdit ?? false;
   const isAdminEdit = props.isAdminEdit ?? false;
   const uid = props.uid;
@@ -23,6 +37,11 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '')
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
+  const [states, setStates] = useState<any>([]);
+  const [cities, setCities] = useState<any>([]);
+  const [selectedCountry, setSelectedCountry] = useState<any>(country ? { name: country } : null);
+  const [selectedState, setSelectedState] = useState<any>(region ? { name: region } : null);
+  const [selectedCity, setSelectedCity] = useState<any>(city ? { name: city } : null);
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -46,14 +65,32 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   };
 
   useEffect(() => {
+    if (country && countries?.length > 0) {
+      const currentCountry = countries.find((countryObj) => countryObj.name === country);
+      setSelectedCountry(currentCountry);
+      updateStatesAndCitiesByCountry(currentCountry);
+    }
+  }, [props.countries]);
+
+  useEffect(() => {
     setSavedImage(initialValues?.imageFile ?? '')
     setProfileImage('');
     function resetHandler() {
+      setSelectedCountry({ name: country });
+      setSelectedState({ name: region });
+      setSelectedCity({ name: city });
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
         setSavedImage(initialValues?.imageFile ?? '')
         setProfileImage('');
-      }    
+      }
+      getCountries()
+        .then((countries) => {
+          if (!countries.isError) {
+            const currentCountry = countries.find((countryObj : any) => countryObj.name === country);
+            updateStatesAndCitiesByCountry(currentCountry);
+          }
+      }).catch((e) => console.error(e));
     }
     document.addEventListener('reset-member-register-form', resetHandler);
     return function () {
@@ -61,6 +98,76 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
     };
   }, [initialValues]);
 
+  const updateStatesByCountry = (currentCountry:any) => {
+    getStatesByCountry(currentCountry?.iso2)
+    .then((states) => {
+      if (!states.isError) {
+        setStates(states as any);
+        if (states.length === 0) {
+          setCities([]);
+          setIsStateRequired(false);
+          setIsCityRequired(false);
+        }
+      }
+    }).catch((e) => console.error(e));
+  };
+
+  const updateStatesAndCitiesByCountry = (currentCountry:any) => { 
+    getStatesByCountry(currentCountry?.iso2)
+    .then((states) => {
+      if (!states.isError) {
+        setStates(states as any);
+        if (states?.length === 0) {
+          setIsStateRequired(false);
+          setIsCityRequired(false);
+          setCities([]);
+        } 
+        const currentState = states.find((stateObj : any) => stateObj.name === region);
+        if (currentState) {
+          getCitiesByCountryAndState(currentCountry?.iso2, currentState?.iso2)
+          .then((cities) => {
+            if (!cities.isError) {
+              setCities(cities as any);
+              if (cities?.length === 0) {
+                setIsCityRequired(false);
+              }
+            }
+          })
+          .catch((e) => console.error(e));
+        }
+      }
+    }).catch((e) => console.error(e));
+  };
+
+  const onCountrySelectionChanged = async (item:any) => {
+    setSelectedCountry(item);
+    setSelectedState(null);
+    setSelectedCity(null);
+    setIsStateRequired(true);
+    setIsCityRequired(true);
+    updateStatesByCountry(item);
+  };
+
+  const onStateSelectionChanged = async (item:any) => {
+    setSelectedState(item);
+    setSelectedCity(null);
+    if (selectedCountry) {
+      getCitiesByCountryAndState(selectedCountry?.iso2, item?.iso2)
+      .then((cities) => {
+        if (!cities.isError) {
+          setCities(cities as any);
+          if (cities?.length === 0) {
+            setIsCityRequired(false);
+          }
+        }
+      })
+      .catch((e) => console.error(e));
+    }
+  };
+
+  const onCitySelectionChanged = (item:any) => {
+    setSelectedCity(item);
+  };
 
   return (
     <>
@@ -107,7 +214,6 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
               <TextField defaultValue={initialValues.email} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" />
             </div>
           )}
-
           {isMemberSelfEdit && <SelfEmailUpdate uid={uid} email={initialValues.email}/>}
           {isAdminEdit && <AdminEmailUpdate email={initialValues.email}/>}
           {isMemberSelfEdit && (
@@ -119,18 +225,72 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="Join date" name="plnStartDate" type="date" placeholder="Enter Start Date" />
           </div>
           <div className="memberinfo__form__item">
-            <TextField defaultValue={initialValues.city} id="register-member-city" label="Metro Area/City" name="city" type="text" placeholder="Enter your metro area or city" />
+            <div className="memberinfo__form__item__cn">
+              <div className="memberinfo__form__user__location__country">
+                <label id="member-country" className='memberinfo__form__user__location__label'>Country*</label>
+                <SearchableSingleSelect
+                  id="member-country"
+                  isMandatory={true}
+                  placeholder="Select country"
+                  displayKey="name"
+                  options={countries}
+                  selectedOption={selectedCountry}
+                  uniqueKey="name"
+                  formKey="name"
+                  name={"country"}
+                  onClear={() => {}}
+                  onChange={(item) => onCountrySelectionChanged(item)}
+                  arrowImgUrl="/icons/arrow-down.svg"
+                />
+                <HiddenField value={selectedCountry?.name || ''} defaultValue={selectedCountry?.name || ''} name={'country'} />
+              </div>
+            </div>
+          </div>
+          <div className="memberinfo__form__item">
+            <div className="memberinfo__form__item__cn">
+              <div className="memberinfo__form__user__location__state">
+                <label id="member-state" className='memberinfo__form__user__location__label'>State{isStateRequired? '*':''}</label>
+                <SearchableSingleSelect
+                  id="member-state"
+                  isMandatory={isStateRequired}
+                  placeholder="Select state or province"
+                  displayKey="name"
+                  options={states}
+                  selectedOption={selectedState}
+                  uniqueKey="name"
+                  formKey="name"
+                  name={"region"}
+                  disabled={selectedCountry === null}
+                  onClear={() => {}}
+                  onChange={(item) => onStateSelectionChanged(item)}
+                  arrowImgUrl="/icons/arrow-down.svg"
+                />
+                <HiddenField value={selectedState?.name || ''} defaultValue={selectedState?.name || ''} name={'region'} />
+              </div>
+              <div className="memberinfo__form__user__location__city">
+                <label id="member-city" className='memberinfo__form__user__location__label'>Metro Area/City{isCityRequired? '*':''}</label>
+                <SearchableSingleSelect
+                  id="member-city"
+                  isMandatory={isCityRequired}
+                  placeholder="Select metro area or city"
+                  displayKey="name"
+                  options={cities}
+                  selectedOption={selectedCity}
+                  disabled={selectedState === null}
+                  uniqueKey="name"
+                  formKey="name"
+                  name={"city"}
+                  onClear={() => {}}
+                  onChange={(item) => onCitySelectionChanged(item)}
+                  arrowImgUrl="/icons/arrow-down.svg"
+                />
+                <HiddenField value={selectedCity?.name || ''} defaultValue={selectedCity?.name || ''} name={'city'} />
+              </div>
+            </div>
             <p className="info">
               <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
               <span className="info__text">Please share location details to receive invitations for the network events happening in your area.</span>
             </p>
-          </div>
-
-          <div className="memberinfo__form__item">
-            <div className="memberinfo__form__item__cn">
-              <TextField defaultValue={initialValues.region} id="register-member-state" label="State or Province" name="region" type="text" placeholder="Enter state or province" />
-              <TextField defaultValue={initialValues.country} id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" />
-            </div>
           </div>
         </div>
       </div>
@@ -155,6 +315,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
           .memberinfo__form {
             display: flex;
             flex-direction: column;
+            margin-bottom: 75px;
           }
           .memberinfo__form__item {
             margin: 10px 0;
@@ -205,6 +366,25 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             border-radius: 50%;
             object-fit: cover;
             object-position: top;
+          }
+
+          .memberinfo__form__user__location__country {
+            width: 100%;
+          }
+
+          .memberinfo__form__user__location__state {
+            width: 100%;
+          }
+
+          .memberinfo__form__user__location__city {
+            width: 100%;
+          }
+
+          .memberinfo__form__user__location__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: block;
           }
         `}
       </style>

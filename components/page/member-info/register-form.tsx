@@ -24,6 +24,7 @@ interface AllData {
   teams: any[];
   projects: any[];
   skills: any[];
+  countries: any[];
   isError: boolean;
 }
 
@@ -42,7 +43,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
   });
 
   const formRef = useRef<HTMLFormElement>(null);
-  const [allData, setAllData] = useState<AllData>({ teams: [], projects: [], skills: [], isError: false });
+  const [allData, setAllData] = useState<AllData>({ teams: [], projects: [], skills: [], countries:[], isError: false });
   const [basicErrors, setBasicErrors] = useState<string[]>([]);
   const [contributionErrors, setContributionErrors] = useState<Record<number, string[]>>({});
   const [skillsErrors, setSkillsErrors] = useState<string[]>([]);
@@ -50,6 +51,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
   const formContainerRef = useRef<HTMLDivElement | null>(null);
   const [initialValues, setInitialValues] = useState<InitialValues>({ ...memberRegistrationDefaults });
   const analytics = useJoinNetworkAnalytics();
+  const [isStateRequired, setIsStateRequired] = useState<any>(true);
+  const [isCityRequired, setIsCityRequired] = useState<any>(true);
 
   const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -188,7 +191,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
         <form className="rf" onSubmit={onFormSubmit} ref={formRef} noValidate>
           <div ref={formContainerRef} className="rf__form">
             <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
-              <MemberBasicInfo initialValues={initialValues.basicInfo} errors={basicErrors} />
+              <MemberBasicInfo 
+                initialValues={initialValues.basicInfo} 
+                errors={basicErrors} 
+                countries={ allData.countries }
+                isStateRequired={isStateRequired}
+                setIsStateRequired={setIsStateRequired}
+                isCityRequired={isCityRequired}
+                setIsCityRequired={setIsCityRequired}
+              />
             </div>
             <div className={currentStep !== 'contributions' ? 'hidden' : 'form'}>
               <MemberContributionInfo initialValues={initialValues.contributionInfo} projectsOptions={allData.projects} errors={contributionErrors} />

@@ -3,7 +3,7 @@ import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from '.
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
-import { validateLocation } from '@/services/location.service';
+import { validateLocation, getCountries } from '@/services/location.service';
 
 export const parseMemberDetails = (members: IMemberResponse[], teamId: string, isLoggedIn: boolean) => {
   return members?.map((member: IMemberResponse): IMember => {
@@ -281,6 +281,7 @@ export const getMemberInfoFormValues = async () => {
         };
       })
       .sort((a: any, b: any) => a.projectName - b.projectName),
+    countries: await getCountries()
   };
 };
 

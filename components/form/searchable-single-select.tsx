@@ -27,6 +27,7 @@ interface SearchableSingleSelectProps {
   defaultImage?: string;
   showClear?: boolean;
   closeImgUrl?: string;
+  disabled?: boolean;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -50,6 +51,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   defaultImage,
   showClear,
   closeImgUrl,
+  disabled
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -115,6 +117,12 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   }, [options]);
 
   useEffect(() => {
+    if (searchRef.current  && selectedOption === null) {
+      searchRef.current.value = '';
+    }
+    if (inputRef.current && selectedOption === null) {
+      inputRef.current.value = '';
+    }
     if (searchRef.current && selectedOption) {
       searchRef.current.value = selectedOption[displayKey];
     }
@@ -148,7 +156,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           {iconKey && selectedOption && <img className="selected__icon" src={selectedOption[iconKey] || defaultImage} alt={selectedOption[displayKey]} />}
           <input
             id={id}
-            className={`select__search ${iconKey ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
+            className={`select__search ${disabled ? 'select__search__disabled' : ''} ${iconKey ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
               (isMandatory && !selectedOption?.[uniqueKey]) || (isMandatory && searchRef.current?.value === '') ? 'select__search--error' : ''
             }`}
             ref={searchRef}
@@ -158,6 +166,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             onFocus={onSearchFocus}
             placeholder={placeholder}
             required={isMandatory}
+            disabled={disabled}
             onKeyDown={onKeyDown}
             autoComplete="off"
             onBlur={(e) => {
@@ -180,7 +189,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
               )}
             </>
           ) : arrowImgUrl ? (
-            <img onClick={onToggleOptions} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />
+            <img onClick={onToggleOptions} className={`select__arrowimg ${disabled ? 'select__disabled': ''}`} src={arrowImgUrl} width="10" height="7" alt="arrow down" />
           ) : (
             ''
           )}
@@ -250,6 +259,14 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             font-weight: 400;
             border-radius: 8px;
             border: 1px solid lightgrey;
+          }
+
+          .select__search__disabled {
+            background-color: #F1F5F9;
+          }
+
+          .select__disabled {
+            pointer-events: none;
           }
 
           .hasDefaultImg {

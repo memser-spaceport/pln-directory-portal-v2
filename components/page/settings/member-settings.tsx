@@ -29,7 +29,7 @@ interface MemberSettingsProps {
 function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
-  const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
+  const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], countries: [], isError: false });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
@@ -43,6 +43,8 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   };
   const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo]);
   const analytics = useSettingsAnalytics();
+  const [isStateRequired, setIsStateRequired] = useState<any>(true);
+  const [isCityRequired, setIsCityRequired] = useState<any>(true);
 
   const handleTabClick = (v: string) => {
     analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
@@ -132,19 +134,17 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       errors.push(...result.error.errors.map((v) => v.message));
     }
 
-    const locationInfo = {
-      ...(formattedData.city && { city: formattedData.city }),
-      ...(formattedData.country && { country: formattedData.country }),
-      ...(formattedData.region && { region: formattedData.region }),
-    };
-
-    if (Object.keys(locationInfo).length > 0) {
-      const locationVerification = await validateLocation(locationInfo);
-      if (!locationVerification.isValid) {
-        errors.push('location info provided is invalid');
-      }
+    if (!formattedData.country) {
+     errors.push('Country not specified');
+    }
+  
+    if (isStateRequired && !formattedData.region) {
+      errors.push('Region not specified');
     }
 
+    if (isCityRequired && !formattedData.city) {
+      errors.push('City not specified');
+    }
     //const imageFile = formattedData?.memberProfile;
     const memberProfile = formattedData?.memberProfile;
 
@@ -327,7 +327,17 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <MemberBasicInfo errors={errors.basicErrors} uid={memberInfo.uid} isMemberSelfEdit={true} initialValues={initialValues.basicInfo} />
+            <MemberBasicInfo 
+              errors={errors.basicErrors} 
+              uid={memberInfo.uid} 
+              isMemberSelfEdit={true} 
+              initialValues={initialValues.basicInfo} 
+              countries={allData.countries} 
+              isStateRequired={isStateRequired}
+              setIsStateRequired={setIsStateRequired}
+              isCityRequired={isCityRequired}
+              setIsCityRequired={setIsCityRequired}
+            />
           </div>
           <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
             <MemberSkillsInfo errors={errors.skillsErrors} isEdit={true} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />

@@ -37,7 +37,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
-  const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
+  const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], countries: [], isError: false });
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
@@ -48,6 +48,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
   const router = useRouter();
   const analytics = useSettingsAnalytics();
   const initialValues = useMemo(() => getInitialMemberFormValues(selectedMember), [selectedMember]);
+  const [isStateRequired, setIsStateRequired] = useState<any>(true);
+  const [isCityRequired, setIsCityRequired] = useState<any>(true);
   //useObserver({callback: onFormChange, observeItem: formRef})
 
   const handleTabClick = (v: string) => {
@@ -245,20 +247,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     if (!result.success) {
       errors.push(...result.error.errors.map((v) => v.message));
     }
-
-    const locationInfo = {
-      ...(formattedData.city && { city: formattedData.city }),
-      ...(formattedData.country && { country: formattedData.country }),
-      ...(formattedData.region && { region: formattedData.region }),
-    };
-
-    if (Object.keys(locationInfo).length > 0) {
-      const locationVerification = await validateLocation(locationInfo);
-      if (!locationVerification.isValid) {
-        errors.push('location info provided is invalid');
-      }
-    }
-
+    
     //const imageFile = formattedData?.memberProfile;
     const memberProfile = formattedData?.memberProfile;
 
@@ -405,7 +394,16 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms__content">
             <div className="ms__content__cn">
               <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-                <MemberBasicInfo isAdminEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} />
+                <MemberBasicInfo 
+                  isAdminEdit={true} 
+                  errors={errors.basicErrors} 
+                  initialValues={initialValues.basicInfo} 
+                  countries={allData.countries}
+                  isStateRequired={isStateRequired}
+                  setIsStateRequired={setIsStateRequired}
+                  isCityRequired={isCityRequired}
+                  setIsCityRequired={setIsCityRequired}
+                />
               </div>
               <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
                 <MemberSkillsInfo isEdit={true} errors={errors.skillsErrors} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />

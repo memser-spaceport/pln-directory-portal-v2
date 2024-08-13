@@ -3,25 +3,19 @@
 
 import { IMember } from '@/types/members.types';
 import { parseMemberLocation } from '@/utils/member.utils';
-import MemberSkillList from './member-skill-list';
 import dynamic from 'next/dynamic';
+import MemberSkillList from '../../members/member-skill-list';
 
-interface IMemberGridView {
-  member: IMember;
-  isUserLoggedIn: boolean | undefined;
-}
+const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((mod) => mod.Tooltip), { ssr: false });
 
-const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((mod) => mod.Tooltip));
-
-const MemberGridView = (props: IMemberGridView) => {
+const MemberCard = (props: any) => {
   const member = props?.member;
-  console.log(member)
   const isUserLoggedIn = props?.isUserLoggedIn;
   const profileUrl = member?.profile ?? '/icons/default_profile.svg';
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams
-    .filter((team) => team.id !== mainTeam?.id)
-    .map((team) => team.name)
+    .filter((team: any) => team.id !== mainTeam?.id)
+    .map((team: any) => team.name)
     .sort();
   const role = member.mainTeam?.role || 'Contributor';
   const location = parseMemberLocation(member?.location);
@@ -53,6 +47,7 @@ const MemberGridView = (props: IMemberGridView) => {
               )}
             </div>
           </div>
+          <div className="projectCard__header__badge">New</div>
         </div>
         <div className="member-grid__details">
           <div>
@@ -70,7 +65,7 @@ const MemberGridView = (props: IMemberGridView) => {
                         +{(member?.teams?.length - 1).toString()}
                       </button>
                     }
-                    content={otherTeams?.map((team, index) => (
+                    content={otherTeams?.map((team: any, index: number) => (
                       <div key={`${team} + ${index}`}>
                         {team}
                         {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
@@ -98,9 +93,6 @@ const MemberGridView = (props: IMemberGridView) => {
           </div>
 
           <div className="member-grid__profile-container__ftr">
-            <div className="member-grid__profile-container__ftr__skills__mob">
-              <MemberSkillList skills={skills} noOfSkillsToShow={1} />
-            </div>
             <div className="member-grid__profile-container__ftr__skills__desc">
               <MemberSkillList skills={skills} noOfSkillsToShow={3} />
             </div>
@@ -111,8 +103,8 @@ const MemberGridView = (props: IMemberGridView) => {
       <style jsx>
         {`
           .member-grid {
-            height: 166px;
-            width: 167.5px;
+            height: 290px;
+            width: 289px;
             border-radius: 12px;
             box-shadow: 0px 4px 4px 0px #0f172a0a;
           }
@@ -135,20 +127,43 @@ const MemberGridView = (props: IMemberGridView) => {
             align-items: center;
             justify-content: center;
             border-radius: 12px 12px 0 0;
-            height: 33px;
+            height: 94px;
             background: linear-gradient(180deg, #fff 0%, #e2e8f0 205.47%);
             position: relative;
           }
 
-          .member-grid__profile-container__outer-section {
+          .projectCard__header__badge {
+            color: #fff;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 28px;
+            background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+            width: 42px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0px 12px 0px 12px;
             position: absolute;
-            z-index: 1;
-            top: 13px;
+            right: 0;
+            top: 0;
+          }
+
+          .member-grid__profile-container__outer-section {
+            background: url('/images/outer-circle.svg');
+            height: 147px;
+            width: 147px;
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            background-repeat: no-repeat;
           }
 
           .member-grid__profile-container__outer-section__inner-circle {
-            height: 36px;
-            width: 36px;
+            height: 104px;
+            width: 104px;
             border-radius: 50%;
             overflow: hidden;
             display: flex;
@@ -164,7 +179,7 @@ const MemberGridView = (props: IMemberGridView) => {
             border-radius: 100%;
             right: 23px;
             top: 11px;
-            display: none;
+            display: block;
           }
 
           .member-grid__profile-container__outer-section__inner-circle__opento-work {
@@ -174,13 +189,13 @@ const MemberGridView = (props: IMemberGridView) => {
             border-radius: 100%;
             left: 17px;
             bottom: 61px;
-            display: none;
+            display: block;
           }
 
           .member-grid__details {
-            padding: 18px 12px 12px 12px;
+            padding: 16px;
             background: #fff;
-            height: 133px;
+            height: 195px;
             display: flex;
             justify-content: space-between;
             flex-direction: column;
@@ -194,8 +209,8 @@ const MemberGridView = (props: IMemberGridView) => {
             object-position: center;
             border: 1px solid #e2e8f0;
             border-radius: 50%;
-            height: 36px;
-            width: 36px;
+            height: 72px;
+            width: 72px;
           }
 
           .member-grid__details__member-details__team-name-container__tems-count {
@@ -218,6 +233,7 @@ const MemberGridView = (props: IMemberGridView) => {
             display: flex;
             align-items: center;
             flex-direction: column;
+            gap: 4px;
           }
 
           .member-grid__details__member-details__name-container {
@@ -225,9 +241,9 @@ const MemberGridView = (props: IMemberGridView) => {
           }
 
           .member-grid__details__name {
-            font-size: 12px;
+            font-size: 18px;
             font-weight: 600;
-            line-height: 22px;
+            line-height: 28px;
             color: #000;
             max-width: 200px;
             text-align: center;
@@ -245,7 +261,7 @@ const MemberGridView = (props: IMemberGridView) => {
           }
 
           .member-grid__details__member-details__team-name-container__team-name {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
             color: #000;
             max-width: 200px;
@@ -256,24 +272,30 @@ const MemberGridView = (props: IMemberGridView) => {
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
             text-overflow: ellipsis;
-            line-height: 18px;
+            line-height: 20px;
             text-align: center;
           }
 
           .member-grid__details__member-details__role {
-            font-size: 12px;
             font-weight: 400;
-            line-height: 18px;
             color: #000;
             text-align: center;
-            max-width: 135px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+            font-size: 14px;
+            line-height: 20px;
+            max-width: 200px;
           }
 
           .member-grid__details__location {
-            display: none;
+            padding-top: 8px;
+            width: fit-content;
+            margin: auto;
+            align-items: center;
+            display: flex;
+            height: 20px;
+            gap: 7px;
           }
 
           .member-grid__details__location__name {
@@ -289,116 +311,16 @@ const MemberGridView = (props: IMemberGridView) => {
           }
 
           .member-grid__profile-container__ftr {
-            padding: 0px;
+            padding: 16px 0 0 0;
+            border-top: 1px solid #e2e8f0;
           }
 
-          .member-grid__profile-container__ftr__skills__mob {
-            display: block;
-          }
-
-          .member-grid__profile-container__ftr__skills__desc {
-            display: none;
-          }
-
-          @media (min-width: 1024px) {
-            .member-grid {
-              height: 289px;
-              width: 289px;
-            }
-
-            .member-grid__profile-container {
-              height: 94px;
-            }
-
-            .member-grid__details__name {
-              font-size: 18px;
-              line-height: 28px;
-            }
-
-            .member-grid__details__member-details__team-name-container__team-name {
-              font-size: 14px;
-              line-height: 20px;
-            }
-
-            .gradiant-border-rounded {
-              border: double 1px transparent;
-              border-radius: 50%;
-              background-image: linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
-              background-origin: border-box;
-              background-clip: content-box, border-box;
-            }
-
-            .member-grid__profile-container__outer-section {
-              background: url('/images/outer-circle.svg');
-              height: 147px;
-              width: 147px;
-              margin: auto;
-              display: flex;
-              justify-content: center;
-              position: relative;
-              background-repeat: no-repeat;
-              z-index: unset;
-              top: unset;
-            }
-
-            .member-grid__profile-container__outer-section__inner-circle {
-              height: 104px;
-              width: 104px;
-            }
-
-            .member-grid__profile-container__outer-section__inner-circle__profile {
-              height: 72px;
-              width: 72px;
-            }
-
-            .member-grid__profile-container__outer-section {
-            }
-
-            .member-grid__details {
-              height: 195px;
-              padding: 16px;
-            }
-
-            .member-grid__profile-container__ftr {
-              padding: 16px 0 0 0;
-              border-top: 1px solid #e2e8f0;
-            }
-
-            .member-grid__details__location {
-              padding-top: 8px;
-              width: fit-content;
-              margin: auto;
-              align-items: center;
-              display: flex;
-              height: 20px;
-              gap: 7px;
-            }
-
-            .member-grid__details__member-details__role {
-              font-size: 14px;
-              line-height: 20px;
-              max-width: 200px;
-            }
-
-            .member-grid__profile-container__outer-section__inner-circle__lead {
-              display: block;
-            }
-
-            .member-grid__profile-container__outer-section__inner-circle__opento-work {
-              display: block;
-            }
-
-            .member-grid__details__member-details {
-              gap: 4px;
-            }
-
-            .member-grid__profile-container__ftr__skills__desc {
-              display: block;
-            }
-
-            .member-grid__profile-container__ftr__skills__mob {
-              display: none;
-            }
+          .gradiant-border-rounded {
+            border: double 1px transparent;
+            border-radius: 50%;
+            background-image: linear-gradient(rgb(248 250 252), rgb(248 250 252)), linear-gradient(to right, #427dff, #44d5bb);
+            background-origin: border-box;
+            background-clip: content-box, border-box;
           }
         `}
       </style>
@@ -406,4 +328,4 @@ const MemberGridView = (props: IMemberGridView) => {
   );
 };
 
-export default MemberGridView;
+export default MemberCard;

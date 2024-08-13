@@ -11,6 +11,7 @@
   "dependencies": {
     "@privy-io/react-auth": "^1.71.0",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "embla-carousel-react": "^8.1.8",
     "isomorphic-dompurify": "^2.13.0",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",

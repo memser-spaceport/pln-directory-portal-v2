@@ -4,13 +4,13 @@ import { redirect } from 'next/navigation';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import SettingsMobileHandler from '@/components/page/settings/settings-mobile-handler';
 import { Metadata } from 'next';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 export default function Settings() {
   const {isLoggedIn, userInfo} = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
-    redirect('/teams');
+    redirect(PAGE_ROUTES.HOME);
   }
 
   const roles = userInfo.roles ?? [];

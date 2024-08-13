@@ -8,7 +8,7 @@ import Link from 'next/link';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 const getPageData = async (userInfo: any, authToken: string) => {
   return await getMemberPreferences(userInfo.uid, authToken);
@@ -18,7 +18,7 @@ async function PrivacyPage() {
   const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
-    redirect('/teams');
+    redirect(PAGE_ROUTES.HOME);
   }
 
   const roles = userInfo.roles ?? [];

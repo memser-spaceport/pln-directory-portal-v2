@@ -429,10 +429,23 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 3.0.1 - Office Hours Feedback',
+    tag: 'New Feature',
+    date: '13, Aug 2024',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <p>Exciting news!</p>
+    <br/>
+    <p>You can now provide feedback for every Office Hour you book by sharing your experiences, suggestions, and insights, helping us improve the network collaboration.</p>
+    <p style="margin-top: 20px"> However, don't worry if you missed providing your feedback. All your missed notifications will be available on your Notifications Page, so you can catch up at your convenience by accessing the page using the bell icon on the top navigation bar.</p>
+    </div>`,
+  },
+
+  {
     title: 'Version 3.0.0 - Enhancements',
     tag: 'Improvements',
     releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },
-    date: '19, Jul 2024 ',
+    date: '19, Jul 2024',
     shortContent: `<ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
     <li>Introducing improved mobile responsiveness and layout adaptability across all devices.</li>
     <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience</li>
@@ -446,7 +459,7 @@ export const ChangeLogList = [
   {
     title: 'Version 2.1.3 - Enhancements',
     tag: 'Improvements',
-    date: '12, Jul 2024 ',
+    date: '12, Jul 2024',
     shortContent: `<p style="font-size: 14px; line-height:24px;">
     Users can now find the Focus Area details on the Teams and Projects detail pages.
     </p>`,
@@ -454,7 +467,7 @@ export const ChangeLogList = [
   {
     title: 'Version 2.1.2 - Enhancements',
     tag: 'Improvements',
-    date: '05, Jul 2024 ',
+    date: '05, Jul 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
     <span style="font-size: 14px; line-height:23px;">Feel free to connect with your fellow attendees at the events by</span><br/>
     <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
@@ -467,7 +480,7 @@ export const ChangeLogList = [
   {
     title: 'Version 2.1.1 - Enhancements',
     tag: 'Improvements',
-    date: '14, Jun 2024 ',
+    date: '14, Jun 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
     We are excited to introduce office hours for teams. With this option, you can now schedule office hours with other teams to drop in, ask questions, discuss projects, or seek guidance.
     </p>`,
@@ -475,7 +488,7 @@ export const ChangeLogList = [
   {
     title: 'Version 2.1.0 - Enhancements',
     tag: 'Improvements',
-    date: '31, May 2024 ',
+    date: '31, May 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px;line-height:23px; font-weight: 600">IRL Gatherings - Enhanced Detail Page View</span><br/>
       <ul style="padding-left:32px; font-size:14px; line-height:23px; list-style: disc;">
@@ -720,4 +733,4 @@ export const FEEDBACK_RESPONSE_TYPES = {
   }
 }
 
-export const NOTIFICATION_REFETCH_TIME =  300000;
+export const NOTIFICATION_REFETCH_TIME = 300000;

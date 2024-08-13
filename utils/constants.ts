@@ -1,5 +1,11 @@
 export const NAV_OPTIONS = [
   {
+    name: 'Home',
+    url: '/',
+    selectedLogo: '/icons/home.svg',
+    unSelectedLogo: '/icons/home.svg',
+  },
+  {
     name: 'Teams',
     url: '/teams',
     selectedLogo: '/icons/teams--selected.svg',
@@ -48,7 +54,7 @@ export const EVENTS = {
   OPEN_REMOVE_GUESTS_POPUP: 'open-remove-guests-popup',
   OPEN_FLOATING_BAR: 'open-floating-bar',
   GET_NOTIFICATIONS: 'get-notifications',
-  TRIGGER_RATING_POPUP: 'trigger-notification-popup'
+  TRIGGER_RATING_POPUP: 'trigger-notification-popup',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -90,7 +96,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked',
   SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: 'session-expired-popup-login-btn-clicked',
   GO_TO_TOP_BTN_CLICKED: 'go-to-top-btn-clicked',
-  NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked'
+  NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -98,8 +104,8 @@ export const NOTIFICATION_ANALYTICS_EVENTS = {
   NOTIFICATION_SELL_ALL_NOTIFICATIONS_CLICKED: 'notification-see-all-notifications-clicked',
   OFFICE_HOURS_FEEDBACK_SUBMITTED: 'office-hours-feedback-submitted',
   OFFICE_HOURS_FEEDBACK_SUCCESS: 'office-hours-feedback-success',
-  OFFICE_HOURS_FEEDBACK_FAILED: 'office-hours-feedback-failed'
-}
+  OFFICE_HOURS_FEEDBACK_FAILED: 'office-hours-feedback-failed',
+};
 
 export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_SIDE_MENU_CLICK: 'settings-side-menu-click',
@@ -182,7 +188,7 @@ export const TOAST_MESSAGES = {
   ATTENDEE_UPDATED_SUCCESSFULLY: 'Attendee updated successfully',
   ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee deleted successfully',
   FEEDBACK__SUCCESS: 'We will follow up for feedback soon',
-  FEEDBACK_INITIATED_SUCCESS: "Great! Enjoy your conversation",
+  FEEDBACK_INITIATED_SUCCESS: 'Great! Enjoy your conversation',
   FEEDBACK_THANK: 'Thank you for the feedback!',
   INTERACTION_RESTRICTED: 'Action restricted: Try scheduling after some time',
   FEEDBACK__ALREADY__RECORDED: 'Thanks, we have already recorded your feedback',
@@ -316,6 +322,7 @@ export const IRL_ANALYTICS_EVENTS = {
 };
 
 export const PAGE_ROUTES = {
+  HOME: '/',
   MEMBERS: '/members',
   TEAMS: '/teams',
   SETTINGS: '/settings',
@@ -621,31 +628,29 @@ export const SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com
 
 export const OFFICE_HOURS_STEPS = {
   MEETING_INITIATED: {
-    name: "MEETING_INITIATED",
+    name: 'MEETING_INITIATED',
   },
   MEETING_SCHEDULED: {
-    name: "MEETING_SCHEDULED",
+    name: 'MEETING_SCHEDULED',
   },
   NOT_HAPPENED: {
     name: 'not-happened',
   },
   MEETING_RESCHEDULED: {
-    name: 'MEETING_RESCHEDULED'
-  }
-}
-
+    name: 'MEETING_RESCHEDULED',
+  },
+};
 
 export const TROUBLES_INFO = {
   didntHappened: {
     name: 'Meeting didn’t happen',
-    reasons: []
+    reasons: [],
   },
   technicalIssues: {
     name: 'Faced Technical Issues',
-    reasons: []
-  }
-}
-
+    reasons: [],
+  },
+};
 
 export const NOT_SCHEDULED_OPTIONS = ['Link is broken', 'I plan to schedule soon', 'Preferred slot is not available', 'Other'];
 
@@ -665,32 +670,25 @@ export const DIDNTHAPPENEDOPTIONS = [
   {
     name: 'I could not make it',
   },
-  { name: "Call quality issues" }
-  ,
+  { name: 'Call quality issues' },
   {
     name: 'Other',
   },
 ];
 
-
-export const TECHNICALISSUESOPTIONS = [
-  { name: "Noise or disturbance during the call" },
-  { name: "Network issue" },
-  { name: "Other" },
-]
-
+export const TECHNICALISSUESOPTIONS = [{ name: 'Noise or disturbance during the call' }, { name: 'Network issue' }, { name: 'Other' }];
 
 export const NOTIFICATION_TYPES = {
   meetingInitiated: {
-    name: "MEETING_INITIATED"
+    name: 'MEETING_INITIATED',
   },
   meetingScheduled: {
-    name: "MEETING_SCHEDULED"
+    name: 'MEETING_SCHEDULED',
   },
   meetingRescheduled: {
-    name: 'MEETING_RESCHEDULED'
-  }
-}
+    name: 'MEETING_RESCHEDULED',
+  },
+};
 
 export const RATINGS = [
   {
@@ -726,7 +724,7 @@ export const RATINGS = [
 
 export const FEEDBACK_RESPONSE_TYPES = {
   positive: {
-    name: "POSITIVE"
+    name: 'POSITIVE',
   },
   negative: {
     name: "NEGATIVE"

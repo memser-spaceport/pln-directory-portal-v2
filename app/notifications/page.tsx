@@ -12,7 +12,7 @@ async function Notifications({ searchParams }: { searchParams: any }) {
   const { isError, userInfo, notifications, isLoggedIn, authToken} = await getPageData();
 
   if(!isLoggedIn) {
-    redirect(PAGE_ROUTES.TEAMS);
+    redirect(PAGE_ROUTES.HOME);
   }
   
   if (isError) {

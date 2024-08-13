@@ -10,7 +10,7 @@ export default function AddProject(props: any) {
   const { isError, isLoggedIn, userInfo} = getPageData();
 
   if(!isLoggedIn) {
-      redirect(`${PAGE_ROUTES.TEAMS}`, RedirectType.replace);
+      redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
   }
 
   if (isError) {

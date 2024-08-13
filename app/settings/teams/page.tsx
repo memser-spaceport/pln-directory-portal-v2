@@ -1,7 +1,7 @@
 import Breadcrumbs from '@/components/ui/breadcrumbs';
 import styles from './page.module.css';
 import SettingsMenu from '@/components/page/settings/menu';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ManageTeamsSettings from '@/components/page/settings/manage-teams';
 import Link from 'next/link';
 import { getTeamInfo, getTeamsInfoForDp } from '@/services/teams.service';
@@ -40,7 +40,7 @@ export default async function ManageTeams(props: any) {
   const { userInfo, isLoggedIn } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
-    redirect('/teams');
+     redirect(PAGE_ROUTES.HOME);
   }
 
   const roles = userInfo.roles ?? [];
@@ -48,10 +48,10 @@ export default async function ManageTeams(props: any) {
   const isTeamLead = leadingTeams.length > 0;
   const isAdmin = roles.includes('DIRECTORYADMIN');
   if (!isAdmin && !isTeamLead) {
-    redirect('/teams');
+     redirect(PAGE_ROUTES.HOME);
   }
   if (selectedTeamId && isTeamLead && !leadingTeams.includes(selectedTeamId)) {
-    redirect('/teams');
+     redirect(PAGE_ROUTES.HOME);
   }
 
   const { teams, isError, selectedTeam } = await getPageData(selectedTeamId, leadingTeams, isTeamLead);

@@ -8,7 +8,7 @@ import { getMemberInfo } from '@/services/members.service';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 const getPageData = async (userId: string) => {
   const memberInfo = await getMemberInfo(userId);
@@ -27,7 +27,7 @@ export default async function ProfileSettings() {
   const {isLoggedIn, userInfo} = getCookiesFromHeaders();
 
   if(!isLoggedIn) {
-    redirect('/teams')
+    redirect(PAGE_ROUTES.HOME);
   }
 
   const roles = userInfo.roles ?? [];

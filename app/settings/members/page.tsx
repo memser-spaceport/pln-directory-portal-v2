@@ -9,7 +9,7 @@ import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMemberPreferences } from '@/services/preferences.service';
 import { Metadata } from 'next';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 const getPageData = async (selectedMemberId: string, authToken: string) => {
   const dpResult = await getMembersInfoForDp();
@@ -42,7 +42,7 @@ export default async function ManageMembers(props: any) {
   const { userInfo, isLoggedIn, authToken } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
-    redirect('/teams');
+    redirect(PAGE_ROUTES.HOME);
   }
   const roles = userInfo.roles ?? [];
   const leadingTeams = userInfo.leadingTeams ?? [];
@@ -50,7 +50,7 @@ export default async function ManageMembers(props: any) {
   const isAdmin = roles.includes('DIRECTORYADMIN');
 
   if (!isAdmin) {
-    redirect('/teams');
+    redirect(PAGE_ROUTES.HOME);
   }
   const { members, isError, selectedMember, preferences } = await getPageData(selectedMemberId, authToken);
   const formattedMembers = [...members].filter(v => v.id !== userInfo.uid)

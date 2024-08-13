@@ -184,9 +184,9 @@ export const TOAST_MESSAGES = {
   FEEDBACK__SUCCESS: 'We will follow up for feedback soon',
   FEEDBACK_INITIATED_SUCCESS: "Great! Enjoy your conversation",
   FEEDBACK_THANK: 'Thank you for the feedback!',
-  INTERACTION_RESTRICTED: 'Interaction with same user within 30 minutes is restricted',
+  INTERACTION_RESTRICTED: 'Action restricted: Try scheduling after some time',
   FEEDBACK__ALREADY__RECORDED: 'Thanks, we have already recorded your feedback',
-  SELF_INTERACTION_FORBIDDEN: ''
+  SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed'
 };
 
 export const AUTH_ANALYTICS = {

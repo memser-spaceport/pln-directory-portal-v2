@@ -39,7 +39,7 @@ const MemberOfficeHours = (props: any) => {
       if (response?.error) {
         triggerLoader(false);
         if (response?.error?.data?.message?.includes('yourself is forbidden')) {
-          toast.error(response?.error?.data?.message);
+          toast.error(TOAST_MESSAGES.SELF_INTERACTION_FORBIDDEN);
         }
 
         if(response?.error?.data?.message?.includes('Interaction with same user within 30 minutes is forbidden')) {

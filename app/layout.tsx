@@ -19,6 +19,7 @@ const MemberRegisterDialog = dynamic(() => import('@/components/core/register/me
 const TeamRegisterDialog = dynamic(()=>import('@/components/page/team-form-info/team-register-dialog'), {ssr: false})
 const CookieChecker = dynamic(() => import('@/components/core/login/cookie-checker'), {ssr: false})
 const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then(d => d.PostHogPageview), {ssr: false})
+const RatingContainer = dynamic(() => import('@/components/core/office-hours-rating/rating-container'), {ssr: false});
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
   },
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const { userInfo, isLoggedIn } = getCookiesFromHeaders();
+  const { userInfo, isLoggedIn, authToken } = getCookiesFromHeaders();
 
   return (
     <html>
@@ -54,16 +55,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <StyledJsxRegistry>
           <header className="layout__header">
-            <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
           </header>
           <main className="layout__main">{children}</main>
           <Loader />
           <AuthBox />
           <Toaster />
           <BroadCastChannel />
-          <MemberRegisterDialog/>
-          <TeamRegisterDialog/>
-          <CookieChecker isLoggedIn={isLoggedIn}/>
+          <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+          <MemberRegisterDialog />
+          <TeamRegisterDialog />
+          <CookieChecker isLoggedIn={isLoggedIn} />
         </StyledJsxRegistry>
       </body>
     </html>

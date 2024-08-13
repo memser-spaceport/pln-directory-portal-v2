@@ -95,6 +95,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                   </span>
                 )}
               </label>
+              <input readOnly id="team-info-basic-image" value={profileImage} hidden name="imageFile"  />
               <input onChange={onImageUpload} id="Project-image-upload" name="projectProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
 
               <p className="profileInfo__mob">

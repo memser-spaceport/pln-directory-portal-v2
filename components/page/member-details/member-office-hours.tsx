@@ -2,9 +2,12 @@
 
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
-import { LEARN_MORE_URL, OFFICE_HOURS_MSG } from '@/utils/constants';
+import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { EVENTS, LEARN_MORE_URL, OFFICE_HOURS_MSG, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
 
 const MemberOfficeHours = (props: any) => {
   const member = props?.member;
@@ -21,7 +24,44 @@ const MemberOfficeHours = (props: any) => {
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 
-  const onScheduleMeeting = () => {
+  const onScheduleMeeting = async () => {
+    const isLoggedInUser = userInfo?.uid === member?.id;
+    try {
+      triggerLoader(true);
+      const authToken = Cookies.get('authToken') || '';
+      const response: any = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+        data: {},
+        hasFollowUp: true,
+        type: 'SCHEDULE_MEETING',
+        targetMemberUid: member.id,
+      });
+
+      if (response?.error) {
+        triggerLoader(false);
+        if (response?.error?.data?.message?.includes('yourself is forbidden')) {
+          toast.error(response?.error?.data?.message);
+        }
+
+        if(response?.error?.data?.message?.includes('Interaction with same user within 30 minutes is forbidden')) {
+          toast.error(TOAST_MESSAGES.INTERACTION_RESTRICTED);
+        }
+        return;
+      }
+      triggerLoader(false);
+      window.open(officeHours, '_blank');
+      const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), "PENDING,CLOSED");
+      if (!allFollowups?.error) {
+        const result = allFollowups?.data ?? [];
+        if (result.length > 0) {
+          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[0] } }));
+          document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
+          router.refresh();
+        }
+      }
+    } catch (error) {
+      triggerLoader(false);
+      console.error(error);
+    }
     memberAnalytics.onOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
   };
 
@@ -52,9 +92,9 @@ const MemberOfficeHours = (props: any) => {
             </button>
           </a>
           {isLoggedIn && officeHours && (
-            <a href={officeHours} target="blank" onClick={onScheduleMeeting}>
+            <div onClick={onScheduleMeeting}>
               <button className="office-hours__right__meeting">Schedule Meeting</button>
-            </a>
+            </div>
           )}
 
           {isLoggedIn && !officeHours && (
@@ -169,7 +209,7 @@ const MemberOfficeHours = (props: any) => {
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            display:inline-block;
+            display: inline-block;
           }
         }
       `}</style>

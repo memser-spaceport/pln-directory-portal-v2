@@ -14,7 +14,7 @@ const Modal = (props: IModal) => {
 
   return (
     <>
-      <dialog autoFocus={true} onClose={onClose} ref={ref} className="modal">
+      <dialog autoFocus={true} ref={ref} className="modal">
       <button className="modal__cn__hidden"></button>
         <div className="modal__cn">
           {/* for skip button focus */}
@@ -49,8 +49,8 @@ const Modal = (props: IModal) => {
             border: none;
             top: 12px;
             right: 12px;
+            background: transparent;
             user-select: none;
-            background: #fff;
             outline: none;
           }
         `}

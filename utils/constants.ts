@@ -47,6 +47,8 @@ export const EVENTS = {
   PROJECT_ADD_MODAL_CLOSE_EVENT: 'project-add-modal-close-event',
   OPEN_REMOVE_GUESTS_POPUP: 'open-remove-guests-popup',
   OPEN_FLOATING_BAR: 'open-floating-bar',
+  GET_NOTIFICATIONS: 'get-notifications',
+  TRIGGER_RATING_POPUP: 'trigger-notification-popup'
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -88,7 +90,16 @@ export const COMMON_ANALYTICS_EVENTS = {
   FOOTER_PAGINATION_OPTION_CLICKED: 'footer-pagination-option-clicked',
   SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: 'session-expired-popup-login-btn-clicked',
   GO_TO_TOP_BTN_CLICKED: 'go-to-top-btn-clicked',
+  NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked'
 };
+
+export const NOTIFICATION_ANALYTICS_EVENTS = {
+  NOTIFICATION_ITEM_CLICKED: 'notification-item-clicked',
+  NOTIFICATION_SELL_ALL_NOTIFICATIONS_CLICKED: 'notification-see-all-notifications-clicked',
+  OFFICE_HOURS_FEEDBACK_SUBMITTED: 'office-hours-feedback-submitted',
+  OFFICE_HOURS_FEEDBACK_SUCCESS: 'office-hours-feedback-success',
+  OFFICE_HOURS_FEEDBACK_FAILED: 'office-hours-feedback-failed'
+}
 
 export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_SIDE_MENU_CLICK: 'settings-side-menu-click',
@@ -169,7 +180,13 @@ export const TOAST_MESSAGES = {
   ATTENDEE_ADDED_SUCCESSFULLY: 'Attendee added successfully',
   DETAILS_UPDATED_SUCCESSFULLY: 'Your details has been updated successfully',
   ATTENDEE_UPDATED_SUCCESSFULLY: 'Attendee updated successfully',
-  ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee(s) deleted successfully'
+  ATTENDEE_DELETED_SUCCESSFULLY: 'Attendee deleted successfully',
+  FEEDBACK__SUCCESS: 'We will follow up for feedback soon',
+  FEEDBACK_INITIATED_SUCCESS: "Great! Enjoy your conversation",
+  FEEDBACK_THANK: 'Thank you for the feedback!',
+  INTERACTION_RESTRICTED: 'Interaction with same user within 30 minutes is restricted',
+  FEEDBACK__ALREADY__RECORDED: 'Thanks, we have already recorded your feedback',
+  SELF_INTERACTION_FORBIDDEN: ''
 };
 
 export const AUTH_ANALYTICS = {
@@ -304,6 +321,7 @@ export const PAGE_ROUTES = {
   SETTINGS: '/settings',
   PROJECTS: '/projects',
   IRL: '/irl',
+  NOTIFICATIONS: '/notifications',
 };
 
 export const SORT_OPTIONS = {
@@ -411,10 +429,23 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 3.0.1 - Office Hours Feedback',
+    tag: 'New Feature',
+    date: '13, Aug 2024',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <p>Exciting news!</p>
+    <br/>
+    <p>You can now provide feedback for every Office Hour you book by sharing your experiences, suggestions, and insights, helping us improve the network collaboration.</p>
+    <p style="margin-top: 20px"> However, don't worry if you missed providing your feedback. All your missed notifications will be available on your Notifications Page, so you can catch up at your convenience by accessing the page using the bell icon on the top navigation bar.</p>
+    </div>`,
+  },
+
+  {
     title: 'Version 3.0.0 - Enhancements',
     tag: 'Improvements',
     releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },
-    date: '19, Jul 2024 ',
+    date: '19, Jul 2024',
     shortContent: `<ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
     <li>Introducing improved mobile responsiveness and layout adaptability across all devices.</li>
     <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience</li>
@@ -428,7 +459,7 @@ export const ChangeLogList = [
   {
     title: 'Version 2.1.3 - Enhancements',
     tag: 'Improvements',
-    date: '12, Jul 2024 ',
+    date: '12, Jul 2024',
     shortContent: `<p style="font-size: 14px; line-height:24px;">
     Users can now find the Focus Area details on the Teams and Projects detail pages.
     </p>`,
@@ -436,7 +467,7 @@ export const ChangeLogList = [
   {
     title: 'Version 2.1.2 - Enhancements',
     tag: 'Improvements',
-    date: '05, Jul 2024 ',
+    date: '05, Jul 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
     <span style="font-size: 14px; line-height:23px;">Feel free to connect with your fellow attendees at the events by</span><br/>
     <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
@@ -449,7 +480,7 @@ export const ChangeLogList = [
   {
     title: 'Version 2.1.1 - Enhancements',
     tag: 'Improvements',
-    date: '14, Jun 2024 ',
+    date: '14, Jun 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
     We are excited to introduce office hours for teams. With this option, you can now schedule office hours with other teams to drop in, ask questions, discuss projects, or seek guidance.
     </p>`,
@@ -457,7 +488,7 @@ export const ChangeLogList = [
   {
     title: 'Version 2.1.0 - Enhancements',
     tag: 'Improvements',
-    date: '31, May 2024 ',
+    date: '31, May 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px;line-height:23px; font-weight: 600">IRL Gatherings - Enhanced Detail Page View</span><br/>
       <ul style="padding-left:32px; font-size:14px; line-height:23px; list-style: disc;">
@@ -587,3 +618,119 @@ export const tagColors = [
 export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
 
 export const SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
+
+export const OFFICE_HOURS_STEPS = {
+  MEETING_INITIATED: {
+    name: "MEETING_INITIATED",
+  },
+  MEETING_SCHEDULED: {
+    name: "MEETING_SCHEDULED",
+  },
+  NOT_HAPPENED: {
+    name: 'not-happened',
+  },
+  MEETING_RESCHEDULED: {
+    name: 'MEETING_RESCHEDULED'
+  }
+}
+
+
+export const TROUBLES_INFO = {
+  didntHappened: {
+    name: 'Meeting didn’t happen',
+    reasons: []
+  },
+  technicalIssues: {
+    name: 'Faced Technical Issues',
+    reasons: []
+  }
+}
+
+
+export const NOT_SCHEDULED_OPTIONS = ['Link is broken', 'I plan to schedule soon', 'Preferred slot is not available', 'Other'];
+
+export const DIDNTHAPPENEDOPTIONS = [
+  {
+    name: "Meeting link didn't work",
+  },
+  {
+    name: 'Got rescheduled',
+  },
+  {
+    name: 'Got cancelled',
+  },
+  {
+    name: "Member didn't show up",
+  },
+  {
+    name: 'I could not make it',
+  },
+  { name: "Call quality issues" }
+  ,
+  {
+    name: 'Other',
+  },
+];
+
+
+export const TECHNICALISSUESOPTIONS = [
+  { name: "Noise or disturbance during the call" },
+  { name: "Network issue" },
+  { name: "Other" },
+]
+
+
+export const NOTIFICATION_TYPES = {
+  meetingInitiated: {
+    name: "MEETING_INITIATED"
+  },
+  meetingScheduled: {
+    name: "MEETING_SCHEDULED"
+  },
+  meetingRescheduled: {
+    name: 'MEETING_RESCHEDULED'
+  }
+}
+
+export const RATINGS = [
+  {
+    value: 1,
+    backgroundColor: '#FFD9C9',
+    disableColor: '#e3e3e3',
+  },
+
+  {
+    value: 2,
+    backgroundColor: '#FFF2C9',
+    disableColor: '#f1f1f1',
+  },
+
+  {
+    value: 3,
+    backgroundColor: '#FFF2C9',
+    disableColor: '#f1f1f1',
+  },
+
+  {
+    value: 4,
+    backgroundColor: '#C5F9D0',
+    disableColor: '#e5e5e5',
+  },
+
+  {
+    value: 5,
+    backgroundColor: '#C5F9D0',
+    disableColor: '#e5e5e5',
+  },
+];
+
+export const FEEDBACK_RESPONSE_TYPES = {
+  positive: {
+    name: "POSITIVE"
+  },
+  negative: {
+    name: "NEGATIVE"
+  }
+}
+
+export const NOTIFICATION_REFETCH_TIME = 300000;

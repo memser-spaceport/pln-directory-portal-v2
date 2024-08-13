@@ -54,7 +54,7 @@ const AllNotifications = (props: any) => {
           <div className="allnotifins__empty">
             <img className="allnotifins__empty__icon" src="/icons/notification.svg" alt="notifications" />
             <div className="allnotifins__empty__ttl">No Notifications</div>
-            <div className="allnotifins__empty__desc">You have no notifications right now. Come back later</div>
+            <div className="allnotifins__empty__desc">You have no notifications right now. Please come back later</div>
           </div>
         )}
 

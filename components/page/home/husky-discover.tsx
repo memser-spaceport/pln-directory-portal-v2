@@ -1,9 +1,9 @@
 'use client';
 
-import HuskyAi from '@/components/core/husky/husky-ai';
+import HuskyChat from '@/components/core/husky/husy-chat';
 import { useEffect, useRef, useState } from 'react';
 
-function HuskyDialog() {
+function HuskyDiscover() {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const onDialogClose = () => {
@@ -16,9 +16,9 @@ function HuskyDialog() {
         dialogRef.current.showModal();
       }
     }
-    document.addEventListener('open-husky-dialog', dialogHandler);
+    document.addEventListener('open-husky-discover', dialogHandler);
     return function () {
-      document.removeEventListener('open-husky-dialog', dialogHandler);
+      document.removeEventListener('open-husky-discover', dialogHandler);
     };
   }, []);
 
@@ -30,7 +30,7 @@ function HuskyDialog() {
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">
-          <HuskyAi />
+          <HuskyChat mode="blog"/>
         </div>
       </dialog>
       <style jsx>
@@ -63,6 +63,8 @@ function HuskyDialog() {
           .hd__content {
             width: 100%;
             height: 100%;
+            overflow-y: scroll;
+            padding-bottom: 70px;
           }
           @media (min-width: 1024px) {
             .hd {
@@ -75,4 +77,4 @@ function HuskyDialog() {
   );
 }
 
-export default HuskyDialog;
+export default HuskyDiscover;

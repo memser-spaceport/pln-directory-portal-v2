@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import HuskyChat from './husky-chat';
+import HuskyChat from './husky-ai';
 import { usePathname } from 'next/navigation';
 
 function HuskySidePanel() {
@@ -14,7 +14,7 @@ function HuskySidePanel() {
   };
 
   useEffect(() => {
-    const exclusions = ['/members', '/settings']
+    const exclusions = ['/', '/settings']
     if(exclusions.includes(pathname)) {
       setAvailability(false)
       setPanelStatus(false)
@@ -33,7 +33,7 @@ function HuskySidePanel() {
               <img src='/icons/close.svg' onClick={togglePanelStatus}/>
             </div>
             <div className="hsp__content">
-              <HuskyChat />
+              <HuskyChat mode="chat" />
             </div>
           </div>
           <div onClick={togglePanelStatus} className="hsp__togglehead">

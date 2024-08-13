@@ -1,10 +1,14 @@
 'use client'
 function HuskyHelper() {
-    const onOpen = () => {
+    const onOpenChat = () => {
         document.dispatchEvent(new CustomEvent('open-husky-dialog'))
     }
+    const onOpenDiscover = () => {
+        document.dispatchEvent(new CustomEvent('open-husky-discover'))
+    }
     return <>
-     <button onClick={onOpen}>Open Dialog</button>
+     <button onClick={onOpenChat}>Open Chat</button>
+     <button onClick={onOpenDiscover}>Open Discover</button>
     </>
 }
 

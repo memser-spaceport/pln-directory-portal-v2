@@ -9,6 +9,7 @@ import { Suspense } from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import HuskySidePanel from '@/components/core/husky/husky-sidepanel';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), {ssr: false});

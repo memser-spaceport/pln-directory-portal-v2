@@ -58,7 +58,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
 
   const onClearTeamSearch = (index: number) => {
     setTeamsInfo((old) => {
-      old[index] = { teamTitle: '', role: '', teamUid: '' };
+      old[index] = { teamTitle: '', role: old[index]?.role, teamUid: '' };
       return [...old];
     });
   };

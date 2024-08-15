@@ -3,7 +3,7 @@ export const NAV_OPTIONS = [
     name: 'Home',
     url: '/',
     selectedLogo: '/icons/home.svg',
-    unSelectedLogo: '/icons/home.svg',
+    unSelectedLogo: '/icons/home-deselected.svg',
   },
   {
     name: 'Teams',

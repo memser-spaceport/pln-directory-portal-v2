@@ -1,0 +1,114 @@
+import { IMember, IMemberResponse, ITeamMemberRole } from '@/types/members.types';
+import { ITeamResponse } from '@/types/teams.types';
+
+export const getFormattedTeams = (teams: any) => {
+  return teams?.map((team: ITeamResponse) => {
+    const isNewTeam = isNew(team?.createdAt);
+
+    return {
+      id: team?.uid,
+      category: 'team',
+      isNew: isNewTeam,
+      name: team?.name,
+      logo: team?.logo?.url,
+      shortDescription: team?.shortDescription,
+    };
+  });
+};
+
+export const getFormattedProjects = (projects: any) => {
+  return (
+    projects?.map((project: any) => {
+      const contributors =
+        project?.contributions?.map((mem: any) => {
+          const { member } = mem;
+          return {
+            logo: member?.image?.url || null,
+            name: member?.name,
+            id: member?.uid,
+          };
+        }) || [];
+
+      const isNewProject = isNew(project?.createdAt);
+
+      return {
+        id: project?.uid,
+        category: 'project',
+        name: project?.name,
+        logo: project?.logo?.url,
+        isNew: isNewProject,
+        description: project?.description,
+        // lookingForFunding: project?.lookingForFunding,
+        contributors,
+      };
+    }) || []
+  );
+};
+
+export const getFormattedEvents = (events: any) => {
+  return events?.map((event: any) => {
+    return {
+      id: event?.uid,
+      category: 'event',
+      name: event?.name,
+      slugUrl: event?.slugURL,
+      bannerUrl: event?.banner?.url,
+      description: event?.description,
+      location: event?.location,
+      startDate: event?.startDate,
+      endDate: event?.endDate,
+      createdAt: event?.createdAt,
+      type: event?.type,
+      attendees: event?.eventGuests?.length,
+      priority: event?.priority,
+    };
+  });
+};
+
+export const getformattedMembers = (members: IMemberResponse[]) => {
+  return members?.map((member: IMemberResponse): IMember => {
+    let parsedMember = { ...member };
+    const teams =
+      parsedMember.teamMemberRoles?.map((teamMemberRole: ITeamMemberRole) => ({
+        id: teamMemberRole.team?.uid || '',
+        name: teamMemberRole.team?.name || '',
+        role: teamMemberRole.role || 'Contributor',
+        teamLead: !!teamMemberRole.teamLead,
+        mainTeam: !!teamMemberRole.mainTeam,
+      })) || [];
+    const mainTeam = teams.find((team) => team.mainTeam);
+    const teamLead = teams.some((team) => team.teamLead);
+
+    const isNewMember = isNew(member?.createdAt);
+
+    const data: any = {
+      id: parsedMember.uid,
+      category: 'member',
+      isNew: isNewMember,
+      name: parsedMember.name,
+      profile: parsedMember.image?.url || null,
+      officeHours: parsedMember.officeHours || null,
+      skills: parsedMember.skills || [],
+      teamLead,
+      teams,
+      location: parsedMember?.location,
+      mainTeam,
+      openToWork: parsedMember.openToWork || false,
+    };
+
+    return data;
+  });
+};
+
+function isNew(createdAt?: string): boolean {
+  if (!createdAt) {
+    return false;
+  }
+
+  const newDate = new Date(createdAt);
+  if (isNaN(newDate.getTime())) {
+    return false;
+  }
+  newDate.setDate(newDate.getDate() + 30);
+  return newDate > new Date();
+}

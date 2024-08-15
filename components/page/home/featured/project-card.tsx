@@ -1,39 +1,41 @@
 'use client';
 
-const ProjectCard = () => {
-  const contributors = [
-    {
-      id: 'uid-yosuva',
-      logo: 'https://loremflickr.com/640/480/animals',
-    },
-    {
-      id: 'uid-ss',
-      logo: 'https://loremflickr.com/640/480/animals',
-    },
-  ] as any;
+import { PAGE_ROUTES } from '@/utils/constants';
+
+const ProjectCard = (props: any) => {
+  const name = props?.name;
+  const description = props?.description;
+  const contributors = props?.contributors ?? [];
+  const logo = props?.logo || '/icons/project-default.svg';
+  const isNew = props?.isNew;
+
   return (
     <>
-      <div className="projectCard">
-        <div className="projectCard__header">
-          <img className="projectCard__header__img" src="https://loremflickr.com/640/480/animals" width={72} height={72} alt="team image" />
-          <div className="projectCard__header__badge">New</div>
-          <div className="white-line" />
-          <div className="projectCard__header__notch">
-            <img src="/icons/clip.svg" />
+      <a target="_blank" href={`${PAGE_ROUTES.PROJECTS}/${props.id}`}>
+        <div className="projectCard">
+          <div className="projectCard__header">
+            <img className="projectCard__header__img" src={logo} width={72} height={72} alt="project logo" />
+            {isNew && <div className="projectCard__header__badge">New</div>}
+            <div className="white-line" />
+            <div className="projectCard__header__notch">
+              <img src="/icons/clip.svg" />
+            </div>
+            <div className="projectCard__header__avatars">
+              {contributors.map((contributor: any, index: number) => {
+                if (index < 2) {
+                  return <img title="Contributor" key={contributor?.id} width={24} height={24} src={contributor.logo} alt="contributor" className="projectCard__header__avatar" />;
+                }
+              })}
+              {contributors.length > 2 && <div className="projectCard__header__avatars__more">+{contributors.length - 2}</div>}
+            </div>
           </div>
-          <div className="projectCard__header__avatars">
-            {contributors.map((contributor: any, index: number) => (
-              <img key={contributor?.id} width={24} height={24} src={contributor.logo} alt="contributor" className="projectCard__header__avatar" />
-            ))}
-            <div className="projectCard__header__avatars__more">+2</div>
+          <div className="projectCard__content">
+            <h3 className="projectCard__content__ttl">{name}</h3>
+            <p className="projectCard__content__desc">{description}</p>
           </div>
+          {/* <div className="projectCard__footer"></div> */}
         </div>
-        <div className="projectCard__content">
-          <h3 className="projectCard__content__ttl">Team with ask</h3>
-          <p className="projectCard__content__desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labor.</p>
-        </div>
-        <div className="projectCard__footer"></div>
-      </div>
+      </a>
       <style jsx>{`
         .projectCard__header__notch {
           position: absolute;
@@ -59,6 +61,20 @@ const ProjectCard = () => {
           background-color: white;
           display: flex;
           flex-direction: column;
+        }
+
+        .projectCard {
+          width: 289px;
+          height: 290px;
+          border-radius: 12px;
+          box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
+          background-color: white;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .projectCard:hover {
+          box-shadow: 0px 0px 0px 2px #156ff740;
         }
 
         .projectCard__header {
@@ -110,7 +126,7 @@ const ProjectCard = () => {
           padding: 0px 17px;
           overflow: hidden;
           display: -webkit-box;
-          -webkit-line-clamp: 3;
+          -webkit-line-clamp: 6;
           -webkit-box-orient: vertical;
         }
 

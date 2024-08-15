@@ -1,15 +1,14 @@
 'use client';
 
 import { IIrlCard } from '@/types/irl.types';
+import { PAGE_ROUTES } from '@/utils/constants';
 import { formatIrlEventDate, isPastDate } from '@/utils/irl.utils';
 import { sanitize } from 'isomorphic-dompurify';
 import clip from 'text-clipper';
 
-export default function IrlCard(props: any) {
+export default function IrlCard(props: IIrlCard) {
   //props
-  const id = props?.id;
   const name = props?.name;
-  const slugUrl = props?.slugUrl;
   const description = props?.description ?? '';
   const location = props?.location;
   const isInviteOnly = props?.type === 'INVITE_ONLY' ? true : false;
@@ -17,63 +16,64 @@ export default function IrlCard(props: any) {
   const startDate = props?.startDate;
   const endDate = props?.endDate;
   const bannerImage = props?.bannerUrl;
+  const slugUrl = props?.slugUrl;
 
   //variables
   const formattedDate = formatIrlEventDate(startDate, endDate);
   const isPastEvent = isPastDate(endDate);
   const isLongName = name?.length > 25;
 
-  const sanitizedDesc = sanitize(description); // Sanitize the HTML for security
-  const clippedDesc = clip(sanitizedDesc, 250, { html: true, maxLines: 2 });
+  const sanitizedDesc = sanitize(description);
+  const clippedDesc = clip(sanitizedDesc, 250, { html: true, maxLines: isLongName ? 2 : 3 });
 
   return (
     <>
-      <div className="irlCard">
-        <div className="irlCard__hdr">
-          <img src={bannerImage} alt="IRL header" />
-        </div>
-        <div className="irlCard__body">
-          <div className={`irlCard__body__name ${isLongName ? 'irlCard__body__name--long' : ''}`}>{name}</div>
-          <div className={`irlCard__body__desc ${isLongName ? 'irlCard__body__desc--short' : ''}`} dangerouslySetInnerHTML={{ __html: clippedDesc }}></div>
-          <div className="irlCard__body__location">
-            <img src="/icons/location.svg" alt="location" />
-            <span>{location}</span>
+      <a target="_blank" href={`${PAGE_ROUTES.IRL}/${slugUrl}`}>
+        <div className="irlCard">
+          <div className="irlCard__hdr">
+            <img src={bannerImage} alt="IRL header" />
           </div>
-        </div>
-        <div className="irlCard__footer__separator" />
-        <div className="irlCard__footer">
-          <div className="irlCard__footer__left">
-            {isInviteOnly ? (
-              <div className="irlCard__footer__left__invite">
-                <img src="/icons/invite-only.svg" alt="Invite Only" />
-                <span>Invite Only</span>
-              </div>
-            ) : (
-              attendees > 0 && (
-                <div className="irlCard__footer__left__attendee">
-                  <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
-                  <span>{`${attendees} ${isPastEvent ? 'Joined' : 'Going'}`}</span>
+          <div className="irlCard__body">
+            <div className={`irlCard__body__name ${isLongName ? 'irlCard__body__name--long' : ''}`}>{name}</div>
+            {clippedDesc && <div className={`irlCard__body__desc ${isLongName ? 'irlCard__body__desc--short' : ''}`} dangerouslySetInnerHTML={{ __html: clippedDesc }}></div>}
+            <div className="irlCard__body__location">
+              <img src="/icons/location.svg" alt="location" />
+              <span>{location}</span>
+            </div>
+          </div>
+          <div className="irlCard__footer__separator" />
+          <div className="irlCard__footer">
+            <div className="irlCard__footer__left">
+              {isInviteOnly ? (
+                <div className="irlCard__footer__left__invite">
+                  <img src="/icons/invite-only.svg" alt="Invite Only" />
+                  <span>Invite Only</span>
                 </div>
-              )
-            )}
-          </div>
-          <div className="irlCard__footer__right">
-            <img src="/icons/flat-calendar.svg" alt="Calendar" />
-            <span>{formattedDate}</span>
+              ) : (
+                attendees > 0 && (
+                  <div className="irlCard__footer__left__attendee">
+                    <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
+                    <span>{`${attendees} ${isPastEvent ? 'Joined' : 'Going'}`}</span>
+                  </div>
+                )
+              )}
+            </div>
+            <div className="irlCard__footer__right">
+              <img src="/icons/flat-calendar.svg" alt="Calendar" />
+              <span>{formattedDate}</span>
+            </div>
           </div>
         </div>
-      </div>
+      </a>
 
       <style jsx>{`
         .irlCard {
-          height: 290px;
+          height: 289px;
           width: 289px;
           border-radius: 12px;
           background-color: #ffffff;
           box-shadow: 0px 4px 4px 0px #0f172a0a;
           cursor: pointer;
-          display: flex;
-          flex-direction: column;
         }
 
         .irlCard--grayscale {
@@ -101,7 +101,6 @@ export default function IrlCard(props: any) {
         .irlCard__body {
           display: flex;
           flex-direction: column;
-          flex: 1;
           gap: 8px;
           padding: 16px 20px;
           text-align: center;
@@ -118,7 +117,7 @@ export default function IrlCard(props: any) {
           overflow: hidden;
           text-overflow: ellipsis;
           display: -webkit-box;
-          -webkit-line-clamp: 2;
+          -webkit-line-clamp: 1;
           height: 54px;
           -webkit-box-orient: vertical;
         }
@@ -137,8 +136,8 @@ export default function IrlCard(props: any) {
         }
 
         .irlCard__body__desc--short {
-          height: 45px;
-          -webkit-line-clamp: 2;
+          height: 20px;
+          -webkit-line-clamp: 1;
         }
 
         .irlCard__body__location {
@@ -170,7 +169,6 @@ export default function IrlCard(props: any) {
           align-items: center;
           justify-content: center;
           padding: 16px 0;
-          height: 60px;
         }
 
         .irlCard__footer__left__invite {

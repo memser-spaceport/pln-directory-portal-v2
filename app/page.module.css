@@ -1,6 +1,7 @@
 .home {
   display: flex;
   justify-content: center;
+  padding: 20px;
 }
 
 .home__cn {
@@ -8,6 +9,10 @@
 }
 
 @media (min-width: 1024px) {
+  .home {
+    padding: 40px 20px;
+  }
+
   .home__cn {
     width: 940px;
   }
@@ -15,13 +20,13 @@
 
 @media (min-width: 1280px) {
   .home__cn {
-    width: 1198px;
+    width: 1200px;
   }
 }
 
 @media (min-width: 1440px) {
   .home__cn {
-    width: 1198px;
+    width: 1200px;
   }
 }
 

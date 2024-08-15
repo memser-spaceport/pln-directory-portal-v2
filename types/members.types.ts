@@ -33,6 +33,7 @@ export interface IMemberResponse {
   linkedinHandler: string;
   repositories: [];
   preferences: {};
+  createdAt: string;
 }
 
 export interface IMember {

@@ -99,7 +99,6 @@ export default function IrlList(props: IIrlList) {
           <div className="irlList__upcoming__events">
             {upcomingEvents.length > 0 ? (
               upcomingEvents?.map((item: any, index: number) => {
-                console.log(item)
                 return (
                   <Link className="irlCard" key={`irl-upcomin-evnt-${index}`} href={`/irl/${item.slugUrl}`} onClick={(e) => onCardClick(e, item)}>
                     <IrlCard {...item} />

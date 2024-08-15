@@ -1,19 +1,28 @@
 'use client';
 
-const TeamCard = () => {
+import { PAGE_ROUTES } from '@/utils/constants';
+
+const TeamCard = (props: any) => {
+  const name = props?.name;
+  const logo = props?.logo || '/icons/team-default-profile.svg';
+  const description = props?.shortDescription;
+  const isNew = props?.isNew;
+
   return (
     <>
-      <div className="teamCard">
-        <div className="teamCard__header">
-          <img className="teamCard__header__img" src="https://loremflickr.com/640/480/animals" width={72} height={72} alt="team image" />
-          <div className="teamCard__header__badge">New</div>
+      <a target="_blank" href={`${PAGE_ROUTES.TEAMS}/${props.id}`}>
+        <div className="teamCard">
+          <div className="teamCard__header">
+            <img className="teamCard__header__img" src={logo} width={72} height={72} alt="team image" />
+            {isNew && <div className="teamCard__header__badge">New</div>}
+          </div>
+          <div className="teamCard__content">
+            <h3 className="teamCard__content__ttl">{name}</h3>
+            <p className="teamCard__content__desc">{description}</p>
+          </div>
+          {/* <div className="teamCard-footer"></div> */}
         </div>
-        <div className="teamCard__content">
-          <h3 className="teamCard__content__ttl">Team with ask</h3>
-          <p className="teamCard__content__desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labor.</p>
-        </div>
-        <div className="teamCard-footer"></div>
-      </div>
+      </a>
       <style jsx>{`
         .teamCard {
           width: 289px;
@@ -23,6 +32,19 @@ const TeamCard = () => {
           background-color: white;
           display: flex;
           flex-direction: column;
+        }
+
+        .teamCard:hover {
+          box-shadow: 0px 0px 0px 2px #156ff740;
+        }
+
+        .teamCard:active {
+          border-radius: 12px;
+          outline-style: solid;
+          outline-width: 1px;
+          outline-offset: 0;
+          outline-color: #156ff7;
+          box-shadow: 0px 0px 0px 2px #156ff740;
         }
 
         .teamCard__header {
@@ -74,7 +96,7 @@ const TeamCard = () => {
           padding: 0px 17px;
           overflow: hidden;
           display: -webkit-box;
-          -webkit-line-clamp: 3;
+          -webkit-line-clamp: 6;
           -webkit-box-orient: vertical;
         }
 

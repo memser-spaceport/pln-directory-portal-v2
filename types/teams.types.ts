@@ -50,6 +50,7 @@ export interface ITeamsSearchParams {
     linkedinHandler?: string;
     twitterHandler?: string;
     linkedinHandle?: string | null;
+    createdAt?: string;
   }
 
   export interface ITag {

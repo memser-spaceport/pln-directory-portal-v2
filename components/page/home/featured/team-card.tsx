@@ -1,7 +1,5 @@
 'use client';
 
-import { PAGE_ROUTES } from '@/utils/constants';
-
 const TeamCard = (props: any) => {
   const name = props?.name;
   const logo = props?.logo || '/icons/team-default-profile.svg';
@@ -10,19 +8,17 @@ const TeamCard = (props: any) => {
 
   return (
     <>
-      <a target="_blank" href={`${PAGE_ROUTES.TEAMS}/${props.id}`}>
-        <div className="teamCard">
-          <div className="teamCard__header">
-            <img className="teamCard__header__img" src={logo} width={72} height={72} alt="team image" />
-            {isNew && <div className="teamCard__header__badge">New</div>}
-          </div>
-          <div className="teamCard__content">
-            <h3 className="teamCard__content__ttl">{name}</h3>
-            <p className="teamCard__content__desc">{description}</p>
-          </div>
-          {/* <div className="teamCard-footer"></div> */}
+      <div className="teamCard">
+        <div className="teamCard__header">
+          <img className="teamCard__header__img" src={logo} width={72} height={72} alt="team image" />
+          {isNew && <div className="teamCard__header__badge">New</div>}
         </div>
-      </a>
+        <div className="teamCard__content">
+          <h3 className="teamCard__content__ttl">{name}</h3>
+          <p className="teamCard__content__desc">{description}</p>
+        </div>
+        {/* <div className="teamCard-footer"></div> */}
+      </div>
       <style jsx>{`
         .teamCard {
           width: 289px;

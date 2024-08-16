@@ -1,7 +1,5 @@
 'use client';
 
-import { PAGE_ROUTES } from '@/utils/constants';
-
 const ProjectCard = (props: any) => {
   const name = props?.name;
   const description = props?.description;
@@ -11,31 +9,29 @@ const ProjectCard = (props: any) => {
 
   return (
     <>
-      <a target="_blank" href={`${PAGE_ROUTES.PROJECTS}/${props.id}`}>
-        <div className="projectCard">
-          <div className="projectCard__header">
-            <img className="projectCard__header__img" src={logo} width={72} height={72} alt="project logo" />
-            {isNew && <div className="projectCard__header__badge">New</div>}
-            <div className="white-line" />
-            <div className="projectCard__header__notch">
-              <img src="/icons/clip.svg" />
-            </div>
-            <div className="projectCard__header__avatars">
-              {contributors.map((contributor: any, index: number) => {
-                if (index < 2) {
-                  return <img title="Contributor" key={contributor?.id} width={24} height={24} src={contributor.logo} alt="contributor" className="projectCard__header__avatar" />;
-                }
-              })}
-              {contributors.length > 2 && <div className="projectCard__header__avatars__more">+{contributors.length - 2}</div>}
-            </div>
+      <div className="projectCard">
+        <div className="projectCard__header">
+          <img className="projectCard__header__img" src={logo} width={72} height={72} alt="project logo" />
+          {isNew && <div className="projectCard__header__badge">New</div>}
+          <div className="white-line" />
+          <div className="projectCard__header__notch">
+            <img src="/icons/clip.svg" />
           </div>
-          <div className="projectCard__content">
-            <h3 className="projectCard__content__ttl">{name}</h3>
-            <p className="projectCard__content__desc">{description}</p>
+          <div className="projectCard__header__avatars">
+            {contributors.map((contributor: any, index: number) => {
+              if (index < 2) {
+                return <img title="Contributor" key={contributor?.id} width={24} height={24} src={contributor.logo} alt="contributor" className="projectCard__header__avatar" />;
+              }
+            })}
+            {contributors.length > 2 && <div className="projectCard__header__avatars__more">+{contributors.length - 2}</div>}
           </div>
-          {/* <div className="projectCard__footer"></div> */}
         </div>
-      </a>
+        <div className="projectCard__content">
+          <h3 className="projectCard__content__ttl">{name}</h3>
+          <p className="projectCard__content__desc">{description}</p>
+        </div>
+        {/* <div className="projectCard__footer"></div> */}
+      </div>
       <style jsx>{`
         .projectCard__header__notch {
           position: absolute;

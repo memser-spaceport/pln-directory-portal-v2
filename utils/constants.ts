@@ -192,7 +192,7 @@ export const TOAST_MESSAGES = {
   FEEDBACK_THANK: 'Thank you for the feedback!',
   INTERACTION_RESTRICTED: 'Action restricted: Try scheduling after some time',
   FEEDBACK__ALREADY__RECORDED: 'Thanks, we have already recorded your feedback',
-  SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed'
+  SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed',
 };
 
 export const AUTH_ANALYTICS = {
@@ -319,6 +319,15 @@ export const IRL_ANALYTICS_EVENTS = {
   IRL_RSVP_POPUP_SAVE_ERROR: 'irl-rsvp-popup-save-error',
   IRL_RSVP_POPUP_OH_GUIDELINE_URL_CLICKED: 'irl-rsvp-popup-oh-guideline-url-clicked',
   IRL_RSVP_POPUP_PRIVACY_SETTING_LINK_CLICKED: 'irl-rsvp-popup-privacy-setting-link-clicked',
+};
+
+export const HOME_ANALYTICS_EVENTS = {
+  FEATURED_SUBMIT_REQUEST_CLICKED: 'featured-submit-request-clicked',
+  FEATUTRED_MEMBER_CARD_CLICKED:'featured-member-card-clicked',
+  FEATUTRED_TEAM_CARD_CLICKED:'featured-team-card-clicked',
+  FEATURED_IRL_CARD_CLICKED:'featured-irl-card-clicked',
+  FEATURED_PROJECT_CARD_CLICKED:'featured-project-card-clicked',
+  FEATURED_CAROUSEL_ACTIONS_CLICKED:'featured-carousel-actions-clicked'
 };
 
 export const PAGE_ROUTES = {
@@ -727,8 +736,8 @@ export const FEEDBACK_RESPONSE_TYPES = {
     name: 'POSITIVE',
   },
   negative: {
-    name: "NEGATIVE"
-  }
-}
+    name: 'NEGATIVE',
+  },
+};
 
 export const NOTIFICATION_REFETCH_TIME = 300000;

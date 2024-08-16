@@ -1,7 +1,6 @@
 'use client';
 
 import { IIrlCard } from '@/types/irl.types';
-import { PAGE_ROUTES } from '@/utils/constants';
 import { formatIrlEventDate, isPastDate } from '@/utils/irl.utils';
 import { sanitize } from 'isomorphic-dompurify';
 import clip from 'text-clipper';
@@ -11,12 +10,11 @@ export default function IrlCard(props: IIrlCard) {
   const name = props?.name;
   const description = props?.description ?? '';
   const location = props?.location;
-  const isInviteOnly = props?.type === 'INVITE_ONLY' ? true : false;
+  const isInviteOnly = props?.type === 'INVITE_ONLY';
   const attendees = props?.attendees;
   const startDate = props?.startDate;
   const endDate = props?.endDate;
   const bannerImage = props?.bannerUrl;
-  const slugUrl = props?.slugUrl;
 
   //variables
   const formattedDate = formatIrlEventDate(startDate, endDate);
@@ -28,44 +26,41 @@ export default function IrlCard(props: IIrlCard) {
 
   return (
     <>
-      <a target="_blank" href={`${PAGE_ROUTES.IRL}/${slugUrl}`}>
-        <div className="irlCard">
-          <div className="irlCard__hdr">
-            <img src={bannerImage} alt="IRL header" />
-          </div>
-          <div className="irlCard__body">
-            <div className={`irlCard__body__name ${isLongName ? 'irlCard__body__name--long' : ''}`}>{name}</div>
-            {clippedDesc && <div className={`irlCard__body__desc ${isLongName ? 'irlCard__body__desc--short' : ''}`} dangerouslySetInnerHTML={{ __html: clippedDesc }}></div>}
-            <div className="irlCard__body__location">
-              <img src="/icons/location.svg" alt="location" />
-              <span>{location}</span>
-            </div>
-          </div>
-          <div className="irlCard__footer__separator" />
-          <div className="irlCard__footer">
-            <div className="irlCard__footer__left">
-              {isInviteOnly ? (
-                <div className="irlCard__footer__left__invite">
-                  <img src="/icons/invite-only.svg" alt="Invite Only" />
-                  <span>Invite Only</span>
-                </div>
-              ) : (
-                attendees > 0 && (
-                  <div className="irlCard__footer__left__attendee">
-                    <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
-                    <span>{`${attendees} ${isPastEvent ? 'Joined' : 'Going'}`}</span>
-                  </div>
-                )
-              )}
-            </div>
-            <div className="irlCard__footer__right">
-              <img src="/icons/flat-calendar.svg" alt="Calendar" />
-              <span>{formattedDate}</span>
-            </div>
+      <div className="irlCard">
+        <div className="irlCard__hdr">
+          <img src={bannerImage} alt="IRL header" />
+        </div>
+        <div className="irlCard__body">
+          <div className={`irlCard__body__name ${isLongName ? 'irlCard__body__name--long' : ''}`}>{name}</div>
+          {clippedDesc && <div className={`irlCard__body__desc ${isLongName ? 'irlCard__body__desc--short' : ''}`} dangerouslySetInnerHTML={{ __html: clippedDesc }}></div>}
+          <div className="irlCard__body__location">
+            <img src="/icons/location.svg" alt="location" />
+            <span>{location}</span>
           </div>
         </div>
-      </a>
-
+        <div className="irlCard__footer__separator" />
+        <div className="irlCard__footer">
+          <div className="irlCard__footer__left">
+            {isInviteOnly ? (
+              <div className="irlCard__footer__left__invite">
+                <img src="/icons/invite-only.svg" alt="Invite Only" />
+                <span>Invite Only</span>
+              </div>
+            ) : (
+              attendees > 0 && (
+                <div className="irlCard__footer__left__attendee">
+                  <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
+                  <span>{`${attendees} ${isPastEvent ? 'Joined' : 'Going'}`}</span>
+                </div>
+              )
+            )}
+          </div>
+          <div className="irlCard__footer__right">
+            <img src="/icons/flat-calendar.svg" alt="Calendar" />
+            <span>{formattedDate}</span>
+          </div>
+        </div>
+      </div>
       <style jsx>{`
         .irlCard {
           height: 289px;

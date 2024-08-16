@@ -1,15 +1,30 @@
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+
 const FeaturedHeader = ({
   onPrevButtonClick,
   onNextButtonClick,
   prevBtnDisabled,
   nextBtnDisabled,
+  userInfo,
 }: {
   onPrevButtonClick: () => void;
   onNextButtonClick: () => void;
   prevBtnDisabled: boolean;
   nextBtnDisabled: boolean;
+  userInfo: any;
 }) => {
   const FEATURED_REQUEST_URL = process.env.FEATURED_REQUEST_URL;
+
+  const analytics = useHomeAnalytics();
+
+  const onSumbitRequestClick = () => {
+    analytics.featuredSubmitRequestClicked(getAnalyticsUserInfo(userInfo), FEATURED_REQUEST_URL as string);
+  };
+
+  const onFeaturedActionsClick = () => {
+    analytics.onFeaturedCarouselActionsClicked(getAnalyticsUserInfo(userInfo));
+  };
 
   return (
     <>
@@ -22,17 +37,29 @@ const FeaturedHeader = ({
           <div className="featured__hdr__desc">
             <span className="featured__hdr__desc__txt">
               Want to feature your team, project, team member or event?{' '}
-              <a href={FEATURED_REQUEST_URL} target="_blank" className="featured__hdr__desc__link">
+              <a href={FEATURED_REQUEST_URL} target="_blank" className="featured__hdr__desc__link" onClick={onSumbitRequestClick}>
                 Submit a request
               </a>
             </span>
           </div>
         </div>
         <div className="featured__hdr__actions">
-          <button className={`${prevBtnDisabled ? 'disabled' : ''}`} onClick={onPrevButtonClick}>
+          <button
+            className={`${prevBtnDisabled ? 'disabled' : ''}`}
+            onClick={() => {
+              onPrevButtonClick();
+              onFeaturedActionsClick();
+            }}
+          >
             <img src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'} />
           </button>
-          <button className={`${nextBtnDisabled ? 'disabled' : ''}`} onClick={onNextButtonClick}>
+          <button
+            className={`${nextBtnDisabled ? 'disabled' : ''}`}
+            onClick={() => {
+              onNextButtonClick();
+              onFeaturedActionsClick();
+            }}
+          >
             <img src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'} />
           </button>
         </div>

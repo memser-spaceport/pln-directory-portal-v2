@@ -5,7 +5,7 @@ import Error from '@/components/core/error';
 import Featured from '@/components/page/home/featured/featured';
 
 export default async function Home() {
-  const { featuredData, isLoggedIn, isError } = await getPageData();
+  const { featuredData, isLoggedIn, isError, userInfo } = await getPageData();
 
   if (isError) {
     return <Error />;
@@ -16,7 +16,7 @@ export default async function Home() {
       <div className={styles.home__cn}>
         {/* Featured section */}
         <div className={styles.home__cn__featured}>
-          <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} />
+          <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
         </div>
       </div>
     </div>
@@ -24,7 +24,7 @@ export default async function Home() {
 }
 
 const getPageData = async () => {
-  const { isLoggedIn } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
   let isError = false;
   let featuredData = [] as any;
 
@@ -39,6 +39,6 @@ const getPageData = async () => {
     return { featuredData, isLoggedIn, isError };
   } catch {
     isError = true;
-    return { isError, isLoggedIn, featuredData };
+    return { isError, isLoggedIn, featuredData, userInfo };
   }
 };

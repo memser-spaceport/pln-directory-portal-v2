@@ -10,6 +10,7 @@ export interface IIrlCard {
   type: string;
   attendees: number;
   priority: number;
+  userInfo?: any;
 }
 
 export interface IResource {
@@ -30,7 +31,7 @@ export interface IGuest {
   uid: string;
   teamUid: string;
   teamName: string;
-  teamLogo:string;
+  teamLogo: string;
   memberUid: string;
   memberName: string;
   memberRole: string;

@@ -91,12 +91,24 @@ const Featured = (props: any) => {
               </div>
             ))}
           </div>
+          <div className="embla__gradient"></div>
         </div>
       </div>
       <style jsx>{`
         .embla {
+          position: relative;
           overflow: hidden;
-          padding: 20px 5px;
+          padding: 20px 0px 20px 2px;
+        }
+
+        .embla__gradient {
+          display: none;
+          position: absolute;
+          top: 20px;
+          right: -2px;
+          width: 137px;
+          height: 290px;
+          background: linear-gradient(90deg, rgba(241, 245, 249, 0) 0.02%, #f1f5f9 61.31%);
         }
 
         .embla__container {
@@ -104,9 +116,9 @@ const Featured = (props: any) => {
         }
 
         .embla__slide {
-          flex: 0 0 289px;
+          flex: 0 0 290px;
           min-width: 0;
-          margin-inline-end: 12px;
+          margin-inline-end: 10px;
           cursor: pointer;
         }
 
@@ -115,6 +127,18 @@ const Featured = (props: any) => {
           flex-direction: column;
           gap: 12px;
           width: 100%;
+        }
+
+        @media (min-width: 1920px) {
+          .embla__gradient {
+            display: block;
+            position: absolute;
+            top: 20px;
+            right: -2px;
+            width: 137px;
+            height: 290px;
+            background: linear-gradient(90deg, rgba(241, 245, 249, 0) 0.02%, #f1f5f9 61.31%);
+          }
         }
       `}</style>
     </>

@@ -45,22 +45,22 @@ const FeaturedHeader = ({
         </div>
         <div className="featured__hdr__actions">
           <button
-            className={`${prevBtnDisabled ? 'disabled' : ''}`}
+            className={`featured__hdr__actions__left ${prevBtnDisabled ? 'disabled' : ''}`}
             onClick={() => {
               onPrevButtonClick();
               onFeaturedActionsClick();
             }}
           >
-            <img src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'} />
+            <img className="featured__hdr__actions__left__img" src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'} alt="left arrow" />
           </button>
           <button
-            className={`${nextBtnDisabled ? 'disabled' : ''}`}
+            className={`featured__hdr__actions__right ${nextBtnDisabled ? 'disabled' : ''}`}
             onClick={() => {
               onNextButtonClick();
               onFeaturedActionsClick();
             }}
           >
-            <img src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'} />
+            <img className="featured__hdr__actions__right__img" src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'} alt="right arrow" />
           </button>
         </div>
       </div>
@@ -117,6 +117,14 @@ const FeaturedHeader = ({
           display: flex;
           flex-direction: column;
           gap: 12px;
+        }
+
+        .featured__hdr__actions__left:hover .featured__hdr__actions__left__img {
+          content: url('/icons/left-arrow-circle-blue.svg');
+        }
+
+        .featured__hdr__actions__right:hover .featured__hdr__actions__right__img {
+          content: url('/icons/right-arrow-circle-blue.svg');
         }
 
         @media (min-width: 1024px) {

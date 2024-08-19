@@ -1,7 +1,7 @@
 import { getFormattedEvents, getformattedMembers, getFormattedProjects, getFormattedTeams } from '@/utils/home.utils';
 
 export const getFeaturedData = async () => {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/dashboards/featured/all`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/home/featured/all`;
 
   const response = await fetch(url, {
     method: 'GET',

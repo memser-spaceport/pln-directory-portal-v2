@@ -2,7 +2,7 @@
 
 import { parseMemberLocation } from '@/utils/member.utils';
 import dynamic from 'next/dynamic';
-import MemberSkillList from '../../members/member-skill-list';
+import MemberSkillList from './member-skill-list';
 
 const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((mod) => mod.Tooltip), { ssr: false });
 
@@ -58,6 +58,8 @@ const MemberCard = (props: any) => {
                 <p className="member-grid__details__member-details__team-name-container__team-name">{member?.teams?.length > 0 ? mainTeam?.name : '-'}</p>
                 {member?.teams?.length > 2 && (
                   <Tooltip
+                    side="bottom"
+                    align='end'
                     asChild
                     trigger={
                       <button onClick={(e) => e.preventDefault()} className="member-grid__details__member-details__team-name-container__tems-count">

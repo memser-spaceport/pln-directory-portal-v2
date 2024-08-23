@@ -322,6 +322,8 @@ export const IRL_ANALYTICS_EVENTS = {
 };
 
 export const HOME_ANALYTICS_EVENTS = {
+  FOCUS_AREA_TEAMS_CLICKED: 'focus-teams-clicked',
+  FOCUS_AREA_PROJECT_CLICKED: 'focus-project-clicked',
   FEATURED_SUBMIT_REQUEST_CLICKED: 'featured-submit-request-clicked',
   FEATUTRED_MEMBER_CARD_CLICKED:'featured-member-card-clicked',
   FEATUTRED_TEAM_CARD_CLICKED:'featured-team-card-clicked',

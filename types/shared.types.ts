@@ -60,6 +60,10 @@ export interface IUserInfo {
     projectAncestorFocusAreas: any;
   }
 
+  export type IAnalyticsFocusArea = {
+    id: string;
+    title: string;
+  }
 
   export interface IAnalyticsTeamInfo {
     name: string;

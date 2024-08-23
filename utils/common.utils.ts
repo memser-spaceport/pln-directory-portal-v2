@@ -98,6 +98,16 @@ export const getAnalyticsMemberInfo = (member: any) => {
   return null;
 };
 
+export const getAnalyticsFocusAreaInfo = (focusArea: any) => { 
+  if (focusArea) {
+    return {
+      id: focusArea?.uid,
+      title: focusArea?.title
+    }
+  }
+  return null;
+}
+
 export const getAnalyticsProjectInfo = (project: any) => {
   if (project?.name && project?.description) {
     return { id: project?.uid, name: project?.name ?? '', description: project?.description };

@@ -1,5 +1,5 @@
 import { IAnalyticsMemberInfo } from '@/types/members.types';
-import { IAnalyticsTeamInfo, IAnalyticsUserInfo } from '@/types/shared.types';
+import { IAnalyticsTeamInfo, IAnalyticsUserInfo, IAnalyticsFocusArea } from '@/types/shared.types';
 import { HOME_ANALYTICS_EVENTS } from '@/utils/constants';
 import { usePostHog } from 'posthog-js/react';
 
@@ -65,5 +65,22 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_CAROUSEL_ACTIONS_CLICKED, params);
   }
 
-  return { featuredSubmitRequestClicked, onMemberCardClicked, onIrlCardClicked, onTeamCardClicked, onProjectCardClicked, onFeaturedCarouselActionsClicked };
+  function onFocusAreaTeamsClicked(user: IAnalyticsUserInfo | null | undefined, focusedArea: IAnalyticsFocusArea | null) {
+    const params = {
+      user,
+      focusedArea
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_TEAMS_CLICKED, params);
+  }
+
+
+  function onFocusAreaProjectsClicked(user: IAnalyticsUserInfo | null | undefined, focusedArea: IAnalyticsFocusArea | null) {
+    const params = {
+      user,
+      focusedArea
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_PROJECT_CLICKED, params);
+  }
+
+  return { featuredSubmitRequestClicked, onMemberCardClicked, onIrlCardClicked, onTeamCardClicked, onProjectCardClicked, onFeaturedCarouselActionsClicked, onFocusAreaTeamsClicked, onFocusAreaProjectsClicked };
 };

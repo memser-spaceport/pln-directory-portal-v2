@@ -83,15 +83,16 @@ const Featured = (props: any) => {
     <>
       <div className="featured">
         <FeaturedHeader {...cauroselActions} userInfo={userInfo} />
-        <div className="embla" ref={emblaRef}>
-          <div className="featured__body embla__container">
+        <div>
+          {/* <div className="embla" ref={emblaRef}> */}
+          <div className={`featured__body `}>
+            {/* <div className="featured__body embla__container"> */}
             {featuredData?.map((item: any, index: number) => (
-              <div key={`${item.category}-${index}`} className="embla__slide">
-                {RenderCard(item, isLoggedIn, userInfo)}
-              </div>
+              // <div key={`${item.category}-${index}`} className="embla__slide">
+              <div key={`${item.category}-${index}`}>{RenderCard(item, isLoggedIn, userInfo)}</div>
             ))}
           </div>
-          <div className="embla__gradient"></div>
+          {/* <div className="embla__gradient"></div> */}
         </div>
       </div>
       <style jsx>{`
@@ -115,6 +116,13 @@ const Featured = (props: any) => {
           display: flex;
         }
 
+        .featured__body {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(289px, 1fr));
+          justify-content: start;
+          gap: 14px;
+        }
+
         .embla__slide {
           flex: 0 0 290px;
           min-width: 0;
@@ -127,6 +135,10 @@ const Featured = (props: any) => {
           flex-direction: column;
           gap: 12px;
           width: 100%;
+        }
+
+        .justify-start {
+          grid-template-columns: repeat(auto-fit, 289px) !important;
         }
 
         @media (min-width: 1920px) {

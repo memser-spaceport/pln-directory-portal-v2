@@ -3,8 +3,8 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/',
-        destination: '/teams',
+        source: '/home',
+        destination: '/',
         permanent: true,
       },
       {
@@ -28,13 +28,13 @@ const nextConfig = {
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
     IRL_DEFAULT_TOPICS: process.env.IRL_DEFAULT_TOPICS,
     IRL_PGF_FORM_URL: process.env.IRL_PGF_FORM_URL,
-    FEATURED_REQUEST_URL:process.env.FEATURED_REQUEST_URL
+    FEATURED_REQUEST_URL: process.env.FEATURED_REQUEST_URL,
   },
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "**",
+        protocol: 'https',
+        hostname: '**',
       },
     ],
   },

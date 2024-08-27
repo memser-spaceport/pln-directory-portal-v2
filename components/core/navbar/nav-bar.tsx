@@ -69,7 +69,7 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   useEffect(() => {
     async function getAllNotifications(status: boolean) {
-      if (status) {
+      if (status && isNotification) {
         const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING,CLOSED');
         const result = response?.data ?? [];
         setNotifications(result);

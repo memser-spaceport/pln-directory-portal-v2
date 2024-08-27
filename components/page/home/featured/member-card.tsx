@@ -59,7 +59,7 @@ const MemberCard = (props: any) => {
                 {member?.teams?.length > 2 && (
                   <Tooltip
                     side="bottom"
-                    align='end'
+                    align="end"
                     asChild
                     trigger={
                       <button onClick={(e) => e.preventDefault()} className="member-grid__details__member-details__team-name-container__tems-count">
@@ -104,7 +104,7 @@ const MemberCard = (props: any) => {
         {`
           .member-grid {
             height: 290px;
-            width: 289px;
+            width: 100%;
             border-radius: 12px;
             box-shadow: 0px 4px 4px 0px #0f172a0a;
           }

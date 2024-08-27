@@ -12,36 +12,56 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
   const project = props?.project;
   const errors = props?.errors;
 
-  const kpis = project?.kpis?.length > 0 ? project?.kpis : [{ key: '', value: '' }];
+  const kpis = project?.kpis?.length > 0 ? formatProjectKpi(project?.kpis) : [{ key: '', value: '', id: 1 }];
 
   const [projectKpis, setProjectKpis] = useState(kpis);
 
   const onKpiKeyChange = (index: number, value: string) => {
-    setProjectKpis((old) => {
+    setProjectKpis((old: any) => {
       old[index].key = value;
       return [...old];
     });
   };
 
+  function formatProjectKpi(data: any) {
+    let formattedData = [];
+    if (data?.length > 0) {
+      formattedData = data?.map((kpi: any, index: number) => {
+        return {
+          ...kpi,
+          id: index + 1,
+        };
+      });
+    }
+    return formattedData;
+  }
+
   const onKpiValueChange = (index: number, value: string) => {
-    setProjectKpis((old) => {
+    setProjectKpis((old: any) => {
       old[index].value = value;
       return [...old];
     });
   };
 
-  const onDeleteKpi = (index: number) => {
-    setProjectKpis((old) => {
-      const newLinks = [...old];
-      newLinks.splice(index, 1);
-      return newLinks;
+  const onDeleteKpi = (id: number) => {
+    setProjectKpis((old: any) => {
+      const temp = [...old].filter((item: any) => item.id !== id);
+      return temp;
     });
   };
 
   const onAddProjectLink = () => {
-    setProjectKpis((v) => {
+    setProjectKpis((v: any) => {
+      let id = 1;
+      const ids = v?.map((dt: any, index: any) => {
+        return dt.id;
+      });
+
+      if (ids.length > 0) {
+        id = Math.max(...ids) + 1;
+      }
       const nv = structuredClone(v);
-      nv.push({ key: '', value: '' });
+      nv.push({ key: '', value: '', id });
       return nv;
     });
   };
@@ -56,12 +76,12 @@ export default function ProjectKpisInfo(props: IProjectContributorsInfo) {
         </ul>
       )}
       <div className="kpiContainer">
-        {projectKpis.map((kpi: { key: string; value: string }, index: number) => (
-          <div key={`teams-role-${index}`} className="kpiContainer__kpi">
+        {projectKpis.map((kpi: { id: number; key: string; value: string }, index: number) => (
+          <div key={`teams-role-${kpi?.id} `} className="kpiContainer__kpi">
             <div className="kpiContainer__kpi__header">
               <h2 className="kpiContainer__kpi__header__title">KPI {index + 1}</h2>
               {index !== 0 && (
-                <button className="kpiContainer__kpi__header__delete" onClick={() => onDeleteKpi(index)} type="button">
+                <button className="kpiContainer__kpi__header__delete" onClick={() => onDeleteKpi(kpi?.id)} type="button">
                   <Image src="/icons/delete-brown.svg" alt="delete team role" width="12" height="12" />
                 </button>
               )}

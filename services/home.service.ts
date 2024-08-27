@@ -1,4 +1,4 @@
-import { getFormattedEvents, getformattedMembers, getFormattedProjects, getFormattedTeams } from '@/utils/home.utils';
+import { formatNumber, getFormattedEvents, getformattedMembers, getFormattedProjects, getFormattedTeams } from '@/utils/home.utils';
 
 export const getFeaturedData = async () => {
   const url = `${process.env.DIRECTORY_API_URL}/v1/home/featured/all`;
@@ -13,10 +13,10 @@ export const getFeaturedData = async () => {
 
   const result = await response.json();
 
-  const formattedMembers = getformattedMembers(result?.members || []);
+  const formattedMembers = getformattedMembers(result?.members || [])
   const formattedTeams = getFormattedTeams(result?.teams || []);
   const formattedEvents = getFormattedEvents(result?.events || []);
-  const formattedProjects = getFormattedProjects(result.projects || []);
+  const formattedProjects = getFormattedProjects(result.projects || [])
 
   const maxLength = Math.max(formattedMembers.length, formattedTeams.length, formattedEvents.length, formattedProjects.length);
 
@@ -32,4 +32,36 @@ export const getFeaturedData = async () => {
     return { error: { statusText: response?.statusText } };
   }
   return { data: combinedData };
+};
+
+export const getDiscoverData = async () => {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/home/question-answers?isActive=true`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    cache: 'no-store',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const result = await response.json();
+
+  const formattedResult = result?.map((res: any) => {
+    return {
+      uid: res.uid,
+      question: res.content,
+      answer: res.answer,
+      answerSourceLinks: res.answerSources,
+      answerSourcedFrom: 'none',
+      followupQuestions: res.relatedQuestions.map((v: any) => v.content),
+      viewCount: formatNumber(res.viewCount),
+      shareCount: formatNumber(res.shareCount),
+    };
+  });
+
+  if (!response?.ok) {
+    return { error: { statusText: response?.statusText } };
+  }
+  return { data: formattedResult };
 };

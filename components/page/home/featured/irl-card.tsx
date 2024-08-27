@@ -64,7 +64,7 @@ export default function IrlCard(props: IIrlCard) {
       <style jsx>{`
         .irlCard {
           height: 289px;
-          width: 289px;
+          width: 100%;
           border-radius: 12px;
           background-color: #ffffff;
           box-shadow: 0px 4px 4px 0px #0f172a0a;
@@ -127,7 +127,6 @@ export default function IrlCard(props: IIrlCard) {
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
-          max-width: 245px;
         }
 
         .irlCard__body__desc--short {

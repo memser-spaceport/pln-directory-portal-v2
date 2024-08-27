@@ -43,7 +43,7 @@ const FeaturedHeader = ({
             </span>
           </div>
         </div>
-        <div className="featured__hdr__actions">
+        {/* <div className="featured__hdr__actions">
           <button
             className={`featured__hdr__actions__left ${prevBtnDisabled ? 'disabled' : ''}`}
             onClick={() => {
@@ -62,7 +62,7 @@ const FeaturedHeader = ({
           >
             <img className="featured__hdr__actions__right__img" src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'} alt="right arrow" />
           </button>
-        </div>
+        </div> */}
       </div>
       <style jsx>{`
         .featured__hdr {

@@ -6,6 +6,9 @@
 
 .home__cn {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
 }
 
 .featured {
@@ -34,16 +37,15 @@
 }
 
 .featuredList {
-  display: flex;
-  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(289px, 1fr));
   gap: 14px;
-  padding: 20px 5px;
-  overflow: hidden;
+  justify-content: start;
 }
 
 .featuredList__card {
   height: 289px;
-  width: 290px;
+  width: 100%;
   border-radius: 12px;
   background-color: white;
   border-radius: 12px;
@@ -108,6 +110,61 @@
   width: 220px;
 }
 
+.discover {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.discoverList__mob {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.discoverList__card__mob {
+  height: 190px;
+  width: 100%;
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+}
+
+.discover__card__ques_line1 {
+  height: 15px;
+  background-color: #e2e8f0;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  width: 80%;
+}
+
+.discover__card__ques_line2 {
+  height: 15px;
+  background-color: #e2e8f0;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  width: 50%;
+}
+
+.discoverList__card__mob:nth-child(1) {
+  grid-column: span 1 / span 1;
+}
+
+.discoverList__card__mob:nth-child(2) {
+  grid-column: span 1 / span 1;
+}
+
+.discoverList__card__mob:nth-child(3) {
+  grid-column: span 2 / span 2;
+}
+
+.discoverList__desc {
+  display: none;
+}
+
 @media (min-width: 1024px) {
   .home {
     padding: 40px 20px;
@@ -115,6 +172,56 @@
 
   .home__cn {
     width: 940px;
+  }
+
+  .featured__hdr__desc {
+    width: 50%;
+  }
+
+  .discoverList__mob {
+    display: none;
+  }
+
+  .discoverList__desc {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .discoverList__card__desc {
+    height: 247px;
+    width: 100%;
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 20px;
+  }
+
+  .discoverList__card__desc:nth-child(1) {
+    grid-column: span 1 / span 1;
+  }
+
+  .discoverList__card__desc:nth-child(2) {
+    grid-column: span 1 / span 1;
+  }
+
+  .discoverList__card__desc:nth-child(3) {
+    grid-column: span 2 / span 2;
+  }
+
+  .discoverList__card__desc:nth-child(4) {
+    grid-column: span 2 / span 2;
+  }
+
+  .discoverList__card__desc:nth-child(5) {
+    grid-column: span 1 / span 1;
+  }
+
+  .discoverList__card__desc:nth-child(6) {
+    grid-column: span 1 / span 1;
   }
 }
 

@@ -112,3 +112,47 @@ function isNew(createdAt?: string): boolean {
   newDate.setDate(newDate.getDate() + 30);
   return newDate > new Date();
 }
+
+export function formatNumber(num: number) {
+  if (num >= 1000 && num < 1000000) {
+    const rounded = Math.floor(num / 100) / 10;
+    return (rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1)) + 'k';
+  } else if (num >= 1000000 && num < 1000000000) {
+    const rounded = Math.floor(num / 100000) / 10;
+    return (rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1)) + 'M';
+  } else if (num >= 1000000000) {
+    const rounded = Math.floor(num / 100000000) / 10;
+    return (rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1)) + 'B';
+  }
+  return num.toString();
+}
+
+export function formatDiscoverData(discoverData: any) {
+  const temp = [...discoverData];
+
+  const images = [
+    {
+      mob: '/images/discover/discover-pattern-2-mob.svg',
+      desktop: '/images/discover/discover-pattern-2.svg',
+    },
+    {
+      mob: '/images/discover/discover-pattern-3-mob.svg',
+      desktop: '/images/discover/discover-pattern-3.svg',
+    },
+    {
+      mob: '/images/discover/discover-pattern-1-mob.svg',
+      desktop: '/images/discover/discover-pattern-1.svg',
+    },
+  ];
+
+  temp.forEach((item, index) => {
+    // Find the correct image using modulo to cycle through the images array
+    const image = images[index % images.length];
+    // Assign the image to the object
+    item.image = image;
+  });
+
+  const questionAndAnswers = [...temp, { type: 'discoverhusky' }];
+
+  return questionAndAnswers;
+}

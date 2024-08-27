@@ -50,27 +50,29 @@ const RatingContainer = (props: IRatingContainer) => {
   const getRecentBooking = async () => {
     const isShow = getParsedValue(cookies.get("showNotificationPopup") ?? '');
     if(isShow) {
-    const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING');
-    const result = response?.data ?? [];
-    cookies.remove('showNotificationPopup');
-    if (result?.length) {
+      const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING');
+      const result = response?.data ?? [];
+      cookies.remove('showNotificationPopup');
+      if (result?.length) {
       const filtereNotifications = result?.filter((notification: IFollowUp) => notification?.type === "MEETING_SCHEDULED");
-      let currentFollowup = result[0];
+        let currentFollowup = result[0];
       if(filtereNotifications.length > 0) {
-        currentFollowup = filtereNotifications[0];
-      }
-      setCurrentStep(currentFollowup.type);
-      setCurrentFollowup(currentFollowup);
-      if (ratingContainerRef?.current) {
-        ratingContainerRef.current.showModal();
+          currentFollowup = filtereNotifications[0];
+        }
+        setCurrentStep(currentFollowup.type);
+        setCurrentFollowup(currentFollowup);
+        if (ratingContainerRef?.current) {
+          ratingContainerRef.current.showModal();
+        }
       }
     }
-  }
   };
 
   useEffect(() => {
-    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
-    getRecentBooking();
+    if (isLoggedIn) {
+      document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+      getRecentBooking();
+    }
     // try {
     //   if (isLoggedIn) {
     //     const storedTime = cookies.get('lastNotificationCall') ?? '';

@@ -50,17 +50,7 @@ const ProjectCard = (props: any) => {
         }
 
         .projectCard {
-          width: 289px;
-          height: 290px;
-          border-radius: 12px;
-          box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
-          background-color: white;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .projectCard {
-          width: 289px;
+          width: 100%;
           height: 290px;
           border-radius: 12px;
           box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;

@@ -6,6 +6,9 @@
 
 .home__cn {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
 }
 
 @media (min-width: 1024px) {

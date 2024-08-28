@@ -7,6 +7,7 @@ import FocusAreaHeader from './focus-area-header';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo, getAnalyticsFocusAreaInfo } from '@/utils/common.utils';
 import { IFocusArea } from '@/types/shared.types';
+import { HOME } from '@/utils/constants';
 
 const LandingFocusAreas = (props: any) => {
   const analytics = useHomeAnalytics();
@@ -41,6 +42,16 @@ const LandingFocusAreas = (props: any) => {
     }
   }
 
+  const onClickSeeMore = (focusArea:any) => {
+    document.dispatchEvent(
+      new CustomEvent(HOME.TRIGGER_FOCUS_AREA_DIALOG, {
+        detail: {
+          focusArea
+        },
+      })
+    );
+  }
+
   return (
     <>
       <div className="lfa">
@@ -55,10 +66,20 @@ const LandingFocusAreas = (props: any) => {
                   return projectFocusArea.title === focusArea.title
                 })?.projectAncestorFocusAreas;
                 return (
-                <div style={{background: `url(${image})`}} className="lfa__focusareas__focusarea embla__slide" key={`focusArea-${index}`}>
+                <div className="lfa__focusareas__focusarea embla__slide" key={`focusArea-${index}`}>
                   <div className="lfa__focusareas__focusarea__header">
-                  <h2 className="lfa__focusareas__focusarea__header__title">{focusArea?.title}</h2>
-                  <div className="lfa__focusareas__focusarea__headers__desc">{focusArea?.description}</div>
+                    <h2 className="lfa__focusareas__focusarea__header__title">{focusArea?.title}</h2>
+                    <div className="lfa__focusareas__focusarea__headers__desc">
+                      { 
+                        focusArea?.description?.length < 140 ? focusArea?.description : 
+                          <div> {
+                            focusArea?.description?.slice(0, 120)+"..."}
+                            <span className="lfa__focusarea__desc_seemore" onClick={()=>{
+                               onClickSeeMore({...focusArea, projectAncestorFocusAreas });
+                            }}>see more</span>
+                          </div>
+                      }
+                    </div>
                   </div>
                   <div className="lfa__focusareas__focusarea__footer">
                     <div className="lfa__focusareas__focusarea__footer__tms">
@@ -148,7 +169,17 @@ const LandingFocusAreas = (props: any) => {
                   <div className="mb__lfa__focusareas__focusarea__header">
                     <h2 className="mb__lfa__focusareas__focusarea__header__title">{focusArea?.title}</h2>
                     <div>
-                      <div className="mb__lfa__focusareas__focusarea__headers__desc">{focusArea?.description}</div>
+                      <div className="mb__lfa__focusareas__focusarea__headers__desc">
+                      { 
+                        focusArea?.description?.length < 70 ? focusArea?.description : 
+                          <div> {
+                            focusArea?.description?.slice(0, 70)+"..."}
+                            <span className="lfa__focusarea__desc_seemore" onClick={()=>{
+                               onClickSeeMore({...focusArea, projectAncestorFocusAreas });
+                            }}>see more</span>
+                          </div>
+                      }
+                      </div>
                     </div>
                   </div>
                   <div className="mb__lfa__focusareas__focusarea__footer">
@@ -227,12 +258,11 @@ const LandingFocusAreas = (props: any) => {
             font-size: 14px;
             font-weight: 400;
             line-height: 22px;
-            display: -webkit-box;       
-            -webkit-box-orient: vertical;  
-            -webkit-line-clamp: 3;         
-            overflow: hidden;              
-            text-overflow: ellipsis;       
-            white-space: normal;  
+          }
+
+          .lfa__focusarea__desc_seemore {
+            font-weight: 500; 
+            color: #156ff7;
           }
 
           .lfa__focusareas__focusarea__footer {
@@ -406,12 +436,6 @@ const LandingFocusAreas = (props: any) => {
             font-size: 13px;
             font-weight: 400;
             line-height: 20px;
-            display: -webkit-box;       
-            -webkit-box-orient: vertical;  
-            -webkit-line-clamp: 3;         
-            overflow: hidden;              
-            text-overflow: ellipsis;       
-            white-space: normal;  
           }
 
           .mb__lfa__focusareas__focusarea__footer {

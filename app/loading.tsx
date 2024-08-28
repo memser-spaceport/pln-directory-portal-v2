@@ -1,9 +1,38 @@
-import styles from './loading.module.css';
+import styles from './page.module.css';
 
 export default function Loading() {
   return (
     <div className={styles.home}>
       <div className={styles.home__cn}>
+        {/* Focus area section */}
+        <div className={styles.home__cn__focusareas}>
+          <div className={styles.focusareas}>
+            <div className={styles.focusareas__hdr}></div>
+            <div className={styles.focusareas__descsec__desc}></div>
+            <div className={styles.focusareas__list}>
+              { Array.from({ length: 4 })?.map((_, index) => (
+                <div key={`focus-area-${index}`} className={styles.focusarea}>
+                  <div className={styles.focusarea__header}>
+                    <h2 className={styles.focusarea__header__title}></h2>
+                    <div className={styles.focusarea__headers__desc__1}></div>
+                    <div className={styles.focusarea__headers__desc__2}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className={styles.focusareas__list__mob}>
+              { Array.from({ length: 2 })?.map((_, index) => (
+                <div key={`focus-area-${index}`} className={styles.focusarea}>
+                  <div className={styles.focusarea__header}>
+                    <h2 className={styles.focusarea__header__title}></h2>
+                    <div className={styles.focusarea__headers__desc__1}></div>
+                    <div className={styles.focusarea__headers__desc__2}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
         {/* Discover section */}
         <div className={styles.home__cn__discover}>
           <div className={styles.discover}>

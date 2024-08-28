@@ -54,7 +54,7 @@ export const EVENTS = {
   OPEN_REMOVE_GUESTS_POPUP: 'open-remove-guests-popup',
   OPEN_FLOATING_BAR: 'open-floating-bar',
   GET_NOTIFICATIONS: 'get-notifications',
-  TRIGGER_RATING_POPUP: 'trigger-notification-popup',
+  TRIGGER_RATING_POPUP: 'trigger-notification-popup'
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -331,6 +331,10 @@ export const HOME_ANALYTICS_EVENTS = {
   FEATURED_PROJECT_CARD_CLICKED:'featured-project-card-clicked',
   FEATURED_CAROUSEL_ACTIONS_CLICKED:'featured-carousel-actions-clicked'
 };
+
+export const HOME = {
+  TRIGGER_FOCUS_AREA_DIALOG: 'trigger-focus-area-dialog'
+}
 
 export const PAGE_ROUTES = {
   HOME: '/',

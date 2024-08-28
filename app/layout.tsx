@@ -20,6 +20,7 @@ const TeamRegisterDialog = dynamic(()=>import('@/components/page/team-form-info/
 const CookieChecker = dynamic(() => import('@/components/core/login/cookie-checker'), {ssr: false})
 const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then(d => d.PostHogPageview), {ssr: false})
 const RatingContainer = dynamic(() => import('@/components/core/office-hours-rating/rating-container'), {ssr: false});
+const FocusAreaDialog = dynamic(() => import('@/components/page/home/focus-area/focus-area-dialog'), {ssr: false});
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MemberRegisterDialog />
           <TeamRegisterDialog />
           <CookieChecker isLoggedIn={isLoggedIn} />
+          <FocusAreaDialog userInfo={userInfo}/>
         </StyledJsxRegistry>
       </body>
     </html>

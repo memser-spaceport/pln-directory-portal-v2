@@ -18,13 +18,16 @@ export default async function Home() {
   return (
     <div className={styles.home}>
       <div className={styles.home__cn}>
+        {/* Focus Area section */} 
+        <div className={styles.home__cn__focusarea}>
+          <LandingFocusAreas focusAreas={focusAreas} userInfo={userInfo}/>
+        </div>
         {/* Discover section */}
         <div className={styles.home__cn__discover}>
           <Discover discoverData={discoverData} />
         </div>
         {/* Featured section */}
         <div className={styles.home__cn__featured}>
-          <LandingFocusAreas focusAreas={focusAreas} userInfo={userInfo}/>
           <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
         </div>
       </div>

@@ -11,6 +11,80 @@
   gap: 40px;
 }
 
+.focusareas {
+  display: flex;
+  gap: 14px;
+  flex-direction: column;
+}
+
+.focusareas__list {
+  display: flex;
+  gap: 14px;
+  justify-content: start;
+  overflow: hidden;
+}
+
+.focusareas__list__mob {
+  display: flex;
+  gap: 5px;
+  justify-content: start;
+  overflow: hidden;
+}
+
+.focusareas__hdr {
+  height: 28px;
+  background-color: #e2e8f0;
+  width: 150px;
+}
+
+.focusareas__descsec__desc {
+  height: 24px;
+  background-color: #e2e8f0;
+  width: 75%;
+}
+
+.focusarea {
+  flex: 1;
+  height: 289px;
+  background-color: white;
+  border-radius: 8px;
+  border-radius: 8px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.focusarea__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.focusarea__header__title {
+  height: 20px;
+  background-color: #e2e8f0;
+  width: 50%;
+}
+
+.focusarea__headers__desc__1 {
+  height: 15px;
+  background-color: #e2e8f0;
+  animation: page_pulse__prmvd 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  width: 80%;
+}
+
+.focusarea__headers__desc__2 {
+  height: 15px;
+  background-color: #e2e8f0;
+  animation: page_pulse__prmvd 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  width: 80%;
+}
+
+
 .featured {
   display: flex;
   flex-direction: column;
@@ -222,6 +296,16 @@
 
   .discoverList__card__desc:nth-child(6) {
     grid-column: span 1 / span 1;
+  }
+
+  .focusareas__list__mob {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .focusareas__list {
+    display: none;
   }
 }
 

@@ -84,15 +84,11 @@ const Featured = (props: any) => {
       <div className="featured">
         <FeaturedHeader {...cauroselActions} userInfo={userInfo} />
         <div>
-          {/* <div className="embla" ref={emblaRef}> */}
-          <div className={`featured__body `}>
-            {/* <div className="featured__body embla__container"> */}
+          <div className={`featured__body`}>
             {featuredData?.map((item: any, index: number) => (
-              // <div key={`${item.category}-${index}`} className="embla__slide">
               <div key={`${item.category}-${index}`}>{RenderCard(item, isLoggedIn, userInfo)}</div>
             ))}
           </div>
-          {/* <div className="embla__gradient"></div> */}
         </div>
       </div>
       <style jsx>{`
@@ -118,8 +114,8 @@ const Featured = (props: any) => {
 
         .featured__body {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(289px, 1fr));
-          justify-content: start;
+          grid-template-columns: repeat(auto-fit, 289px) !important;
+          justify-content: center;
           gap: 14px;
         }
 
@@ -137,10 +133,6 @@ const Featured = (props: any) => {
           width: 100%;
         }
 
-        .justify-start {
-          grid-template-columns: repeat(auto-fit, 289px) !important;
-        }
-
         @media (min-width: 1920px) {
           .embla__gradient {
             display: block;
@@ -150,6 +142,10 @@ const Featured = (props: any) => {
             width: 137px;
             height: 290px;
             background: linear-gradient(90deg, rgba(241, 245, 249, 0) 0.02%, #f1f5f9 61.31%);
+          }
+
+          .featured__body {
+            justify-content: start;
           }
         }
       `}</style>

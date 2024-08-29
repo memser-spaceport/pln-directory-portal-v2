@@ -10,18 +10,23 @@ const DiscoverCard = (props: any) => {
             <img className="discover-card__pattern__img" src={data.image?.desktop} alt="pattern" />
           </picture>
         </div>
-        <div className="discover-card__qus">{data.question}</div>
+        <div lang="en" className="discover-card__qus">
+          {data.question}
+        </div>
+        <div className="discover-card__sub__cn">
+          <p className="discover-card__sub">{data?.subText}</p>
+        </div>
         <div className="discover-card_chips">
           <div className="discover-card_chips_chip">
-            <img src="/icons/eye-gray.svg" alt="views" />
+            <img className="discover-card_chips_chip__img" src="/icons/eye-gray.svg" alt="views" />
             <span className="discover-card_chips_chip__txt">{data.viewCount}</span>
           </div>
           <div className="discover-card_chips_chip">
-            <img src="/icons/share-gray.svg" alt="share" />
+            <img className="discover-card_chips_chip__img" src="/icons/share-gray.svg" alt="share" />
             <span className="discover-card_chips_chip__txt">{data.shareCount}</span>
           </div>
           <div className="discover-card_chips_chip">
-            <img src="/icons/language-gray.svg" alt="sources" />
+            <img className="discover-card_chips_chip__img" src="/icons/language-gray.svg" alt="sources" />
             <span className="discover-card_chips_chip__txt">{data?.answerSourceLinks?.length} sources</span>
           </div>
         </div>
@@ -40,12 +45,11 @@ const DiscoverCard = (props: any) => {
           box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
           border: 1px solid #e2e8f0;
           justify-content: space-between;
-          gap: 14px;
         }
 
-        // .discover-card:hover {
-        //   box-shadow: 0px 0px 0px 2px #156ff740;
-        // }
+        .discover-card:hover {
+          box-shadow: 0px 0px 0px 2px #156ff740;
+        }
 
         .discover-card__pattern {
           display: flex;
@@ -57,22 +61,35 @@ const DiscoverCard = (props: any) => {
         }
 
         .discover-card__pattern__img {
-          border-radius: 0px 12px 0px 0px;
+          border-radius: 12px 12px 0px 0px;
+          max-width: 100%;
         }
 
         .discover-card__qus {
           font-size: 14px;
-          font-weight: 400;
+          font-weight: 500;
           line-height: 22px;
           color: #000000;
-          max-height: 224px;
-          text-overflow: ellipsis;
-          white-space: normal;
-          overflow: hidden;
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
           word-break: break-word;
+          overflow: hidden;
+          max-height: 66px;
+        }
+
+        .discover-card__sub {
+          font-size: 10px;
+          font-weight: 400;
+          line-height: 16px;
+          color: #475569;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          word-break: break-word;
+          margin-top: 3px;
+          overflow: hidden;
+          max-height: 32px;
+        }
+
+        .discover-card__sub__cn {
+          flex: 1;
         }
 
         .discover-card_chips {
@@ -80,48 +97,74 @@ const DiscoverCard = (props: any) => {
           gap: 5px;
           justify-content: start;
           flex-wrap: wrap;
+          margin-top: 11px;
         }
 
         .discover-card_chips_chip {
           background: #f1f5f9;
           display: inline-flex;
-          gap: 4px;
+          gap: 2px;
           align-items: center;
-          padding: 6px;
+          padding: 0px 4px;
           border-radius: 24px;
+          height: 18px;
+          display: flex;
+          align-items: center;
+        }
+
+        .discover-card_chips_chip__img {
+          width: 12px;
+          height: 12px;
         }
 
         .discover-card_chips_chip__txt {
-          font-size: 12px;
+          font-size: 10px;
           font-weight: 500;
           line-height: 14px;
+          text-align: left;
           color: #475569;
         }
 
         @media (min-width: 1024px) {
           .discover-card__qus {
             font-size: 23px;
-            line-height: 32px;
-            -webkit-line-clamp: 7;
+            font-weight: 500;
+            line-height: 33px;
+            max-height: 99px;
+          }
+
+          .discover-card__sub {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 23px;
+            max-height: 69px;
           }
 
           .discover-card {
             padding: 20px;
-            gap: 17px;
           }
-
-          //   .discover__body__sec2__child1 {
-          //     min-height: 247px;
-          //     max-height: 310px;
-          //     padding: 20px;
-          //     gap: 17px;
-          //   }
 
           .discover-card_chips {
             right: 20px;
             bottom: 20px;
             justify-content: end;
             gap: 8px;
+            margin-top: 3px;
+          }
+
+          .discover-card_chips_chip {
+            height: 26px;
+            padding: 0px 8px;
+          }
+
+          .discover-card_chips_chip__txt {
+            font-size: 12px;
+            line-height: 14px;
+          }
+
+          .discover-card_chips_chip__img {
+            width: 14px;
+            height: 14px;
           }
         }
       `}</style>

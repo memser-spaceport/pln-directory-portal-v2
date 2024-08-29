@@ -34,6 +34,7 @@ export interface IMemberResponse {
   repositories: [];
   preferences: {};
   createdAt: string;
+  bio?:string;
 }
 
 export interface IMember {

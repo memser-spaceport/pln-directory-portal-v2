@@ -1,10 +1,11 @@
 'use client';
 
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { parseMemberLocation } from '@/utils/member.utils';
 import dynamic from 'next/dynamic';
-import MemberSkillList from './member-skill-list';
+// import MemberSkillList from './member-skill-list';
 
-const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((mod) => mod.Tooltip), { ssr: false });
+// const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((mod) => mod.Tooltip), { ssr: false });
 
 const MemberCard = (props: any) => {
   const member = props?.member;
@@ -17,30 +18,31 @@ const MemberCard = (props: any) => {
     ?.sort();
   const role = member.mainTeam?.role || 'Contributor';
   const location = parseMemberLocation(member?.location);
-  const skills = member?.skills ?? [];
+  // const skills = member?.skills ?? [];
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
   const isBorder = isTeamLead || isOpenToWork;
   const isNew = member?.isNew;
+  const bio = member?.bio;
 
   return (
     <>
-      <div className="member-grid">
-        <div className="member-grid__profile-container">
-          <div className="member-grid__profile-container__outer-section">
-            <div className={`${isBorder ? 'gradiant-border-rounded' : ''} member-grid__profile-container__outer-section__inner-circle`}>
-              <img className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
+      <div className="member">
+        <div className="member__profile__cn">
+          <div className="member__profile__cn__outer-section">
+            <div className={`${isBorder ? 'gradiant-border-rounded' : ''} member__profile__cn__outer-section__inner-circle`}>
+              <img className="member__profile__cn__outer-section__inner-circle__profile" src={profileUrl} />
               {isTeamLead && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" className="member-grid__profile-container__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" />}
+                  trigger={<img loading="lazy" className="member__profile__cn__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" />}
                   content={'Team Lead'}
                 />
               )}
               {isOpenToWork && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" className="member-grid__profile-container__outer-section__inner-circle__opento-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
+                  trigger={<img loading="lazy" className="member__profile__cn__outer-section__inner-circle__opento-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
                   content={'Open To Collaborate'}
                 />
               )}
@@ -48,21 +50,22 @@ const MemberCard = (props: any) => {
           </div>
           {isNew && <div className="projectCard__header__badge">New</div>}
         </div>
-        <div className="member-grid__details">
-          <div>
-            <div className="member-grid__details__member-details">
-              <div className="member-grid__details__member-details__name-container">
-                <h3 className="member-grid__details__name">{member?.name}</h3>
-              </div>
-              <div className="member-grid__details__member-details__team-name-container">
-                <p className="member-grid__details__member-details__team-name-container__team-name">{member?.teams?.length > 0 ? mainTeam?.name : '-'}</p>
+        <div className="member__details">
+          <div className="member__details__primary">
+            <div className="member__details__primary__name-container">
+              <h3 className="member__details__name">{member?.name}</h3>
+            </div>
+            <div className="member__details__primary__team-name-container">
+              <div className="member__details__primary__team-name__wrpr">
+                {/* <p className="member__details__primary__team-name-container__team-name">{member?.teams?.length > 0 ? mainTeam?.name : '-'}</p> */}
+                {mainTeam?.name ? <Tooltip asChild trigger={<p className="member__details__primary__team-name-container__team-name">{mainTeam?.name}</p>} content={mainTeam?.name} /> : '-'}
                 {member?.teams?.length > 2 && (
                   <Tooltip
                     side="bottom"
-                    align="end"
+                    align="center"
                     asChild
                     trigger={
-                      <button onClick={(e) => e.preventDefault()} className="member-grid__details__member-details__team-name-container__tems-count">
+                      <button onClick={(e) => e.preventDefault()} className="member__details__primary__team-name-container__tems-count">
                         +{(member?.teams?.length - 1).toString()}
                       </button>
                     }
@@ -75,45 +78,43 @@ const MemberCard = (props: any) => {
                   />
                 )}
               </div>
-              <p className="member-grid__details__member-details__role">{role}</p>
+              <div className="seperator"></div>
+              <Tooltip asChild trigger={<p className="member__details__primary__role">{role}</p>} content={role} />
             </div>
-            {isUserLoggedIn && (
+          </div>
+          <div className="member__details__bio">
+            {bio ? <p className="member__details__bio__txt">{member?.bio}</p> : <div className="member__details__bio__txt--nobio">🛠️ buidling their bio...</div>}
+          </div>
+          {/* {isUserLoggedIn && (
               <>
-                <div className="member-grid__details__location">
+                <div className="member__details__location">
                   {location ? (
                     <>
                       <img loading="lazy" src="/icons/location.svg" height={13} width={11} />
-                      <p className="member-grid__details__location__name">{location}</p>
+                      <p className="member__details__location__name">{location}</p>
                     </>
                   ) : (
                     '-'
                   )}
                 </div>
               </>
-            )}
-          </div>
-
-          <div className="member-grid__profile-container__ftr">
-            <div className="member-grid__profile-container__ftr__skills__desc">
-              <MemberSkillList skills={skills} noOfSkillsToShow={3} />
-            </div>
-          </div>
+            )} */}
         </div>
       </div>
       <style jsx>
         {`
-          .member-grid {
+          .member {
             height: 290px;
             width: 100%;
             border-radius: 12px;
             box-shadow: 0px 4px 4px 0px #0f172a0a;
           }
 
-          .member-grid:hover {
+          .member:hover {
             box-shadow: 0px 0px 0px 2px #156ff740;
           }
 
-          .member-grid:active {
+          .member:active {
             border-radius: 12px;
             outline-style: solid;
             outline-width: 1px;
@@ -122,7 +123,7 @@ const MemberCard = (props: any) => {
             box-shadow: 0px 0px 0px 2px #156ff740;
           }
 
-          .member-grid__profile-container {
+          .member__profile__cn {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -150,7 +151,7 @@ const MemberCard = (props: any) => {
             top: 0;
           }
 
-          .member-grid__profile-container__outer-section {
+          .member__profile__cn__outer-section {
             background: url('/images/outer-circle.svg');
             height: 147px;
             width: 147px;
@@ -161,7 +162,7 @@ const MemberCard = (props: any) => {
             background-repeat: no-repeat;
           }
 
-          .member-grid__profile-container__outer-section__inner-circle {
+          .member__profile__cn__outer-section__inner-circle {
             height: 104px;
             width: 104px;
             border-radius: 50%;
@@ -173,7 +174,7 @@ const MemberCard = (props: any) => {
             border: 1px solid linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
           }
 
-          .member-grid__profile-container__outer-section__inner-circle__lead {
+          .member__profile__cn__outer-section__inner-circle__lead {
             position: absolute;
             border: 1px solid #e2e8f0;
             border-radius: 100%;
@@ -182,7 +183,7 @@ const MemberCard = (props: any) => {
             display: block;
           }
 
-          .member-grid__profile-container__outer-section__inner-circle__opento-work {
+          .member__profile__cn__outer-section__inner-circle__opento-work {
             position: absolute;
             z-index: 1;
             border: 1px solid #e2e8f0;
@@ -192,19 +193,19 @@ const MemberCard = (props: any) => {
             display: block;
           }
 
-          .member-grid__details {
+          .member__details {
             padding: 16px;
             background: #fff;
             height: 195px;
             display: flex;
-            justify-content: space-between;
             flex-direction: column;
             border-radius: 0 0 12px 12px;
             border-top: 1px solid #e2e8f0;
             position: relative;
+            gap: 16px;
           }
 
-          .member-grid__profile-container__outer-section__inner-circle__profile {
+          .member__profile__cn__outer-section__inner-circle__profile {
             object-fit: cover;
             object-position: center;
             border: 1px solid #e2e8f0;
@@ -213,7 +214,7 @@ const MemberCard = (props: any) => {
             width: 72px;
           }
 
-          .member-grid__details__member-details__team-name-container__tems-count {
+          .member__details__primary__team-name-container__tems-count {
             font-size: 10px;
             font-weight: 500;
             line-height: 12px;
@@ -229,18 +230,24 @@ const MemberCard = (props: any) => {
             justify-content: center;
           }
 
-          .member-grid__details__member-details {
+          .member__details__primary {
             display: flex;
             align-items: center;
             flex-direction: column;
-            gap: 4px;
+            gap: 8px;
           }
 
-          .member-grid__details__member-details__name-container {
+          .member__details__primary__name-container {
             height: 28px;
           }
 
-          .member-grid__details__name {
+          .member__details__primary__team-name__wrpr {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+
+          .member__details__name {
             font-size: 18px;
             font-weight: 600;
             line-height: 28px;
@@ -253,14 +260,14 @@ const MemberCard = (props: any) => {
             text-overflow: ellipsis;
           }
 
-          .member-grid__details__member-details__team-name-container {
+          .member__details__primary__team-name-container {
             display: flex;
-            gap: 4px;
+            gap: 8px;
             align-items: center;
             justify-content: center;
           }
 
-          .member-grid__details__member-details__team-name-container__team-name {
+          .member__details__primary__team-name-container__team-name {
             font-size: 14px;
             font-weight: 500;
             color: #000;
@@ -276,7 +283,7 @@ const MemberCard = (props: any) => {
             text-align: center;
           }
 
-          .member-grid__details__member-details__role {
+          .member__details__primary__role {
             font-weight: 400;
             color: #000;
             text-align: center;
@@ -285,10 +292,10 @@ const MemberCard = (props: any) => {
             text-overflow: ellipsis;
             font-size: 14px;
             line-height: 20px;
-            max-width: 200px;
+            max-width: 100px;
           }
 
-          .member-grid__details__location {
+          .member__details__location {
             padding-top: 8px;
             width: fit-content;
             margin: auto;
@@ -298,7 +305,7 @@ const MemberCard = (props: any) => {
             gap: 7px;
           }
 
-          .member-grid__details__location__name {
+          .member__details__location__name {
             font-size: 14px;
             font-weight: 400;
             line-height: 20px;
@@ -310,9 +317,37 @@ const MemberCard = (props: any) => {
             text-overflow: ellipsis;
           }
 
-          .member-grid__profile-container__ftr {
-            padding: 16px 0 0 0;
-            border-top: 1px solid #e2e8f0;
+          .member__details__bio {
+            padding: 10px 12px;
+            background: #f8fafc;
+            border-radius: 6px;
+            flex: 1;
+          }
+
+          .member__details__bio__txt {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 22px;
+            color: #0f172a;
+            text-align: center;
+          }
+
+          .member__details__bio__txt--nobio {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 22px;
+            color: #64748b;
+            align-items: center;
+            display: flex;
+            height:100%;
+            justify-content: center;
+          }
+
+          .seperator {
+            height: 16px;
+            width: 1px;
+            background: #cbd5e1;
+            border-radius: 2px;
           }
 
           .gradiant-border-rounded {

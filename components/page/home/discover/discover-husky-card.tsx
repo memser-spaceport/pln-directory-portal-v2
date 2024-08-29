@@ -9,7 +9,8 @@ const DiscoverHuskyCard = () => {
         <div className="dh__body">
           <div className="dh__text">
             Discover more
-            <br />using Husky
+            <br />
+            using Husky
           </div>
           <button className="dh__btn">
             <img height={16} width={14} src="/icons/right-arrow-white.svg" alt="" />
@@ -30,6 +31,10 @@ const DiscoverHuskyCard = () => {
           justify-content: center;
           align-items: center;
           border: 1px solid #e2e8f0;
+        }
+
+        .dh:hover {
+          box-shadow: 0px 0px 0px 2px #156ff740;
         }
 
         .dh__pattern-1 {

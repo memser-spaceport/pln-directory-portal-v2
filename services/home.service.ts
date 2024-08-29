@@ -13,10 +13,10 @@ export const getFeaturedData = async () => {
 
   const result = await response.json();
 
-  const formattedMembers = getformattedMembers(result?.members || [])
+  const formattedMembers = getformattedMembers(result?.members || []);
   const formattedTeams = getFormattedTeams(result?.teams || []);
   const formattedEvents = getFormattedEvents(result?.events || []);
-  const formattedProjects = getFormattedProjects(result.projects || [])
+  const formattedProjects = getFormattedProjects(result.projects || []);
 
   const maxLength = Math.max(formattedMembers.length, formattedTeams.length, formattedEvents.length, formattedProjects.length);
 
@@ -51,6 +51,7 @@ export const getDiscoverData = async () => {
     return {
       uid: res.uid,
       question: res.content,
+      subText: res.title,
       answer: res.answer,
       answerSourceLinks: res.answerSources,
       answerSourcedFrom: 'none',

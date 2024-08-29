@@ -94,6 +94,7 @@ export const getformattedMembers = (members: IMemberResponse[]) => {
       location: parsedMember?.location,
       mainTeam,
       openToWork: parsedMember.openToWork || false,
+      bio: parsedMember?.bio?.trim(),
     };
 
     return data;
@@ -152,7 +153,7 @@ export function formatDiscoverData(discoverData: any) {
     item.image = image;
   });
 
-  const questionAndAnswers = [...temp, { type: 'discoverhusky' }];
+  const questionAndAnswers = [...temp, {uid:'discover-husky', type: 'discoverhusky' }];
 
   return questionAndAnswers;
 }

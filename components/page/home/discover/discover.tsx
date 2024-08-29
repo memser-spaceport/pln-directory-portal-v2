@@ -6,6 +6,7 @@ import { usePrevNextButtons } from '@/hooks/use-prev-next-buttons';
 import DiscoverCard from './discover-card';
 import DiscoverHuskyCard from './discover-husky-card';
 import { formatDiscoverData } from '@/utils/home.utils';
+import { Fragment } from 'react';
 
 const Discover = (props: any) => {
   const discoverData = props?.discoverData;
@@ -14,6 +15,17 @@ const Discover = (props: any) => {
   const options: EmblaOptionsType = {};
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const { onPrevButtonClick, onNextButtonClick, prevBtnDisabled, nextBtnDisabled } = usePrevNextButtons(emblaApi);
+
+  const onDiscoverCardClick = () => {};
+
+  const renderCard = (data: any) => {
+    const isHusky = data.type === 'discoverhusky';
+    if (isHusky) {
+      return <DiscoverHuskyCard />;
+    }
+
+    return <DiscoverCard data={data} />;
+  };
 
   return (
     <>
@@ -33,38 +45,20 @@ const Discover = (props: any) => {
           <div className="embla__viewport" ref={emblaRef}>
             <div className="discover__body embla__container">
               <div className="discover__body__sec embla__slide">
-                {formattedDiscoverData.slice(0, 3).map((data, index) => {
+                {formattedDiscoverData.slice(0, 3).map((data) => {
                   return (
-                    <>
-                      {data.type !== 'discoverhusky' && (
-                        <div key={`discover-card-${data.uid}`} className="discover__body__sec__child1">
-                          <DiscoverCard data={data} />
-                        </div>
-                      )}
-                      {data.type === 'discoverhusky' && (
-                        <div key={`discover-husky`} className="discover__body__sec2__child1">
-                          <DiscoverHuskyCard />
-                        </div>
-                      )}
-                    </>
+                    <Fragment key={`section-one-discover-card-${data.uid}`}>
+                      <div className="discover__body__sec__child1">{renderCard(data)}</div>
+                    </Fragment>
                   );
                 })}
               </div>
               <div className="discover__body__sec2 embla__slide">
-                {formattedDiscoverData.slice(3, 6).map((data, index) => {
+                {formattedDiscoverData.slice(3, 6).map((data) => {
                   return (
-                    <>
-                      {data.type !== 'discoverhusky' && (
-                        <div key={`discover-card-${data.uid}`} className="discover__body__sec2__child1">
-                          <DiscoverCard data={data} />
-                        </div>
-                      )}
-                      {data.type === 'discoverhusky' && (
-                        <div key={`discover-husky`} className="discover__body__sec2__child1">
-                          <DiscoverHuskyCard />
-                        </div>
-                      )}
-                    </>
+                    <div key={`section-two-discover-card-${data.uid}`} className="discover__body__sec2__child1">
+                      {renderCard(data)}
+                    </div>
                   );
                 })}
               </div>
@@ -102,6 +96,7 @@ const Discover = (props: any) => {
           flex: 0 0 100%;
           min-width: 0;
           cursor: pointer;
+          padding: 2px;
         }
 
         .embla__container {
@@ -144,19 +139,15 @@ const Discover = (props: any) => {
           font-weight: 500;
           line-height: 24px;
           color: #156ff7;
+          cursor: pointer;
         }
 
         .discover__body {
           display: flex;
-          gap: 14px;
+          gap: 12px;
         }
 
-        .discover__body__sec {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 14px;
-        }
-
+        .discover__body__sec,
         .discover__body__sec2 {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -164,10 +155,6 @@ const Discover = (props: any) => {
         }
 
         .discover__body__sec__child1:nth-child(1) {
-          grid-column: span 1 / span 1;
-        }
-
-        .discover__body__sec__child1:nth-child(2) {
           grid-column: span 1 / span 1;
         }
 
@@ -183,14 +170,7 @@ const Discover = (props: any) => {
           grid-column: span 1 / span 1;
         }
 
-        .discover__body__sec2__child1:nth-child(3) {
-          grid-column: span 1 / span 1;
-        }
-
-        .discover__body__sec__child1 {
-          height: 190px;
-        }
-
+        .discover__body__sec__child1,
         .discover__body__sec2__child1 {
           height: 190px;
         }
@@ -217,7 +197,6 @@ const Discover = (props: any) => {
           .discover__body__sec__child1__qus {
             font-size: 23px;
             line-height: 32px;
-            -webkit-line-clamp: 7;
           }
 
           .discover__body__sec__child1 {

@@ -4,7 +4,7 @@ interface HuskyChatSuggestionsProps {
   chatIndex?: number;
   isAnswerLoading: boolean;
 }
-function HuskyChatSuggestions({ followupQuestions, chatIndex = 0, onFollowupClicked, isAnswerLoading }: HuskyChatSuggestionsProps) {
+function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowupClicked, isAnswerLoading }: HuskyChatSuggestionsProps) {
   const onQuestionClicked = (question: string) => {
     if(isAnswerLoading) {
       return;

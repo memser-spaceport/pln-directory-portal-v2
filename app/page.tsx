@@ -34,8 +34,8 @@ export default async function Home() {
         </div>
       </div>
     </div>
-    <HuskyDialog/>
-    <HuskyDiscover/>
+    <HuskyDialog isLoggedIn={isLoggedIn}/>
+    <HuskyDiscover isLoggedIn={isLoggedIn}/>
     </>
 }
 

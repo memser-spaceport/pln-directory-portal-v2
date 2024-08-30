@@ -398,7 +398,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             }
             .nb__left {
               display: flex;
-              gap: 92px;
+              gap: 10px;
               align-items: center;
             }
 

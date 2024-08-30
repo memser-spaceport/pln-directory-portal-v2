@@ -1,6 +1,10 @@
 'use client';
+interface BarTabsItem {
+  name: string;
+  key: string;
+}
 interface BarTabsProps {
-  items: string[];
+  items: BarTabsItem[];
   activeItem: string;
   onTabSelected: (item: string) => void;
   transform?: string;
@@ -11,7 +15,7 @@ function BarTabs({ activeItem, items, onTabSelected, transform }: BarTabsProps) 
     <>
       <div className="hc__tab">
         {items.map((item) => (
-          <p key={item} className={`hc__tab__item ${item === activeItem ? 'hc__tab__item--active' : ''}`} onClick={() => onTabSelected(item)}>{item}</p>
+          <p key={item.key} className={`hc__tab__item ${item.key === activeItem ? 'hc__tab__item--active' : ''}`} onClick={() => onTabSelected(item.key)}>{item.name}</p>
         ))}
       </div>
       <style jsx>

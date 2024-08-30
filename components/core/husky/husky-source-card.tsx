@@ -1,27 +1,38 @@
 'use client';
-function HuskySourceCard() {
+interface HuskySourceCardProps {
+  sources: SourceProps[];
+}
+
+interface SourceProps {
+  title: string;
+  description: string;
+  link: string;
+}
+function HuskySourceCard({ sources }: HuskySourceCardProps) {
   return (
     <>
       <div className="sources">
         <h3 className="sources__title">Sources</h3>
-        <div className="sources__item">
-          <div className="sources__item__head">
-            <p className="sources__item__head__index">1</p>
-            <img />
-            <p>Protocol Labs</p>
-          </div>
-          <div className="sources__item__body">Protocol Labs | breakthrough</div>
-        </div>
+        {sources.map((source: SourceProps, index: number) => (
+          <a target="_blank" href={source.link} key={`husky-chat${index}`} className="sources__item">
+            <div className="sources__item__head">
+              <p className="sources__item__head__index">{index + 1}</p>
+              <p className="sources__item__head__title">{source.title}</p>
+            </div>
+            <div className="sources__item__body">{source.description}</div>
+          </a>
+        ))}
       </div>
       <style jsx>
-        {
-            `
-             .sources {
+        {`
+          .sources {
             width: 327px;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            margin: 24px;
+            padding: 12px 16px;
+            max-height: 200px;
+            overflow-y: scroll;
           }
           .sources__title {
             padding-bottom: 8px;
@@ -34,13 +45,36 @@ function HuskySourceCard() {
             flex-direction: column;
             gap: 12px;
           }
+          .sources__item__body {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 400;
+          }
           .sources__item__head {
             display: flex;
-            gap: 4px;
+            gap: 8px;
+            align-items: center;
           }
-            
-            `
-        }
+          .sources__item__head__index {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #E2E8F0;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+            .sources__item__head__title {
+             font-size: 12px;
+             font-weight: 500;
+            }
+        `}
       </style>
     </>
   );

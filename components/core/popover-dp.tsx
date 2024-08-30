@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, ReactNode } from 'react';
 
 type PaneProps = {
   children: ReactNode;
-  position?: 'top' | 'bottom';
+  position?: 'top' | 'bottom' | 'bottom-right';
 };
 
 type WrapperProps = {
@@ -50,12 +50,8 @@ export const Wrapper: React.FC<WrapperProps> = ({ children }) => {
 
 // Pane component that displays the dropdown content
 export const Pane: React.FC<PaneProps> = ({ children, position = 'bottom' }) => {
-  const stopPropagation = (event: React.MouseEvent) => {
-    event.stopPropagation();
-  };
-
   return (
-    <div className={`pane ${position}`} onClick={stopPropagation}>
+    <div className={`pane ${position}`}>
       {children}
       <style jsx>{`
         .pane {
@@ -74,6 +70,11 @@ export const Pane: React.FC<PaneProps> = ({ children, position = 'bottom' }) => 
           top: 100%;
           left: 0;
           margin-top: 5px;
+        }
+        .pane.bottom-right {
+         top: 100%;
+          right: 0;
+         
         }
       `}</style>
     </div>

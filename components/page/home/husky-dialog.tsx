@@ -5,14 +5,17 @@ import { useEffect, useRef, useState } from 'react';
 
 function HuskyDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const onDialogClose = () => {
     dialogRef.current?.close()
+    setIsOpen(false)
   };
 
   useEffect(() => {
     function dialogHandler(e: any) {
       if (dialogRef.current) {
+        setIsOpen(true);
         dialogRef.current.showModal();
       }
     }
@@ -30,7 +33,7 @@ function HuskyDialog() {
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">
-          <HuskyAi />
+          {isOpen && <HuskyAi isLoggedIn={true} />}
         </div>
       </dialog>
       <style jsx>
@@ -62,7 +65,7 @@ function HuskyDialog() {
           }
           .hd__content {
             width: 100%;
-            height: 100%;
+            height: calc(100% - 42px);
           }
           @media (min-width: 1024px) {
             .hd {

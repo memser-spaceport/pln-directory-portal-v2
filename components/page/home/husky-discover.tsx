@@ -1,18 +1,36 @@
 'use client';
 
+import HuskyAi from '@/components/core/husky/husky-ai';
 import HuskyChat from '@/components/core/husky/husy-chat';
-import { useEffect, useRef, useState } from 'react';
+import PageLoader from '@/components/core/page-loader';
+import { getHuskyResponseBySlug } from '@/services/husky.service';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-function HuskyDiscover() {
+import { Suspense, use, useEffect, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
+
+function HuskyDiscover(props: any) {
+  const isLoggedIn = props.isLoggedIn;
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter()
+  const modalCode = searchParams.get('showmodal');
+  const huskyShareId = searchParams.get('discoverid');
+  const [initialChats, setInitialChats] = useState<any[]>([])
+  const [isLoading, setLoadingStatus] = useState(false);
 
   const onDialogClose = () => {
-    dialogRef.current?.close()
+    dialogRef.current?.close();
+    setInitialChats([])
+    if(modalCode === 'husky') {
+      router.push('/')
+    }
   };
 
   useEffect(() => {
     function dialogHandler(e: any) {
       if (dialogRef.current) {
+        setInitialChats([e?.detail])
         dialogRef.current.showModal();
       }
     }
@@ -22,6 +40,30 @@ function HuskyDiscover() {
     };
   }, []);
 
+  useEffect(() => {
+    if(modalCode === 'husky' && huskyShareId) {
+      setLoadingStatus(true)
+      
+      getHuskyResponseBySlug(huskyShareId)
+      .then(result => {
+        if(result.data && dialogRef.current) {
+          setInitialChats([result.data]);
+          dialogRef.current.showModal();
+        } else {
+         toast.error('Something went wrong')
+        }
+      })
+      .catch((e) => {
+       console.error(e);
+       toast.error('Something went wrong')
+      })
+      .finally(() => setLoadingStatus(false))
+
+    }
+  }, [modalCode, huskyShareId])
+
+
+
   return (
     <>
       <dialog onClose={onDialogClose} ref={dialogRef} className="hd">
@@ -30,9 +72,10 @@ function HuskyDiscover() {
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">
-          <HuskyChat mode="blog"/>
+          {initialChats.length > 0 && <HuskyAi isLoggedIn={isLoggedIn} initialChats={initialChats} mode="blog" />}
         </div>
       </dialog>
+      {isLoading && <PageLoader/>}
       <style jsx>
         {`
           .hd {
@@ -48,7 +91,7 @@ function HuskyDiscover() {
           .hd__head {
             width: 100%;
             height: 42px;
-           
+
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -62,9 +105,7 @@ function HuskyDiscover() {
           }
           .hd__content {
             width: 100%;
-            height: 100%;
-            overflow-y: scroll;
-            padding-bottom: 70px;
+            height: calc(100% - 42px);
           }
           @media (min-width: 1024px) {
             .hd {

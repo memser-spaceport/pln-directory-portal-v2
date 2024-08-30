@@ -16,12 +16,12 @@ function HuskyChatQuestion({question, shareCount, viewCount, sources}: HuskyChat
         <h2 className="chat__ques">{question}</h2>
         <div className="chat__quesactions">
           <div className="chat__quesactions__cn">
-            <PopoverDp.Wrapper>
+            {(sources && sources.length > 0) &&  <PopoverDp.Wrapper>
               <InfoBox info={`${sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
               <PopoverDp.Pane position="bottom">
                 <HuskySourceCard sources={sources}/>
               </PopoverDp.Pane>
-            </PopoverDp.Wrapper>
+            </PopoverDp.Wrapper>}
             {shareCount && <CopyText textToCopy={`${window.location.hostname}?`}><InfoBox info="Share" imgUrl="/icons/share-blue.svg" moreInfo={`${shareCount}`} /></CopyText>}
           </div>
           <div className="chat__quesactions__cn">

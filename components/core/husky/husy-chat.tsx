@@ -16,9 +16,9 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading }: HuskyCha
         <div className="huskychat__threads">
           {chats.map((chat: any, index: number) => (
             <div className="huskychat__threads__item" key={`chat-${index}`}>
-              <HuskyChatQuestion viewCount={chat.viewCount} sources={chat.answerSourceLinks} shareCount={chat.shareCount} question={chat.question} />
-              <HuskyChatAnswer mode={mode} answer={chat.answer} />
-              <HuskyChatSuggestions isAnswerLoading={isAnswerLoading} chatIndex={index} onFollowupClicked={onFollowupClicked} followupQuestions={chat.followupQuestions} />
+              <HuskyChatQuestion viewCount={chat?.viewCount} sources={chat?.answerSourceLinks} shareCount={chat?.shareCount} question={chat?.question} />
+              <HuskyChatAnswer mode={mode} answer={chat?.answer} />
+              <HuskyChatSuggestions isAnswerLoading={isAnswerLoading} chatIndex={index} onFollowupClicked={onFollowupClicked} followupQuestions={chat?.followupQuestions} />
             </div>
           ))}
         </div>

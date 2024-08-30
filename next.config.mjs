@@ -29,6 +29,7 @@ const nextConfig = {
     IRL_DEFAULT_TOPICS: process.env.IRL_DEFAULT_TOPICS,
     IRL_PGF_FORM_URL: process.env.IRL_PGF_FORM_URL,
     FEATURED_REQUEST_URL: process.env.FEATURED_REQUEST_URL,
+    HUSKY_API_URL: process.env.HUSKY_API_URL,
   },
   images: {
     remotePatterns: [

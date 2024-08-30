@@ -1,7 +1,11 @@
 const DiscoverHuskyCard = () => {
+  const onHuskyClick = () => {
+    document.dispatchEvent(new CustomEvent('open-husky-dialog'));
+  };
+
   return (
     <>
-      <div className="dh">
+      <div className="dh" onClick={onHuskyClick}>
         <img className="dh__pattern-1" src="/images/discover/discover-husky-pattern-1.svg" alt="" />
         <img className="dh__pattern-2" src="/images/discover/discover-husky-pattern-2.svg" alt="" />
         <img className="dh__pattern-3" src="/images/discover/discover-husky-pattern-3.svg" alt="" />

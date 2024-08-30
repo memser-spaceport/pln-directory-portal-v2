@@ -16,10 +16,13 @@ const Discover = (props: any) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const { onPrevButtonClick, onNextButtonClick, prevBtnDisabled, nextBtnDisabled } = usePrevNextButtons(emblaApi);
 
-  const onDiscoverCardClick = () => {};
+  const onHuskyClick = () => {
+    document.dispatchEvent(new CustomEvent('open-husky-dialog'));
+  };
 
   const renderCard = (data: any) => {
     const isHusky = data.type === 'discoverhusky';
+
     if (isHusky) {
       return <DiscoverHuskyCard />;
     }
@@ -37,7 +40,10 @@ const Discover = (props: any) => {
             <h3 className="discover__hdr__ttl__txt">Discover</h3>
           </div>
           <p className="discover__hdr__desc">
-            Explore the Protocol Labs network with <a className="discover__hdr__desc__husky">HuskyAI</a>
+            Explore the Protocol Labs network with{' '}
+            <button onClick={onHuskyClick} className="discover__hdr__desc__husky">
+              HuskyAI
+            </button>
           </p>
         </div>
         {/* Carousel */}
@@ -140,6 +146,7 @@ const Discover = (props: any) => {
           line-height: 24px;
           color: #156ff7;
           cursor: pointer;
+          background: transparent;
         }
 
         .discover__body {

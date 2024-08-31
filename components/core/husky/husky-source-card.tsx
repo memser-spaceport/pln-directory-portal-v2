@@ -26,8 +26,8 @@ function HuskySourceCard({ sources }: HuskySourceCardProps) {
       <style jsx>
         {`
           .sources {
-            width: 327px;
             display: flex;
+            width: 270px;
             flex-direction: column;
             gap: 8px;
             padding: 12px 16px;
@@ -73,6 +73,14 @@ function HuskySourceCard({ sources }: HuskySourceCardProps) {
             .sources__item__head__title {
              font-size: 12px;
              font-weight: 500;
+            }
+
+            @media(min-width: 1024px) {
+
+             .sources { 
+                width: 327px;
+             }
+
             }
         `}
       </style>

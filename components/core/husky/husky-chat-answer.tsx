@@ -1,12 +1,37 @@
 import Markdown from 'markdown-to-jsx';
+import { useRef } from 'react';
+import Modal from '../modal';
+import FeedbackModal from './feedback-modal';
 
 interface HuskyChatAnswerProps {
   mode: 'blog' | 'chat';
   answer: string;
 }
 function HuskyChatAnswer({ mode, answer }: HuskyChatAnswerProps) {
-  const anchorWrapper = (props: any) => <a style={{color: 'blue'}} target='_blank' href={props.href}>{`[`}{props.children}{`]`}</a>
- return (
+  const anchorWrapper = (props: any) => (
+    <a style={{ color: 'blue' }} target="_blank" href={props.href}>
+      {`[`}
+      {props.children}
+      {`]`}
+    </a>
+  );
+
+  const feedbackModalRef = useRef<HTMLDialogElement>(null);
+
+  const onCloseModal = (e: any) => {
+    e.preventDefault();
+    if (feedbackModalRef.current) {
+      feedbackModalRef.current.close();
+    }
+  };
+
+  const onOpenModal = () => {
+    if (feedbackModalRef.current) {
+      feedbackModalRef.current.showModal();
+    }
+  };
+
+  return (
     <>
       <div className="chat__ans">
         {mode !== 'blog' && (
@@ -16,7 +41,7 @@ function HuskyChatAnswer({ mode, answer }: HuskyChatAnswerProps) {
           </h3>
         )}
         <div className={`chat__ans__text ${mode === 'blog' ? 'chat__ans__text--blog' : ''}`}>
-          <Markdown options={{ overrides: { a: { component: anchorWrapper }, ol: { props: {style: {'marginLeft': '16px'}}},  ul: { props: {style: {'marginLeft': '16px'}}} } }}>{answer}</Markdown>
+          <Markdown options={{ overrides: { a: { component: anchorWrapper }, ol: { props: { style: { marginLeft: '16px' } } }, ul: { props: { style: { marginLeft: '16px' } } } } }}>{answer}</Markdown>
         </div>
         {mode !== 'blog' && (
           <div className="chat__ansactions">
@@ -26,18 +51,21 @@ function HuskyChatAnswer({ mode, answer }: HuskyChatAnswerProps) {
               <img src="/icons/edit-chat.svg" />
               <img src="/icons/line.svg" />
               <img src="/icons/copy.svg" />
+              <img src="/icons/line.svg" />
+              <img onClick={onOpenModal} src="/icons/feedback.svg" />
             </div>
           </div>
         )}
       </div>
+      <FeedbackModal modalRef={feedbackModalRef} onClose={onCloseModal} />
 
       <style jsx>
         {`
           .anchor {
-           color: green;
+            color: green;
           }
           a {
-           color: red;
+            color: red;
           }
           [data-type='link'] {
             color: blue;

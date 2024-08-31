@@ -8,14 +8,17 @@ import { getHuskyReponse } from '@/services/husky.service';
 import PageLoader from '../page-loader';
 import { PopoverDp } from '../popover-dp';
 import HuskyAnswerLoader from './husky-answer-loader';
+import { useRouter } from 'next/navigation';
+import { EVENTS } from '@/utils/constants';
 
 interface HuskyAiProps {
   mode?: 'blog' | 'chat';
   initialChats?: any[];
   isLoggedIn: boolean;
+  onClose?:() => void;
 }
 
-function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn }: HuskyAiProps) {
+function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, onClose }: HuskyAiProps) {
   const [tab, setTab] = useState('What can I ask?');
   const [chats, setChats] = useState<any[]>(initialChats);
   const [isLoading, setLoadingStatus] = useState(false);
@@ -25,6 +28,8 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn }: HuskyAiProps)
   const [threadId, setThreadId] = useState<string>("");
   const [selectedSource, setSelectedSource] = useState('none');
   const chatCnRef = useRef<HTMLDivElement>(null);
+
+  const router = useRouter();
 
   const onTabSelected = (item: string) => {
     setTab(item);
@@ -97,6 +102,22 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn }: HuskyAiProps)
     setChats((v) => [...v, result.data]);
   }
 
+  const onLoginClick = () => {
+    onClose && onClose();
+    setLoginBoxStatus(false);
+    router.push(`${window.location.pathname}${window.location.search}#login`);
+  };
+
+  const onJoinNetworkListClick = (item: any) => {
+    onClose && onClose();
+    setLoginBoxStatus(false);
+    if (item === 'member') {
+      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_MEMBER_REGISTER_DIALOG));
+    } else if (item === 'team') {
+      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
+    }
+  };
+
   useEffect(() => {
    if(isAnswerLoading) {
     let test = document.getElementById('answer-loader');
@@ -145,15 +166,16 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn }: HuskyAiProps)
               <button type='button' onClick={onLoginBoxClose} className="login-popup__box__actions__left__dismiss">Dismiss</button>
             </div>
             <div className="login-popup__box__actions__right">
-            <PopoverDp.Wrapper>
-              <button className="login-popup__box__actions__right__join">Join the network</button>
-              <PopoverDp.Pane position="bottom-right">
-                <div>Join as member</div>
-                <div>Join as Team</div>
+              <PopoverDp.Wrapper>
+              <button className="login-popup__box__actions__right__join">Join the network <img src='/icons/dropdown-white.svg' alt='down arrow'/></button>
+              <PopoverDp.Pane position="top">
+                <div className='login-popup__box__actions__right__join__pane'>
+                  <button className='login-popup__box__actions__right__join__pane__item' onClick={() => onJoinNetworkListClick('member')}>Join as Member</button>
+                  <button className='login-popup__box__actions__right__join__pane__item' onClick={() => onJoinNetworkListClick('team')}>Join as Team</button>
+                </div>
               </PopoverDp.Pane>
-            </PopoverDp.Wrapper>
-              
-              <button className="login-popup__box__actions__right__login">Login</button>
+              </PopoverDp.Wrapper>
+              <button onClick={onLoginClick} className="login-popup__box__actions__right__login">Login</button>
             </div>
           </div>
         </div>
@@ -195,6 +217,8 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn }: HuskyAiProps)
           .login-popup__box__actions {
             display: flex;
             justify-content: space-between;
+            flex-direction: column-reverse;
+            gap: 8px;
           }
           .login-popup__box__actions__left__dismiss {
             border: 1px solid #cbd5e1;
@@ -203,10 +227,12 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn }: HuskyAiProps)
             background: white;
             font-size: 14px;
             font-weight: 500;
+            width: 100%;
           }
           .login-popup__box__actions__right {
             display: flex;
             gap: 8px;
+            flex-direction: column;
           }
           .login-popup__box__actions__right__join {
             border-radius: 8px;
@@ -215,7 +241,32 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn }: HuskyAiProps)
             color: white;
             font-size: 14px;
             font-weight: 500;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
           }
+
+          .login-popup__box__actions__right__join__pane {
+            width: 100%;
+            padding: 5px;
+          }
+
+          .login-popup__box__actions__right__join__pane__item {
+            padding: 5px 15px;
+            font-size: 14px;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+          }
+
+          .login-popup__box__actions__right__join__pane__item:hover {
+            background-color: #f1f5f9;
+            border-radius: 4px;
+            transition: all .2s ease;
+          }
+
           .login-popup__box__actions__right__login {
             border-radius: 8px;
             padding: 10px 24px;
@@ -278,6 +329,26 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn }: HuskyAiProps)
           }
 
           @media (min-width: 1024px) {
+          
+          .login-popup__box__actions {
+            display: flex;
+            justify-content: space-between;
+            flex-direction: row;
+            gap: unset;
+          }
+
+          .login-popup__box__actions__left__dismiss {
+            width: unset;
+          }
+
+          .login-popup__box__actions__right { 
+            flex-direction: row;
+          }
+
+           .login-popup__box__actions__right__join {
+            width: unset;
+           }
+            
           }
         `}
       </style>

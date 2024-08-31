@@ -72,7 +72,7 @@ function HuskyDiscover(props: any) {
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">
-          {initialChats.length > 0 && <HuskyAi isLoggedIn={isLoggedIn} initialChats={initialChats} mode="blog" />}
+          {initialChats.length > 0 && <HuskyAi isLoggedIn={isLoggedIn} initialChats={initialChats} mode="blog" onClose={onDialogClose}/>}
         </div>
       </dialog>
       {isLoading && <PageLoader/>}

@@ -33,7 +33,7 @@ function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowu
       <style jsx>
         {`
           .chat__suggestions {
-           
+           width: 100%;
           }
           .chat__suggestions__title {
             font-size: 12px;

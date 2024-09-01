@@ -2,20 +2,18 @@ import Markdown from 'markdown-to-jsx';
 import { useRef } from 'react';
 import Modal from '../modal';
 import FeedbackModal from './feedback-modal';
+import CopyText from '../copy-text';
 
 interface HuskyChatAnswerProps {
   mode: 'blog' | 'chat';
   answer: string;
+  isLastIndex: boolean;
+  question: string;
+  onQuestionEdit: (ques: string) => void;
+  onRegenerate: (ques: string) => Promise<void>
 }
-function HuskyChatAnswer({ mode, answer }: HuskyChatAnswerProps) {
-  const anchorWrapper = (props: any) => (
-    <a style={{ color: 'blue' }} target="_blank" href={props.href}>
-      {`[`}
-      {props.children}
-      {`]`}
-    </a>
-  );
-
+function HuskyChatAnswer({ mode, answer, isLastIndex, question, onQuestionEdit, onRegenerate }: HuskyChatAnswerProps) {
+  const anchorWrapper = (props: any) => <a style={{color: 'blue'}} target='_blank' href={props.href}>{`[`}{props.children}{`]`}</a>
   const feedbackModalRef = useRef<HTMLDialogElement>(null);
 
   const onCloseModal = (e: any) => {
@@ -30,8 +28,7 @@ function HuskyChatAnswer({ mode, answer }: HuskyChatAnswerProps) {
       feedbackModalRef.current.showModal();
     }
   };
-
-  return (
+ return (
     <>
       <div className="chat__ans">
         {mode !== 'blog' && (
@@ -46,12 +43,9 @@ function HuskyChatAnswer({ mode, answer }: HuskyChatAnswerProps) {
         {mode !== 'blog' && (
           <div className="chat__ansactions">
             <div className={`chat__ansactions__cn`}>
-              <img src="/icons/refresh-circle.svg" />
-              <img src="/icons/line.svg" />
-              <img src="/icons/edit-chat.svg" />
-              <img src="/icons/line.svg" />
-              <img src="/icons/copy.svg" />
-              <img src="/icons/line.svg" />
+              {isLastIndex && <img onClick={async () => await onRegenerate(question)} className='chat__ansactions__cn__item' title='regenerate response' src="/icons/refresh-circle.svg" />}
+              {isLastIndex && <img onClick={() => onQuestionEdit(question)} className='chat__ansactions__cn__item' title='edit question' src="/icons/edit-chat.svg" />}
+              <CopyText textToCopy={answer}> <img className='chat__ansactions__cn__item--copy' title='copy response' src="/icons/copy.svg" /></CopyText>
               <img onClick={onOpenModal} src="/icons/feedback.svg" />
             </div>
           </div>
@@ -61,21 +55,8 @@ function HuskyChatAnswer({ mode, answer }: HuskyChatAnswerProps) {
 
       <style jsx>
         {`
-          .anchor {
-            color: green;
-          }
-          a {
-            color: red;
-          }
-          [data-type='link'] {
-            color: blue;
-          }
-          [data-type='link']::before {
-            content: '[';
-          }
-          [data-type='link']::after {
-            content: ']';
-          }
+          
+         
           .chat__ans {
             font-size: 14px;
             font-weight: 400;
@@ -84,6 +65,7 @@ function HuskyChatAnswer({ mode, answer }: HuskyChatAnswerProps) {
             flex-direction: column;
             gap: 16px;
             border-radius: 8px;
+            width:100%;
           }
           .chat__ans__text {
             font-size: 14px;
@@ -121,6 +103,14 @@ function HuskyChatAnswer({ mode, answer }: HuskyChatAnswerProps) {
           .chat__ansactions__cn {
             display: flex;
             gap: 16px;
+            align-items: center;
+          }
+          .chat__ansactions__cn__item {
+           cursor: pointer;
+          }
+
+          .chat__ansactions__cn__item--copy {
+           margin-top: 4px;
           }
         `}
       </style>

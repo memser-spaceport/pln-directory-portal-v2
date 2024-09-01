@@ -20,7 +20,7 @@ function HuskyAsk(props: any) {
     { name: 'PROJECTS', key: 'projects', icon: '' },
     { name: 'IRL GATHERINGS', key: 'irls', icon: '' },
   ];
- 
+
   const onTabSelectionChanged = (v: string) => {
     setSuggestionTopic(v);
     setFilteredPrompts(promptInfos[v]);
@@ -42,14 +42,13 @@ function HuskyAsk(props: any) {
     }
   };
 
-
   useEffect(() => {
-    if(filteredPrompts.length > 0) {
-      setSelectedPromptInfo(filteredPrompts[0])
+    if (filteredPrompts.length > 0) {
+      setSelectedPromptInfo(filteredPrompts[0]);
     } else {
-      setSelectedPromptInfo(null)
+      setSelectedPromptInfo(null);
     }
-  }, [filteredPrompts])
+  }, [filteredPrompts]);
 
   useEffect(() => {
     Promise.all([getTeamPrompts(), getProjectsPrompts(), getIrlPrompts()]).then((results: any) => {
@@ -80,7 +79,7 @@ function HuskyAsk(props: any) {
               </div>
               <div className="huskyask__st__list__cn__lt">
                 {filteredPrompts.map((v: any) => (
-                  <div onClick={() => setSelectedPromptInfo(v)} className="huskyask__st__list__cn__lt__item" key={v.uid}>
+                  <div onClick={() => setSelectedPromptInfo(v)} className={`huskyask__st__list__cn__lt__item ${v?.uid === selectedPromptInfo?.uid ? 'huskyask__st__list__cn__lt__item--active': ''}`} key={v.uid}>
                     <div className="huskyask__st__list__cn__lt__item__img"></div>
                     <p className="huskyask__st__list__cn__lt__text">{v.name}</p>
                   </div>
@@ -88,8 +87,9 @@ function HuskyAsk(props: any) {
               </div>
             </div>
             <div className="huskyask__st__list__info">
-              <p>Want Husky to be able to fetch results for your teams, projects and members too?</p>
-              <button>Enroll your team</button>
+              <img alt="Add your data" src="/icons/husky-add.svg" />
+              <p className="huskyask__st__list__info__txt">Want Husky to be able to fetch results for your teams, projects and members too?</p>
+              <button className="huskyask__st__list__info__btn">Add your data</button>
             </div>
           </div>
         </div>
@@ -99,11 +99,12 @@ function HuskyAsk(props: any) {
           </div>
           <div className="huskyask__sp__content">
             <div className="huskyask__sp__content__list">
-              {selectedPromptInfo && selectedPromptInfo?.relatedQuestions.map((prompt: string) => (
-                <p key={prompt} onClick={() => onPromptItemClicked(prompt)} className="huskyask__sp__content__list__item">
-                  {prompt}
-                </p>
-              ))}
+              {selectedPromptInfo &&
+                selectedPromptInfo?.relatedQuestions.map((prompt: string) => (
+                  <p key={prompt} onClick={() => onPromptItemClicked(prompt)} className="huskyask__sp__content__list__item">
+                    {prompt}
+                  </p>
+                ))}
               {!selectedPromptInfo && <p>No suggestions available</p>}
             </div>
           </div>
@@ -156,6 +157,9 @@ function HuskyAsk(props: any) {
             border-radius: 8px;
             cursor: pointer;
           }
+          .huskyask__st__list__cn__lt__item--active {
+            background: #F1F5F9;
+          }
           .huskyask__sp__tab {
             height: 36px;
             width: 100%;
@@ -175,10 +179,10 @@ function HuskyAsk(props: any) {
             height: 310px;
             display: flex;
             gap: 8px;
+            width: 100%;
           }
           .huskyask__st__list__content {
             height: 100%;
-            width: 180px;
             gap: 16px;
             flex: 1;
             display: flex;
@@ -186,7 +190,7 @@ function HuskyAsk(props: any) {
           }
 
           .huskyask__st__list__cn__lt__item {
-            padding: 9px 16px;
+            padding: 9px 8px;
             display: flex;
             font-size: 13px;
             display: flex;
@@ -200,13 +204,17 @@ function HuskyAsk(props: any) {
             width: 24px;
             background: lightgrey;
           }
+            .huskyask__st__list__cn__lt__text {
+             flex: 1;
+            }
 
           .huskyask__st__list__cn__search {
             width: 100%;
           }
           .huskyask__st__list__cn__search__input {
             height: 40px;
-            width: 256px;
+            width: 100%;
+            max-width: 256px;
             border: 1px solid #cbd5e1;
             outline: none;
             padding: 8px 12px;
@@ -221,7 +229,7 @@ function HuskyAsk(props: any) {
           }
 
           .huskyask__st__list__info {
-            flex: 1;
+            width: 130px;
             background: #f1f5f9;
             display: flex;
             flex-direction: column;
@@ -234,9 +242,28 @@ function HuskyAsk(props: any) {
             font-weight: 400;
             gap: 20px;
           }
+          .huskyask__st__list__info__txt {
+            font-size: 12px;
+            width: 100%;
+          }
+          .huskyask__st__list__info__btn {
+            background: #156ff7;
+            color: white;
+            padding: 10px;
+            outline: none;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 1px 1px 1px rgba(15, 23, 42, 0.08);
+          }
           @media (min-width: 1024px) {
-            .huskyask__st__list__content {
-              width: 285px;
+            .huskyask__st__list__info {
+              width: 388px;
+            }
+            .huskyask__st__list__info__txt {
+              font-size: 14px;
+            }
+            .huskyask__st__list__cn__lt__item {
+              padding: 9px 16px;
             }
           }
         `}

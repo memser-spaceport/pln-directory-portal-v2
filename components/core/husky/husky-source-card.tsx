@@ -26,6 +26,7 @@ function HuskySourceCard({ sources }: HuskySourceCardProps) {
       <style jsx>
         {`
           .sources {
+            width: 280px;
             display: flex;
             width: 270px;
             flex-direction: column;
@@ -64,24 +65,22 @@ function HuskySourceCard({ sources }: HuskySourceCardProps) {
             width: 18px;
             height: 18px;
             border-radius: 50%;
-            background: #E2E8F0;
+            background: #e2e8f0;
             font-size: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
           }
-            .sources__item__head__title {
-             font-size: 12px;
-             font-weight: 500;
+          .sources__item__head__title {
+            font-size: 12px;
+            font-weight: 500;
+          }
+
+          @media (min-width: 1024px) {
+            .sources {
+              width: 327px;
             }
-
-            @media(min-width: 1024px) {
-
-             .sources { 
-                width: 327px;
-             }
-
-            }
+          }
         `}
       </style>
     </>

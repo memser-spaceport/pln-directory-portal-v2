@@ -7,14 +7,15 @@ interface HuskyChatQuestion {
     question: string,
     shareCount?:number,
     viewCount?: number,
+    onShareClicked?: () => Promise<void>
     sources: any[]
 }
-function HuskyChatQuestion({question, shareCount, viewCount, sources}: HuskyChatQuestion) {
+function HuskyChatQuestion({question, shareCount, viewCount, sources, onShareClicked}: HuskyChatQuestion) {
   return (
     <>
       <div className="chat__ques">
         <h2 className="chat__ques">{question}</h2>
-        <div className="chat__quesactions">
+        {(sources.length > 0 || viewCount || shareCount) && <div className="chat__quesactions">
           <div className="chat__quesactions__cn">
             {(sources && sources.length > 0) &&  <PopoverDp.Wrapper>
               <InfoBox info={`${sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
@@ -22,15 +23,15 @@ function HuskyChatQuestion({question, shareCount, viewCount, sources}: HuskyChat
                 <HuskySourceCard sources={sources}/>
               </PopoverDp.Pane>
             </PopoverDp.Wrapper>}
-            {shareCount && <CopyText textToCopy={`${window.location.hostname}?`}><InfoBox info="Share" imgUrl="/icons/share-blue.svg" moreInfo={`${shareCount}`} /></CopyText>}
+            {shareCount && <CopyText onCopyCallback={onShareClicked} textToCopy={`${window.location.hostname}?`}><InfoBox info="Share" imgUrl="/icons/share-blue.svg" moreInfo={`${shareCount}`} /></CopyText>}
           </div>
-          <div className="chat__quesactions__cn">
+          {viewCount && <div className="chat__quesactions__cn">
             <div className="chat__quesactions__cn__view">
               <img src="/icons/view-icon.svg" />
-              {viewCount && <p>{viewCount}</p>}
+              <p>{viewCount}</p>
             </div>
-          </div>
-        </div>
+          </div>}
+        </div>}
       </div>
       <style jsx>
         {`
@@ -38,6 +39,7 @@ function HuskyChatQuestion({question, shareCount, viewCount, sources}: HuskyChat
             display: flex;
             flex-direction: column;
             gap: 16px;
+            width: 100%;
           }
           .chat__ques__title {
             font-size: 22px;

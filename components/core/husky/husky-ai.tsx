@@ -4,7 +4,7 @@ import HuskyInputBox from './husky-input-box';
 import HuskyAsk from './husky-ask';
 import HuskyChat from './husy-chat';
 import RoundedTabs from '@/components/ui/rounded-tabs';
-import { getHuskyReponse } from '@/services/husky.service';
+import { getHuskyReponse, incrementHuskyShareCount } from '@/services/husky.service';
 import PageLoader from '../page-loader';
 import { PopoverDp } from '../popover-dp';
 import HuskyAnswerLoader from './husky-answer-loader';
@@ -15,10 +15,11 @@ interface HuskyAiProps {
   mode?: 'blog' | 'chat';
   initialChats?: any[];
   isLoggedIn: boolean;
+  blogId?: string;
   onClose?:() => void;
 }
 
-function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, onClose }: HuskyAiProps) {
+function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose }: HuskyAiProps) {
   const [tab, setTab] = useState('What can I ask?');
   const [chats, setChats] = useState<any[]>(initialChats);
   const [isLoading, setLoadingStatus] = useState(false);
@@ -47,6 +48,13 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, onClose }: Husk
     setChats([result.data]);
   };
 
+  const onShareClicked = async () => {
+    console.log(blogId)
+    if(blogId) {
+      await incrementHuskyShareCount(blogId)
+    }
+  }
+
   const onLoginBoxClose = () => {
     setLoginBoxStatus(false)
   }
@@ -54,6 +62,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, onClose }: Husk
   const onSourceSelected = (value: string) => {
     setSelectedSource(value)
   }
+
 
   const onFollowupClicked = async (question: string) => {
     if (!isLoggedIn) {
@@ -78,6 +87,14 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, onClose }: Husk
     setAnswerLoadingStatus(false)
     setChats((v) => [...v, result.data]);
   };
+
+  const onQuestionEdit = (question: string) => {
+    document.dispatchEvent(new CustomEvent('husky-ai-input', {detail: question}))
+  }
+
+  const onRegenarate = (question: string) => {
+
+  }
 
   const onHuskyInput = async (query: string) => {
     let chatUid = threadId;
@@ -120,8 +137,8 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, onClose }: Husk
 
   useEffect(() => {
    if(isAnswerLoading) {
-    let test = document.getElementById('answer-loader');
-    test?.scrollIntoView({behavior: 'instant'});
+    const loader = document.getElementById('answer-loader');
+    loader?.scrollIntoView({behavior: 'instant'});
    }
   }, [isAnswerLoading])
 
@@ -136,11 +153,11 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, onClose }: Husk
             <HuskyAsk onPromptClicked={onPromptClicked} />
           </div>
           <div ref={chatCnRef} className={`${tab === 'Exploration' ? 'huskyai__selection' : 'huskyai__selection--hidden'}`}>
-            <HuskyChat isAnswerLoading={isAnswerLoading} chats={chats} onFollowupClicked={onFollowupClicked} mode="chat" />
+            <HuskyChat onRegenerate={onHuskyInput}  onQuestionEdit={onQuestionEdit} onPromptClicked={onPromptClicked} isAnswerLoading={isAnswerLoading} chats={chats} onFollowupClicked={onFollowupClicked} mode="chat" />
             {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion}/>}
           </div>
           <div className="huskyai__input">
-            <HuskyInputBox selectedSource={selectedSource} onSourceSelected={onSourceSelected} onHuskyInput={onHuskyInput} />
+            <HuskyInputBox isAnswerLoading={isAnswerLoading} selectedSource={selectedSource} onSourceSelected={onSourceSelected} onHuskyInput={onHuskyInput} />
           </div>
         </div>
       )}
@@ -148,7 +165,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, onClose }: Husk
       {mode === 'blog' && (
         <div className="huskyai">
           <div ref={chatCnRef} className="huskyai__cn">
-            <HuskyChat isAnswerLoading={isAnswerLoading} chats={chats} onFollowupClicked={onFollowupClicked} mode="blog" />
+            <HuskyChat onRegenerate={onHuskyInput}  onQuestionEdit={onQuestionEdit} onPromptClicked={onPromptClicked} onShareClicked={onShareClicked} isAnswerLoading={isAnswerLoading} chats={chats} onFollowupClicked={onFollowupClicked} mode="blog" />
             {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion}/>}
           </div>
         </div>
@@ -193,6 +210,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, onClose }: Husk
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 2;
           }
           .login-popup__box {
             background: white;

@@ -15,20 +15,23 @@ function HuskyAnswerLoader(props: any) {
           <div className="husky-loader__ans__line"></div>
           <div className="husky-loader__ans__line"></div>
         </div>
+        <div className="husky-loader__info">
+          <p className="husky-loader__info__text">Please wait, Husky is generating a response.</p>
+        </div>
       </div>
       <style jsx>
         {`
           .husky-loader {
-           width: 100%;
-           padding: 0 24px;
-           display: flex;
-           flex-direction: column;
-           gap: 8px;
+            width: 100%;
+            padding: 0 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
           }
-           .husky-loader__sources {
+          .husky-loader__sources {
             padding: 16px 0;
-
-           }
+          }
           .husky-loader__ans {
             width: 100%;
             display: flex;
@@ -44,6 +47,23 @@ function HuskyAnswerLoader(props: any) {
             border-radius: 4px;
             animation: shimmer 1.5s infinite;
           }
+          .husky-loader__info__text {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid lightgrey;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+          }
+          .husky-loader__info {
+            width: 100%;
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+          }
 
           @keyframes shimmer {
             0% {
@@ -53,6 +73,8 @@ function HuskyAnswerLoader(props: any) {
               background-position: 200% 0;
             }
           }
+
+          
         `}
       </style>
     </>

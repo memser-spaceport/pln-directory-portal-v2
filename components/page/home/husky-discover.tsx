@@ -3,7 +3,7 @@
 import HuskyAi from '@/components/core/husky/husky-ai';
 import HuskyChat from '@/components/core/husky/husy-chat';
 import PageLoader from '@/components/core/page-loader';
-import { getHuskyResponseBySlug } from '@/services/husky.service';
+import { getHuskyResponseBySlug, incrementHuskyShareCount, incrementHuskyViewCount } from '@/services/husky.service';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { Suspense, use, useEffect, useRef, useState } from 'react';
@@ -16,6 +16,7 @@ function HuskyDiscover(props: any) {
   const router = useRouter()
   const modalCode = searchParams.get('showmodal');
   const huskyShareId = searchParams.get('discoverid');
+  const [slugId, setSlugId] = useState(huskyShareId ?? '');
   const [initialChats, setInitialChats] = useState<any[]>([])
   const [isLoading, setLoadingStatus] = useState(false);
 
@@ -26,12 +27,24 @@ function HuskyDiscover(props: any) {
       router.push('/')
     }
   };
+  const increaseViewAndShow = (data: any) => {
+   incrementHuskyViewCount(data.slug)
+    .then(() => {
+      if(data && dialogRef.current) {
+        setSlugId(data.slug)
+        console.log(data.slug)
+        setInitialChats([data])
+        dialogRef.current.showModal();
+       }
+    })
+    .catch(e => console.error(e))
+    .finally(() => {})
+  }
 
   useEffect(() => {
     function dialogHandler(e: any) {
       if (dialogRef.current) {
-        setInitialChats([e?.detail])
-        dialogRef.current.showModal();
+        increaseViewAndShow(e?.detail)
       }
     }
     document.addEventListener('open-husky-discover', dialogHandler);
@@ -44,7 +57,7 @@ function HuskyDiscover(props: any) {
     if(modalCode === 'husky' && huskyShareId) {
       setLoadingStatus(true)
       
-      getHuskyResponseBySlug(huskyShareId)
+      getHuskyResponseBySlug(huskyShareId, true)
       .then(result => {
         if(result.data && dialogRef.current) {
           setInitialChats([result.data]);
@@ -72,7 +85,7 @@ function HuskyDiscover(props: any) {
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">
-          {initialChats.length > 0 && <HuskyAi isLoggedIn={isLoggedIn} initialChats={initialChats} mode="blog" onClose={onDialogClose}/>}
+          {initialChats.length > 0 && <HuskyAi blogId={slugId} isLoggedIn={isLoggedIn} initialChats={initialChats} mode="blog" onClose={onDialogClose} />}
         </div>
       </dialog>
       {isLoading && <PageLoader/>}

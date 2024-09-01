@@ -12,7 +12,9 @@ const CopyText = ({ textToCopy, children, onCopyCallback }: CopyTextProps) => {
     // Copy text to clipboard
     await navigator.clipboard.writeText(textToCopy);
     setCopied(true);
+    console.log(typeof onCopyCallback)
     if(onCopyCallback) {
+      console.log('calling')
       await onCopyCallback();
     }
     // Hide the message after 3 seconds
@@ -31,6 +33,8 @@ const CopyText = ({ textToCopy, children, onCopyCallback }: CopyTextProps) => {
         .cn {
           position: relative;
           cursor: pointer;
+          height: auto;
+          width:auto;
         }
         .cn__copied {
           position: absolute;

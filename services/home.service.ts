@@ -46,7 +46,6 @@ export const getDiscoverData = async () => {
   });
 
   const result = await response.json();
-
   const formattedResult = result?.map((res: any) => {
     return {
       uid: res.uid,
@@ -58,6 +57,7 @@ export const getDiscoverData = async () => {
       followupQuestions: res.relatedQuestions.map((v: any) => v.content),
       viewCount: formatNumber(res.viewCount),
       shareCount: formatNumber(res.shareCount),
+      slug: res.slug
     };
   });
 

@@ -23,7 +23,7 @@ export const getHuskyReponse = async (query: string, source: string, chatUid: st
 
   const huskyResponse = await queryResponse.json();
 
-  /* const augementResponse =  await fetch(`${process.env.HUSKY_API_URL}/augumented_info`, {
+    const augementResponse =  await fetch(`${process.env.HUSKY_API_URL}/augumented_info`, {
     cache: 'no-store',
     method: 'POST',
     body: JSON.stringify({
@@ -43,17 +43,60 @@ export const getHuskyReponse = async (query: string, source: string, chatUid: st
       }
    }
 
-   const augmentedResult = await augementResponse.json(); */
+  const augmentedResult = await augementResponse.json();
+  const actions = {
+    teams: augmentedResult?.augumented_info?.company ?? [],
+    members:  augmentedResult?.augumented_info?.members ?? [],
+    projects: augmentedResult?.augumented_info?.project ?? [],
+  }
+  const formattedActions = {
+    teams: actions.teams.map((v:any) => {
+      return {
+        name: v.name,
+        link: v.directory_link,
+        type: 'team',
+        desc: v.about
+        
+      }
+    }).slice(0,2),
+    members: actions.members.map((v:any) => {
+      return {
+        name: v.name,
+        link: v.directory_link,
+        type: 'member',
+        desc: `Part of ${v.organization}`
+      }
+    }).slice(0,2),
+    projects: actions.projects.map((v:any) => {
+      return {
+        name: v.name,
+        link: v.directory_link,
+        type: 'project',
+        desc: v.tagline
+      }
+    }).slice(0,2)
+  }
+  const answerSourceLinks = huskyResponse.Source_list.filter((item: any) => {
+    if(item.link !== 'None' && item.title !== 'None' && item.description !== 'None') {
+      return true;
+    }
+    return false
+  });
+
   return {
     data: {
       question: huskyResponse.Query,
       answer: huskyResponse.Response.answer,
-      answerSourceLinks: huskyResponse.Source_list,
+      answerSourceLinks,
       answerSourcedFrom: source,
       followupQuestions: huskyResponse.Followup_Questions,
+      augmentedResult,
+      actions: fetchItemsFromArrays(formattedActions.teams, formattedActions.members, formattedActions.projects)
     },
   };
 };
+
+
 
 export const incrementHuskyViewCount = async (slug: string) => {
   try {
@@ -169,3 +212,24 @@ export const getIrlPrompts = async () => {
     };
   });
 };
+type Item = { name: string; link: string, type: string };
+function fetchItemsFromArrays(arr1: Item[], arr2: Item[], arr3: Item[]): Item[] {
+  const items: Item[] = [];
+  const arrays: Item[][] = [arr1, arr2, arr3];
+
+  // Try to take one item from each array
+  for (const array of arrays) {
+      if (array.length > 0) {
+          items.push(array.shift()!); // Non-null assertion since we check length
+      }
+  }
+
+  // If less than 3 items were collected, fill in from the remaining items
+  for (const array of arrays) {
+      while (items.length < 3 && array.length > 0) {
+          items.push(array.shift()!);
+      }
+  }
+
+  return items;
+}

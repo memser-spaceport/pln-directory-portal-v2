@@ -2,6 +2,7 @@ const DiscoverCard = (props: any) => {
   const data = props.data;
 
   const onDiscoverCardClick = () => {
+    console.log(data)
     document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: data }));
   };
 

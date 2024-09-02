@@ -1,5 +1,12 @@
-const DiscoverHuskyCard = () => {
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+
+const DiscoverHuskyCard = (props:any) => {
+  const analytics = useHomeAnalytics();
+  const userInfo = props?.userInfo;
+
   const onHuskyClick = () => {
+    analytics.onDiscoverHuskyClicked({from:"home page"}, getAnalyticsUserInfo(userInfo))
     document.dispatchEvent(new CustomEvent('open-husky-dialog'));
   };
 

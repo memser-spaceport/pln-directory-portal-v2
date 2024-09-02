@@ -58,29 +58,55 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_IRL_CARD_CLICKED, params);
   }
 
-  function onFeaturedCarouselActionsClicked(user: IAnalyticsUserInfo | null) {
-    const params = {
-      user,
-    };
-    captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_CAROUSEL_ACTIONS_CLICKED, params);
-  }
-
   function onFocusAreaTeamsClicked(user: IAnalyticsUserInfo | null | undefined, focusedArea: IAnalyticsFocusArea | null) {
     const params = {
       user,
-      focusedArea
+      focusedArea,
     };
     captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_TEAMS_CLICKED, params);
   }
 
-
   function onFocusAreaProjectsClicked(user: IAnalyticsUserInfo | null | undefined, focusedArea: IAnalyticsFocusArea | null) {
     const params = {
       user,
-      focusedArea
+      focusedArea,
     };
     captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_PROJECT_CLICKED, params);
   }
 
-  return { featuredSubmitRequestClicked, onMemberCardClicked, onIrlCardClicked, onTeamCardClicked, onProjectCardClicked, onFeaturedCarouselActionsClicked, onFocusAreaTeamsClicked, onFocusAreaProjectsClicked };
+  function onDiscoverCarouselActionsClicked(user: IAnalyticsUserInfo | null) {
+    const params = {
+      user,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.DISCOVER_CAROUSEL_ACTIONS_CLICKED, params);
+  }
+
+  function onDiscoverCardClicked(data: any, user: IAnalyticsUserInfo | null) {
+    const params = {
+      discoverData: data,
+      user,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.DISCOVER_CARD_CLICKED, params);
+  }
+
+  function onDiscoverHuskyClicked(data: any, user: IAnalyticsUserInfo | null) {
+    const params = {
+      ...data,
+      user,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.DISCOVER_HUSKY_AI_CLICKED, params);
+  }
+
+  return {
+    featuredSubmitRequestClicked,
+    onMemberCardClicked,
+    onIrlCardClicked,
+    onTeamCardClicked,
+    onProjectCardClicked,
+    onFocusAreaTeamsClicked,
+    onFocusAreaProjectsClicked,
+    onDiscoverCarouselActionsClicked,
+    onDiscoverCardClicked,
+    onDiscoverHuskyClicked,
+  };
 };

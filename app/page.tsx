@@ -26,7 +26,7 @@ export default async function Home() {
         </div>
         {/* Discover section */}
         <div className={styles.home__cn__discover}>
-          <Discover discoverData={discoverData} />
+          <Discover discoverData={discoverData}  userInfo={userInfo} />
         </div>
         {/* Featured section */}
         <div className={styles.home__cn__featured}>

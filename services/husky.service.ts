@@ -119,7 +119,7 @@ export const getHuskyReponse = async (query: string, source: string, chatUid: st
       answerSourceLinks,
       answerSourcedFrom: source,
       followupQuestions: huskyResponse.Followup_Questions,
-      actions: isBlog ? fetchItemsFromArrays(formattedActions.teams, formattedActions.members, formattedActions.projects) : [],
+      actions: !isBlog ? fetchItemsFromArrays(formattedActions.teams, formattedActions.members, formattedActions.projects) : [],
     },
   };
 };

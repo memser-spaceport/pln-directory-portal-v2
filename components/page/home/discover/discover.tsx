@@ -82,6 +82,7 @@ const Discover = (props: any) => {
             <button
               className={`discover__ftr__actions__left ${prevBtnDisabled ? 'disabled' : ''}`}
               onClick={() => {
+                analytics.onDiscoverCarouselActionsClicked(getAnalyticsUserInfo(userInfo));
                 onPrevButtonClick();
               }}
             >
@@ -90,6 +91,7 @@ const Discover = (props: any) => {
             <button
               className={`discover__ftr__actions__right ${nextBtnDisabled ? 'disabled' : ''}`}
               onClick={() => {
+                analytics.onDiscoverCarouselActionsClicked(getAnalyticsUserInfo(userInfo));
                 onNextButtonClick();
               }}
             >

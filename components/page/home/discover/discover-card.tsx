@@ -1,8 +1,14 @@
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+
 const DiscoverCard = (props: any) => {
   const data = props.data;
+  const userInfo = props?.userInfo;
+
+  const analytics = useHomeAnalytics();
 
   const onDiscoverCardClick = () => {
-    console.log(data)
+    analytics.onDiscoverCardClicked(data, getAnalyticsUserInfo(userInfo));
     document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: data }));
   };
 

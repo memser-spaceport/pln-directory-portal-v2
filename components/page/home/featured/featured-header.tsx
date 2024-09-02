@@ -1,29 +1,13 @@
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
-const FeaturedHeader = ({
-  onPrevButtonClick,
-  onNextButtonClick,
-  prevBtnDisabled,
-  nextBtnDisabled,
-  userInfo,
-}: {
-  onPrevButtonClick: () => void;
-  onNextButtonClick: () => void;
-  prevBtnDisabled: boolean;
-  nextBtnDisabled: boolean;
-  userInfo: any;
-}) => {
+const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
   const FEATURED_REQUEST_URL = process.env.FEATURED_REQUEST_URL;
 
   const analytics = useHomeAnalytics();
 
   const onSumbitRequestClick = () => {
     analytics.featuredSubmitRequestClicked(getAnalyticsUserInfo(userInfo), FEATURED_REQUEST_URL as string);
-  };
-
-  const onFeaturedActionsClick = () => {
-    analytics.onFeaturedCarouselActionsClicked(getAnalyticsUserInfo(userInfo));
   };
 
   return (
@@ -43,26 +27,6 @@ const FeaturedHeader = ({
             </span>
           </div>
         </div>
-        {/* <div className="featured__hdr__actions">
-          <button
-            className={`featured__hdr__actions__left ${prevBtnDisabled ? 'disabled' : ''}`}
-            onClick={() => {
-              onPrevButtonClick();
-              onFeaturedActionsClick();
-            }}
-          >
-            <img className="featured__hdr__actions__left__img" src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'} alt="left arrow" />
-          </button>
-          <button
-            className={`featured__hdr__actions__right ${nextBtnDisabled ? 'disabled' : ''}`}
-            onClick={() => {
-              onNextButtonClick();
-              onFeaturedActionsClick();
-            }}
-          >
-            <img className="featured__hdr__actions__right__img" src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'} alt="right arrow" />
-          </button>
-        </div> */}
       </div>
       <style jsx>{`
         .featured__hdr {

@@ -7,16 +7,21 @@ import DiscoverCard from './discover-card';
 import DiscoverHuskyCard from './discover-husky-card';
 import { formatDiscoverData } from '@/utils/home.utils';
 import { Fragment } from 'react';
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 const Discover = (props: any) => {
   const discoverData = props?.discoverData;
   const formattedDiscoverData = formatDiscoverData(discoverData);
+  const userInfo = props?.userInfo;
 
+  const analytics = useHomeAnalytics();
   const options: EmblaOptionsType = {};
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const { onPrevButtonClick, onNextButtonClick, prevBtnDisabled, nextBtnDisabled } = usePrevNextButtons(emblaApi);
 
   const onHuskyClick = () => {
+    analytics.onDiscoverHuskyClicked({ from: 'home page' }, getAnalyticsUserInfo(userInfo));
     document.dispatchEvent(new CustomEvent('open-husky-dialog'));
   };
 
@@ -24,10 +29,10 @@ const Discover = (props: any) => {
     const isHusky = data.type === 'discoverhusky';
 
     if (isHusky) {
-      return <DiscoverHuskyCard />;
+      return <DiscoverHuskyCard userInfo={userInfo} />;
     }
 
-    return <DiscoverCard data={data} />;
+    return <DiscoverCard data={data} userInfo={userInfo} />;
   };
 
   return (

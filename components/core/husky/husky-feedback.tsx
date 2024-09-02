@@ -65,6 +65,7 @@ const HuskyFeedback = (props: any) => {
                   type="button"
                   onClick={() => onRatingClickHandler(index + 1)}
                   className={`feedback__body__ratingCn__rating ${ratingInfo?.rating === index + 1 ? 'selected' : ''} `}
+                  style={{ backgroundColor: rating.backgroundColor }}
                   key={`${rating}+${index}`}
                 >
                   {rating.value}
@@ -145,6 +146,7 @@ const HuskyFeedback = (props: any) => {
           gap: 10px;
           padding: 24px;
           background: white;
+          border-radius: 12px;
         }
         .feedback__hdr__ttl {
           font-size: 24px;

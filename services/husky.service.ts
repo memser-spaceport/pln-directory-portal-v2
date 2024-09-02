@@ -44,7 +44,7 @@ export const getHuskyReponse = async (query: string, source: string, chatUid: st
 
   const huskyResponse = await queryResponse.json();
   let formattedActions: any;
-  if (isBlog) {
+  if (!isBlog) {
     const augementResponse = await fetch(`${process.env.HUSKY_API_URL}/augumented_info`, {
       cache: 'no-store',
       method: 'POST',

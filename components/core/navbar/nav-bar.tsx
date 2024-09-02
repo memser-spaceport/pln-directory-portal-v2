@@ -394,11 +394,11 @@ export default function Navbar(props: Readonly<INavbar>) {
 
           @media (min-width: 1024px) {
             .nb {
-              padding: 0 48px 0 54px;
+              padding: 0 48px 0 48px;
             }
             .nb__left {
               display: flex;
-              gap: 92px;
+              gap: 10px;
               align-items: center;
             }
 

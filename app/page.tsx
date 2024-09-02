@@ -7,6 +7,8 @@ import Discover from '@/components/page/home/discover/discover';
 import LandingFocusAreas from '@/components/page/home/focus-area/focus-area-section';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-area';
+import HuskyDialog from '@/components/page/home/husky-dialog';
+import HuskyDiscover from '@/components/page/home/husky-discover';
 
 export default async function Home() {
   const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
@@ -15,7 +17,7 @@ export default async function Home() {
     return <Error />;
   }
 
-  return (
+  return <>
     <div className={styles.home}>
       <div className={styles.home__cn}>
         {/* Focus Area section */} 
@@ -24,7 +26,7 @@ export default async function Home() {
         </div>
         {/* Discover section */}
         <div className={styles.home__cn__discover}>
-          <Discover discoverData={discoverData} />
+          <Discover discoverData={discoverData}  userInfo={userInfo} />
         </div>
         {/* Featured section */}
         <div className={styles.home__cn__featured}>
@@ -32,7 +34,9 @@ export default async function Home() {
         </div>
       </div>
     </div>
-  );
+    <HuskyDialog isLoggedIn={isLoggedIn}/>
+    <HuskyDiscover isLoggedIn={isLoggedIn}/>
+    </>
 }
 
 const getPageData = async () => {

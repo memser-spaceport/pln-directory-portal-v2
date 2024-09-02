@@ -1,9 +1,20 @@
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+
 const DiscoverCard = (props: any) => {
   const data = props.data;
+  const userInfo = props?.userInfo;
+
+  const analytics = useHomeAnalytics();
+
+  const onDiscoverCardClick = () => {
+    analytics.onDiscoverCardClicked(data, getAnalyticsUserInfo(userInfo));
+    document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: data }));
+  };
 
   return (
     <>
-      <div className="discover-card">
+      <div className="discover-card" onClick={onDiscoverCardClick}>
         <div className="discover-card__pattern">
           <picture>
             <source media="(max-width: 1024px)" srcSet={data.image?.mob} />

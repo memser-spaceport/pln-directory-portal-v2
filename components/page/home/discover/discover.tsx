@@ -7,24 +7,32 @@ import DiscoverCard from './discover-card';
 import DiscoverHuskyCard from './discover-husky-card';
 import { formatDiscoverData } from '@/utils/home.utils';
 import { Fragment } from 'react';
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 const Discover = (props: any) => {
   const discoverData = props?.discoverData;
   const formattedDiscoverData = formatDiscoverData(discoverData);
+  const userInfo = props?.userInfo;
 
+  const analytics = useHomeAnalytics();
   const options: EmblaOptionsType = {};
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const { onPrevButtonClick, onNextButtonClick, prevBtnDisabled, nextBtnDisabled } = usePrevNextButtons(emblaApi);
 
-  const onDiscoverCardClick = () => {};
+  const onHuskyClick = () => {
+    analytics.onDiscoverHuskyClicked({ from: 'home page' }, getAnalyticsUserInfo(userInfo));
+    document.dispatchEvent(new CustomEvent('open-husky-dialog'));
+  };
 
   const renderCard = (data: any) => {
     const isHusky = data.type === 'discoverhusky';
+
     if (isHusky) {
-      return <DiscoverHuskyCard />;
+      return <DiscoverHuskyCard userInfo={userInfo} />;
     }
 
-    return <DiscoverCard data={data} />;
+    return <DiscoverCard data={data} userInfo={userInfo} />;
   };
 
   return (
@@ -37,7 +45,10 @@ const Discover = (props: any) => {
             <h3 className="discover__hdr__ttl__txt">Discover</h3>
           </div>
           <p className="discover__hdr__desc">
-            Explore the Protocol Labs network with <a className="discover__hdr__desc__husky">HuskyAI</a>
+            Explore the Protocol Labs network with{' '}
+            <button onClick={onHuskyClick} className="discover__hdr__desc__husky">
+              HuskyAI
+            </button>
           </p>
         </div>
         {/* Carousel */}
@@ -71,6 +82,7 @@ const Discover = (props: any) => {
             <button
               className={`discover__ftr__actions__left ${prevBtnDisabled ? 'disabled' : ''}`}
               onClick={() => {
+                analytics.onDiscoverCarouselActionsClicked(getAnalyticsUserInfo(userInfo));
                 onPrevButtonClick();
               }}
             >
@@ -79,6 +91,7 @@ const Discover = (props: any) => {
             <button
               className={`discover__ftr__actions__right ${nextBtnDisabled ? 'disabled' : ''}`}
               onClick={() => {
+                analytics.onDiscoverCarouselActionsClicked(getAnalyticsUserInfo(userInfo));
                 onNextButtonClick();
               }}
             >
@@ -140,6 +153,7 @@ const Discover = (props: any) => {
           line-height: 24px;
           color: #156ff7;
           cursor: pointer;
+          background: transparent;
         }
 
         .discover__body {

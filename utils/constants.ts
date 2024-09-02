@@ -329,7 +329,10 @@ export const HOME_ANALYTICS_EVENTS = {
   FEATUTRED_TEAM_CARD_CLICKED:'featured-team-card-clicked',
   FEATURED_IRL_CARD_CLICKED:'featured-irl-card-clicked',
   FEATURED_PROJECT_CARD_CLICKED:'featured-project-card-clicked',
-  FEATURED_CAROUSEL_ACTIONS_CLICKED:'featured-carousel-actions-clicked'
+
+  DISCOVER_CAROUSEL_ACTIONS_CLICKED:'discover-carousel-actions-clicked',
+  DISCOVER_CARD_CLICKED:'discover-card-clicked',
+  DISCOVER_HUSKY_AI_CLICKED:'discover-husky-ai-clicked'
 };
 
 export const HOME = {

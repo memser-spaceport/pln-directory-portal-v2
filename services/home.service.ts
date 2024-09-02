@@ -1,7 +1,7 @@
 import { formatNumber, getFormattedEvents, getformattedMembers, getFormattedProjects, getFormattedTeams } from '@/utils/home.utils';
 
 export const getFeaturedData = async () => {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/home/featured/all`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/home/featured`;
 
   const response = await fetch(url, {
     method: 'GET',
@@ -35,7 +35,7 @@ export const getFeaturedData = async () => {
 };
 
 export const getDiscoverData = async () => {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/home/question-answers?isActive=true`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?isActive=true`;
 
   const response = await fetch(url, {
     method: 'GET',
@@ -46,7 +46,6 @@ export const getDiscoverData = async () => {
   });
 
   const result = await response.json();
-
   const formattedResult = result?.map((res: any) => {
     return {
       uid: res.uid,
@@ -58,6 +57,7 @@ export const getDiscoverData = async () => {
       followupQuestions: res.relatedQuestions.map((v: any) => v.content),
       viewCount: formatNumber(res.viewCount),
       shareCount: formatNumber(res.shareCount),
+      slug: res.slug
     };
   });
 

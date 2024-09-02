@@ -330,6 +330,13 @@ const MemberCard = (props: any) => {
             line-height: 22px;
             color: #0f172a;
             text-align: center;
+            max-height: 100%;
+            overflow: hidden;
+            white-space: normal;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
           }
 
           .member__details__bio__txt--nobio {
@@ -339,7 +346,7 @@ const MemberCard = (props: any) => {
             color: #64748b;
             align-items: center;
             display: flex;
-            height:100%;
+            height: 100%;
             justify-content: center;
           }
 

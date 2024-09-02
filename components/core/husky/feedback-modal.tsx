@@ -22,6 +22,7 @@ const FeedbackModal = (props: any) => {
 
   const onFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!feedbackFormRef.current) {
       return;
     }

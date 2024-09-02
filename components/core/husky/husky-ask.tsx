@@ -16,9 +16,9 @@ function HuskyAsk(props: any) {
   const [selectedPromptInfo, setSelectedPromptInfo] = useState<any | null>(null);
   const [filteredPrompts, setFilteredPrompts] = useState<any[]>([]);
   const suggestionTopics = [
-    { name: 'TEAMS', key: 'teams', icon: '' },
-    { name: 'PROJECTS', key: 'projects', icon: '' },
-    { name: 'IRL GATHERINGS', key: 'irls', icon: '' },
+    { name: 'TEAMS', key: 'teams', icon: '/icons/team.svg' },
+    { name: 'PROJECTS', key: 'projects', icon: '/icons/projects.svg' },
+    { name: 'IRL GATHERINGS', key: 'irls', icon: '/icons/calendar.svg' },
   ];
 
   const onTabSelectionChanged = (v: string) => {
@@ -80,10 +80,11 @@ function HuskyAsk(props: any) {
               <div className="huskyask__st__list__cn__lt">
                 {filteredPrompts.map((v: any) => (
                   <div onClick={() => setSelectedPromptInfo(v)} className={`huskyask__st__list__cn__lt__item ${v?.uid === selectedPromptInfo?.uid ? 'huskyask__st__list__cn__lt__item--active': ''}`} key={v.uid}>
-                    <div className="huskyask__st__list__cn__lt__item__img"></div>
+                    <img src={v?.logo} className="huskyask__st__list__cn__lt__item__img"/>
                     <p className="huskyask__st__list__cn__lt__text">{v.name}</p>
                   </div>
                 ))}
+                {filteredPrompts.length === 0 && <p>No results found</p>}
               </div>
             </div>
             <div className="huskyask__st__list__info">

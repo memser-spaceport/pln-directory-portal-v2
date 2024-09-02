@@ -4,32 +4,35 @@ import HuskyInputBox from './husky-input-box';
 import HuskyAsk from './husky-ask';
 import HuskyChat from './husy-chat';
 import RoundedTabs from '@/components/ui/rounded-tabs';
-import { getHuskyReponse, incrementHuskyShareCount } from '@/services/husky.service';
+import { getHuskyReponse, incrementHuskyShareCount, saveFeedback } from '@/services/husky.service';
 import PageLoader from '../page-loader';
 import { PopoverDp } from '../popover-dp';
 import HuskyAnswerLoader from './husky-answer-loader';
 import { useRouter } from 'next/navigation';
 import { EVENTS } from '@/utils/constants';
+import HuskyFeedback from './husky-feedback';
+import { getUniqueId } from '@/utils/common.utils';
 
 interface HuskyAiProps {
   mode?: 'blog' | 'chat';
   initialChats?: any[];
   isLoggedIn: boolean;
   blogId?: string;
-  onClose?:() => void;
+  onClose?: () => void;
 }
 
 function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose }: HuskyAiProps) {
+  console.log(blogId)
   const [tab, setTab] = useState('What can I ask?');
   const [chats, setChats] = useState<any[]>(initialChats);
   const [isLoading, setLoadingStatus] = useState(false);
   const [isAnswerLoading, setAnswerLoadingStatus] = useState(false);
-  const [askingQuestion, setAskingQuestion] = useState("")
+  const [feedbackQandA, setFeedbackQandA] = useState({question: '', answer: ''});
+  const [askingQuestion, setAskingQuestion] = useState('');
   const [showLoginBox, setLoginBoxStatus] = useState(false);
-  const [threadId, setThreadId] = useState<string>("");
+  const [threadId, setThreadId] = useState<string>('');
   const [selectedSource, setSelectedSource] = useState('none');
   const chatCnRef = useRef<HTMLDivElement>(null);
-
   const router = useRouter();
 
   const onTabSelected = (item: string) => {
@@ -37,32 +40,34 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const onPromptClicked = async (question: string) => {
-    const chatUid = `${Date.now()}`
+     if (!isLoggedIn) {
+      setLoginBoxStatus(true);
+      return;
+    }
+    const chatUid = `${getUniqueId()}`;
     setThreadId(chatUid);
     setAskingQuestion(question);
     setAnswerLoadingStatus(true);
     setTab('Exploration');
-    const result = await getHuskyReponse(question, selectedSource, chatUid);
-    setAskingQuestion("")
-    setAnswerLoadingStatus(false)
+    const result = await getHuskyReponse(question, selectedSource, chatUid, null, null,  mode === 'blog');
+    setAskingQuestion('');
+    setAnswerLoadingStatus(false);
     setChats([result.data]);
   };
 
   const onShareClicked = async () => {
-    console.log(blogId)
-    if(blogId) {
-      await incrementHuskyShareCount(blogId)
+    if (blogId) {
+      await incrementHuskyShareCount(blogId);
     }
-  }
+  };
 
   const onLoginBoxClose = () => {
-    setLoginBoxStatus(false)
-  }
+    setLoginBoxStatus(false);
+  };
 
   const onSourceSelected = (value: string) => {
-    setSelectedSource(value)
-  }
-
+    setSelectedSource(value);
+  };
 
   const onFollowupClicked = async (question: string) => {
     if (!isLoggedIn) {
@@ -70,54 +75,54 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       return;
     }
     let chatUid = threadId;
-    if(!threadId) {
-      chatUid = `${Date.now()}`
+    if (!threadId) {
+      chatUid = `${getUniqueId()}`;
       setThreadId(chatUid);
     }
     setAskingQuestion(question);
     setAnswerLoadingStatus(true);
-    
+
     let result: any;
-    if(mode === 'blog' && chats.length === 1) {
-      result = await getHuskyReponse(question, selectedSource, chatUid, chats[0].question, chats[0].answer);
+    if (mode === 'blog' && chats.length === 1) {
+      result = await getHuskyReponse(question, selectedSource, chatUid, chats[0].question, chats[0].answer,  mode === 'blog');
     } else {
-      result = await getHuskyReponse(question, selectedSource, chatUid);
+      result = await getHuskyReponse(question, selectedSource, chatUid, null, null,  mode === 'blog');
     }
-    setAskingQuestion("")
-    setAnswerLoadingStatus(false)
+    setAskingQuestion('');
+    setAnswerLoadingStatus(false);
     setChats((v) => [...v, result.data]);
   };
 
   const onQuestionEdit = (question: string) => {
-    document.dispatchEvent(new CustomEvent('husky-ai-input', {detail: question}))
-  }
+    document.dispatchEvent(new CustomEvent('husky-ai-input', { detail: question }));
+  };
 
-  const onRegenarate = (question: string) => {
-
-  }
+  const onFeedback = async (question: string, answer: string) => {
+    setFeedbackQandA({question: question, answer: answer})
+  };
 
   const onHuskyInput = async (query: string) => {
     let chatUid = threadId;
-    if(!threadId) {
-      chatUid = `${Date.now()}`
+    if (!threadId) {
+      chatUid = `${getUniqueId()}`;
       setThreadId(chatUid);
     }
-   
+
     if (!isLoggedIn) {
       setLoginBoxStatus(true);
       return;
     }
-    if(tab === 'What can I ask?') {
-      setChats([])
-      setTab('Exploration')
+    if (tab === 'What can I ask?') {
+      setChats([]);
+      setTab('Exploration');
     }
     setAskingQuestion(query);
     setAnswerLoadingStatus(true);
     const result = await getHuskyReponse(query, selectedSource, chatUid);
-    setAskingQuestion("")
-    setAnswerLoadingStatus(false)
+    setAskingQuestion('');
+    setAnswerLoadingStatus(false);
     setChats((v) => [...v, result.data]);
-  }
+  };
 
   const onLoginClick = () => {
     onClose && onClose();
@@ -135,12 +140,16 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     }
   };
 
+  const onCloseFeedback = () => {
+    setFeedbackQandA({question: '', answer: ''})
+  };
+
   useEffect(() => {
-   if(isAnswerLoading) {
-    const loader = document.getElementById('answer-loader');
-    loader?.scrollIntoView({behavior: 'instant'});
-   }
-  }, [isAnswerLoading])
+    if (isAnswerLoading) {
+      const loader = document.getElementById('answer-loader');
+      loader?.scrollIntoView({ behavior: 'instant' });
+    }
+  }, [isAnswerLoading]);
 
   return (
     <>
@@ -153,8 +162,18 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             <HuskyAsk onPromptClicked={onPromptClicked} />
           </div>
           <div ref={chatCnRef} className={`${tab === 'Exploration' ? 'huskyai__selection' : 'huskyai__selection--hidden'}`}>
-            <HuskyChat onRegenerate={onHuskyInput}  onQuestionEdit={onQuestionEdit} onPromptClicked={onPromptClicked} isAnswerLoading={isAnswerLoading} chats={chats} onFollowupClicked={onFollowupClicked} mode="chat" />
-            {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion}/>}
+            <HuskyChat
+              onFeedback={onFeedback}
+              onRegenerate={onHuskyInput}
+              onQuestionEdit={onQuestionEdit}
+              onPromptClicked={onPromptClicked}
+              isAnswerLoading={isAnswerLoading}
+              chats={chats}
+              blogId={blogId}
+              onFollowupClicked={onFollowupClicked}
+              mode="chat"
+            />
+            {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} />}
           </div>
           <div className="huskyai__input">
             <HuskyInputBox isAnswerLoading={isAnswerLoading} selectedSource={selectedSource} onSourceSelected={onSourceSelected} onHuskyInput={onHuskyInput} />
@@ -165,38 +184,68 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       {mode === 'blog' && (
         <div className="huskyai">
           <div ref={chatCnRef} className="huskyai__cn">
-            <HuskyChat onRegenerate={onHuskyInput}  onQuestionEdit={onQuestionEdit} onPromptClicked={onPromptClicked} onShareClicked={onShareClicked} isAnswerLoading={isAnswerLoading} chats={chats} onFollowupClicked={onFollowupClicked} mode="blog" />
-            {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion}/>}
+            <HuskyChat
+              onFeedback={onFeedback}
+              onRegenerate={onHuskyInput}
+              onQuestionEdit={onQuestionEdit}
+              onPromptClicked={onPromptClicked}
+              onShareClicked={onShareClicked}
+              isAnswerLoading={isAnswerLoading}
+              chats={chats}
+              blogId={blogId}
+              onFollowupClicked={onFollowupClicked}
+              mode="blog"
+            />
+            {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} />}
           </div>
         </div>
       )}
-     
+
+      {(feedbackQandA.answer && feedbackQandA.question)  && (
+        <div className="login-popup">
+          <HuskyFeedback setLoadingStatus={setLoadingStatus} question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
+        </div>
+      )}
+
       {isLoading && <PageLoader />}
-      {showLoginBox && <div className="login-popup">
-        <div className="login-popup__box">
-          <h3 className="login-popup__box__title">Login to continue using Husky</h3>
-          <p className="login-popup__box__desc">
-            Husky is purpose built to improve your speed & quality of learning about the Protocol Labs innovation network. Login or Join us to become part of this growing network
-          </p>
-          <div className="login-popup__box__actions">
-            <div className="login-popup__box__actions__left">
-              <button type='button' onClick={onLoginBoxClose} className="login-popup__box__actions__left__dismiss">Dismiss</button>
-            </div>
-            <div className="login-popup__box__actions__right">
-              <PopoverDp.Wrapper>
-              <button className="login-popup__box__actions__right__join">Join the network <img src='/icons/dropdown-white.svg' alt='down arrow'/></button>
-              <PopoverDp.Pane position="top">
-                <div className='login-popup__box__actions__right__join__pane'>
-                  <button className='login-popup__box__actions__right__join__pane__item' onClick={() => onJoinNetworkListClick('member')}>Join as Member</button>
-                  <button className='login-popup__box__actions__right__join__pane__item' onClick={() => onJoinNetworkListClick('team')}>Join as Team</button>
-                </div>
-              </PopoverDp.Pane>
-              </PopoverDp.Wrapper>
-              <button onClick={onLoginClick} className="login-popup__box__actions__right__login">Login</button>
+
+      {showLoginBox && (
+        <div className="login-popup">
+          <div className="login-popup__box">
+            <h3 className="login-popup__box__title">Login to continue using Husky</h3>
+            <p className="login-popup__box__desc">
+              Husky is purpose built to improve your speed & quality of learning about the Protocol Labs innovation network. Login or Join us to become part of this growing network
+            </p>
+            <div className="login-popup__box__actions">
+              <div className="login-popup__box__actions__left">
+                <button type="button" onClick={onLoginBoxClose} className="login-popup__box__actions__left__dismiss">
+                  Dismiss
+                </button>
+              </div>
+              <div className="login-popup__box__actions__right">
+                <PopoverDp.Wrapper>
+                  <button className="login-popup__box__actions__right__join">
+                    Join the network <img src="/icons/dropdown-white.svg" alt="down arrow" />
+                  </button>
+                  <PopoverDp.Pane position="top">
+                    <div className="login-popup__box__actions__right__join__pane">
+                      <button className="login-popup__box__actions__right__join__pane__item" onClick={() => onJoinNetworkListClick('member')}>
+                        Join as Member
+                      </button>
+                      <button className="login-popup__box__actions__right__join__pane__item" onClick={() => onJoinNetworkListClick('team')}>
+                        Join as Team
+                      </button>
+                    </div>
+                  </PopoverDp.Pane>
+                </PopoverDp.Wrapper>
+                <button onClick={onLoginClick} className="login-popup__box__actions__right__login">
+                  Login
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>}
+      )}
 
       <style jsx>
         {`
@@ -282,7 +331,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           .login-popup__box__actions__right__join__pane__item:hover {
             background-color: #f1f5f9;
             border-radius: 4px;
-            transition: all .2s ease;
+            transition: all 0.2s ease;
           }
 
           .login-popup__box__actions__right__login {
@@ -299,15 +348,15 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             position: relative;
             background: white;
           }
-            .overlay {
-             position: absolute;
-             top:0;
-             left:0;
-             right:0;
-             height: 100%;
-             width: 100%;
-             z-index: 10;
-            }
+          .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            z-index: 10;
+          }
           .huskyai__tab {
             position: absolute;
             width: 100%;
@@ -347,26 +396,24 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           }
 
           @media (min-width: 1024px) {
-          
-          .login-popup__box__actions {
-            display: flex;
-            justify-content: space-between;
-            flex-direction: row;
-            gap: unset;
-          }
+            .login-popup__box__actions {
+              display: flex;
+              justify-content: space-between;
+              flex-direction: row;
+              gap: unset;
+            }
 
-          .login-popup__box__actions__left__dismiss {
-            width: unset;
-          }
+            .login-popup__box__actions__left__dismiss {
+              width: unset;
+            }
 
-          .login-popup__box__actions__right { 
-            flex-direction: row;
-          }
+            .login-popup__box__actions__right {
+              flex-direction: row;
+            }
 
-           .login-popup__box__actions__right__join {
-            width: unset;
-           }
-            
+            .login-popup__box__actions__right__join {
+              width: unset;
+            }
           }
         `}
       </style>

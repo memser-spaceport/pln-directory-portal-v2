@@ -10,12 +10,13 @@ function HuskyInputBox(props: any) {
   const isAnswerLoading = props.isAnswerLoading;
   const selectedSource = props.selectedSource;
   const sources = [
-    { name: 'All', value: 'none' },
-    { name: 'Twitter', value: 'twitter' },
-    { name: 'LinkedIn', value: 'linkedin' },
+    { name: 'All', value: 'none', icon: '/icons/globe.svg' },
+    { name: 'Twitter', value: 'twitter', icon: '/icons/social-x.svg' },
+    { name: 'LinkedIn', value: 'linkedin', icon: '/icons/social-linkedin.svg' },
   ];
 
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
+  const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon
 
   const onTextSubmit = async () => {
     if (isAnswerLoading) {
@@ -56,7 +57,7 @@ function HuskyInputBox(props: any) {
           <PopoverDp.Wrapper>
             <div className="huskyinput__action__menu">
               <div className="huskyinput__action__menu__dp">
-                <img src="/icons/globe.svg" />
+                <img src={selectedIcon} />
                 <p className="huskyinput__action__menu__dp__name">{selectedSourceName}</p>
               </div>
               <img src="/icons/arrow-up.svg" />
@@ -65,7 +66,8 @@ function HuskyInputBox(props: any) {
               <div className="huskyinput__action__pane" style={{ zIndex: 20 }}>
                 {sources.map((source: any, index: number) => (
                   <div key={`input-source-${index}`} onClick={() => onSourceClicked(source.value)} className="huskyinput__action__pane__item">
-                    {source.name}
+                    <img src={source.icon}/>
+                    <p>{source.name}</p>
                   </div>
                 ))}
               </div>
@@ -129,7 +131,7 @@ function HuskyInputBox(props: any) {
           }
           .huskyinput__action__pane {
             padding: 12px 16px;
-            width: 128px;
+            width: 100px;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -138,6 +140,8 @@ function HuskyInputBox(props: any) {
             font-size: 14px;
             font-weight: 400;
             cursor: pointer;
+            display: flex;
+            gap: 4px;
           }
 
           .huskyinput__action__menu__dp {
@@ -183,7 +187,7 @@ function HuskyInputBox(props: any) {
               display: block;
             }
             .huskyinput__action__menu {
-              width: 104px;
+              width: 113px;
             }
             .huskyinput__action__submit {
               height: 40px;

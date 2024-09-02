@@ -7,15 +7,16 @@ interface HuskyChatQuestion {
     question: string,
     shareCount?:number,
     viewCount?: number,
+    blogId?: string,
     onShareClicked?: () => Promise<void>
     sources: any[]
 }
-function HuskyChatQuestion({question, shareCount, viewCount, sources, onShareClicked}: HuskyChatQuestion) {
+function HuskyChatQuestion({question, shareCount, viewCount, sources, onShareClicked, blogId}: HuskyChatQuestion) {
   return (
     <>
       <div className="chat__ques">
         <h2 className="chat__ques">{question}</h2>
-        {(sources.length > 0 || viewCount || shareCount) && <div className="chat__quesactions">
+        {((sources && sources.length > 0) || viewCount || shareCount) && <div className="chat__quesactions">
           <div className="chat__quesactions__cn">
             {(sources && sources.length > 0) &&  <PopoverDp.Wrapper>
               <InfoBox info={`${sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
@@ -23,7 +24,7 @@ function HuskyChatQuestion({question, shareCount, viewCount, sources, onShareCli
                 <HuskySourceCard sources={sources}/>
               </PopoverDp.Pane>
             </PopoverDp.Wrapper>}
-            {shareCount && <CopyText onCopyCallback={onShareClicked} textToCopy={`${window.location.hostname}?`}><InfoBox info="Share" imgUrl="/icons/share-blue.svg" moreInfo={`${shareCount}`} /></CopyText>}
+            {shareCount && <CopyText onCopyCallback={onShareClicked} textToCopy={`${window.location.protocol}//${window.location.host}?showmodal=husky&discoverid=${blogId}`}><InfoBox info="Share" imgUrl="/icons/share-blue.svg" moreInfo={`${shareCount}`} /></CopyText>}
           </div>
           {viewCount && <div className="chat__quesactions__cn">
             <div className="chat__quesactions__cn__view">

@@ -32,7 +32,6 @@ function HuskyDiscover(props: any) {
     .then(() => {
       if(data && dialogRef.current) {
         setSlugId(data.slug)
-        console.log(data.slug)
         setInitialChats([data])
         dialogRef.current.showModal();
        }

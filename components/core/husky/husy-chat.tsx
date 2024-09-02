@@ -12,9 +12,11 @@ interface HuskyChatProps {
   onPromptClicked: (ques: string) => Promise<void>;
   onRegenerate: (ques: string) => Promise<void>;
   onQuestionEdit: (ques: string) => void;
+  onFeedback: (ques: string, answer: string) => Promise<void>;
+  blogId?: string;
   isAnswerLoading: boolean;
 }
-function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onRegenerate }: HuskyChatProps) {
+function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onRegenerate, onFeedback, blogId }: HuskyChatProps) {
   const initialPrompts = [
     { text: 'What are the advantanges of IPFS?', icon: '✨' },
     { text: 'Teams with most members', icon: '👥' },
@@ -27,8 +29,8 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
         <div className="huskychat__threads">
           {chats.map((chat: any, index: number) => (
             <div className="huskychat__threads__item" key={`chat-${index}`}>
-              <HuskyChatQuestion onShareClicked={onShareClicked} viewCount={chat?.viewCount} sources={chat?.answerSourceLinks} shareCount={chat?.shareCount} question={chat?.question} />
-              <HuskyChatAnswer onRegenerate={onRegenerate} onQuestionEdit={onQuestionEdit} isLastIndex={index === chats.length - 1} question={chat?.question} mode={mode} answer={chat?.answer} />
+              <HuskyChatQuestion blogId={blogId} onShareClicked={onShareClicked} viewCount={chat?.viewCount} sources={chat?.answerSourceLinks} shareCount={chat?.shareCount} question={chat?.question} />
+              <HuskyChatAnswer onFeedback={onFeedback} onRegenerate={onRegenerate} onQuestionEdit={onQuestionEdit} isLastIndex={index === chats.length - 1} question={chat?.question} mode={mode} answer={chat?.answer} />
               <HuskyChatSuggestions isAnswerLoading={isAnswerLoading} chatIndex={index} onFollowupClicked={onFollowupClicked} followupQuestions={chat?.followupQuestions} />
               {(mode !== 'blog' && chat?.actions?.length > 0) && <HuskyChatActions actions={chat?.actions}/>}
             </div>
@@ -70,12 +72,15 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
           .huskychat__empty__prompts {
             display: flex;
             gap: 16px;
+            flex-direction: column;
+            padding: 16px;
             position: absolute;
-            top: 300px;
+            top: 150px;
             width: 100%;
             left: 0;
             right: 0;
             justify-content: center;
+            align-items: center;
           }
           .huskychat__empty__prompts__item {
             display: flex;
@@ -99,7 +104,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
             color: #108f64;
           }
           .huskychat__empty__img {
-            width: 560px;
+            width: 95%;
           }
           .huskychat__threads {
             width: 100%;
@@ -118,6 +123,13 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
             .huskychat {
               padding: 16px 24px;
             }
+            .huskychat__empty__img {
+             width: 560px;
+            }
+             .huskychat__empty__prompts {
+              flex-direction: row;
+               top: 300px;
+             }
            
           }
         `}

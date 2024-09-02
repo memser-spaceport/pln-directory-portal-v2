@@ -1,7 +1,6 @@
 import Markdown from 'markdown-to-jsx';
-import { useRef } from 'react';
-import Modal from '../modal';
-import FeedbackModal from './feedback-modal';
+import { useRef, useState } from 'react';
+
 import CopyText from '../copy-text';
 
 interface HuskyChatAnswerProps {
@@ -10,25 +9,23 @@ interface HuskyChatAnswerProps {
   isLastIndex: boolean;
   question: string;
   onQuestionEdit: (ques: string) => void;
-  onRegenerate: (ques: string) => Promise<void>
+  onFeedback: (ques: string, answer: string) => Promise<void>;
+  onRegenerate: (ques: string) => Promise<void>;
 }
-function HuskyChatAnswer({ mode, answer, isLastIndex, question, onQuestionEdit, onRegenerate }: HuskyChatAnswerProps) {
-  const anchorWrapper = (props: any) => <a style={{color: 'blue'}} target='_blank' href={props.href}>{`[`}{props.children}{`]`}</a>
-  const feedbackModalRef = useRef<HTMLDialogElement>(null);
+function HuskyChatAnswer({ mode, answer, isLastIndex, question, onQuestionEdit, onRegenerate, onFeedback }: HuskyChatAnswerProps) {
+  const anchorWrapper = (props: any) => (
+    <a style={{ color: 'blue' }} target="_blank" href={props.href}>
+      {`[`}
+      {props.children}
+      {`]`}
+    </a>
+  );
 
-  const onCloseModal = (e: any) => {
-    e.preventDefault();
-    if (feedbackModalRef.current) {
-      feedbackModalRef.current.close();
-    }
-  };
+  const onFeedbackClicked = async () => {
+      await onFeedback(question, answer);
+  }
 
-  const onOpenModal = () => {
-    if (feedbackModalRef.current) {
-      feedbackModalRef.current.showModal();
-    }
-  };
- return (
+  return (
     <>
       <div className="chat__ans">
         {mode !== 'blog' && (
@@ -43,20 +40,20 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onQuestionEdit, 
         {mode !== 'blog' && (
           <div className="chat__ansactions">
             <div className={`chat__ansactions__cn`}>
-              {isLastIndex && <img onClick={async () => await onRegenerate(question)} className='chat__ansactions__cn__item' title='regenerate response' src="/icons/refresh-circle.svg" />}
-              {isLastIndex && <img onClick={() => onQuestionEdit(question)} className='chat__ansactions__cn__item' title='edit question' src="/icons/edit-chat.svg" />}
-              <CopyText textToCopy={answer}> <img className='chat__ansactions__cn__item--copy' title='copy response' src="/icons/copy.svg" /></CopyText>
-              <img onClick={onOpenModal} src="/icons/feedback.svg" />
+              {isLastIndex && <img onClick={async () => await onRegenerate(question)} className="chat__ansactions__cn__item" title="regenerate response" src="/icons/refresh-circle.svg" />}
+              {isLastIndex && <img onClick={() => onQuestionEdit(question)} className="chat__ansactions__cn__item" title="edit question" src="/icons/edit-chat.svg" />}
+              <CopyText textToCopy={answer}>
+                {' '}
+                <img className="chat__ansactions__cn__item--copy" title="copy response" src="/icons/copy.svg" />
+              </CopyText>
+              <img className='chat__ansactions__cn__item' onClick={onFeedbackClicked} src="/icons/feedback.svg" />
             </div>
           </div>
         )}
       </div>
-      <FeedbackModal modalRef={feedbackModalRef} onClose={onCloseModal} />
 
       <style jsx>
         {`
-          
-         
           .chat__ans {
             font-size: 14px;
             font-weight: 400;
@@ -65,8 +62,17 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onQuestionEdit, 
             flex-direction: column;
             gap: 16px;
             border-radius: 8px;
-            width:100%;
+            width: 100%;
           }
+            .feeback {
+             width: 100%;
+             height: 100%;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             background: none;
+             border:none;
+            }
           .chat__ans__text {
             font-size: 14px;
             line-height: 26px;
@@ -106,11 +112,11 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onQuestionEdit, 
             align-items: center;
           }
           .chat__ansactions__cn__item {
-           cursor: pointer;
+            cursor: pointer;
           }
 
           .chat__ansactions__cn__item--copy {
-           margin-top: 4px;
+            margin-top: 4px;
           }
         `}
       </style>

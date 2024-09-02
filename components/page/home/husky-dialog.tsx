@@ -34,7 +34,7 @@ function HuskyDialog(props:any) {
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">
-          {isOpen && <HuskyAi isLoggedIn={isLoggedIn} />}
+          {isOpen && <HuskyAi onClose={onDialogClose} isLoggedIn={isLoggedIn} />}
         </div>
       </dialog>
       <style jsx>

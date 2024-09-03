@@ -41,7 +41,7 @@ const Discover = (props: any) => {
         {/* Header */}
         <div className="discover__hdr">
           <div className="discover__hdr__ttl">
-            <img height={28} width={28} src="icons/discover.svg" alt="discover" />
+            <img className="discover__hdr__ttl__img" src="icons/discover.svg" alt="discover" />
             <h3 className="discover__hdr__ttl__txt">Discover</h3>
           </div>
           <p className="discover__hdr__desc">
@@ -130,11 +130,17 @@ const Discover = (props: any) => {
 
         .discover__hdr__ttl {
           display: flex;
-          gap: 8px;
+          gap: 4px;
+          align-items: center;
+        }
+
+        .discover__hdr__ttl__img {
+          height: 16px;
+          width: 16px;
         }
 
         .discover__hdr__ttl__txt {
-          font-size: 32px;
+          font-size: 16px;
           font-weight: 500;
           line-height: 28px;
           color: #0f172a;
@@ -230,6 +236,19 @@ const Discover = (props: any) => {
 
           .discover__ftr {
             display: none;
+          }
+
+          .discover__hdr__ttl__txt {
+            font-size: 32px;
+          }
+
+          .discover__hdr__ttl__img {
+            height: 28px;
+            width: 28px;
+          }
+
+          .discover__hdr__ttl {
+            gap: 8px;
           }
         }
       `}</style>

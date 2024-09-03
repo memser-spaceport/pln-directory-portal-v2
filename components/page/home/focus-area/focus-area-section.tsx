@@ -151,7 +151,7 @@ const LandingFocusAreas = (props: any) => {
             </div>
             <div className="mb__lfa__descsec">
               <p className="mb__lfa__descsec__desc">
-                <a href={""} target="_blank" className="mb__lfa__hdr__desc__link" onClick={()=>{}}> Protocol Lab’s vision </a> for the future is built on four core focus areas that aim to harness humanity’s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.</p>
+                <a href={""} target="_blank" className="mb__lfa__hdr__desc__link" onClick={()=>{}}> Protocol Labs’ vision </a> for the future is built on four core focus areas that aim to harness humanity’s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.</p>
             </div>
           </div>
         </div>

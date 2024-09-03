@@ -36,7 +36,7 @@ const FocusAreaHeader = ({
             <p className="lfa__descsec__desc">
               <a href={protocolVisionUrl} target="_blank" className="lfa__hdr__desc__link" onClick={onProtocolVisionUrlClick}>
                 {' '}
-                Protocol Labs’s vision{' '}
+                Protocol Labs’ vision{' '}
               </a>{' '}
               for the future is built on four core focus areas that aim to harness humanity’s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.
             </p>

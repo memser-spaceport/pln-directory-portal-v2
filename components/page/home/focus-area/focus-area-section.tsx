@@ -7,7 +7,7 @@ import FocusAreaHeader from './focus-area-header';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo, getAnalyticsFocusAreaInfo } from '@/utils/common.utils';
 import { IFocusArea } from '@/types/shared.types';
-import { HOME } from '@/utils/constants';
+import { HOME, HOME_PAGE_LINKS } from '@/utils/constants';
 
 const LandingFocusAreas = (props: any) => {
   const analytics = useHomeAnalytics();
@@ -51,6 +51,11 @@ const LandingFocusAreas = (props: any) => {
       })
     );
   }
+
+  const onProtocolVisionUrlClick = () => {
+  const protocolVisionUrl = HOME_PAGE_LINKS.FOCUSAREA_PROTOCOL_LABS_VISION_URL as string;
+    analytics.onFocusAreaProtocolLabsVisionUrlClicked(protocolVisionUrl, getAnalyticsUserInfo(userInfo));
+  };
 
   return (
     <>
@@ -151,7 +156,7 @@ const LandingFocusAreas = (props: any) => {
             </div>
             <div className="mb__lfa__descsec">
               <p className="mb__lfa__descsec__desc">
-                <a href={""} target="_blank" className="mb__lfa__hdr__desc__link" onClick={()=>{}}> Protocol Labs’ vision </a> for the future is built on four core focus areas that aim to harness humanity’s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.</p>
+                <a href={""} target="_blank" className="mb__lfa__hdr__desc__link" onClick={onProtocolVisionUrlClick}> Protocol Labs’ vision </a> for the future is built on four core focus areas that aim to harness humanity’s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.</p>
             </div>
           </div>
         </div>

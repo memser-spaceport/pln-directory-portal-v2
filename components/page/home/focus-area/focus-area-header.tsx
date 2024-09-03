@@ -1,16 +1,29 @@
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { HOME_PAGE_LINKS } from '@/utils/constants';
 
 const FocusAreaHeader = ({
   onPrevButtonClick,
   onNextButtonClick,
   prevBtnDisabled,
-  nextBtnDisabled
+  nextBtnDisabled,
+  userInfo,
 }: {
   onPrevButtonClick: () => void;
   onNextButtonClick: () => void;
   prevBtnDisabled: boolean;
   nextBtnDisabled: boolean;
+  userInfo: IUserInfo;
 }) => {
-  
+  const protocolVisionUrl = HOME_PAGE_LINKS.FOCUSAREA_PROTOCOL_LABS_VISION_URL as string;
+
+  const analytics = useHomeAnalytics();
+
+  const onProtocolVisionUrlClick = () => {
+    analytics.onFocusAreaProtocolLabsVisionUrlClicked(protocolVisionUrl, getAnalyticsUserInfo(userInfo));
+  };
+
   return (
     <>
       <div className="lfa__hdr">
@@ -21,7 +34,12 @@ const FocusAreaHeader = ({
           </div>
           <div className="lfa__descsec">
             <p className="lfa__descsec__desc">
-              <a href={""} target="_blank" className="lfa__hdr__desc__link" onClick={()=>{}}> Protocol Labs’s vision </a> for the future is built on four core focus areas that aim to harness humanity’s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.</p>
+              <a href={protocolVisionUrl} target="_blank" className="lfa__hdr__desc__link" onClick={onProtocolVisionUrlClick}>
+                {' '}
+                Protocol Labs’s vision{' '}
+              </a>{' '}
+              for the future is built on four core focus areas that aim to harness humanity’s potential for good, navigate potential pitfalls, and ensure a future where technology empowers humanity.
+            </p>
           </div>
         </div>
         <div className="lfa__hdr__actions">

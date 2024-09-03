@@ -97,6 +97,30 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.DISCOVER_HUSKY_AI_CLICKED, params);
   }
 
+  function onMmeberBioSeeMoreClicked(member: any, user: IAnalyticsUserInfo | null) {
+    const params = {
+      user,
+      ...member,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_MEMBER_BIO_SEE_MORE_CLICKED, params);
+  }
+
+  function onMmeberBioPopupViewProfileBtnClicked(member: any, user: IAnalyticsUserInfo | null) {
+    const params = {
+      user,
+      ...member,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_MEMBER_BIO_POPUP_VIEW_PROFILE_BTN_CLICKED, params);
+  }
+
+  function onFocusAreaProtocolLabsVisionUrlClicked(url: string, user: IAnalyticsUserInfo | null) {
+    const params = {
+      url,
+      user,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED, params);
+  }
+
   return {
     featuredSubmitRequestClicked,
     onMemberCardClicked,
@@ -108,5 +132,8 @@ export const useHomeAnalytics = () => {
     onDiscoverCarouselActionsClicked,
     onDiscoverCardClicked,
     onDiscoverHuskyClicked,
+    onMmeberBioSeeMoreClicked,
+    onMmeberBioPopupViewProfileBtnClicked,
+    onFocusAreaProtocolLabsVisionUrlClicked,
   };
 };

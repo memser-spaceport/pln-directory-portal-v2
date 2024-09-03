@@ -15,9 +15,9 @@ const Modal = (props: IModal) => {
   return (
     <>
       <dialog autoFocus={true} ref={ref} className="modal">
-      <button className="modal__cn__hidden"></button>
+        {/* for skip button focus */}
+        <button className="modal__cn__hidden"></button>
         <div className="modal__cn">
-          {/* for skip button focus */}
           <button type="button" className="modal__cn__closebtn" onClick={onClose}>
             <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
           </button>
@@ -39,9 +39,9 @@ const Modal = (props: IModal) => {
 
           .modal__cn__hidden {
             display: hidden;
-            position:absolute;
-            height:0px;
-            width:0px;
+            position: absolute;
+            height: 0px;
+            width: 0px;
           }
 
           .modal__cn__closebtn {

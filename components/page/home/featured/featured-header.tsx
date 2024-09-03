@@ -1,13 +1,14 @@
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { HOME_PAGE_LINKS } from '@/utils/constants';
 
 const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
-  const FEATURED_REQUEST_URL = process.env.FEATURED_REQUEST_URL;
-
   const analytics = useHomeAnalytics();
 
+  const featuredRequestUrl = HOME_PAGE_LINKS.FEATURED_REQUEST_URL;
+
   const onSumbitRequestClick = () => {
-    analytics.featuredSubmitRequestClicked(getAnalyticsUserInfo(userInfo), FEATURED_REQUEST_URL as string);
+    analytics.featuredSubmitRequestClicked(getAnalyticsUserInfo(userInfo), featuredRequestUrl as string);
   };
 
   return (
@@ -15,13 +16,13 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
       <div className="featured__hdr">
         <div className="featured__ttl__cn">
           <div className="featured__ttl">
-            <img src="/icons/featured.svg" alt="featured" height={28} width={28} />
+            <img className="featured__ttl__img" src="/icons/featured.svg" alt="featured" />
             <h3 className="featured__ttl__txt">Featured</h3>
           </div>
           <div className="featured__hdr__desc">
             <span className="featured__hdr__desc__txt">
               Want to feature your team, project, team member or event?{' '}
-              <a href={FEATURED_REQUEST_URL} target="_blank" className="featured__hdr__desc__link" onClick={onSumbitRequestClick}>
+              <a href={featuredRequestUrl} target="_blank" className="featured__hdr__desc__link" onClick={onSumbitRequestClick}>
                 Submit a request
               </a>
             </span>
@@ -43,12 +44,17 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
 
         .featured__ttl {
           display: flex;
-          gap: 8px;
+          gap: 4px;
           align-items: center;
         }
 
+        .featured__ttl__img {
+          height: 16px;
+          width: 16px;
+        }
+
         .featured__ttl__txt {
-          font-size: 32px;
+          font-size: 16px;
           font-weight: 500;
           line-height: 28px;
           color: #0f172a;
@@ -94,6 +100,19 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
         @media (min-width: 1024px) {
           .featured__hdr__actions {
             display: flex;
+          }
+
+          .featured__ttl {
+            gap: 8px;
+          }
+
+          .featured__ttl__img {
+            height: 28px;
+            width: 28px;
+          }
+
+          .featured__ttl__txt {
+            font-size: 32px;
           }
         }
       `}</style>

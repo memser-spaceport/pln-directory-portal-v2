@@ -58,6 +58,7 @@ export interface IMember {
   linkedinHandle?: string | null;
   repositories?: [];
   preferences: IMemberPreferences;
+  bio?: string;
 }
 
 export interface ILoggedoutMember {}

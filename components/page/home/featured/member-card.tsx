@@ -1,15 +1,16 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { parseMemberLocation } from '@/utils/member.utils';
-import dynamic from 'next/dynamic';
-// import MemberSkillList from './member-skill-list';
-
-// const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((mod) => mod.Tooltip), { ssr: false });
+import { useRef } from 'react';
+import MemberBioModal from './member-bio-modal';
+import { sanitize } from 'isomorphic-dompurify';
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { IUserInfo } from '@/types/shared.types';
 
 const MemberCard = (props: any) => {
   const member = props?.member;
-  const isUserLoggedIn = props?.isUserLoggedIn;
   const profileUrl = member?.profile ?? '/icons/default_profile.svg';
   const mainTeam = member?.mainTeam;
   const otherTeams = member?.teams
@@ -17,13 +18,37 @@ const MemberCard = (props: any) => {
     ?.map((team: any) => team.name)
     ?.sort();
   const role = member.mainTeam?.role || 'Contributor';
-  const location = parseMemberLocation(member?.location);
-  // const skills = member?.skills ?? [];
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
   const isBorder = isTeamLead || isOpenToWork;
   const isNew = member?.isNew;
   const bio = member?.bio;
+
+  const bioModalRef = useRef<HTMLDialogElement>(null);
+  const sanitizedBio = sanitize(bio);
+  const bioContent = sanitizedBio?.replace(/<[^>]+>/g, '');
+  const shortBio = bioContent?.slice(0, 85);
+
+  const analytics = useHomeAnalytics();
+
+
+  const onSeeMoreClickHandler = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const userInfo = Cookies.get('userInfo') as IUserInfo;
+    analytics.onMmeberBioSeeMoreClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
+    if (bioModalRef.current) {
+      bioModalRef.current.showModal();
+    }
+  };
+
+  const onCloseModal = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (bioModalRef.current) {
+      bioModalRef.current.close();
+    }
+  };
 
   return (
     <>
@@ -83,24 +108,27 @@ const MemberCard = (props: any) => {
             </div>
           </div>
           <div className="member__details__bio">
-            {bio ? <p className="member__details__bio__txt">{member?.bio}</p> : <div className="member__details__bio__txt--nobio">🛠️ buidling their bio...</div>}
-          </div>
-          {/* {isUserLoggedIn && (
+            {bio ? (
               <>
-                <div className="member__details__location">
-                  {location ? (
-                    <>
-                      <img loading="lazy" src="/icons/location.svg" height={13} width={11} />
-                      <p className="member__details__location__name">{location}</p>
-                    </>
-                  ) : (
-                    '-'
-                  )}
-                </div>
+                <span className="member__details__bio__txt" dangerouslySetInnerHTML={{ __html: shortBio }}></span>
+                {bioContent?.length > shortBio?.length && (
+                  <span>
+                    ...
+                    <button className="member__details__bio__txt__see-more" onClick={onSeeMoreClickHandler}>
+                      see more
+                    </button>
+                  </span>
+                )}
               </>
-            )} */}
+            ) : (
+              <div className="member__details__bio__txt--nobio">🛠️ buidling their bio...</div>
+            )}
+          </div>
         </div>
       </div>
+
+      <MemberBioModal member={member} modalRef={bioModalRef} onClose={onCloseModal} />
+
       <style jsx>
         {`
           .member {
@@ -329,14 +357,23 @@ const MemberCard = (props: any) => {
             font-weight: 400;
             line-height: 22px;
             color: #0f172a;
+            max-height: 66px;
+            // overflow: hidden;
+            word-break: break-word;
+            // white-space: normal;
+            // display: -webkit-box;
+            // -webkit-line-clamp: 2;
+            // -webkit-box-orient: vertical;
+            // text-overflow: ellipsis;
+          }
+
+          .member__details__bio__txt__see-more {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 22px;
             text-align: center;
-            max-height: 100%;
-            overflow: hidden;
-            white-space: normal;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
+            color: #156ff7;
+            background: transparent;
           }
 
           .member__details__bio__txt--nobio {

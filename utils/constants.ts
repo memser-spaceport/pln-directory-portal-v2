@@ -324,11 +324,15 @@ export const IRL_ANALYTICS_EVENTS = {
 export const HOME_ANALYTICS_EVENTS = {
   FOCUS_AREA_TEAMS_CLICKED: 'focus-teams-clicked',
   FOCUS_AREA_PROJECT_CLICKED: 'focus-project-clicked',
+  FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED:'focus-area-protocol-labs-vision-url-clicked',
+
   FEATURED_SUBMIT_REQUEST_CLICKED: 'featured-submit-request-clicked',
   FEATUTRED_MEMBER_CARD_CLICKED:'featured-member-card-clicked',
   FEATUTRED_TEAM_CARD_CLICKED:'featured-team-card-clicked',
   FEATURED_IRL_CARD_CLICKED:'featured-irl-card-clicked',
   FEATURED_PROJECT_CARD_CLICKED:'featured-project-card-clicked',
+  FEATURED_MEMBER_BIO_SEE_MORE_CLICKED:'featured-member-bio-see-more-clicked',
+  FEATURED_MEMBER_BIO_POPUP_VIEW_PROFILE_BTN_CLICKED:'featured-member-bio-popup-view-profile-btn-clicked',
 
   DISCOVER_CAROUSEL_ACTIONS_CLICKED:'discover-carousel-actions-clicked',
   DISCOVER_CARD_CLICKED:'discover-card-clicked',
@@ -750,3 +754,8 @@ export const FEEDBACK_RESPONSE_TYPES = {
 };
 
 export const NOTIFICATION_REFETCH_TIME = 300000;
+
+export const HOME_PAGE_LINKS = {
+   FEATURED_REQUEST_URL :'',
+   FOCUSAREA_PROTOCOL_LABS_VISION_URL:''
+}

@@ -17,7 +17,7 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
         <div className="featured__ttl__cn">
           <div className="featured__ttl">
             <img className="featured__ttl__img" src="/icons/featured.svg" alt="featured" />
-            <h3 className="featured__ttl__txt">Featured</h3>
+            <h2 className="featured__ttl__txt">Featured</h2>
           </div>
           <div className="featured__hdr__desc">
             <span className="featured__hdr__desc__txt">
@@ -56,7 +56,7 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
         .featured__ttl__txt {
           font-size: 16px;
           font-weight: 500;
-          line-height: 28px;
+          line-height: 32px;
           color: #0f172a;
         }
 
@@ -113,6 +113,7 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
 
           .featured__ttl__txt {
             font-size: 32px;
+            line-height: 28px;
           }
         }
       `}</style>

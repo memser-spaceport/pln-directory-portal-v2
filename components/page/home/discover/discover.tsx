@@ -42,7 +42,7 @@ const Discover = (props: any) => {
         <div className="discover__hdr">
           <div className="discover__hdr__ttl">
             <img className="discover__hdr__ttl__img" src="icons/discover.svg" alt="discover" />
-            <h3 className="discover__hdr__ttl__txt">Discover</h3>
+            <h2 className="discover__hdr__ttl__txt">Discover</h2>
           </div>
           <p className="discover__hdr__desc">
             Explore the Protocol Labs network with{' '}
@@ -142,7 +142,7 @@ const Discover = (props: any) => {
         .discover__hdr__ttl__txt {
           font-size: 16px;
           font-weight: 500;
-          line-height: 28px;
+          line-height: 32px;
           color: #0f172a;
         }
 
@@ -240,6 +240,7 @@ const Discover = (props: any) => {
 
           .discover__hdr__ttl__txt {
             font-size: 32px;
+            line-height: 28px;
           }
 
           .discover__hdr__ttl__img {

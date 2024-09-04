@@ -88,7 +88,7 @@ const LandingFocusAreas = (props: any) => {
                   </div>
                   <div className="lfa__focusareas__focusarea__footer">
                     <div onClick={()=> {routeTo(focusArea, "Team")}} className="lfa__focusareas__focusarea__footer__tms">
-                      <div>
+                      <div className='focusareas__focusarea__footer__info'>
                         <span className="lfa__focusareas__focusarea__footer__count"> {teamAncestorFocusAreas?.length || 0}</span>
                         <span className="lfa__focusareas__focusarea__footer__txt">Teams</span>
                       </div>
@@ -113,14 +113,15 @@ const LandingFocusAreas = (props: any) => {
                         { teamAncestorFocusAreas?.length > 0 && <img src={"/icons/arrow-blue-right.svg"} alt='project'/> }
                       </div>
                     </div>
-                    <div onClick={()=> {routeTo(focusArea, "Project")}} className="lfa__focusareas__focusarea__footer__prts">
-                      <div>
-                        <span className="lfa__focusareas__focusarea__footer__count"> { projectAncestorFocusAreas?.length || 0 } </span> 
-                        <span className="lfa__focusareas__focusarea__footer__txt">Projects</span>
-                      </div>
-                      <div className="lfa__focusareas__focusarea__avartars__cnt">
+                    {projectAncestorFocusAreas?.length > 0 &&
+                      <div onClick={()=> {routeTo(focusArea, "Project")}} className="lfa__focusareas__focusarea__footer__prts">
+                        <div className='focusareas__focusarea__footer__info'>
+                          <span className="lfa__focusareas__focusarea__footer__count"> {projectAncestorFocusAreas?.length} </span> 
+                          <span className="lfa__focusareas__focusarea__footer__txt">Projects</span>
+                        </div>
+                        <div className="lfa__focusareas__focusarea__avartars__cnt">
                         <div className="lfa__focusareas__focusarea__avatars">
-                          { projectAncestorFocusAreas?.map((projectAncestorFocusArea: any, index: number) => {
+                          {projectAncestorFocusAreas?.map((projectAncestorFocusArea: any, index: number) => {
                             if (index < 3) {
                                 return <img 
                                   title="Project"
@@ -136,8 +137,9 @@ const LandingFocusAreas = (props: any) => {
                           }
                         </div>
                         { projectAncestorFocusAreas?.length > 0 && <img src={"/icons/arrow-blue-right.svg"} alt='project'/> }
+                        </div>
                       </div>
-                    </div>
+                    }
                   </div>
                   <img className="lfa__focusareas__focusarea__icon" alt={focusArea?.title} src={image} />
                 </div>
@@ -173,7 +175,7 @@ const LandingFocusAreas = (props: any) => {
               const noOfCharactersNeedToShow =  isLongName ? 50 : 70;
 
               return (
-                <div style={{background: `url(${image})`}} className="mb__lfa__focusareas__focusarea mb__embla__slide" key={`focusArea-${index}`}>
+                <div className="mb__lfa__focusareas__focusarea mb__embla__slide" key={`focusArea-${index}`}>
                   <div className="mb__lfa__focusareas__focusarea__header">
                     <h2 className="mb__lfa__focusareas__focusarea__header__title">{focusArea?.title}</h2>
                     <div>
@@ -191,18 +193,22 @@ const LandingFocusAreas = (props: any) => {
                     </div>
                   </div>
                   <div className="mb__lfa__focusareas__focusarea__footer">
-                    <div onClick={()=> {routeTo(focusArea, "Team")}} className="mb__lfa__focusareas__focusarea__footer__tms">
-                      <div className="mb__lfa__focusareas__focusarea__footer__tms__cnt">{ teamAncestorFocusAreas?.length || 0 }</div>
-                      <div className="mb__lfa__focusareas__focusarea__footer__cnt__txt"> Teams { teamAncestorFocusAreas?.length > 0 &&
-                        <img width={14} height={14}  src={"/icons/rounded-right-arrow.svg"} alt='team'/>}</div>
-                    </div>
-                    <div  onClick={()=> {routeTo(focusArea, "Project")}} className="mb__lfa__focusareas__focusarea__footer__prts">
-                      <div className="mb__lfa__focusareas__focusarea__footer__tms__cnt">{ projectAncestorFocusAreas?.length || 0 }</div>
-                      <div className="mb__lfa__focusareas__focusarea__footer__cnt__txt"> Projects { projectAncestorFocusAreas?.length > 0 && 
-                        <img width={14} height={14} src={"/icons/rounded-right-arrow.svg"} alt='project'/> }</div>
-                    </div>
+                    {teamAncestorFocusAreas?.length > 0 && <div onClick={()=> {routeTo(focusArea, "Team")}} className="mb__lfa__focusareas__focusarea__footer__tms">
+                      <div>
+                        <div className="mb__lfa__focusareas__focusarea__footer__tms__cnt">{teamAncestorFocusAreas?.length}</div>
+                        <div className="mb__lfa__focusareas__focusarea__footer__cnt__txt"> Teams
+                          <img width={14} height={14}  src={"/icons/rounded-right-arrow.svg"} alt='team'/></div>
+                      </div>
+                    </div>}
+                    {projectAncestorFocusAreas?.length  > 0 && <div  onClick={()=> {routeTo(focusArea, "Project")}} className="mb__lfa__focusareas__focusarea__footer__prts">
+                    <div>
+                      <div className="mb__lfa__focusareas__focusarea__footer__tms__cnt">{projectAncestorFocusAreas?.length}</div>
+                      <div className="mb__lfa__focusareas__focusarea__footer__cnt__txt"> Projects 
+                        <img width={14} height={14} src={"/icons/rounded-right-arrow.svg"} alt='project'/></div>
+                      </div>
+                    </div>}
                   </div>
-                  <img height={60} width={60} className="mb__lfa__focusareas__focusarea__icon" alt={focusArea?.title} src={image} />
+                  <img  className="mb__lfa__focusareas__focusarea__icon" alt={focusArea?.title} src={image} />
                 </div>
               );
             })
@@ -278,6 +284,11 @@ const LandingFocusAreas = (props: any) => {
             gap: 8px;
           }
 
+          .focusareas__focusarea__footer__info {
+            display: flex;
+            align-items: center;
+          }
+
           .lfa__focusareas__focusarea__footer__tms {
             display: flex;
             padding: 8px;
@@ -349,7 +360,7 @@ const LandingFocusAreas = (props: any) => {
           }
 
           .embla__slide {
-            flex: 0 0 289px;
+            flex: 0 0 326px;
             min-width: 0;
             cursor: pointer;
           }
@@ -453,12 +464,16 @@ const LandingFocusAreas = (props: any) => {
           }
 
           .mb__lfa__focusareas__focusarea__footer__tms {
-            width: 50%;
+            flex:1;
             border-right: 1px solid #e2e8f0;
-            padding: 16px;
             font-size: 11px;
             line-height: 20px;
             font-weight: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            flex-direction: column;
+            padding: 0px 12px;
           }
 
           .mb__lfa__focusareas__focusarea__footer__tms__cnt {
@@ -468,11 +483,15 @@ const LandingFocusAreas = (props: any) => {
           }
 
           .mb__lfa__focusareas__focusarea__footer__prts {
-            width: 50%;
-            padding: 16px;
+            flex:1;
             font-size: 11px;
             line-height: 20px;
             font-weight: 400;
+            display: flex;
+            align-items: center;
+            padding: 0px 12px;
+            justify-content: center; 
+            flex-direction: column;
           }
 
           .mb__lfa__focusareas__focusarea__footer__prts__cnt {
@@ -502,12 +521,12 @@ const LandingFocusAreas = (props: any) => {
 
           .mb__embla__container {
             display: flex;
+            gap: 8px;
           }
 
           .mb__embla__slide {
             flex: 0 0 162px;
             min-width: 0;
-            margin-inline-end: 6px;
             cursor: pointer;
           }
 
@@ -519,7 +538,6 @@ const LandingFocusAreas = (props: any) => {
 
           .mb__embla__progress {
             border-radius: 6px;
-            box-shadow: inset 0 0 0 0.2rem rgb(234, 234, 234);
             background-color: #cbd5e1;
             position: relative;
             height: 7px;

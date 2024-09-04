@@ -2,7 +2,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from './constants';
 import { ITeam } from '@/types/teams.types';
 import { isPastDate } from './irl.utils';
-
+import Cookies from 'js-cookie'
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
 };
@@ -47,6 +47,18 @@ export function compareObjsIfSame(obj1: any, obj2: any) {
 
   return true;
 }
+export const getUserInfoFromLocal = () => {
+  try {
+    const rawUserInfo = Cookies.get('userInfo');
+    if (rawUserInfo) {
+      return JSON.parse(rawUserInfo);
+    }
+
+    return null;
+  } catch (error) {
+    return null;
+  }
+};
 
 
 export const getUniqueId = () => {

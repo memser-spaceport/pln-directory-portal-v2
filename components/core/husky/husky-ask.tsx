@@ -75,7 +75,7 @@ function HuskyAsk(props: any) {
           <div className="huskyask__st__list">
             <div className="huskyask__st__list__content">
               <div className="huskyask__st__list__cn__search">
-                <img className='huskyask__st__list__cn__search__icon' src="/icons/search-blue.svg"/>
+                <img className="huskyask__st__list__cn__search__icon" src="/icons/search-blue.svg" />
                 <input onChange={(e) => onFilterSearch(e.target.value)} placeholder="Search by name" className="huskyask__st__list__cn__search__input" type="search" />
               </div>
               <div className="huskyask__st__list__cn__lt">
@@ -101,7 +101,10 @@ function HuskyAsk(props: any) {
         </div>
         <div className="huskyask__sp">
           <div className="huskyask__sp__tab">
-            <p className="huskyask__sp__tab__item">Suggested Prompts</p>
+            <p className="huskyask__sp__tab__item">
+              <img width={16} height={16} src="/icons/suggestions-orange.svg" />
+              <span>Suggested Prompts</span>
+            </p>
           </div>
           <div className="huskyask__sp__content">
             <div className="huskyask__sp__content__list">
@@ -163,7 +166,7 @@ function HuskyAsk(props: any) {
             border-radius: 8px;
             cursor: pointer;
           }
-         
+
           .huskyask__st__list__cn__lt__item--active {
             background: #f1f5f9;
           }
@@ -177,9 +180,15 @@ function HuskyAsk(props: any) {
             padding: 0 16px;
           }
           .huskyask__sp__tab__item {
-            padding: 8px 0;
             font-size: 12px;
             font-weight: 500;
+            color: #ff820e;
+            text-transform: uppercase;
+            border-bottom: 1px solid #cbd5e1;
+            height: 36px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
           }
           .huskyask__st__list {
             padding: 16px;

@@ -16,9 +16,9 @@ function HuskyAsk(props: any) {
   const [selectedPromptInfo, setSelectedPromptInfo] = useState<any | null>(null);
   const [filteredPrompts, setFilteredPrompts] = useState<any[]>([]);
   const suggestionTopics = [
-    { name: 'TEAMS', key: 'teams', icon: '/icons/team.svg' },
-    { name: 'PROJECTS', key: 'projects', icon: '/icons/projects.svg' },
-    { name: 'IRL GATHERINGS', key: 'irls', icon: '/icons/calendar.svg' },
+    { name: 'TEAMS', key: 'teams', activeIcon: '/icons/users-blue.svg', inActiveIcon: '/icons/users-grey.svg' },
+    { name: 'PROJECTS', key: 'projects', activeIcon: '/icons/projects-blue.svg', inActiveIcon: '/icons/projects-grey.svg' },
+    { name: 'IRL GATHERINGS', key: 'irls', activeIcon: '/icons/calendar-blue.svg', inActiveIcon: '/icons/calendar-grey.svg' },
   ];
 
   const onTabSelectionChanged = (v: string) => {
@@ -75,12 +75,17 @@ function HuskyAsk(props: any) {
           <div className="huskyask__st__list">
             <div className="huskyask__st__list__content">
               <div className="huskyask__st__list__cn__search">
+                <img className='huskyask__st__list__cn__search__icon' src="/icons/search-blue.svg"/>
                 <input onChange={(e) => onFilterSearch(e.target.value)} placeholder="Search by name" className="huskyask__st__list__cn__search__input" type="search" />
               </div>
               <div className="huskyask__st__list__cn__lt">
                 {filteredPrompts.map((v: any) => (
-                  <div onClick={() => setSelectedPromptInfo(v)} className={`huskyask__st__list__cn__lt__item ${v?.uid === selectedPromptInfo?.uid ? 'huskyask__st__list__cn__lt__item--active': ''}`} key={v.uid}>
-                    <img src={v?.logo} className="huskyask__st__list__cn__lt__item__img"/>
+                  <div
+                    onClick={() => setSelectedPromptInfo(v)}
+                    className={`huskyask__st__list__cn__lt__item ${v?.uid === selectedPromptInfo?.uid ? 'huskyask__st__list__cn__lt__item--active' : ''}`}
+                    key={v.uid}
+                  >
+                    <img src={v?.logo} className="huskyask__st__list__cn__lt__item__img" />
                     <p className="huskyask__st__list__cn__lt__text">{v.name}</p>
                   </div>
                 ))}
@@ -158,8 +163,9 @@ function HuskyAsk(props: any) {
             border-radius: 8px;
             cursor: pointer;
           }
+         
           .huskyask__st__list__cn__lt__item--active {
-            background: #F1F5F9;
+            background: #f1f5f9;
           }
           .huskyask__sp__tab {
             height: 36px;
@@ -205,12 +211,18 @@ function HuskyAsk(props: any) {
             width: 24px;
             background: lightgrey;
           }
-            .huskyask__st__list__cn__lt__text {
-             flex: 1;
-            }
+          .huskyask__st__list__cn__lt__text {
+            flex: 1;
+          }
 
           .huskyask__st__list__cn__search {
             width: 100%;
+            position: relative;
+          }
+          .huskyask__st__list__cn__search__icon {
+            position: absolute;
+            bottom: 12px;
+            left: 6px;
           }
           .huskyask__st__list__cn__search__input {
             height: 40px;
@@ -220,6 +232,7 @@ function HuskyAsk(props: any) {
             outline: none;
             padding: 8px 12px;
             border-radius: 4px;
+            padding-left: 26px;
           }
           .huskyask__st__list__cn__lt {
             flex: 1;

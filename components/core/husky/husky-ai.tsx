@@ -12,6 +12,9 @@ import { useRouter } from 'next/navigation';
 import { EVENTS } from '@/utils/constants';
 import HuskyFeedback from './husky-feedback';
 import { getUniqueId } from '@/utils/common.utils';
+import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
+import HuskyLogin from './husky-login';
+import HuskyLoginExpired from './husky-login-expired';
 
 interface HuskyAiProps {
   mode?: 'blog' | 'chat';
@@ -26,6 +29,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const [tab, setTab] = useState('What can I ask?');
   const [chats, setChats] = useState<any[]>(initialChats);
   const [isLoading, setLoadingStatus] = useState(false);
+  const [isLoginExpired, setLoginExpiryStatus] = useState(false);
   const [isAnswerLoading, setAnswerLoadingStatus] = useState(false);
   const [feedbackQandA, setFeedbackQandA] = useState({question: '', answer: ''});
   const [askingQuestion, setAskingQuestion] = useState('');
@@ -39,17 +43,53 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     setTab(item);
   };
 
-  const onPromptClicked = async (question: string) => {
-     if (!isLoggedIn) {
+  const forceUserLogin = () => {
+    setLoginExpiryStatus(true);
+  }
+
+  const getUserCredentials = async () => {
+    if(!isLoggedIn) {
       setLoginBoxStatus(true);
+      return {
+        authToken: null,
+        userInfo: null
+      };
+    }
+
+    const { isLoginRequired, newAuthToken, newUserInfo } = await getUserCredentialsInfo();
+    if(isLoginRequired) {
+      setLoginExpiryStatus(true);
+      return {
+        authToken: null,
+        userInfo: null
+      }
+    }
+
+    return {
+      authToken: newAuthToken,
+      userInfo: newUserInfo
+    };
+  } 
+
+  const checkAndSetPromptId = () => {
+    let chatUid = threadId;
+    if (!threadId) {
+      chatUid = `${getUniqueId()}`;
+      setThreadId(chatUid);
+    }
+    return chatUid;
+  }
+
+  const onPromptClicked = async (question: string) => {
+    const {authToken} = await getUserCredentials();
+    if(!authToken) {
       return;
     }
-    const chatUid = `${getUniqueId()}`;
-    setThreadId(chatUid);
+    const chatUid = checkAndSetPromptId();
     setAskingQuestion(question);
     setAnswerLoadingStatus(true);
     setTab('Exploration');
-    const result = await getHuskyReponse(question, selectedSource, chatUid, null, null,  mode === 'blog');
+    const result = await getHuskyReponse(authToken, question, selectedSource, chatUid, null, null,  mode === 'blog');
     setAskingQuestion('');
     setAnswerLoadingStatus(false);
     setChats([result.data]);
@@ -70,23 +110,23 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const onFollowupClicked = async (question: string) => {
+    const {authToken} = await getUserCredentials();
+    if(!authToken) {
+      return;
+    }
     if (!isLoggedIn) {
       setLoginBoxStatus(true);
       return;
     }
-    let chatUid = threadId;
-    if (!threadId) {
-      chatUid = `${getUniqueId()}`;
-      setThreadId(chatUid);
-    }
+    const chatUid = checkAndSetPromptId();
     setAskingQuestion(question);
     setAnswerLoadingStatus(true);
 
     let result: any;
     if (mode === 'blog' && chats.length === 1) {
-      result = await getHuskyReponse(question, selectedSource, chatUid, chats[0].question, chats[0].answer,  mode === 'blog');
+      result = await getHuskyReponse(authToken, question, selectedSource, chatUid, chats[0].question, chats[0].answer,  mode === 'blog');
     } else {
-      result = await getHuskyReponse(question, selectedSource, chatUid, null, null,  mode === 'blog');
+      result = await getHuskyReponse(authToken, question, selectedSource, chatUid, null, null,  mode === 'blog');
     }
     setAskingQuestion('');
     setAnswerLoadingStatus(false);
@@ -98,15 +138,16 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const onFeedback = async (question: string, answer: string) => {
+
     setFeedbackQandA({question: question, answer: answer})
   };
 
   const onHuskyInput = async (query: string) => {
-    let chatUid = threadId;
-    if (!threadId) {
-      chatUid = `${getUniqueId()}`;
-      setThreadId(chatUid);
+    const {authToken} = await getUserCredentials();
+    if(!authToken) {
+      return;
     }
+    const chatUid = checkAndSetPromptId();
 
     if (!isLoggedIn) {
       setLoginBoxStatus(true);
@@ -118,7 +159,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     }
     setAskingQuestion(query);
     setAnswerLoadingStatus(true);
-    const result = await getHuskyReponse(query, selectedSource, chatUid);
+    const result = await getHuskyReponse(authToken, query, selectedSource, chatUid);
     setAskingQuestion('');
     setAnswerLoadingStatus(false);
     setChats((v) => [...v, result.data]);
@@ -130,15 +171,6 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 
-  const onJoinNetworkListClick = (item: any) => {
-    onClose && onClose();
-    setLoginBoxStatus(false);
-    if (item === 'member') {
-      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_MEMBER_REGISTER_DIALOG));
-    } else if (item === 'team') {
-      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
-    }
-  };
 
   const onCloseFeedback = () => {
     setFeedbackQandA({question: '', answer: ''})
@@ -203,145 +235,17 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
       {(feedbackQandA.answer && feedbackQandA.question)  && (
         <div className="login-popup">
-          <HuskyFeedback setLoadingStatus={setLoadingStatus} question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
+          <HuskyFeedback forceUserLogin={forceUserLogin} setLoadingStatus={setLoadingStatus} question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
         </div>
       )}
 
       {isLoading && <PageLoader />}
-
-      {showLoginBox && (
-        <div className="login-popup">
-          <div className="login-popup__box">
-            <h3 className="login-popup__box__title">Login to continue using Husky</h3>
-            <p className="login-popup__box__desc">
-              Husky is purpose built to improve your speed & quality of learning about the Protocol Labs innovation network. Login or Join us to become part of this growing network
-            </p>
-            <div className="login-popup__box__actions">
-              <div className="login-popup__box__actions__left">
-                <button type="button" onClick={onLoginBoxClose} className="login-popup__box__actions__left__dismiss">
-                  Dismiss
-                </button>
-              </div>
-              <div className="login-popup__box__actions__right">
-                <PopoverDp.Wrapper>
-                  <button className="login-popup__box__actions__right__join">
-                    Join the network <img src="/icons/dropdown-white.svg" alt="down arrow" />
-                  </button>
-                  <PopoverDp.Pane position="top">
-                    <div className="login-popup__box__actions__right__join__pane">
-                      <button className="login-popup__box__actions__right__join__pane__item" onClick={() => onJoinNetworkListClick('member')}>
-                        Join as Member
-                      </button>
-                      <button className="login-popup__box__actions__right__join__pane__item" onClick={() => onJoinNetworkListClick('team')}>
-                        Join as Team
-                      </button>
-                    </div>
-                  </PopoverDp.Pane>
-                </PopoverDp.Wrapper>
-                <button onClick={onLoginClick} className="login-popup__box__actions__right__login">
-                  Login
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {isLoginExpired && <HuskyLoginExpired onLoginClick={onLoginClick}/>}
+      {showLoginBox && <HuskyLogin onLoginClick={onLoginClick} onLoginBoxClose={onLoginBoxClose}/>}
 
       <style jsx>
         {`
-          .login-popup {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            background: #b0bde099;
-            top: 0;
-            left: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-          }
-          .login-popup__box {
-            background: white;
-
-            width: 90%;
-            border-radius: 12px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-          }
-          .login-popup__box__title {
-            color: #0f172a;
-            font-size: 24px;
-            font-weight: 700;
-          }
-          .login-popup__box__desc {
-            font-size: 14px;
-            font-weight: 400;
-            line-height: 20px;
-          }
-          .login-popup__box__actions {
-            display: flex;
-            justify-content: space-between;
-            flex-direction: column-reverse;
-            gap: 8px;
-          }
-          .login-popup__box__actions__left__dismiss {
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 10px 24px;
-            background: white;
-            font-size: 14px;
-            font-weight: 500;
-            width: 100%;
-          }
-          .login-popup__box__actions__right {
-            display: flex;
-            gap: 8px;
-            flex-direction: column;
-          }
-          .login-popup__box__actions__right__join {
-            border-radius: 8px;
-            padding: 10px 24px;
-            background: #156ff7;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: center;
-          }
-
-          .login-popup__box__actions__right__join__pane {
-            width: 100%;
-            padding: 5px;
-          }
-
-          .login-popup__box__actions__right__join__pane__item {
-            padding: 5px 15px;
-            font-size: 14px;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-          }
-
-          .login-popup__box__actions__right__join__pane__item:hover {
-            background-color: #f1f5f9;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-          }
-
-          .login-popup__box__actions__right__login {
-            border-radius: 8px;
-            padding: 10px 24px;
-            background: #156ff7;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-          }
+         
           .huskyai {
             width: 100%;
             height: 100%;
@@ -396,24 +300,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           }
 
           @media (min-width: 1024px) {
-            .login-popup__box__actions {
-              display: flex;
-              justify-content: space-between;
-              flex-direction: row;
-              gap: unset;
-            }
-
-            .login-popup__box__actions__left__dismiss {
-              width: unset;
-            }
-
-            .login-popup__box__actions__right {
-              flex-direction: row;
-            }
-
-            .login-popup__box__actions__right__join {
-              width: unset;
-            }
+           
           }
         `}
       </style>

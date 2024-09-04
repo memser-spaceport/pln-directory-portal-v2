@@ -46,7 +46,7 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onQuestionEdit, 
                 {' '}
                 <img className="chat__ansactions__cn__item--copy" title="copy response" src="/icons/copy.svg" />
               </CopyText>
-              <img className='chat__ansactions__cn__item' onClick={onFeedbackClicked} src="/icons/feedback.svg" />
+              <img className='chat__ansactions__cn__item' title='Submit feedback' onClick={onFeedbackClicked} src="/icons/feedback.svg" />
             </div>
           </div>
         )}

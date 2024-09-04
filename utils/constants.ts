@@ -757,5 +757,5 @@ export const NOTIFICATION_REFETCH_TIME = 300000;
 
 export const HOME_PAGE_LINKS = {
    FEATURED_REQUEST_URL :'',
-   FOCUSAREA_PROTOCOL_LABS_VISION_URL:''
+   FOCUSAREA_PROTOCOL_LABS_VISION_URL:'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/'
 }

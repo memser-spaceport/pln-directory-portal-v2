@@ -117,16 +117,16 @@ const FocusAreaDialog = (props: any) => {
             </div>
           </div>
           <div className="mb__lfa__focusareas__focusarea__footer">
-            <div className="mb__lfa__focusareas__focusarea__footer__tms">
-              <div className="mb__lfa__focusareas__focusarea__footer__tms__cnt">{ focusArea?.teamAncestorFocusAreas?.length || 0 }</div>
-              <div className="mb__lfa__focusareas__focusarea__footer__cnt__txt"> Teams { focusArea?.teamAncestorFocusAreas?.length > 0 &&
-                <img width={14} height={14}  src={"/icons/rounded-right-arrow.svg"} onClick={()=> {routeTo(focusArea, "Team")}} alt='team'/>}</div>
-            </div>
-            <div className="mb__lfa__focusareas__focusarea__footer__prts">
-              <div className="mb__lfa__focusareas__focusarea__footer__tms__cnt">{ focusArea?.projectAncestorFocusAreas?.length || 0 }</div>
-              <div className="mb__lfa__focusareas__focusarea__footer__cnt__txt"> Projects { focusArea?.projectAncestorFocusAreas?.length > 0 && 
-                <img width={14} height={14} src={"/icons/rounded-right-arrow.svg"} onClick={()=> {routeTo(focusArea, "Project")}} alt='project'/> }</div>
-            </div>
+            {focusArea?.teamAncestorFocusAreas?.length > 0 &&  <div className="mb__lfa__focusareas__focusarea__footer__tms">
+              <div className="mb__lfa__focusareas__focusarea__footer__tms__cnt">{focusArea?.teamAncestorFocusAreas?.length}</div>
+              <div className="mb__lfa__focusareas__focusarea__footer__cnt__txt"> Teams
+                <img width={14} height={14}  src={"/icons/rounded-right-arrow.svg"} onClick={()=> {routeTo(focusArea, "Team")}} alt='team'/></div>
+            </div>}
+            {focusArea?.projectAncestorFocusAreas?.length > 0 && <div className="mb__lfa__focusareas__focusarea__footer__prts">
+              <div className="mb__lfa__focusareas__focusarea__footer__tms__cnt">{focusArea?.projectAncestorFocusAreas?.length}</div>
+              <div className="mb__lfa__focusareas__focusarea__footer__cnt__txt"> Projects
+                <img width={14} height={14} src={"/icons/rounded-right-arrow.svg"} onClick={()=> {routeTo(focusArea, "Project")}} alt='project'/></div>
+            </div>}
           </div>
         </div>
       </Modal>
@@ -243,14 +243,14 @@ const FocusAreaDialog = (props: any) => {
         flex-direction: column;
         justify-content: space-between;
         z-index: 1;
-        width: 256px;
+        width: 327px;
       }
 
       .mb__lfa__focusareas__focusarea__header {
         display: flex;
         flex-direction: column;
         gap: 4px;
-        padding: 16px;
+        padding: 32px 24px 24px 24px;
       }
 
       .mb__lfa__focusareas__focusarea__header__title {
@@ -266,19 +266,23 @@ const FocusAreaDialog = (props: any) => {
       }
 
       .mb__lfa__focusareas__focusarea__footer {
-        height: 72px;
+        height: 56px;
         border-top: 1px solid #E2E8F0;
         display: flex;
         background-color: white;
       }
 
       .mb__lfa__focusareas__focusarea__footer__tms {
-        width: 50%;
+        flex: 1;
         border-right: 1px solid #E2E8F0;
         padding:16px;
         font-size: 11px;
         line-height: 20px;
         font-weight: 400;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
       }
 
       .mb__lfa__focusareas__focusarea__footer__tms__cnt {
@@ -288,11 +292,15 @@ const FocusAreaDialog = (props: any) => {
       }
 
       .mb__lfa__focusareas__focusarea__footer__prts {
-        width: 50%;
+        flex: 1;
         padding:16px;
         font-size: 11px;
         line-height: 20px;
         font-weight: 400;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        justify-content: center;
       }
 
       .mb__lfa__focusareas__focusarea__footer__prts__cnt {

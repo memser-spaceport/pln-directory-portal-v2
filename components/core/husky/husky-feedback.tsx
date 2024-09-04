@@ -6,6 +6,7 @@ import cookie from 'js-cookie';
 import { getMemberInfo } from '@/services/members.service';
 import { saveFeedback } from '@/services/husky.service';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 const HuskyFeedback = (props: any) => {
   const onClose = props.onClose;
   const question = props.question;
@@ -18,6 +19,8 @@ const HuskyFeedback = (props: any) => {
     rating: 3,
     comment: '',
   });
+
+  const {trackFeedbackStatus} = useHuskyAnalytics()
 
   const onRatingClickHandler = (rating: number) => {
     setRatingInfo({ ...ratingInfo, rating });

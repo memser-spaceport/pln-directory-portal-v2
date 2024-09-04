@@ -15,6 +15,8 @@ import { getUniqueId } from '@/utils/common.utils';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 import HuskyLogin from './husky-login';
 import HuskyLoginExpired from './husky-login-expired';
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+import Cookies from 'js-cookie';
 
 interface HuskyAiProps {
   mode?: 'blog' | 'chat';
@@ -25,51 +27,66 @@ interface HuskyAiProps {
 }
 
 function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose }: HuskyAiProps) {
-  console.log(blogId)
   const [tab, setTab] = useState('What can I ask?');
   const [chats, setChats] = useState<any[]>(initialChats);
   const [isLoading, setLoadingStatus] = useState(false);
   const [isLoginExpired, setLoginExpiryStatus] = useState(false);
   const [isAnswerLoading, setAnswerLoadingStatus] = useState(false);
-  const [feedbackQandA, setFeedbackQandA] = useState({question: '', answer: ''});
+  const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
   const [askingQuestion, setAskingQuestion] = useState('');
   const [showLoginBox, setLoginBoxStatus] = useState(false);
   const [threadId, setThreadId] = useState<string>('');
   const [selectedSource, setSelectedSource] = useState('none');
   const chatCnRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { trackTabSelection, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick } = useHuskyAnalytics();
 
   const onTabSelected = (item: string) => {
     setTab(item);
+    const userInfo = getUserInfoFromLocal();
+    trackTabSelection(userInfo, item);
   };
 
   const forceUserLogin = () => {
     setLoginExpiryStatus(true);
-  }
+  };
+
+  const getUserInfoFromLocal = () => {
+    try {
+      const rawUserInfo = Cookies.get('userInfo');
+      if (rawUserInfo) {
+        return JSON.parse(rawUserInfo);
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
+  };
 
   const getUserCredentials = async () => {
-    if(!isLoggedIn) {
+    if (!isLoggedIn) {
       setLoginBoxStatus(true);
       return {
         authToken: null,
-        userInfo: null
+        userInfo: null,
       };
     }
 
     const { isLoginRequired, newAuthToken, newUserInfo } = await getUserCredentialsInfo();
-    if(isLoginRequired) {
+    if (isLoginRequired) {
       setLoginExpiryStatus(true);
       return {
         authToken: null,
-        userInfo: null
-      }
+        userInfo: null,
+      };
     }
 
     return {
       authToken: newAuthToken,
-      userInfo: newUserInfo
+      userInfo: newUserInfo,
     };
-  } 
+  };
 
   const checkAndSetPromptId = () => {
     let chatUid = threadId;
@@ -78,18 +95,18 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       setThreadId(chatUid);
     }
     return chatUid;
-  }
+  };
 
   const onPromptClicked = async (question: string) => {
-    const {authToken} = await getUserCredentials();
-    if(!authToken) {
+    const { authToken } = await getUserCredentials();
+    if (!authToken) {
       return;
     }
     const chatUid = checkAndSetPromptId();
     setAskingQuestion(question);
     setAnswerLoadingStatus(true);
     setTab('Exploration');
-    const result = await getHuskyReponse(authToken, question, selectedSource, chatUid, null, null,  mode === 'blog');
+    const result = await getHuskyReponse(authToken, question, selectedSource, chatUid, null, null, mode === 'blog');
     setAskingQuestion('');
     setAnswerLoadingStatus(false);
     setChats([result.data]);
@@ -97,6 +114,8 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
   const onShareClicked = async () => {
     if (blogId) {
+      const userInfo = getUserInfoFromLocal();
+      trackCopyUrl(userInfo, blogId);
       await incrementHuskyShareCount(blogId);
     }
   };
@@ -110,23 +129,24 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const onFollowupClicked = async (question: string) => {
-    const {authToken} = await getUserCredentials();
-    if(!authToken) {
+    const { authToken, userInfo } = await getUserCredentials();
+    if (!authToken) {
       return;
     }
     if (!isLoggedIn) {
       setLoginBoxStatus(true);
       return;
     }
+    trackFollowupQuestionClick(userInfo, mode, question, blogId);
     const chatUid = checkAndSetPromptId();
     setAskingQuestion(question);
     setAnswerLoadingStatus(true);
 
     let result: any;
     if (mode === 'blog' && chats.length === 1) {
-      result = await getHuskyReponse(authToken, question, selectedSource, chatUid, chats[0].question, chats[0].answer,  mode === 'blog');
+      result = await getHuskyReponse(authToken, question, selectedSource, chatUid, chats[0].question, chats[0].answer, mode === 'blog');
     } else {
-      result = await getHuskyReponse(authToken, question, selectedSource, chatUid, null, null,  mode === 'blog');
+      result = await getHuskyReponse(authToken, question, selectedSource, chatUid, null, null, mode === 'blog');
     }
     setAskingQuestion('');
     setAnswerLoadingStatus(false);
@@ -138,13 +158,14 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const onFeedback = async (question: string, answer: string) => {
-
-    setFeedbackQandA({question: question, answer: answer})
+    const userInfo = getUserInfoFromLocal();
+    trackFeedbackClick(userInfo, question, answer);
+    setFeedbackQandA({ question: question, answer: answer });
   };
 
   const onHuskyInput = async (query: string) => {
-    const {authToken} = await getUserCredentials();
-    if(!authToken) {
+    const { authToken } = await getUserCredentials();
+    if (!authToken) {
       return;
     }
     const chatUid = checkAndSetPromptId();
@@ -171,9 +192,8 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 
-
   const onCloseFeedback = () => {
-    setFeedbackQandA({question: '', answer: ''})
+    setFeedbackQandA({ question: '', answer: '' });
   };
 
   useEffect(() => {
@@ -233,24 +253,35 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         </div>
       )}
 
-      {(feedbackQandA.answer && feedbackQandA.question)  && (
-        <div className="login-popup">
+      {feedbackQandA.answer && feedbackQandA.question && (
+        <div className="feedback-popup">
           <HuskyFeedback forceUserLogin={forceUserLogin} setLoadingStatus={setLoadingStatus} question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
         </div>
       )}
 
       {isLoading && <PageLoader />}
-      {isLoginExpired && <HuskyLoginExpired onLoginClick={onLoginClick}/>}
-      {showLoginBox && <HuskyLogin onLoginClick={onLoginClick} onLoginBoxClose={onLoginBoxClose}/>}
+      {isLoginExpired && <HuskyLoginExpired onLoginClick={onLoginClick} />}
+      {showLoginBox && <HuskyLogin onLoginClick={onLoginClick} onLoginBoxClose={onLoginBoxClose} />}
 
       <style jsx>
         {`
-         
           .huskyai {
             width: 100%;
             height: 100%;
             position: relative;
             background: white;
+          }
+          .feedback-popup {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: #b0bde099;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
           }
           .overlay {
             position: absolute;
@@ -300,7 +331,6 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           }
 
           @media (min-width: 1024px) {
-           
           }
         `}
       </style>

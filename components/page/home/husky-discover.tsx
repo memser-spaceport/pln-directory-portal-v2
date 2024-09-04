@@ -1,13 +1,16 @@
 'use client';
 
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import HuskyAi from '@/components/core/husky/husky-ai';
 import HuskyChat from '@/components/core/husky/husy-chat';
 import PageLoader from '@/components/core/page-loader';
 import { getHuskyResponseBySlug, incrementHuskyShareCount, incrementHuskyViewCount } from '@/services/husky.service';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-
+import cookies from 'js-cookie'
 import { Suspense, use, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
+
+let huskyRecorded = false;
 
 function HuskyDiscover(props: any) {
   const isLoggedIn = props.isLoggedIn;
@@ -19,6 +22,7 @@ function HuskyDiscover(props: any) {
   const [slugId, setSlugId] = useState(huskyShareId ?? '');
   const [initialChats, setInitialChats] = useState<any[]>([])
   const [isLoading, setLoadingStatus] = useState(false);
+  const { trackSharedBlog} = useHuskyAnalytics()
 
   const onDialogClose = () => {
     dialogRef.current?.close();
@@ -40,10 +44,23 @@ function HuskyDiscover(props: any) {
     .finally(() => {})
   }
 
+  const getUserInfoFromCookie = () => {
+      const rawUserInfo = cookies.get('userInfo');
+      if(rawUserInfo) {
+        const parsedUserInfo = JSON.parse(rawUserInfo)
+        return parsedUserInfo
+      }
+
+      return null
+  }
+
+
   useEffect(() => {
     function dialogHandler(e: any) {
       if (dialogRef.current) {
         increaseViewAndShow(e?.detail)
+        const userInfo = getUserInfoFromCookie()
+        trackSharedBlog(userInfo, e?.detail?.slug, 'discover')
       }
     }
     document.addEventListener('open-husky-discover', dialogHandler);
@@ -53,13 +70,17 @@ function HuskyDiscover(props: any) {
   }, []);
 
   useEffect(() => {
-    if(modalCode === 'husky' && huskyShareId) {
+    if(modalCode === 'husky' && huskyShareId && huskyShareId === slugId ) {
       setLoadingStatus(true)
-      
       getHuskyResponseBySlug(huskyShareId, true)
       .then(result => {
         if(result.data && dialogRef.current) {
           setInitialChats([result.data]);
+          const userInfo = getUserInfoFromCookie()
+          if(!huskyRecorded) {
+            trackSharedBlog(userInfo, huskyShareId, 'shareurl')
+          }
+          huskyRecorded = true;
           dialogRef.current.showModal();
         } else {
          toast.error('Something went wrong')
@@ -73,6 +94,7 @@ function HuskyDiscover(props: any) {
 
     }
   }, [modalCode, huskyShareId])
+
 
 
 

@@ -1,16 +1,18 @@
-export const saveFeedback = async (payload: any) => {
+export const saveFeedback = async (authToken: string,payload: any) => {
   const saveResponse = await fetch(`${process.env.HUSKY_API_URL}/feedback`, {
     cache: 'no-store',
     method: 'POST',
     body: JSON.stringify(payload),
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
     },
   });
 
   if (!saveResponse.ok) {
     return {
       isError: true,
+      status: saveResponse.status
     };
   }
 
@@ -19,50 +21,25 @@ export const saveFeedback = async (payload: any) => {
   };
 };
 
-export const getHuskyReponse = async (query: string, source: string, chatUid: string, previousQues?: string | null, previousAns?: string | null, isBlog = false) => {
-  const payload = {
-    query,
-    UID: chatUid,
-    source,
-    ...(previousQues && { promptHistory: previousQues }),
-    ...(previousAns && { answerHistory: previousAns }),
-  };
-  const queryResponse = await fetch(`${process.env.HUSKY_API_URL}/retrieve`, {
-    cache: 'no-store',
-    method: 'POST',
-    body: JSON.stringify(payload),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!queryResponse.ok) {
-    return {
-      isError: true,
-    };
-  }
-
-  const huskyResponse = await queryResponse.json();
-  let formattedActions: any;
-  if (!isBlog) {
+export const getHuskyAugmentedInfo = async (authToken: string, query: string, answer: string, references: any[], source: string) => {
+  try {
     const augementResponse = await fetch(`${process.env.HUSKY_API_URL}/augumented_info`, {
       cache: 'no-store',
       method: 'POST',
       body: JSON.stringify({
         query,
-        answer: huskyResponse.Response.answer,
-        references: huskyResponse.references,
+        answer,
+        references,
         source,
       }),
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
       },
     });
 
     if (!augementResponse.ok) {
-      return {
-        isError: true,
-      };
+      return [];
     }
 
     const augmentedResult = await augementResponse.json();
@@ -71,7 +48,7 @@ export const getHuskyReponse = async (query: string, source: string, chatUid: st
       members: augmentedResult?.augumented_info?.members ?? [],
       projects: augmentedResult?.augumented_info?.project ?? [],
     };
-    formattedActions = {
+    const formattedActions = {
       teams: actions.teams
         .map((v: any) => {
           return {
@@ -103,6 +80,42 @@ export const getHuskyReponse = async (query: string, source: string, chatUid: st
         })
         .slice(0, 2),
     };
+
+    return fetchItemsFromArrays(formattedActions.teams, formattedActions.members, formattedActions.projects);
+  } catch (error: any) {
+    return [];
+  }
+};
+
+export const getHuskyReponse = async (authToken: string, query: string, source: string, chatUid: string, previousQues?: string | null, previousAns?: string | null, isBlog = false) => {
+  const payload = {
+    query,
+    UID: chatUid,
+    source,
+    ...(previousQues && { promptHistory: previousQues }),
+    ...(previousAns && { answerHistory: previousAns }),
+  };
+  const queryResponse = await fetch(`${process.env.HUSKY_API_URL}/retrieve`, {
+    cache: 'no-store',
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+
+  if (!queryResponse.ok) {
+    return {
+      isError: true,
+      status: queryResponse.status
+    };
+  }
+
+  const huskyResponse = await queryResponse.json();
+  let augementedActions: any[] = [];
+  if (!isBlog) {
+    augementedActions = await getHuskyAugmentedInfo(authToken, query, huskyResponse?.Response?.answer, huskyResponse?.references, source);
   }
 
   const answerSourceLinks = huskyResponse.Source_list.filter((item: any) => {
@@ -119,7 +132,7 @@ export const getHuskyReponse = async (query: string, source: string, chatUid: st
       answerSourceLinks,
       answerSourcedFrom: source,
       followupQuestions: huskyResponse.Followup_Questions,
-      actions: !isBlog ? fetchItemsFromArrays(formattedActions.teams, formattedActions.members, formattedActions.projects) : [],
+      actions: !isBlog ? [...augementedActions] : [],
     },
   };
 };

@@ -2,7 +2,7 @@ import { IAnalyticsMemberInfo } from '@/types/members.types';
 import { IAnalyticsTeamInfo, IAnalyticsUserInfo, IAnalyticsFocusArea } from '@/types/shared.types';
 import { usePostHog } from 'posthog-js/react';
 
-export const useHomeAnalytics = () => {
+export const useHuskyAnalytics = () => {
   const postHogProps = usePostHog();
 
   const events = {
@@ -34,8 +34,8 @@ export const useHomeAnalytics = () => {
     }
   };
 
-  function trackSharedBlog(user: any, blogId: string) {
-    captureEvent(events.husky_open_shared_blog, { ...(user && { ...user }), blogId });
+  function trackSharedBlog(user: any, blogId: string, mode: string) {
+    captureEvent(events.husky_open_shared_blog, { ...(user && { ...user }), blogId, mode });
   }
 
   function trackFollowupQuestionClick(user: any, mode: string, question: string, blogId?: string | null) {
@@ -62,5 +62,39 @@ export const useHomeAnalytics = () => {
     captureEvent(events.husky_user_regenerate_clicked, { ...(user && { ...user }) });
   }
 
-  return { trackSharedBlog, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus };
+  function trackQuestionEdit(user: any, question: string) {
+    captureEvent(events.husky_user_ques_edit_clicked, { ...(user && { ...user }), question });
+  }
+
+  function trackAnswerCopy(user: any) {
+    captureEvent(events.husky_user_answer_copy_clicked, { ...(user && { ...user }) });
+  }
+
+  function trackUserPrompt(user: any, query: string) {
+    captureEvent(events.husky_user_prompt, { ...(user && { ...user }), query });
+  }
+
+  function trackSourceChange(user: any, sourceSelected: string) {
+    captureEvent(events.husky_user_prompt_source_changed, { ...(user && { ...user }), sourceSelected });
+  }
+
+  function trackTabSelection(user: any, tabSelected: string) {
+    captureEvent(events.husky_dialog_tab_clicked, { ...(user && { ...user }), tabSelected });
+  }
+
+  function trackPromptTypeSelection(user: any, promptType: string) {
+    captureEvent(events.husky_ask_prompt_type_selection, { ...(user && { ...user }), promptType });
+  }
+
+  function trackPromptSelection(user: any, prompt: string) {
+    captureEvent(events.husky_ask_prompt_clicked, { ...(user && { ...user }), prompt });
+  }
+
+  function trackExplorationPromptSelection(user: any, prompt: string) {
+    captureEvent(events.husky_exploration_prompt_clicked, { ...(user && { ...user }), prompt })
+  }
+
+  return { trackSharedBlog, trackTabSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus };
 };
+
+

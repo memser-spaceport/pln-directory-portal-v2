@@ -5,11 +5,13 @@ import HiddenField from '@/components/form/hidden-field';
 import cookie from 'js-cookie';
 import { getMemberInfo } from '@/services/members.service';
 import { saveFeedback } from '@/services/husky.service';
+import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 const HuskyFeedback = (props: any) => {
   const onClose = props.onClose;
   const question = props.question;
   const answer = props.answer;
   const setLoadingStatus = props.setLoadingStatus
+  const forceUserLogin = props.forceUserLogin;
   const [step, setStep] = useState('form');
   const ratings = [...RATINGS];
   const [ratingInfo, setRatingInfo] = useState<any>({
@@ -22,9 +24,12 @@ const HuskyFeedback = (props: any) => {
   };
 
   const onFeedbackSubmit = async () => {
-    const userInfoRaw: any = cookie.get('userInfo');
-    if (userInfoRaw) {
-      const userInfo = JSON.parse(userInfoRaw);
+    const { isLoginRequired, newAuthToken, newUserInfo } = await getUserCredentialsInfo();
+    if(isLoginRequired) {
+      forceUserLogin()
+    }
+    if (newUserInfo) {
+      const userInfo = JSON.parse(newUserInfo);
       const memberInfo = await getMemberInfo(userInfo.uid);
       const memberDetails = memberInfo.data;
       console.log(ratingInfo, memberInfo);
@@ -41,7 +46,7 @@ const HuskyFeedback = (props: any) => {
       };
       
       setLoadingStatus(true);
-      const response = await saveFeedback(payload);
+      const response = await saveFeedback(newAuthToken, payload);
       setLoadingStatus(false);
       if(response.isSaved) {
         setStep('success')

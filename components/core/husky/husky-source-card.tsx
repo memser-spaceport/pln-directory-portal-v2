@@ -16,7 +16,7 @@ function HuskySourceCard({ sources }: HuskySourceCardProps) {
         {sources.map((source: SourceProps, index: number) => (
           <a target="_blank" href={source.link} key={`husky-chat${index}`} className="sources__item">
             <div className="sources__item__head">
-              <p className="sources__item__head__index">{index + 1}</p>
+             
               <p className="sources__item__head__title">{source.title}</p>
             </div>
             <div className="sources__item__body">{source.description}</div>

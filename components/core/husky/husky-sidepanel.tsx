@@ -33,7 +33,7 @@ function HuskySidePanel() {
               <img src='/icons/close.svg' onClick={togglePanelStatus}/>
             </div>
             <div className="hsp__content">
-              {/* <HuskyChat isLoggedIn mode="chat" /> */}
+               <HuskyChat isLoggedIn mode="chat" /> 
             </div>
           </div>
           <div onClick={togglePanelStatus} className="hsp__togglehead">

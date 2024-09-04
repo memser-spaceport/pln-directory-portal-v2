@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PopoverDp } from '../popover-dp';
 
 function HuskyInputBox(props: any) {
@@ -10,19 +10,24 @@ function HuskyInputBox(props: any) {
   const isAnswerLoading = props.isAnswerLoading;
   const selectedSource = props.selectedSource;
   const sources = [
-    { name: 'All', value: 'none', icon: '/icons/globe.svg' },
+    { name: 'Others', value: 'none', icon: '/icons/globe.svg' },
     { name: 'Twitter', value: 'twitter', icon: '/icons/social-x.svg' },
     { name: 'LinkedIn', value: 'linkedin', icon: '/icons/social-linkedin.svg' },
   ];
 
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
-  const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon
+  const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
 
   const onTextSubmit = async () => {
     if (isAnswerLoading) {
       return;
     }
+   
     if (inputRef.current) {
+      if(inputRef.current.innerText.trim() === '') {
+        inputRef.current.innerText = '';
+        return
+      }
       const textValue = inputRef.current.innerText;
       inputRef.current.innerText = '';
       onHuskyInput(textValue);
@@ -47,7 +52,7 @@ function HuskyInputBox(props: any) {
 
   return (
     <>
-      <div className="huskyinput">
+      <div className={`huskyinput`}>
         <img width={24} height={24} className="huskyinput__img" src="/images/husky-brain.png" />
         <div className="huskyinput__itemcn">
           {' '}
@@ -66,7 +71,7 @@ function HuskyInputBox(props: any) {
               <div className="huskyinput__action__pane" style={{ zIndex: 20 }}>
                 {sources.map((source: any, index: number) => (
                   <div key={`input-source-${index}`} onClick={() => onSourceClicked(source.value)} className="huskyinput__action__pane__item">
-                    <img src={source.icon}/>
+                    <img src={source.icon} />
                     <p>{source.name}</p>
                   </div>
                 ))}
@@ -75,10 +80,10 @@ function HuskyInputBox(props: any) {
           </PopoverDp.Wrapper>
           <div
             onClick={onTextSubmit}
-            title={isAnswerLoading ? 'Please wait till response is generated.' : ''}
+            title={isAnswerLoading ? 'Please wait till response is generated.' : 'Submit query'}
             className={`huskyinput__action__submit ${isAnswerLoading ? 'huskyinput__action__submit--disabled' : ''}`}
           >
-            <img className='huskyinput__action__submit__btn' src="/icons/send.svg" />
+            <img className="huskyinput__action__submit__btn" src="/icons/send.svg" />
           </div>
         </div>
       </div>
@@ -91,6 +96,17 @@ function HuskyInputBox(props: any) {
             display: flex;
             gap: 8px;
             align-items: center;
+          }
+
+          .huskyinput::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: transparent;
+            transition: background-color 0.3s ease;
           }
           .huskyinput__itemcn {
             width: calc(100% - 104px);
@@ -107,6 +123,22 @@ function HuskyInputBox(props: any) {
             line-height: 16px;
             width: 100%;
             max-height: 100px;
+          }
+          .huskyinput:has(.huskyinput__itemcn__textbox:not(:empty))::before {
+            background-color: #c0deff;
+            animation: pulse 1.5s infinite;
+          }
+
+          @keyframes pulse {
+            0% {
+              box-shadow: 0 0 5px rgba(0, 123, 255, 0.6);
+            }
+            50% {
+              box-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
+            }
+            100% {
+              box-shadow: 0 0 5px rgba(0, 123, 255, 0.6);
+            }
           }
 
           .huskyinput__action {
@@ -193,11 +225,11 @@ function HuskyInputBox(props: any) {
               height: 40px;
               width: 40px;
             }
-              .huskyinput__action__submit__btn {
-               width: 30px;
-               height: 30px;
-               margin-left: -3px;
-              }
+            .huskyinput__action__submit__btn {
+              width: 30px;
+              height: 30px;
+              margin-left: -3px;
+            }
           }
         `}
       </style>

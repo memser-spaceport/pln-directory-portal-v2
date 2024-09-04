@@ -16,7 +16,10 @@ function HuskyAnswerLoader(props: any) {
           <div className="husky-loader__ans__line"></div>
         </div>
         <div className="husky-loader__info">
-          <p className="husky-loader__info__text">Please wait, Husky is generating a response.</p>
+          <p className="husky-loader__info__text">
+            <img className="husky-loader__info__text__icon" src="/icons/husky-bone.svg" />
+            <span>Husky is fetching the answer, this might take a while...</span>
+          </p>
         </div>
       </div>
       <style jsx>
@@ -48,17 +51,26 @@ function HuskyAnswerLoader(props: any) {
             animation: shimmer 1.5s infinite;
           }
           .husky-loader__info__text {
-            padding: 8px 16px;
-            background: white;
-            border: 1px solid lightgrey;
+            padding: 16px;
+            background: #dbeafe;
+            color: #1e3a8a;
+            box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .husky-loader__info__text__icon {
+            animation: rotate 1s linear infinite;
+            width: 20px;
+            height: 20px;
           }
           .husky-loader__info {
             width: 100%;
             position: absolute;
-            bottom: 30px;
+            bottom: 20px;
             left: 0;
             right: 0;
             display: flex;
@@ -74,7 +86,14 @@ function HuskyAnswerLoader(props: any) {
             }
           }
 
-          
+          @keyframes rotate {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
         `}
       </style>
     </>

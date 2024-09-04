@@ -2,7 +2,8 @@
 interface BarTabsItem {
   name: string;
   key: string;
-  icon?: string;
+  activeIcon?: string;
+  inActiveIcon?: string;
 }
 interface BarTabsProps {
   items: BarTabsItem[];
@@ -17,7 +18,8 @@ function BarTabs({ activeItem, items, onTabSelected, transform }: BarTabsProps) 
       <div className="hc__tab">
         {items.map((item) => (
           <p key={item.key} className={`hc__tab__item ${item.key === activeItem ? 'hc__tab__item--active' : ''}`} onClick={() => onTabSelected(item.key)}>
-           {/*  {item.icon && <img className="hc__tab__item__img" alt={item.name} src={item.icon}/>} */}
+            {(item.key === activeItem && item.activeIcon) && <img className="hc__tab__item__img" alt={item.name} src={item.activeIcon}/>} 
+            {(item.key !== activeItem && item.inActiveIcon) && <img className="hc__tab__item__img" alt={item.name} src={item.inActiveIcon}/>} 
             <span>{item.name}</span>
           </p>
         ))}

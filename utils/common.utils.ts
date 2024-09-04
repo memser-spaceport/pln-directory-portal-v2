@@ -48,6 +48,7 @@ export function compareObjsIfSame(obj1: any, obj2: any) {
   return true;
 }
 
+
 export const getUniqueId = () => {
   const dateString = Date.now().toString(36);
   const randomness = Math.random().toString(36).substr(2);

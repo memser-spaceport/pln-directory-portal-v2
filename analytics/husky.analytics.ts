@@ -54,16 +54,16 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_user_feedback_status, { ...(user && { ...user }), status });
   }
 
-  function trackAiResponse(user: any, status: string) {
-    captureEvent(events.husky_ai_response, { ...(user && { ...user }), status });
+  function trackAiResponse(user: any, status: string, mode: string) {
+    captureEvent(events.husky_ai_response, { ...(user && { ...user }), status, mode, });
   }
 
   function trackRegenerate(user: any) {
     captureEvent(events.husky_user_regenerate_clicked, { ...(user && { ...user }) });
   }
 
-  function trackQuestionEdit(user: any, question: string) {
-    captureEvent(events.husky_user_ques_edit_clicked, { ...(user && { ...user }), question });
+  function trackQuestionEdit(question: string) {
+    captureEvent(events.husky_user_ques_edit_clicked, { question });
   }
 
   function trackAnswerCopy(user: any) {

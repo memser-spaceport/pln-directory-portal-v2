@@ -109,8 +109,6 @@ const retryApi = async (url: string, options: any) => {
 export const logoutUser = () => {
   clearAllAuthCookies();
   document.dispatchEvent(new CustomEvent('init-privy-logout'));
-  toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-  createLogoutChannel().postMessage('logout');
 };
 
 export const getUserCredentialsInfo = async () => {
@@ -132,11 +130,11 @@ export const getUserCredentialsInfo = async () => {
     setNewTokenAndUserInfoAtClientSide({ ...renewOuput?.data });
     return {
       newUserInfo: renewOuput?.data?.userInfo,
-      newAuthToken: renewOuput?.data?.authToken,
+      newAuthToken: renewOuput?.data?.accessToken,
       newRefreshToken: renewOuput?.data?.refreshToken,
     };
   }
-
+  logoutUser()
   return {
     isLoginRequired: true,
   };

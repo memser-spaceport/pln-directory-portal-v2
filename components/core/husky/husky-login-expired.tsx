@@ -17,7 +17,7 @@ interface HuskyLoginProps {
               </div>
               <div className="login-popup__box__actions__right">
                 <button onClick={onLoginClick} className="login-popup__box__actions__right__login">
-                  Login
+                  Close
                 </button>
               </div>
             </div>

@@ -27,16 +27,15 @@ const HuskyFeedback = (props: any) => {
   };
 
   const onFeedbackSubmit = async () => {
-    const { isLoginRequired, newAuthToken, newUserInfo } = await getUserCredentialsInfo();
+    try {
+      const { isLoginRequired, newAuthToken, newUserInfo: userInfo } = await getUserCredentialsInfo();
     if(isLoginRequired) {
       forceUserLogin()
     }
-    if (newUserInfo) {
-      const userInfo = JSON.parse(newUserInfo);
+    if (userInfo) {
+      trackFeedbackStatus(userInfo, 'initiated')
       const memberInfo = await getMemberInfo(userInfo.uid);
       const memberDetails = memberInfo.data;
-      console.log(ratingInfo, memberInfo);
-
       const payload = {
         name: memberDetails.name,
         email: memberDetails.email,
@@ -52,10 +51,16 @@ const HuskyFeedback = (props: any) => {
       const response = await saveFeedback(newAuthToken, payload);
       setLoadingStatus(false);
       if(response.isSaved) {
+        trackFeedbackStatus(userInfo, 'success')
         setStep('success')
       } else {
+        trackFeedbackStatus(userInfo, 'error')
         setStep('error');
       }
+    }
+    } catch (error) {
+      trackFeedbackStatus(null, 'error')
+      setStep('error');
     }
   };
 

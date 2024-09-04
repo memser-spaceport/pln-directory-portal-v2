@@ -94,7 +94,7 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_exploration_prompt_clicked, { ...(user && { ...user }), prompt })
   }
 
-  return { trackSharedBlog, trackTabSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus };
+  return { trackSharedBlog, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus };
 };
 
 

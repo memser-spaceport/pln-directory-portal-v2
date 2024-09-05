@@ -108,6 +108,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       setAskingQuestion(question);
       setAnswerLoadingStatus(true);
       setTab('Exploration');
+      setChats([]);
       trackAiResponse(userInfo, 'initiated', 'prompt');
       const result = await getHuskyReponse(authToken, question, selectedSource, chatUid, null, null, mode === 'blog');
       setAskingQuestion('');

@@ -29,7 +29,7 @@ const ScrollToTop = (props: IScrollToTop) => {
   };
 
   useEffect(() => {
-    const target = document.querySelector('.scroll-to-top-trigger');
+    const target = document.querySelector('.featured');
     if (!target) return;
 
     const observer = new IntersectionObserver(
@@ -50,7 +50,6 @@ const ScrollToTop = (props: IScrollToTop) => {
 
   return (
     <>
-      <div className="scroll-to-top-trigger"></div>
       {showTopBtn && (
         <button ref={buttonRef} onClick={scrollToTop} className="scroll-to-top-button">
           <img src="/icons/up-arrow-black.svg" alt="arrow" />

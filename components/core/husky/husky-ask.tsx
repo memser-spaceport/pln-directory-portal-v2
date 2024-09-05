@@ -42,7 +42,7 @@ function HuskyAsk(props: any) {
     if (searchKey.trim() === '') {
       setFilteredPrompts(prmtsInfo);
     } else {
-      const filtered = [...prmtsInfo].filter((v: any) => v.name.toLowerCase().includes(searchKey));
+      const filtered = [...prmtsInfo].filter((v: any) => v.name.toLowerCase().includes(searchKey.toLowerCase()));
       setFilteredPrompts(filtered);
     }
   };

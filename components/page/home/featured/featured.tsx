@@ -12,6 +12,7 @@ import ProjectCard from './project-card';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import MemberBioModal from './member-bio-modal';
 
 function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
   const { category } = item;
@@ -90,6 +91,8 @@ const Featured = (props: any) => {
             ))}
           </div>
         </div>
+
+        <MemberBioModal />
       </div>
       <style jsx>{`
         .embla {

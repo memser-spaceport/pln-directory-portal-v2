@@ -1,13 +1,12 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { useRef } from 'react';
-import MemberBioModal from './member-bio-modal';
 import { sanitize } from 'isomorphic-dompurify';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
+import { EVENTS } from '@/utils/constants';
 
 const MemberCard = (props: any) => {
   const member = props?.member;
@@ -24,30 +23,25 @@ const MemberCard = (props: any) => {
   const isNew = member?.isNew;
   const bio = member?.bio;
 
-  const bioModalRef = useRef<HTMLDialogElement>(null);
   const sanitizedBio = sanitize(bio);
   const bioContent = sanitizedBio?.replace(/<[^>]+>/g, '');
   const shortBio = bioContent?.slice(0, 85);
 
   const analytics = useHomeAnalytics();
 
-
   const onSeeMoreClickHandler = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
+
     const userInfo = Cookies.get('userInfo') as IUserInfo;
     analytics.onMmeberBioSeeMoreClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
-    if (bioModalRef.current) {
-      bioModalRef.current.showModal();
-    }
-  };
-
-  const onCloseModal = (e: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (bioModalRef.current) {
-      bioModalRef.current.close();
-    }
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_MEMBER_BIO_POPUP, {
+        detail: {
+          member,
+        },
+      })
+    );
   };
 
   return (
@@ -126,8 +120,6 @@ const MemberCard = (props: any) => {
           </div>
         </div>
       </div>
-
-      <MemberBioModal member={member} modalRef={bioModalRef} onClose={onCloseModal} />
 
       <style jsx>
         {`

@@ -79,11 +79,11 @@ const DiscoverCard = (props: any) => {
         .discover-card__qus {
           font-size: 14px;
           font-weight: 500;
-          line-height: 22px;
+          line-height: 18px;
           color: #000000;
           word-break: break-word;
-          overflow: hidden;
-          max-height: 66px;
+          // overflow: hidden;
+          // max-height: 66px;
         }
 
         .discover-card__sub {
@@ -96,7 +96,7 @@ const DiscoverCard = (props: any) => {
           word-break: break-word;
           margin-top: 3px;
           overflow: hidden;
-          max-height: 32px;
+          // max-height: 32px;
         }
 
         .discover-card__sub__cn {
@@ -141,14 +141,14 @@ const DiscoverCard = (props: any) => {
             font-size: 23px;
             font-weight: 500;
             line-height: 33px;
-            max-height: 99px;
+            // max-height: 99px;
           }
 
           .discover-card__sub {
             font-size: 14px;
             font-weight: 400;
             line-height: 23px;
-            max-height: 69px;
+            // max-height: 69px;
           }
 
           .discover-card {

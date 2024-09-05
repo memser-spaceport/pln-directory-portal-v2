@@ -54,7 +54,8 @@ export const EVENTS = {
   OPEN_REMOVE_GUESTS_POPUP: 'open-remove-guests-popup',
   OPEN_FLOATING_BAR: 'open-floating-bar',
   GET_NOTIFICATIONS: 'get-notifications',
-  TRIGGER_RATING_POPUP: 'trigger-notification-popup'
+  TRIGGER_RATING_POPUP: 'trigger-notification-popup',
+  OPEN_MEMBER_BIO_POPUP:'open-member-bio-popup'
 };
 
 export const HELPER_MENU_OPTIONS = [

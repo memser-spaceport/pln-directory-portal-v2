@@ -68,7 +68,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MemberRegisterDialog />
           <TeamRegisterDialog />
           <CookieChecker isLoggedIn={isLoggedIn} />
-          <FocusAreaDialog userInfo={userInfo}/>
         </StyledJsxRegistry>
       </body>
     </html>

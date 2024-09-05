@@ -87,10 +87,11 @@ function HuskyAsk(props: any) {
                 {filteredPrompts.map((v: any) => (
                   <div
                     onClick={() => setSelectedPromptInfo(v)}
-                    className={`huskyask__st__list__cn__lt__item ${v?.uid === selectedPromptInfo?.uid ? 'huskyask__st__list__cn__lt__item--active' : ''}`}
-                    key={v.uid}
+                    className={`huskyask__st__list__cn__lt__item ${v?.name === selectedPromptInfo?.name ? 'huskyask__st__list__cn__lt__item--active' : ''}`}
+                    key={v.name}
                   >
-                    <img src={v?.logo} className="huskyask__st__list__cn__lt__item__img" />
+                    {v?.logo && <img src={v?.logo} className="huskyask__st__list__cn__lt__item__img" />}
+                    {!v?.logo && <span className='huskyask__st__list__cn__lt__item__img'></span>}
                     <p className="huskyask__st__list__cn__lt__text">{v.name}</p>
                   </div>
                 ))}

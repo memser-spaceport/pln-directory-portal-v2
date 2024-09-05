@@ -128,7 +128,7 @@ export const getHuskyResponseBySlug = async (slug: string, increaseView = false)
 };
 
 export const getTeamPrompts = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?teamUid__not=null`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?teamName__not=null`, {
     cache: 'no-store',
     method: 'GET',
     headers: {
@@ -139,8 +139,7 @@ export const getTeamPrompts = async () => {
   const output = await response.json();
   return output.map((o: any) => {
     return {
-      name: o?.team?.name,
-      uid: o?.team?.uid,
+      name: o?.team?.name || o.teamName,
       logo: o?.team?.logo?.url,
       relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
     };
@@ -148,7 +147,7 @@ export const getTeamPrompts = async () => {
 };
 
 export const getProjectsPrompts = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?projectUid__not=null`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?projectName__not=null`, {
     cache: 'no-store',
     method: 'GET',
     headers: {
@@ -159,8 +158,7 @@ export const getProjectsPrompts = async () => {
   const output = await response.json();
   return output.map((o: any) => {
     return {
-      name: o?.project?.name,
-      uid: o?.project?.uid,
+      name: o?.project?.name || o?.projectName,
       logo: o?.project?.logo?.url,
       relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
     };
@@ -168,7 +166,7 @@ export const getProjectsPrompts = async () => {
 };
 
 export const getIrlPrompts = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?eventUid__not=null`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?eventName__not=null`, {
     cache: 'no-store',
     method: 'GET',
     headers: {
@@ -179,9 +177,8 @@ export const getIrlPrompts = async () => {
   const output = await response.json();
   return output.map((o: any) => {
     return {
-      name: o?.plevent?.name,
-      uid: o?.plevent?.uid,
-      logo: o?.plevent?.logo?.url,
+      name: o?.plevent?.name || o?.eventName,
+      logo: null,
       relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
     };
   });

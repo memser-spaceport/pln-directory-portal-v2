@@ -1,4 +1,5 @@
 'use client';
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import HuskyChatActions from './husky-chat-actions';
 import HuskyChatAnswer from './husky-chat-answer';
 import HuskyChatQuestion from './husky-chat-question';
@@ -13,15 +14,23 @@ interface HuskyChatProps {
   onRegenerate: (ques: string) => Promise<void>;
   onQuestionEdit: (ques: string) => void;
   onFeedback: (ques: string, answer: string) => Promise<void>;
+  onCopyAnswer: (answer: string) => Promise<void>;
   blogId?: string;
   isAnswerLoading: boolean;
 }
-function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onRegenerate, onFeedback, blogId }: HuskyChatProps) {
+function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onCopyAnswer, onRegenerate, onFeedback, blogId }: HuskyChatProps) {
   const initialPrompts = [
     { text: 'What are the advantanges of IPFS?', icon: '✨' },
     { text: 'Teams with most members', icon: '👥' },
     { text: 'Upcoming Events', icon: '📅' },
   ];
+
+  const { trackExplorationPromptSelection} = useHuskyAnalytics()
+
+  const onExplorationPromptClicked = async (ques: string) => {
+    trackExplorationPromptSelection(null, ques);
+    await onPromptClicked(ques);
+  }
 
   return (
     <>
@@ -31,7 +40,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
             <div className="huskychat__threads__item" key={`chat-${index}`}>
              {!chat.isError && <>
              <HuskyChatQuestion blogId={blogId} onShareClicked={onShareClicked} viewCount={chat?.viewCount} sources={chat?.answerSourceLinks} shareCount={chat?.shareCount} question={chat?.question} />
-              <HuskyChatAnswer onFeedback={onFeedback} onRegenerate={onRegenerate} onQuestionEdit={onQuestionEdit} isLastIndex={index === chats.length - 1} question={chat?.question} mode={mode} answer={chat?.answer} />
+              <HuskyChatAnswer onCopyAnswer={onCopyAnswer} onFeedback={onFeedback} onRegenerate={onRegenerate} onQuestionEdit={onQuestionEdit} isLastIndex={index === chats.length - 1} question={chat?.question} mode={mode} answer={chat?.answer} />
               <HuskyChatSuggestions isAnswerLoading={isAnswerLoading} chatIndex={index} onFollowupClicked={onFollowupClicked} followupQuestions={chat?.followupQuestions} />
               {(mode !== 'blog' && chat?.actions?.length > 0) && <HuskyChatActions actions={chat?.actions}/>}
              </>}
@@ -54,7 +63,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
                 <p className="title">Try searching</p>
               </div>
               {initialPrompts.map((prompt) => (
-                <div onClick={async () => await onPromptClicked(prompt.text)} className="huskychat__empty__prompts__item" key={prompt.text}>
+                <div onClick={async () => await onExplorationPromptClicked(prompt.text)} className="huskychat__empty__prompts__item" key={prompt.text}>
                   <p>{prompt.icon}</p>
                   <p>{prompt.text}</p>
                 </div>

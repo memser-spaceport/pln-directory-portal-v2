@@ -4,7 +4,7 @@ import HuskyInputBox from './husky-input-box';
 import HuskyAsk from './husky-ask';
 import HuskyChat from './husy-chat';
 import RoundedTabs from '@/components/ui/rounded-tabs';
-import { getHuskyReponse, incrementHuskyShareCount, saveFeedback } from '@/services/husky.service';
+import { getHuskyReponse } from '@/services/husky.service';
 import PageLoader from '../page-loader';
 import { PopoverDp } from '../popover-dp';
 import HuskyAnswerLoader from './husky-answer-loader';
@@ -18,6 +18,7 @@ import HuskyLoginExpired from './husky-login-expired';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import Cookies from 'js-cookie';
 import { createLogoutChannel } from '../login/broadcast-channel';
+import { incrementHuskyShareCount } from '@/services/home.service';
 
 interface HuskyAiProps {
   mode?: 'blog' | 'chat';
@@ -40,7 +41,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const [selectedSource, setSelectedSource] = useState('none');
   const chatCnRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { trackTabSelection, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse } = useHuskyAnalytics();
+  const { trackTabSelection, trackUserPrompt, trackExplorationPromptSelection, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse } = useHuskyAnalytics();
 
   const onTabSelected = (item: string) => {
     setTab(item);
@@ -58,6 +59,11 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     setLoginBoxStatus(false);
     createLogoutChannel().postMessage('logout');
   };
+
+  const onCopyAnswer = async (answer: string) => {
+    const userInfo = getUserInfoFromLocal();
+    trackAnswerCopy(userInfo, answer);
+  }
 
   const getUserCredentials = async () => {
     if (!isLoggedIn) {
@@ -206,6 +212,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         setChats([]);
         setTab('Exploration');
       }
+      trackUserPrompt(userInfo, query)
       setAskingQuestion(query);
       setAnswerLoadingStatus(true);
       trackAiResponse(userInfo, 'initiated', 'user-input')
@@ -262,6 +269,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               blogId={blogId}
               onFollowupClicked={onFollowupClicked}
               mode="chat"
+              onCopyAnswer={onCopyAnswer}
             />
             {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} />}
           </div>
@@ -285,6 +293,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               blogId={blogId}
               onFollowupClicked={onFollowupClicked}
               mode="blog"
+              onCopyAnswer={onCopyAnswer}
             />
             {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} />}
           </div>
@@ -336,6 +345,9 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             border-bottom: 1px solid #cbd5e1;
             background: white;
             z-index: 1;
+            top:-1px;
+            left:0;
+            right:0;
           }
           .huskyai__selection {
             width: 100%;

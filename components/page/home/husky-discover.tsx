@@ -4,11 +4,12 @@ import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import HuskyAi from '@/components/core/husky/husky-ai';
 import HuskyChat from '@/components/core/husky/husy-chat';
 import PageLoader from '@/components/core/page-loader';
-import { getHuskyResponseBySlug, incrementHuskyShareCount, incrementHuskyViewCount } from '@/services/husky.service';
+import {  } from '@/services/husky.service';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import cookies from 'js-cookie'
 import { Suspense, use, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
+import { getHuskyResponseBySlug, incrementHuskyViewCount } from '@/services/home.service';
 
 let huskyRecorded = false;
 
@@ -102,7 +103,7 @@ function HuskyDiscover(props: any) {
     <>
       <dialog onClose={onDialogClose} ref={dialogRef} className="hd">
         <div className="hd__head">
-          <img className="hd__head__logo" src="/images/husky-logo.png" />
+          <img className="hd__head__logo" src="/images/husky-logo.svg" />
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">

@@ -48,7 +48,7 @@ export default async function ProjectDetails({ params }: any) {
           {/* Focus Areas */}
           {project?.projectFocusAreas && project?.projectFocusAreas?.length > 0 && focusAreas && focusAreas?.length > 0 && (
             <div className={styles?.project__container__details__focusarea}>
-              <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={project.TeamFocusAreas} />
+              <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={project.projectFocusAreas} />
             </div>
           )}
 

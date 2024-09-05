@@ -8,6 +8,7 @@ import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo, getAnalyticsFocusAreaInfo } from '@/utils/common.utils';
 import { IFocusArea } from '@/types/shared.types';
 import { HOME, HOME_PAGE_LINKS } from '@/utils/constants';
+import FocusAreaDialog from './focus-area-dialog';
 
 const LandingFocusAreas = (props: any) => {
   const analytics = useHomeAnalytics();
@@ -78,7 +79,7 @@ const LandingFocusAreas = (props: any) => {
                       { 
                         focusArea?.description?.length < 140 ? focusArea?.description : 
                           <div> {
-                            focusArea?.description?.slice(0, 120)+"..."}
+                            focusArea?.description?.slice(0, 140)+"..."}
                             <span className="lfa__focusarea__desc_seemore" onClick={()=>{
                                onClickSeeMore({...focusArea, projectAncestorFocusAreas });
                             }}>see more</span>
@@ -87,7 +88,7 @@ const LandingFocusAreas = (props: any) => {
                     </div>
                   </div>
                   <div className="lfa__focusareas__focusarea__footer">
-                    <div onClick={()=> {routeTo(focusArea, "Team")}} className="lfa__focusareas__focusarea__footer__tms">
+                    {teamAncestorFocusAreas?.length > 0 && <div onClick={()=> {routeTo(focusArea, "Team")}} className="lfa__focusareas__focusarea__footer__tms">
                       <div className='focusareas__focusarea__footer__info'>
                         <span className="lfa__focusareas__focusarea__footer__count"> {teamAncestorFocusAreas?.length || 0}</span>
                         <span className="lfa__focusareas__focusarea__footer__txt">Teams</span>
@@ -113,6 +114,7 @@ const LandingFocusAreas = (props: any) => {
                         { teamAncestorFocusAreas?.length > 0 && <img src={"/icons/arrow-blue-right.svg"} alt='project'/> }
                       </div>
                     </div>
+                    }
                     {projectAncestorFocusAreas?.length > 0 &&
                       <div onClick={()=> {routeTo(focusArea, "Project")}} className="lfa__focusareas__focusarea__footer__prts">
                         <div className='focusareas__focusarea__footer__info'>
@@ -223,6 +225,7 @@ const LandingFocusAreas = (props: any) => {
           </div>
         </div>
       </div>
+     <FocusAreaDialog userInfo={userInfo}/>
       <style jsx>
         {`
           .lfa {

@@ -3,41 +3,55 @@ import Modal from '@/components/core/modal';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
-import { PAGE_ROUTES } from '@/utils/constants';
+import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import Cookies from 'js-cookie';
+import { useEffect, useRef, useState } from 'react';
 
+const MemberBioModal = () => {
+  const [member, setMember] = useState<IMember>();
+  const bioModalRef = useRef<HTMLDialogElement>(null);
+  const analytics = useHomeAnalytics();
 
-interface IMemberBioModal {
-  onClose: (e: any) => void;
-  modalRef: any;
-  member: IMember;
-}
-
-const MemberBioModal = (props: IMemberBioModal) => {
-  const onClose = props?.onClose;
-  const modalRef = props?.modalRef;
-  const member = props?.member;
   const name = member?.name;
   const bio = member?.bio as string;
 
-  const analytics = useHomeAnalytics();
+  const onModalOpen = () => {
+    if (bioModalRef.current) {
+      bioModalRef.current.showModal();
+    }
+  };
+
+  const onCloseModal = () => {
+    if (bioModalRef.current) {
+      bioModalRef.current.close();
+    }
+  };
 
   const onMemberClick = (e: any) => {
     const userInfo = Cookies.get('userInfo') as IUserInfo;
-    analytics.onMmeberBioPopupViewProfileBtnClicked({...getAnalyticsMemberInfo(member), bio}, getAnalyticsUserInfo(userInfo));
-    window.open(`${PAGE_ROUTES.MEMBERS}/${member.id}`);
-    onClose(e);
+    analytics.onMmeberBioPopupViewProfileBtnClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
+    window.open(`${PAGE_ROUTES.MEMBERS}/${member?.id}`);
+    onCloseModal();
   };
 
-  const stopPropagation = (e: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  useEffect(() => {
+    async function handler(e: any) {
+      const member = e?.detail?.member;
+      setMember(member);
+      if (bioModalRef.current) {
+        bioModalRef?.current?.showModal();
+      }
+    }
+    document.addEventListener(EVENTS.OPEN_MEMBER_BIO_POPUP, handler);
+    return () => {
+      document.removeEventListener(EVENTS.OPEN_MEMBER_BIO_POPUP, handler);
+    };
+  }, []);
 
   return (
     <>
-      <Modal modalRef={modalRef} onClose={onClose}>
-        <div onClick={stopPropagation} className="bio">
+      <Modal modalRef={bioModalRef} onClose={onCloseModal}>
+        <div className="bio">
           <div className="bio__hdr">
             <h1 className="bio__hdr__ttl">{`${name}'s Intro`}</h1>
           </div>
@@ -48,7 +62,7 @@ const MemberBioModal = (props: IMemberBioModal) => {
             <button onClick={onMemberClick} className="bio__ftr__viewProfileBtn">
               View Profile
             </button>
-            <button onClick={onClose} className="bio__ftr__closeBtn">
+            <button onClick={onCloseModal} className="bio__ftr__closeBtn">
               Close
             </button>
           </div>

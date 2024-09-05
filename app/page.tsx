@@ -9,6 +9,10 @@ import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-area';
 import HuskyDialog from '@/components/page/home/husky-dialog';
 import HuskyDiscover from '@/components/page/home/husky-discover';
+import FocusAreaDialog from '@/components/page/home/focus-area/focus-area-dialog';
+import ScrollToTop from '@/components/page/irl-details/scroll-to-top';
+import { Metadata } from 'next';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 export default async function Home() {
   const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
@@ -32,6 +36,7 @@ export default async function Home() {
         <div className={styles.home__cn__featured}>
           <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
         </div>
+        <ScrollToTop pageName='Home' userInfo={userInfo}/>
       </div>
     </div>
     <HuskyDialog isLoggedIn={isLoggedIn}/>
@@ -96,4 +101,26 @@ const getPageData = async () => {
       discoverData
     };
   }
+};
+
+export const metadata: Metadata = {
+  title: 'Home | Protocol Labs Network',
+  description: 'The Protocol Labs Network drives breakthroughs in computing to push humanity forward.',
+  openGraph: {
+    type: 'website',
+    url: process.env.APPLICATION_BASE_URL,
+    images: [
+      {
+        url: SOCIAL_IMAGE_URL,
+        width: 1280,
+        height: 640,
+        alt: 'Protocol Labs Network',
+        type: 'image/jpeg',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [SOCIAL_IMAGE_URL],
+  },
 };

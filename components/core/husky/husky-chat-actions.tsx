@@ -1,7 +1,16 @@
+'use client'
+
+import { useHuskyAnalytics } from "@/analytics/husky.analytics";
+
 interface HuskyChatActionsProps {
   actions: any[];
 }
 function HuskyChatActions({ actions }: HuskyChatActionsProps) {
+
+  const {trackHuskyActionCardClicked} = useHuskyAnalytics()
+  const onActionCardClicked = (action: any) => {
+    trackHuskyActionCardClicked(action)
+  }
   return (
     <>
       <div className="chat-actions">
@@ -12,9 +21,12 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
         <div className="chat-actions__cn ">
           {actions.map((action: any) => (
             <div className="chat-actions__cn__item" key={action.link}>
-              <p className="chat-actions__cn__item__name">{action.name}</p>
+              <p className="chat-actions__cn__item__name">
+                <img className="actions__cn__item__name__icon" src={action.icon}/>
+                <span>{action.name}</span>
+              </p>
               <p className="chat-actions__cn__item__desc">{action.desc}</p>
-              <a className="chat-actions__cn__item__link" href={action.link} target="_blank">{`View ${action.type}`}</a>
+              <a onClick={() => onActionCardClicked(action)} className="chat-actions__cn__item__link" href={action.link} target="_blank">{`View ${action.type}`}</a>
             </div>
           ))}
         </div>
@@ -54,6 +66,15 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
           .chat-actions__cn__item__name {
             font-size: 18px;
             font-weight: 600;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+          }
+
+          .actions__cn__item__name__icon {
+            width: 17px;
+            height: 17px;
+            margin-bottom: 1px;
           }
           .chat-actions__cn__item__desc {
             display: -webkit-box;
@@ -63,7 +84,7 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
             text-overflow: ellipsis;
             white-space: normal;
             font-size: 13px;
-            height: 45px;
+            height: 48px;
           }
           .chat-actions__cn__item__link {
             background: #156ff7;

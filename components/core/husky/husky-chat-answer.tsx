@@ -11,8 +11,9 @@ interface HuskyChatAnswerProps {
   onQuestionEdit: (ques: string) => void;
   onFeedback: (ques: string, answer: string) => Promise<void>;
   onRegenerate: (ques: string) => Promise<void>;
+  onCopyAnswer: (answer: string) => Promise<void>;
 }
-function HuskyChatAnswer({ mode, answer, isLastIndex, question, onQuestionEdit, onRegenerate, onFeedback }: HuskyChatAnswerProps) {
+function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, onQuestionEdit, onRegenerate, onFeedback }: HuskyChatAnswerProps) {
   const anchorWrapper = (props: any) => (
     <a style={{ color: 'blue' }} target="_blank" href={props.href}>
       {`[`}
@@ -42,7 +43,7 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onQuestionEdit, 
             <div className={`chat__ansactions__cn`}>
               {isLastIndex && <img onClick={async () => await onRegenerate(question)} className="chat__ansactions__cn__item" title="regenerate response" src="/icons/refresh-circle.svg" />}
               {isLastIndex && <img onClick={() => onQuestionEdit(question)} className="chat__ansactions__cn__item" title="edit question" src="/icons/edit-chat.svg" />}
-              <CopyText textToCopy={answer}>
+              <CopyText onCopyCallback={onCopyAnswer} textToCopy={answer}>
                 {' '}
                 <img className="chat__ansactions__cn__item--copy" title="copy response" src="/icons/copy.svg" />
               </CopyText>

@@ -9,6 +9,7 @@ export const useHuskyAnalytics = () => {
     husky_open_shared_blog: 'husky_open_shared_blog',
     husky_followup_ques_clicked: 'husky_followup_ques_clicked',
     husky_blog_url_copied: 'husky_blog_url_copied',
+    husky_source_link_clicked: 'husky_source_link_clicked',
     husky_user_feedback_clicked: 'husky_user_feedback_clicked',
     husky_user_feedback_status: 'husky_user_feedback_status',
     husky_ai_response: 'husky_ai_response',
@@ -21,6 +22,7 @@ export const useHuskyAnalytics = () => {
     husky_ask_prompt_type_selection: 'husky_ask_prompt_type_selection',
     husky_ask_prompt_clicked: 'husky_ask_prompt_clicked',
     husky_exploration_prompt_clicked: 'husky_exploration_prompt_clicked',
+    husky_action_card_clicked: 'husky_action_card_clicked'
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -33,6 +35,14 @@ export const useHuskyAnalytics = () => {
       console.error(e);
     }
   };
+
+  function trackHuskySourceLinkClicked(link: string) {
+    captureEvent(events.husky_source_link_clicked, {link});
+  }
+
+  function trackHuskyActionCardClicked(action: any) {
+    captureEvent(events.husky_action_card_clicked, {...action})
+  }
 
   function trackSharedBlog(user: any, blogId: string, mode: string) {
     captureEvent(events.husky_open_shared_blog, { ...(user && { ...user }), blogId, mode });
@@ -66,8 +76,8 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_user_ques_edit_clicked, { question });
   }
 
-  function trackAnswerCopy(user: any) {
-    captureEvent(events.husky_user_answer_copy_clicked, { ...(user && { ...user }) });
+  function trackAnswerCopy(user: any, answer: string) {
+    captureEvent(events.husky_user_answer_copy_clicked, { ...(user && { ...user }), answer });
   }
 
   function trackUserPrompt(user: any, query: string) {
@@ -94,7 +104,7 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_exploration_prompt_clicked, { ...(user && { ...user }), prompt })
   }
 
-  return { trackSharedBlog, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus };
+  return { trackSharedBlog, trackHuskySourceLinkClicked, trackHuskyActionCardClicked, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus };
 };
 
 

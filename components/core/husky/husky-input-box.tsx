@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { PopoverDp } from '../popover-dp';
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
 function HuskyInputBox(props: any) {
   const onHuskyInput = props.onHuskyInput;
@@ -12,11 +13,12 @@ function HuskyInputBox(props: any) {
   const sources = [
     { name: 'Others', value: 'none', icon: '/icons/globe.svg' },
     { name: 'Twitter', value: 'twitter', icon: '/icons/social-x.svg' },
-    { name: 'LinkedIn', value: 'linkedin', icon: '/icons/social-linkedin.svg' },
+    /* { name: 'LinkedIn', value: 'linkedin', icon: '/icons/social-linkedin.svg' }, */
   ];
 
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
   const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
+  const { trackSourceChange } = useHuskyAnalytics()
 
   const onTextSubmit = async () => {
     if (isAnswerLoading) {
@@ -35,6 +37,7 @@ function HuskyInputBox(props: any) {
   };
 
   const onSourceClicked = (value: string) => {
+    trackSourceChange(null, value);
     onSourceSelected(value);
   };
 

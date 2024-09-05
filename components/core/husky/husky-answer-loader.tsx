@@ -61,6 +61,7 @@ function HuskyAnswerLoader(props: any) {
             display: flex;
             align-items: center;
             gap: 8px;
+            width: 80%;
           }
           .husky-loader__info__text__icon {
             animation: rotate 1s linear infinite;
@@ -75,6 +76,14 @@ function HuskyAnswerLoader(props: any) {
             right: 0;
             display: flex;
             justify-content: center;
+          }
+
+          @media(min-width: 1024px) {
+          
+           .husky-loader__info__text {
+            width:fit-content;
+          }
+          
           }
 
           @keyframes shimmer {

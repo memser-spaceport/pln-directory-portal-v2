@@ -66,3 +66,125 @@ export const getDiscoverData = async () => {
   }
   return { data: formattedResult };
 };
+
+export const incrementHuskyViewCount = async (slug: string) => {
+  try {
+    await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions/${slug}`, {
+      cache: 'no-store',
+      method: 'PATCH',
+      body: JSON.stringify({ attribute: 'viewCount' }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (e) {}
+};
+
+export const incrementHuskyShareCount = async (slug: string) => {
+  try {
+    await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions/${slug}`, {
+      cache: 'no-store',
+      method: 'PATCH',
+      body: JSON.stringify({ attribute: 'shareCount' }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (e) {}
+};
+
+export const getHuskyResponseBySlug = async (slug: string, increaseView = false) => {
+  //home/question-answers/4yfzhh
+  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions/${slug}`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  const output: any = await result.json();
+  if (increaseView) {
+    await incrementHuskyViewCount(slug);
+  }
+  if (!result.ok) {
+    return {
+      isError: true,
+      status: result.status,
+      message: output,
+    };
+  }
+
+  return {
+    data: {
+      question: output.content,
+      answer: output.answer,
+      answerSourceLinks: output.answerSources,
+      answerSourcedFrom: 'none',
+      followupQuestions: output.relatedQuestions.map((v: any) => v.content),
+      viewCount: output.viewCount,
+      shareCount: output.shareCount,
+    },
+  };
+};
+
+export const getTeamPrompts = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?teamUid__not=null`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const output = await response.json();
+  return output.map((o: any) => {
+    return {
+      name: o?.team?.name,
+      uid: o?.team?.uid,
+      logo: o?.team?.logo?.url,
+      relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
+    };
+  });
+};
+
+export const getProjectsPrompts = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?projectUid__not=null`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const output = await response.json();
+  return output.map((o: any) => {
+    return {
+      name: o?.project?.name,
+      uid: o?.project?.uid,
+      logo: o?.project?.logo?.url,
+      relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
+    };
+  });
+};
+
+export const getIrlPrompts = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?eventUid__not=null`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const output = await response.json();
+  return output.map((o: any) => {
+    return {
+      name: o?.plevent?.name,
+      uid: o?.plevent?.uid,
+      logo: o?.plevent?.logo?.url,
+      relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
+    };
+  });
+};
+
+

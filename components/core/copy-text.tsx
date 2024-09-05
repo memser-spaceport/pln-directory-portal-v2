@@ -4,7 +4,7 @@ import { useState } from 'react';
 interface CopyTextProps {
   textToCopy: string;
   children: any;
-  onCopyCallback?: () => Promise<void>
+  onCopyCallback?: (answer: string) => Promise<void>
 }
 const CopyText = ({ textToCopy, children, onCopyCallback }: CopyTextProps) => {
   const [copied, setCopied] = useState(false);
@@ -14,8 +14,7 @@ const CopyText = ({ textToCopy, children, onCopyCallback }: CopyTextProps) => {
     setCopied(true);
     console.log(typeof onCopyCallback)
     if(onCopyCallback) {
-      console.log('calling')
-      await onCopyCallback();
+      await onCopyCallback(textToCopy);
     }
     // Hide the message after 3 seconds
     setTimeout(() => {

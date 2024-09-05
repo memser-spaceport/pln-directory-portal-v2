@@ -115,7 +115,7 @@ const MemberCard = (props: any) => {
                 )}
               </>
             ) : (
-              <div className="member__details__bio__txt--nobio">🛠️ buidling their bio...</div>
+              <div className="member__details__bio__txt--nobio">🛠️ building their bio...</div>
             )}
           </div>
         </div>

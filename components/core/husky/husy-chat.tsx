@@ -20,9 +20,9 @@ interface HuskyChatProps {
 }
 function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onCopyAnswer, onRegenerate, onFeedback, blogId }: HuskyChatProps) {
   const initialPrompts = [
-    { text: 'What are the advantanges of IPFS?', icon: '✨' },
-    { text: 'Teams with most members', icon: '👥' },
-    { text: 'Upcoming Events', icon: '📅' },
+    { text: 'Vision of Protocol Labs', icon: '✨' },
+    { text: 'Retrospective of Labweek', icon: '📅' },
+    { text: 'Focus area of Protocol Labs', icon: '🎯' },
   ];
 
   const { trackExplorationPromptSelection} = useHuskyAnalytics()

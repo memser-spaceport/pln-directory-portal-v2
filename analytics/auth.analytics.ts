@@ -1,4 +1,5 @@
 import { AUTH_ANALYTICS } from '@/utils/constants';
+import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
 
 export const useAuthAnalytics = () => {
@@ -8,7 +9,11 @@ export const useAuthAnalytics = () => {
     try {
       if (postHogProps?.capture) {
         const allParams = { ...eventParams };
-        postHogProps.capture(eventName, { ...allParams });
+        const userInfo = getUserInfo();
+        const loggedInUserUid = userInfo?.uid;
+        const loggedInUserEmail = userInfo?.email;
+        const loggedInUserName = userInfo?.name;
+        postHogProps.capture(eventName, { ...allParams, loggedInUserUid, loggedInUserEmail, loggedInUserName });
       }
     } catch (e) {
       console.error(e);

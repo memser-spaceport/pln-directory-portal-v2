@@ -1,5 +1,6 @@
 import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { IRL_ANALYTICS_EVENTS } from '@/utils/constants';
+import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
 
 export const useIrlAnalytics = () => {
@@ -9,7 +10,11 @@ export const useIrlAnalytics = () => {
     try {
       if (postHogProps?.capture) {
         const allParams = { ...eventParams };
-        postHogProps.capture(eventName, { ...allParams });
+        const userInfo = getUserInfo();
+        const loggedInUserUid = userInfo?.uid;
+        const loggedInUserEmail = userInfo?.email;
+        const loggedInUserName = userInfo?.name;
+        postHogProps.capture(eventName, { ...allParams, loggedInUserEmail, loggedInUserName, loggedInUserUid });
       }
     } catch (e) {
       console.error(e);
@@ -300,7 +305,6 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_BTN_CLICKED, params);
   }
 
-    
   function removeAttendeesRemoveSuccess(user: IAnalyticsUserInfo | null, event: any) {
     const params = {
       user,
@@ -345,6 +349,6 @@ export const useIrlAnalytics = () => {
     floatingBarDeleteBtnClicked,
     floatingBarEditBtnClicked,
     removeAttendeesPopupRemoveBtnClicked,
-    removeAttendeesRemoveSuccess
+    removeAttendeesRemoveSuccess,
   };
 };

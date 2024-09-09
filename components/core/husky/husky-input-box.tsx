@@ -37,7 +37,7 @@ function HuskyInputBox(props: any) {
   };
 
   const onSourceClicked = (value: string) => {
-    trackSourceChange(null, value);
+    trackSourceChange(value);
     onSourceSelected(value);
   };
 

@@ -2,7 +2,6 @@
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import BarTabs from '@/components/ui/bar-tabs';
-import Tabs from '@/components/ui/tabs';
 import { getIrlPrompts, getProjectsPrompts, getTeamPrompts } from '@/services/home.service';
 import {  useEffect, useState } from 'react';
 
@@ -22,16 +21,16 @@ function HuskyAsk(props: any) {
     { name: 'IRL GATHERINGS', key: 'irls', activeIcon: '/icons/calendar-blue.svg', inActiveIcon: '/icons/calendar-grey.svg' },
   ];
 
-  const {trackPromptTypeSelection, trackPromptSelection} = useHuskyAnalytics()
+  const {trackPromptTypeSelection, trackUploadData, trackPromptSelection} = useHuskyAnalytics()
 
   const onTabSelectionChanged = (v: string) => {
-    trackPromptTypeSelection(null, v);
+    trackPromptTypeSelection(v);
     setSuggestionTopic(v);
     setFilteredPrompts(promptInfos[v]);
   };
 
   const onPromptItemClicked = (quest: string) => {
-    trackPromptSelection(null, quest)
+    trackPromptSelection(quest)
     onPromptClicked(quest)
       .then(() => console.log())
       .catch((e: any) => console.error());
@@ -101,7 +100,7 @@ function HuskyAsk(props: any) {
             <div className="huskyask__st__list__info">
               <img alt="Add your data" src="/icons/husky-add.svg" />
               <p className="huskyask__st__list__info__txt">Want Husky to be able to fetch results for your teams, projects and members too?</p>
-              <a target='_blank' href='' className="huskyask__st__list__info__btn">Upload data</a>
+              <a onClick={trackUploadData} target='_blank' href='' className="huskyask__st__list__info__btn">Upload data</a>
             </div>
           </div>
         </div>

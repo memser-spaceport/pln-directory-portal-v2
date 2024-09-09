@@ -6,17 +6,14 @@ import HuskyChat from './husy-chat';
 import RoundedTabs from '@/components/ui/rounded-tabs';
 import { getHuskyReponse } from '@/services/husky.service';
 import PageLoader from '../page-loader';
-import { PopoverDp } from '../popover-dp';
 import HuskyAnswerLoader from './husky-answer-loader';
 import { useRouter } from 'next/navigation';
-import { EVENTS } from '@/utils/constants';
 import HuskyFeedback from './husky-feedback';
 import { getUniqueId, getUserInfoFromLocal } from '@/utils/common.utils';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 import HuskyLogin from './husky-login';
 import HuskyLoginExpired from './husky-login-expired';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import Cookies from 'js-cookie';
 import { createLogoutChannel } from '../login/broadcast-channel';
 import { incrementHuskyShareCount } from '@/services/home.service';
 
@@ -41,12 +38,11 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const [selectedSource, setSelectedSource] = useState('none');
   const chatCnRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { trackTabSelection, trackUserPrompt, trackExplorationPromptSelection, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse } = useHuskyAnalytics();
+  const { trackTabSelection, trackUserPrompt, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse } = useHuskyAnalytics();
 
   const onTabSelected = (item: string) => {
     setTab(item);
-    const userInfo = getUserInfoFromLocal();
-    trackTabSelection(userInfo, item);
+    trackTabSelection(item);
   };
 
   const forceUserLogin = () => {
@@ -61,8 +57,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const onCopyAnswer = async (answer: string) => {
-    const userInfo = getUserInfoFromLocal();
-    trackAnswerCopy(userInfo, answer);
+    trackAnswerCopy(answer);
   }
 
   const getUserCredentials = async () => {
@@ -109,26 +104,25 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       setAnswerLoadingStatus(true);
       setTab('Exploration');
       setChats([]);
-      trackAiResponse(userInfo, 'initiated', 'prompt');
+      trackAiResponse('initiated', 'prompt');
       const result = await getHuskyReponse(authToken, question, selectedSource, chatUid, null, null, mode === 'blog');
       setAskingQuestion('');
       setAnswerLoadingStatus(false);
       if (result.isError) {
-        trackAiResponse(userInfo, 'error', 'prompt');
+        trackAiResponse('error', 'prompt');
         setChats((v) => [...v, { question: question, isError: true }]);
         return;
       }
-      trackAiResponse(userInfo, 'success', 'prompt');
+      trackAiResponse('success', 'prompt');
       setChats([result.data]);
     } catch (error) {
-      trackAiResponse(null, 'error', 'prompt');
+      trackAiResponse('error', 'prompt');
     }
   };
 
   const onShareClicked = async () => {
     if (blogId) {
-      const userInfo = getUserInfoFromLocal();
-      trackCopyUrl(userInfo, blogId);
+      trackCopyUrl(blogId);
       await incrementHuskyShareCount(blogId);
     }
   };
@@ -151,8 +145,8 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         setLoginBoxStatus(true);
         return;
       }
-      trackFollowupQuestionClick(userInfo, mode, question, blogId);
-      trackAiResponse(userInfo, 'initiated', 'followup');
+      trackFollowupQuestionClick(mode, question, blogId);
+      trackAiResponse('initiated', 'followup');
       const chatUid = checkAndSetPromptId();
       setAskingQuestion(question);
       setAnswerLoadingStatus(true);
@@ -166,14 +160,14 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       setAskingQuestion('');
       setAnswerLoadingStatus(false);
       if (result.isError) {
-        trackAiResponse(userInfo, 'error', 'followup');
+        trackAiResponse('error', 'followup');
         setChats((v) => [...v, { question: question, isError: true }]);
         return;
       }
-      trackAiResponse(userInfo, 'success', 'followup');
+      trackAiResponse('success', 'followup');
       setChats((v) => [...v, result.data]);
     } catch (error) {
-      trackAiResponse(null, 'error', 'followup');
+      trackAiResponse('error', 'followup');
     }
   };
 
@@ -184,7 +178,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
   const onFeedback = async (question: string, answer: string) => {
     const userInfo = getUserInfoFromLocal();
-    trackFeedbackClick(userInfo, question, answer);
+    trackFeedbackClick(question, answer);
     setFeedbackQandA({ question: question, answer: answer });
   };
 
@@ -193,7 +187,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     if(!authToken) {
       return;
     }
-    trackRegenerate(userInfo)
+    trackRegenerate()
     await onHuskyInput(query);
   }
 
@@ -213,22 +207,22 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         setChats([]);
         setTab('Exploration');
       }
-      trackUserPrompt(userInfo, query)
+      trackUserPrompt(query)
       setAskingQuestion(query);
       setAnswerLoadingStatus(true);
-      trackAiResponse(userInfo, 'initiated', 'user-input')
+      trackAiResponse('initiated', 'user-input')
       const result = await getHuskyReponse(authToken, query, selectedSource, chatUid);
       setAskingQuestion('');
       setAnswerLoadingStatus(false);
       if (result.isError) {
-        trackAiResponse(userInfo, 'error', 'user-input')
+        trackAiResponse('error', 'user-input')
         setChats((v) => [...v, { question: query, isError: true }]);
         return;
       }
-      trackAiResponse(userInfo, 'success', 'user-input')
+      trackAiResponse('success', 'user-input')
       setChats((v) => [...v, result.data]);
     } catch (error) {
-      trackAiResponse(null, 'error', 'user-input')
+      trackAiResponse('error', 'user-input')
     }
   };
 

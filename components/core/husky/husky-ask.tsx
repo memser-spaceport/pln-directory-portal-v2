@@ -101,7 +101,7 @@ function HuskyAsk(props: any) {
             <div className="huskyask__st__list__info">
               <img alt="Add your data" src="/icons/husky-add.svg" />
               <p className="huskyask__st__list__info__txt">Want Husky to be able to fetch results for your teams, projects and members too?</p>
-              <button className="huskyask__st__list__info__btn">Upload data</button>
+              <a target='_blank' href='' className="huskyask__st__list__info__btn">Upload data</a>
             </div>
           </div>
         </div>

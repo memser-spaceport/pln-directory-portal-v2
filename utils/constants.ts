@@ -55,7 +55,8 @@ export const EVENTS = {
   OPEN_FLOATING_BAR: 'open-floating-bar',
   GET_NOTIFICATIONS: 'get-notifications',
   TRIGGER_RATING_POPUP: 'trigger-notification-popup',
-  OPEN_MEMBER_BIO_POPUP:'open-member-bio-popup'
+  OPEN_MEMBER_BIO_POPUP:'open-member-bio-popup',
+  OPEN_MEMBER_BIO_LOGIN_POPUP:'open-member-bio-login-popup'
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -335,6 +336,8 @@ export const HOME_ANALYTICS_EVENTS = {
   FEATURED_PROJECT_CARD_CLICKED:'featured-project-card-clicked',
   FEATURED_MEMBER_BIO_SEE_MORE_CLICKED:'featured-member-bio-see-more-clicked',
   FEATURED_MEMBER_BIO_POPUP_VIEW_PROFILE_BTN_CLICKED:'featured-member-bio-popup-view-profile-btn-clicked',
+  FEATURED_MEMBER_BIO_LOGIN_POPUP_OPEN:'featured-member-bio-login-popup-open',
+  FEATURED_MEMBER_BIO_LOGIN_POPUP_LOGIN_BTN_CLICKED:"featured-member-bio-login-popup-login-btn-clicked",
 
   DISCOVER_CAROUSEL_ACTIONS_CLICKED:'discover-carousel-actions-clicked',
   DISCOVER_CARD_CLICKED:'discover-card-clicked',

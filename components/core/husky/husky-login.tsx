@@ -1,3 +1,4 @@
+import { useHuskyAnalytics } from "@/analytics/husky.analytics";
 
 interface HuskyLoginProps {
   onLoginBoxClose: () => void;
@@ -5,6 +6,14 @@ interface HuskyLoginProps {
 }
 
 function HuskyLogin({ onLoginBoxClose, onLoginClick }: HuskyLoginProps) {
+const { trackHuskyLogin } = useHuskyAnalytics()
+
+const onLoginBtnClicked = () => {
+  trackHuskyLogin();
+  if(onLoginClick) {
+    onLoginClick()
+  }
+}
   return (
     <>
       <div className="login-popup">
@@ -20,7 +29,7 @@ function HuskyLogin({ onLoginBoxClose, onLoginClick }: HuskyLoginProps) {
               </button>
             </div>
             <div className="login-popup__box__actions__right">
-              <button onClick={onLoginClick} className="login-popup__box__actions__right__login">
+              <button onClick={onLoginBtnClicked} className="login-popup__box__actions__right__login">
                 Login
               </button>
             </div>

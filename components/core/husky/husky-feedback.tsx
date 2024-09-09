@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { RATINGS } from '@/utils/constants';
 import TextArea from '@/components/form/text-area';
 import HiddenField from '@/components/form/hidden-field';
-import cookie from 'js-cookie';
 import { getMemberInfo } from '@/services/members.service';
 import { saveFeedback } from '@/services/husky.service';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
@@ -33,7 +32,7 @@ const HuskyFeedback = (props: any) => {
       forceUserLogin()
     }
     if (userInfo) {
-      trackFeedbackStatus(userInfo, 'initiated')
+      trackFeedbackStatus('initiated')
       const memberInfo = await getMemberInfo(userInfo.uid);
       const memberDetails = memberInfo.data;
       const payload = {
@@ -51,15 +50,15 @@ const HuskyFeedback = (props: any) => {
       const response = await saveFeedback(newAuthToken, payload);
       setLoadingStatus(false);
       if(response.isSaved) {
-        trackFeedbackStatus(userInfo, 'success')
+        trackFeedbackStatus('success')
         setStep('success')
       } else {
-        trackFeedbackStatus(userInfo, 'error')
+        trackFeedbackStatus('error')
         setStep('error');
       }
     }
     } catch (error) {
-      trackFeedbackStatus(null, 'error')
+      trackFeedbackStatus('error')
       setStep('error');
     }
   };

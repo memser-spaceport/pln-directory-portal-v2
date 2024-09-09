@@ -28,7 +28,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
   const { trackExplorationPromptSelection} = useHuskyAnalytics()
 
   const onExplorationPromptClicked = async (ques: string) => {
-    trackExplorationPromptSelection(null, ques);
+    trackExplorationPromptSelection(ques);
     await onPromptClicked(ques);
   }
 

@@ -98,6 +98,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: 'session-expired-popup-login-btn-clicked',
   GO_TO_TOP_BTN_CLICKED: 'go-to-top-btn-clicked',
   NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked',
+  NAVBAR_APP_LOGO_CLICKED:'navbar_app_logo_clicked'
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {

@@ -25,7 +25,7 @@ const MemberCard = (props: any) => {
 
   const sanitizedBio = sanitize(bio);
   const bioContent = sanitizedBio?.replace(/<[^>]+>/g, '');
-  const shortBio = bioContent?.slice(0, 85);
+  const shortBio = bioContent?.slice(0, 80);
 
   const analytics = useHomeAnalytics();
 

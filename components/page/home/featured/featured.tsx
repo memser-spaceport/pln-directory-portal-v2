@@ -12,7 +12,10 @@ import ProjectCard from './project-card';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
-import MemberBioModal from './member-bio-modal';
+import dynamic from 'next/dynamic';
+
+const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
+const MemberBioLoginModal = dynamic(() => import('./member-bio-login-modal'), { ssr: false });
 
 function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
   const { category } = item;
@@ -93,6 +96,7 @@ const Featured = (props: any) => {
         </div>
 
         <MemberBioModal />
+        <MemberBioLoginModal />
       </div>
       <style jsx>{`
         .embla {

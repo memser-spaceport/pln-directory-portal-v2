@@ -23,7 +23,9 @@ export const useHuskyAnalytics = () => {
     husky_ask_prompt_type_selection: 'husky_ask_prompt_type_selection',
     husky_ask_prompt_clicked: 'husky_ask_prompt_clicked',
     husky_exploration_prompt_clicked: 'husky_exploration_prompt_clicked',
-    husky_action_card_clicked: 'husky_action_card_clicked'
+    husky_action_card_clicked: 'husky_action_card_clicked',
+    husky_ask_upload_data_clicked: 'husky_ask_upload_data_clicked',
+    husky_login_clicked: 'husky_login_clicked',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -34,12 +36,20 @@ export const useHuskyAnalytics = () => {
         const loggedInUserUid = userInfo?.uid;
         const loggedInUserEmail = userInfo?.email;
         const loggedInUserName = userInfo?.name;
-        postHogProps.capture(eventName, { ...allParams, loggedInUserUid, loggedInUserEmail, loggedInUserName });
+        postHogProps.capture(eventName, { ...allParams, ...(loggedInUserEmail && {loggedInUserUid, loggedInUserEmail, loggedInUserName}) });
       }
     } catch (e) {
       console.error(e);
     }
   };
+
+  function trackHuskyLogin() {
+    captureEvent(events.husky_login_clicked)
+  }
+
+  function trackUploadData() {
+    captureEvent(events.husky_ask_upload_data_clicked)
+  }
 
   function trackHuskySourceLinkClicked(link: string) {
     captureEvent(events.husky_source_link_clicked, {link});
@@ -49,67 +59,67 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_action_card_clicked, {...action})
   }
 
-  function trackSharedBlog(user: any, blogId: string, mode: string) {
-    captureEvent(events.husky_open_shared_blog, { ...(user && { ...user }), blogId, mode });
+  function trackSharedBlog(blogId: string, mode: string) {
+    captureEvent(events.husky_open_shared_blog, {blogId, mode });
   }
 
-  function trackFollowupQuestionClick(user: any, mode: string, question: string, blogId?: string | null) {
-    captureEvent(events.husky_followup_ques_clicked, { ...(user && { ...user }), ...(blogId && { blogId }), question, mode });
+  function trackFollowupQuestionClick(mode: string, question: string, blogId?: string | null) {
+    captureEvent(events.husky_followup_ques_clicked, { ...(blogId && { blogId }), question, mode });
   }
 
-  function trackCopyUrl(user: any, blogId: string) {
-    captureEvent(events.husky_blog_url_copied, { ...(user && { ...user }), blogId });
+  function trackCopyUrl(blogId: string) {
+    captureEvent(events.husky_blog_url_copied, { blogId });
   }
 
-  function trackFeedbackClick(user: any, question: string, answer: string) {
-    captureEvent(events.husky_user_feedback_clicked, { ...(user && { ...user }), question, answer });
+  function trackFeedbackClick( question: string, answer: string) {
+    captureEvent(events.husky_user_feedback_clicked, { question, answer });
   }
 
-  function trackFeedbackStatus(user: any, status: string) {
-    captureEvent(events.husky_user_feedback_status, { ...(user && { ...user }), status });
+  function trackFeedbackStatus( status: string) {
+    captureEvent(events.husky_user_feedback_status, { status });
   }
 
-  function trackAiResponse(user: any, status: string, mode: string) {
-    captureEvent(events.husky_ai_response, { ...(user && { ...user }), status, mode, });
+  function trackAiResponse(status: string, mode: string) {
+    captureEvent(events.husky_ai_response, { status, mode, });
   }
 
-  function trackRegenerate(user: any) {
-    captureEvent(events.husky_user_regenerate_clicked, { ...(user && { ...user }) });
+  function trackRegenerate() {
+    captureEvent(events.husky_user_regenerate_clicked);
   }
 
   function trackQuestionEdit(question: string) {
     captureEvent(events.husky_user_ques_edit_clicked, { question });
   }
 
-  function trackAnswerCopy(user: any, answer: string) {
-    captureEvent(events.husky_user_answer_copy_clicked, { ...(user && { ...user }), answer });
+  function trackAnswerCopy(answer: string) {
+    captureEvent(events.husky_user_answer_copy_clicked, { answer });
   }
 
-  function trackUserPrompt(user: any, query: string) {
-    captureEvent(events.husky_user_prompt, { ...(user && { ...user }), query });
+  function trackUserPrompt(query: string) {
+    captureEvent(events.husky_user_prompt, { query });
   }
 
-  function trackSourceChange(user: any, sourceSelected: string) {
-    captureEvent(events.husky_user_prompt_source_changed, { ...(user && { ...user }), sourceSelected });
+  function trackSourceChange(sourceSelected: string) {
+    captureEvent(events.husky_user_prompt_source_changed, { sourceSelected });
   }
 
-  function trackTabSelection(user: any, tabSelected: string) {
-    captureEvent(events.husky_dialog_tab_clicked, { ...(user && { ...user }), tabSelected });
+  function trackTabSelection( tabSelected: string) {
+    captureEvent(events.husky_dialog_tab_clicked, { tabSelected });
   }
 
-  function trackPromptTypeSelection(user: any, promptType: string) {
-    captureEvent(events.husky_ask_prompt_type_selection, { ...(user && { ...user }), promptType });
+  function trackPromptTypeSelection(promptType: string) {
+    captureEvent(events.husky_ask_prompt_type_selection, { promptType });
   }
 
-  function trackPromptSelection(user: any, prompt: string) {
-    captureEvent(events.husky_ask_prompt_clicked, { ...(user && { ...user }), prompt });
+  function trackPromptSelection(prompt: string) {
+    captureEvent(events.husky_ask_prompt_clicked, {prompt });
   }
 
-  function trackExplorationPromptSelection(user: any, prompt: string) {
-    captureEvent(events.husky_exploration_prompt_clicked, { ...(user && { ...user }), prompt })
+  function trackExplorationPromptSelection( prompt: string) {
+    captureEvent(events.husky_exploration_prompt_clicked, { prompt })
   }
 
-  return { trackSharedBlog, trackHuskySourceLinkClicked, trackHuskyActionCardClicked, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus };
+  return { trackSharedBlog, trackHuskyLogin, trackUploadData, trackHuskySourceLinkClicked, trackHuskyActionCardClicked, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus };
 };
 
 

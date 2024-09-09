@@ -96,6 +96,10 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_NOTIFICATION_MENU_CLICKED, params);
   }
 
+  function onAppLogoClicked() {
+    captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_APP_LOGO_CLICKED);
+  }
+
   return {
     onNavItemClicked,
     onNavGetHelpItemClicked,
@@ -107,5 +111,6 @@ export const useCommonAnalytics = () => {
     onSessionExpiredLoginClicked,
     goToTopBtnClicked,
     onNotificationMenuClickHandler,
+    onAppLogoClicked
   };
 };

@@ -67,6 +67,10 @@ export default function Navbar(props: Readonly<INavbar>) {
     analytics.onNavDrawerBtnClicked(isMobileDrawerOpen);
   };
 
+  const onNavbarApplogoClicked = ()=> {
+    analytics.onAppLogoClicked()
+  }
+
   useEffect(() => {
     async function getAllNotifications(status: boolean) {
       if (status && isNotification) {
@@ -94,7 +98,7 @@ export default function Navbar(props: Readonly<INavbar>) {
       <div className="nb">
         {isMobileDrawerOpen && <MobileNavDrawer userInfo={userInfo} isLoggedIn={isLoggedIn} onNavMenuClick={onNavDrawerIconClickHandler} />}
         <div className="nb__left">
-          <Link href="/">
+          <Link href="/" onClick={onNavbarApplogoClicked}>
             <Image quality={60} priority src="/icons/app-logo.svg" height={35} width={157} alt="app-logo" />
           </Link>
           <div className="nb__left__web-optns">

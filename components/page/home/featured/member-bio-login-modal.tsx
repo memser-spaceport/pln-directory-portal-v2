@@ -22,7 +22,7 @@ function MemberBioLoginModal() {
   const onLoginClick = () => {
     onCloseModal();
     analytics.onFeaturedMemberBioPopupLoginBtnClicked(getAnalyticsMemberInfo(member));
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    router.push(`${window.location.pathname}${window.location.search}#login`, {scroll: false});
   };
 
   useEffect(() => {

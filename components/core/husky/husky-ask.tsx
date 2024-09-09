@@ -224,7 +224,7 @@ function HuskyAsk(props: any) {
           .huskyask__st__list__cn__lt__item__img {
             height: 24px;
             width: 24px;
-            background: lightgrey;
+            border-radius: 3px;
           }
           .huskyask__st__list__cn__lt__text {
             flex: 1;

@@ -140,7 +140,7 @@ export const getTeamPrompts = async () => {
   return output.map((o: any) => {
     return {
       name: o?.team?.name || o.teamName,
-      logo: o?.team?.logo?.url,
+      logo: o?.team?.logo?.url ?? '/icons/team-light-blue.svg',
       relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
     };
   });
@@ -159,7 +159,7 @@ export const getProjectsPrompts = async () => {
   return output.map((o: any) => {
     return {
       name: o?.project?.name || o?.projectName,
-      logo: o?.project?.logo?.url,
+      logo: o?.project?.logo?.url ?? '/icons/project-light-blue.svg',
       relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
     };
   });
@@ -178,7 +178,7 @@ export const getIrlPrompts = async () => {
   return output.map((o: any) => {
     return {
       name: o?.plevent?.name || o?.eventName,
-      logo: null,
+      logo: '/icons/irl-light-blue.svg',
       relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
     };
   });

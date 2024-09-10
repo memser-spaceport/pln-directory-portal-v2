@@ -37,7 +37,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
           {!isLoggedIn && <MemberProfileLoginStrip member={member} />}
           <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
             <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            {member?.bio && isLoggedIn && <Bio content= {member?.bio}/>}
+            {member?.bio && isLoggedIn && <Bio member={member}/>}
           </div>
         </div>
         <div className={styles?.memberDetail__container__contact}>

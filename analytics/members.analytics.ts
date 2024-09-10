@@ -266,19 +266,19 @@ export const useMemberAnalytics = () => {
   }
 
   
-  function onMemberDetailsShowMoreClicked(member: IAnalyticsMemberInfo | null,) {
+  function onMemberDetailsBioReadMoreClicked(member: IAnalyticsMemberInfo | null,) {
     const params = {
       ...member
     };
-    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_SHOW_MORE_CLICKED, params);
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_READ_MORE_CLICKED, params);
   }
 
   
-  function onMemberDetailsShowLessClicked(member: IAnalyticsMemberInfo | null,) {
+  function onMemberDetailsBioReadLessClicked(member: IAnalyticsMemberInfo | null,) {
     const params = {
       ...member
     };
-    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_SHOW_LESS_CLICKED, params);
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_READ_LESS_CLICKED, params);
   }
 
   return {
@@ -310,7 +310,7 @@ export const useMemberAnalytics = () => {
     onFilterCloseClicked,
     onMemberEditBySelf,
     onMemberEditByAdmin,
-    onMemberDetailsShowMoreClicked,
-    onMemberDetailsShowLessClicked
+    onMemberDetailsBioReadMoreClicked,
+    onMemberDetailsBioReadLessClicked
   };
 };

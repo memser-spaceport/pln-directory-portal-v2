@@ -1,30 +1,44 @@
 'use client';
 
+import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { IMember } from '@/types/members.types';
+import { getAnalyticsMemberInfo } from '@/utils/common.utils';
 import { useState } from 'react';
 import clip from 'text-clipper';
 
-const Bio = ({ content }: { content: string }) => {
-  const [showMore, setShowMore] = useState(false);
-
+const Bio = ({ member }: { member: IMember }) => {
+  const content = member?.bio ?? '';
   const clippedHtml = clip(content, 450, { html: true, maxLines: 5 });
 
-  // Handle "Show more" / "Show less" click
-  const onShowMoreClickHandler = (e: any) => {
-    if (e.target.tagName === 'BUTTON') {
-      setShowMore((prev) => !prev);
-    }
+  const [readMore, setReadMore] = useState(false);
+  const analytics = useMemberAnalytics();
+
+  const onreadMoreClicked = () => {
+    setReadMore((prev) => !prev);
+    analytics.onMemberDetailsBioReadMoreClicked(getAnalyticsMemberInfo(member));
   };
 
-  const onShowMoreClicked = ()=> {}
-
-  const onShowLesClicked = ()=> {}
+  const onShowLessClicked = () => {
+    setReadMore((prev) => !prev);
+    analytics.onMemberDetailsBioReadLessClicked(getAnalyticsMemberInfo(member));
+  };
 
   return (
     <>
-      <div className="bioCn" onClick={onShowMoreClickHandler}>
+      <div className="bioCn">
         <h2 className="bioCn__ttl">Bio</h2>
-        <div className="bioCn__content" dangerouslySetInnerHTML={{ __html: showMore ? content : clippedHtml }} />
-        <span>{!showMore ? <button className="bioCn__toggle-btn">show more</button> : <button className="bioCn__toggle-btn desc">&nbsp;show less</button>}</span>
+        <div className="bioCn__content" dangerouslySetInnerHTML={{ __html: readMore ? content : clippedHtml }} />
+        <span>
+          {!readMore ? (
+            <button onClick={onreadMoreClicked} className="bioCn__toggle-btn">
+              read more
+            </button>
+          ) : (
+            <button onClick={onShowLessClicked} className="bioCn__toggle-btn desc">
+              &nbsp;read less
+            </button>
+          )}
+        </span>
       </div>
 
       <style jsx>{`

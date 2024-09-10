@@ -31,4 +31,4 @@ jobs:
       - name: Trigger Vercel deployment hook
         if: env.should_trigger == 'true'
         run: |
-          curl -X POST ${{ secrets.VERCEL_DEPLOY_HOOK }}
+          curl -X POST ${{ secrets.FRONTEND_DIRECTORY_PORTAL_DEV_DEPLOY_HOOK }}

@@ -15,16 +15,20 @@ jobs:
         run: |
           # Load the list of users from the secret
           USERS_WITH_VERCEL_ACCESS="${{ secrets.VERCEL_USER_ACCESS_LIST }}"
-          
-          # Convert the string to an array (split by comma)
-          IFS=',' read -r -a USER_ARRAY <<< "$USERS_WITH_VERCEL_ACCESS"
-          
+
+          # Convert the list to lowercase and split by comma
+          LOWERCASE_USERS=$(echo "$USERS_WITH_VERCEL_ACCESS" | tr '[:upper:]' '[:lower:]')
+          IFS=',' read -r -a USER_ARRAY <<< "$LOWERCASE_USERS"
+
+          # Convert the current GitHub actor to lowercase
+          LOWERCASE_ACTOR=$(echo "${GITHUB_ACTOR}" | tr '[:upper:]' '[:lower:]')
+
           # Check if the current user is in the list
-          if [[ " ${USER_ARRAY[@]} " =~ " ${GITHUB_ACTOR} " ]]; then
-            echo "User ${GITHUB_ACTOR} has Vercel access. Skipping deployment."
+          if [[ " ${USER_ARRAY[@]} " =~ " ${LOWERCASE_ACTOR} " ]]; then
+            echo "User ${LOWERCASE_ACTOR} has Vercel access. Skipping deployment."
             echo "should_trigger=false" >> $GITHUB_ENV
           else
-            echo "User ${GITHUB_ACTOR} does not have Vercel access. Proceeding with deployment."
+            echo "User ${LOWERCASE_ACTOR} does not have Vercel access. Proceeding with deployment."
             echo "should_trigger=true" >> $GITHUB_ENV
           fi
 

@@ -70,6 +70,7 @@ const Bio = ({ member }: { member: IMember }) => {
           text-align: center;
           color: #156ff7;
           background: transparent;
+          font-style: italic;
         }
 
         .desc {

@@ -12,4 +12,4 @@ jobs:
     steps:
       - name: Trigger Vercel deployment hook
         run: |
-          curl -X POST ${{FRONTEND_DIRECTORY_PORTAL_DEV_DEPLOY_HOOK}}
+          curl -X POST ${{ secrets.FRONTEND_DIRECTORY_PORTAL_DEV_DEPLOY_HOOK }}

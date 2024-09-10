@@ -13,6 +13,7 @@ import { getMember, getMemberUidByAirtableId } from '@/services/members.service'
 import { getAllTeams } from '@/services/teams.service';
 import MemberProjectContribution from '@/components/page/member-details/member-project-contribution';
 import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
+import Bio from '@/components/page/member-details/bio';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -36,6 +37,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
           {!isLoggedIn && <MemberProfileLoginStrip member={member} />}
           <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
             <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            {member?.bio && isLoggedIn && <Bio content= {member?.bio}/>}
           </div>
         </div>
         <div className={styles?.memberDetail__container__contact}>

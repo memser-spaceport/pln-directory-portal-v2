@@ -92,6 +92,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     id: result.uid,
     name: result.name,
     email: result.email,
+    bio: result.bio,
     profile: result.image?.url,
     githubHandle: result.githubHandler || null,
     discordHandle: result.discordHandler || null,

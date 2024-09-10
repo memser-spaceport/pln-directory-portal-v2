@@ -6,6 +6,24 @@
   }
 }
 
+.bioCn__content, p {
+  padding-bottom: 10px;
+}
+
+.bio__body__content p {
+  padding-bottom: 10px;
+}
+
+.bioCn__content p:last-child {
+  display: inline;
+  padding-bottom: unset;
+}
+
+.bio__body__content p:last-child {
+  display: inline;
+  padding-bottom: unset;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -146,5 +164,4 @@ dialog {
   word-break: break-word;
   
 }
-
 

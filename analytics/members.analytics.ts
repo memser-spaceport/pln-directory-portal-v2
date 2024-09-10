@@ -265,6 +265,21 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_BY_ADMIN, params);
   }
 
+  
+  function onMemberDetailsShowMoreClicked(member: IAnalyticsMemberInfo | null,) {
+    const params = {
+      ...member
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_SHOW_MORE_CLICKED, params);
+  }
+
+  
+  function onMemberDetailsShowLessClicked(member: IAnalyticsMemberInfo | null,) {
+    const params = {
+      ...member
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_SHOW_LESS_CLICKED, params);
+  }
 
   return {
     onOfficeHourClicked,
@@ -294,6 +309,8 @@ export const useMemberAnalytics = () => {
     onShowFilterResultClicked,
     onFilterCloseClicked,
     onMemberEditBySelf,
-    onMemberEditByAdmin
+    onMemberEditByAdmin,
+    onMemberDetailsShowMoreClicked,
+    onMemberDetailsShowLessClicked
   };
 };

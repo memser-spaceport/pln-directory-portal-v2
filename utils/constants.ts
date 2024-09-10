@@ -279,8 +279,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_SEE_ALL_CLICKED: 'member-detail-project-contributions-see-all-clicked',
   MEMBER_DETAIL_PROJECT_CLICKED: 'member-detail-project-clicked',
   MEMBER_DETAIL_GITHUB_HANDLE_UPDATE_CLICKED: 'member-detail-github-handle-update-clicked',
-  MEMBER_DETAIL_BIO_SHOW_MORE_CLICKED:'member-detail-bio-show-more-clicked',
-  MEMBER_DETAIL_BIO_SHOW_LESS_CLICKED:'member-detail-bio-show-less-clicked'
+  MEMBER_DETAIL_BIO_READ_MORE_CLICKED:'member-detail-bio-read-more-clicked',
+  MEMBER_DETAIL_BIO_READ_LESS_CLICKED:'member-detail-bio-read-less-clicked'
 };
 
 export const IRL_ANALYTICS_EVENTS = {

@@ -6,7 +6,7 @@ import clip from 'text-clipper';
 const Bio = ({ content }: { content: string }) => {
   const [showMore, setShowMore] = useState(false);
 
-  const clippedHtml = clip(content, 500, { html: true, maxLines: 5 });
+  const clippedHtml = clip(content, 450, { html: true, maxLines: 5 });
 
   // Handle "Show more" / "Show less" click
   const onShowMoreClickHandler = (e: any) => {
@@ -14,6 +14,10 @@ const Bio = ({ content }: { content: string }) => {
       setShowMore((prev) => !prev);
     }
   };
+
+  const onShowMoreClicked = ()=> {}
+
+  const onShowLesClicked = ()=> {}
 
   return (
     <>

@@ -179,6 +179,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           color: #000;
           grid-template-columns: 48px auto;
           column-gap: 8px;
+          padding: 16px 16px 24px 16px;
         }
 
         .header__profile {
@@ -356,6 +357,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
             // grid-template-columns: repeat(10, minmax(0, 1fr));
             grid-template-columns: 80px auto;
             column-gap: 24px;
+            padding: 20px;
           }
 
           .header__profile {

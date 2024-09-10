@@ -3,7 +3,7 @@
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import BarTabs from '@/components/ui/bar-tabs';
 import { getIrlPrompts, getProjectsPrompts, getTeamPrompts } from '@/services/home.service';
-import {  useEffect, useState } from 'react';
+import {  useEffect, useRef, useState } from 'react';
 
 function HuskyAsk(props: any) {
   const onPromptClicked = props.onPromptClicked;
@@ -21,12 +21,17 @@ function HuskyAsk(props: any) {
     { name: 'IRL GATHERINGS', key: 'irls', activeIcon: '/icons/calendar-blue.svg', inActiveIcon: '/icons/calendar-grey.svg' },
   ];
 
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
+
   const {trackPromptTypeSelection, trackUploadData, trackPromptSelection} = useHuskyAnalytics()
 
   const onTabSelectionChanged = (v: string) => {
     trackPromptTypeSelection(v);
     setSuggestionTopic(v);
     setFilteredPrompts(promptInfos[v]);
+    if(searchInputRef.current) {
+      searchInputRef.current.value = '';
+    }
   };
 
   const onPromptItemClicked = (quest: string) => {
@@ -80,7 +85,7 @@ function HuskyAsk(props: any) {
             <div className="huskyask__st__list__content">
               <div className="huskyask__st__list__cn__search">
                 <img className="huskyask__st__list__cn__search__icon" src="/icons/search-blue.svg" />
-                <input onChange={(e) => onFilterSearch(e.target.value)} placeholder="Search by name" className="huskyask__st__list__cn__search__input" type="search" />
+                <input ref={searchInputRef} onChange={(e) => onFilterSearch(e.target.value)} placeholder="Search by name" className="huskyask__st__list__cn__search__input" type="search" />
               </div>
               <div className="huskyask__st__list__cn__lt">
                 {filteredPrompts.map((v: any) => (

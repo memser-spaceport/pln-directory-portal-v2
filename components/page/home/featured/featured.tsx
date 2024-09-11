@@ -15,7 +15,6 @@ import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, 
 import dynamic from 'next/dynamic';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
-const MemberBioLoginModal = dynamic(() => import('./member-bio-login-modal'), { ssr: false });
 
 function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
   const { category } = item;
@@ -54,7 +53,7 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
     case 'member':
       return (
         <a target="_blank" href={`${PAGE_ROUTES.MEMBERS}/${item.id}`} onClick={() => onMemberClicked(item)}>
-          <MemberCard member={item} isUserLoggedIn={isLoggedIn} />
+          <MemberCard member={item} />
         </a>
       );
     case 'team':
@@ -96,7 +95,6 @@ const Featured = (props: any) => {
         </div>
 
         <MemberBioModal />
-        <MemberBioLoginModal />
       </div>
       <style jsx>{`
         .embla {

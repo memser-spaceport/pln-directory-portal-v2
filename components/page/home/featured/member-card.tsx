@@ -22,7 +22,6 @@ const MemberCard = (props: any) => {
   const isBorder = isTeamLead || isOpenToWork;
   const isNew = member?.isNew;
   const bio = member?.bio;
-  const isLoggedIn = props?.isUserLoggedIn;
 
   const sanitizedBio = sanitize(bio);
   const bioContent = sanitizedBio?.replace(/<[^>]+>/g, '');
@@ -34,26 +33,15 @@ const MemberCard = (props: any) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isLoggedIn) {
-      const userInfo = Cookies.get('userInfo') as IUserInfo;
-      analytics.onMemberBioSeeMoreClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
-      document.dispatchEvent(
-        new CustomEvent(EVENTS.OPEN_MEMBER_BIO_POPUP, {
-          detail: {
-            member,
-          },
-        })
-      );
-    } else {
-      analytics.onFeaturedMemberBioLoginPopupOpen({ ...getAnalyticsMemberInfo(member), bio });
-      document.dispatchEvent(
-        new CustomEvent(EVENTS.OPEN_MEMBER_BIO_LOGIN_POPUP, {
-          detail: {
-            member,
-          },
-        })
-      );
-    }
+    const userInfo = Cookies.get('userInfo') as IUserInfo;
+    analytics.onMemberBioSeeMoreClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_MEMBER_BIO_POPUP, {
+        detail: {
+          member,
+        },
+      })
+    );
   };
 
   return (

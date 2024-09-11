@@ -42,6 +42,7 @@ const FocusAreaHeader = ({
             </p>
           </div>
         </div>
+        {(!prevBtnDisabled || !nextBtnDisabled) && 
         <div className="lfa__hdr__actions">
           <button
             className={`lfa__hdr__actions__left ${prevBtnDisabled ? 'disabled' : ''}`}
@@ -59,7 +60,7 @@ const FocusAreaHeader = ({
           >
             <img className="lfa__hdr__actions__right__img" src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'} alt="right arrow" />
           </button>
-        </div>
+        </div>}
       </div>
       <style jsx>{`
         .lfa__hdr {

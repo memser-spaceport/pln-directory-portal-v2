@@ -23,8 +23,8 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
   );
 
   const onFeedbackClicked = async () => {
-      await onFeedback(question, answer);
-  }
+    await onFeedback(question, answer);
+  };
 
   return (
     <>
@@ -36,7 +36,22 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
           </h3>
         )}
         <div className={`chat__ans__text ${mode === 'blog' ? 'chat__ans__text--blog' : ''}`}>
-          <Markdown options={{ overrides: { a: { component: anchorWrapper }, p: {props: { style: { marginBottom: '6px', lineHeight: '20px', fontSize: '14px'} }}, h3: {props: { style: {marginTop: '12px', marginBottom: '12px', fontSize: '19px'} }}, h1: {props: { style: {marginTop: '12px', marginBottom: '12px', fontSize: '24px'} }}, h2: {props: { style: {marginTop: '12px', marginBottom: '12px', fontSize: '22px', } }}, h4: {props: { style: {marginTop: '12px', marginBottom: '12px', fontSize: '16px'} }}, ol: { props: { style: { marginLeft: '16px' } } }, ul: { props: { style: { marginLeft: '16px' } } } } }}>{answer}</Markdown>
+          <Markdown
+            options={{
+              overrides: {
+                a: { component: anchorWrapper },
+                p: { props: { style: { marginBottom: '6px', lineHeight: '20px', fontSize: '14px' } } },
+                h1: { props: { style: { marginTop: '14px', marginBottom: '14px', fontSize: '22px' } } },
+                h2: { props: { style: { marginTop: '12px', marginBottom: '12px', fontSize: '20px' } } },
+                h3: { props: { style: { marginTop: '10px', marginBottom: '10px', fontSize: '18px' } } },
+                h4: { props: { style: { marginTop: '8px', marginBottom: '8px', fontSize: '16px' } } },
+                ol: { props: { style: { marginLeft: '16px' } } },
+                ul: { props: { style: { marginLeft: '16px' } } },
+              },
+            }}
+          >
+            {answer}
+          </Markdown>
         </div>
         {mode !== 'blog' && (
           <div className="chat__ansactions">
@@ -47,7 +62,7 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
                 {' '}
                 <img className="chat__ansactions__cn__item--copy" title="copy response" src="/icons/copy.svg" />
               </CopyText>
-              <img className='chat__ansactions__cn__item' title='Submit feedback' onClick={onFeedbackClicked} src="/icons/feedback.svg" />
+              <img className="chat__ansactions__cn__item" title="Submit feedback" onClick={onFeedbackClicked} src="/icons/feedback.svg" />
             </div>
           </div>
         )}
@@ -65,15 +80,15 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
             border-radius: 8px;
             width: 100%;
           }
-            .feeback {
-             width: 100%;
-             height: 100%;
-             display: flex;
-             align-items: center;
-             justify-content: center;
-             background: none;
-             border:none;
-            }
+          .feeback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+          }
           .chat__ans__text {
             font-size: 14px;
             line-height: 26px;

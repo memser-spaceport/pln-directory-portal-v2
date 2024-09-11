@@ -45,7 +45,7 @@ const Discover = (props: any) => {
             <h2 className="discover__hdr__ttl__txt">Discover</h2>
           </div>
           <p className="discover__hdr__desc">
-            Explore the Protocol Labs network with{' '}
+            Explore Protocol Labs with{' '}
             <button onClick={onHuskyClick} className="discover__hdr__desc__husky">
               HuskyAI
             </button>

@@ -323,7 +323,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2;
+            z-index: 3;
           }
           .overlay {
             position: absolute;
@@ -339,7 +339,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             width: 100%;
             border-bottom: 1px solid #cbd5e1;
             background: white;
-            z-index: 1;
+            z-index: 2;
             top:-1px;
             left:0;
             right:0;
@@ -366,7 +366,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             width: 100%;
             height: fit-content;
             max-height: 100px;
-
+            z-index: 1;
             position: absolute;
             background: white;
             bottom: 0;

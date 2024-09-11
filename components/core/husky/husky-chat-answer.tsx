@@ -36,7 +36,7 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
           </h3>
         )}
         <div className={`chat__ans__text ${mode === 'blog' ? 'chat__ans__text--blog' : ''}`}>
-          <Markdown options={{ overrides: { a: { component: anchorWrapper }, p: {props: { style: { marginBottom: '6px'} }}, h3: {props: { style: {marginTop: '8px', marginBottom: '8px'} }}, h1: {props: { style: {marginTop: '8px', marginBottom: '8px'} }}, h2: {props: { style: {marginTop: '8px', marginBottom: '8px'} }}, h4: {props: { style: {marginTop: '8px', marginBottom: '8px'} }}, ol: { props: { style: { marginLeft: '16px' } } }, ul: { props: { style: { marginLeft: '16px' } } } } }}>{answer}</Markdown>
+          <Markdown options={{ overrides: { a: { component: anchorWrapper }, p: {props: { style: { marginBottom: '6px', lineHeight: '20px', fontSize: '14px'} }}, h3: {props: { style: {marginTop: '12px', marginBottom: '12px', fontSize: '19px'} }}, h1: {props: { style: {marginTop: '12px', marginBottom: '12px', fontSize: '24px'} }}, h2: {props: { style: {marginTop: '12px', marginBottom: '12px', fontSize: '22px', } }}, h4: {props: { style: {marginTop: '12px', marginBottom: '12px', fontSize: '16px'} }}, ol: { props: { style: { marginLeft: '16px' } } }, ul: { props: { style: { marginLeft: '16px' } } } } }}>{answer}</Markdown>
         </div>
         {mode !== 'blog' && (
           <div className="chat__ansactions">

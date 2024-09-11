@@ -126,20 +126,6 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED, params);
   }
 
-  function onFeaturedMemberBioLoginPopupOpen(member: any) {
-    const params = {
-      ...member,
-    };
-    captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_MEMBER_BIO_LOGIN_POPUP_OPEN, params);
-  }
-
-  function onFeaturedMemberBioPopupLoginBtnClicked(member: any) {
-    const params = {
-      ...member,
-    };
-    captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_MEMBER_BIO_LOGIN_POPUP_LOGIN_BTN_CLICKED, params);
-  }
-
   return {
     featuredSubmitRequestClicked,
     onMemberCardClicked,
@@ -154,7 +140,5 @@ export const useHomeAnalytics = () => {
     onMemberBioSeeMoreClicked,
     onMmeberBioPopupViewProfileBtnClicked,
     onFocusAreaProtocolLabsVisionUrlClicked,
-    onFeaturedMemberBioLoginPopupOpen,
-    onFeaturedMemberBioPopupLoginBtnClicked
   };
 };

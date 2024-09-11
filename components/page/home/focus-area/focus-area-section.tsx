@@ -364,7 +364,7 @@ const LandingFocusAreas = (props: any) => {
           }
 
           .embla__slide {
-            flex: 0 0 326px;
+            flex: 0 0 289px;
             min-width: 0;
             cursor: pointer;
           }

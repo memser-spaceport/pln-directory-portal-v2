@@ -21,7 +21,7 @@ interface HuskyChatProps {
 function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onCopyAnswer, onRegenerate, onFeedback, blogId }: HuskyChatProps) {
   const initialPrompts = [
     { text: 'Vision of Protocol Labs', icon: '✨' },
-    { text: 'Retrospective of Labweek', icon: '📅' },
+    { text: 'Retrospective of LabWeek', icon: '📅' },
     { text: 'Focus area of Protocol Labs', icon: '🎯' },
   ];
 
@@ -56,7 +56,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
         </div>
         {chats.length === 0 && !isAnswerLoading && (
           <div className="huskychat__empty">
-            <img className="huskychat__empty__img" src="/images/husky-empty.png" />
+            <img className="huskychat__empty__img" src="/images/husky-empty.svg" />
             <div className="huskychat__empty__prompts">
               <div className="huskychat__empty__prompts__title">
                 <img src="/icons/enter-green.svg" />

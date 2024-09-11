@@ -105,7 +105,7 @@ const getPageData = async () => {
 
 export const metadata: Metadata = {
   title: 'Home | Protocol Labs Directory',
-  description: 'The Protocol Labs Network drives breakthroughs in computing to push humanity forward.',
+  description: 'The Protocol Labs Directory drives breakthroughs in computing to push humanity forward.',
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,
@@ -114,7 +114,7 @@ export const metadata: Metadata = {
         url: SOCIAL_IMAGE_URL,
         width: 1280,
         height: 640,
-        alt: 'Protocol Labs Network',
+        alt: 'Protocol Labs Directory',
         type: 'image/jpeg',
       },
     ],

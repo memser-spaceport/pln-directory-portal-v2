@@ -7,6 +7,11 @@ const nextConfig = {
         destination: '/teams',
         permanent: true,
       },
+      {
+        source: '/irl/token-2049',
+        destination: '/irl/token2049-24sg',
+        permanent: true,
+      },
     ];
   },
   env: {

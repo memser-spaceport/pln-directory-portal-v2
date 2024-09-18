@@ -28,3 +28,21 @@ export function formatIrlEventDate(startDateStr: string | Date, endDateStr: stri
 
   return `${startFormatted}-${endFormatted}, ${endYear}`;
 }
+
+export function getFormattedDateString(startDate: string, endDate: string) {
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+  const [startYear, startMonth, startDay] = startDate.split('-');
+  const [endYear, endMonth, endDay] = endDate.split('-');
+  
+  const startMonthName = monthNames[parseInt(startMonth, 10) - 1];
+  const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
+  
+  if (startMonth === endMonth && startYear === endYear) {
+      return `${startMonthName} ${parseInt(startDay, 10)}-${parseInt(endDay, 10)}`;
+  } else if (startYear === endYear) {
+      return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)}`;
+  } else {
+      return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
+  }
+}

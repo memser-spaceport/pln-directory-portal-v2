@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import HiddenField from './hidden-field';
 
 interface Option {
   [key: string]: any;
@@ -116,6 +117,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
             </ul>
           )}
         </div>
+        <HiddenField value={selectedOption?.uid} defaultValue={selectedOption?.uid} name={uniqueKey} />
       </div>
       <style jsx>
         {`

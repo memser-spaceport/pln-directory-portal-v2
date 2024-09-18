@@ -30,7 +30,8 @@ export function formatIrlEventDate(startDateStr: string | Date, endDateStr: stri
 }
 
 // Common function to check user access
-export function canUserPerformAction(roles: string[], allowedRoles: string[]): boolean {
+
+export function canUserPerformEditAction(roles: string[], allowedRoles: string[]): boolean {
   return roles?.some((role: string) => allowedRoles.includes(role)) ?? false;
 }
 

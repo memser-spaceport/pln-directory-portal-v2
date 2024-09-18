@@ -29,6 +29,8 @@ const AttendeeList = (props: any) => {
   const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const router = useRouter();
 
+  console.log("isss", );
+
   const { filteredList, sortConfig, filterConfig } = useIrlDetails(updatedEventDetails?.guests, userInfo);
   const registeredGuest = useMemo(() => {
     return updatedEventDetails.guests.find((guest: any) => guest?.memberUid === userInfo?.uid);
@@ -133,6 +135,7 @@ const AttendeeList = (props: any) => {
             eventDetails={updatedEventDetails}
             userInfo={userInfo}
             isLoggedIn={isLoggedIn}
+            updatedUser={updatedUser}
           />
         </div>
         <div className="attendeeList__table">

@@ -1,29 +1,29 @@
 import { useState } from 'react';
 import HiddenField from './hidden-field';
 
-
 interface ICustomCheckbox {
-  isChecked: boolean;
   name: string;
   value: string;
   disabled: boolean;
+  onSelect: any;
 }
 
-
-const CustomCheckbox = (props: any) => {
-  const [ischecked, setIsChecked] = useState(props?.isChecked);
+const CustomCheckbox = (props: ICustomCheckbox) => {
+  const [ischecked, setIsChecked] = useState(props?.disabled);
   const name = props?.name;
   const value = props?.value;
   const disabled = props?.disabled ?? false;
+  const onSelect = props?.onSelect;
 
   const onisCheckedClicked = () => {
+      onSelect();
     setIsChecked(!ischecked);
   };
   return (
     <>
-      <button type="button" className={`chbox ${ischecked ? 'checked' : ''} ${disabled ? "disable" : ""}`} onClick={onisCheckedClicked}>
-        {ischecked || disabled && <img src="/icons/right-white.svg" alt="checkbox" />}
-        {ischecked  && <HiddenField name={name} value={value} defaultValue={value} />}
+      <button type="button" className={`chbox ${ischecked ? 'checked' : ''} ${disabled ? 'disable' : ''}`} onClick={onisCheckedClicked}>
+        {(ischecked || disabled) && <img src="/icons/right-white.svg" alt="checkbox" />}
+        {ischecked && <HiddenField name={name} value={value} defaultValue={value} />}
       </button>
 
       <style jsx>
@@ -51,8 +51,8 @@ const CustomCheckbox = (props: any) => {
           }
 
           .disable {
-          background-color: #64748B;
-          pointer-events: none;
+            background-color: #64748b;
+            pointer-events: none;
           }
         `}
       </style>

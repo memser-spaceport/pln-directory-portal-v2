@@ -90,7 +90,7 @@ export const getHuskyAugmentedInfo = async (authToken: string, query: string, an
   }
 };
 
-export const getHuskyReponse = async (authToken: string, query: string, source: string, chatUid: string, previousQues?: string | null, previousAns?: string | null, isBlog = false) => {
+export const getHuskyResponse = async (authToken: string, query: string, source: string, chatUid: string, previousQues?: string | null, previousAns?: string | null, isBlog = false) => {
   const payload = {
     query,
     UID: chatUid,

@@ -78,6 +78,10 @@ body {
   margin-top: 60px;
 }
 
+textarea {
+  font-family:inherit;
+}
+
 body {
   overflow-y: auto;
 }

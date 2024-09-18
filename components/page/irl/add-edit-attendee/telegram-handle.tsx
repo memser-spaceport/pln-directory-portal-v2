@@ -5,9 +5,10 @@ import { useEffect, useState } from 'react';
 const TelegramHandle = (props: any) => {
   // const telegramId = props?.telegramId;
 
+  const initialValues = props?.initialValues;
 
   const [isTelegramNote, setIsTelegramNote] = useState(false);
-  const [telegramId, setTelegramId] = useState(props?.telegramId);
+  const [telegramId, setTelegramId] = useState('');
   const [isHiddenTelegram, setIsHiddenTelegram] = useState(false);
 
   const handleChange = (e: any) => {
@@ -27,24 +28,34 @@ const TelegramHandle = (props: any) => {
   };
 
   useEffect(() => {
-
-    function handler(e:any) {
-      setTelegramId(e?.detail?.telegramHandle || "");
-      setIsHiddenTelegram(!e.detail?.showTelegram)
+    function handler(e: any) {
+      setTelegramId(e?.detail?.telegramHandle || '');
+      setIsHiddenTelegram(!e.detail?.showTelegram);
     }
-    document.addEventListener(EVENTS.UPDATE_TELEGRAM_HANDLE, (e: any) => {handler(e)});
+    document.addEventListener(EVENTS.UPDATE_TELEGRAM_HANDLE, (e: any) => {
+      handler(e);
+    });
     return () => {
-      document.removeEventListener(EVENTS.UPDATE_TELEGRAM_HANDLE, (e: any) => {handler(e)});
+      document.removeEventListener(EVENTS.UPDATE_TELEGRAM_HANDLE, (e: any) => {
+        handler(e);
+      });
     };
+  });
 
-  })
+  useEffect(() => {
+    if (initialValues) {
+      setTelegramId(initialValues?.telegramId);
+    } else {
+      setIsTelegramNote(false);
+      setIsHiddenTelegram(false);
+      setTelegramId('');
+    }
+  }, [initialValues]);
 
   return (
     <>
       <div className="details__cn__telegram">
-        <div className="label details__cn__telegram__label" >
-          Telegram Handle
-        </div>
+        <div className="label details__cn__telegram__label">Telegram Handle</div>
         <input
           name="telegramId"
           id="going-telegram"
@@ -71,10 +82,10 @@ const TelegramHandle = (props: any) => {
           </div>
         )}
         {isTelegramNote && (
-        <div className="details__cn__telegram__warning hidden-message" id="telegram-message">
-          <img src="/icons/info-yellow.svg" alt="info" width={16} height={16} />
-          <p className="details__cn__telegram__warning__msg">Any changes made here will also update your directory profile&apos;s Telegram handle, except for deletions.</p>
-        </div>
+          <div className="details__cn__telegram__warning hidden-message" id="telegram-message">
+            <img src="/icons/info-yellow.svg" alt="info" width={16} height={16} />
+            <p className="details__cn__telegram__warning__msg">Any changes made here will also update your directory profile&apos;s Telegram handle, except for deletions.</p>
+          </div>
         )}
       </div>
 

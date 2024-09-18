@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 import { getParsedValue } from './common.utils';
+import { z } from 'zod';
 
 export const clearAllAuthCookies = () => {
   Cookies.remove('directory_idToken');
@@ -30,5 +31,15 @@ export const getUserInfo = () => {
   } catch (e) {
     console.error(e);
     return null;
+  }
+};
+
+export const isLink = (text: string): boolean => {
+  const urlSchema = z.string().url();
+  try {
+    urlSchema.parse(text);
+    return true;
+  } catch {
+    return false;
   }
 };

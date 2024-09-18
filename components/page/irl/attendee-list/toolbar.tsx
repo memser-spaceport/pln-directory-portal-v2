@@ -32,7 +32,7 @@ const Toolbar = (props: any) => {
 
   //states
   const [searchTerm, setSearchTerm] = useState('');
-  const [iamGoingPopupProps, setIamGoingPopupProps] = useState({ isOpen: false, formdata: null, mode: '' });
+  const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
   const [isEdit, seIsEdit] = useState(false);
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
@@ -50,19 +50,13 @@ const Toolbar = (props: any) => {
   const onIAmGoingClick = () => {
     setIamGoingPopupProps({ isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADD });
     analytics.trackImGoingBtnClick(location);
-    document.dispatchEvent(
-      new CustomEvent('openRsvpModal', {
-        detail: {
-          isOpen: true,
-          type: 'add',
-        },
-      })
-    );
   };
 
   const onIamGoingPopupClose = () => {
     setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
   };
+
+
 
   // Open Attendee Details Popup to edit the guest
   const onEditResponse = () => {
@@ -124,12 +118,39 @@ const Toolbar = (props: any) => {
     }
   }, [searchTerm]);
 
+  const onEditDetailsClicked = () => {
+    const formData = {
+      team: {
+        name: updatedUser?.teamName,
+        logo: updatedUser?.teamLogo,
+        uid: updatedUser?.teamUid,
+      },
+      member: {
+        name: updatedUser?.memberName,
+        logo: updatedUser?.memberLogo,
+        uid: updatedUser?.memberUid,
+      },
+      teamUid: updatedUser?.teamUid,
+      events: updatedUser?.events,
+      teams: updatedUser?.teams?.map((team: any) => {
+        return { ...team, uid: team?.id };
+      }),
+      memberUid: updatedUser?.memberUid,
+      additionalInfo: { checkInDate: updatedUser?.additionalInfo.checkInDate || '', checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '' },
+      topics: updatedUser?.topics,
+      reason: updatedUser?.reason,
+      telegramId: updatedUser?.telegramId,
+      officeHours: updatedUser?.officeHours ?? '',
+    };
+    setIamGoingPopupProps({ isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT });
+  };
+
   return (
     <>
       {iamGoingPopupProps?.isOpen && (
         <AttendeeForm
           onClose={onIamGoingPopupClose}
-          formdata={iamGoingPopupProps?.formdata}
+          formData={iamGoingPopupProps?.formdata}
           selectedLocation={location}
           userInfo={userInfo}
           allGatherings={eventDetails?.events}
@@ -190,10 +211,10 @@ const Toolbar = (props: any) => {
               </button>
               {isEdit && (
                 <div className="toolbar__actionCn__edit__list">
-                  <div className="toolbar__actionCn__edit__list__item">Edit Details</div>
-                  <div onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
-                    Remove from gathering(s)
-                  </div>
+                  <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
+                    Edit Details
+                  </button>
+                  <button onClick={onRemoveFromGatherings}  className="toolbar__actionCn__edit__list__item">Remove from gathering(s)</button>
                 </div>
               )}
             </div>
@@ -208,6 +229,10 @@ const Toolbar = (props: any) => {
 
       <style jsx>
         {`
+          button {
+            background: inherit;
+            width: 100%;
+          }
           .toolbar {
             display: flex;
             flex-direction: column;

@@ -23,8 +23,6 @@ const GuestList = (props: any) => {
   const setSelectedGuests = props?.setSelectedGuests;
   const location = props?.location;
 
-  console.log("GuestList", eventDetails);
-
 
   const analytics = useIrlAnalytics();
 

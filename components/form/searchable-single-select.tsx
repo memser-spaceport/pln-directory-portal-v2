@@ -28,6 +28,7 @@ interface SearchableSingleSelectProps {
   defaultImage?: string;
   showClear?: boolean;
   closeImgUrl?: string;
+  isError?: boolean;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -51,6 +52,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   defaultImage,
   showClear,
   closeImgUrl,
+  isError = false,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -265,7 +267,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             font-size: 14px;
             font-weight: 400;
             border-radius: 8px;
-            border: 1px solid lightgrey;
+            border: 1px solid ${isError ? 'red' : 'lightgrey'};
           }
 
           .hasDefaultImg {

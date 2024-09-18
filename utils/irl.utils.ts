@@ -141,3 +141,44 @@ export function getFormattedDateString(startDate: string, endDate: string) {
     return '';
   }
 }
+
+function getDayWithSuffix(day: number) {
+  if (day > 3 && day < 21) return day + 'th';
+  switch (day % 10) {
+    case 1:
+      return day + 'st';
+    case 2:
+      return day + 'nd';
+    case 3:
+      return day + 'rd';
+    default:
+      return day + 'th';
+  }
+}
+
+export function formatDateRangeForDescription(startDate: any, endDate: any) {
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  try {
+    const [startYear, startMonth, startDay] = startDate.split('-');
+    const [endYear, endMonth, endDay] = endDate.split('-');
+
+    const startMonthName = monthNames[parseInt(startMonth, 10) - 1];
+    const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
+
+    const startDayWithSuffix = getDayWithSuffix(parseInt(startDay, 10));
+    const endDayWithSuffix = getDayWithSuffix(parseInt(endDay, 10));
+
+    // Format the final string with month and day suffixes
+    const startFormattedWithSuffix = `${startMonthName} ${startDayWithSuffix}`;
+    const endFormattedWithSuffix = `${endMonthName} ${endDayWithSuffix}`;
+
+    if (startYear === endYear) {
+      return `${startFormattedWithSuffix} - ${endFormattedWithSuffix}`;
+    } else {
+      return `${startFormattedWithSuffix} - ${endFormattedWithSuffix}, ${endYear}`;
+    }
+  } catch (e) {
+    return '';
+  }
+}

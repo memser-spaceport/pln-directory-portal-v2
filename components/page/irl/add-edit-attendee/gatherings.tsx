@@ -3,7 +3,7 @@ import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
 import { EVENT_TYPE } from '@/utils/constants';
 import { getFormattedDateString } from '@/utils/irl.utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
 import HiddenField from '@/components/form/hidden-field';
 
@@ -12,6 +12,9 @@ interface IGatherings {
   gatherings: any[];
   userInfo: IUserInfo | null;
   errors: any;
+  initialValues: any;
+  guests: any;
+  setErrors: any;
 }
 
 const Gatherings = (props: IGatherings) => {
@@ -19,46 +22,51 @@ const Gatherings = (props: IGatherings) => {
   const gatherings = props?.gatherings ?? [];
   const userInfo = props?.userInfo;
   const errors = props?.errors;
+  const initialValues = props?.initialValues;
+  const guests = props?.guests;
 
   const isGatheringsError = errors?.gatheringsError?.length > 0 ? true : false;
 
-  const [selectedGatherings, setSelectedGatherings] = useState<any[]>(getSelectedGatherings());
+  const [selectedGatherings, setSelectedGatherings] = useState<any[]>([]);
 
   function getIsAlreadyBooked(gathering: any) {
-    return gathering?.guests?.some((guest: any) => guest?.uid === userInfo?.uid);
-  }
-
-  function getSelectedGatherings() {
-    return gatherings?.filter((gathering: any) => getIsAlreadyBooked(gathering));
+    return initialValues?.events?.some((selectedGathering: any) => selectedGathering?.uid === gathering?.uid);
   }
 
   const onGatheringSelectClickHandler = (gathering: any) => {
     setSelectedGatherings((prev) => {
       const isAlreadySelected = prev.some((item) => item.uid === gathering.uid);
-
       if (isAlreadySelected) {
         return prev.filter((item) => item.uid !== gathering.uid);
       } else {
-        return [...prev, { ...gathering, hostSubEvents: [], speakerSubEvents: [] }];
+        return [...prev, { ...gathering, hostSubEvents: [], speakerSubEvents: [], logo: gathering?.logo?.cid }];
       }
     });
   };
 
+  useEffect(() => {
+
+    setSelectedGatherings(initialValues?.events ?? [])
+
+  }, [initialValues]);
   return (
     <>
       <div className="gatrs">
         {/* All Gatherings */}
         <div className="gatrs__all">
-          <span className="gatrs__ttl">{`select gatherings that you are attending in ${selectedLocation?.name}`}</span>
+          <div className="gatrs__ttl">
+            <p>
+              {`Select gatherings that you are attending in ${selectedLocation?.name}`}<span className="gatrs__ttl__mantry">*</span>
+            </p>
+          </div>
           <div className={`gatrs__all__gths ${isGatheringsError ? 'error' : ''}`}>
             {gatherings?.map((gathering: any, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
-              console.log('gathering is', gathering);
               return (
                 <div key={`${gathering.uid} - ${index}`} className={`gatrs__all__gatr  ${isBooked ? 'disable' : ''}`}>
                   <div className={`gatrs__all__gatr__ckbox`}>
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && isBooked && (
-                      <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} disabled={isBooked} />
+                      <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
                     )}
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && !isBooked && (
                       <Tooltip
@@ -72,7 +80,7 @@ const Gatherings = (props: IGatherings) => {
                       />
                     )}
                     {gathering?.type != EVENT_TYPE.INVITE_ONLY && (
-                      <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} disabled={isBooked} />
+                      <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
                     )}
                   </div>
                   <div className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}>
@@ -92,7 +100,7 @@ const Gatherings = (props: IGatherings) => {
 
         {selectedGatherings.length > 0 && (
           <div>
-            <ParticipationDetails selectedGatherings={selectedGatherings} setSelectedGatherings={setSelectedGatherings} />
+            <ParticipationDetails errors={errors} selectedGatherings={selectedGatherings} setSelectedGatherings={setSelectedGatherings} />
           </div>
         )}
       </div>
@@ -115,6 +123,13 @@ const Gatherings = (props: IGatherings) => {
             line-height: 20px;
           }
 
+          .gatrs__ttl__mantry {
+            color: #ff1a1a;
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 600;
+          }
+
           .gatrs__all {
             display: flex;
             flex-direction: column;
@@ -124,6 +139,11 @@ const Gatherings = (props: IGatherings) => {
           .gatrs__all__gths {
             border: 1px solid #cbd5e1;
             border-radius: 4px;
+            over-flow: hidden;
+          }
+
+          .error {
+            border: 1px solid #dc2625;
           }
 
           .error {

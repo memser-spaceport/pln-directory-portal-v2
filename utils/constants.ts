@@ -297,46 +297,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
 };
 
 export const IRL_ANALYTICS_EVENTS = {
-  IRL_GATHERING_CARD_CLICKED: 'irl_gathering_card_clicked',
-  IRL_INVITE_ONLY_RESTRICTION_POPUP_LOGIN_CLICKED: 'irl_invite_only_restriction_popup_login_clicked',
-
-  IRL_DETAILS_NAVBAR_BACK_BTN_CLICKED: 'irl-navbar-back-btn-clicked',
-  IRL_DETAILS_RESOURCE_CLICKED: 'irl-resource-clicked',
-  IRL_DETAILS_RESOURCES_LOGIN_BTN_CLICKED: 'irl-resources-login-btn-clicked',
-  IRL_DETAILS_RESOURCE_POPUP_RESOURCE_LINK_CLICKED: 'irl-banner-resource-popup-resource-link-clicked',
-  IRL_DETAILS_RESOURCE_POPUP_LOGIN_CLICKED: 'irl-resource-popup-login-clicked',
-  IRL_DETAILS_RESOURCES_SEE_MORE_CLICKED: 'irl-resources-see-more-clicked',
-  IRL_DETAILS_INFO_STRIP_JOIN_BTN_CLICKED: 'irl-info-strip-join-btn-clicked',
-  IRL_DETAILS_JOIN_EVENT_STRIP_LOGIN_BTN_CLICKED: 'irl-join-event-strip-login-btn-clicked',
-  IRL_DETAILS_JOIN_EVENT_STRIP_IAM_GOING_BTN_CLICKED: 'irl-join-event-strip-iam-going-btn-clicked',
-
-  IRL_DETAILS_GUEST_LIST_SEARCH: 'irl-guest-list-search',
-  IRL_DETAILS_BANNER_VIEW_SCHEDULE_BTN_CLICKED: 'irl-banner-view-schedule-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_LOGIN_BTN_CLICKED: 'irl-guest-list-login-btn-clicked',
-  IRL_DETAILS_EDIT_RESPONSE_BTN_CLICKED: 'irl-edit-response-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_IAM_GOING_BTN_CLICKED: 'irl-guest-list-iam-going-btn-clicked',
-
-  IRL_DETAILS_GUEST_LIST_TABLE_SORT_CLICKED: 'irl-guest-list-table-sort-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_FILTER_BTN_CLICKED: 'irl-guest-list-table-filter-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_FILTER_APPLY_BTN_CLICKED: 'irl-guest-list-table-filter-apply-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_LOGIN_BTN_CLICKED: 'irl-guest-list-table-login-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_TEAM_CLICKED: 'irl-guest-list-table-team-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_MEMBER_CLICKED: 'irl-guest-list-table-member-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_TELEGRAM_LINK_CLICKED: 'irl-guest-list-table-telegram-link-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_OFFICE_HOURS_LINK_CLICKED: 'irl-guest-list-table-office-hours-link-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED: 'irl-guest-list-table-add-office-hours-clicked',
-  IRL_DETAILS_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
-  IRL_DETAILS_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
-  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-remove-attendees-popup-open',
-  IRL_DETAILS_FLOATING_BAR_EDIT_BTN_CLICKED: 'irl-floating-bar-edit-btn-clicked',
-  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_BTN_CLICKED: 'irl-remove-attendees-popup-remove-btn-clicked',
-  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_SUCCESS: 'irl-remove-attendees-popup-remove-success',
-
-  IRL_RSVP_POPUP_SAVE_BTN_CLICKED: 'irl-rsvp-popup-save-btn-clicked',
-  IRL_RSVP_POPUP_UPDATE_BTN_CLICKED: 'irl-rsvp-popup-update-btn-clicked',
-  IRL_RSVP_POPUP_SAVE_ERROR: 'irl-rsvp-popup-save-error',
-  IRL_RSVP_POPUP_OH_GUIDELINE_URL_CLICKED: 'irl-rsvp-popup-oh-guideline-url-clicked',
-  IRL_RSVP_POPUP_PRIVACY_SETTING_LINK_CLICKED: 'irl-rsvp-popup-privacy-setting-link-clicked',
+ 
 };
 
 export const HOME_ANALYTICS_EVENTS = {
@@ -462,11 +423,6 @@ export const OFFICE_HOURS_MSG = 'Schedule a one on one office hours discussion w
 export const TEAM_OFFICE_HOURS_MSG = 'Join office hours discussion with';
 
 export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Details'];
-
-export const INVITE_ONLY_RESTRICTION_ERRORS = {
-  NOT_LOGGED_IN: 'not_logged_in',
-  UNAUTHORIZED: 'unauthorized',
-};
 
 export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
@@ -701,8 +657,6 @@ export const tagColors = [
   { name: 'Beta', color: '#C169D7' },
   { name: 'Fixed', color: '#4871D9' },
 ];
-
-export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
 
 export const SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
 

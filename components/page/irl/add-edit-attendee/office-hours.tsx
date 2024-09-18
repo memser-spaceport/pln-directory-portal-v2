@@ -3,7 +3,10 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 const OfficeHours = (props: any) => {
-  const [officeHours, setOfficeHours] = useState(props?.officeHours);
+
+  const initialValues = props?.initialValues;
+
+  const [officeHours, setOfficeHours] = useState(props?.initialValue);
   const [isFocusNote, setIsFocusNote] = useState(false);
 
   const handleOHGuidlineClick = () => {
@@ -33,6 +36,15 @@ const OfficeHours = (props: any) => {
       });
     };
   }, []);
+
+  useEffect(() => {
+    if (initialValues) {
+      setOfficeHours(initialValues?.officeHours ?? "");
+    } else {
+      setOfficeHours("");
+      setIsFocusNote(false);
+    }
+  }, [initialValues])
   return (
     <>
       <div className="details__cn__oh">
@@ -57,7 +69,7 @@ const OfficeHours = (props: any) => {
             you for face-to-face connections.
             <Link href={OH_GUIDELINE_URL} legacyBehavior>
               <a target="_blank" className="details__cn__oh__info__text__link" onClick={handleOHGuidlineClick}>
-                Click Here
+                &nbsp;Click Here&nbsp;
               </a>
             </Link>
             to view our office hours guidelines.

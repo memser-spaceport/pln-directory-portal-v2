@@ -836,5 +836,13 @@ export const PLN_LOCATIONS = [{
 }
 ];
 
+export const IRL_ATTENDEE_FORM_ERRORS = {
+  CHECKOUT_DATE_REQUIRED: "Check out date is required",
+  CHECKIN_DATE_REQUIRED: "Check in date is required",
+  DATE_DIFFERENCE : "Departure date should be greater than or equal to the Arrival date",
+  SELECT_MEMBER: "Please select a member",
+  SELECT_GATHERING: "At least one gathering should be selected",
+
+}
 
 export const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

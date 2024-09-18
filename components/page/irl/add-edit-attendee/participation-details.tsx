@@ -1,9 +1,17 @@
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import TextField from '@/components/form/text-field';
+import TextFieldWithCopyIcon from '@/components/form/text-field-with-copy-icon';
+import { useEffect, useState } from 'react';
 
 const ParticipationDetails = (props: any) => {
   const selectedGatherings = props?.selectedGatherings ?? [];
   const setSelectedGatherings = props?.setSelectedGatherings;
+  const errors = props?.errors;
+  const [participationErrors, setParticipationErrors]: any = useState([]);
+
+  useEffect(() => {
+    setParticipationErrors(errors?.participationError)
+  }, [errors])
 
   const onHostSelectHandler = (selectedGathering: any) => {
     setSelectedGatherings((prev: any) => {
@@ -48,15 +56,10 @@ const ParticipationDetails = (props: any) => {
 
       if (index !== -1) {
         const updatedGatherings = [...prev];
-
         const gatheringToUpdate = { ...updatedGatherings[index] };
-
         const updatedHostSubEvents = gatheringToUpdate.hostSubEvents.filter((event: any) => event.uid !== hostSubEvent.uid);
-
         gatheringToUpdate.hostSubEvents = updatedHostSubEvents;
-
         updatedGatherings[index] = gatheringToUpdate;
-
         return updatedGatherings;
       }
 
@@ -65,6 +68,14 @@ const ParticipationDetails = (props: any) => {
   };
 
   const onHostSubEventFieldChangeHandler = (e: any, selectedGathering: any, hostSubEvent: any, field: any) => {
+    setParticipationErrors((prev: any) => {
+      const updatedErrors = [...prev];
+      const errorIndex = updatedErrors.findIndex((error: any) => error === `${hostSubEvent?.uid}-${field}`);
+      if (errorIndex !== -1) {
+        updatedErrors.splice(errorIndex, 1);
+      }
+      return updatedErrors;
+    });
     setSelectedGatherings((prev: any) => {
       const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
       if (index !== -1) {
@@ -108,15 +119,10 @@ const ParticipationDetails = (props: any) => {
 
       if (index !== -1) {
         const updatedGatherings = [...prev];
-
         const gatheringToUpdate = { ...updatedGatherings[index] };
-
         const updatedHostSubEvents = gatheringToUpdate.speakerSubEvents.filter((event: any) => event.uid !== hostSubEvent.uid);
-
         gatheringToUpdate.speakerSubEvents = updatedHostSubEvents;
-
         updatedGatherings[index] = gatheringToUpdate;
-
         return updatedGatherings;
       }
 
@@ -125,6 +131,15 @@ const ParticipationDetails = (props: any) => {
   };
 
   const onSpeakerSubEventFieldChangeHandler = (e: any, selectedGathering: any, hostSubEvent: any, field: any) => {
+    setParticipationErrors((prev: any) => {
+      const updatedErrors = [...prev];
+      const errorIndex = updatedErrors.findIndex((error: any) => error === `${hostSubEvent?.uid}-${field}`);
+      if (errorIndex !== -1) {
+        updatedErrors.splice(errorIndex, 1);
+      }
+      return updatedErrors;
+    });
+
     setSelectedGatherings((prev: any) => {
       const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
       if (index !== -1) {
@@ -159,6 +174,8 @@ const ParticipationDetails = (props: any) => {
     });
   };
 
+  console.log('error is', props?.errors);
+
   return (
     <>
       <div className="ptndtls">
@@ -186,18 +203,30 @@ const ParticipationDetails = (props: any) => {
                   }`}
                 >
                   <div className="ptndtls__cnt__pptdtls__pptdtl__rht">
-                    <img alt="logo" src={selectedGathering?.logo?.cid} className="ptndtls__cnt__pptdtls__pptdtl__rht__logo" height={20} width={20} />
+                    <img alt="logo" src={selectedGathering?.logo} className="ptndtls__cnt__pptdtls__pptdtl__rht__logo" height={20} width={20} />
                     <span className="ptndtls__cnt__pptdtls__pptdtl__rht__nme">{selectedGathering?.name}</span>
                   </div>
 
                   <div className="ptndtls__cnt__pptdtls__pptdtl__lft">
                     <div className="ptndtls__cnt__pptdtls__pptdtl__lft__hst">
-                      <CustomCheckbox name={`isHost-${selectedGathering.uid}`} value={'true'} disabled={false} onSelect={() => onHostSelectHandler(selectedGathering)} />
+                      <CustomCheckbox
+                        name={`isHost-${selectedGathering.uid}`}
+                        value={'true'}
+                        initialValue={selectedGathering?.hostSubEvents?.length > 0 ? true : false}
+                        disabled={false}
+                        onSelect={() => onHostSelectHandler(selectedGathering)}
+                      />
                       <span className="ptndtls__cnt__pptdtls__pptdtl__lft__hst__txt">HOST</span>
                     </div>
 
                     <div className="ptndtls__cnt__pptdtls__pptdtl__lft__spkr">
-                      <CustomCheckbox name={`isSpeaker-${selectedGathering.uid}`} value={'true'} disabled={false} onSelect={() => onSpeakerSelectHandler(selectedGathering)} />
+                      <CustomCheckbox
+                        name={`isSpeaker-${selectedGathering.uid}`}
+                        value={'true'}
+                        initialValue={selectedGathering?.speakerSubEvents?.length > 0 ? true : false}
+                        disabled={false}
+                        onSelect={() => onSpeakerSelectHandler(selectedGathering)}
+                      />
                       <span className="ptndtls__cnt__pptdtls__pptdtl__lft__spkr__txt">SPEAKER</span>
                     </div>
                   </div>
@@ -211,38 +240,36 @@ const ParticipationDetails = (props: any) => {
                       {selectedGathering.hostSubEvents.map((hostSubEvent: any, index: any) => (
                         <div key={`${hostSubEvent.uid}`} className={`ptndtls__cnt__pptdtls__pptdtl__evnts__evnt`}>
                           <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt">
-                            {index > 0 && (
-                              <button
-                                type="button"
-                                className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt__dltbtn"
-                                onClick={() => onDeleteHostSubEventsClickHandler(selectedGathering, hostSubEvent)}
-                              >
-                                <img src="/icons/delete.svg" height={16} width={16} />
-                              </button>
-                            )}
+                            <button
+                              type="button"
+                              className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt__dltbtn"
+                              onClick={() => onDeleteHostSubEventsClickHandler(selectedGathering, hostSubEvent)}
+                            >
+                              <img src="/icons/delete.svg" height={16} width={16} />
+                            </button>
                             <TextField
                               onChange={(e) => onHostSubEventFieldChangeHandler(e, selectedGathering, hostSubEvent, 'name')}
                               isDelete={true}
                               type={'text'}
-                              placeholder="Enver Event Name"
+                              placeholder="Enter Event Name"
                               name={`hostSubEvent-${selectedGathering.uid}-${hostSubEvent.uid}-name`}
-                              value={hostSubEvent.name}
+                              defaultValue={hostSubEvent.name}
                               id={''}
                               isMandatory
-                              isError={hostSubEvent.name.trim() === '' ? true : false}
+                              isError={participationErrors.includes(`${hostSubEvent?.uid}-name`) ? true : false}
                             />
                           </div>
 
                           <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__urlcnt">
-                            <TextField
+                            <TextFieldWithCopyIcon
                               onChange={(e) => onHostSubEventFieldChangeHandler(e, selectedGathering, hostSubEvent, 'link')}
-                              type={'text'}
-                              placeholder="Enver URL"
+                              type={'url'}
+                              placeholder="Enter URL"
                               name={`hostSubEvent-${selectedGathering.uid}-${hostSubEvent.uid}-link`}
-                              value={hostSubEvent.link}
+                              defaultValue={hostSubEvent.link}
                               id={''}
                               isMandatory
-                              isError={hostSubEvent.link.trim() === '' ? true : false}
+                              isError={participationErrors.includes(`${hostSubEvent?.uid}-link`) ? true : false}
                             />
                           </div>
                         </div>
@@ -263,38 +290,36 @@ const ParticipationDetails = (props: any) => {
                       {selectedGathering.speakerSubEvents.map((speakerSubEvent: any, index: any) => (
                         <div key={`${speakerSubEvent.uid}`} className={`ptndtls__cnt__pptdtls__pptdtl__evnts__evnt`}>
                           <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt">
-                            {index > 0 && (
-                              <button
-                                type="button"
-                                className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt__dltbtn"
-                                onClick={() => onDeleteSpeakerSubEventsClickHandler(selectedGathering, speakerSubEvent)}
-                              >
-                                <img src="/icons/delete.svg" height={16} width={16} />
-                              </button>
-                            )}
+                            <button
+                              type="button"
+                              className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt__dltbtn"
+                              onClick={() => onDeleteSpeakerSubEventsClickHandler(selectedGathering, speakerSubEvent)}
+                            >
+                              <img src="/icons/delete.svg" height={16} width={16} />
+                            </button>
                             <TextField
                               onChange={(e) => onSpeakerSubEventFieldChangeHandler(e, selectedGathering, speakerSubEvent, 'name')}
                               isDelete={true}
                               type={'text'}
-                              placeholder="Enver Event Name"
+                              placeholder="Enter Event Name"
                               name={`speakerSubEvent-${selectedGathering.uid}-${speakerSubEvent?.uid}-name`}
-                              value={speakerSubEvent.name}
+                              defaultValue={speakerSubEvent.name}
                               id={''}
                               isMandatory
-                              isError={speakerSubEvent.name.trim() === '' ? true : false}
+                              isError={participationErrors.includes(`${speakerSubEvent?.uid}-name`) ? true : false}
                             />
                           </div>
 
                           <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__urlcnt">
-                            <TextField
+                            <TextFieldWithCopyIcon
                               onChange={(e) => onSpeakerSubEventFieldChangeHandler(e, selectedGathering, speakerSubEvent, 'link')}
                               type={'text'}
-                              placeholder="Enver URL"
+                              placeholder="Enter URL"
                               name={`speakerSubEvent-${selectedGathering.uid}-${speakerSubEvent.uid}-link`}
-                              value={speakerSubEvent.link}
+                              defaultValue={speakerSubEvent.link}
                               id={''}
                               isMandatory
-                              isError={speakerSubEvent.link.trim() === '' ? true : false}
+                              isError={participationErrors.includes(`${speakerSubEvent?.uid}-link`) ? true : false}
                             />
                           </div>
                         </div>

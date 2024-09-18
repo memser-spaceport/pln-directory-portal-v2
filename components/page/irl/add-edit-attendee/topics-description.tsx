@@ -1,12 +1,18 @@
 import TextArea from '@/components/form/text-area';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const TopicsDescription = () => {
-  const [reason, setReason] = useState('');
+const TopicsDescription = (props: any) => {
+  const initialValue = props?.initialValue ?? "";
+  const [reason, setReason] = useState("");
 
   const onReasonChange = (e: any) => {
     setReason(e.target.value);
   };
+
+
+  useEffect(() => {
+    setReason(initialValue);
+  }, [initialValue])
 
   return (
     <>
@@ -16,7 +22,7 @@ const TopicsDescription = () => {
         </div>
 
         <div className="desccnt__reasoncnt">
-          <TextArea onChange={onReasonChange} name={'reason'} id={''} placeholder="Enter details here" maxLength={250} />
+          <TextArea onChange={onReasonChange} defaultValue={reason} name={'reason'} id={''} placeholder="Enter details here" maxLength={250} />
         </div>
 
         <div className="desccnt__desccnt">

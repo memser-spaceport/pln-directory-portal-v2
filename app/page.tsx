@@ -9,10 +9,9 @@ import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-area';
 import HuskyDialog from '@/components/page/home/husky-dialog';
 import HuskyDiscover from '@/components/page/home/husky-discover';
-import FocusAreaDialog from '@/components/page/home/focus-area/focus-area-dialog';
-import ScrollToTop from '@/components/page/irl-details/scroll-to-top';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 
 export default async function Home() {
   const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();

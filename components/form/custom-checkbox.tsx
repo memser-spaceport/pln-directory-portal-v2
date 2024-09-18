@@ -6,10 +6,11 @@ interface ICustomCheckbox {
   value: string;
   disabled: boolean;
   onSelect: any;
+  initialValue: any
 }
 
 const CustomCheckbox = (props: ICustomCheckbox) => {
-  const [ischecked, setIsChecked] = useState(props?.disabled);
+  const [ischecked, setIsChecked] = useState(props?.initialValue ?? false);
   const name = props?.name;
   const value = props?.value;
   const disabled = props?.disabled ?? false;
@@ -23,7 +24,7 @@ const CustomCheckbox = (props: ICustomCheckbox) => {
     <>
       <button type="button" className={`chbox ${ischecked ? 'checked' : ''} ${disabled ? 'disable' : ''}`} onClick={onisCheckedClicked}>
         {(ischecked || disabled) && <img src="/icons/right-white.svg" alt="checkbox" />}
-        {ischecked && <HiddenField name={name} value={value} defaultValue={value} />}
+        {(ischecked || disabled) && <HiddenField name={name} value={value} defaultValue={value} />}
       </button>
 
       <style jsx>

@@ -55,7 +55,6 @@ const useTagsPicker = (props: any) => {
   };
 
   const onItemSelected = (value: string) => {
-    debugger;
     if (selectedItems?.includes(value)) {
       setSelectedItems(selectedItems?.filter((item: any) => item !== value));
     } else {

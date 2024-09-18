@@ -2,18 +2,21 @@ import HiddenField from '@/components/form/hidden-field';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import SingleSelectWithImage from '@/components/form/single-select-with-image';
 import { getMember, getMembersForProjectForm } from '@/services/members.service';
-import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
+import { EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { useEffect, useState } from 'react';
 
 const AttendeeDetails = (props: any) => {
   const member = props?.memberInfo;
+  const initialValues = props?.initialValues;
   const mode = props?.mode;
   const allGuests = props?.allGuests ?? [];
+  const errors = props?.errors ?? [];
+  const setFormInitialValues = props?.setFormInitialValues;
 
   const [initialContributors, setInitialContributors] = useState([]);
-  const [initialTeams, setInitialTeams] = useState(props?.teams ?? []);
+  const [initialTeams, setInitialTeams] = useState(initialValues?.teams ?? []);
 
-  const [selectedTeam, setSelectedTeam] = useState(props?.selectedTeam);
+  const [selectedTeam, setSelectedTeam] = useState(initialValues?.team ?? { name: '', logo: '', uid: '' });
   const [selectedMember, setSelectedMember] = useState(member ?? { name: '', uid: '' });
 
   const [isMemberExists, setIsMembeExists] = useState(false);
@@ -26,6 +29,7 @@ const AttendeeDetails = (props: any) => {
     setSelectedMember({ name: '', uid: '' });
     setInitialTeams([]);
     setSelectedTeam(null);
+    setFormInitialValues(null);
   };
 
   useEffect(() => {
@@ -56,19 +60,54 @@ const AttendeeDetails = (props: any) => {
     setSelectedMember(item);
   };
 
+  const updateTelegramPermision = async () => {
+    const result = await getMember(selectedMember.uid, { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false);
+    if (!result.error) {
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: result.data.formattedData?.telegramHandle, showTelegram: result.data.formattedData?.preferences } })
+      );
+    }
+  };
+
   useEffect(() => {
     if (selectedMember.uid) {
       const isMemberAvailable = allGuests.some((guest: any) => guest.memberUid === selectedMember.uid);
       if (!isMemberAvailable) {
         getAndSetMemberTeams();
-        setIsMembeExists(false);
+        setFormInitialValues(null);
         return;
+      } else {
+        const member = allGuests.find((guest: any) => guest.memberUid === selectedMember.uid);
+        updateTelegramPermision();
+        const formData = {
+          team: {
+            name: member?.teamName,
+            logo: member?.teamLogo,
+            uid: member?.teamUid,
+          },
+          member: {
+            name: member?.memberName,
+            logo: member?.memberLogo,
+            uid: member?.memberUid,
+          },
+          events: member?.events,
+          teamUid: member?.teamUid,
+          teams: member?.teams?.map((team: any) => {
+            return { ...team, uid: team?.id };
+          }),
+          memberUid: member?.memberUid,
+          additionalInfo: { checkInDate: member?.additionalInfo.checkInDate || '', checkOutDate: member?.additionalInfo?.checkOutDate ?? '' },
+          topics: member?.topics,
+          reason: member?.reason,
+          telegramId: member?.telegramId,
+          officeHours: member?.officeHours ?? '',
+        };
+        setSelectedTeam(formData.team);
+        setInitialTeams(formData.teams);
+        setFormInitialValues(formData);
       }
-      setIsMembeExists(true);
-    } else {
-      setIsMembeExists(false);
-      document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: '', showTelegram: false } }));
-      document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: '' } }));
+      // document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: '', showTelegram: false } }));
+      // document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: '' } }));
     }
   }, [selectedMember]);
 
@@ -94,10 +133,11 @@ const AttendeeDetails = (props: any) => {
       console.error(e);
     }
   };
+
   return (
     <>
       <div className="attenddtls">
-        <div className={`attenddtls__member ${!IAM_GOING_POPUP_MODES.ADMINADD ? 'hide' : ''}`}>
+        <div className={`attenddtls__member ${mode != IAM_GOING_POPUP_MODES.ADMINADD ? 'hide' : ''}`}>
           <div className="attenddtls__member__ttl">Member</div>
           <div className="details__cn__teams__mems">
             <SearchableSingleSelect
@@ -114,11 +154,11 @@ const AttendeeDetails = (props: any) => {
               iconKey="logo"
               defaultImage="/icons/default-user-profile.svg"
               onClear={onResetMember}
-              showClear
+              showClear={mode === IAM_GOING_POPUP_MODES.ADMINADD}
               closeImgUrl="/icons/close.svg"
+              isError={isMemberExists || errors?.gatheringsError?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER)}
             />
           </div>
-          {isMemberExists && <div className="details__cn__teams__mems__warning">Member already added</div>}
         </div>
 
         <div className="attenddtls__team">
@@ -129,7 +169,7 @@ const AttendeeDetails = (props: any) => {
             placeholder="Select a team"
             displayKey="name"
             options={initialTeams}
-            selectedOption={selectedTeam || { name: '' }}
+            selectedOption={selectedTeam}
             uniqueKey="teamUid"
             iconKey="logo"
             defaultIcon="/icons/team-default-profile.svg"

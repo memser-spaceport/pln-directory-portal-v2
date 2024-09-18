@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { canUserPerformAction, isPastDate } from '@/utils/irl.utils';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENT_TYPE } from '@/utils/constants';
+import { canUserPerformEditAction, isPastDate } from '@/utils/irl.utils';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENT_TYPE, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import Search from './search';
 import { useSearchParams } from 'next/navigation';
+import AttendeeForm from '../add-edit-attendee/attendee-form';
 
 interface IToolbar {
   onLogin: () => void;
@@ -25,23 +26,29 @@ const Toolbar = (props: any) => {
   const isUserGoing = props?.isUserGoing;
   const filteredListLength = props?.filteredListLength ?? 0;
   const roles = userInfo?.roles ?? [];
+  const eventDetails = props?.eventDetails;
+  const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
+  const updatedUser = props?.updatedUser;
 
   //states
   const [searchTerm, setSearchTerm] = useState('');
+  const[iamGoingPopupProps, setIamGoingPopupProps] = useState({isOpen: false, formdata: null, mode: ""});
   const [isEdit, seIsEdit] = useState(false);
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
 
   //hooks
   const analytics = useIrlAnalytics();
-  const canUserAddAttendees = canUserPerformAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const canUserAddAttendees = canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
   const onEditResponseClick = () => {
+    setIamGoingPopupProps({isOpen: true, formdata: updatedUser, mode: IAM_GOING_POPUP_MODES.EDIT});
     seIsEdit((prev) => !prev);
   };
 
   // Open Attendee Details Popup to add guest
   const onIAmGoingClick = () => {
+    setIamGoingPopupProps({isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADD});
     analytics.trackImGoingBtnClick(location);
     document.dispatchEvent(
       new CustomEvent('openRsvpModal', {
@@ -52,6 +59,10 @@ const Toolbar = (props: any) => {
       })
     );
   };
+
+  const onIamGoingPopupClose = () => {
+    setIamGoingPopupProps({isOpen: false, formdata: null, mode: ""});
+  }
 
   // Open Attendee Details Popup to edit the guest
   const onEditResponse = () => {
@@ -87,14 +98,7 @@ const Toolbar = (props: any) => {
   // Open Attendee Details Popup to add the guest by admin
   const onAddMemberClick = () => {
     analytics.trackGuestListAddNewMemberBtnClicked(location);
-    document.dispatchEvent(
-      new CustomEvent('openRsvpModal', {
-        detail: {
-          isOpen: true,
-          isAllowedToManageGuests: true,
-        },
-      })
-    );
+    setIamGoingPopupProps({isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD});
   };
 
   useEffect(() => {
@@ -111,6 +115,9 @@ const Toolbar = (props: any) => {
 
   return (
     <>
+    {iamGoingPopupProps?.isOpen && (
+      <AttendeeForm onClose={onIamGoingPopupClose} formdata={iamGoingPopupProps?.formdata} selectedLocation={location} userInfo={userInfo} allGatherings={eventDetails?.events}  defaultTags={defaultTopics} mode={iamGoingPopupProps?.mode} allGuests={eventDetails?.guests}/>
+    )}
       <div className="toolbar">
         <span className="toolbar__hdr">
           <span className="toolbar__hdr__count">

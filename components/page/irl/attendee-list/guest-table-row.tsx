@@ -1,17 +1,17 @@
-import Link from 'next/link';
 import cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
-import { getParsedValue } from '@/utils/common.utils';
-import { canUserPerformAction, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
-import GuestDescription from './guest-description';
-import { Tooltip as Popover } from './attendee-popover';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
+import { getParsedValue } from '@/utils/common.utils';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
+import { canUserPerformEditAction, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
+import { Tooltip as Popover } from './attendee-popover';
 import EventSummary from './event-summary';
+import GuestDescription from './guest-description';
 
 const GuestTableRow = (props: any) => {
   const guest = props?.guest;
@@ -44,7 +44,7 @@ const GuestTableRow = (props: any) => {
   const remainingTopics = topics?.slice(topicsNeedToShow, topics?.length)?.map((topic: any) => topic);
   const atRemovedTelegram = removeAt(getTelegramUsername(telegramId));
   const analytics = useIrlAnalytics();
-  const canUserAddAttendees = canUserPerformAction(userInfo.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const canUserAddAttendees = canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
   const onTeamClick = (teamUid: string, teamName: string) => {
     analytics.trackGuestListTableTeamClicked(location, {

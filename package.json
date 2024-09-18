@@ -28,6 +28,7 @@
     "react-dom": "^18",
     "react-syntax-highlighter": "^15.5.0",
     "react-toastify": "^10.0.5",
+    "react-virtuoso": "^4.10.4",
     "text-clipper": "^2.2.0",
     "tinymce": "^7.3.0",
     "zod": "^3.23.8"

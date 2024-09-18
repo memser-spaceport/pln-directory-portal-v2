@@ -64,7 +64,7 @@ export const getMemberRepositories = async (id: string) => {
   return result;
 };
 
-export const getMember = async (id: string, query: any, isLoggedIn?: boolean, userInfo?: any) => {
+export const getMember = async (id: string, query: any, isLoggedIn?: boolean, userInfo?: any, isHidePref: boolean = true) => {
   const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'no-store' };
   const memberResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}?${new URLSearchParams(query)}`, requestOPtions);
   // let memberRepository;
@@ -130,7 +130,9 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     } else {
       preferences = memberPreferences;
     }
-    hidePreferences(preferences, member);
+    if (isHidePref) {
+      hidePreferences(preferences, member);
+    }
   }
 
   if (!isLoggedIn) {
@@ -171,11 +173,11 @@ export const getMembersForProjectForm = async (teamId = null) => {
   let response;
   if (teamId) {
     response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc`, {
-      cache:'no-store'
+      cache: 'no-store'
     });
   } else {
     response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc`, {
-      cache:'no-store'
+      cache: 'no-store'
     });
   }
 
@@ -199,11 +201,11 @@ export const getMembersForProjectForm = async (teamId = null) => {
       mainTeam: mainTeam,
       teamLead,
       teams,
-      preferences:member.preferences,
+      preferences: member.preferences,
     }
   });
 
-  return {data: formattedData};
+  return { data: formattedData };
 };
 export const getMemberInfo = async (memberUid: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}`, {
@@ -242,7 +244,7 @@ export const getMemberInfo = async (memberUid: string) => {
       currentProject: pc?.currentProject ?? false
     }
   })
-  
+
   const formatted = { ...result, imageUrl: result?.image?.url, moreDetails: result.moreDetails ?? '', openToWork: result.openToWork ?? false, officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills };
 
   return { data: formatted };
@@ -254,8 +256,8 @@ export const updateUserDirectoryEmail = async (payload: any, uid: string, header
     body: JSON.stringify(payload),
     headers: header
   })
-  
-  if(!result.ok) {
+
+  if (!result.ok) {
     return {
       isError: true,
       status: result.status,
@@ -292,7 +294,7 @@ export const getMembersInfoForDp = async () => {
 
 
 export const updateMember = async (uid: string, payload: any, authToken: string) => {
- const result =  await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}`, {
+  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}`, {
     cache: 'no-store',
     method: 'PUT',
     body: JSON.stringify(payload),
@@ -302,12 +304,12 @@ export const updateMember = async (uid: string, payload: any, authToken: string)
       Authorization: `Bearer ${authToken}`,
     },
   });
-  
-  if(!result.ok) {
+
+  if (!result.ok) {
     const errorData = await result.json();
     return {
       isError: true,
-      errorData, 
+      errorData,
       errorMessage: result.statusText,
       status: result.status
     }

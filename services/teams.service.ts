@@ -226,3 +226,20 @@ export const searchTeamsByName = async (searchTerm: string) => {
     return { label: item.name, value: item.uid, logo: item.logo?.url };
   });
 };
+
+export const getMemberTeams = async (memberId: string) => {
+  const requestOptions = { method: 'GET', headers: getHeader('') };
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?memberId=${memberId}`, requestOptions);
+  if (!response?.ok) {
+    return {
+      error: { status: response?.status, statusText: response?.statusText },
+    };
+  }
+  const result = await response?.json();
+  console.log("response is", result);
+
+  return result.map((item: any) => {
+    console.log("team is", item);
+    return { label: item.name, value: item.uid };
+  });
+}

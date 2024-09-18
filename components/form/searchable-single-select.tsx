@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, ChangeEvent, FocusEvent, PointerEventHandler } from 'react';
+import { Virtuoso } from 'react-virtuoso';
 
 interface Option {
   [key: string]: any;
@@ -187,7 +188,8 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
 
           {showOptions && (
             <ul className="select__options">
-              {filteredOptions.map((option) => (
+              {filteredOptions.length > 0 && ( 
+              <Virtuoso style={{height: '150px'}} data={filteredOptions} itemContent={(_, option: any) => (
                 <li
                   key={option[uniqueKey]}
                   onMouseDown={(e) => {
@@ -199,7 +201,21 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
                   {iconKey && <img loading='eager' height={24} width={24} className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
                   <span> {option[displayKey]}</span>
                 </li>
-              ))}
+              )} />
+            )}
+              {/* {filteredOptions.map((option) => (
+                <li
+                  key={option[uniqueKey]}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleOptionClick(option);
+                  }}
+                  className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}
+                >
+                  {iconKey && <img loading='eager' height={24} width={24} className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
+                  <span> {option[displayKey]}</span>
+                </li>
+              ))} */}
               {filteredOptions.length === 0 && <p className="select__options__noresults">No results found</p>}
             </ul>
           )}
@@ -274,7 +290,6 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
             box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
             z-index: 2;
             overflow-y: auto;
-            max-height: 150px;
             position: absolute;
             background: white;
             border: 1px solid lightgrey;

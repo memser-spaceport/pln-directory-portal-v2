@@ -1,7 +1,6 @@
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from './constants';
 import { ITeam } from '@/types/teams.types';
-import { isPastDate } from './irl.utils';
 import Cookies from 'js-cookie'
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
@@ -128,10 +127,6 @@ export const getAnalyticsProjectInfo = (project: any) => {
   return null;
 };
 
-export const getAnalyticsEventInfo = (event: any) => {
-  const isPastEvent = isPastDate(event?.endDate);
-  return { eventId: event?.id, eventName: event?.name, isPastEvent, type: event?.type };
-};
 
 export const getQuery = (searchParams: any) => {
   return {

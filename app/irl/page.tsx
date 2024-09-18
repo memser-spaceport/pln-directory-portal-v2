@@ -1,22 +1,23 @@
-import styles from './page.module.css';
-import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import Error from '@/components/core/error';
-import { Metadata } from 'next';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import AttendeeList from '@/components/page/irl/attendee-list/attendees-list';
+import IrlEvents from '@/components/page/irl/events/irl-events';
 import IrlHeader from '@/components/page/irl/irl-header';
 import IrlLocation from '@/components/page/irl/locations/irl-location';
-import IrlEvents from '@/components/page/irl/events/irl-events';
-import AttendeeList from '@/components/page/irl/attendee-list/attendees-list';
-import { sortByDefault } from '@/utils/irl.utils';
 import { getAllLocations, getGuestsByLocation } from '@/services/irl.service';
 import { getMemberPreferences } from '@/services/preferences.service';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { sortByDefault } from '@/utils/irl.utils';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { Metadata } from 'next';
+import styles from './page.module.css';
 
 export default async function Page({ searchParams }: any) {
-  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails } = await getPageData(searchParams);
+  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
   }
+  
 
   return (
     <div className={styles.irlGatherings}>
@@ -34,7 +35,7 @@ export default async function Page({ searchParams }: any) {
         </section>
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
-          <AttendeeList location={eventLocationSummary} showTelegram={showTelegram} eventDetails={guestDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} />
+          <AttendeeList location={eventLocationSummary} showTelegram={showTelegram} eventDetails={guestDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} isUserGoing={isUserGoing}/>
         </section>
       </div>
     </div>
@@ -108,7 +109,8 @@ const getPageData = async (searchParams: any) => {
       locationDetails,
     };
 
-  } catch {
+  } catch(e) {
+    console.error('Error fetching IRL data', e);
     return { isError: true };
   }
 };

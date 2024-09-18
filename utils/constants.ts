@@ -56,6 +56,8 @@ export const EVENTS = {
   GET_NOTIFICATIONS: 'get-notifications',
   TRIGGER_RATING_POPUP: 'trigger-notification-popup',
   OPEN_MEMBER_BIO_POPUP: 'open-member-bio-popup',
+  UPDATE_TELEGRAM_HANDLE: 'update-telegram-handle',
+  UPDATE_OFFICE_HOURS: 'update-office-hours',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -418,6 +420,7 @@ export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Deta
 
 export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
+  PUBLIC: 'PUBLIC',
 };
 
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
@@ -726,3 +729,112 @@ export const HOME_PAGE_LINKS = {
 
 export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
 
+export const IAM_GOING_POPUP_MODES = {
+  ADD: 'ADD',
+  EDIT: 'EDIT',
+  ADMINADD: 'ADMINADD',
+}
+
+export const PLN_LOCATIONS = [{
+  id: 1,
+  location: "Kyoto",
+  flag: "&#127471;&#127477;",
+  icon: "/images/irl/kyoto.svg",
+  pastEvents: 7,
+  upcomingEvents: 6,
+  isActive: true,
+}, 
+{
+  id: 2,
+  location: "Mumbai",
+  flag: "&#127470;&#127475;",
+  icon: "/images/irl/mumbai.svg",
+  pastEvents: 4,
+  upcomingEvents: 10,
+  isActive: false,
+}, 
+{
+  id: 3,
+  location: "Australia",
+  flag: "&#127462;&#127482;",
+  icon: "/images/irl/australia.svg",
+  pastEvents: 2,
+  upcomingEvents: 4,
+  isActive: false,
+}, 
+{
+  id: 4,
+  location: "France", 
+  flag: "&#127467;&#127479;",
+  icon: "/images/irl/france.svg",
+  pastEvents: 8,
+  upcomingEvents: 2,
+  isActive: false,
+},
+{
+  id: 5,
+  location: "USA",
+  flag: "&#127482;&#127480;",
+  icon: "",
+  pastEvents: 2,  
+  upcomingEvents: 3,
+  isActive: false,
+},
+{
+  id: 6,
+  location: "Bali",
+  flag: "&#127470;&#127465",
+  icon: "",
+  pastEvents: 1,  
+  upcomingEvents: 6,
+  isActive: false,
+},
+{
+  id: 7,
+  location: "Brazil",
+  flag: "&#127463;&#127479;",
+  icon: "",
+  pastEvents: 3,  
+  upcomingEvents: 2,
+  isActive: false,
+},
+{
+  id: 8,
+  location: "Bangalore",
+  flag: "&#127470;&#127475;",
+  icon: "",
+  pastEvents: 5,  
+  upcomingEvents: 7,
+  isActive: false,
+},
+{
+  id: 9,
+  location: "Canberra",
+  flag: "&#127462;&#127482;",
+  icon: "",
+  pastEvents: 4,  
+  upcomingEvents: 3,
+  isActive: false,
+},
+{
+  id: 10,
+  location: "Bangalore",
+  flag: "&#127470;&#127475;",
+  icon: "",
+  pastEvents: 5,  
+  upcomingEvents: 7,
+  isActive: false,
+},
+{
+  id: 11,
+  location: "Canberra",
+  flag: "&#127462;&#127482;",
+  icon: "",
+  pastEvents: 4,  
+  upcomingEvents: 3,
+  isActive: false,
+}
+];
+
+
+export const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

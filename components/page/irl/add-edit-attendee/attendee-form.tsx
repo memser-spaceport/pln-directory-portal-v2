@@ -1,7 +1,7 @@
 'use client';
 import Modal from '@/components/core/modal';
 import RegisterFormLoader from '@/components/core/register/register-form-loader';
-import { createEventGuest } from '@/services/irl.service';
+import { createEventGuest, editEventGuest } from '@/services/irl.service';
 import { IUserInfo } from '@/types/shared.types';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import ArrivalAndDepatureDate from './arrival-depature-date';
@@ -11,12 +11,14 @@ import OfficeHours from './office-hours';
 import TelegramHandle from './telegram-handle';
 import Topics from './topics';
 import TopicsDescription from './topics-description';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, TOAST_MESSAGES } from '@/utils/constants';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
 import { toast } from 'react-toastify';
 import { canUserPerformEditAction } from '@/utils/irl.utils';
+import AttendeeFormErrors from './attendee-form-errors';
+import { isLink } from '@/utils/third-party.helper';
+import { compareObjsIfSame } from '@/utils/common.utils';
 
 interface IAttendeeForm {
-  formdata: any;
   selectedLocation: any;
   userInfo: IUserInfo;
   allGatherings: any[];
@@ -24,6 +26,7 @@ interface IAttendeeForm {
   mode: string;
   allGuests: any[];
   onClose: any;
+  formData: any;
 }
 
 const AttendeeForm = (props: IAttendeeForm) => {
@@ -36,7 +39,9 @@ const AttendeeForm = (props: IAttendeeForm) => {
   const defaultTags = props?.defaultTags;
   const allGuests = props?.allGuests;
   const onClose = props?.onClose;
+  // const initialValues = props?.formData;
 
+  const [formInitialValues, setFormInitialValues] = useState<any>(props?.formData);
   const isAllowedToManageGuests = canUserPerformEditAction(userInfo?.roles ?? [], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
   const [errors, setErrors] = useState<any>({
@@ -75,28 +80,61 @@ const AttendeeForm = (props: IAttendeeForm) => {
     }
     const formData = new FormData(attendeeFormRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
+    const updatedInitialValues = delete formInitialValues?.team;
+
     if (formattedData.events.length === 0) {
       isError = true;
-      setErrors((prev: any) => ({ ...prev, gatheringsError: ['At least one gathering should be selected'] }));
+      setErrors((prev: any) => ({ ...prev, gatheringsError: Array.from(new Set([...prev?.gatheringsError, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
+    } else {
+      let participationsErrors: any = [];
+      formattedData?.events?.map((event: any) => {
+        event?.hostSubEvents?.map((hostSubEvent: any) => {
+          if (!hostSubEvent?.name.trim()) {
+            isError = true;
+            participationsErrors.push(`${hostSubEvent?.uid}-name`);
+          }
+          if (!isLink(hostSubEvent?.link)) {
+            isError = true;
+            participationsErrors.push(`${hostSubEvent?.uid}-link`);
+          }
+        });
+
+        event?.speakerSubEvents?.map((speakerSubEvent: any) => {
+          if (!speakerSubEvent?.name.trim()) {
+            isError = true;
+            participationsErrors.push(`${speakerSubEvent?.uid}-name`);
+          }
+          if (!isLink(speakerSubEvent?.link.trim())) {
+            isError = true;
+            participationsErrors.push(`${speakerSubEvent?.uid}-link`);
+          }
+        });
+      });
+      setErrors((prev: any) => ({ ...prev, participationError: Array.from(new Set([...participationsErrors])) }));
+    }
+
+    if (!formattedData?.memberUid) {
+      isError = true;
+      setErrors((prev: any) => ({ ...prev, gatheringsError: Array.from(new Set([...prev?.gatheringsError, IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER])) }));
     }
 
     if (formattedData.additionalInfo.checkInDate && !formattedData.additionalInfo.checkOutDate) {
       isError = true;
-      setErrors((prev: any) => ({ ...prev, dateErrors: { checkOut: 'Check out date is required' } }));
+      setErrors((prev: any) => ({ ...prev, dateErrors: [...prev.dateErrors, IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED] }));
     } else if (formattedData.additionalInfo.checkOutDate && !formattedData.additionalInfo.checkInDate) {
       isError = true;
-      setErrors((prev: any) => ({ ...prev, dateErrors: { checkIn: 'Check in date is required' } }));
+      setErrors((prev: any) => ({ ...prev, dateErrors: [...prev.dateErrors, IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED] }));
     } else if (formattedData.additionalInfo.checkInDate && formattedData.additionalInfo.checkOutDate) {
       const checkInDate = new Date(formattedData.additionalInfo.checkInDate);
       const checkOutDate = new Date(formattedData.additionalInfo.checkOutDate);
       if (checkInDate > checkOutDate) {
         isError = true;
-        setErrors((prev: any) => ({ ...prev, dateErrors: { comparisonError: 'Departure date should be greater than or equal to the Arrival date' } }));
+        setErrors((prev: any) => ({ ...prev, dateErrors: { comparisonError: IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE } }));
       }
     } else if (allGuests?.includes(formattedData?.membeUid)) {
       isError = true;
     } else {
-      setErrors({ gatheringsError: [], participationError: [], dateErrors: [] });
+      // setErrors({ gatheringsError: [], participationError: [], dateErrors: [] });
     }
 
     if (isError) {
@@ -104,19 +142,41 @@ const AttendeeForm = (props: IAttendeeForm) => {
       return;
     }
 
+    // return;
+
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-    const result = await createEventGuest(selectedLocation.uid, formattedData);
-    if (result.error) {
-      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+    const isUpdate = allGuests?.some((guest: any) => guest.memberUid === formInitialValues?.memberUid);
+
+    if ((mode === IAM_GOING_POPUP_MODES.ADMINADD || mode === IAM_GOING_POPUP_MODES.ADD) && !isUpdate) {
+      const result = await createEventGuest(selectedLocation.uid, formattedData);
+      if (result.error) {
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        onClose();
+        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        return;
+      }
+      document.dispatchEvent(new CustomEvent('updateGuests'));
       onClose();
-      return;
-    }
-    document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-    onClose();
-    if (isAllowedToManageGuests) {
-      toast.success(TOAST_MESSAGES.ATTENDEE_ADDED_SUCCESSFULLY);
-    } else {
-      toast.success(TOAST_MESSAGES.DETAILS_ADDED_SUCCESSFULLY);
+      if (isAllowedToManageGuests) {
+        toast.success(TOAST_MESSAGES.ATTENDEE_ADDED_SUCCESSFULLY);
+      } else {
+        toast.success(TOAST_MESSAGES.DETAILS_ADDED_SUCCESSFULLY);
+      }
+    } else if (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate) {
+      const result = await editEventGuest(selectedLocation.uid, formInitialValues?.memberUid, formattedData);
+      if (result?.error) {
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        onClose();
+        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        return;
+      }
+      document.dispatchEvent(new CustomEvent('updateGuests'));
+      onClose();
+      if (isAllowedToManageGuests) {
+        toast.success(TOAST_MESSAGES.ATTENDEE_UPDATED_SUCCESSFULLY);
+      } else {
+        toast.success(TOAST_MESSAGES.DETAILS_UPDATED_SUCCESSFULLY);
+      }
     }
   };
 
@@ -171,14 +231,15 @@ const AttendeeForm = (props: IAttendeeForm) => {
         events = structuredClone([...events]).filter((g) => g);
         const eventIndex = [...events].findIndex((event) => event.uid === eventUid);
         if (eventIndex !== -1) {
-          const hostSubEventIndex = events[eventIndex].hostSubEvents.findIndex((subEvent: any) => subEvent.id === subEventId);
+          const hostSubEventIndex = events[eventIndex].hostSubEvents.findIndex((subEvent: any) => subEvent.uid === subEventId);
           if (hostSubEventIndex !== -1) {
             events[eventIndex].hostSubEvents[hostSubEventIndex][subEventKey] = formValues[key].trim();
           } else {
-            events[eventIndex].hostSubEvents.push({
-              id: subEventId,
+            const newHostSubEvent = {
+              uid: subEventId,
               [subEventKey]: formValues[key].trim(),
-            });
+            };
+            events[eventIndex].hostSubEvents.push(newHostSubEvent);
           }
         }
       } else if (key.startsWith('speakerSubEvent')) {
@@ -186,14 +247,15 @@ const AttendeeForm = (props: IAttendeeForm) => {
         events = structuredClone([...events]).filter((g) => g);
         const eventIndex = [...events].findIndex((event) => event.uid === eventUid);
         if (eventIndex !== -1) {
-          const speakerSubEventIndex = events[eventIndex].speakerSubEvents.findIndex((subEvent: any) => subEvent.id === subEventId);
+          const speakerSubEventIndex = events[eventIndex].speakerSubEvents.findIndex((subEvent: any) => subEvent.uid === subEventId);
           if (speakerSubEventIndex !== -1) {
             events[eventIndex].speakerSubEvents[speakerSubEventIndex][subEventKey] = formValues[key].trim();
           } else {
-            events[eventIndex].speakerSubEvents.push({
-              id: subEventId,
+            const newSpeakerSiubEvent = {
+              uid: subEventId,
               [subEventKey]: formValues[key].trim(),
-            });
+            };
+            events[eventIndex].speakerSubEvents.push(newSpeakerSiubEvent);
           }
         }
       } else if (key.startsWith('checkInDate') || key.startsWith('checkOutDate')) {
@@ -218,26 +280,29 @@ const AttendeeForm = (props: IAttendeeForm) => {
           <div className="atndform__bdy" ref={formBodyRef}>
             <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
             <div>
-              <AttendeeDetails allGuests={allGuests} memberInfo={userInfo} mode={mode} />
+              <AttendeeFormErrors errors={errors} />
             </div>
             <div>
-              <Gatherings errors={errors} selectedLocation={selectedLocation} gatherings={gatherings} userInfo={userInfo} />
+              <AttendeeDetails setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} />
             </div>
             <div>
-              <ArrivalAndDepatureDate allGatherings={gatherings} errors={errors} />
+              <Gatherings initialValues={formInitialValues} errors={errors} setErrors={setErrors} selectedLocation={selectedLocation} gatherings={gatherings} userInfo={userInfo} guests={allGuests} />
             </div>
             <div>
-              <Topics defaultTags={defaultTags} selectedItems={[]} />
+              <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
             </div>
             <div>
-              <TopicsDescription />
+              <Topics defaultTags={defaultTags} selectedItems={formInitialValues?.topics} />
+            </div>
+            <div>
+              <TopicsDescription initialValue={formInitialValues?.reason} />
             </div>
 
             <div>
-              <TelegramHandle />
+              <TelegramHandle initialValues={formInitialValues} />
             </div>
             <div>
-              <OfficeHours />
+              <OfficeHours initialValues={formInitialValues} />
             </div>
           </div>
 
@@ -247,7 +312,7 @@ const AttendeeForm = (props: IAttendeeForm) => {
             </button>
 
             <button type="submit" className="atndform__optns__sbmt">
-              Submit
+              {mode === IAM_GOING_POPUP_MODES.EDIT ? 'Save' : 'Submit'}
             </button>
           </div>
         </form>

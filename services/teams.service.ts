@@ -1,11 +1,9 @@
 import { ITeamMemberRole } from '@/types/members.types';
-import { IFormatedTeamProject, ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
+import { ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
 import { getHeader } from '@/utils/common.utils';
 import { getTagsFromValues, parseTeamsFilters } from '@/utils/team.utils';
 import { getFocusAreas } from './common.service';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { IProjectResponse } from '@/types/project.types';
-import { IUserInfo } from '@/types/shared.types';
 
 export const getAllTeams = async (authToken: string, queryParams: any, currentPage: number, limit: number) => {
   const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'no-store' };
@@ -236,10 +234,8 @@ export const getMemberTeams = async (memberId: string) => {
     };
   }
   const result = await response?.json();
-  console.log("response is", result);
 
   return result.map((item: any) => {
-    console.log("team is", item);
     return { label: item.name, value: item.uid };
   });
 }

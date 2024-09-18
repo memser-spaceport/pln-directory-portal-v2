@@ -28,7 +28,7 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
 
   const groupEventsByMemberUid = (events: any) => {
     const groupedEvents: any = {};
-    events.forEach((event: any) => {
+    events?.forEach((event: any) => {
       if (!groupedEvents[event.memberUid]) {
         groupedEvents[event.memberUid] = [];
       }
@@ -117,14 +117,14 @@ export const createEventGuest = async (locationId: string, payload: any) => {
   );
 
   if (!response?.ok) {
-    return { error: response };
+    return {error: response}
   }
-  return { data: response };
+  return {data: response}
 };
 
-export const editEventGuest = async (locationId: string, payload: any) => {
+export const editEventGuest = async (locationId: string, guestUid: string, payload: any) => {
   const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests`,
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestUid}`,
     {
       method: 'PUT',
       cache: 'no-store',
@@ -137,8 +137,8 @@ export const editEventGuest = async (locationId: string, payload: any) => {
   );
 
   if (!response?.ok) {
-    return false;
+    return {error: response};
   }
 
-  return true;
+  return {data: response};
 };

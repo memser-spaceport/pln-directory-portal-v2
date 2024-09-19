@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { PopoverDp } from '../popover-dp';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
@@ -18,17 +18,17 @@ function HuskyInputBox(props: any) {
 
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
   const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
-  const { trackSourceChange } = useHuskyAnalytics()
+  const { trackSourceChange } = useHuskyAnalytics();
 
   const onTextSubmit = async () => {
     if (isAnswerLoading) {
       return;
     }
-   
+
     if (inputRef.current) {
-      if(inputRef.current.innerText.trim() === '') {
+      if (inputRef.current.innerText.trim() === '') {
         inputRef.current.innerText = '';
-        return
+        return;
       }
       const textValue = inputRef.current.innerText;
       inputRef.current.innerText = '';
@@ -56,25 +56,24 @@ function HuskyInputBox(props: any) {
   return (
     <>
       <div className={`huskyinput`}>
-        <img width={24} height={24} className="huskyinput__img" src="/images/husky-brain.png" />
+        <img width={24} height={24} className="huskyinput__img" src="/images/husky-brain.png" alt="Husky Brain" />
         <div className="huskyinput__itemcn">
-          {' '}
           <div ref={inputRef} data-placeholder="Ask follow up..." contentEditable={true} className="huskyinput__itemcn__textbox" tabIndex={0}></div>
         </div>
         <div className="huskyinput__action">
           <PopoverDp.Wrapper>
             <div className="huskyinput__action__menu">
               <div className="huskyinput__action__menu__dp">
-                <img src={selectedIcon} />
+                <img src={selectedIcon} alt={selectedSourceName} />
                 <p className="huskyinput__action__menu__dp__name">{selectedSourceName}</p>
               </div>
-              <img src="/icons/arrow-up.svg" />
+              <img src="/icons/arrow-up.svg" alt="Arrow Up" />
             </div>
             <PopoverDp.Pane position="top">
               <div className="huskyinput__action__pane" style={{ zIndex: 20 }}>
                 {sources.map((source: any, index: number) => (
                   <div key={`input-source-${index}`} onClick={() => onSourceClicked(source.value)} className="huskyinput__action__pane__item">
-                    <img src={source.icon} />
+                    <img src={source.icon} alt={source.name} />
                     <p>{source.name}</p>
                   </div>
                 ))}
@@ -86,7 +85,7 @@ function HuskyInputBox(props: any) {
             title={isAnswerLoading ? 'Please wait till response is generated.' : 'Submit query'}
             className={`huskyinput__action__submit ${isAnswerLoading ? 'huskyinput__action__submit--disabled' : ''}`}
           >
-            <img className="huskyinput__action__submit__btn" src="/icons/send.svg" />
+            <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
           </div>
         </div>
       </div>
@@ -94,7 +93,6 @@ function HuskyInputBox(props: any) {
         {`
           .huskyinput {
             width: 100%;
-
             padding: 0 16px;
             display: flex;
             gap: 8px;

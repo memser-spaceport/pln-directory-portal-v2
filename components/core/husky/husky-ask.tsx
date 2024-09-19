@@ -2,114 +2,51 @@
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import BarTabs from '@/components/ui/bar-tabs';
-import { getIrlPrompts, getProjectsPrompts, getTeamPrompts } from '@/services/home.service';
-import {  useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import HuskyAskPrompts from './husky-ask-prompts';
 
 function HuskyAsk(props: any) {
   const onPromptClicked = props.onPromptClicked;
   const [suggestionTopicSelected, setSuggestionTopic] = useState('teams');
-  const [promptInfos, setPromptInfos] = useState<any>({
-    teams: [],
-    projects: [],
-    irls: [],
-  });
-  const [selectedPromptInfo, setSelectedPromptInfo] = useState<any | null>(null);
-  const [filteredPrompts, setFilteredPrompts] = useState<any[]>([]);
   const suggestionTopics = [
     { name: 'TEAMS', key: 'teams', activeIcon: '/icons/users-blue.svg', inActiveIcon: '/icons/users-grey.svg' },
     { name: 'PROJECTS', key: 'projects', activeIcon: '/icons/projects-blue.svg', inActiveIcon: '/icons/projects-grey.svg' },
     { name: 'IRL GATHERINGS', key: 'irls', activeIcon: '/icons/calendar-blue.svg', inActiveIcon: '/icons/calendar-grey.svg' },
   ];
 
-  const searchInputRef = useRef<HTMLInputElement | null>(null)
-
-  const {trackPromptTypeSelection, trackUploadData, trackPromptSelection} = useHuskyAnalytics()
+  const { trackPromptTypeSelection, trackPromptSelection } = useHuskyAnalytics();
 
   const onTabSelectionChanged = (v: string) => {
     trackPromptTypeSelection(v);
     setSuggestionTopic(v);
-    setFilteredPrompts(promptInfos[v]);
-    if(searchInputRef.current) {
-      searchInputRef.current.value = '';
-    }
   };
 
   const onPromptItemClicked = (quest: string) => {
-    trackPromptSelection(quest)
+    trackPromptSelection(quest);
     onPromptClicked(quest)
       .then(() => console.log())
       .catch((e: any) => console.error());
   };
 
-  const onFilterSearch = (searchKey: string) => {
-    const prmtsInfo: any[] = promptInfos[suggestionTopicSelected];
-    if (searchKey.trim() === '') {
-      setFilteredPrompts(prmtsInfo);
-    } else {
-      const filtered = [...prmtsInfo].filter((v: any) => v.name.toLowerCase().includes(searchKey.toLowerCase()));
-      setFilteredPrompts(filtered);
-    }
-  };
-
-  useEffect(() => {
-    if (filteredPrompts.length > 0) {
-      setSelectedPromptInfo(filteredPrompts[0]);
-    } else {
-      setSelectedPromptInfo(null);
-    }
-  }, [filteredPrompts]);
-
-  useEffect(() => {
-    Promise.all([getTeamPrompts(), getProjectsPrompts(), getIrlPrompts()]).then((results: any) => {
-      setPromptInfos({
-        teams: results[0],
-        projects: results[1],
-        irls: results[2],
-      });
-      setFilteredPrompts(results[0]);
-    });
-  }, []);
-
   return (
     <>
       <div className="huskyask">
+        <div className="huskyask__upload">
+          <div className="huskyask__upload__info">
+            <img className="huskyask__upload__info__icon" src="/icons/husky-add.svg" />
+            <p className="huskyask__upload__info__text">Want Husky to be able to fetch results for your teams, projects and members too?</p>
+          </div>
+          <a  href='https://airtable.com/appgb6O7eF6mBEl8t/pagkXZKMaDujXVdio/form' target='_blank' className="huskyask__upload__btn">Upload data</a>
+        </div>
         <p className="huskyask__info">
           Husky&apos;s fetching capacities is currently limited to the data from the following teams, projects and events today. You may not get appropriate responses if anything beyond this scope is
           requested.
         </p>
-        <div className="huskyask__st">
-          <div className="huskyask__st__tab">
-            <BarTabs activeItem={suggestionTopicSelected} onTabSelected={(v) => onTabSelectionChanged(v)} items={suggestionTopics} />
-          </div>
-          <div className="huskyask__st__list">
-            <div className="huskyask__st__list__content">
-              <div className="huskyask__st__list__cn__search">
-                <img className="huskyask__st__list__cn__search__icon" src="/icons/search-blue.svg" />
-                <input ref={searchInputRef} onChange={(e) => onFilterSearch(e.target.value)} placeholder="Search by name" className="huskyask__st__list__cn__search__input" type="search" />
-              </div>
-              <div className="huskyask__st__list__cn__lt">
-                {filteredPrompts.map((v: any) => (
-                  <div
-                    onClick={() => setSelectedPromptInfo(v)}
-                    className={`huskyask__st__list__cn__lt__item ${v?.name === selectedPromptInfo?.name ? 'huskyask__st__list__cn__lt__item--active' : ''}`}
-                    key={v.name}
-                  >
-                    {v?.logo && <img src={v?.logo} className="huskyask__st__list__cn__lt__item__img" />}
-                    {!v?.logo && <span className='huskyask__st__list__cn__lt__item__img'></span>}
-                    <p className="huskyask__st__list__cn__lt__text">{v.name}</p>
-                  </div>
-                ))}
-                {filteredPrompts.length === 0 && <p>No results found</p>}
-              </div>
-            </div>
-            <div className="huskyask__st__list__info">
-              <img alt="Add your data" src="/icons/husky-add.svg" />
-              <p className="huskyask__st__list__info__txt">Want Husky to be able to fetch results for your teams, projects and members too?</p>
-              <a onClick={trackUploadData} target='_blank' href='' className="huskyask__st__list__info__btn">Upload data</a>
-            </div>
-          </div>
+        <div className="huskyask__st__tab">
+          <BarTabs activeItem={suggestionTopicSelected} onTabSelected={(v) => onTabSelectionChanged(v)} items={suggestionTopics} />
         </div>
-        <div className="huskyask__sp">
+        <HuskyAskPrompts suggestionTopicSelected={suggestionTopicSelected} onPromptItemClicked={onPromptItemClicked} />
+        {/* <div className="huskyask__sp">
           <div className="huskyask__sp__tab">
             <p className="huskyask__sp__tab__item">
               <img width={16} height={16} src="/icons/suggestions-orange.svg" />
@@ -127,22 +64,49 @@ function HuskyAsk(props: any) {
               {!selectedPromptInfo && <p>No suggestions available</p>}
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
       <style jsx>
         {`
           .huskyask {
           }
-
-          .huskyask__info {
+          .huskyask__upload {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            align-items: center;
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
             font-size: 14px;
-            line-height: 24px;
-            padding: 12px 16px;
+            line-height: 18px;
+            font-weight: 400;
+            margin-top: -13px;
+            
+          }
+          .huskyask__upload__info {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            align-items: center;
+            flex: 1;
+          }
+            .huskyask__upload__info__icon {
+            width: 16px;
+            height: 16px;
+          }
+          .huskyask__upload__btn {
+            background: #156ff7;
+            color: white;
+            padding: 8px 8px;
+            outline: none;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            box-shadow: 1px 1px 1px rgba(15, 23, 42, 0.08);
           }
 
-          .huskyask__st {
-            width: 100%;
-          }
           .huskyask__st__tab {
             height: 36px;
             width: 100%;
@@ -153,9 +117,11 @@ function HuskyAsk(props: any) {
             padding: 0 16px;
             gap: 12px;
           }
-          .huskyask__st__tab__item {
-            font-size: 12px;
-            font-weight: 500;
+
+          .huskyask__info {
+            font-size: 14px;
+            line-height: 24px;
+            padding: 12px 16px;
           }
 
           .huskyask__sp {
@@ -263,7 +229,7 @@ function HuskyAsk(props: any) {
 
           .huskyask__st__list__info {
             width: 130px;
-            background: #f1f5f9;
+
             display: flex;
             flex-direction: column;
             align-items: center;

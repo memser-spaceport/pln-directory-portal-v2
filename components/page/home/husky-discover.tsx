@@ -2,12 +2,11 @@
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import HuskyAi from '@/components/core/husky/husky-ai';
-import HuskyChat from '@/components/core/husky/husy-chat';
 import PageLoader from '@/components/core/page-loader';
 import {  } from '@/services/husky.service';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import cookies from 'js-cookie'
-import { Suspense, use, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { getHuskyResponseBySlug, incrementHuskyViewCount } from '@/services/home.service';
 

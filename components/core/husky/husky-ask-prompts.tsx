@@ -82,6 +82,7 @@ function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: Husky
                 uniqueKey="name"
                 displayKey="name"
                 iconKey="logo"
+                arrowImgUrl="/icons/arrow-blue-down.svg"
               />
             )}
             {filteredPrompts.length === 0 && <p className="hap__sgs__list__empty">No results found</p>}

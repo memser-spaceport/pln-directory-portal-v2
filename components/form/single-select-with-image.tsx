@@ -103,7 +103,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
             onKeyDown={onKeyDown}
             readOnly
           />
-          {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+          {arrowImgUrl && <img onClick={onSearchFocus} className="select__arrowimg" src={arrowImgUrl}  alt="arrow down" />}
           {showOptions && (
             <ul className="select__options">
               {filteredOptions?.map((option) => (

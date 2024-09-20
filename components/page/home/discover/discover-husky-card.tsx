@@ -54,7 +54,7 @@ const DiscoverHuskyCard = (props:any) => {
           bottom: 0;
           z-index: -1;
           border-radius: 0 0 12px 0;
-          width: 50%;
+          // width: 50%;
         }
 
         .dh__pattern-2 {

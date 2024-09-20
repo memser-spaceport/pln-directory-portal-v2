@@ -49,7 +49,7 @@ export default function Loading() {
               ))}
             </div>
             <div className={styles.discoverList__desc}>
-              {Array.from({ length: 6 })?.map((_, index) => (
+              {Array.from({ length: 5 })?.map((_, index) => (
                 <div key={index} className={styles.discoverList__card__desc}>
                   <div className={styles.discover__card__ques_line1}></div>
                   <div className={styles.discover__card__ques_line2}></div>

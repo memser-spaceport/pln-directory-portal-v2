@@ -12,3 +12,12 @@ export interface IIrlCard {
   priority: number;
   userInfo?: any;
 }
+export interface IIrlLocationCard {
+  id: number;
+  location: string;
+  flag: string;
+  icon: string;
+  pastEvents: number;
+  upcomingEvents: number;
+  isActive: boolean;
+}

@@ -1,0 +1,49 @@
+.irlGatherings__cn {
+  display: flex;
+  flex-direction: column;
+  background-color: #f1f5f9;
+}
+
+.irlGatherings {
+  background-color: #f1f5f9;
+}
+
+.irlGatheings__locations {
+  height: 177px;
+  border-radius: 16px;
+  padding: 16px;
+  gap: 16px;
+}
+
+@media (min-width: 360px) {
+  .irlGatheings__locations {
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    margin: none;
+    background-color: #E4EDF7;
+    height: 122px;
+    padding: 10px;
+    border-radius: unset;
+    margin-right: 10px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .irlGatherings {
+    padding-top: 40px;
+    width: 910px;
+    margin: auto;
+  }
+
+  .irlGatheings__locations {
+    border-radius: 16px;
+    height: 177px;
+    border: 1px solid #0f172a0a;
+    border-radius: 16px;
+    padding: 16px;
+    gap: 16px;
+    overflow: unset;
+    position: relative;
+  }
+}

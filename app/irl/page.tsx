@@ -3,6 +3,8 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import Error from '@/components/core/error';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import IrlHeader from '@/components/page/irl/irl-header';
+import IrlLocation from '@/components/page/irl/locations/irl-location';
 
 export default async function Page() {
   const { error, userInfo } = await getPageData();
@@ -14,10 +16,12 @@ export default async function Page() {
   return (
     <div className={styles.irlGatherings}>
       <div className={styles.irlGatherings__cn}>
-        {/* Header */}
-        <section className={styles.irlGatherings__header}></section>
-        {/* Locations */}
-        <section className={styles.irlGatheings__locations}></section>
+        <section className={styles.irlGatherings__header}>
+          <IrlHeader />
+        </section>
+        <section className={styles.irlGatheings__locations}>
+          <IrlLocation />
+        </section>
         {/* Agenda */}
         <section className={styles.irlGatherings__agenda}></section>
         {/* Guests */}
@@ -26,6 +30,8 @@ export default async function Page() {
     </div>
   );
 }
+
+
 
 const getPageData = async () => {
   let error = false;

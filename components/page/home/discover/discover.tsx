@@ -65,7 +65,7 @@ const Discover = (props: any) => {
                 })}
               </div>
               <div className="discover__body__sec2 embla__slide">
-                {formattedDiscoverData.slice(3, 6).map((data) => {
+                {formattedDiscoverData.slice(3, 5).map((data) => {
                   return (
                     <div key={`section-two-discover-card-${data.uid}`} className="discover__body__sec2__child1">
                       {renderCard(data)}
@@ -187,7 +187,7 @@ const Discover = (props: any) => {
         }
 
         .discover__body__sec2__child1:nth-child(2) {
-          grid-column: span 1 / span 1;
+          grid-column: span 2 / span 2;
         }
 
         .discover__body__sec__child1,

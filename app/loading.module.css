@@ -291,12 +291,9 @@
   }
 
   .discoverList__card__desc:nth-child(5) {
-    grid-column: span 1 / span 1;
+    grid-column: span 2 / span 2;
   }
 
-  .discoverList__card__desc:nth-child(6) {
-    grid-column: span 1 / span 1;
-  }
 
   .focusareas__list__mob {
     display: none;

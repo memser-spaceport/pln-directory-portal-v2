@@ -297,7 +297,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
 };
 
 export const IRL_ANALYTICS_EVENTS = {
- 
+
 };
 
 export const HOME_ANALYTICS_EVENTS = {

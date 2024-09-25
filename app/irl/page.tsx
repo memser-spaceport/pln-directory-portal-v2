@@ -5,9 +5,10 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import IrlHeader from '@/components/page/irl/irl-header';
 import IrlLocation from '@/components/page/irl/locations/irl-location';
+import IrlEvents from '@/components/page/irl/events/irl-events';
 
 export default async function Page() {
-  const { error, userInfo } = await getPageData();
+  const { error, userInfo, isLoggedIn } = await getPageData();
 
   if (error) {
     return <Error />;
@@ -22,8 +23,9 @@ export default async function Page() {
         <section className={styles.irlGatheings__locations}>
           <IrlLocation />
         </section>
-        {/* Agenda */}
-        <section className={styles.irlGatherings__agenda}></section>
+        <section className={styles.irlGatherings__events}>
+          <IrlEvents isLoggedIn={isLoggedIn} />
+        </section>
         {/* Guests */}
         <section className={styles.irlGatheings__guests}></section>
       </div>

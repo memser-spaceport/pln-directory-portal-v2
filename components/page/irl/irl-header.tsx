@@ -18,7 +18,6 @@ const IrlHeader = () => {
                   font-size: 14px;
                   font-weight: 400;
                   line-height: 28px;
-                  height: 60px;
                 }
                 @media (min-width: 360px) {
                   .irlheaderCnt{

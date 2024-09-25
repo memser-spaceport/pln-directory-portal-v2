@@ -55,7 +55,7 @@ export const EVENTS = {
   OPEN_FLOATING_BAR: 'open-floating-bar',
   GET_NOTIFICATIONS: 'get-notifications',
   TRIGGER_RATING_POPUP: 'trigger-notification-popup',
-  OPEN_MEMBER_BIO_POPUP:'open-member-bio-popup',
+  OPEN_MEMBER_BIO_POPUP: 'open-member-bio-popup',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -98,7 +98,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: 'session-expired-popup-login-btn-clicked',
   GO_TO_TOP_BTN_CLICKED: 'go-to-top-btn-clicked',
   NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked',
-  NAVBAR_APP_LOGO_CLICKED:'navbar_app_logo_clicked'
+  NAVBAR_APP_LOGO_CLICKED: 'navbar_app_logo_clicked'
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -278,30 +278,30 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_SEE_ALL_CLICKED: 'member-detail-project-contributions-see-all-clicked',
   MEMBER_DETAIL_PROJECT_CLICKED: 'member-detail-project-clicked',
   MEMBER_DETAIL_GITHUB_HANDLE_UPDATE_CLICKED: 'member-detail-github-handle-update-clicked',
-  MEMBER_DETAIL_BIO_READ_MORE_CLICKED:'member-detail-bio-read-more-clicked',
-  MEMBER_DETAIL_BIO_READ_LESS_CLICKED:'member-detail-bio-read-less-clicked'
+  MEMBER_DETAIL_BIO_READ_MORE_CLICKED: 'member-detail-bio-read-more-clicked',
+  MEMBER_DETAIL_BIO_READ_LESS_CLICKED: 'member-detail-bio-read-less-clicked'
 };
 
 export const IRL_ANALYTICS_EVENTS = {
- 
+
 };
 
 export const HOME_ANALYTICS_EVENTS = {
   FOCUS_AREA_TEAMS_CLICKED: 'focus-teams-clicked',
   FOCUS_AREA_PROJECT_CLICKED: 'focus-project-clicked',
-  FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED:'focus-area-protocol-labs-vision-url-clicked',
+  FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED: 'focus-area-protocol-labs-vision-url-clicked',
 
   FEATURED_SUBMIT_REQUEST_CLICKED: 'featured-submit-request-clicked',
-  FEATUTRED_MEMBER_CARD_CLICKED:'featured-member-card-clicked',
-  FEATUTRED_TEAM_CARD_CLICKED:'featured-team-card-clicked',
-  FEATURED_IRL_CARD_CLICKED:'featured-irl-card-clicked',
-  FEATURED_PROJECT_CARD_CLICKED:'featured-project-card-clicked',
-  FEATURED_MEMBER_BIO_SEE_MORE_CLICKED:'featured-member-bio-see-more-clicked',
-  FEATURED_MEMBER_BIO_POPUP_VIEW_PROFILE_BTN_CLICKED:'featured-member-bio-popup-view-profile-btn-clicked',
+  FEATUTRED_MEMBER_CARD_CLICKED: 'featured-member-card-clicked',
+  FEATUTRED_TEAM_CARD_CLICKED: 'featured-team-card-clicked',
+  FEATURED_IRL_CARD_CLICKED: 'featured-irl-card-clicked',
+  FEATURED_PROJECT_CARD_CLICKED: 'featured-project-card-clicked',
+  FEATURED_MEMBER_BIO_SEE_MORE_CLICKED: 'featured-member-bio-see-more-clicked',
+  FEATURED_MEMBER_BIO_POPUP_VIEW_PROFILE_BTN_CLICKED: 'featured-member-bio-popup-view-profile-btn-clicked',
 
-  DISCOVER_CAROUSEL_ACTIONS_CLICKED:'discover-carousel-actions-clicked',
-  DISCOVER_CARD_CLICKED:'discover-card-clicked',
-  DISCOVER_HUSKY_AI_CLICKED:'discover-husky-ai-clicked'
+  DISCOVER_CAROUSEL_ACTIONS_CLICKED: 'discover-carousel-actions-clicked',
+  DISCOVER_CARD_CLICKED: 'discover-card-clicked',
+  DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked'
 };
 
 export const HOME = {
@@ -714,8 +714,8 @@ export const FEEDBACK_RESPONSE_TYPES = {
 export const NOTIFICATION_REFETCH_TIME = 300000;
 
 export const HOME_PAGE_LINKS = {
-   FEATURED_REQUEST_URL :'https://airtable.com/appgb6O7eF6mBEl8t/pagZ15qnE9hcxpuP0/form',
-   FOCUSAREA_PROTOCOL_LABS_VISION_URL:'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/'
+  FEATURED_REQUEST_URL: 'https://airtable.com/appgb6O7eF6mBEl8t/pagZ15qnE9hcxpuP0/form',
+  FOCUSAREA_PROTOCOL_LABS_VISION_URL: 'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/'
 }
 
 export const PLN_LOCATIONS = [{
@@ -726,7 +726,7 @@ export const PLN_LOCATIONS = [{
   pastEvents: 7,
   upcomingEvents: 6,
   isActive: true,
-}, 
+},
 {
   id: 2,
   location: "Mumbai",
@@ -735,7 +735,7 @@ export const PLN_LOCATIONS = [{
   pastEvents: 4,
   upcomingEvents: 10,
   isActive: false,
-}, 
+},
 {
   id: 3,
   location: "Australia",
@@ -744,10 +744,10 @@ export const PLN_LOCATIONS = [{
   pastEvents: 2,
   upcomingEvents: 4,
   isActive: false,
-}, 
+},
 {
   id: 4,
-  location: "France", 
+  location: "France",
   flag: "&#127467;&#127479;",
   icon: "/images/irl/france.svg",
   pastEvents: 8,
@@ -758,8 +758,8 @@ export const PLN_LOCATIONS = [{
   id: 5,
   location: "USA",
   flag: "&#127482;&#127480;",
-  icon: "",
-  pastEvents: 2,  
+  icon: "/images/irl/defaultImg.svg",
+  pastEvents: 2,
   upcomingEvents: 3,
   isActive: false,
 },
@@ -767,8 +767,8 @@ export const PLN_LOCATIONS = [{
   id: 6,
   location: "Bali",
   flag: "&#127470;&#127465",
-  icon: "",
-  pastEvents: 1,  
+  icon: "/images/irl/defaultImg.svg",
+  pastEvents: 1,
   upcomingEvents: 6,
   isActive: false,
 },
@@ -776,8 +776,8 @@ export const PLN_LOCATIONS = [{
   id: 7,
   location: "Brazil",
   flag: "&#127463;&#127479;",
-  icon: "",
-  pastEvents: 3,  
+  icon: "/images/irl/defaultImg.svg",
+  pastEvents: 3,
   upcomingEvents: 2,
   isActive: false,
 },
@@ -785,8 +785,8 @@ export const PLN_LOCATIONS = [{
   id: 8,
   location: "Bangalore",
   flag: "&#127470;&#127475;",
-  icon: "",
-  pastEvents: 5,  
+  icon: "/images/irl/defaultImg.svg",
+  pastEvents: 5,
   upcomingEvents: 7,
   isActive: false,
 },
@@ -794,8 +794,8 @@ export const PLN_LOCATIONS = [{
   id: 9,
   location: "Canberra",
   flag: "&#127462;&#127482;",
-  icon: "",
-  pastEvents: 4,  
+  icon: "/images/irl/defaultImg.svg",
+  pastEvents: 4,
   upcomingEvents: 3,
   isActive: false,
 },
@@ -803,8 +803,8 @@ export const PLN_LOCATIONS = [{
   id: 10,
   location: "Bangalore",
   flag: "&#127470;&#127475;",
-  icon: "",
-  pastEvents: 5,  
+  icon: "/images/irl/defaultImg.svg",
+  pastEvents: 5,
   upcomingEvents: 7,
   isActive: false,
 },
@@ -812,9 +812,90 @@ export const PLN_LOCATIONS = [{
   id: 11,
   location: "Canberra",
   flag: "&#127462;&#127482;",
-  icon: "",
-  pastEvents: 4,  
+  icon: "/images/irl/defaultImg.svg",
+  pastEvents: 4,
   upcomingEvents: 3,
   isActive: false,
 }
 ];
+
+export const GATHERINGS = [
+  {
+    id: 1,
+    icon: "img",
+    name: "devCon",
+    eventDate: "Jun 10-16",
+    description: "A global conference series, where the crypto ecosystem's decision-makers connect to exchange ideas, network, and shape the industry.",
+  },
+  {
+    id: 2,
+    icon: "img",
+    name: "devCon",
+    eventDate: "Jun 10-16",
+    description: "A global conference series, where the crypto ecosystem's decision-makers connect to exchange ideas, network, and shape the industry.",
+  },
+  {
+    id: 3,
+    icon: "img",
+    name: "devCon",
+    eventDate: "Jun 10-16",
+    description: "A global conference series, where the crypto ecosystem's decision-makers connect to exchange ideas, network, and shape the industry.",
+  },
+  {
+    id: 4,
+    icon: "img",
+    name: "devCon",
+    eventDate: "Jun 10-16",
+    description: "A global conference series, where the crypto ecosystem's decision-makers connect to exchange ideas, network, and shape the industry.",
+  },
+  {
+    id: 5,
+    icon: "img",
+    name: "devCon",
+    eventDate: "Jun 10-16",
+    description: "A global conference series, where the crypto ecosystem's decision-makers connect to exchange ideas, network, and shape the industry.",
+  },
+]
+
+export const RESOURCES = [
+  {
+    id: 1,
+    name: "devCon",
+  },
+  {
+    id: 2,
+    name: "devCon",
+  },
+  {
+    id: 3,
+    name: "devCon",
+  },
+  {
+    id: 4,
+    name: "devCon",
+  },
+  {
+    id: 5,
+    name: "devCon",
+  },
+  {
+    id: 6,
+    name: "devCon",
+  },
+  {
+    id: 7,
+    name: "devCon",
+  },
+  {
+    id: 8,
+    name: "devCon",
+  },
+  {
+    id: 9,
+    name: "devCon",
+  },
+  {
+    id: 10,
+    name: "devCon",
+  },
+]

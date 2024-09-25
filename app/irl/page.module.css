@@ -15,6 +15,18 @@
   gap: 16px;
 }
 
+.irlGatherings__events {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+  background-color: #fff;
+  border: 2px solid #0F172A0A;
+  box-shadow: 0px 4px 4px 0px #0F172A0A;
+  max-height: 472px;
+  /* width: 900px; */
+}
+
 @media (min-width: 360px) {
   .irlGatheings__locations {
     overflow-x: auto;
@@ -26,6 +38,14 @@
     padding: 10px;
     border-radius: unset;
     margin-right: 10px;
+  }
+
+  .irlGatherings__events {
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    border-radius: unset;
+    margin: none;
   }
 }
 
@@ -45,5 +65,11 @@
     gap: 16px;
     overflow: unset;
     position: relative;
+  }
+
+  .irlGatherings__events {
+    overflow-x: unset;
+    border-radius: 16px;
+    /* position: relative; */
   }
 }

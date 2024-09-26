@@ -171,6 +171,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             justify-content: space-between;
             box-shadow: 0px 1px 4px 0px #e2e8f0;
             padding: 0 16px 0px 22px;
+            gap:10px;
           }
 
           button {

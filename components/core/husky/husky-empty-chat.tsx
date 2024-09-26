@@ -7,9 +7,9 @@ interface HuskyEmptyChatProps {
 
 function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
   const initialPrompts = [
-    { text: 'How do I apply to speak at a Filecoin event?', icon: '/icons/send-black.svg' },
-    { text: 'Are there any virtual events in the Filecoin community?', icon: '/icons/send-black.svg' },
-    { text: 'Who are the main sponsors for FIL Brussels?', icon: '/icons/send-black.svg' },
+    { text: 'Summary of discussions from the LabWeek Field Building sessions?', icon: '/icons/send-black.svg' },
+    { text: 'Recent updates from the Filecoin ecosystem?', icon: '/icons/send-black.svg' },
+    { text: 'What are some of the trending network updates from the Protocol Labs?', icon: '/icons/send-black.svg' },
   ];
 
   const { trackExplorationPromptSelection } = useHuskyAnalytics();

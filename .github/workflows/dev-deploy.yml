@@ -1,0 +1,55 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set environment variables based on branch
+        id: set_env
+        run: |
+          # Default values for develop branch
+          DEPLOY_HOOK=${{ secrets.VERCEL_DEV_DEPLOY_HOOK }}
+          USERS_WITH_VERCEL_ACCESS="${{ secrets.VERCEL_USER_ACCESS_LIST }}"
+
+          # Check the branch and set the appropriate values
+          if [[ "${GITHUB_REF_NAME}" == "staging" ]]; then
+            DEPLOY_HOOK=${{ secrets.VERCEL_STAGING_DEPLOY_HOOK }}
+          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            DEPLOY_HOOK=${{ secrets.VERCEL_MAIN_DEPLOY_HOOK }}
+          fi
+          
+          # Export variables for the next steps
+          echo "DEPLOY_HOOK=$DEPLOY_HOOK" >> $GITHUB_ENV
+          echo "USERS_WITH_VERCEL_ACCESS=$USERS_WITH_VERCEL_ACCESS" >> $GITHUB_ENV
+
+      - name: Check if user should trigger deployment
+        id: check_user
+        run: |
+          # Convert the user list to lowercase and split by comma
+          LOWERCASE_USERS=$(echo "$USERS_WITH_VERCEL_ACCESS" | tr '[:upper:]' '[:lower:]')
+          IFS=',' read -r -a USER_ARRAY <<< "$LOWERCASE_USERS"
+          
+          # Convert the current GitHub actor to lowercase
+          LOWERCASE_ACTOR=$(echo "${GITHUB_ACTOR}" | tr '[:upper:]' '[:lower:]')
+          
+          # Check if the current user is in the list
+          if [[ " ${USER_ARRAY[@]} " =~ " ${LOWERCASE_ACTOR} " ]]; then
+            echo "User ${LOWERCASE_ACTOR} has Vercel access. Skipping deployment."
+            echo "should_trigger=false" >> $GITHUB_ENV
+          else
+            echo "User ${LOWERCASE_ACTOR} does not have Vercel access. Proceeding with deployment."
+            echo "should_trigger=true" >> $GITHUB_ENV
+          fi
+
+      - name: Trigger Vercel deployment hook
+        if: env.should_trigger == 'true'  # Only trigger if the user is not in the list
+        run: |
+          curl -X POST $DEPLOY_HOOK

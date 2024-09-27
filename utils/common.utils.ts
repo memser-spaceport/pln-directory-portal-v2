@@ -2,7 +2,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from './constants';
 import { ITeam } from '@/types/teams.types';
 import { isPastDate } from './irl.utils';
-
+import Cookies from 'js-cookie'
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
 };
@@ -47,6 +47,19 @@ export function compareObjsIfSame(obj1: any, obj2: any) {
 
   return true;
 }
+export const getUserInfoFromLocal = () => {
+  try {
+    const rawUserInfo = Cookies.get('userInfo');
+    if (rawUserInfo) {
+      return JSON.parse(rawUserInfo);
+    }
+
+    return null;
+  } catch (error) {
+    return null;
+  }
+};
+
 
 export const getUniqueId = () => {
   const dateString = Date.now().toString(36);
@@ -76,9 +89,9 @@ export const getAnalyticsNotificationInfo = (notification: any) => {
   return {
     type: notification?.type,
     status: notification?.status,
-    interaction: notification?.interaction
-  }
-}
+    interaction: notification?.interaction,
+  };
+};
 
 export const getAnalyticsTeamInfo = (team: ITeam | undefined) => {
   if (team?.name && team?.shortDescription) {
@@ -95,6 +108,16 @@ export const getAnalyticsMemberInfo = (member: any) => {
     };
   }
 
+  return null;
+};
+
+export const getAnalyticsFocusAreaInfo = (focusArea: any) => {
+  if (focusArea) {
+    return {
+      id: focusArea?.uid,
+      title: focusArea?.title,
+    };
+  }
   return null;
 };
 
@@ -257,7 +280,6 @@ export const hasProjectDeleteAccess = (userInfo: any, project: any, isUserLogged
   return false;
 };
 
-
 export const calculateTime = (inputDate: any) => {
   const currentDate = new Date() as any;
   const inputDateTime = new Date(inputDate) as any;
@@ -269,30 +291,30 @@ export const calculateTime = (inputDate: any) => {
   const formatTime = (date: any) => {
     const hours = date.getHours();
     const minutes = date.getMinutes();
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
   };
 
-  if(daysDifference < 0 ) {
+  if (daysDifference < 0) {
     return `0 day ago`;
   }
 
   if (daysDifference === 0) {
-    return "Today " + formatTime(inputDateTime);
+    return 'Today ' + formatTime(inputDateTime);
   } else if (daysDifference === 1) {
-    return "Yesterday " + formatTime(inputDateTime);
+    return 'Yesterday ' + formatTime(inputDateTime);
   } else if (daysDifference <= 7) {
-    return daysDifference + " day" + (daysDifference > 1 ? "s" : "") + " ago";
+    return daysDifference + ' day' + (daysDifference > 1 ? 's' : '') + ' ago';
   } else {
     const weeksDifference = Math.floor(daysDifference / 7);
     if (weeksDifference <= 4) {
-      return weeksDifference + " week" + (weeksDifference > 1 ? "s" : "") + " ago";
+      return weeksDifference + ' week' + (weeksDifference > 1 ? 's' : '') + ' ago';
     } else {
       const monthsDifference = Math.floor(daysDifference / 30);
       if (monthsDifference <= 12) {
-        return monthsDifference + " month" + (monthsDifference > 1 ? "s" : "") + " ago";
+        return monthsDifference + ' month' + (monthsDifference > 1 ? 's' : '') + ' ago';
       } else {
         const yearsDifference = Math.floor(monthsDifference / 12);
-        return yearsDifference + " year" + (yearsDifference > 1 ? "s" : "") + " ago";
+        return yearsDifference + ' year' + (yearsDifference > 1 ? 's' : '') + ' ago';
       }
     }
   }

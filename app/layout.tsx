@@ -9,6 +9,7 @@ import { Suspense } from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import HuskySidePanel from '@/components/core/husky/husky-sidepanel';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), {ssr: false});
@@ -24,8 +25,8 @@ const RatingContainer = dynamic(() => import('@/components/core/office-hours-rat
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Protocol Labs Network',
-  description: 'The Protocol Labs Network drives breakthroughs in computing to push humanity forward.',
+  title: 'Protocol Labs Directory',
+  description: 'The Protocol Labs Directory drives breakthroughs in computing to push humanity forward.',
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
         url: SOCIAL_IMAGE_URL,
         width: 1280,
         height: 640,
-        alt: 'Protocol Labs Network',
+        alt: 'Protocol Labs Directory',
         type: 'image/jpeg',
       },
     ],

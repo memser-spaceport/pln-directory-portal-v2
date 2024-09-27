@@ -4,6 +4,8 @@ import Cookies from 'js-cookie';
 import { getParsedValue } from './common.utils';
 import { toast } from 'react-toastify';
 import { TOAST_MESSAGES } from './constants';
+import { clearAllAuthCookies } from './third-party.helper';
+import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 
 const getAuthInfoFromCookie = () => {
   const userInfo = getParsedValue(Cookies.get('userInfo'));
@@ -102,4 +104,38 @@ const retryApi = async (url: string, options: any) => {
       Authorization: `Bearer ${newAuthToken}`,
     },
   });
+};
+
+export const logoutUser = () => {
+  clearAllAuthCookies();
+  document.dispatchEvent(new CustomEvent('init-privy-logout'));
+};
+
+export const getUserCredentialsInfo = async () => {
+  const { authToken, refreshToken, userInfo } = getAuthInfoFromCookie();
+  if (userInfo && authToken) {
+    return {
+      newUserInfo: userInfo,
+      newAuthToken: authToken,
+      newRefreshToken: refreshToken,
+    };
+  } else if ((!userInfo || !authToken) && refreshToken) {
+    const renewOuput = await renewAccessToken(refreshToken);
+    if (!renewOuput.ok) {
+      return {
+        isLoginRequired: true,
+        status: renewOuput?.status,
+      };
+    }
+    setNewTokenAndUserInfoAtClientSide({ ...renewOuput?.data });
+    return {
+      newUserInfo: renewOuput?.data?.userInfo,
+      newAuthToken: renewOuput?.data?.accessToken,
+      newRefreshToken: renewOuput?.data?.refreshToken,
+    };
+  }
+  logoutUser()
+  return {
+    isLoginRequired: true,
+  };
 };

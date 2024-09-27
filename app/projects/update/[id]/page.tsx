@@ -12,7 +12,7 @@ export default async function EditProject({ params }: any) {
   const { isError, project, isLoggedIn, userInfo } = await getPageData(projectId);
 
   if (!isLoggedIn) {
-    redirect(`${PAGE_ROUTES.TEAMS}`, RedirectType.replace);
+    redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
   }
   if (isError) {
     <Error />;

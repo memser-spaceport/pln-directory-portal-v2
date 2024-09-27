@@ -30,7 +30,7 @@ const Error = () => {
               </a>{" "}
               pages.
             </p>
-            <a href={PAGE_ROUTES.TEAMS} className="error-container__content__message__back-to-home">Back to Home </a>
+            <a href={PAGE_ROUTES.HOME} className="error-container__content__message__back-to-home">Back to Home </a>
           </div>
         </div>
       </div>

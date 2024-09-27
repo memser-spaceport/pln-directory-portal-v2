@@ -12,6 +12,23 @@
   margin: 0;
 }
 
+/* .bioCn__content p {
+  padding-bottom: 10px;
+}
+
+.bio__body__content p {
+  padding-bottom: 10px;
+}
+
+.bioCn__content p:last-child {
+  display: inline;
+  padding-bottom: unset;
+}
+
+.bio__body__content p:last-child {
+  display: inline;
+  padding-bottom: unset;
+} */
 
  button {
   cursor: pointer;
@@ -59,6 +76,10 @@ body {
 
 .toast__class {
   margin-top: 60px;
+}
+
+textarea {
+  font-family:inherit;
 }
 
 body {

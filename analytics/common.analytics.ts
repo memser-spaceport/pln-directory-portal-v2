@@ -1,5 +1,6 @@
 import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { COMMON_ANALYTICS_EVENTS } from '@/utils/constants';
+import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
 
 export const useCommonAnalytics = () => {
@@ -9,7 +10,11 @@ export const useCommonAnalytics = () => {
     try {
       if (postHogProps?.capture) {
         const allParams = { ...eventParams };
-        postHogProps.capture(eventName, { ...allParams });
+        const userInfo = getUserInfo();
+        const loggedInUserUid = userInfo?.uid;
+        const loggedInUserEmail = userInfo?.email;
+        const loggedInUserName = userInfo?.name;
+        postHogProps.capture(eventName, { ...allParams, loggedInUserUid, loggedInUserEmail, loggedInUserName });
       }
     } catch (e) {
       console.error(e);
@@ -86,9 +91,13 @@ export const useCommonAnalytics = () => {
 
   function onNotificationMenuClickHandler(user: IAnalyticsUserInfo | null) {
     const params = {
-      user
-    }
+      user,
+    };
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_NOTIFICATION_MENU_CLICKED, params);
+  }
+
+  function onAppLogoClicked() {
+    captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_APP_LOGO_CLICKED);
   }
 
   return {
@@ -101,6 +110,7 @@ export const useCommonAnalytics = () => {
     onPaginationOptionClicked,
     onSessionExpiredLoginClicked,
     goToTopBtnClicked,
-    onNotificationMenuClickHandler
+    onNotificationMenuClickHandler,
+    onAppLogoClicked
   };
 };

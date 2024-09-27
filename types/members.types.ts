@@ -33,6 +33,8 @@ export interface IMemberResponse {
   linkedinHandler: string;
   repositories: [];
   preferences: {};
+  createdAt: string;
+  bio?:string;
 }
 
 export interface IMember {
@@ -56,6 +58,7 @@ export interface IMember {
   linkedinHandle?: string | null;
   repositories?: [];
   preferences: IMemberPreferences;
+  bio?: string;
 }
 
 export interface ILoggedoutMember {}

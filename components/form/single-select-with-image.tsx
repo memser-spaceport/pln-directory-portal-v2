@@ -198,7 +198,6 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
             gap: 6px;
             text-wrap: wrap;
             word-break: break-all;
-            text-transform: capitalize;
           }
 
           .select__options__item__img {

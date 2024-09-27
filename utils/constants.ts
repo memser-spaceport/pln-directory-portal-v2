@@ -55,7 +55,7 @@ export const EVENTS = {
   OPEN_FLOATING_BAR: 'open-floating-bar',
   GET_NOTIFICATIONS: 'get-notifications',
   TRIGGER_RATING_POPUP: 'trigger-notification-popup',
-  OPEN_MEMBER_BIO_POPUP:'open-member-bio-popup',
+  OPEN_MEMBER_BIO_POPUP: 'open-member-bio-popup',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -98,7 +98,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   SESSION_EXPIRED_POPUP_LOGIN_BTN_CLICKED: 'session-expired-popup-login-btn-clicked',
   GO_TO_TOP_BTN_CLICKED: 'go-to-top-btn-clicked',
   NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked',
-  NAVBAR_APP_LOGO_CLICKED:'navbar_app_logo_clicked'
+  NAVBAR_APP_LOGO_CLICKED: 'navbar_app_logo_clicked',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -278,8 +278,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_SEE_ALL_CLICKED: 'member-detail-project-contributions-see-all-clicked',
   MEMBER_DETAIL_PROJECT_CLICKED: 'member-detail-project-clicked',
   MEMBER_DETAIL_GITHUB_HANDLE_UPDATE_CLICKED: 'member-detail-github-handle-update-clicked',
-  MEMBER_DETAIL_BIO_READ_MORE_CLICKED:'member-detail-bio-read-more-clicked',
-  MEMBER_DETAIL_BIO_READ_LESS_CLICKED:'member-detail-bio-read-less-clicked'
+  MEMBER_DETAIL_BIO_READ_MORE_CLICKED: 'member-detail-bio-read-more-clicked',
+  MEMBER_DETAIL_BIO_READ_LESS_CLICKED: 'member-detail-bio-read-less-clicked',
 };
 
 export const IRL_ANALYTICS_EVENTS = {
@@ -328,24 +328,24 @@ export const IRL_ANALYTICS_EVENTS = {
 export const HOME_ANALYTICS_EVENTS = {
   FOCUS_AREA_TEAMS_CLICKED: 'focus-teams-clicked',
   FOCUS_AREA_PROJECT_CLICKED: 'focus-project-clicked',
-  FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED:'focus-area-protocol-labs-vision-url-clicked',
+  FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED: 'focus-area-protocol-labs-vision-url-clicked',
 
   FEATURED_SUBMIT_REQUEST_CLICKED: 'featured-submit-request-clicked',
-  FEATUTRED_MEMBER_CARD_CLICKED:'featured-member-card-clicked',
-  FEATUTRED_TEAM_CARD_CLICKED:'featured-team-card-clicked',
-  FEATURED_IRL_CARD_CLICKED:'featured-irl-card-clicked',
-  FEATURED_PROJECT_CARD_CLICKED:'featured-project-card-clicked',
-  FEATURED_MEMBER_BIO_SEE_MORE_CLICKED:'featured-member-bio-see-more-clicked',
-  FEATURED_MEMBER_BIO_POPUP_VIEW_PROFILE_BTN_CLICKED:'featured-member-bio-popup-view-profile-btn-clicked',
+  FEATUTRED_MEMBER_CARD_CLICKED: 'featured-member-card-clicked',
+  FEATUTRED_TEAM_CARD_CLICKED: 'featured-team-card-clicked',
+  FEATURED_IRL_CARD_CLICKED: 'featured-irl-card-clicked',
+  FEATURED_PROJECT_CARD_CLICKED: 'featured-project-card-clicked',
+  FEATURED_MEMBER_BIO_SEE_MORE_CLICKED: 'featured-member-bio-see-more-clicked',
+  FEATURED_MEMBER_BIO_POPUP_VIEW_PROFILE_BTN_CLICKED: 'featured-member-bio-popup-view-profile-btn-clicked',
 
-  DISCOVER_CAROUSEL_ACTIONS_CLICKED:'discover-carousel-actions-clicked',
-  DISCOVER_CARD_CLICKED:'discover-card-clicked',
-  DISCOVER_HUSKY_AI_CLICKED:'discover-husky-ai-clicked'
+  DISCOVER_CAROUSEL_ACTIONS_CLICKED: 'discover-carousel-actions-clicked',
+  DISCOVER_CARD_CLICKED: 'discover-card-clicked',
+  DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
 };
 
 export const HOME = {
-  TRIGGER_FOCUS_AREA_DIALOG: 'trigger-focus-area-dialog'
-}
+  TRIGGER_FOCUS_AREA_DIALOG: 'trigger-focus-area-dialog',
+};
 
 export const PAGE_ROUTES = {
   HOME: '/',
@@ -461,6 +461,46 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.0.0 -  Introducing the All New Home Page',
+    tag: 'New Feature',
+    releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },
+    date: '27, Sep 2024',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <p style="font-size:16px"><b>New Home Page is LIVE! 🎉</b></p>
+    <br/>
+    <p>We are thrilled to unveil our brand-new Home Page, your gateway to smarter network discovery - Powered by Husky, our homegrown LLM. This update is designed to make your exploration of the network more dynamic, personalized, and engaging.</p>
+    <br/>
+    <p style="font-size:16px; padding-bottom:12px"><b>What's New ?</b></p>
+    <p>With three dynamic sections -  Focus Areas, Discover, and Featured, you will now have everything you need to stay connected, engaged, and ahead of the curve.</p>
+    <br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+
+    <li>
+    <p style="padding-bottom:8px"><b>Focus Areas:</b></p>
+    <p>This section highglights Teams and Projects on the Directory, classified across 4 major focus areas - Digital Human Rights, Public Goods, Advanced Technologies, and Innovation Network, helping you stay laser-focused on the areas that drive success.
+    </p>
+    </li>
+    </br>
+    <li>
+     <p  style="padding-bottom:8px"><b>Discover Section:</b></p>
+    <p style="padding-bottom:8px">This section offers a curated feed of all the latest network happenings. Whether it’s breaking news, upcoming events, or project updates-with Husky, you can always go beyond the surface and explore more about -
+    </p>
+    <p style="padding-bottom:8px"><b>Teams:</b> Get insights into the teams that are driving innovation in the network. Explore their roles, contributions, and impact on various projects.</p>
+    <p style="padding-bottom:8px"><b>Projects:</b> Get insights into cutting-edge projects across the network. Track their progress, understand their goals, and find opportunities to contribute.</p>
+    <p><b>IRL Events:</b> Explore various events and whether it’s key takeaways, event highlights, or notable discussions, you’ll get the scoop on everything that went down so you can stay up to speed, even if you weren’t there.</p>
+    </li>
+    </br>
+    <li>
+    <p  style="padding-bottom:8px"><b>Featured Section:</b></p>
+    <p>
+    This section spotlights on the biggest movers and shakers in the network. Whether it's groundbreaking projects, high-impact teams, influential members, or exciting events, this section highlights the most impactful activities across the network.
+    </p>
+    </li>
+    </ul>
+    </div>`,
+  },
   {
     title: 'Version 3.0.1 - Office Hours Feedback',
     tag: 'New Feature',
@@ -760,6 +800,6 @@ export const FEEDBACK_RESPONSE_TYPES = {
 export const NOTIFICATION_REFETCH_TIME = 300000;
 
 export const HOME_PAGE_LINKS = {
-   FEATURED_REQUEST_URL :'https://airtable.com/appgb6O7eF6mBEl8t/pagZ15qnE9hcxpuP0/form',
-   FOCUSAREA_PROTOCOL_LABS_VISION_URL:'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/'
-}
+  FEATURED_REQUEST_URL: 'https://airtable.com/appgb6O7eF6mBEl8t/pagZ15qnE9hcxpuP0/form',
+  FOCUSAREA_PROTOCOL_LABS_VISION_URL: 'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/',
+};

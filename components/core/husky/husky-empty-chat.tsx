@@ -9,7 +9,7 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
   const initialPrompts = [
     { text: 'Summary of discussions from the LabWeek Field Building sessions?', icon: '/icons/send-black.svg' },
     { text: 'Recent updates from the Filecoin ecosystem?', icon: '/icons/send-black.svg' },
-    { text: 'What are some of the trending network updates from the Protocol Labs?', icon: '/icons/send-black.svg' },
+    { text: 'What initiatives or programs does Protocol Labs offer to foster innovation in decentralized technologies?', icon: '/icons/send-black.svg' },
   ];
 
   const { trackExplorationPromptSelection } = useHuskyAnalytics();
@@ -42,7 +42,7 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
             <h3 className="hec__info__title__text">What is Husky?</h3>
           </div>
           <p className="hec__info__desc">
-            HuskyAI is an LLM-powered chatbot, designed to help you explore Protocol Labs teams, projects, events and members. HuskyAI can make suggestions and recommendations based on what you’re
+            Husky is an LLM-powered chatbot, designed to help you explore Protocol Labs teams, projects, events and members. It can make suggestions and recommendations based on what you’re
             looking for. While it’s currently trained on a limited set of Protocol Labs entities, we encourage you to upload data about your team, project, or yourself to help others across our
             growing innovation network discover and explore what you’re working on.
           </p>

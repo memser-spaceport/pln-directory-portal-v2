@@ -1,39 +1,109 @@
 "use client";
 
-import { PLN_LOCATIONS } from "@/utils/constants";
 import IrlLocationCard from "./irl-location-card";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
 import Modal from "@/components/core/modal";
+import useUpdateQueryParams from "@/hooks/useUpdateQueryParams";
+import { useHomeAnalytics } from "@/analytics/home.analytics";
 
-const IrlLocation = () => {
-    const startIndex = 4;
-    const endIndex = 7;
-    const filteredLocations = PLN_LOCATIONS.slice(startIndex, endIndex);
+const IrlLocation = (props: any) => {
+    const { updateQueryParams } = useUpdateQueryParams();
+    const [activeLocationId, setActiveLocationId] = useState(null);
+    const [locations, setLocations] = useState(props.locationDetails);
     const [showMore, setShowMore] = useState(false);
     const dialogRef = useRef<HTMLDialogElement>(null);
+    const searchParams = props?.searchParams;
+    const analytics = useHomeAnalytics();
+
     const onCloseModal = () => {
         if (dialogRef.current) {
             dialogRef.current.close();
         }
     };
 
+    useEffect(() => {
+        const queryParams = new URLSearchParams(window.location.search);
+        const locationNameFromQuery = queryParams.get('location');
+        if (locationNameFromQuery) {
+            console.log(locationNameFromQuery, "locationNameFromQuery");
+        } else {
+            const defaultLocation = locations.find((location: any) => location.priority === 1) || locations[0];
+            if (defaultLocation) {
+                setActiveLocationId(defaultLocation.uid);
+            }
+        }
+        setLocations(locations);
+    }, [locations]);
+
+    useEffect(() => {
+        if (searchParams?.location) {
+            const locationName = searchParams.location;
+            const locationDataIndex = locations?.findIndex(
+                (loc: { location: string; }) => loc.location.split(",")[0].trim() === locationName
+            );
+
+            if (locationDataIndex >= 0) {
+                if (locationDataIndex >= 4) {
+                    [locations[3], locations[locationDataIndex]] = [locations[locationDataIndex], locations[3]];
+
+                    setActiveLocationId(locations[3].uid);
+                } else {
+                    setActiveLocationId(locations[locationDataIndex].uid);
+                }
+            }
+        }
+    }, [searchParams]);
+
     const handleClick = () => {
+        analytics.onSeeOtherLocationClicked(locations);
         if (window.innerWidth < 1024) {
             if (dialogRef.current) {
                 dialogRef.current.showModal();
             }
         }
         setShowMore(!showMore);
-        console.log(showMore, 'showMore');
     }
+
+    const handleCardClick = (uid: any, locationName: any) => {
+        setActiveLocationId(uid);
+        updateQueryParams('location', locationName.split(",")[0].trim(), searchParams);
+        analytics.onLocationClicked(locationName.split(",")[0].trim());
+    };
+
+    const handleResourceClick = (clickedLocation: any) => {
+        const clickedIndex = locations.findIndex((location: { uid: any }) => location.uid === clickedLocation.uid);
+        const fourthIndex = 3;
+
+        if (clickedIndex !== -1 && clickedIndex !== fourthIndex) {
+            const updatedLocations = [...locations];
+
+            if (activeLocationId === locations[fourthIndex].uid) {
+                [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
+                    [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
+
+                setActiveLocationId(updatedLocations[fourthIndex].uid);
+                updateQueryParams('location', updatedLocations[fourthIndex].location.split(",")[0].trim(), searchParams);
+                analytics.onLocationClicked(updatedLocations[fourthIndex].location.split(",")[0].trim());
+            } else {
+                [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
+                    [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
+            }
+            setLocations(updatedLocations);
+        }
+    };
 
     return (
         <>
             <div className="root">
                 <div className="root__card">
-                    {PLN_LOCATIONS.slice(0, 4).map((location, index) => (
-                        <IrlLocationCard key={index} {...location} />
+                    {locations.slice(0, 4).map((location: any) => (
+                        <IrlLocationCard
+                            key={location.uid}
+                            {...location}
+                            isActive={activeLocationId === location.uid} 
+                            onCardClick={() => handleCardClick(location.uid, location.location)}
+                        />
                     ))}
                 </div>
                 <div className="root__irl__expanded" onClick={handleClick}>
@@ -43,9 +113,9 @@ const IrlLocation = () => {
                         See Other Locations
                     </div>
                     <div className="root_irl__expanded__imgcntr">
-                        {filteredLocations.map((location, index) => (
+                        {locations.slice(4, 7).map((location: { flag: any; }, index: React.Key | null | undefined) => (
                             <div key={index} className="root_irl__expanded__imgcntr__img">
-                                <div dangerouslySetInnerHTML={{ __html: location.flag }} />
+                                <div>{location.flag}</div>
                             </div>
                         ))}
                     </div>
@@ -56,15 +126,15 @@ const IrlLocation = () => {
 
                 {showMore &&
                     <div className="root__irl__overlay">
-                        {PLN_LOCATIONS.slice(4).map((location, index) => (
-                            <div key={index} className="root__irl__overlay__cnt">
+                        {locations.slice(4).map((location: { id: any, flag: any; location: any; upcomingEvents: any; pastEvents: any }, index: React.Key | null | undefined) => (
+                            <div key={index} className="root__irl__overlay__cnt" onClick={() => handleResourceClick(location)}>
                                 <div className="root__irl__overlay__cnt__location">
-                                    <div dangerouslySetInnerHTML={{ __html: location.flag }} />
-                                    <div>{location.location}</div>
+                                    <div>{location.flag}</div>
+                                    <div>{location.location.split(",")[0].trim()}</div>
                                 </div>
                                 <div className="root__irl__overlay__cnt__events">
-                                    <div><span>{location.upcomingEvents}</span>{' '} Upcoming Events </div>
-                                    <div><span>{location.pastEvents}</span>{' '} Past Events </div>
+                                    <div><span>{location.upcomingEvents?.length ?? 0}</span>{' '} Upcoming Events </div>
+                                    <div><span>{location.pastEvents?.length ?? 0}</span>{' '} Past Events </div>
                                 </div>
                             </div>
                         ))}
@@ -74,15 +144,15 @@ const IrlLocation = () => {
                     <Modal modalRef={dialogRef} onClose={onCloseModal}>
                         <div className="root__irl__header"> Select a location</div>
                         <div className="root__irl__mobileModal">
-                            {PLN_LOCATIONS.slice(4).map((location, index) => (
-                                <div key={index} className="root__irl__mobileModal__cnt">
+                            {locations.slice(4).map((location: { flag: any; location: any; upcomingEvents: any; pastEvents: any }, index: React.Key | null | undefined) => (
+                                <div key={index} className="root__irl__mobileModal__cnt" onClick={() => handleResourceClick(location)}>
                                     <div className="root__irl__mobileModal__cnt__location">
-                                        <div dangerouslySetInnerHTML={{ __html: location.flag }} />
-                                        <div>{location.location}</div>
+                                        <div>{location.flag}</div>
+                                        <div>{location.location.split(",")[0].trim()}</div>
                                     </div>
                                     <div className="root__irl__mobileModal__cnt__events">
-                                        <div><span>{location.upcomingEvents}</span>{' '} Upcoming Events </div>
-                                        <div><span>{location.pastEvents}</span>{' '} Past Events </div>
+                                        <div><span>{location.upcomingEvents?.length ?? 0}</span>{' '} Upcoming Events </div>
+                                        <div><span>{location.pastEvents?.length ?? 0}</span>{' '} Past Events </div>
                                     </div>
                                 </div>
                             ))}
@@ -165,7 +235,7 @@ const IrlLocation = () => {
                 .root__irl__overlay {
                     background-color: #fff;
                     width: 367px;
-                    height: 196px;
+                    max-height: 196px;
                     top: 156px;
                     right: 8px;
                     gap: 0px;
@@ -184,6 +254,11 @@ const IrlLocation = () => {
                     gap: 10px;
                     padding: 5px;
                     color: #0F172A;
+                    cursor: pointer;
+                }
+
+                .root__irl__overlay__cnt:hover {
+                    background-color: #F7FAFC;
                 }
 
                 .root__irl__overlay__cnt__location, 
@@ -194,7 +269,7 @@ const IrlLocation = () => {
                 }
 
                 .root__irl__overlay__cnt__location {
-                    width: 50px;
+                    max-width: 141px;
                     height: 28px;
                     gap: 4px;
                     font-size: 14px;
@@ -244,6 +319,11 @@ const IrlLocation = () => {
                     margin: 15px;
                     padding-bottom: 15px;
                     border-bottom: 1px solid #CBD5E1;
+                    cursor: pointer;
+                }
+
+                .root__irl__mobileModal__cnt:hover {
+                   background-color: #F7FAFC;
                 }
 
                 .root__irl__mobileModal__cnt__location, 
@@ -290,7 +370,7 @@ const IrlLocation = () => {
                     .root__irl__mobileModal, .root__irl__mobileView {
                         display: flex;
                         width: 90vw;
-                        height: 70vh;
+                        max-height: 70vh;
                         overflow-y: auto;
                     }
                 }

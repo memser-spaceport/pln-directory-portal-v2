@@ -17,7 +17,7 @@ export interface IIrlLocationCard {
   location: string;
   flag: string;
   icon: string;
-  pastEvents: number;
-  upcomingEvents: number;
+  pastEvents: any;
+  upcomingEvents: any;
   isActive: boolean;
 }

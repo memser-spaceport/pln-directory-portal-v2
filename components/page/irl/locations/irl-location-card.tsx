@@ -1,22 +1,38 @@
 import { IIrlLocationCard } from '@/types/irl.types';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-const IrlLocationCard = (props: IIrlLocationCard) => {
+interface IrlLocationCardProps {
+    isActive: boolean;
+    onCardClick: () => void;
+    uid?: string;
+    priority?: number;
+    location: string;
+    flag?: string;
+    pastEvents?: any[];
+    upcomingEvents?: any[];
+    icon?: string;
+}
+
+const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardProps) => {
+
     //props
-    const id = props?.id;
-    const locationName = props?.location;
+    const id = props?.uid;
+    let priority = props?.priority;
+    const locationName = props?.location.split(",")[0].trim();
     const locationUrl = props?.flag;
-    const pastEvents = props?.pastEvents;
-    const upcomingEvents = props?.upcomingEvents;
+    const pastEvents = props?.pastEvents?.length ?? 0;
+    const upcomingEvents = props?.upcomingEvents?.length ?? 0;
     const bannerImage = props?.icon;
 
     return (
         <>
-            <div className={`root ${id === 1 ? 'root__active' : 'root__inactive'}`}>
+            <div className={`root ${isActive ? 'root__active' : 'root__inactive'}`} onClick={onCardClick}>
                 <div className='root__irlCard'>
-                    <img src={bannerImage} alt="location" />
+                    <img src={bannerImage ? bannerImage : "/images/irl/defaultImg.svg"} alt="location" />
                 </div>
                 <div className="root__location">
-                    <div dangerouslySetInnerHTML={{ __html: locationUrl }} />
+                    <div>{locationUrl}</div>
                     <div className="root__location__name">{locationName}</div>
                 </div>
                 <div className='root__events'>

@@ -1,6 +1,6 @@
 import { IAnalyticsMemberInfo } from '@/types/members.types';
 import { IAnalyticsTeamInfo, IAnalyticsUserInfo, IAnalyticsFocusArea } from '@/types/shared.types';
-import { HOME_ANALYTICS_EVENTS } from '@/utils/constants';
+import { HOME_ANALYTICS_EVENTS, IRL_ANALYTICS_EVENTS } from '@/utils/constants';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
 
@@ -126,6 +126,38 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED, params);
   }
 
+  function onLocationClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.ON_LOCATION_CARD_CLICKED, {...params});
+  }
+
+  function onSeeOtherLocationClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.ON_SEE_OTHER_LOCATION_CARD_CLICKED, {...params});
+  }
+
+  function onUpcomingEventsButtonClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.ON_UPCOMING_EVENTS_BUTTON_CLICKED, {...params});
+  }
+
+  function onPastEventsButtonClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.ON_PAST_EVENTS_BUTTON_CLICKED, {...params});
+  }
+
+  function onPastResourcePopUpViewed(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.ON_RESOURCE_POPUP_VIEWED, {...params});
+  }
+
+  function onUpcomingResourcePopUpViewed(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.ON_RESOURCE_POPUP_VIEWED, {...params});
+  }
+
+  function onAdditionalResourceClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.ON_ADDITIONAL_RESOURCE_CLICKED, {...params});
+  }
+
+  function onAdditionalResourceSeeMoreButtonClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.ON_ADDITIONAL_RESOURCE_SEE_MORE_BUTTON_CLICKED, {...params});
+  }
+
   return {
     featuredSubmitRequestClicked,
     onMemberCardClicked,
@@ -140,5 +172,13 @@ export const useHomeAnalytics = () => {
     onMemberBioSeeMoreClicked,
     onMmeberBioPopupViewProfileBtnClicked,
     onFocusAreaProtocolLabsVisionUrlClicked,
+    onLocationClicked,
+    onSeeOtherLocationClicked,
+    onUpcomingEventsButtonClicked,
+    onPastEventsButtonClicked,
+    onPastResourcePopUpViewed,
+    onUpcomingResourcePopUpViewed,
+    onAdditionalResourceClicked,
+    onAdditionalResourceSeeMoreButtonClicked,
   };
 };

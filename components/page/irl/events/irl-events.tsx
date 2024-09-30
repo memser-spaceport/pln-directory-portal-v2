@@ -1,25 +1,46 @@
 "use client";
 
 import Modal from "@/components/core/modal";
-import { GATHERINGS, PLN_LOCATIONS, RESOURCES } from "@/utils/constants";
 import { useEffect, useRef, useState } from "react";
+import IrlEventTable from "./irl-event-table";
+import useUpdateQueryParams from "@/hooks/useUpdateQueryParams";
+import { useHomeAnalytics } from "@/analytics/home.analytics";
+import { getFormattedDateString } from "@/utils/irl.utils";
 
 interface IIrlEvents {
     isLoggedIn: boolean;
 }
 
-const IrlEvents = (props: IIrlEvents) => {
+const IrlEvents = (props: any) => {
+    const searchParams = props?.searchParams;
+    const eventDetails = props?.eventDetails;
     const isLoggedIn = props.isLoggedIn;
     const [isUpcoming, setIsUpcoming] = useState(true);
     const dialogRef = useRef<HTMLDialogElement>(null);
     const addResRef = useRef<HTMLDialogElement>(null);
+    const [resources, setResources] = useState([]);
+    const { updateQueryParams } = useUpdateQueryParams();
+    const analytics = useHomeAnalytics();
 
+    useEffect(() => {
+        const searchType = searchParams?.type;
+        if (searchType === "upcoming" && !isUpcoming) {
+          setIsUpcoming(true);
+        } else if (searchType === "past" && isUpcoming) {
+          setIsUpcoming(false);
+        }
+      }, [searchParams]);
+      
     const handleUpcomingGathering = () => {
         setIsUpcoming(true);
+        updateQueryParams('type', 'upcoming', searchParams);
+        analytics.onUpcomingEventsButtonClicked(eventDetails);
     }
 
     const handlePastGathering = () => {
         setIsUpcoming(false);
+        updateQueryParams('type', 'past', searchParams);
+        analytics.onPastEventsButtonClicked(eventDetails);
     }
 
     const onCloseModal = () => {
@@ -32,7 +53,14 @@ const IrlEvents = (props: IIrlEvents) => {
         }
     };
 
-    const handleClick = () => {
+    const handleClick = (resource: any, eventsToShow: any) => {
+        setResources(resource);
+        if (eventsToShow === 'past') {
+            analytics.onPastEventsButtonClicked(eventDetails);
+        } else {
+            analytics.onUpcomingEventsButtonClicked(eventDetails);
+        }
+
         if (dialogRef.current) {
             dialogRef.current.showModal();
         }
@@ -42,6 +70,16 @@ const IrlEvents = (props: IIrlEvents) => {
         if (addResRef.current) {
             addResRef.current.showModal();
         }
+        analytics.onAdditionalResourceSeeMoreButtonClicked(eventDetails);
+    }
+
+    const handleAdditionalResourceClick = () => {
+        analytics.onAdditionalResourceClicked(eventDetails);
+    }
+
+    function getFormattedDate(events: any) {
+        const result = getFormattedDateString(events[0]?.startDate, events[events?.length - 1]?.endDate);
+        return `Upcoming events from ${result}`;
     }
 
     return (
@@ -57,7 +95,7 @@ const IrlEvents = (props: IIrlEvents) => {
                                 <span
                                     className={`root__irl__events__count ${isUpcoming === true ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
                                 >
-                                    0
+                                    {eventDetails?.upcomingEvents?.length}
                                 </span>
                             </button>
                             <button
@@ -67,72 +105,36 @@ const IrlEvents = (props: IIrlEvents) => {
                                 <span
                                     className={`root__irl__events__count ${isUpcoming === false ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
                                 >
-                                    20
+                                    {eventDetails?.pastEvents?.length}
                                 </span>
                             </button>
                         </div>
-                        <div className="root__irl__eventWrapper">
-                            <div className="root__irl__eventWrapper__icon"><img src="/images/irl/calendar.svg" alt="calendar" /></div>
-                            <div>Upcoming events from Jun 10-Jul 04</div>
-                        </div>
+
+                        {isUpcoming && eventDetails?.upcomingEvents?.length > 0 &&
+                            <div className="root__irl__eventWrapper">
+                                <div className="root__irl__eventWrapper__icon"><img src="/images/irl/calendar.svg" alt="calendar" /></div>
+                                <div>{getFormattedDate(eventDetails?.upcomingEvents)}</div>
+                            </div>}
                     </div>
 
-                    <div className="root__irl__tableContainer">
-                        <div className="root__irl__table">
-                            {GATHERINGS.length > 0 &&
-                                <div className="root__irl__table__header">
-                                    <div className="root__irl__table-row__header">
-                                        <div className="root__irl__table-col__headerName">Name</div>
-                                        <div className="root__irl__table-col__headerDesc">Description</div>
-                                        <div className="root__irl__table-col__headerRes">Resource</div>
-                                    </div>
-                                </div>
-                            }
-                            {GATHERINGS.length > 0 && GATHERINGS.map((gathering: any, index: number) => (
-                                <div key={index} className="root__irl__table-row__content">
-                                    <div className="root__irl__table-col__contentName">
-                                        <div className="root__irl__table-col__contentName__top">
-                                            <div>{gathering.icon}</div>
-                                            <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>
-                                        </div>
-                                        <div className="root__irl__table-col__contentName__bottom">{gathering.eventDate}</div>
-                                    </div>
-                                    <div className="root__irl__table-col__contentDesc">{gathering.description}</div>
-                                    <div
-                                        className="root__irl__table-col__contentRes"
-                                        onClick={handleClick}
-                                    >
-                                        <div><img src="/images/irl/elements.svg" alt="calendar" /></div>
-                                        <div style={{ paddingBottom: "4px" }}>view</div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            {GATHERINGS.length === 0 && 
-                                <div className="root__irl__table__no-data">
-                                    <div><img src="/icons/no-calender.svg" alt="calendar" /></div>
-                                    <div>No Gatherings happening currently in this location</div>
-                                </div>
-                            }
-                        </div>
-                    </div>
+                    <IrlEventTable eventDetails={eventDetails} handleClick={(resources: any, eventsToShow: any) => () => handleClick(resources, eventsToShow)} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} />
 
                     <Modal modalRef={dialogRef} onClose={onCloseModal}>
                         <div className="root__irl__resPopup">
                             <div className="root__irl__modalHeader">
                                 <div className="root__irl__modalHeader__title">Resources</div>
-                                <div className="root__irl__modalHeader__count">(8)</div>
+                                <div className="root__irl__modalHeader__count">({resources?.length})</div>
                             </div>
                             <div className="root__irl__popupCntr">
-                                {RESOURCES.map((root__irl__popupCnt: any, index: number) => (
-                                    <div key={index} className="root__irl__popupCnt">
+                                {resources?.map((resource: any, index: number) => (
+                                    <div key={index} className="root__irl__popupCnt" onClick={handleAdditionalResourceClick}>
                                         <div>
                                             <img
                                                 src="/icons/hyper-link.svg"
                                                 alt="icon"
                                             />
                                         </div>
-                                        <div>{root__irl__popupCnt.name}</div>
+                                        <div>{resource?.name}</div>
                                         <div>
                                             <img
                                                 src="/icons/arrow-blue.svg"
@@ -145,41 +147,37 @@ const IrlEvents = (props: IIrlEvents) => {
                     </Modal>
 
                     <div className="root__irl__addRes">
-                        {/* {isLoggedIn && */}
-                            <>
-                                <div className="root__irl__addRes__cnt">
-                                    <div className="root__irl__addRes__cnt__icon">📋</div>
-                                    <div>additional resources</div>
-                                </div>
+                        <div className="root__irl__addRes__cnt">
+                            <div className="root__irl__addRes__cnt__icon">📋</div>
+                            <div>Additional resources</div>
+                        </div>
 
-                                <div className="root__irl__addRes__cntr">
-                                    <div className="root__irl__addRes__cntr__resource">
-                                        {RESOURCES.slice(0, 3).map((resource, index) => (
-                                            <div key={index} className="root__irl__addRes__cntr__resCnt">
-                                                <div>
-                                                    <img
-                                                        src="/icons/hyper-link.svg"
-                                                        alt="icon" />
-                                                </div>
-                                                <div>{resource.name}</div>
-                                                <div>
-                                                    <img
-                                                        src="/icons/arrow-blue.svg"
-                                                        alt="arrow icon" />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {RESOURCES.length > 3 && (
-                                        <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                                            <div>+{RESOURCES.length - 3}</div>
-                                            <div>more</div>
+                        <div className="root__irl__addRes__cntr">
+                            <div className="root__irl__addRes__cntr__resource">
+                                {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
+                                    <div key={index} className="root__irl__addRes__cntr__resCnt">
+                                        <div style={{ display: "flex" }}>
+                                            <img
+                                                src="/icons/hyper-link.svg"
+                                                alt="icon" />
                                         </div>
-                                    )}
+                                        <div>{resource?.type}</div>
+                                        <div>
+                                            <img
+                                                src="/icons/arrow-blue.svg"
+                                                alt="arrow icon" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {eventDetails?.resources?.length > 3 && (
+                                <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
+                                    <div>+{eventDetails?.resources?.length - 3}</div>
+                                    <div>more</div>
                                 </div>
-                            </>
-                        {/* } */}
+                            )}
+                        </div>
                     </div>
 
                     {!isLoggedIn &&
@@ -199,10 +197,10 @@ const IrlEvents = (props: IIrlEvents) => {
                         <div className="root__irl__addRes__popup">
                             <div className="root__irl__modalHeader">
                                 <div className="root__irl__modalHeader__title">Additional Resources</div>
-                                <div className="root__irl__modalHeader__count">(8)</div>
+                                <div className="root__irl__modalHeader__count">({eventDetails?.resources?.length})</div>
                             </div>
                             <div className="root__irl__popupCntr">
-                                {RESOURCES.map((root__irl__popupCnt: any, index: number) => (
+                                {eventDetails?.resources?.map((resource: any, index: number) => (
                                     <div key={index} className="root__irl__popupCnt">
                                         <div>
                                             <img
@@ -210,7 +208,7 @@ const IrlEvents = (props: IIrlEvents) => {
                                                 alt="icon"
                                             />
                                         </div>
-                                        <div>{root__irl__popupCnt.name}</div>
+                                        <div>{resource?.name}</div>
                                         <div>
                                             <img
                                                 src="/icons/arrow-blue.svg"
@@ -381,7 +379,7 @@ const IrlEvents = (props: IIrlEvents) => {
                     display: flex;
                     flex-direction: row;
                     width: 100%;
-                    height: 40px;
+                    min-height: 40px;
                     clear: both;
                     font-size: 13px;
                     font-weight: 400;
@@ -394,7 +392,7 @@ const IrlEvents = (props: IIrlEvents) => {
                     border-right: 1px solid #CBD5E1;
                     border-bottom: 1px solid #CBD5E1;
                     border-left: 1px solid #CBD5E1;
-                    height: 54px;
+                    min-height: 54px;
                 }
 
                 .root__irl__table-col__headerName, .root__irl__table-col__contentName {
@@ -470,7 +468,7 @@ const IrlEvents = (props: IIrlEvents) => {
                 }
 
                 .root__irl__addRes {
-                    background-color: #fff; // ${!isLoggedIn ? '#FFE2C8' : '#fff'};
+                    background-color: #F8FAFC;
                     // justify-content: ${!isLoggedIn ? 'center' : 'unset'};
                     // align-items: ${!isLoggedIn ? 'center' : 'unset'};
                     height: 36px;
@@ -661,7 +659,7 @@ const IrlEvents = (props: IIrlEvents) => {
                     }
 
                     .root__irl__popupCnt {
-                        width: 500px;
+                        width: 100%;
                     }
                 }
 

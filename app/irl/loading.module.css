@@ -290,7 +290,7 @@
   }
 
   .irlGatherings__location__list {
-    border: 1px solid #cbd5e1;
+    /* border: 1px solid #cbd5e1; */
     border-radius: 16px;
     background-color: unset;
     padding: 16px;

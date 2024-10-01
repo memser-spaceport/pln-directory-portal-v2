@@ -52,7 +52,7 @@
 @media (min-width: 1024px) {
   .irlGatherings {
     padding-top: 40px;
-    width: 910px;
+    width: 900px;
     margin: auto;
   }
 
@@ -70,6 +70,9 @@
   .irlGatherings__events {
     overflow-x: unset;
     border-radius: 16px;
-    /* position: relative; */
+  }
+  
+  .irlGatheings__guests {
+    padding-top: 32px;
   }
 }

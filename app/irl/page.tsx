@@ -6,10 +6,13 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import IrlHeader from '@/components/page/irl/irl-header';
 import IrlLocation from '@/components/page/irl/locations/irl-location';
 import IrlEvents from '@/components/page/irl/events/irl-events';
-import { getAllLocations, getEventsByLocation } from '@/services/irl.service';
+import AttendeeList from '@/components/page/irl/attendee-list/attendees-list';
+import { sortByDefault } from '@/utils/irl.utils';
+import { getAllLocations, getGuestsByLocation } from '@/services/irl.service';
+import { getMemberPreferences } from '@/services/preferences.service';
 
-export default async function Page({ searchParams }: { searchParams: any }) {
-  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails } = await getPageData(searchParams);
+export default async function Page({ searchParams }: any) {
+  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
@@ -18,83 +21,98 @@ export default async function Page({ searchParams }: { searchParams: any }) {
   return (
     <div className={styles.irlGatherings}>
       <div className={styles.irlGatherings__cn}>
+        {/* Header */}
         <section className={styles.irlGatherings__header}>
-          <IrlHeader />
+          <IrlHeader eventsByLocation={eventDetails} />
         </section>
+        {/* Locations */}
         <section className={styles.irlGatheings__locations}>
-          <IrlLocation locationDetails={locationDetails} searchParams={searchParams}/>
+          <IrlLocation locationDetails={locationDetails} searchParams={searchParams} />
         </section>
         <section className={styles.irlGatherings__events}>
-          <IrlEvents isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams}/>
+          <IrlEvents isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} />
         </section>
         {/* Guests */}
-        <section className={styles.irlGatheings__guests}></section>
+        <section className={styles.irlGatheings__guests}>
+          <AttendeeList location={eventLocationSummary} showTelegram={showTelegram} eventDetails={guestDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} />
+        </section>
       </div>
     </div>
   );
 }
 
-
-
 const getPageData = async (searchParams: any) => {
   const { authToken, userInfo, isLoggedIn } = getCookiesFromHeaders();
-
   let showTelegram = true;
-  let isError: boolean = false;
-  let eventDetails;
-  let locationDetails;
-  let isUserGoing: boolean = false;
+  let isError = false;
+  let isUserGoing = false;
 
   try {
-    const locationsResponse = await getAllLocations();
-    if (locationsResponse.isError) {
-      isError = true;
+    // Fetch locations data
+    const locationDetails = await getAllLocations();
+    if (locationDetails.isError) {
+      return { isError: true };
     }
-    
-    locationDetails = locationsResponse;
 
-    if(searchParams?.location) {
-      const locationName = searchParams.location;
-      const locationData = locationsResponse?.find((loc: any) => loc.location.split(",")[0].trim() === locationName);
-      isError = locationData === undefined;
-      if(locationData) {
-        eventDetails = locationData;
+    // Find event details based on search parameters or default to first location
+    const eventDetails = searchParams?.location
+      ? locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location)
+      : locationDetails[0];
+
+    if (!eventDetails) {
+      return { isError: true };
+    }
+
+    const { uid, location: name } = eventDetails;
+    const eventLocationSummary = { uid, name };
+
+    // Determine event type and fetch event guest data
+    const eventType = searchParams?.type === 'past' ? '' : 'upcoming';
+    const events = await getGuestsByLocation(uid, eventType, authToken);
+    if (events.isError) {
+      return { isError: true };
+    }
+
+    let guestDetails = events as any;
+    const sortedGuests = sortByDefault(guestDetails?.guests);
+    guestDetails.guests = sortedGuests;
+    guestDetails.events = eventType === 'upcoming' ? eventDetails.upcomingEvents : eventDetails.pastEvents;
+
+    // Check if the current user is attending
+    if (userInfo) {
+      isUserGoing = sortedGuests.some((guest) => guest.memberUid === userInfo.uid);
+      if (isUserGoing) {
+        const currentUser = sortedGuests.find((guest) => guest.memberUid === userInfo.uid);
+        guestDetails.guests = [currentUser, ...sortedGuests.filter((guest) => guest.memberUid !== userInfo.uid)];
       }
-    } else {
-      eventDetails = locationsResponse[0];
-    } 
+    }
 
-    //TODO
-    // const { location, type } = getSearchParams(searchParams, locationsResponse);
-    // const events = await getEventsByLocation(location || locationsResponse[1].uid, type, authToken);
-    // if (events.isError) {
-    //   isError = true;
-    // }
+    // Fetch member preferences if the user is logged in
+    if (isLoggedIn) {
+      const memberPreferencesResponse = await getMemberPreferences(userInfo.uid, authToken);
+      if (memberPreferencesResponse.isError) {
+        return { isError: true };
+      }
+      showTelegram = memberPreferencesResponse.memberPreferences?.telegram ?? true;
+    }
 
-    // eventDetails = events;
+    return {
+      isError,
+      userInfo,
+      isLoggedIn,
+      isUserGoing,
+      showTelegram,
+      eventDetails,
+      guestDetails,
+      eventLocationSummary,
+      locationDetails,
+    };
 
   } catch {
     return { isError: true };
   }
-
-  return { isError, userInfo, isLoggedIn, isUserGoing, showTelegram, eventDetails, locationDetails };
 };
 
-function getSearchParams(searchParams: any, locationsResponse: any) {
-  let location = '';
-  if (searchParams?.location) {
-    const locationName = searchParams.location;
-    const locationData = locationsResponse?.find((loc: any) => loc.location === locationName);
-
-    if (locationData) {
-      location = locationData.uid;
-    }
-  }
-
-  const type = searchParams?.type || 'upcoming';
-
-  return { location, type };
-}
 
 export const metadata: Metadata = {
   title: 'IRL Gatherings | Protocol Labs Directory',

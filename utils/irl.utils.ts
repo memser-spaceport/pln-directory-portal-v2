@@ -29,8 +29,95 @@ export function formatIrlEventDate(startDateStr: string | Date, endDateStr: stri
   return `${startFormatted}-${endFormatted}, ${endYear}`;
 }
 
+// Common function to check user access
+export function canUserPerformAction(roles: string[], allowedRoles: string[]): boolean {
+  return roles?.some((role: string) => allowedRoles.includes(role)) ?? false;
+}
+
+export const getUniqueEvents = (events: any) => {
+  const allEvents = events.map((event: any) => event?.name);
+  const uniqueTopics = Array.from(new Set(allEvents));
+  return uniqueTopics;
+};
+
+// Get topics from guests
+export const getTopics = (guests: any) => {
+  const allTopics = guests?.reduce((acc: any[], guest: any) => {
+    const topics = guest?.topics;
+    if (topics) {
+      return acc.concat(topics);
+    }
+    return acc;
+  }, []);
+
+  const uniqueTopics = Array.from(new Set([...allTopics]));
+
+  return uniqueTopics;
+};
+
+// sort by default
+export const sortByDefault = (guests: any) => {
+  const guestsWithReasonAndTopics: any = [];
+  const guestsWithReason: any = [];
+  const guestsWithTopics: any = [];
+  const remaining: any = [];
+
+  guests?.forEach((guest: any) => {
+    if (guest?.reason?.trim() && guest?.topics?.length > 0) {
+      guestsWithReasonAndTopics.push(guest);
+    } else if (guest?.reason?.trim() && guest?.topics?.length === 0) {
+      guestsWithReason.push(guest);
+    } else if (!guest?.reason?.trim() && guest?.topics?.length > 0) {
+      guestsWithTopics.push(guest);
+    } else {
+      remaining.push(guest);
+    }
+  });
+
+  guestsWithReasonAndTopics?.sort((a: any, b: any) => a.memberName?.localeCompare(b?.memberName));
+  guestsWithReason?.sort((a: any, b: any) => a.memberName?.localeCompare(b?.memberName));
+  guestsWithTopics?.sort((a: any, b: any) => a.memberName?.localeCompare(b?.memberName));
+  remaining?.sort((a: any, b: any) => a.memberName?.localeCompare(b?.memberName));
+
+  const combinedList = [...guestsWithReasonAndTopics, ...guestsWithTopics, ...guestsWithReason, ...remaining];
+
+  return combinedList;
+};
+
+const getOrdinalSuffix = (day: number) => {
+  if (day > 3 && day < 21) return 'th';
+  switch (day % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+};
+
+const getMonthName = (monthNumber: number) => {
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return monthNames[monthNumber - 1];
+};
+
+//remove the @ symbol from telegram
+export function removeAt(text: string) {
+  const textToBeModified = text?.trim();
+  const modifiedText = textToBeModified?.replace(/\B@/g, '');
+  return modifiedText;
+}
+
+export function getTelegramUsername(input: string) {
+  const regex = /(?:https?:\/\/)?(?:www\.)?t(?:elegram)?\.me\/([a-zA-Z0-9_]+)/;
+  const match = input?.match(regex);
+  return match ? match[1] : input;
+}
+
 export function getFormattedDateString(startDate: string, endDate: string) {
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   try {
     const [startDateOnly] = startDate.split('T');
@@ -49,9 +136,7 @@ export function getFormattedDateString(startDate: string, endDate: string) {
     } else {
       return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
     }
-  }
-
-  catch {
-    return "";
+  } catch {
+    return '';
   }
 }

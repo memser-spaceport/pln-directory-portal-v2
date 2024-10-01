@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
@@ -23,13 +23,17 @@ const AttendeeList = (props: any) => {
   const location = props.location;
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
-  const { filteredList, sortConfig, filterConfig } = useIrlDetails(updatedEventDetails?.guests, userInfo);
-
   const [selectedGuests, setSelectedGuests] = useState([]);
   const [showFloaingBar, setShowFloatingBar] = useState(false);
   const deleteRef = useRef<HTMLDialogElement>(null);
   const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const router = useRouter();
+
+  const { filteredList, sortConfig, filterConfig } = useIrlDetails(updatedEventDetails?.guests, userInfo);
+  const registeredGuest = useMemo(() => {
+    return updatedEventDetails.guests.find((guest: any) => guest?.memberUid === userInfo?.uid);
+  }, [updatedEventDetails.guests, userInfo.uid]);
+  const [updatedUser, setUpdatedUser] = useState(registeredGuest);
 
   const onCloseFloatingBar = useCallback(() => {
     setSelectedGuests([]);
@@ -50,6 +54,12 @@ const AttendeeList = (props: any) => {
     }
   }, [router]);
 
+  // Sync registeredGuest and eventDetails changes
+  useEffect(() => {
+    setUpdatedEventDetails(eventDetails);
+    setUpdatedUser(registeredGuest);
+  }, [eventDetails, registeredGuest]);
+
   //update event details when form submit
   useEffect(() => {
     const handler = (e: any) => {
@@ -67,7 +77,7 @@ const AttendeeList = (props: any) => {
       } else {
         setIsGoing(false);
       }
-      // setUpdatedUser(goingGuest);
+      setUpdatedUser(goingGuest);
       setUpdatedEventDetails(eventInfo);
     };
     document.addEventListener('updateGuests', handler);
@@ -104,11 +114,23 @@ const AttendeeList = (props: any) => {
     setUpdatedEventDetails(eventDetails);
   }, [eventDetails]);
 
+  useEffect(() => {
+    setUpdatedUser(registeredGuest);
+  }, [registeredGuest]);
+
   return (
     <>
       <div className="attendeeList">
         <div className="attendeeList__toolbar">
-          <Toolbar location={location} onLogin={onLogin} filteredListLength={filteredList?.length} eventDetails={updatedEventDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} />
+          <Toolbar
+            isUserGoing={isUserGoing}
+            location={location}
+            onLogin={onLogin}
+            filteredListLength={filteredList?.length}
+            eventDetails={updatedEventDetails}
+            userInfo={userInfo}
+            isLoggedIn={isLoggedIn}
+          />
         </div>
         <div className="attendeeList__table">
           <div className={`irl__table  ${isLoggedIn ? 'table__login' : 'table__not-login'} `}>

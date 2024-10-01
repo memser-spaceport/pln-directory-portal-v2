@@ -15,13 +15,12 @@ export const getAllLocations = async () => {
   return await response.json();
 };
 
-export const getGuestsByLocation = async (location: string, type: string, authToken: string,) => {
+export const getGuestsByLocation = async (location: string, type: string, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/guests?type=${type}`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(authToken),
   });
-
 
   const groupEventsByMemberUid = (events: any) => {
     const groupedEvents: any = {};
@@ -38,9 +37,10 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
   const transformGroupedEvents = (groupedEvents: any) => {
     return Object.keys(groupedEvents).map((memberUid) => {
       return {
-        memberUid: groupedEvents[memberUid][0].member ? memberUid: null,
+        memberUid: groupedEvents[memberUid][0].member ? memberUid : null,
         memberName: groupedEvents[memberUid][0]?.member?.name,
         memberLogo: groupedEvents[memberUid][0]?.member?.image?.url,
+        teamUid: groupedEvents[memberUid][0]?.teamUid,
         teamName: groupedEvents[memberUid][0]?.team?.name,
         teamLogo: groupedEvents[memberUid][0]?.team?.logo?.url,
         teams: groupedEvents[memberUid][0]?.member?.teamMemberRoles?.map((tm: any) => {
@@ -52,15 +52,16 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
           };
         }),
         projectContributions: groupedEvents[memberUid][0]?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name),
-        events: groupedEvents[memberUid]?.map((member: any) => member?.event?.name),
-        // events: groupedEvents[memberUid]?.map((member: any) => ({ ...member?.event, isHost: member?.isHost, isSpeaker: member?.isSpeaker })),
+        eventNames: groupedEvents[memberUid]?.map((member: any) => member?.event?.name),
+        events: groupedEvents[memberUid]?.map((member: any) => ({ ...member?.event, isHost: member?.isHost, isSpeaker: member?.isSpeaker,hostSubEvents: member?.additionalInfo?.hostSubEvents, speakerSubEvents: member?.additionalInfo?.speakerSubEvents })),
         topics: groupedEvents[memberUid][0]?.topics,
         officeHours: groupedEvents[memberUid][0]?.member?.officeHours,
         telegramId: groupedEvents[memberUid][0]?.telegramId,
         reason: groupedEvents[memberUid][0]?.reason,
         additionalInfo: groupedEvents[memberUid][0].additionalInfo,
-        hostSubEvents: groupedEvents[memberUid]?.map((member: any) => member?.additionalInfo)?.flatMap((info: any) => info?.hostSubEvents || []),
-        speakerSubEvents: groupedEvents[memberUid]?.map((member: any) => member?.additionalInfo)?.flatMap((info: any) => info?.speakerSubEvents || []),
+        // test: groupedEvents[memberUid],
+        // hostSubEvents: groupedEvents[memberUid]?.map((member: any) => member?.additionalInfo)?.flatMap((info: any) => info?.hostSubEvents  ),
+        // speakerSubEvents: groupedEvents[memberUid]?.map((member: any) => member?.additionalInfo)?.flatMap((info: any) => info?.speakerSubEvents || []),
       };
     });
   };
@@ -75,20 +76,23 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
   return { guests: transformedEvents };
 };
 
-export const deleteEventGuestByLocation = async (location:string,payload: { guests: [] }) => {
-  const response = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/guests-delete`, {
-    method: 'POST',
-    cache: 'no-store',
-    headers: {
-      'Content-Type': 'application/json',
+export const deleteEventGuestByLocation = async (location: string, payload: { guests: [] }) => {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/guests-delete`,
+    {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  }, true);
+    true
+  );
 
   if (!response?.ok) {
     return false;
   }
 
   return true;
-}
-
+};

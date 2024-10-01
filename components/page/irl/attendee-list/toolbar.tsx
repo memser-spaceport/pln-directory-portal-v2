@@ -21,7 +21,6 @@ const Toolbar = (props: any) => {
   const onLogin = props.onLogin;
   const userInfo = props?.userInfo;
   const location = props?.location;
-
   const isUserLoggedIn = props?.isLoggedIn;
   const isUserGoing = props?.isUserGoing;
   const filteredListLength = props?.filteredListLength ?? 0;

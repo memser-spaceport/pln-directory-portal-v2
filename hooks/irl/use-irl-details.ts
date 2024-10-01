@@ -105,7 +105,7 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
     // events filter
     if (filterConfig['events']?.length > 0) {
       const selectedEvents = new Set(filterConfig['events']);
-      filteredItems = [...filteredItems]?.filter((item) => item.events?.some((event: any) => selectedEvents?.has(event)));
+      filteredItems = [...filteredItems]?.filter((item) => item.eventNames?.some((event: any) => selectedEvents?.has(event)));
     }
 
     // Update the filtered list

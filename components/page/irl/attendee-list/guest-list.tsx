@@ -17,12 +17,13 @@ interface IGuestList {
 const GuestList = (props: any) => {
   const userInfo = props?.userInfo;
   const eventDetails = props?.eventDetails;
-  const isExclusionEvent = eventDetails?.isExclusionEvent;
   const showTelegram = props?.showTelegram;
   const filteredList = props?.items;
   const selectedGuests = props?.selectedGuests;
   const setSelectedGuests = props?.setSelectedGuests;
   const location = props?.location;
+
+  console.log("GuestList", eventDetails);
 
 
   const analytics = useIrlAnalytics();
@@ -62,7 +63,6 @@ const GuestList = (props: any) => {
                   eventDetails={eventDetails}
                   guest={guest}
                   userInfo={userInfo}
-                  isExclusionEvent={isExclusionEvent}
                   showTelegram={showTelegram}
                   selectedGuests={selectedGuests}
                   onchangeSelectionStatus={onchangeSelectionStatus}

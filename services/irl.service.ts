@@ -16,7 +16,7 @@ export const getAllLocations = async () => {
 };
 
 export const getGuestsByLocation = async (location: string, type: string, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/guests?type=${type}`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?type=${type}`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(authToken),
@@ -59,9 +59,6 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
         telegramId: groupedEvents[memberUid][0]?.telegramId,
         reason: groupedEvents[memberUid][0]?.reason,
         additionalInfo: groupedEvents[memberUid][0].additionalInfo,
-        // test: groupedEvents[memberUid],
-        // hostSubEvents: groupedEvents[memberUid]?.map((member: any) => member?.additionalInfo)?.flatMap((info: any) => info?.hostSubEvents  ),
-        // speakerSubEvents: groupedEvents[memberUid]?.map((member: any) => member?.additionalInfo)?.flatMap((info: any) => info?.speakerSubEvents || []),
       };
     });
   };

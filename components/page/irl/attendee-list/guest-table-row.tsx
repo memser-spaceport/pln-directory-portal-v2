@@ -3,7 +3,7 @@ import cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 
-import {  getParsedValue } from '@/utils/common.utils';
+import { getParsedValue } from '@/utils/common.utils';
 import { canUserPerformAction, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
@@ -32,11 +32,11 @@ const GuestTableRow = (props: any) => {
   const checkOutDate = guest?.additionalInfo?.checkOutDate;
   const telegramId = guest?.telegramId;
   const officeHours = guest?.officeHours;
-  const hostEvents = guest?.hostSubEvents ?? [];
-  const speakerEvents = guest?.speakerSubEvents ?? [];
+  const eventNames = guest?.eventNames ?? [];
   const events = guest?.events ?? [];
+  const hostEvents = events?.flatMap((event: any) => event?.hostSubEvents || []);
+  const speakerEvents = events?.flatMap((event: any) => event?.speakerSubEvents || []);
   const formattedEventRange = getFormattedDateString(checkInDate, checkOutDate);
-
   const router = useRouter();
 
   const isUserGoing = guestUid === userInfo?.uid;
@@ -228,7 +228,7 @@ const GuestTableRow = (props: any) => {
           <div className="gtr__attending__cn">
             <div className="gtr__attending__cn__date">{formattedEventRange}</div>
             <div className="gtr__attending__cn__evnt">
-              <EventSummary events={events} />
+              <EventSummary events={eventNames} />
             </div>
           </div>
         </div>

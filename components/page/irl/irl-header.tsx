@@ -1,6 +1,6 @@
 "use client"
 
-const IrlHeader = () => {
+const IrlHeader = ({eventsByLocation}:any) => {
     return (
         <>
             <div className="irlheaderCnt">

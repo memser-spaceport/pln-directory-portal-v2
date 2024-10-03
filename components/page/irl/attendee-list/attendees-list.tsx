@@ -34,6 +34,7 @@ const AttendeeList = (props: any) => {
     return updatedEventDetails.guests.find((guest: any) => guest?.memberUid === userInfo?.uid);
   }, [updatedEventDetails.guests, userInfo.uid]);
   const [updatedUser, setUpdatedUser] = useState(registeredGuest);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const onCloseFloatingBar = useCallback(() => {
     setSelectedGuests([]);
@@ -42,6 +43,7 @@ const AttendeeList = (props: any) => {
 
   const onCloseDeleteModal = (e: any) => {
     deleteRef.current?.close();
+    setIsDeleteModalOpen(false);
   };
 
   const onLogin = useCallback(async () => {
@@ -101,6 +103,7 @@ const AttendeeList = (props: any) => {
     const handler = (e: any) => {
       const { isOpen } = e.detail;
       if (deleteRef.current && isOpen) {
+        setIsDeleteModalOpen(true);
         deleteRef.current.showModal();
       }
     };
@@ -160,14 +163,16 @@ const AttendeeList = (props: any) => {
       )}
 
       <Modal modalRef={deleteRef} onClose={onCloseDeleteModal}>
-        <DeleteGuestsPopup
-          location={location}
-          userInfo={userInfo}
-          onClose={onCloseDeleteModal}
-          eventDetails={updatedEventDetails}
-          selectedGuests={selectedGuests}
-          setSelectedGuests={setSelectedGuests}
-        />
+        {isDeleteModalOpen && (
+          <DeleteGuestsPopup
+            location={location}
+            userInfo={userInfo}
+            onClose={onCloseDeleteModal}
+            eventDetails={updatedEventDetails}
+            selectedGuests={selectedGuests}
+            setSelectedGuests={setSelectedGuests}
+          />
+        )}
       </Modal>
 
       <style jsx>{`

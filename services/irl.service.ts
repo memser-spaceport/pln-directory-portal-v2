@@ -53,12 +53,13 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
         }),
         projectContributions: groupedEvents[memberUid][0]?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name),
         eventNames: groupedEvents[memberUid]?.map((member: any) => member?.event?.name),
-        events: groupedEvents[memberUid]?.map((member: any) => ({ ...member?.event, isHost: member?.isHost, isSpeaker: member?.isSpeaker,hostSubEvents: member?.additionalInfo?.hostSubEvents, speakerSubEvents: member?.additionalInfo?.speakerSubEvents })),
+        events: groupedEvents[memberUid]?.map((member: any) => ({ ...member?.event, logo:member.event?.logo.url, isHost: member?.isHost, isSpeaker: member?.isSpeaker,hostSubEvents: member?.additionalInfo?.hostSubEvents, speakerSubEvents: member?.additionalInfo?.speakerSubEvents })),
         topics: groupedEvents[memberUid][0]?.topics,
         officeHours: groupedEvents[memberUid][0]?.member?.officeHours,
         telegramId: groupedEvents[memberUid][0]?.telegramId,
         reason: groupedEvents[memberUid][0]?.reason,
         additionalInfo: groupedEvents[memberUid][0].additionalInfo,
+        test: groupedEvents[memberUid],
       };
     });
   };
@@ -73,9 +74,9 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
   return { guests: transformedEvents };
 };
 
-export const deleteEventGuestByLocation = async (location: string, payload: { guests: [] }) => {
+export const deleteEventGuestByLocation = async (location: string, payload: any) => {
   const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/guests-delete`,
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/guests`,
     {
       method: 'POST',
       cache: 'no-store',

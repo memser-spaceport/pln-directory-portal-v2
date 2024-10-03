@@ -19,8 +19,6 @@ const TableHeader = (props: any) => {
   const events = getUniqueEvents(eventDetails?.events);
   const topics = getTopics([...eventDetails?.guests]);
 
-  console.log('events', events);
-
   const eventsFilterProps = useFloatingMultiSelect({
     items: events,
     selectedItems: filterConfig?.events,

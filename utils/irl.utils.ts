@@ -35,7 +35,7 @@ export function canUserPerformAction(roles: string[], allowedRoles: string[]): b
 }
 
 export const getUniqueEvents = (events: any) => {
-  const allEvents = events.map((event: any) => event?.name);
+  const allEvents = events?.map((event: any) => event?.name);
   const uniqueTopics = Array.from(new Set(allEvents));
   return uniqueTopics;
 };

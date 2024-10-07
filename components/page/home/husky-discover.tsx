@@ -59,7 +59,8 @@ function HuskyDiscover(props: any) {
     function dialogHandler(e: any) {
       if (dialogRef.current) {
         increaseViewAndShow(e?.detail)
-        trackSharedBlog(e?.detail?.slug, 'discover')
+        console.log(e?.detail);
+        trackSharedBlog(e?.detail?.slug, 'discover', e?.detail?.question)
       }
     }
     document.addEventListener('open-husky-discover', dialogHandler);
@@ -75,8 +76,9 @@ function HuskyDiscover(props: any) {
       .then(result => {
         if(result.data && dialogRef.current) {
           setInitialChats([result.data]);
+          console.log(result.data)
           if(!huskyRecorded) {
-            trackSharedBlog(huskyShareId, 'shareurl')
+            trackSharedBlog(huskyShareId, 'shareurl', result.data?.question)
           }
           huskyRecorded = true;
           dialogRef.current.showModal();

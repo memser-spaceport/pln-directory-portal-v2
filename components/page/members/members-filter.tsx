@@ -93,7 +93,7 @@ const MembersFilter = (props: IMembersFilter) => {
       const pathname = window?.location?.pathname;
       analytics.onClearAllClicked(PAGE_ROUTES.TEAMS, selectedItems, getAnalyticsUserInfo(userInfo));
 
-      const clearQuery = ['skills', 'region', 'country', 'metroArea', 'includeFriends', 'openToWork', 'officeHoursOnly', 'memberRoles'];
+      const clearQuery = ['skills', 'region', 'country', 'metroArea', 'includeFriends', 'openToWork', 'officeHoursOnly', 'memberRoles','isRecent'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           triggerLoader(true);

@@ -5,18 +5,22 @@ import { useRouter } from 'next/navigation';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { deleteEventGuestByLocation, getGuestsByLocation } from '@/services/irl.service';
 import { getParsedValue } from '@/utils/common.utils';
-import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
+import { EVENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 
-const DeleteGuestsPopup = (props: any) => {
+const DeleteAttendeesPopup = (props: any) => {
   const eventDetails = props?.eventDetails;
   const guests = eventDetails?.guests ?? [];
   const onClose = props?.onClose;
   const location = props.location;
+  const type = props?.type;
+  const userInfo = props?.userInfo;
 
-  const selectedGuestIds = props?.selectedGuests ?? [];
+  const selectedGuestIds = type === 'self-delete' ? [userInfo.uid] : props?.selectedGuests ?? [];
   const selectedGuests = guests.filter((guest: any) => selectedGuestIds.includes(guest?.memberUid)) ?? [];
+
   const setSelectedGuests = props?.setSelectedGuests;
 
   const [selectedEvents, setSelectedEvents] = useState({}) as any;
@@ -42,7 +46,6 @@ const DeleteGuestsPopup = (props: any) => {
     const toast = (await import('react-toastify')).toast;
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     // analytics.removeAttendeesPopupRemoveBtnClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), selectedGuests });
-    const authToken = getParsedValue(Cookies.get('authToken') || '');
     try {
       const membersAndEvents = Object.keys(selectedEvents).map((memberUid) => ({
         memberUid,
@@ -55,7 +58,8 @@ const DeleteGuestsPopup = (props: any) => {
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       }
       if (deleteGuestsResponse) {
-        await getEventDetails();
+        // await getEventDetails();
+        document.dispatchEvent(new CustomEvent('updateGuests'));
         document.dispatchEvent(
           new CustomEvent(EVENTS.OPEN_FLOATING_BAR, {
             detail: {
@@ -78,30 +82,19 @@ const DeleteGuestsPopup = (props: any) => {
 
   // Handle selecting or deselecting all gatherings for all members
   const handleSelectAllGatherings = (isChecked: boolean) => {
-    if (isChecked) {
-      const allGatherings = {} as any;
-      selectedGuests?.forEach((member: any) => {
-        allGatherings[member?.memberUid] = member?.events?.map((g: any) => g?.uid);
-      });
-      setSelectedEvents(allGatherings);
-    } else {
-      setSelectedEvents({});
-    }
+    const updatedEvents = isChecked ? Object.fromEntries(selectedGuests?.map((member: any) => [member?.memberUid, member?.events?.map((g: any) => g?.uid)])) : {};
+    setSelectedEvents(updatedEvents);
   };
 
   // Handle selecting or deselecting all gatherings for an individual member
   const handleSelectMemberGatherings = (memberUid: string, isChecked: boolean) => {
     setSelectedEvents((prevSelected: any) => {
       const updatedGatherings = { ...prevSelected };
-
       if (isChecked) {
-        // Add all gatherings for this member
         updatedGatherings[memberUid] = selectedGuests?.find((member: any) => member?.memberUid === memberUid).events?.map((gathering: any) => gathering?.uid);
       } else {
-        // Remove all gatherings for this member
         delete updatedGatherings[memberUid];
       }
-
       return updatedGatherings;
     });
   };
@@ -109,124 +102,136 @@ const DeleteGuestsPopup = (props: any) => {
   // Handle selecting or deselecting individual gatherings for a member
   const handleSelectGathering = (memberUid: string, gatheringId: string, isChecked: boolean) => {
     setSelectedEvents((prevSelected: any) => {
-      const updatedGatherings = { ...prevSelected };
-
-      if (isChecked) {
-        // Add this gathering ID for this member
-        updatedGatherings[memberUid] = updatedGatherings[memberUid] ? [...updatedGatherings[memberUid], gatheringId] : [gatheringId];
-      } else {
-        // Remove this gathering ID for this member
-        updatedGatherings[memberUid] = updatedGatherings[memberUid]?.filter((id: string) => id !== gatheringId);
-
-        // If no gatherings are left for this member, remove the member's key
-        if (updatedGatherings[memberUid]?.length === 0) {
-          delete updatedGatherings[memberUid];
-        }
+      const updated = { ...prevSelected };
+      const memberEvents = updated[memberUid] || [];
+      updated[memberUid] = isChecked ? [...memberEvents, gatheringId] : memberEvents.filter((id: string) => id !== gatheringId);
+      if (!updated[memberUid]?.length) {
+        delete updated[memberUid];
       }
-
-      return updatedGatherings;
+      return updated;
     });
   };
 
-  // Utility function to check if all gatherings for a member are selected
-  const areAllMemberGatheringsSelected = (memberUid: string) => {
-    const memberGatherings = selectedGuests?.find((m: any) => m?.memberUid === memberUid)?.events;
-    return selectedEvents[memberUid]?.length === memberGatherings.length || false;
-  };
+  // to check if all gatherings for a member are selected
+  const areAllMemberGatheringsSelected = (memberUid: string) => (selectedEvents[memberUid]?.length || 0) === selectedGuests?.find((m: any) => m?.memberUid === memberUid)?.events?.length;
 
   // to check if a specific gathering is selected for a member
-  const isGatheringSelected = (memberUid: string, gatheringId: string) => {
-    return selectedEvents[memberUid]?.includes(gatheringId) || false;
-  };
+  const isGatheringSelected = (memberUid: string, gatheringId: string) => selectedEvents[memberUid]?.includes(gatheringId);
 
   return (
     <>
-      <div className="dgp">
-        <div className="dgp__hdr">
-          <h3 className="dgp__hdr__ttl">Remove attendee from Gathering(s)</h3>
-          <div className="dgp__hdr__info">
+      <div className="popup">
+        {/* Header */}
+        <div className="popup__header">
+          <h3 className="popup__header__title">Remove Attendee from Gathering(s)</h3>
+          <div className="popup__header__info">
             <img src="/icons/info-red.svg" alt="info" />
-            <span className="dgp__hdr__info__txt">Attendees will be removed from the list completely if all gatherings are selected for removal</span>
+            <span className="popup__header__info__text">
+              {type === 'self-delete'
+                ? 'You will be removed from the attendee list if you remove yourself from all gatherings.'
+                : 'Attendees will be removed completely if all gatherings are selected for removal.'}
+            </span>
           </div>
         </div>
-        <div className="dgp__body">
-          <div className="dgp__body__selectAll">
-            <div className="dgp__body__selectAll__checkboxWrpr">
-              {Object.keys(selectedEvents).length === selectedGuests.length && (
-                <button onClick={() => handleSelectAllGatherings(false)} className="notHappenedCtr__bdy__optnCtr__optn__sltd">
-                  <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
-                </button>
-              )}
-              {Object.keys(selectedEvents).length !== selectedGuests.length && <button onClick={() => handleSelectAllGatherings(true)} className="notHappenedCtr__bdy__optnCtr__optn__ntsltd"></button>}
+
+        {/* Body */}
+        <div className="popup__body">
+          {type === 'admin-delete' && (
+            <div className="popup__body__select-all">
+              <div className="popup__body__select-all__checkbox-wrapper">
+                {Object.keys(selectedEvents).length === selectedGuests.length && (
+                  <button onClick={() => handleSelectAllGatherings(false)} className="checkbox--selected">
+                    <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
+                  </button>
+                )}
+                {Object.keys(selectedEvents).length !== selectedGuests.length && <button onClick={() => handleSelectAllGatherings(true)} className="checkbox"></button>}
+              </div>
+              <h3 className="popup__body__select-all__title">Check to select all gatherings</h3>
             </div>
-            <h3 className="dgp__body__selectAll__hdr__ttl">Check to select all gatherings</h3>
-          </div>
-          <div className="dgp__body__members">
+          )}
+
+          {/* Members */}
+          <div className="popup__body__members">
             {selectedGuests?.map((guest: any, index: any) => {
               return (
-                <>
-                  <div className="dgp__body__member">
-                    <div className="dgp__body__member__hdr">
-                      <img height={24} width={24} src={guest.memberLogo || '/icons/default-user-profile.svg'} alt={guest.memberName} className="dgp__body__member__hdr__img" />
-                      <span className="dgp__body__member__hdr__member-name">{guest.memberName}</span>
+                <div className="popup__member" key={guest?.memberUid}>
+                  {type === 'admin-delete' && (
+                    <div className="popup__member__header">
+                      <img height={24} width={24} src={guest.memberLogo || '/icons/default-user-profile.svg'} alt={guest.memberName} className="popup__member__header__img" />
+                      <span className="popup__member__header__name">{guest.memberName}</span>
                     </div>
+                  )}
 
-                    <div className="dgp__body__member__gatherings">
-                      <div className="dgp__body__member__gatherings__hdr">
-                        <div className="dgp__body__member__gatherings__checkboxWrpr">
+                  {type === 'self-delete' && <div className="popup__member__gatherings__header__title">Select the gatherings that you are not attending</div>}
+
+                  <div className="popup__member__gatherings">
+                    {type === 'admin-delete' && (
+                      <div className="popup__member__gatherings__header">
+                        <div className="popup__member__gatherings__header__checkbox-wrapper">
                           {areAllMemberGatheringsSelected(guest?.memberUid) && (
-                            <button onClick={() => handleSelectMemberGatherings(guest?.memberUid, false)} className="notHappenedCtr__bdy__optnCtr__optn__sltd">
+                            <button onClick={() => handleSelectMemberGatherings(guest?.memberUid, false)} className="checkbox--selected">
                               <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
                             </button>
                           )}
-                          {!areAllMemberGatheringsSelected(guest?.memberUid) && (
-                            <button onClick={() => handleSelectMemberGatherings(guest?.memberUid, true)} className="notHappenedCtr__bdy__optnCtr__optn__ntsltd"></button>
-                          )}
+                          {!areAllMemberGatheringsSelected(guest?.memberUid) && <button onClick={() => handleSelectMemberGatherings(guest?.memberUid, true)} className="checkbox"></button>}
                         </div>
-                        <div className="dgp__body__member__gatherings__hdr__ttlWrpr">
-                          <h3 className="dgp__body__member__gatherings__hdr__ttl">Select gathering(s) that you want to remove</h3>
-                        </div>
+                        <h3 className="popup__member__gatherings__header__title">Select gathering(s) that you want to remove</h3>
                       </div>
-                      <div className="dgp__body__member__gatherings__list">
-                        {guest?.events?.map((event: any) => (
-                          <div key={event.id} className="dgp__body__member__gatherings__list__item">
-                            <div className="dgp__body__member__gatherings__list__item__checkboxWrpr">
-                              {isGatheringSelected(guest?.memberUid, event?.uid) && (
-                                <button onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, false)} className="notHappenedCtr__bdy__optnCtr__optn__sltd">
-                                  <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
-                                </button>
-                              )}
-                              {!isGatheringSelected(guest?.memberUid, event?.uid) && (
-                                <button className="notHappenedCtr__bdy__optnCtr__optn__ntsltd" onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, true)}></button>
-                              )}
-                            </div>
-                            <div className="dgp__body__member__gatherings__list__item__gathering">
-                              <span className="dgp__body__member__gatherings__list__item__gathering__date">{getFormattedDateString(event?.startDate, event?.endDate)}</span>
-                              <div className="dgp__body__member__gatherings__list__item__gathering__wrpr">
-                                <img height={20} width={20} src={event.logo} alt={event.name} className="dgp__body__member__gatherings__list__item__gathering__logo" />
-                                <span className="dgp__body__member__gatherings__list__item__gathering__name">{event.name}</span>
-                              </div>
+                    )}
+
+                    <div className="popup__member__gatherings__list">
+                      {guest?.events?.map((event: any) => (
+                        <div key={event?.uid} className="popup__gathering">
+                          <div className="popup__gathering__checkbox-wrapper">
+                            {type === 'self-delete' && event?.type === EVENT_TYPE.INVITE_ONLY ? (
+                              <Tooltip
+                                content="This is an invite only event"
+                                trigger={
+                                  <div className="popup__gathering__invite-only-checkbox">
+                                    <img src="/icons/invite-only.svg" height={12} width={12} />
+                                  </div>
+                                }
+                                asChild
+                              />
+                            ) : (
+                              <>
+                                {isGatheringSelected(guest?.memberUid, event?.uid) && (
+                                  <button onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, false)} className="checkbox--selected">
+                                    <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
+                                  </button>
+                                )}
+                                {!isGatheringSelected(guest?.memberUid, event?.uid) && <button className="checkbox" onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, true)}></button>}
+                              </>
+                            )}
+                          </div>
+
+                          <div className="popup__gathering__details">
+                            <span className="popup__gathering__date">{getFormattedDateString(event?.startDate, event?.endDate)}</span>
+                            <div className="popup__gathering__info-wrapper">
+                              <img height={20} width={20} src={event.logo || '/icons/irl-event-default-logo.svg'} alt={event.name} className="popup__gathering__logo" />
+                              <span className="popup__gathering__name">{event.name}</span>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                    {selectedGuests?.length !== index + 1 && <div className="divider"></div>}
                   </div>
-                </>
+                  {index + 1 < selectedGuests?.length && <div className="divider"></div>}
+                </div>
               );
             })}
           </div>
         </div>
-        <div className="dgp__footer">
-          <button type="button" onClick={onClose} className="dgp__footer__cancel">
+
+        {/* Footer */}
+        <div className="popup__footer">
+          <button onClick={onClose} className="popup__footer__cancel">
             Close
           </button>
           <button
-            disabled={Object.keys(selectedEvents).length === 0}
-            type="button"
+            disabled={!Object.keys(selectedEvents).length}
             onClick={onDeleteGuests}
-            className={`${Object.keys(selectedEvents).length === 0 ? 'disabled' : ''} dgp__footer__remove`}
+            className={`popup__footer__confirm ${!Object.keys(selectedEvents).length ? 'popup__footer__confirm--disabled' : ''}`}
           >
             Confirm Removal
           </button>
@@ -234,7 +239,7 @@ const DeleteGuestsPopup = (props: any) => {
       </div>
       <RegsiterFormLoader />
       <style jsx>{`
-        .dgp {
+        .popup {
           padding: 20px 10px 20px 20px;
           width: 89vw;
           max-height: 80svh;
@@ -243,21 +248,21 @@ const DeleteGuestsPopup = (props: any) => {
           overflow-y: auto;
         }
 
-        .dgp__hdr {
+        .popup__header {
           display: flex;
           flex-direction: column;
           gap: 20px;
           padding-right: 10px;
         }
 
-        .dgp__hdr__ttl {
+        .popup__header__title {
           font-size: 24px;
           font-weight: 700;
           line-height: 32px;
           color: #0f172a;
         }
 
-        .dgp__hdr__info {
+        .popup__header__info {
           display: flex;
           align-items: center;
           background: #dd2c5a1a;
@@ -266,7 +271,7 @@ const DeleteGuestsPopup = (props: any) => {
           gap: 10px;
         }
 
-        .dgp__hdr__info__txt {
+        .popup__header__info__text {
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -274,7 +279,7 @@ const DeleteGuestsPopup = (props: any) => {
           color: #0f172a;
         }
 
-        .dgp__body {
+        .popup__body {
           border-radius: 8px;
           flex: 1;
           overflow: auto;
@@ -284,13 +289,13 @@ const DeleteGuestsPopup = (props: any) => {
           padding: 16px 10px 8px 0px;
         }
 
-        .dgp__body__members {
+        .popup__body__members {
           display: flex;
           flex-direction: column;
           gap: 16px;
         }
 
-        .dgp__body__selectAll {
+        .popup__body__select-all {
           display: flex;
           align-items: center;
           border: 0.5px solid #cbd5e1;
@@ -298,13 +303,13 @@ const DeleteGuestsPopup = (props: any) => {
           height: 36px;
         }
 
-        .dgp__body__selectAll__checkboxWrpr {
+        .popup__body__select-all__checkbox-wrapper {
           padding: 8px 12px;
           border-radius: 4px 0px 0px 4px;
           outline: none;
         }
 
-        .dgp__body__selectAll__hdr__ttl {
+        .popup__body__select-all__title {
           font-size: 14px;
           font-weight: 600;
           line-height: 20px;
@@ -313,24 +318,24 @@ const DeleteGuestsPopup = (props: any) => {
           padding: 0px 12px;
         }
 
-        .dgp__body__member {
+        .popup__member {
           display: flex;
           flex-direction: column;
         }
 
-        .dgp__body__member__hdr {
+        .popup__member__header {
           display: flex;
           gap: 8px;
           align-items: center;
         }
 
-        .dgp__body__member__hdr__img {
+        .popup__member__header__img {
           border-radius: 50%;
           border: 1px solid #e2e8f0;
           background: #f1f5f9;
         }
 
-        .dgp__body__member__hdr__member-name {
+        .popup__member__header__name {
           font-size: 14px;
           font-weight: 500;
           line-height: 24px;
@@ -338,18 +343,18 @@ const DeleteGuestsPopup = (props: any) => {
           color: #0f172a;
         }
 
-        .dgp__body__member__gatherings {
+        .popup__member__gatherings {
           border: 0.5px solid #cbd5e1;
           border-radius: 4px;
           margin-top: 16px;
         }
 
-        .dgp__body__member__gatherings__hdr {
+        .popup__member__gatherings__header {
           display: flex;
           border-bottom: 0.5px solid #cbd5e1;
         }
 
-        .dgp__body__member__gatherings__checkboxWrpr {
+        .popup__member__gatherings__header__checkbox-wrapper {
           padding: 0px 12px;
           display: flex;
           align-items: center;
@@ -358,7 +363,7 @@ const DeleteGuestsPopup = (props: any) => {
           height: inherit;
         }
 
-        .dgp__body__member__gatherings__hdr__ttl {
+        .popup__member__gatherings__header__title {
           font-size: 14px;
           font-weight: 600;
           line-height: 20px;
@@ -367,11 +372,11 @@ const DeleteGuestsPopup = (props: any) => {
           padding: 8px 12px;
         }
 
-        .dgp__body__member__gatherings__list__item {
+        .popup__gathering {
           display: flex;
         }
 
-        .dgp__body__member__gatherings__list__item__checkboxWrpr {
+        .popup__gathering__checkbox-wrapper {
           padding: 8px 12px;
           border-right: 0.5px solid #cbd5e1;
           display: flex;
@@ -379,14 +384,14 @@ const DeleteGuestsPopup = (props: any) => {
           justify-content: center;
         }
 
-        .dgp__body__member__gatherings__list__item__gathering {
+        .popup__gathering__details {
           padding: 8px 12px;
           display: flex;
           gap: 4px;
           flex-direction: column;
         }
 
-        .dgp__body__member__gatherings__list__item__gathering__date {
+        .popup__gathering__date {
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -394,7 +399,7 @@ const DeleteGuestsPopup = (props: any) => {
           color: #0f172a;
         }
 
-        .dgp__body__member__gatherings__list__item__gathering__name {
+        .popup__gathering__name {
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -402,13 +407,13 @@ const DeleteGuestsPopup = (props: any) => {
           color: #0f172a;
         }
 
-        .dgp__body__member__gatherings__list__item__gathering__wrpr {
+        .popup__gathering__info-wrapper {
           display: flex;
           gap: 4px;
           align-items: center;
         }
 
-        .dgp__body__member__gatherings__list__item__gathering__logo {
+        .popup__gathering__logo {
           object-fit: cover;
           background: #f1f5f9;
         }
@@ -418,11 +423,40 @@ const DeleteGuestsPopup = (props: any) => {
           padding-top: 20px;
         }
 
-        .disabled {
-          opacity: 0.5;
+        .checkbox--selected {
+          height: 20px;
+          width: 20px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #156ff7;
+          border: 1px solid transparent;
         }
 
-        .dgp__footer {
+        .checkbox {
+          height: 20px;
+          width: 20px;
+          border-radius: 4px;
+          border: 1px solid #cbd5e1;
+          background: transparent;
+          display: flex;
+        }
+
+        .popup__gathering__invite-only-checkbox {
+          height: 20px;
+          width: 20px;
+          min-height: 20px;
+          min-width: 20px;
+          background-color: #f9f3e9;
+          border-radius: 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border: 0.83px solid #f19100;
+        }
+
+        .popup__footer {
           display: flex;
           justify-content: end;
           gap: 10px;
@@ -430,7 +464,7 @@ const DeleteGuestsPopup = (props: any) => {
           padding-right: 10px;
         }
 
-        .dgp__footer__cancel {
+        .popup__footer__cancel {
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
@@ -445,7 +479,7 @@ const DeleteGuestsPopup = (props: any) => {
           justify-content: center;
         }
 
-        .dgp__footer__remove {
+        .popup__footer__confirm {
           height: 40px;
           border-radius: 8px;
           padding: 10px 24px;
@@ -460,33 +494,17 @@ const DeleteGuestsPopup = (props: any) => {
           justify-content: center;
         }
 
-        .notHappenedCtr__bdy__optnCtr__optn__sltd {
-          height: 20px;
-          width: 20px;
-          border-radius: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #156ff7;
-          border: 1px solid transparent;
-        }
-
-        .notHappenedCtr__bdy__optnCtr__optn__ntsltd {
-          height: 20px;
-          width: 20px;
-          border-radius: 4px;
-          border: 1px solid #cbd5e1;
-          background: transparent;
-          display: flex;
+        .popup__footer__confirm--disabled {
+          opacity: 0.5;
         }
 
         @media (min-width: 1024px) {
-          .dgp {
+          .popup {
             width: 656px;
             padding: 24px;
           }
 
-          .dgp__body__member__gatherings__list__item__gathering {
+          .popup__gathering__details {
             flex-direction: row;
             gap: 24px;
           }
@@ -496,4 +514,4 @@ const DeleteGuestsPopup = (props: any) => {
   );
 };
 
-export default DeleteGuestsPopup;
+export default DeleteAttendeesPopup;

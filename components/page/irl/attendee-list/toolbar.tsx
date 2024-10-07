@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { canUserPerformEditAction, isPastDate } from '@/utils/irl.utils';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENT_TYPE, IAM_GOING_POPUP_MODES } from '@/utils/constants';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENT_TYPE, EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import Search from './search';
 import { useSearchParams } from 'next/navigation';
@@ -32,7 +32,7 @@ const Toolbar = (props: any) => {
 
   //states
   const [searchTerm, setSearchTerm] = useState('');
-  const[iamGoingPopupProps, setIamGoingPopupProps] = useState({isOpen: false, formdata: null, mode: ""});
+  const [iamGoingPopupProps, setIamGoingPopupProps] = useState({ isOpen: false, formdata: null, mode: '' });
   const [isEdit, seIsEdit] = useState(false);
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
@@ -42,13 +42,13 @@ const Toolbar = (props: any) => {
   const canUserAddAttendees = canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
   const onEditResponseClick = () => {
-    setIamGoingPopupProps({isOpen: true, formdata: updatedUser, mode: IAM_GOING_POPUP_MODES.EDIT});
+    // setIamGoingPopupProps({isOpen: true, formdata: updatedUser, mode: IAM_GOING_POPUP_MODES.EDIT});
     seIsEdit((prev) => !prev);
   };
 
   // Open Attendee Details Popup to add guest
   const onIAmGoingClick = () => {
-    setIamGoingPopupProps({isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADD});
+    setIamGoingPopupProps({ isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADD });
     analytics.trackImGoingBtnClick(location);
     document.dispatchEvent(
       new CustomEvent('openRsvpModal', {
@@ -61,8 +61,8 @@ const Toolbar = (props: any) => {
   };
 
   const onIamGoingPopupClose = () => {
-    setIamGoingPopupProps({isOpen: false, formdata: null, mode: ""});
-  }
+    setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
+  };
 
   // Open Attendee Details Popup to edit the guest
   const onEditResponse = () => {
@@ -98,7 +98,18 @@ const Toolbar = (props: any) => {
   // Open Attendee Details Popup to add the guest by admin
   const onAddMemberClick = () => {
     analytics.trackGuestListAddNewMemberBtnClicked(location);
-    setIamGoingPopupProps({isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD});
+    setIamGoingPopupProps({ isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD });
+  };
+
+  const onRemoveFromGatherings = () => {
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.OPEN_REMOVE_GUESTS_POPUP, {
+        detail: {
+          isOpen: true,
+          type: 'self-delete',
+        },
+      })
+    );
   };
 
   useEffect(() => {
@@ -115,9 +126,18 @@ const Toolbar = (props: any) => {
 
   return (
     <>
-    {iamGoingPopupProps?.isOpen && (
-      <AttendeeForm onClose={onIamGoingPopupClose} formdata={iamGoingPopupProps?.formdata} selectedLocation={location} userInfo={userInfo} allGatherings={eventDetails?.events}  defaultTags={defaultTopics} mode={iamGoingPopupProps?.mode} allGuests={eventDetails?.guests}/>
-    )}
+      {iamGoingPopupProps?.isOpen && (
+        <AttendeeForm
+          onClose={onIamGoingPopupClose}
+          formdata={iamGoingPopupProps?.formdata}
+          selectedLocation={location}
+          userInfo={userInfo}
+          allGatherings={eventDetails?.events}
+          defaultTags={defaultTopics}
+          mode={iamGoingPopupProps?.mode}
+          allGuests={eventDetails?.guests}
+        />
+      )}
       <div className="toolbar">
         <span className="toolbar__hdr">
           <span className="toolbar__hdr__count">
@@ -171,7 +191,9 @@ const Toolbar = (props: any) => {
               {isEdit && (
                 <div className="toolbar__actionCn__edit__list">
                   <div className="toolbar__actionCn__edit__list__item">Edit Details</div>
-                  <div className="toolbar__actionCn__edit__list__item">Remove from gathering(s)</div>
+                  <div onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
+                    Remove from gathering(s)
+                  </div>
                 </div>
               )}
             </div>

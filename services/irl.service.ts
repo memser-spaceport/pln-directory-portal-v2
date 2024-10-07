@@ -22,6 +22,10 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
     headers: getHeader(authToken),
   });
 
+  if (!response.ok) {
+    return { isError: true };
+  }
+
   const groupEventsByMemberUid = (events: any) => {
     const groupedEvents: any = {};
     events.forEach((event: any) => {
@@ -53,23 +57,26 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
         }),
         projectContributions: groupedEvents[memberUid][0]?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name),
         eventNames: groupedEvents[memberUid]?.map((member: any) => member?.event?.name),
-        events: groupedEvents[memberUid]?.map((member: any) => ({ ...member?.event, logo:member?.event?.logo?.url, isHost: member?.isHost, isSpeaker: member?.isSpeaker,hostSubEvents: member?.additionalInfo?.hostSubEvents, speakerSubEvents: member?.additionalInfo?.speakerSubEvents })),
+        events: groupedEvents[memberUid]?.map((member: any) => ({
+          ...member?.event,
+          logo: member?.event?.logo?.url,
+          isHost: member?.isHost,
+          isSpeaker: member?.isSpeaker,
+          hostSubEvents: member?.additionalInfo?.hostSubEvents,
+          speakerSubEvents: member?.additionalInfo?.speakerSubEvents,
+          type: member?.event?.type,
+        })),
         topics: groupedEvents[memberUid][0]?.topics,
         officeHours: groupedEvents[memberUid][0]?.member?.officeHours,
         telegramId: groupedEvents[memberUid][0]?.telegramId,
         reason: groupedEvents[memberUid][0]?.reason,
         additionalInfo: groupedEvents[memberUid][0]?.additionalInfo,
-        // test: groupedEvents[memberUid],
       };
     });
   };
 
   const groupedEvents = groupEventsByMemberUid(await response.json());
   const transformedEvents = transformGroupedEvents(groupedEvents);
-
-  if (!response.ok) {
-    return { isError: true };
-  }
 
   return { guests: transformedEvents };
 };
@@ -110,9 +117,9 @@ export const createEventGuest = async (locationId: string, payload: any) => {
   );
 
   if (!response?.ok) {
-    return {error: response}
+    return { error: response };
   }
-  return {data: response}
+  return { data: response };
 };
 
 export const editEventGuest = async (locationId: string, payload: any) => {

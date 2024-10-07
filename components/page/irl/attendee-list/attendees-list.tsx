@@ -13,7 +13,9 @@ import GuestList from './guest-list';
 import EmptyList from './empty-list';
 import FloatingBar from './floating-bar';
 import Modal from '@/components/core/modal';
-import DeleteGuestsPopup from './delete-guests-popup';
+import DeleteAttendeesPopup from './delete-attendees-popup';
+import { getParsedValue } from '@/utils/common.utils';
+import { getGuestsByLocation } from '@/services/irl.service';
 
 const AttendeeList = (props: any) => {
   const userInfo = props.userInfo;
@@ -22,6 +24,8 @@ const AttendeeList = (props: any) => {
   const showTelegram = props.showTelegram;
   const location = props.location;
 
+  console.log('eventDetails', eventDetails);
+
   const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
   const [selectedGuests, setSelectedGuests] = useState([]);
   const [showFloaingBar, setShowFloatingBar] = useState(false);
@@ -29,14 +33,12 @@ const AttendeeList = (props: any) => {
   const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const router = useRouter();
 
-  console.log("isss", );
-
   const { filteredList, sortConfig, filterConfig } = useIrlDetails(updatedEventDetails?.guests, userInfo);
   const registeredGuest = useMemo(() => {
     return updatedEventDetails.guests.find((guest: any) => guest?.memberUid === userInfo?.uid);
   }, [updatedEventDetails.guests, userInfo.uid]);
   const [updatedUser, setUpdatedUser] = useState(registeredGuest);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState({ isOpen: false, type: '' });
 
   const onCloseFloatingBar = useCallback(() => {
     setSelectedGuests([]);
@@ -45,7 +47,7 @@ const AttendeeList = (props: any) => {
 
   const onCloseDeleteModal = (e: any) => {
     deleteRef.current?.close();
-    setIsDeleteModalOpen(false);
+    setDeleteModalOpen((prev) => ({ ...prev, isOpen: false }));
   };
 
   const onLogin = useCallback(async () => {
@@ -62,13 +64,15 @@ const AttendeeList = (props: any) => {
   useEffect(() => {
     setUpdatedEventDetails(eventDetails);
     setUpdatedUser(registeredGuest);
-  }, [eventDetails, registeredGuest]);
+    setIsGoing(props?.isUserGoing);
+  }, [eventDetails, registeredGuest, props?.isUserGoing]);
 
   //update event details when form submit
   useEffect(() => {
-    const handler = (e: any) => {
-      const eventInfo = e.detail?.eventDetails;
-      const goingGuest = eventInfo?.guests.find((guest: any) => guest.memberUid === userInfo.uid);
+    const handler = async (e: any) => {
+      const authToken = getParsedValue(Cookies.get('authToken'));
+      const eventInfo = await getGuestsByLocation(location?.uid, 'upcoming', authToken);
+      const goingGuest = eventInfo?.guests?.find((guest: any) => guest?.memberUid === userInfo?.uid);
       const sortedGuests = sortByDefault(eventInfo?.guests);
       eventInfo.guests = sortedGuests;
       if (goingGuest) {
@@ -83,6 +87,8 @@ const AttendeeList = (props: any) => {
       }
       setUpdatedUser(goingGuest);
       setUpdatedEventDetails(eventInfo);
+      router.refresh();
+      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
     };
     document.addEventListener('updateGuests', handler);
     return () => {
@@ -103,9 +109,9 @@ const AttendeeList = (props: any) => {
   //toggle remove guests modal
   useEffect(() => {
     const handler = (e: any) => {
-      const { isOpen } = e.detail;
+      const { isOpen, type } = e.detail;
       if (deleteRef.current && isOpen) {
-        setIsDeleteModalOpen(true);
+        setDeleteModalOpen((prev) => ({ ...prev, isOpen: true, type }));
         deleteRef.current.showModal();
       }
     };
@@ -161,18 +167,19 @@ const AttendeeList = (props: any) => {
       {/* FLOATING BAR */}
       {showFloaingBar && (
         <div className="irl__floating-bar">
-          <FloatingBar userInfo={userInfo} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} />
+          <FloatingBar eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} />
         </div>
       )}
 
       <Modal modalRef={deleteRef} onClose={onCloseDeleteModal}>
-        {isDeleteModalOpen && (
-          <DeleteGuestsPopup
-            location={location}
+        {deleteModalOpen?.isOpen && (
+          <DeleteAttendeesPopup
             userInfo={userInfo}
+            location={location}
             onClose={onCloseDeleteModal}
             eventDetails={updatedEventDetails}
             selectedGuests={selectedGuests}
+            type={deleteModalOpen?.type}
             setSelectedGuests={setSelectedGuests}
           />
         )}

@@ -109,7 +109,7 @@ const Filter = (props: ITeamFilterWeb) => {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
-      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly'];
+      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           current.delete(query);

@@ -140,6 +140,7 @@ export const getQuery = (searchParams: any) => {
     fundingStage: searchParams?.fundingStage ?? '',
     technology: searchParams?.technology ?? '',
     includeFriends: searchParams?.includeFriends ?? '',
+    isRecent: searchParams?.isRecent ?? '',
     openToWork: searchParams?.openToWork ?? '',
     officeHoursOnly: searchParams?.officeHoursOnly ?? '',
     skills: searchParams?.skills ?? '',

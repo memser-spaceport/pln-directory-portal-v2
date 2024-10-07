@@ -42,6 +42,7 @@ const Filter = (props: ITeamFilterWeb) => {
 
   const includeFriends = searchParams['includeFriends'] === 'true' || false;
   const includeOfficeHours = searchParams['officeHoursOnly'] === 'true' || false;
+  const isRecent = searchParams['isRecent'] === 'true' || false;
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
 
@@ -56,6 +57,19 @@ const Filter = (props: ITeamFilterWeb) => {
       return;
     }
     updateQueryParams('includeFriends', '', searchParams);
+  };
+
+  const onIsRecentToggle = () => {
+    triggerLoader(true);
+    if (searchParams?.page) {
+      searchParams.page = '1';
+    }
+    if (!isRecent) {
+      // analytics.onFriendsOfProtocolSelected();
+      updateQueryParams('isRecent', 'true', searchParams);
+      return;
+    }
+    updateQueryParams('isRecent', '', searchParams);
   };
 
   const onOfficeHoursToogle = () => {
@@ -148,6 +162,13 @@ const Filter = (props: ITeamFilterWeb) => {
             <h3 className="team-filter__body__includes__title">Include Friends of Protocol Labs</h3>
             <div className="pe__body__topic__select__toggle">
               <Toggle height="16px" width="28px" callback={onIncludeFriendsToggle} isChecked={includeFriends} />
+            </div>
+          </div>
+          {/* New member filter */}
+          <div className="team-filter__body__recent">
+            <h3 className="team-filter__body__recent__title">Recently Added</h3>
+            <div className="pe__body__topic__select__toggle">
+              <Toggle height="16px" width="28px" callback={onIsRecentToggle} isChecked={isRecent} />
             </div>
           </div>
           {/* Border line */}
@@ -278,15 +299,15 @@ const Filter = (props: ITeamFilterWeb) => {
             justify-content: space-between;
           }
 
-          .team-filter__body__includes {
-            padding: 0px 0px 16px 0px;
+          .team-filter__body__includes, .team-filter__body__recent{
+            // padding: 0px 0px 16px 0px;
             display: flex;
             align-items: center;
             gap: 12px;
             justify-content: space-between;
           }
 
-          .team-filter__body__includes__title {
+          .team-filter__body__includes__title, .team-filter__body__recent__title {
             color: #475569;
             font-size: 14px;
             font-weight: 400;

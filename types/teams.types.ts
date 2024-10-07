@@ -12,6 +12,7 @@ export interface ITeamsSearchParams {
     page?: string;
     officeHoursOnly: string;
     focusAreas: string;
+    isRecent: string;
   }
   
 

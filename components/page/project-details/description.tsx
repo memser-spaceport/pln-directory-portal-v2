@@ -63,6 +63,7 @@ const Description = (props: IDescription) => {
       const res = await updateProject(project?.id, { ...project,description: description }, authToken);
       if (res.status === 200 || res.status === 201) {
         setDescription(description);
+        setDesc(getContent(description));
         triggerLoader(false);
         toast.success('Description updated successfully.');
         analytics.recordDescSave('save-success', getAnalyticsUserInfo(props?.user), { ...project,description: description });
@@ -111,6 +112,9 @@ const Description = (props: IDescription) => {
                 <span>
                   <button className="desc__content__show-more" onClick={onShowMoreClickHandler}>
                     show more{' '}
+                    <span className="desc__content__show-more__icon">
+                      <Image src="/icons/chevron-up.svg" alt="Edit" height={12} width={12} />
+                    </span>
                   </button>
                 </span>
               )}
@@ -119,6 +123,9 @@ const Description = (props: IDescription) => {
                   &nbsp;
                   <button className="desc__content__show-less" onClick={onShowLessClickHandler}>
                     show less
+                    <span className="desc__content__show-more__icon">
+                      <Image src="/icons/showless.svg" alt="Edit" height={12} width={12} />
+                    </span>
                   </button>
                 </span>
               )}
@@ -169,6 +176,14 @@ const Description = (props: IDescription) => {
           word-break: break-word;
         }
 
+        .desc__content__show-more__icon {
+            top: 2px;
+            position: relative;
+            width: 12px;
+            height: 12px;
+            display: inline-block;
+            margin-left: 4px;
+          }
         .desc__content__show-more {
           color: #156ff7;
           font-size: 14px;

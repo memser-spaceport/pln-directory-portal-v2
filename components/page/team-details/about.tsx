@@ -85,7 +85,7 @@ const About = (props: IAbout) => {
       analytics.recordAboutSave('save-error', getAnalyticsUserInfo(userInfo), payload);
     } else {
       setAboutContent(aboutEditedContent);
-      setAbout(getContent(aboutContent));
+      setAbout(getContent(aboutEditedContent));
       toast.success('Team updated successfully');
       analytics.recordAboutSave('save-success', getAnalyticsUserInfo(userInfo), payload);
     }
@@ -125,6 +125,9 @@ const About = (props: IAbout) => {
                 <span>
                   <button className="about__content__show-more" onClick={onShowMoreClickHandler}>
                     show more
+                    <span className="about__content__show-more__icon">
+                      <Image src="/icons/chevron-up.svg" alt="Edit" height={12} width={12} />
+                    </span>
                   </button>
                 </span>
               )}
@@ -133,6 +136,9 @@ const About = (props: IAbout) => {
                   &nbsp;
                   <button className="about__content__show-less" onClick={onShowLessClickHandler}>
                     show less
+                    <span className="about__content__show-more__icon">
+                      <Image src="/icons/showless.svg" alt="Edit" height={12} width={12} />
+                    </span>
                   </button>
                 </span>
               )}
@@ -179,6 +185,15 @@ const About = (props: IAbout) => {
             gap: 8px;
           }
 
+          .about__content__show-more__icon {
+            top: 2px;
+            position: relative;
+            width: 12px;
+            height: 12px;
+            display: inline-block;
+            margin-left: 4px;
+          }
+
           .about__content {
             color: #0f172a;
             font-size: 15px;
@@ -199,7 +214,7 @@ const About = (props: IAbout) => {
 
           .about__content__show-less {
             color: #156ff7;
-             font-size: 14px;
+            font-size: 14px;
             font-weight: 500;
             line-height: 14px;
             padding: 0;

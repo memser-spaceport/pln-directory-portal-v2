@@ -1,11 +1,9 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { IUserInfo } from '@/types/shared.types';
 import { EVENTS } from '@/utils/constants';
 
 interface IFloatingBar {
   onClose: () => void;
   selectedGuests: string[];
-  userInfo: IUserInfo;
   eventDetails: any;
 }
 
@@ -13,8 +11,6 @@ const FloatingBar = (props: IFloatingBar) => {
   //props
   const onClose = props?.onClose;
   const selectedGuests = props?.selectedGuests ?? [];
-  const userInfo = props?.userInfo;
-  const eventDetails = props?.eventDetails;
 
   //hooks
   const analytics = useIrlAnalytics();
@@ -25,6 +21,7 @@ const FloatingBar = (props: IFloatingBar) => {
       new CustomEvent(EVENTS.OPEN_REMOVE_GUESTS_POPUP, {
         detail: {
           isOpen: true,
+          type: 'admin-delete',
         },
       })
     );
@@ -57,12 +54,12 @@ const FloatingBar = (props: IFloatingBar) => {
                 <img src="/icons/edit-blue.svg" alt="edit" />
               </button>
             )} */}
-            <button type='button' onClick={onDeleteGuests} className="floatingBar__actions__delete">
+            <button type="button" onClick={onDeleteGuests} className="floatingBar__actions__delete">
               <img src="/icons/delete.svg" alt="delete" />
             </button>
           </div>
           <div className="floatingBar__actions__closeWrpr">
-            <button type='button' onClick={onClose} className="floatingBar__actions__close">
+            <button type="button" onClick={onClose} className="floatingBar__actions__close">
               <img src="/icons/close.svg" alt="close" />
             </button>
           </div>

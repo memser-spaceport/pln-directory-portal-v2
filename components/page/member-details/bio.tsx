@@ -9,6 +9,7 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { updateMember } from '@/services/members.service';
 import { ADMIN_ROLE } from '@/utils/constants';
+import Image from 'next/image';
 
 const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
   const contentLength = 347;
@@ -121,11 +122,17 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
             {content?.length > clippedContent?.length && (
               <button className="bioCn__content__show-more" onClick={onShowMoreClickHandler}>
                 show more{' '}
+                <span className="bioCn__content__show-more__icon">
+                      <Image src="/icons/chevron-up.svg" alt="Edit" height={12} width={12} />
+                    </span>
               </button>
             )}
             {content?.length > contentLength && content === clippedContent && (
               <button className="bioCn__content__show-less" onClick={onShowLessClickHandler}>
                 show less
+                <span className="bioCn__content__show-more__icon">
+                      <Image src="/icons/showless.svg" alt="Edit" height={12} width={12} />
+                    </span>
               </button>
             )}
           </div>
@@ -191,6 +198,14 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
           align-items: center;
           padding-bottom: 16px;
         }
+          .bioCn__content__show-more__icon {
+            top: 2px;
+            position: relative;
+            width: 12px;
+            height: 12px;
+            display: inline-block;
+            margin-left: 4px;
+          }
 
         @media (min-width: 1024px) {
           .bioCn {

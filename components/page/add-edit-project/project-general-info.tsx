@@ -1,6 +1,7 @@
 import CustomToggle from '@/components/form/custom-toggle';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
+import TextEditor from '@/components/ui/text-editor';
 import { IProjectLinks, IProjectResponse } from '@/types/project.types';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
@@ -8,6 +9,8 @@ import { useRef, useState } from 'react';
 interface ProjectBasicInfoProps {
   errors: string[];
   project: IProjectResponse;
+  longDesc: string;
+  setLongDesc: (content: string) => void;
 }
 
 function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
@@ -131,7 +134,8 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
           </div>
 
           <div className="projectinfo__form__item__description">
-            <TextArea
+          <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id='register-project-longDescription'/>
+            {/* <TextArea
               defaultValue={project.description}
               maxLength={1000}
               isMandatory
@@ -139,7 +143,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
               name="description"
               label="Detailed Description Of Your Project*"
               placeholder="Enter Detailed Description Of Your Project"
-            />
+            /> */}
           </div>
 
           {/* Projects */}

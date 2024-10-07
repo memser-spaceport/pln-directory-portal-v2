@@ -1,53 +1,129 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import TextEditor from '@/components/ui/text-editor';
+import { updateProject } from '@/services/projects.service';
+import { getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import Image from 'next/image';
+import { useState } from 'react';
+import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
+import { useProjectAnalytics } from '@/analytics/project.analytics';
 
 interface IDescription {
   description: string;
+  project: any;
+  userHasEditRights: boolean;
+  user: any;
 }
 
 const Description = (props: IDescription) => {
-  const description = props?.description ?? "";
-  const [desc, setDesc] = useState(description?.substring(0, 350));
+  const contentLength = 347;
+  const [description,setDescription] = useState(props?.description ?? '');
+  const project = props?.project;
+  const analytics = useProjectAnalytics();
+
+  const [showEditor, setEditor] = useState(false);
+  const getContent = (cnt:string) => {
+    if (cnt.length > contentLength) {
+      return cnt.substring(0, contentLength) + '...';
+    }
+    return cnt;
+  }
+  const [desc, setDesc] = useState(getContent(description));
 
   const onShowMoreClickHandler = () => {
+    analytics.onProjectDetailDescShowMoreClicked(getAnalyticsUserInfo(props?.user), project?.id);
     setDesc(description);
   };
 
-  const onShowLessClickHandler = () => {
-    setDesc(desc?.substring(0, 350));
+  const onCancelClickHandler = () => {
+    analytics.onProjectDetailDescEditCancelClicked(getAnalyticsUserInfo(props?.user), project?.id);
+    setEditor(false);
   };
 
+  const onShowLessClickHandler = () => {
+    analytics.onProjectDetailDescShowLessClicked(getAnalyticsUserInfo(props?.user), project?.id);
+    setDesc(getContent(desc));
+  };
+
+  const onEditClickHandler = () => {
+    setEditor(true);
+     analytics.onProjectDetailDescEditClicked(getAnalyticsUserInfo(props?.user), project?.id);
+  };
+
+  const onSaveClickHandler = async () => {
+    setEditor(false);
+    triggerLoader(true);
+    analytics.onProjectDetailDescEditSaveClicked(getAnalyticsUserInfo(props?.user), project?.id);
+    try {
+      const authToken = getParsedValue(Cookies.get('authToken') ?? '');
+      if (!authToken) {
+        return;
+      }
+      const res = await updateProject(project?.id, { ...project,description: description }, authToken);
+      if (res.status === 200 || res.status === 201) {
+        setDescription(description);
+        triggerLoader(false);
+        toast.success('Description updated successfully.');
+        analytics.recordDescSave('save-success', getAnalyticsUserInfo(props?.user), { ...project,description: description });
+      }
+    } catch (er) {
+      triggerLoader(false);
+      analytics.recordDescSave('save-error', getAnalyticsUserInfo(props?.user), { ...project,description: description });
+      toast.error('Something went wrong. Please try again later.');
+    } finally {
+      triggerLoader(false);
+    }
+  };
   return (
     <>
       {desc && (
         <div className="desc">
-          <h6 className="desc__title">Description</h6>
-          <p className="desc__content">
-            {desc}
-            {description?.length > desc?.length && (
-              <span>
-                ...
-                <button
-                  className="desc__content__show-more"
-                  onClick={onShowMoreClickHandler}
-                >
-                  Show more{" "}
-                </button>
-              </span>
+          <div className="desc__header">
+            <h6 className="desc__header__title">Description</h6>
+            {!showEditor && props?.userHasEditRights &&(
+              <button className="desc__header__edit" onClick={onEditClickHandler}>
+                Edit
+                {/* <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} /> */}
+              </button>
             )}
-            {description?.length > 350 && description === desc && (
-              <span>
-                &nbsp;
-                <button
-                  className="desc__content__show-less"
-                  onClick={onShowLessClickHandler}
-                >
-                  Show less
+            {showEditor && (
+              <div className="desc__header__action">
+                <button className="desc__header__action__cancel" onClick={onCancelClickHandler}>
+                  <span className="desc__header__action__cancel__txt">Cancel</span>
                 </button>
-              </span>
+                <button className="desc__header__action__save" onClick={onSaveClickHandler}>
+                  <span className="desc__header__action__save__txt">Save</span>
+                </button>
+              </div>
             )}
-          </p>
+          </div>
+          {showEditor && (
+            <div className="desc__content">
+              <TextEditor text={description} setContent={setDescription} />
+            </div>
+          )}
+          {!showEditor && (
+            <div className="desc__content">
+              {/* {description} */}
+              <div dangerouslySetInnerHTML={{ __html: desc }} />
+              {description?.length > desc?.length && (
+                <span>
+                  <button className="desc__content__show-more" onClick={onShowMoreClickHandler}>
+                    show more{' '}
+                  </button>
+                </span>
+              )}
+              {description?.length > contentLength && description === desc && (
+                <span>
+                  &nbsp;
+                  <button className="desc__content__show-less" onClick={onShowLessClickHandler}>
+                    show less
+                  </button>
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
       <style jsx>{`
@@ -57,12 +133,31 @@ const Description = (props: IDescription) => {
           gap: 8px;
         }
 
-        .desc__title {
+        .desc__header__title {
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
           letter-spacing: 0px;
           color: #64748b;
+        }
+
+        .desc__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .desc__header__edit {
+          display: flex;
+          font-size: 14px;
+          font-weight: 500;
+          color: #156ff7;
+          align-items: center;
+          height: fit-content;
+          background: none;
+          border: none;
+          white-space: nowrap;
+          gap: 8px;
         }
 
         .desc__content {
@@ -76,23 +171,60 @@ const Description = (props: IDescription) => {
 
         .desc__content__show-more {
           color: #156ff7;
-          font-size: 15px;
-          font-weight: 600;
-          line-height: 24px;
+          font-size: 14px;
+            font-weight: 500;
+            line-height: 14px;
           padding: 0;
           border: none;
           background-color: #fff;
+          // float: right;
         }
 
         .desc__content__show-less {
           color: #156ff7;
-          font-size: 15px;
-          font-weight: 600;
-          line-height: 24px;
+          font-size: 14px;
+            font-weight: 500;
+            line-height: 14px;
           padding: 0;
           border: none;
           background-color: #fff;
+          // float: right;
         }
+
+        .desc__header__action__cancel {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #156ff7;
+            border-radius: 8px;
+          }
+
+          .desc__header__action__cancel__txt {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 24px;
+            text-align: left;
+            color: #156ff7;
+          }
+
+          .desc__header__action__save {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #156ff7;
+            border-radius: 8px;
+            background: #156ff7;
+          }
+
+          .desc__header__action__save__txt {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 24px;
+            text-align: left;
+            color: white;
+          }
+          .desc__header__action {
+            display: flex;
+            gap: 8px;
+          }
       `}</style>
     </>
   );

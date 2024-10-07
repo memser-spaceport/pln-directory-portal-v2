@@ -84,6 +84,7 @@ async function getPageData(teamId: string) {
     id: '',
     name: '',
     logo: '',
+    logoUid: '',
     shortDescription: '',
     website: '',
     twitter: '',
@@ -190,6 +191,9 @@ async function getPageData(teamId: string) {
     });
     if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes(ADMIN_ROLE) && authToken) {
       hasProjectsEditAccess = true;
+    }
+    if(hasProjectsEditAccess){
+      team.logoUid = team.logoUid;
     }
     return { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess, officeHoursFlag };
   } catch (error: any) {

@@ -222,7 +222,7 @@ const Header = (props: IHeader) => {
         .header__details__controls__edit {
           color: #156ff7;
           font-size: 15px;
-          font-weight: 600;
+          font-weight: 500;
           line-height: 24px;
           letter-spacing: 0em;
           display: flex;
@@ -233,7 +233,7 @@ const Header = (props: IHeader) => {
         .header__details__controls__delete {
           color: #ff6038;
           font-size: 15px;
-          font-weight: 600;
+          font-weight: 500;
           line-height: 24px;
           letter-spacing: 0em;
           display: flex;

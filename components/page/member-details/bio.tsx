@@ -1,44 +1,140 @@
 'use client';
 
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { IMember } from '@/types/members.types';
-import { getAnalyticsMemberInfo } from '@/utils/common.utils';
+import TextEditor from '@/components/ui/text-editor';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useState } from 'react';
 import clip from 'text-clipper';
+import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
+import { updateMember } from '@/services/members.service';
+import { ADMIN_ROLE } from '@/utils/constants';
 
-const Bio = ({ member }: { member: IMember }) => {
-  const content = member?.bio ?? '';
-  const clippedHtml = clip(content, 450, { html: true, maxLines: 5 });
+const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
+  const contentLength = 347;
+  const [content, setContent] = useState(member?.bio ?? '');
+  const isOwner = userInfo?.uid === member.id;
+  const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
+  // const [clippedHtml,setClippedHtml] = useState(clip(content, contentLength, { html: true, maxLines: 5 }));
 
-  const [readMore, setReadMore] = useState(false);
   const analytics = useMemberAnalytics();
+  const [showEditor, setEditor] = useState(false);
 
-  const onreadMoreClicked = () => {
-    setReadMore((prev) => !prev);
+  const getContent = (cnt: string) => {
+    if (cnt.length > contentLength) {
+      return cnt.substring(0, contentLength) + '...';
+    }
+    return cnt;
+  };
+  const [clippedContent, setClippedContent] = useState(getContent(content));
+
+  const onShowMoreClickHandler = () => {
     analytics.onMemberDetailsBioReadMoreClicked(getAnalyticsMemberInfo(member));
+    setClippedContent(content);
   };
 
-  const onShowLessClicked = () => {
-    setReadMore((prev) => !prev);
+  const onShowLessClickHandler = () => {
     analytics.onMemberDetailsBioReadLessClicked(getAnalyticsMemberInfo(member));
+    setClippedContent(getContent(content));
+  };
+
+  const onEditClickHandler = () => {
+    setEditor(true);
+    analytics.onMemberDetailsBioEditClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
+  };
+
+  const onCancelClickHandler = () => {
+    analytics.onMemberDetailsBioEditCancelClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
+    setEditor(false);
+  };
+
+  const onSaveClickHandler = async () => {
+    setEditor(false);
+    analytics.onMemberDetailsBioEditSaveClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
+    try {
+      triggerLoader(true);
+      const copymember = { ...member };
+      copymember.projectContributions.map((project: any) => {
+        delete project.project;
+        return project;
+      });
+      const payload = {
+        participantType: 'MEMBER',
+        referenceUid: member.id,
+        uniqueIdentifier: member.email,
+        newData: { name: member.name, email: member.email, teamAndRoles: member.teamAndRoles, projectContributions: copymember.projectContributions, skills: member.skills, bio: content },
+      };
+
+      const rawToken = Cookies.get('authToken');
+      if (!rawToken) {
+        return;
+      }
+      const authToken = JSON.parse(rawToken);
+      const { data, isError, errorMessage, errorData } = await updateMember(member.id, payload, authToken);
+      triggerLoader(false);
+      if (isError) {
+        if (errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
+          toast.error('Email already exists. Please try again with different email');
+        } else {
+          toast.error('Member updated failed. Something went wrong, please try again later');
+        }
+        analytics.recordBioSave('save-error', getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
+      } else {
+        setContent(content);
+        setClippedContent(clip(content, contentLength));
+        analytics.recordBioSave('save-success', getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
+        toast.success('Member updated successfully');
+        // window.location.href = `/settings/members?id=${selectedMember.uid}`;
+      }
+    } catch (e) {
+      triggerLoader(false);
+      toast.error('Member updated failed. Something went wrong, please try again later');
+      analytics.recordBioSave('save-error', getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
+    }
   };
 
   return (
     <>
       <div className="bioCn">
-        <h2 className="bioCn__ttl">Bio</h2>
-        <div className="bioCn__content" dangerouslySetInnerHTML={{ __html: readMore ? content : clippedHtml }} />
-        <span>
-          {!readMore ? (
-            <button onClick={onreadMoreClicked} className="bioCn__toggle-btn">
-              read more
-            </button>
-          ) : (
-            <button onClick={onShowLessClicked} className="bioCn__toggle-btn desc">
-              &nbsp;read less
+        <div className="bioCn__header">
+          <h2 className="bioCn__ttl">Bio</h2>
+          {!showEditor && (isAdmin || isOwner) && (
+            <button className="bioCn__ttl__header__edit" onClick={onEditClickHandler}>
+              Edit
+              {/* <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} /> */}
             </button>
           )}
-        </span>
+          {showEditor && (
+            <div className="bioCn__header__action">
+              <button className="bioCn__header__action__cancel" onClick={onCancelClickHandler}>
+                <span className="bioCn__header__action__cancel__txt">Cancel</span>
+              </button>
+              <button className="bioCn__header__action__save" onClick={onSaveClickHandler}>
+                <span className="bioCn__header__action__save__txt">Save</span>
+              </button>
+            </div>
+          )}
+        </div>
+        {!showEditor && (
+          <div>
+            <div className="bioCn__content" dangerouslySetInnerHTML={{ __html: clippedContent }} />
+            {content?.length > clippedContent?.length && (
+              <button className="bioCn__content__show-more" onClick={onShowMoreClickHandler}>
+                show more{' '}
+              </button>
+            )}
+            {content?.length > contentLength && content === clippedContent && (
+              <button className="bioCn__content__show-less" onClick={onShowLessClickHandler}>
+                show less
+              </button>
+            )}
+          </div>
+        )}
+        {showEditor && (
+          <div className="bioCn__content">
+            <TextEditor text={content} setContent={setContent} />
+          </div>
+        )}
       </div>
 
       <style jsx>{`
@@ -52,7 +148,7 @@ const Bio = ({ member }: { member: IMember }) => {
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
-          margin-bottom: 10px;
+          // margin-bottom: 10px;
         }
 
         .bioCn__content {
@@ -61,6 +157,19 @@ const Bio = ({ member }: { member: IMember }) => {
           line-height: 20px;
           color: #000000;
           display: inline;
+        }
+
+        .bioCn__ttl__header__edit {
+          display: flex;
+          font-size: 14px;
+          font-weight: 500;
+          color: #156ff7;
+          align-items: center;
+          height: fit-content;
+          background: none;
+          border: none;
+          white-space: nowrap;
+          gap: 8px;
         }
 
         .bioCn__toggle-btn {
@@ -76,6 +185,12 @@ const Bio = ({ member }: { member: IMember }) => {
         .desc {
           display: inline-block;
         }
+        .bioCn__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-bottom: 16px;
+        }
 
         @media (min-width: 1024px) {
           .bioCn {
@@ -85,6 +200,61 @@ const Bio = ({ member }: { member: IMember }) => {
           .desc {
             display: none;
           }
+        }
+        .bioCn__header__action__cancel {
+          padding: 8px 16px;
+          background: white;
+          border: 1px solid #156ff7;
+          border-radius: 8px;
+        }
+
+        .bioCn__header__action__cancel__txt {
+          font-size: 15px;
+          font-weight: 600;
+          line-height: 24px;
+          text-align: left;
+          color: #156ff7;
+        }
+
+        .bioCn__header__action__save {
+          padding: 8px 16px;
+          background: white;
+          border: 1px solid #156ff7;
+          border-radius: 8px;
+          background: #156ff7;
+        }
+
+        .bioCn__header__action__save__txt {
+          font-size: 15px;
+          font-weight: 600;
+          line-height: 24px;
+          text-align: left;
+          color: white;
+        }
+        .bioCn__header__action {
+          display: flex;
+          gap: 8px;
+        }
+        .bioCn__content__show-more {
+          color: #156ff7;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 14px;
+          padding: 0;
+          border: none;
+          background-color: #fff;
+          // float: right;
+        }
+
+        .bioCn__content__show-less {
+          color: #156ff7;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 14px;
+          padding: 0;
+          border: none;
+          background-color: #fff;
+          // float: right;
         }
       `}</style>
     </>

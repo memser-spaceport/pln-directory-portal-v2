@@ -13,6 +13,7 @@
   "dependencies": {
     "@privy-io/react-auth": "^1.71.0",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "@tinymce/tinymce-react": "^5.1.1",
     "embla-carousel-react": "^8.1.8",
     "isomorphic-dompurify": "^2.13.0",
     "js-cookie": "^3.0.5",
@@ -28,6 +29,7 @@
     "react-syntax-highlighter": "^15.5.0",
     "react-toastify": "^10.0.5",
     "text-clipper": "^2.2.0",
+    "tinymce": "^7.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

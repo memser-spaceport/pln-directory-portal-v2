@@ -69,22 +69,26 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
   const memberResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}?${new URLSearchParams(query)}`, requestOPtions);
   // let memberRepository;
   let member;
-
+  
   if (!memberResponse?.ok) {
     return { error: { status: memberResponse?.status, statusText: memberResponse?.statusText } };
   }
-
+  
   const result = await memberResponse?.json();
-
+  
+  const teamAndRoles: { teamTitle: any; role: any; teamUid: any; }[] = [];
   const teams =
-    result.teamMemberRoles?.map((teamMemberRole: any) => ({
-      id: teamMemberRole.team?.uid || '',
-      name: teamMemberRole.team?.name || '',
-      role: teamMemberRole.role || 'Contributor',
-      teamLead: !!teamMemberRole.teamLead,
-      mainTeam: !!teamMemberRole.mainTeam,
-      logo: teamMemberRole?.team?.logo?.url ?? '',
-    })) || [];
+    result.teamMemberRoles?.map((teamMemberRole: any) => {
+      teamAndRoles.push({ teamTitle: teamMemberRole.team?.name, role: teamMemberRole.role, teamUid: teamMemberRole.team?.uid });
+      return {
+        id: teamMemberRole.team?.uid || '',
+        name: teamMemberRole.team?.name || '',
+        role: teamMemberRole.role || 'Contributor',
+        teamLead: !!teamMemberRole.teamLead,
+        mainTeam: !!teamMemberRole.mainTeam,
+        logo: teamMemberRole?.team?.logo?.url ?? '',
+      }
+    }) || [];
 
   const mainTeam = teams.find((team: any) => team?.mainTeam);
   const teamLead = teams.some((team: any) => team?.teamLead);
@@ -108,6 +112,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     openToWork: result.openToWork || false,
     linkedinHandle: result.linkedinHandler,
     repositories: [],
+    teamAndRoles: teamAndRoles,
     preferences: result.preferences ?? null,
   };
 

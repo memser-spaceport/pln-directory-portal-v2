@@ -112,6 +112,7 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
     id: result?.uid,
     name: result?.name,
     logo: result?.logo?.url,
+    logoUid: result?.logo?.uid,
     shortDescription: result?.shortDescription,
     website: result?.website,
     twitter: result?.twitterHandler,

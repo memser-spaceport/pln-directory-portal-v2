@@ -161,6 +161,12 @@ export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_DETAIL_SEEALL_CLICKED: 'project-detail-teams-seeall-clicked',
   PROJECT_DETAIL_SEE_ALL_CONTRIBUTORS_CLICKED: 'project-detail-see-all-contributors-clicked',
   PROJECT_DETAIL_CONTRIBUTOR_PROFILE_CLICKED: 'project-detail-contributor-profile-clicked',
+  PROJECT_DETAIL_DESC_SHOW_MORE_CLICKED: 'project-detail-desc-show-more-clicked',
+  PROJECT_DETAIL_DESC_SHOW_LESS_CLICKED: 'project-detail-desc-show-less-clicked',
+  PROJECT_DETAIL_DESC_CANCEL_CLICKED: 'project-detail-desc-cancel-clicked',
+  PROJECT_DETAIL_DESC_EDIT_CLICKED: 'project-detail-desc-edit-clicked',
+  PROJECT_DETAIL_DESC_EDIT_SAVE_CLICKED:  'project-detail-desc-edit-save-clicked',
+  PROJECT_DETAIL_DESC_EDIT_SAVE: 'project-detail-desc-edit-save',
 
   PROJECT_LIST_FILTERS_APPLIED: 'projects-filters-applied',
   PROJECT_LIST_FILTERS_CLEARED: 'projects-filters-cleared',
@@ -234,6 +240,9 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_EDIT_BY_ADMIN: 'team-edit-by-admin',
   TEAM_DETAIL_ABOUT_SHOW_MORE_CLICKED: 'team-detail-about-show-more-clicked',
   TEAM_DETAIL_ABOUT_SHOW_LESS_CLICKED: 'team-detail-show-less-clicked',
+  TEAM_DETAIL_ABOUT_EDIT_CLICKED: 'team-detail-edit-clicked',
+  TEAM_DETAIL_ABOUT_EDIT_CANCEL_CLICKED: 'team-detail-about-edit-cancel-clicked',
+  TEAM_DETAIL_ABOUT_EDIT_SAVE_CLICKED: 'team-detail-about-edit-save-clicked',
   TEAM_DETAIL_SHOW_MORE_TECHNOLOGY_CLICKED: 'team-detail-show-more-technology-clicked',
   TEAM_DETAIL_CONTACT_CLICKED: 'team-detail-contact-clicked',
   TEAM_DETAIL_SEE_ALL_PROJECTS_CLICKED: 'team-detail-projects-see-all-clicked',
@@ -244,6 +253,7 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_OFFICEHOURS_CLICKED: 'team-officehours-clicked',
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
   TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED: 'team-officehours-login-btn-clicked',
+  TEAM_DETAIL_ABOUT_SAVE: 'team-detail-about-save',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -280,6 +290,10 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_GITHUB_HANDLE_UPDATE_CLICKED: 'member-detail-github-handle-update-clicked',
   MEMBER_DETAIL_BIO_READ_MORE_CLICKED: 'member-detail-bio-read-more-clicked',
   MEMBER_DETAIL_BIO_READ_LESS_CLICKED: 'member-detail-bio-read-less-clicked',
+  MEMBER_DETAIL_BIO_EDIT_CLICKED: 'member-detail-bio-edit-clicked',
+  MEMBER_DETAIL_BIO_EDIT_CANCEL_CLICKED: 'member-detail-bio-edit-cancel-clicked',
+  MEMBER_DETAIL_BIO_EDIT_SAVE_CLICKED: 'member-detail-bio-edit-save-clicked',
+  MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE: 'member-detail-bio-edit-record-save',
 };
 
 export const IRL_ANALYTICS_EVENTS = {

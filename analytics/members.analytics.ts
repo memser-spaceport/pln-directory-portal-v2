@@ -281,6 +281,40 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_READ_LESS_CLICKED, params);
   }
 
+  function onMemberDetailsBioEditClicked(member: IAnalyticsMemberInfo | null,user: IAnalyticsUserInfo | null) {
+    const params = {
+      user,
+      ...member
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_CLICKED, params);
+  }
+
+  function onMemberDetailsBioEditCancelClicked(member: IAnalyticsMemberInfo | null,user: IAnalyticsUserInfo | null) {
+    const params = {
+      user,
+      ...member
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_CANCEL_CLICKED, params);
+  }
+
+  function onMemberDetailsBioEditSaveClicked(member: IAnalyticsMemberInfo | null,user: IAnalyticsUserInfo | null) {
+    const params = {
+      user,
+      ...member
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_SAVE_CLICKED, params);
+  }
+
+  function recordBioSave(type: string,member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null, payload?: any){
+    const params = {
+      type,
+      user,
+      member,
+      ...payload,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE, params);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -311,6 +345,10 @@ export const useMemberAnalytics = () => {
     onMemberEditBySelf,
     onMemberEditByAdmin,
     onMemberDetailsBioReadMoreClicked,
-    onMemberDetailsBioReadLessClicked
+    onMemberDetailsBioReadLessClicked,
+    onMemberDetailsBioEditClicked,
+    onMemberDetailsBioEditSaveClicked,
+    onMemberDetailsBioEditCancelClicked,
+    recordBioSave
   };
 };

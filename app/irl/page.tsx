@@ -17,7 +17,6 @@ export default async function Page({ searchParams }: any) {
   if (isError) {
     return <Error />;
   }
-  
 
   return (
     <div className={styles.irlGatherings}>
@@ -34,9 +33,11 @@ export default async function Page({ searchParams }: any) {
           <IrlEvents isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} />
         </section>
         {/* Guests */}
-        <section className={styles.irlGatheings__guests}>
-          <AttendeeList location={eventLocationSummary} showTelegram={showTelegram} eventDetails={guestDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} isUserGoing={isUserGoing}/>
-        </section>
+        {guestDetails?.events?.length > 0 && (
+          <section className={styles.irlGatheings__guests}>
+            <AttendeeList location={eventLocationSummary} showTelegram={showTelegram} eventDetails={guestDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} isUserGoing={isUserGoing} />
+          </section>
+        )}
       </div>
     </div>
   );
@@ -56,9 +57,7 @@ const getPageData = async (searchParams: any) => {
     }
 
     // Find event details based on search parameters or default to first location
-    const eventDetails = searchParams?.location
-      ? locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location)
-      : locationDetails[0];
+    const eventDetails = searchParams?.location ? locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location) : locationDetails[0];
 
     if (!eventDetails) {
       return { isError: true };
@@ -108,13 +107,11 @@ const getPageData = async (searchParams: any) => {
       eventLocationSummary,
       locationDetails,
     };
-
-  } catch(e) {
+  } catch (e) {
     console.error('Error fetching IRL data', e);
     return { isError: true };
   }
 };
-
 
 export const metadata: Metadata = {
   title: 'IRL Gatherings | Protocol Labs Directory',

@@ -12,6 +12,10 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
     { text: 'What initiatives or programs does Protocol Labs offer to foster innovation in decentralized technologies?', icon: '/icons/send-black.svg' },
   ];
 
+  const isMobileDevice = () => {
+    return /Mobi|Android/i.test(navigator.userAgent);
+  };
+
   const { trackExplorationPromptSelection } = useHuskyAnalytics();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -33,12 +37,22 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
     await onPromptClicked(ques);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const isMobileOrTablet = /Mobi|Android|iPad|iPhone/i.test(navigator.userAgent);
+    if (!isMobileOrTablet && window.innerWidth >= 1024) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault(); // Prevents adding a new line
+        handlePromptSubmission(); // Submits the form
+      }
+    }
+  };
+
   return (
     <>
       <div className="hec">
         <div className="hec__info">
           <div className="hec__info__title">
-            <img src="/icons/husky-bone-blue.svg" className="hec__info__title__icon" />
+            <img alt="Husky Bone Blue" src="/icons/husky-bone-blue.svg" className="hec__info__title__icon" />
             <h3 className="hec__info__title__text">What is Husky?</h3>
           </div>
           <p className="hec__info__desc">
@@ -49,26 +63,38 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
         </div>
         <div className="hec__content">
           <div className="hec__content__background">
-            <img className="hec__content__background__logo" src="/images/husky-line-logo.svg" />
+            <img alt="Husky Line Logo" className="hec__content__background__logo" src="/images/husky-line-logo.svg" />
           </div>
           <h3 className="hec__content__title">Traverse the Protocol Labs with Husky</h3>
           <div className="hec__content__box">
             <div className="hec__content__box__search">
-              <img className="hec__content__box__search__icon" width={30} height={30} src="/images/husky-brain.png" />
-              <textarea ref={textareaRef} className="hec__content__box__search__input" placeholder="Go ahead, ask anything below" />
+              <img alt="Brain" className="hec__content__box__search__icon" width={30} height={30} src="/images/husky-brain.png" />
+              <textarea
+                ref={textareaRef}
+                className="hec__content__box__search__input"
+                placeholder="Go ahead, ask anything.."
+                onKeyDown={handleKeyDown}
+              />
+              {!isMobileDevice() && (
+            <div className="hec__content__box__search__instruction">
+              <p>
+                <span className="hec__content__box__search__instruction__tag">Shift</span> + <span className="hec__content__box__search__instruction__tag">Enter</span> for new line
+              </p>
+            </div>
+          )}
               <button onClick={handlePromptSubmission} className="hec__content__box__search__button">
-                <img src="/icons/send.svg" />
+                <img alt="Send" src="/icons/send.svg" />
               </button>
             </div>
             <div className="hec__content__box__prompts">
               <h4 className="hec__content__box__prompts__title">
-                <img src="/icons/suggestions-orange.svg" className="hec__content__box__prompts__title__icon" />
+                <img alt="Suggestions Orange" src="/icons/suggestions-orange.svg" className="hec__content__box__prompts__title__icon" />
                 <span className="hec__content__box__prompts__title__text">Try asking or searching for</span>
               </h4>
               <div className="hec__content__box__prompts__list">
                 {initialPrompts.map((prompt, index) => (
                   <div className="hec__content__box__prompts__list__item" key={index} onClick={() => onExplorationPromptClicked(prompt.text)}>
-                    <img src={prompt.icon} className="hec__content__box__prompts__list__item__icon" />
+                    <img alt="Prompt Icon" src={prompt.icon} className="hec__content__box__prompts__list__item__icon" />
                     <span className="hec__content__box__prompts__list__item__text">{prompt.text}</span>
                   </div>
                 ))}
@@ -76,7 +102,7 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
             </div>
           </div>
           <div className="hec__content__footer">
-            <img width={16} height={16} src="/icons/husky-add.svg" className="hec__content__footer__icon" />
+            <img alt="Husky Add" width={16} height={16} src="/icons/husky-add.svg" className="hec__content__footer__icon" />
             <p className="hec__content__footer__text">Want Husky to be able to fetch results for your teams, projects and members too?</p>
             <a href='https://airtable.com/appgb6O7eF6mBEl8t/pagkXZKMaDujXVdio/form' target='_blank' className="hec__content__footer__button">Upload data</a>
           </div>
@@ -163,6 +189,7 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
           align-items: center;
           padding: 0 16px;
           gap: 8px;
+          position: relative;
         }
         .hec__content__box__search__input {
           flex: 1;
@@ -242,6 +269,16 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
           font-weight: 400;
         }
 
+        .hec__content__box__search__instruction {
+            display: none;
+          }
+
+          .hec__content__box__search__instruction__tag {
+            border: 1px solid #CBD5E1;
+            padding: 2px 4px;
+            border-radius: 4px;
+          }
+
         @media (min-width: 1024px) {
           .hec__content__box {
             width: 600px;
@@ -263,6 +300,26 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
             margin: 30px 0;
             line-height: 36px;
           }
+
+          .hec__content__box__search__instruction {
+              position: absolute;
+              top: 0px;
+              right: 68px;
+              width: auto;
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 10px;
+              color: #adadad;
+            }
+          
+            .hec__content__box__search__input:placeholder-shown + .hec__content__box__search__instruction {
+              display: flex;
+            }
+            .hec__content__box__search__input:not(:placeholder-shown) + .hec__content__box__search__instruction {
+              display: none;
+            }
         }
       `}</style>
     </>

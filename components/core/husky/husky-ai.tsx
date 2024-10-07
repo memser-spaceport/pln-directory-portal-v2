@@ -107,7 +107,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
   const onPromptClicked = async (question: string) => {
     try {
-      const { authToken } = await getUserCredentials();
+      const { authToken, userInfo } = await getUserCredentials();
       if (!authToken) {
         return;
       }
@@ -116,19 +116,19 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       setAnswerLoadingStatus(true);
       setActiveTab(DEFAULT_TAB_ITEMS[0].key);
       setChats([]);
-      trackAiResponse('initiated', 'prompt');
-      const result = await getHuskyResponse(authToken, question, selectedSource, chatUid, null, null, mode === 'blog'); // Fixed function name
+      trackAiResponse('initiated', 'prompt', mode === 'blog', question);
+      const result = await getHuskyResponse(userInfo, authToken, question, selectedSource, chatUid, null, null, mode === 'blog'); // Fixed function name
       setAskingQuestion('');
       setAnswerLoadingStatus(false);
       if (result.isError) {
-        trackAiResponse('error', 'prompt');
+        trackAiResponse('error', 'prompt', mode === 'blog', question);
         setChats((prevChats) => [...prevChats, { question, answer: '', isError: true }]);
         return;
       }
-      trackAiResponse('success', 'prompt');
+      trackAiResponse('success', 'prompt', mode === 'blog', question);
       setChats(result.data ? [{ ...result.data, isError: false }] : []);
     } catch (error) {
-      trackAiResponse('error', 'prompt');
+      trackAiResponse('error', 'prompt', mode === 'blog', question);
     }
   };
 
@@ -149,7 +149,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
   const onFollowupClicked = async (question: string) => {
     try {
-      const { authToken } = await getUserCredentials();
+      const { authToken, userInfo } = await getUserCredentials();
       if (!authToken) {
         return;
       }
@@ -158,23 +158,23 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         return;
       }
       trackFollowupQuestionClick(mode, question, blogId);
-      trackAiResponse('initiated', 'followup');
+      trackAiResponse('initiated', 'followup', mode === 'blog', question);
       const chatUid = checkAndSetPromptId();
       setAskingQuestion(question);
       setAnswerLoadingStatus(true);
 
-      const result = await getHuskyResponse(authToken, question, selectedSource, chatUid, mode === 'blog' && chats.length === 1 ? chats[0].question : null, mode === 'blog' && chats.length === 1 ? chats[0].answer : null, mode === 'blog'); // Fixed function name
+      const result = await getHuskyResponse(userInfo, authToken, question, selectedSource, chatUid, mode === 'blog' && chats.length === 1 ? chats[0].question : null, mode === 'blog' && chats.length === 1 ? chats[0].answer : null, mode === 'blog'); // Fixed function name
       setAskingQuestion('');
       setAnswerLoadingStatus(false);
       if (result.isError) {
-        trackAiResponse('error', 'followup');
+        trackAiResponse('error', 'followup', mode === 'blog', question);
         setChats((prevChats) => [...prevChats, { question, answer: '', isError: true }]);
         return;
       }
-      trackAiResponse('success', 'followup');
+      trackAiResponse('success', 'followup', mode === 'blog', question);
       setChats((prevChats) => result.data ? [...prevChats, { ...result.data, isError: false }] : prevChats);
     } catch (error) {
-      trackAiResponse('error', 'followup');
+      trackAiResponse('error', 'followup', mode === 'blog', question);
     }
   };
 
@@ -199,7 +199,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
   const onHuskyInput = async (query: string) => {
     try {
-      const { authToken } = await getUserCredentials();
+      const { authToken, userInfo } = await getUserCredentials();
       if (!authToken) {
         return;
       }
@@ -216,19 +216,19 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       trackUserPrompt(query);
       setAskingQuestion(query);
       setAnswerLoadingStatus(true);
-      trackAiResponse('initiated', 'user-input');
-      const result = await getHuskyResponse(authToken, query, selectedSource, chatUid);
+      trackAiResponse('initiated', 'user-input', mode === 'blog', query);
+      const result = await getHuskyResponse(userInfo, authToken, query, selectedSource, chatUid);
       setAskingQuestion('');
       setAnswerLoadingStatus(false);
       if (result.isError) {
-        trackAiResponse('error', 'user-input');
+        trackAiResponse('error', 'user-input', mode === 'blog', query);
         setChats((prevChats) => [...prevChats, { question: query, answer: '', isError: true }]);
         return;
       }
-      trackAiResponse('success', 'user-input');
+      trackAiResponse('success', 'user-input', mode === 'blog', query);
       setChats((prevChats) => result.data ? [...prevChats, { ...result.data, isError: false }] : prevChats);
     } catch (error) {
-      trackAiResponse('error', 'user-input');
+      trackAiResponse('error', 'user-input', mode === 'blog', query);
     }
   };
 

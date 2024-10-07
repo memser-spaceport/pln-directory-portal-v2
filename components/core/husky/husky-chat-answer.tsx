@@ -1,7 +1,6 @@
 import Markdown from 'markdown-to-jsx';
-import { useRef, useState } from 'react';
-
 import CopyText from '../copy-text';
+import HuskyCodeBlock from './husky-code-block';
 
 interface HuskyChatAnswerProps {
   mode: 'blog' | 'chat';
@@ -29,22 +28,24 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
       <div className="chat__ans">
         {mode !== 'blog' && (
           <h3 className="chat__ans__title">
-            <img width={16} height={16} src="/icons/chat-orange.svg" />
+            <img alt="Answer" width={16} height={16} src="/icons/chat-orange.svg" />
             <span>Answer</span>
           </h3>
         )}
         <div className={`chat__ans__text ${mode === 'blog' ? 'chat__ans__text--blog' : ''}`}>
           <Markdown
+            style={{ width: '100%' }}
             options={{
               overrides: {
                 a: { component: anchorWrapper },
-                p: { props: { style: { marginBottom: '6px', lineHeight: '20px', fontSize: '14px' } } },
+                p: { props: { style: { marginBottom: '6px', lineHeight: '20px', fontSize: '14px', maxWidth: '100%' } } },
                 h1: { props: { style: { marginTop: '14px', marginBottom: '14px', fontSize: '22px' } } },
                 h2: { props: { style: { marginTop: '12px', marginBottom: '12px', fontSize: '20px' } } },
                 h3: { props: { style: { marginTop: '10px', marginBottom: '10px', fontSize: '18px' } } },
                 h4: { props: { style: { marginTop: '8px', marginBottom: '8px', fontSize: '16px' } } },
                 ol: { props: { style: { marginLeft: '16px' } } },
                 ul: { props: { style: { marginLeft: '16px' } } },
+                code: { component: HuskyCodeBlock },
               },
             }}
           >
@@ -95,6 +96,11 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
             gap: 8px;
             padding: 14px;
             border-radius: 8px;
+            max-width: 100%;
+          }
+
+          .chat__ans__text div:first-child {
+            max-width: 100%;
           }
 
           .chat__ans__text--blog {

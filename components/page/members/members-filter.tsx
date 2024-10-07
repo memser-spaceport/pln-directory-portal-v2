@@ -55,6 +55,7 @@ const MembersFilter = (props: IMembersFilter) => {
   const apliedFiltersCount = getFilterCount(query);
 
   const isIncludeFriends = searchParams['includeFriends'] === 'true' || false;
+  const isRecent = searchParams['isRecent'] === 'true' || false;
   const isOpenToWork = searchParams['openToWork'] === 'true' || false;
   const isOfficeHoursOnly = searchParams['officeHoursOnly'] === 'true' || false;
 
@@ -189,6 +190,19 @@ const MembersFilter = (props: IMembersFilter) => {
                   callback={(e: BaseSyntheticEvent) => onToggleClicked('includeFriends', 'member-include-friends', e)}
                   isChecked={isIncludeFriends}
                   id="member-include-friends"
+                />
+              </div>
+            </div>
+            {/* Recently Added filter */}
+            <div className="team-filter__body__toggle-section__toggle-option">
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Recently Added</h3>
+              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
+                <Toggle
+                  height="16px"
+                  width="28px"
+                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isRecent', 'member-is-recent', e)}
+                  isChecked={isRecent}
+                  id="member-is-recent"
                 />
               </div>
             </div>

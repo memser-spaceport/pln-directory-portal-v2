@@ -60,6 +60,13 @@ const AttendeeList = (props: any) => {
     }
   }, [router]);
 
+  const onRespondClick = () => {
+    if (!isLoggedIn) {
+      onLogin();
+    } else {
+    }
+  };
+
   // Sync registeredGuest and eventDetails changes
   useEffect(() => {
     setUpdatedEventDetails(eventDetails);
@@ -145,23 +152,37 @@ const AttendeeList = (props: any) => {
           />
         </div>
         <div className="attendeeList__table">
-          <div className={`irl__table  ${isLoggedIn ? 'table__login' : 'table__not-login'} `}>
-            <TableHeader userInfo={userInfo} isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} filterConfig={filterConfig} />
-            <div className={`irl__table__body  ${isLoggedIn ? '' : 'w-full'}`}>
-              {isLoggedIn && (
-                <GuestList
-                  userInfo={userInfo}
-                  items={filteredList}
-                  eventDetails={updatedEventDetails}
-                  showTelegram={showTelegram}
-                  selectedGuests={selectedGuests}
-                  setSelectedGuests={setSelectedGuests}
-                  location={location}
-                />
-              )}
-              {!isLoggedIn && <EmptyList onLogin={onLogin} items={filteredList} eventDetails={updatedEventDetails} location={location} />}
+          {eventDetails?.guests?.length > 0 && (
+            <div className={`irl__table  ${isLoggedIn ? 'table__login' : 'table__not-login'} `}>
+              <TableHeader userInfo={userInfo} isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} filterConfig={filterConfig} />
+              <div className={`irl__table__body  ${isLoggedIn ? '' : 'w-full'}`}>
+                {isLoggedIn && (
+                  <GuestList
+                    userInfo={userInfo}
+                    items={filteredList}
+                    eventDetails={updatedEventDetails}
+                    showTelegram={showTelegram}
+                    selectedGuests={selectedGuests}
+                    setSelectedGuests={setSelectedGuests}
+                    location={location}
+                  />
+                )}
+                {!isLoggedIn && <EmptyList onLogin={onLogin} items={filteredList} eventDetails={updatedEventDetails} location={location} />}
+              </div>
             </div>
-          </div>
+          )}
+          {eventDetails?.guests?.length === 0 && (
+            <div className="attendeeList__table--no-attendees">
+              <div className="attendeeList__table--no-attendees__content">
+                <span className="attendeeList__table--no-attendees__content__memberIcon">
+                  <img src="/icons/members-blue.svg" alt="members" />
+                </span>
+                <p className="attendeeList__table--no-attendees__content__text">
+                  <span className="attendeeList__table--no-attendees__content__text__respond">Respond</span> to break the ice! Your participation might inspire others to jump in!
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {/* FLOATING BAR */}
@@ -239,6 +260,48 @@ const AttendeeList = (props: any) => {
           overflow-y: auto;
         }
 
+        .attendeeList__table--no-attendees {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          justify-content: center;
+          height: 54px;
+          background-color: #fff;
+          box-shadow: 0px 4px 4px 0px #0f172a0a;
+          width: 100%;
+          padding: 0px 20px;
+        }
+
+        .attendeeList__table--no-attendees__content {
+          display: flex;
+          gap: 6px;
+          align-items: center;
+        }
+
+        .attendeeList__table--no-attendees__content__memberIcon {
+          background-color: #dbeafe;
+          min-width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+        }
+
+        .attendeeList__table--no-attendees__content__text__respond {
+          font-size: 13px;
+          font-weight: 500;
+          line-height: 15px;
+          color: #156ff7;
+        }
+
+        .attendeeList__table--no-attendees__content__text {
+          font-size: 13px;
+          font-weight: 400;
+          line-height: 15px;
+          color: #0f172a;
+        }
+
         .table__login {
           height: calc(100svh - 280px);
         }
@@ -286,6 +349,10 @@ const AttendeeList = (props: any) => {
 
           .table__not-login {
             height: calc(100vh - 170px);
+          }
+
+          .attendeeList__table--no-attendees {
+            border-radius: 8px;
           }
         }
       `}</style>

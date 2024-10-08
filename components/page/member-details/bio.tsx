@@ -50,6 +50,10 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
   };
 
   const onSaveClickHandler = async () => {
+    if(content === ''){
+      toast.error('About cannot be empty');
+      return;
+    }
     setEditor(false);
     analytics.onMemberDetailsBioEditSaveClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
     try {

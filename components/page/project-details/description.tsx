@@ -52,6 +52,10 @@ const Description = (props: IDescription) => {
   };
 
   const onSaveClickHandler = async () => {
+    if(description === ''){
+      toast.error('About cannot be empty');
+      return;
+    }
     setEditor(false);
     triggerLoader(true);
     analytics.onProjectDetailDescEditSaveClicked(getAnalyticsUserInfo(props?.user), project?.id);

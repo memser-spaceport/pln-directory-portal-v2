@@ -55,6 +55,10 @@ const About = (props: IAbout) => {
   };
 
   const onSaveClickHandler = async () => {
+    if(aboutEditedContent === ''){
+      toast.error('About cannot be empty');
+      return;
+    }
     setEditor(false);
     analytics.onTeamDetailAboutEditSaveClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
     const authToken = Cookies.get('authToken');

@@ -133,6 +133,11 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             />
           </div>
 
+          {
+            <label className={`tf__label`}>
+              Long Description*
+            </label>
+          }
           <div className="projectinfo__form__item__description">
           <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id='register-project-longDescription'/>
             {/* <TextArea
@@ -223,6 +228,11 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
       </div>
       <style jsx>
         {`
+        .tf__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 20px;
+          }
           .profileInfo__web {
             display: none;
           }

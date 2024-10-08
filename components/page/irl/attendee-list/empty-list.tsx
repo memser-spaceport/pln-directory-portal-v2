@@ -22,10 +22,10 @@ const EmptyList = (props: IEmptyList) => {
   };
 
   const onTeamClick = (teamUid: string, teamName: string) => {
-    // analytics.guestListTeamClicked(null, getAnalyticsEventInfo(eventDetails), {
-    //   teamUid,
-    //   teamName,
-    // });
+    analytics.trackGuestListTableTeamClicked(location, {
+      teamUid,
+      teamName,
+    });
   };
 
   return (
@@ -138,6 +138,10 @@ const EmptyList = (props: IEmptyList) => {
           }
 
           .empList__item__connect {
+            display: none;
+          }
+
+          .empList__item__attendings {
             display: none;
           }
 

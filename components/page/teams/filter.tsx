@@ -166,7 +166,7 @@ const Filter = (props: ITeamFilterWeb) => {
           </div>
           {/* New member filter */}
           <div className="team-filter__body__recent">
-            <h3 className="team-filter__body__recent__title">Recently Added</h3>
+            <h3 className="team-filter__body__recent__title">New Teams</h3>
             <div className="pe__body__topic__select__toggle">
               <Toggle height="16px" width="28px" callback={onIsRecentToggle} isChecked={isRecent} />
             </div>

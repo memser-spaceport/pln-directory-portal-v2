@@ -176,7 +176,7 @@ const ProjectFilter = (props: any) => {
         <div className="project-filter__body">
         <div className="project-filter__body__raisingfund">
             <div className="project-filter__body__raisingfund__wrpr">
-              <h3 className="project-filter__body__raisingfund__title">Recently Added</h3>
+              <h3 className="project-filter__body__raisingfund__title">New Projects</h3>
             </div>
             <div className="project-filter__body__raisingfund__toggle">
               <Toggle height="16px" width="28px" callback={onRecentToggleClicked} isChecked={!!isRecent} />

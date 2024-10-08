@@ -134,7 +134,12 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           </p>
         </div>
         <div className="teaminfo__form__item">
-          <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id='register-team-longDescription'/>
+          {
+            <label className={`tf__label`}>
+              Long Description*
+            </label>
+          }
+          <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id="register-team-longDescription" />
           {/* <TextArea
             defaultValue={initialValues?.longDescription}
             maxLength={2000}
@@ -167,6 +172,11 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
       </div>
       <style jsx>
         {`
+        .tf__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+          }
           .teaminfo__form {
             display: flex;
             flex-direction: column;

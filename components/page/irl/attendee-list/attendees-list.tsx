@@ -16,6 +16,7 @@ import Modal from '@/components/core/modal';
 import DeleteAttendeesPopup from './delete-attendees-popup';
 import { getParsedValue } from '@/utils/common.utils';
 import { getGuestsByLocation } from '@/services/irl.service';
+import AttendeeForm from '../add-edit-attendee/attendee-form';
 
 const AttendeeList = (props: any) => {
   const userInfo = props.userInfo;
@@ -24,13 +25,14 @@ const AttendeeList = (props: any) => {
   const showTelegram = props.showTelegram;
   const location = props.location;
 
-  console.log('eventDetails', eventDetails);
+  const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
   const [selectedGuests, setSelectedGuests] = useState([]);
   const [showFloaingBar, setShowFloatingBar] = useState(false);
   const deleteRef = useRef<HTMLDialogElement>(null);
   const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
+  const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
   const router = useRouter();
 
   const { filteredList, sortConfig, filterConfig } = useIrlDetails(updatedEventDetails?.guests, userInfo);
@@ -136,8 +138,37 @@ const AttendeeList = (props: any) => {
     setUpdatedUser(registeredGuest);
   }, [registeredGuest]);
 
+  useEffect(() => {
+    document.addEventListener(EVENTS.OPEN_IAM_GOING_POPUP, (e: any) => {
+      setIamGoingPopupProps(e.detail);
+    });
+
+    return () => {
+      document.removeEventListener(EVENTS.OPEN_IAM_GOING_POPUP, (e: any) => {
+        setIamGoingPopupProps(e.detail);
+      });
+    };
+  }, []);
+
+  const onIamGoingPopupClose = () => {
+    setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
+  };
+
   return (
     <>
+      {iamGoingPopupProps?.isOpen && (
+        <AttendeeForm
+          onClose={onIamGoingPopupClose}
+          formData={iamGoingPopupProps?.formdata}
+          selectedLocation={location}
+          userInfo={userInfo}
+          allGatherings={eventDetails?.events}
+          defaultTags={defaultTopics}
+          mode={iamGoingPopupProps?.mode}
+          allGuests={eventDetails?.guests}
+          scrollTo={iamGoingPopupProps?.scrollTo}
+        />
+      )}
       <div className="attendeeList">
         <div className="attendeeList__toolbar">
           <Toolbar

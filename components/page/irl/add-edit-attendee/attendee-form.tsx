@@ -17,6 +17,7 @@ import { canUserPerformEditAction } from '@/utils/irl.utils';
 import AttendeeFormErrors from './attendee-form-errors';
 import { isLink } from '@/utils/third-party.helper';
 import { compareObjsIfSame } from '@/utils/common.utils';
+import Image from 'next/image';
 
 interface IAttendeeForm {
   selectedLocation: any;
@@ -26,6 +27,7 @@ interface IAttendeeForm {
   mode: string;
   allGuests: any[];
   onClose: any;
+  scrollTo: any;
   formData: any;
 }
 
@@ -39,6 +41,7 @@ const AttendeeForm = (props: IAttendeeForm) => {
   const defaultTags = props?.defaultTags;
   const allGuests = props?.allGuests;
   const onClose = props?.onClose;
+  const scrollTo = props?.scrollTo;
   // const initialValues = props?.formData;
 
   const [formInitialValues, setFormInitialValues] = useState<any>(props?.formData);
@@ -52,18 +55,6 @@ const AttendeeForm = (props: IAttendeeForm) => {
 
   const attendeeFormRef = useRef<HTMLFormElement>(null);
   const formBodyRef = useRef<HTMLDivElement>(null);
-
-  // const formInitialData = props?.formdata ?? {
-  //   teamUid: '',
-  //   telegramId: '',
-  //   reason: '',
-  //   topics: [],
-  //   officeHours: '',
-  //   additionalInfo: {
-  //     checkInDate: '',
-  //     checkOutDate: '',
-  //   },
-  // };
 
   useEffect(() => {
     if (ref.current) {
@@ -133,16 +124,11 @@ const AttendeeForm = (props: IAttendeeForm) => {
       }
     } else if (allGuests?.includes(formattedData?.membeUid)) {
       isError = true;
-    } else {
-      // setErrors({ gatheringsError: [], participationError: [], dateErrors: [] });
     }
-
     if (isError) {
       formScroll();
       return;
     }
-
-    // return;
 
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     const isUpdate = allGuests?.some((guest: any) => guest.memberUid === formInitialValues?.memberUid);
@@ -272,54 +258,80 @@ const AttendeeForm = (props: IAttendeeForm) => {
     return result;
   }
 
+
+  useEffect(() => {
+    if (scrollTo && formBodyRef.current) {
+      const section = formBodyRef.current.querySelector(`#${scrollTo}`);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, []);
+
   return (
-    <div>
-      <Modal onClose={onClose} modalRef={ref}>
-        <RegisterFormLoader />
-        <form noValidate onSubmit={onFormSubmitHandler} ref={attendeeFormRef} className="atndform">
-          <div className="atndform__bdy" ref={formBodyRef}>
-            <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
-            <div>
-              <AttendeeFormErrors errors={errors} />
-            </div>
-            <div>
-              <AttendeeDetails setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} />
-            </div>
-            <div>
-              <Gatherings initialValues={formInitialValues} errors={errors} setErrors={setErrors} selectedLocation={selectedLocation} gatherings={gatherings} userInfo={userInfo} guests={allGuests} />
-            </div>
-            <div>
-              <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
-            </div>
-            <div>
-              <Topics defaultTags={defaultTags} selectedItems={formInitialValues?.topics} />
-            </div>
-            <div>
-              <TopicsDescription initialValue={formInitialValues?.reason} />
-            </div>
-
-            <div>
-              <TelegramHandle initialValues={formInitialValues} />
-            </div>
-            <div>
-              <OfficeHours initialValues={formInitialValues} />
-            </div>
+    <div className="attndformcnt">
+      <RegisterFormLoader />
+      <form noValidate onSubmit={onFormSubmitHandler} ref={attendeeFormRef} className="atndform">
+        <button type="button" className="modal__cn__closebtn" onClick={onClose}>
+          <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
+        </button>
+        <div className="atndform__bdy" ref={formBodyRef}>
+          <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
+          <div>
+            <AttendeeFormErrors errors={errors} />
+          </div>
+          <div>
+            <AttendeeDetails setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} />
+          </div>
+          <div>
+            <Gatherings initialValues={formInitialValues} errors={errors} setErrors={setErrors} selectedLocation={selectedLocation} gatherings={gatherings} userInfo={userInfo} guests={allGuests} />
+          </div>
+          <div>
+            <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
+          </div>
+          <div>
+            <Topics defaultTags={defaultTags} selectedItems={formInitialValues?.topics} />
+          </div>
+          <div>
+            <TopicsDescription initialValue={formInitialValues?.reason} />
           </div>
 
-          <div className="atndform__optns">
-            <button type="button" className="atndform__optns__cls">
-              Close
-            </button>
-
-            <button type="submit" className="atndform__optns__sbmt">
-              {mode === IAM_GOING_POPUP_MODES.EDIT ? 'Save' : 'Submit'}
-            </button>
+          <div id="telegram-section">
+            <TelegramHandle initialValues={formInitialValues} scrollTo={scrollTo}/>
           </div>
-        </form>
-      </Modal>
+          <div>
+            <OfficeHours initialValues={formInitialValues} />
+          </div>
+        </div>
+
+        <div className="atndform__optns">
+          <button type="button" className="atndform__optns__cls">
+            Close
+          </button>
+
+          <button type="submit" className="atndform__optns__sbmt">
+            {mode === IAM_GOING_POPUP_MODES.EDIT ? 'Save' : 'Submit'}
+          </button>
+        </div>
+      </form>
 
       <style jsx>
         {`
+          .attndformcnt {
+            position: fixed;
+            z-index: 5;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+          }
+
           .atndform {
             padding: 20px 0 0 0;
             width: 90vw;
@@ -327,6 +339,9 @@ const AttendeeForm = (props: IAttendeeForm) => {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            background: white;
+            border-radius: 12px;
+            position: relative;
           }
 
           .atndform__bdy {
@@ -350,6 +365,17 @@ const AttendeeForm = (props: IAttendeeForm) => {
             align-items: center;
             margin: 0 40px 20px 0;
             gap: 8px;
+          }
+
+          
+          .modal__cn__closebtn {
+            position: absolute;
+            border: none;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            user-select: none;
+            outline: none;
           }
 
           .atndform__optns__cls,

@@ -58,6 +58,7 @@ export const EVENTS = {
   OPEN_MEMBER_BIO_POPUP: 'open-member-bio-popup',
   UPDATE_TELEGRAM_HANDLE: 'update-telegram-handle',
   UPDATE_OFFICE_HOURS: 'update-office-hours',
+  OPEN_IAM_GOING_POPUP: 'open-iam-going-popup',
 };
 
 export const HELPER_MENU_OPTIONS = [

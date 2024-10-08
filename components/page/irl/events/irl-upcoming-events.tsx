@@ -49,7 +49,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
     if (searchParams?.eventName) {
         updateQueryParams('eventName', "", searchParams);
     }
-    
+
     const toggleDescription = () => {
         setExpanded(!isExpanded);
         setItemsToShow(isExpanded ? 4 : itemsToShow + 4);
@@ -96,7 +96,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
                             </div>
                             <div className='root__irl__desktop__view'>
                                 {eventsToShow?.map((gathering: any, index: number) => (
-                                   <IrlEventsTableView key={index} gathering={gathering} handleClick={handleClick} eventsToShow={eventsToShow} />
+                                    <IrlEventsTableView key={index} gathering={gathering} handleClick={handleClick} eventsToShow={eventsToShow} />
                                 ))}
                             </div>
                             <div className='root__irl__mobile__view'>
@@ -107,6 +107,13 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
                             {eventsToShow?.length > 4 &&
                                 <div className='root__irl__mobileView' onClick={toggleDescription}>
                                     {isExpanded ? ' Show Less' : ' Show More'}
+                                    <div className='root__irl__mobileView__icon'>
+                                        {!isExpanded ?
+                                            <img src="/icons/arrow-blue-down.svg" alt="down-arrow" />
+                                            :
+                                            <img src="/icons/chevron-up.svg" alt="up-arrow" className='root__irl__mobileView__icon__up' />
+                                        }
+                                    </div>
                                 </div>
                             }
                         </>
@@ -321,6 +328,18 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
                     text-align: left;
                 }
 
+                .root__irl__mobileView__icon {
+                    display: flex;
+                    height: 20px;
+                    width: 20px;
+                }
+
+                .root__irl__mobileView__icon__up {
+                    color: #156FF7;
+                    height: 20px;
+                    weight: 20px;
+                }
+
                 @media screen and (min-width: 360px) {
                     .root__irl__mobileView {
                         width: 100%;
@@ -328,10 +347,14 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
                         border: 1px solid #CBD5E1;
                         background-color: #DBEAFE;
                         display: flex;
-                        flex-direction: column;
-                        justify-content: center;
-                        align-items: left;
+                        flex-direction: row;
                         padding-left: 8px;
+                        color: #156FF7;
+                        font-size: 13px;
+                        font-weight: 500;
+                        line-height: 20px;
+                        text-align: left;
+                        align-items: center;
                     }
 
                     .root__irl__tableContainer {

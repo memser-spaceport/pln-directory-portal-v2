@@ -73,3 +73,89 @@ export interface IGuestDetails {
   guests: IGuest[];
   events: IIrlEvent[];
 }
+
+export interface IIrlLocation {
+  uid: string;
+  name: string;
+}
+
+export interface IIrlGathering {
+  uid: string;
+  name: string;
+  type: string | null;
+  description: string;
+  startDate: string;
+  endDate: string;
+  logo: string;
+  banner: {
+    uid: string;
+    cid: string;
+    width: number;
+    height: number;
+    url: string;
+    filename: string;
+    size: number;
+    type: string;
+    version: string;
+    thumbnailToUid: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  resources: {
+    icon: string;
+    link: string;
+    name: string;
+    description: string;
+  }[];
+  additionalInfo: {
+    schedule: string;
+    isExclusiveEvent: boolean;
+  };
+  hostSubEvents: IIrlParticipationEvent[];
+  speakerSubEvents: IIrlParticipationEvent[];
+}
+
+export interface IIrlGuest {
+  memberUid: string;
+  memberName: string;
+  memberLogo: string;
+  teamUid: string;
+  teamName: string;
+  teamLogo: string;
+  teams: { name: string; id: string; logo: string; }[];
+  projectContributions: any[];
+  eventNames: string[];
+  events: {
+    uid: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    logo: string;
+    isHost: boolean;
+    isSpeaker: boolean;
+    hostSubEvents: any[];
+    speakerSubEvents: any[];
+  }[];
+  topics: string[];
+  officeHours: string;
+  telegramId: string;
+  reason: null;
+  additionalInfo: {
+    checkInDate: string;
+    checkOutDate: string;
+    hostSubEvents: any[];
+    speakerSubEvents: any[];
+  };
+}
+
+export interface IIrlAttendeeFormErrors {
+  gatheringErrors: string[],
+  participationErrors: string[],
+  dateErrors: string[],
+}
+
+export interface IIrlParticipationEvent {
+  uid: string;
+  name: string;
+  link: string
+}

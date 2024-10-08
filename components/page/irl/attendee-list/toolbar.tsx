@@ -55,7 +55,7 @@ const Toolbar = (props: IToolbar) => {
 
   // Open Attendee Details Popup to add guest
   const onIAmGoingClick = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADD } }));
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: {member: userInfo}, mode: IAM_GOING_POPUP_MODES.ADD} }));
     analytics.trackImGoingBtnClick(location);
   };
 

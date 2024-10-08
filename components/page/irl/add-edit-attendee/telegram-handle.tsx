@@ -2,7 +2,12 @@ import { EVENTS } from '@/utils/constants';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
-const TelegramHandle = (props: any) => {
+interface ITelegramHandle {
+  initialValues: any;
+  scrollTo: string;
+}
+
+const TelegramHandle = (props: ITelegramHandle) => {
   // const telegramId = props?.telegramId;
 
   const initialValues = props?.initialValues;
@@ -55,7 +60,7 @@ const TelegramHandle = (props: any) => {
   }, [initialValues]);
 
   useEffect(() => {
-    if(scrollTo) {
+    if(scrollTo === "telegram-section") {
       if (telegramRef.current) {
         telegramRef.current.focus();
       }
@@ -139,9 +144,12 @@ const TelegramHandle = (props: any) => {
 
           .details__cn__telegram__handle {
             position: absolute;
-            top: 40px;
+            top: 39px;
             left: 7px;
             color: #475569;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 24px;
           }
 
           .details__cn__telegram__info {

@@ -1,19 +1,27 @@
 import { EVENTS, OH_GUIDELINE_URL } from '@/utils/constants';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-const OfficeHours = (props: any) => {
+interface IOfficeHours {
+  initialValues: any;
+  scrollTo: string;
+}
+
+const OfficeHours = (props: IOfficeHours) => {
 
   const initialValues = props?.initialValues;
+  const scrollTo = props?.scrollTo;
 
-  const [officeHours, setOfficeHours] = useState(props?.initialValue);
+  const officeHoursRef: any = useRef(null);
+
+  const [officeHours, setOfficeHours] = useState("");
   const [isFocusNote, setIsFocusNote] = useState(false);
 
   const handleOHGuidlineClick = () => {
     // analytics.irlGuestDetailPrivacySettingClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name });
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setOfficeHours(e.target.value);
   };
 
@@ -45,6 +53,15 @@ const OfficeHours = (props: any) => {
       setIsFocusNote(false);
     }
   }, [initialValues])
+
+  useEffect(() => {
+    if(scrollTo === "officehours-section") {
+      if (officeHoursRef.current) {
+        officeHoursRef.current.focus();
+      }
+    }
+  }, [])
+
   return (
     <>
       <div className="details__cn__oh">
@@ -61,6 +78,7 @@ const OfficeHours = (props: any) => {
           onChange={handleChange}
           onFocus={handleOfficeHoursFocus}
           onBlur={() => setIsFocusNote(false)}
+          ref={officeHoursRef}
         />
         <div className="details__cn__oh__info">
           <img src="/icons/info.svg" alt="info" width={16} height={16} />

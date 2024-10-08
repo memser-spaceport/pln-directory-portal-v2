@@ -1,11 +1,17 @@
 'use client';
 
+import { IIrlAttendeeFormErrors, IIrlGathering } from '@/types/irl.types';
+import { IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { formatDateRangeForDescription } from '@/utils/irl.utils';
 import { useEffect, useState } from 'react';
 
-interface ArrivalDepatureDateProps {}
+interface IArrivalDepatureDateProps {
+  allGatherings: IIrlGathering[];
+  errors: IIrlAttendeeFormErrors;
+  initialValues: any;
+}
 
-const ArrivalAndDepatureDate = (props: any) => {
+const ArrivalAndDepatureDate = (props: IArrivalDepatureDateProps) => {
   const gatherings = props?.allGatherings;
   const dateErrors = props?.errors?.dateErrors;
   const initialValues = props?.initialValues;
@@ -25,20 +31,24 @@ const ArrivalAndDepatureDate = (props: any) => {
   const [depatureDate, setDepatureDate] = useState('');
 
   useEffect(() => {
-    const startDateList = gatherings.map((gathering: any) => gathering.startDate);
-    const endDateList = gatherings.map((gathering: any) => gathering.endDate);
-    const leastStartDate = startDateList.reduce((minDate: any, currentDate: any) => {
-      if (currentDate < minDate) {
-        return currentDate;
+    const startDateList = gatherings.map((gathering: IIrlGathering) => gathering.startDate);
+    const endDateList = gatherings.map((gathering: IIrlGathering) => gathering.endDate);
+
+    let leastStartDate = startDateList[0];
+    let highestEndDate = endDateList[0];
+
+    startDateList?.map((startDate: string) => {
+      const date = new Date(startDate);
+      if (date < new Date(leastStartDate)) {
+        leastStartDate = startDate;
       }
-      return minDate;
     });
 
-    const highestEndDate = endDateList.reduce((maxDate: any, currentDate: any) => {
-      if (currentDate > maxDate) {
-        return currentDate;
+    endDateList?.map((endDate: string) => {
+      const date = new Date(endDate);
+      if (date > new Date(highestEndDate)) {
+        highestEndDate = endDate;
       }
-      return maxDate;
     });
 
     const fiveDaysBeforeLeastStartDate = new Date(leastStartDate);
@@ -75,11 +85,11 @@ const ArrivalAndDepatureDate = (props: any) => {
     }
   }, [initialValues]);
 
-  const onArrivalDateChange = (e: any) => {
+  const onArrivalDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setArrivalDate(e.target.value);
   };
 
-  const onDepartureDateChange = (e: any) => {
+  const onDepartureDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDepatureDate(e.target.value);
   };
 
@@ -92,21 +102,26 @@ const ArrivalAndDepatureDate = (props: any) => {
   };
 
   function getDateRange() {
-    const startDateList = gatherings.map((gathering: any) => gathering.startDate);
-    const endDateList = gatherings.map((gathering: any) => gathering.endDate);
-    const leastStartDate = startDateList.reduce((minDate: any, currentDate: any) => {
-      if (currentDate < minDate) {
-        return currentDate;
+    const startDateList = gatherings.map((gathering: IIrlGathering) => gathering.startDate);
+    const endDateList = gatherings.map((gathering: IIrlGathering) => gathering.endDate);
+
+    let leastStartDate = startDateList[0];
+    let highestEndDate = endDateList[0];
+
+    startDateList?.map((startDate: string) => {
+      const date = new Date(startDate);
+      if (date < new Date(leastStartDate)) {
+        leastStartDate = startDate;
       }
-      return minDate;
     });
 
-    const highestEndDate = endDateList.reduce((maxDate: any, currentDate: any) => {
-      if (currentDate > maxDate) {
-        return currentDate;
+    endDateList?.map((endDate: string) => {
+      const date = new Date(endDate);
+      if (date > new Date(highestEndDate)) {
+        highestEndDate = endDate;
       }
-      return maxDate;
     });
+
     return formatDateRangeForDescription(leastStartDate, highestEndDate);
   }
 
@@ -207,7 +222,6 @@ const ArrivalAndDepatureDate = (props: any) => {
         .dtscnt__dte__deprdte__outfield {
           width: 100%;
           padding: 8px 12px;
-          border: 1px solid lightgrey;
           border-radius: 8px;
           min-height: 40px;
           font-size: 14px;
@@ -230,11 +244,11 @@ const ArrivalAndDepatureDate = (props: any) => {
         }
 
         .dtscnt__dte__arvldte__infield {
-          border: ${dateErrors?.checkIn ? '1px solid #ef4444' : '1px solid lightgrey'};
+          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED) ? '1px solid red' : '1px solid lightgrey'};
         }
 
         .dtscnt__dte__deprdte__outfield {
-          border: ${dateErrors?.checkOut ? '1px solid #ef4444' : '1px solid lightgrey'};
+          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED) ? '1px solid red' : '1px solid lightgrey'};
         }
 
         .dtscnt__desc {

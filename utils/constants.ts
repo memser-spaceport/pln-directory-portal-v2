@@ -300,13 +300,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
 };
 
 export const IRL_ANALYTICS_EVENTS = {
-  ON_LOCATION_CARD_CLICKED:'on-location-card-button-clicked',
-  ON_SEE_OTHER_LOCATION_CARD_CLICKED: 'on-see-other-location-card-clicked',
-  ON_UPCOMING_EVENTS_BUTTON_CLICKED: 'on-upcoming-events-button-clicked',
-  ON_PAST_EVENTS_BUTTON_CLICKED: 'on-past-events-button-clicked',
-  ON_RESOURCE_POPUP_VIEWED: 'on-resource-popup-viewed',
-  ON_ADDITIONAL_RESOURCE_CLICKED: 'on-additional-resource-clicked',
-  ON_ADDITIONAL_RESOURCE_SEE_MORE_BUTTON_CLICKED: 'on-additional-resource-see-more-button-clicked',
+  
 };
 
 export const HOME_ANALYTICS_EVENTS = {

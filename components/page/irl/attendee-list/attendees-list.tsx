@@ -25,6 +25,8 @@ const AttendeeList = (props: any) => {
   const showTelegram = props.showTelegram;
   const location = props.location;
 
+  console.log('props', eventDetails);
+
   const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
@@ -80,7 +82,7 @@ const AttendeeList = (props: any) => {
   useEffect(() => {
     const handler = async (e: any) => {
       const authToken = getParsedValue(Cookies.get('authToken'));
-      const eventInfo = await getGuestsByLocation(location?.uid, 'upcoming', authToken);
+      const eventInfo = await getGuestsByLocation(location?.uid, 'upcoming', authToken, '');
       const goingGuest = eventInfo?.guests?.find((guest: any) => guest?.memberUid === userInfo?.uid);
       const sortedGuests = sortByDefault(eventInfo?.guests);
       eventInfo.guests = sortedGuests;

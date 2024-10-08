@@ -64,12 +64,22 @@ const getPageData = async (searchParams: any) => {
       return { isError: true };
     }
 
-    const { uid, location: name } = eventDetails;
+    const { uid, location: name, pastEvents } = eventDetails;
     const eventLocationSummary = { uid, name };
+
+    const getUidFromPastEventsByName = (eventName: string) => {
+      const event = pastEvents.find((event: any) => event.name === eventName);
+      return event?.slugURL;
+    };
 
     // Determine event type and fetch event guest data
     const eventType = searchParams?.type === 'past' ? '' : 'upcoming';
-    const events = await getGuestsByLocation(uid, eventType, authToken);
+
+    const eventName = searchParams?.eventName;
+
+    const pastEventUid = getUidFromPastEventsByName(eventName);
+
+    const events = await getGuestsByLocation(uid, eventType, authToken, pastEventUid);
     if (events.isError) {
       return { isError: true };
     }

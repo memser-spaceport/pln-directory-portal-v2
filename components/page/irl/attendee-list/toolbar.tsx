@@ -1,23 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { canUserPerformEditAction, isPastDate } from '@/utils/irl.utils';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENT_TYPE, EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
+import { canUserPerformEditAction } from '@/utils/irl.utils';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
-import Search from './search';
 import { useSearchParams } from 'next/navigation';
-import AttendeeForm from '../add-edit-attendee/attendee-form';
+import useClickedOutside from '@/hooks/useClickedOutside';
+import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
+import Search from './search';
 
 interface IToolbar {
   onLogin: () => void;
   userInfo: IUserInfo;
   isUserGoing: boolean;
-  // filteredList: IGuest[];
-  isUserLoggedIn: boolean;
-  eventDetails: any;
+  filteredListLength: number;
+  isLoggedIn: boolean;
+  eventDetails: IGuestDetails;
+  updatedUser: IGuest;
+  location: IAnalyticsGuestLocation;
 }
 
-const Toolbar = (props: any) => {
+const Toolbar = (props: IToolbar) => {
   //props
   const onLogin = props.onLogin;
   const userInfo = props?.userInfo;
@@ -33,6 +36,13 @@ const Toolbar = (props: any) => {
   const [isEdit, seIsEdit] = useState(false);
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
+  const editResponseRef = useRef<HTMLButtonElement>(null);
+  useClickedOutside({
+    ref: editResponseRef,
+    callback: () => {
+      seIsEdit(false);
+    },
+  });
 
   //hooks
   const analytics = useIrlAnalytics();
@@ -51,20 +61,6 @@ const Toolbar = (props: any) => {
 
   const onIamGoingPopupClose = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: false, formdata: null, mode: '' } }));
-  };
-
-  // Open Attendee Details Popup to edit the guest
-  const onEditResponse = () => {
-    analytics.trackEditResponseBtnClick(location);
-    document.dispatchEvent(
-      new CustomEvent('openRsvpModal', {
-        detail: {
-          isOpen: true,
-          type: 'self-edit',
-          selectedGuest: userInfo?.uid,
-        },
-      })
-    );
   };
 
   const getValue = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,6 +87,7 @@ const Toolbar = (props: any) => {
   };
 
   const onRemoveFromGatherings = () => {
+    analytics.trackSelfRemoveAttendeePopupOpen(location);
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_REMOVE_GUESTS_POPUP, {
         detail: {
@@ -114,6 +111,7 @@ const Toolbar = (props: any) => {
   }, [searchTerm]);
 
   const onEditDetailsClicked = () => {
+    analytics.trackSelfEditDetailsClicked(location);
     const formData = {
       team: {
         name: updatedUser?.teamName,
@@ -188,7 +186,7 @@ const Toolbar = (props: any) => {
 
           {isUserGoing && isUserLoggedIn && type !== 'past' && (
             <div className="toolbar__actionCn__edit__wrpr">
-              <button onClick={onEditResponseClick} className="toolbar__actionCn__edit">
+              <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
                 Edit Response
                 <img src="/icons/down-arrow-white.svg" alt="arrow" width={18} height={18} />
               </button>
@@ -383,7 +381,7 @@ const Toolbar = (props: any) => {
             border-radius: 12px;
             box-shadow: 0px 2px 6px 0px #0f172a29;
             margin-top: 4px;
-            right: 0;
+            left: 0;
           }
 
           .toolbar__actionCn__edit__list__item {
@@ -450,6 +448,11 @@ const Toolbar = (props: any) => {
             .toolbar__search {
               flex-basis: 100%;
             }
+
+            .toolbar__actionCn__edit__list {
+              right: 0px;
+              left: unset;
+            }
           }
 
           @media (min-width: 1024px) {
@@ -470,6 +473,10 @@ const Toolbar = (props: any) => {
             .toolbar__hdr {
               font-size: 20px;
               flex: unset;
+            }
+
+            .toolbar__hdr__count {
+              min-width: 140px;
             }
 
             .toolbar__actionCn {

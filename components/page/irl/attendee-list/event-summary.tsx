@@ -2,13 +2,11 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import React from 'react';
 
 interface EventSummaryProps {
-  //   dateRange: string;
   events: string[];
   maxVisibleEvents?: number;
 }
 
 const EventSummary: React.FC<EventSummaryProps> = ({
-  //   dateRange,
   events,
   maxVisibleEvents = 1, // Default number of visible events before truncation
 }) => {

@@ -1,4 +1,3 @@
-import { IAnalyticsTeamInfo } from '@/types/shared.types';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
 
@@ -9,6 +8,7 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_IAM_GOING_BTN_CLICKED: 'irl-guest-list-iam-going-btn-clicked',
     IRL_GUEST_LIST_LOGIN_BTN_CLICKED: 'irl-guest-list-login-btn-clicked',
     IRL_EDIT_RESPONSE_BTN_CLICKED: 'irl-edit-response-btn-clicked',
+    IRL_SELF_EDIT_DETAILS_CLICKED: 'irl-self-edit-details-clicked',
     IRL_GUEST_LIST_SEARCH: 'irl-guest-list-search',
     IRL_GUEST_LIST_TABLE_SORT_CLICKED: 'irl-guest-list-table-sort-clicked',
     IRL_GUEST_LIST_TABLE_LOGIN_BTN_CLICKED: 'irl-guest-list-table-login-btn-clicked',
@@ -21,11 +21,14 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED: 'irl-guest-list-table-add-office-hours-clicked',
     IRL_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
     IRL_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
-
-    // IRL_DETAILS_BANNER_VIEW_SCHEDULE_BTN_CLICKED: 'irl-banner-view-schedule-btn-clicked',
-    IRL_DETAILS_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-remove-attendees-popup-open',
-    IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_BTN_CLICKED: 'irl-remove-attendees-popup-remove-btn-clicked',
-    IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_SUCCESS: 'irl-remove-attendees-popup-remove-success',
+    IRL_ADMIN_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-admin-remove-attendees-popup-open',
+    IRL_SELF_REMOVE_ATTENDEE_POPUP_BTN_CLICKED: 'irl-self-remove-attendee-popup-btn-clicked',
+    IRL_SELF_REMOVE_ATTENDEE_POPUP_CONFIRM_REMOVAL_BTN_CLICKED: 'irl-self-remove-attendee-popup-confirm-removal-btn-clicked',
+    IRL_SELF_REMOVAL_GATHERINGS_SUCCESS: 'irl-self-removal-gatherings-success',
+    IRL_SELF_REMOVAL_GATHERINGS_FAILED: 'irl-self-removal-gatherings-failed',
+    IRL_ADMIN_REMOVE_ATTENDEES_POPUP_CONFIRM_REMOVAL_BTN_CLICKED: 'irl-admin-remove-attendees-popup-confirm-removal-btn-clicked',
+    IRL_ADMIN_REMOVE_ATTENDEES_SUCCESS: 'irl-admin-remove-attendees-success',
+    IRL_ADMIN_REMOVE_ATTENDEES_FAILED: 'irl-admin-remove-attendees-failed',
     IRL_FLOATING_BAR_EDIT_BTN_CLICKED: 'irl-floating-bar-edit-btn-clicked',
 
     //locations and events
@@ -77,6 +80,14 @@ export const useIrlAnalytics = () => {
       locationName: location?.name,
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_EDIT_RESPONSE_BTN_CLICKED, { ...params });
+  };
+
+  const trackSelfEditDetailsClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SELF_EDIT_DETAILS_CLICKED, { ...params });
   };
 
   const trackGuestListSearch = (location: any, searchQuery: string) => {
@@ -175,7 +186,7 @@ export const useIrlAnalytics = () => {
     };
 
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED, { ...params });
-  }
+  };
 
   const trackGuestListAddNewMemberBtnClicked = (location: any) => {
     const params = {
@@ -184,17 +195,99 @@ export const useIrlAnalytics = () => {
     };
 
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED, { ...params });
-  }
+  };
 
-  const trackFloatingBarOpen = (location:any, others:any) => {
+  const trackFloatingBarOpen = (location: any, others: any) => {
     const params = {
       locationUid: location?.uid,
       locationName: location?.name,
       ...others,
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_FLOATING_BAR_OPEN, { ...params });
-  }
+  };
 
+  const trackAdminRemoveAttendeesPopupOpen = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADMIN_REMOVE_ATTENDEES_POPUP_OPEN, { ...params });
+  };
+
+  const trackSelfRemoveAttendeePopupOpen = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SELF_REMOVE_ATTENDEE_POPUP_BTN_CLICKED, { ...params });
+  };
+
+  const trackSelfRemoveAttendeePopupConfirmRemovalBtnClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SELF_REMOVE_ATTENDEE_POPUP_CONFIRM_REMOVAL_BTN_CLICKED, { ...params });
+  };
+
+  const trackSelfRemovalGatheringsSuccess = (location: any, others: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      ...others,
+    };
+
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SELF_REMOVAL_GATHERINGS_SUCCESS, { ...params });
+  };
+
+  const trackSelfRemovalGatherigsFailed = (location: any, others: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      ...others,
+    };
+
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SELF_REMOVAL_GATHERINGS_FAILED, { ...params });
+  };
+
+  const trackAdminRemoveAttendeesPopupConfirmRemovalBtnClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADMIN_REMOVE_ATTENDEES_POPUP_CONFIRM_REMOVAL_BTN_CLICKED, { ...params });
+  };
+
+  const trackAdminRemoveAttendeesSuccess = (location: any, others: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      ...others,
+    };
+
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADMIN_REMOVE_ATTENDEES_SUCCESS, { ...params });
+  };
+
+  const trackAdminRemoveAttendeesFailed = (location: any, others: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      ...others,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADMIN_REMOVE_ATTENDEES_FAILED, { ...params });
+  };
+
+  const trackFloatingBarEditBtnClicked = (location: any, others: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_FLOATING_BAR_EDIT_BTN_CLICKED, { ...params });
+  };
 
   function trackLocationClicked(id: any, locationName: any) {
     const params = {
@@ -248,6 +341,7 @@ export const useIrlAnalytics = () => {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
     trackEditResponseBtnClick,
+    trackSelfEditDetailsClicked,
     trackGuestListSearch,
     trackGuestListTableSortClicked,
     trackGuestListTableLoginClicked,
@@ -269,5 +363,14 @@ export const useIrlAnalytics = () => {
     trackAdditionalResourceClicked,
     trackAdditionalResourceSeeMoreButtonClicked,
     onJoinPLNetworkClicked,
+    trackAdminRemoveAttendeesPopupOpen,
+    trackSelfRemoveAttendeePopupOpen,
+    trackSelfRemoveAttendeePopupConfirmRemovalBtnClicked,
+    trackSelfRemovalGatheringsSuccess,
+    trackSelfRemovalGatherigsFailed,
+    trackAdminRemoveAttendeesPopupConfirmRemovalBtnClicked,
+    trackAdminRemoveAttendeesSuccess,
+    trackAdminRemoveAttendeesFailed,
+    trackFloatingBarEditBtnClicked,
   };
 };

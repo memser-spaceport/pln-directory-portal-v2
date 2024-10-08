@@ -3,14 +3,17 @@ import { getTopics, getUniqueEvents } from '@/utils/irl.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import FloatingMultiSelect from './floating-multi-select';
 import { useSearchParams } from 'next/navigation';
-interface ITableHeader {
-  isUserLoggedIn: boolean;
+interface IAttendeeTableHeader {
+  isLoggedIn: boolean;
   eventDetails: any;
   sortConfig: { key: string; order: string };
-  filterConfig: any;
+  filterConfig: {
+    events: string[];
+    topics: string[];
+  };
 }
 
-const TableHeader = (props: any) => {
+const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const isUserLoggedIn = props.isLoggedIn ?? false;
   const eventDetails = props?.eventDetails;
   const sortConfig = props?.sortConfig;
@@ -439,4 +442,4 @@ const TableHeader = (props: any) => {
   );
 };
 
-export default TableHeader;
+export default AttendeeTableHeader;

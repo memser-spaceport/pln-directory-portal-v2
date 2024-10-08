@@ -1,10 +1,11 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { IAnalyticsGuestLocation } from '@/types/irl.types';
 import { EVENTS } from '@/utils/constants';
 
 interface IFloatingBar {
   onClose: () => void;
   selectedGuests: string[];
-  eventDetails: any;
+  location: IAnalyticsGuestLocation;
 }
 
 const FloatingBar = (props: IFloatingBar) => {
@@ -17,6 +18,7 @@ const FloatingBar = (props: IFloatingBar) => {
 
   //Open Remove Guests Popup
   const onDeleteGuests = () => {
+    analytics.trackAdminRemoveAttendeesPopupOpen(location);
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_REMOVE_GUESTS_POPUP, {
         detail: {
@@ -25,21 +27,11 @@ const FloatingBar = (props: IFloatingBar) => {
         },
       })
     );
-    // analytics.floatingBarDeleteBtnClicked(getAnalyticsUserInfo(userInfo), getAnalyticsEventInfo(eventDetails));
   };
 
   // Open Attendee Details Popup for Edit the guest
   const onEditGuest = () => {
-    document.dispatchEvent(
-      new CustomEvent('openRsvpModal', {
-        detail: {
-          isOpen: true,
-          type: 'admin-edit',
-          selectedGuest: selectedGuests[0], // Guest whose data will be edited
-        },
-      })
-    );
-    // analytics.floatingBarEditBtnClicked(getAnalyticsUserInfo(userInfo), getAnalyticsEventInfo(eventDetails));
+    analytics.trackFloatingBarEditBtnClicked(location, { selectedGuests });
   };
 
   return (
@@ -49,11 +41,11 @@ const FloatingBar = (props: IFloatingBar) => {
         <div className="floatingBar__text">{`${selectedGuests?.length > 1 ? 'Attendees' : 'Attendee'} selected`}</div>
         <div className="floatingBar__actions">
           <div className="floatingBar__actions__manipulation">
-            {/* {selectedGuests?.length === 1 && (
+            {selectedGuests?.length === 1 && (
               <button onClick={onEditGuest} className="floatingBar__actions__edit">
                 <img src="/icons/edit-blue.svg" alt="edit" />
               </button>
-            )} */}
+            )}
             <button type="button" onClick={onDeleteGuests} className="floatingBar__actions__delete">
               <img src="/icons/delete.svg" alt="delete" />
             </button>

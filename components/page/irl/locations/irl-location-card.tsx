@@ -15,10 +15,8 @@ interface IrlLocationCardProps {
 }
 
 const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardProps) => {
-
     //props
     const id = props?.uid;
-    let priority = props?.priority;
     const locationName = props?.location.split(",")[0].trim();
     const locationUrl = props?.flag;
     const pastEvents = props?.pastEvents?.length ?? 0;

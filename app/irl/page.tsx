@@ -23,12 +23,13 @@ export default async function Page({ searchParams }: any) {
       <div className={styles.irlGatherings__cn}>
         {/* Header */}
         <section className={styles.irlGatherings__header}>
-          <IrlHeader eventsByLocation={eventDetails} />
+          <IrlHeader />
         </section>
         {/* Locations */}
         <section className={styles.irlGatheings__locations}>
           <IrlLocation locationDetails={locationDetails} searchParams={searchParams} />
         </section>
+        {/* Events */}
         <section className={styles.irlGatherings__events}>
           <IrlEvents isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} />
         </section>

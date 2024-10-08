@@ -1,6 +1,7 @@
 "use client"
 
-const IrlHeader = ({eventsByLocation}:any) => {
+const IrlHeader = () => {
+  console.log("HEADER");
     return (
         <>
             <div className="irlheaderCnt">
@@ -14,11 +15,13 @@ const IrlHeader = ({eventsByLocation}:any) => {
                   line-height: 28px;
                   padding-bottom: 5px
                 }
+                  
                 .irlsubHeader {
                   font-size: 14px;
                   font-weight: 400;
                   line-height: 28px;
                 }
+
                 @media (min-width: 360px) {
                   .irlheaderCnt{
                     padding: 15px;

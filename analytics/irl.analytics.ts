@@ -36,13 +36,16 @@ export const useIrlAnalytics = () => {
 
     //locations and events
     IRL_LOCATION_CARD_CLICKED:'irl-location-card-button-clicked',
-    ON_SEE_OTHER_LOCATION_CARD_CLICKED: 'on-see-other-location-card-clicked',
-    ON_UPCOMING_EVENTS_BUTTON_CLICKED: 'on-upcoming-events-button-clicked',
-    ON_PAST_EVENTS_BUTTON_CLICKED: 'on-past-events-button-clicked',
-    ON_RESOURCE_POPUP_VIEWED: 'on-resource-popup-viewed',
-    ON_ADDITIONAL_RESOURCE_CLICKED: 'on-additional-resource-clicked',
-    ON_ADDITIONAL_RESOURCE_SEE_MORE_BUTTON_CLICKED: 'on-additional-resource-see-more-button-clicked',
-    ON_JOIN_PL_NETWORK_CLICKED: 'on-join-pl-network-clicked',
+    IRL_SEE_OTHER_LOCATION_CARD_CLICKED: 'on-see-other-location-card-clicked',
+    IRL_UPCOMING_EVENTS_BUTTON_CLICKED: 'on-upcoming-events-button-clicked',
+    IRL_PAST_EVENTS_BUTTON_CLICKED: 'on-past-events-button-clicked',
+    IRL_UPCOMING_RESOURCE_POPUP_VIEWED: 'on-resource-popup-viewed',
+    IRL_PAST_RESOURCE_POPUP_VIEWED: 'on-resource-popup-viewed',
+    IRL_RESOURCE_CLICKED: 'on-resource-clicked',
+    IRL_ADDITIONAL_RESOURCE_CLICKED: 'on-additional-resource-clicked',
+    IRL_ADDITIONAL_RESOURCE_SEE_MORE_BUTTON_CLICKED: 'on-additional-resource-see-more-button-clicked',
+    IRL_JOIN_PL_NETWORK_CLICKED: 'on-join-pl-network-clicked',
+    IRL_PAST_EVENT_CLICKED: 'on-past-event-clicked',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -328,43 +331,71 @@ export const useIrlAnalytics = () => {
 
   function trackSeeOtherLocationClicked(location: any) {
     const params = {
-      locationUid: location.id,
-      locationName: location.name,
+      location: location,
     };
-    captureEvent(IRL_ANALYTICS_EVENTS.ON_SEE_OTHER_LOCATION_CARD_CLICKED, {...params});
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SEE_OTHER_LOCATION_CARD_CLICKED, {...params});
   }
 
-  function trackUpcomingEventsButtonClicked(params: any) {
-    captureEvent(IRL_ANALYTICS_EVENTS.ON_UPCOMING_EVENTS_BUTTON_CLICKED, {...params});
+  function trackUpcomingEventsButtonClicked(events: any) {
+    const params = {
+      upcomingEvents: events,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_UPCOMING_EVENTS_BUTTON_CLICKED, {...params});
   }
 
-  function trackPastEventsButtonClicked(params: any) {
-    captureEvent(IRL_ANALYTICS_EVENTS.ON_PAST_EVENTS_BUTTON_CLICKED, {...params});
+  function trackPastEventsButtonClicked(events: any) {
+    const params = {
+      pastEvents: events,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_PAST_EVENTS_BUTTON_CLICKED, {...params});
   }
 
-  function trackPastResourcePopUpViewed(params: any) {
-    captureEvent(IRL_ANALYTICS_EVENTS.ON_RESOURCE_POPUP_VIEWED, {...params});
+  function trackPastResourcePopUpViewed(resources: any) {
+    let params = { 
+      pastResource: resources,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_PAST_RESOURCE_POPUP_VIEWED, {...params});
   }
 
-  function trackUpcomingResourcePopUpViewed(params: any) {
-    captureEvent(IRL_ANALYTICS_EVENTS.ON_RESOURCE_POPUP_VIEWED, {...params});
+  function trackUpcomingResourcePopUpViewed(resources: any) {
+    let params = { 
+      upcomingResource: resources,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_UPCOMING_RESOURCE_POPUP_VIEWED, {...params});
   }
 
   function trackAdditionalResourceClicked(resources: any) {
-    const params = {
-      resourceName: resources.name,
+    let params = { 
+      resource: resources,
     };
-    captureEvent(IRL_ANALYTICS_EVENTS.ON_ADDITIONAL_RESOURCE_CLICKED, {...params});
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RESOURCE_CLICKED, {...params});
   }
 
-  function trackAdditionalResourceSeeMoreButtonClicked(params: any) {
-    captureEvent(IRL_ANALYTICS_EVENTS.ON_ADDITIONAL_RESOURCE_SEE_MORE_BUTTON_CLICKED, {...params});
+  function trackAdditionalResourcesClicked(resources: any) {
+    let params = { 
+      additionalResource: resources,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADDITIONAL_RESOURCE_CLICKED, {...params});
+  }
+
+  function trackAdditionalResourceSeeMoreButtonClicked(resources: any) {
+    let params = { 
+      AdditionalResource: resources,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADDITIONAL_RESOURCE_SEE_MORE_BUTTON_CLICKED, {...params});
   }
 
   function onJoinPLNetworkClicked(params: any) {
-    captureEvent(IRL_ANALYTICS_EVENTS.ON_JOIN_PL_NETWORK_CLICKED, {...params});
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_JOIN_PL_NETWORK_CLICKED, {...params});
   }
 
+  function trackPastEventClicked(pastEvent: any) {
+    const params = {
+      pastEventUid: pastEvent.uid,
+      pastEventName: pastEvent.name,
+    }
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_PAST_EVENT_CLICKED, {...params});
+  }
 
   return {
     trackImGoingBtnClick,
@@ -403,6 +434,8 @@ export const useIrlAnalytics = () => {
     trackFloatingBarEditBtnClicked,
     trackNoAttendeesStripRespondBtnClicked,
     trackHostEventClicked,
-    trackSpeakerEventClicked
+    trackSpeakerEventClicked,
+    trackPastEventClicked,
+    trackAdditionalResourcesClicked,
   };
 };

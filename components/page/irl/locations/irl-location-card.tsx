@@ -118,7 +118,7 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     }
 
                     .root__location {
-                        padding-bottom: 5px;
+                        padding-bottom: 8px;
                     }
                     
                     .root__irlCard {

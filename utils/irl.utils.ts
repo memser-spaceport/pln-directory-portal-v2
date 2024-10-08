@@ -182,3 +182,30 @@ export function formatDateRangeForDescription(startDate: any, endDate: any) {
     return '';
   }
 }
+
+export function sortPastEvents(events: any[]) {
+  // Sort the events array
+  events.sort((a: any, b: any) => {
+    // Compare by start date (latest start first)
+    const startDateComparison = new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+    
+    if (startDateComparison !== 0) {
+      return startDateComparison;
+    }
+    
+    // If start dates are equal, compare by duration (shorter duration first)
+    const durationA = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
+    const durationB = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
+    
+    return durationA - durationB;
+  });
+
+  // Use forEach to perform actions on each sorted event
+  events.forEach((event: any) => {
+    // Perform any additional actions needed for each event
+    console.log(event); // Example: log the event or perform some processing
+  });
+
+  return events; // Return the sorted array if needed
+}
+

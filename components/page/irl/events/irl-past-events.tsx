@@ -59,6 +59,10 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
             // If there's no eventName in searchParams, set the first event
             updateQueryParams('eventName', firstEventName, searchParams);
         }
+    } else {
+        if (searchParams?.eventName) {
+            updateQueryParams('eventName', "", searchParams);
+        }
     }
 
     const handleElementClick = (gathering: { name: string; }) => {
@@ -67,7 +71,9 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
     };
 
     const handleDropdownToggle = () => {
-        setDropdownOpen(prevState => !prevState);
+        if (selectedEvent) {
+            setDropdownOpen(prevState => !prevState);
+        }
     };
 
     const toggleDescription = () => {
@@ -212,7 +218,9 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                     />
                                 </div>
                             )}
-                            <img src="/icons/dropdown-blue.svg" alt="dropdown" />
+                            {selectedEvent &&
+                                <img src="/icons/dropdown-blue.svg" alt="dropdown" />
+                            }
                         </div>
                     </div>
 
@@ -234,32 +242,32 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                 ?.filter((gathering) =>
                                     gathering.name.toLowerCase().includes(searchText.toLowerCase())
                                 ).length === 0 ? (
-                                    <div className="custom-dropdown__item">
-                                        No data found
-                                    </div>
-                                ) : (
-                                    eventsToShow
-                                        ?.filter((gathering) =>
-                                            gathering.name.toLowerCase().includes(searchText.toLowerCase())
-                                        )
-                                        .map((gathering, index) => (
-                                            <div
-                                                key={index}
-                                                className="custom-dropdown__item"
-                                                onClick={() => handleEventSelection(gathering)}
-                                            >
-                                                <div style={{ display: 'flex' }}>
-                                                    <div className="root__irl__mobileView__top__cnt">
-                                                        <div><img src={gathering?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" /></div>
-                                                        <div className="root__irl__mobileView__top__cnt__title">{gathering.name}</div>
-                                                    </div>
-                                                    <div className="root__irl__mobileView__top__cnt__eventDate">
-                                                        {getFormattedDateString(gathering?.startDate, gathering?.endDate)}
-                                                    </div>
+                                <div className="custom-dropdown__item">
+                                    No data found
+                                </div>
+                            ) : (
+                                eventsToShow
+                                    ?.filter((gathering) =>
+                                        gathering.name.toLowerCase().includes(searchText.toLowerCase())
+                                    )
+                                    .map((gathering, index) => (
+                                        <div
+                                            key={index}
+                                            className="custom-dropdown__item"
+                                            onClick={() => handleEventSelection(gathering)}
+                                        >
+                                            <div style={{ display: 'flex' }}>
+                                                <div className="root__irl__mobileView__top__cnt">
+                                                    <div><img src={gathering?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" /></div>
+                                                    <div className="root__irl__mobileView__top__cnt__title">{gathering.name}</div>
+                                                </div>
+                                                <div className="root__irl__mobileView__top__cnt__eventDate">
+                                                    {getFormattedDateString(gathering?.startDate, gathering?.endDate)}
                                                 </div>
                                             </div>
-                                        ))
-                                )}
+                                        </div>
+                                    ))
+                            )}
                         </div>
                     )}
                 </div>
@@ -529,6 +537,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     padding-right: 10px;
                     border-right: 1px solid #CBD5E1;
                     height: 20px;
+                    align-items: center;
                 }
 
                 .root__irl__mobileView__top__cnt__title {
@@ -545,6 +554,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     text-align: left;
                     padding-left: 10px;
                     height: 20px;
+                    display: flex;
+                    align-items: center;
                 }
 
                 .root__irl__mobileView__body__title {
@@ -568,6 +579,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     background-color: #fff;
                     border: 1px solid #transparent;
                     border-radius: 12px;
+                    min-height: 50px;
                 }
 
                 .custom-dropdown__menu {
@@ -640,6 +652,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                         justify-content: center;
                         align-items: left;
                         border-radius: 12px;
+                        border: 1px solid #156FF7;
                     }
 
                     .root__irl__tableContainer {

@@ -1,10 +1,27 @@
-const NoAttendees = () => {
-//   const onRespondClick = () => {
-//     if (!isLoggedIn) {
-//       onLogin();
-//     } else {
-//     }
-//   };
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { IAnalyticsGuestLocation } from '@/types/irl.types';
+import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
+
+interface INoAttendees {
+  location: IAnalyticsGuestLocation;
+  onLogin: () => void;
+  isLoggedIn: boolean;
+}
+
+const NoAttendees = (props: INoAttendees) => {
+  const isLoggedIn = props.isLoggedIn;
+  const onLogin = props.onLogin;
+
+  const analytics = useIrlAnalytics();
+
+  const onRespondClick = () => {
+    analytics.trackNoAttendeesStripRespondBtnClicked(location);
+    if (!isLoggedIn) {
+      onLogin();
+    } else {
+      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADD } }));
+    }
+  };
 
   return (
     <>
@@ -14,7 +31,10 @@ const NoAttendees = () => {
             <img src="/icons/members-blue.svg" alt="members" />
           </span>
           <p className="attendee-list__no-attendees-text">
-            <span className="attendee-list__respond">Respond</span> to break the ice! Your participation might inspire others to jump in!
+            <span className="attendee-list__respond" onClick={onRespondClick}>
+              Respond
+            </span>{' '}
+            to break the ice! Your participation might inspire others to jump in!
           </p>
         </div>
       </div>

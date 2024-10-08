@@ -19,6 +19,8 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_TABLE_TELEGRAM_LINK_CLICKED: 'irl-guest-list-table-telegram-link-clicked',
     IRL_GUEST_LIST_TABLE_OFFICE_HOURS_LINK_CLICKED: 'irl-guest-list-table-office-hours-link-clicked',
     IRL_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED: 'irl-guest-list-table-add-office-hours-clicked',
+    IRL_GUEST_LIST_TABLE_HOST_EVENT_CLICKED: 'irl-guest-list-table-host-event-clicked',
+    IRL_GUEST_LIST_TABLE_SPEAKER_EVENT_CLICKED: 'irl-guest-list-table-speaker-event-clicked',
     IRL_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
     IRL_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
     IRL_ADMIN_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-admin-remove-attendees-popup-open',
@@ -30,6 +32,7 @@ export const useIrlAnalytics = () => {
     IRL_ADMIN_REMOVE_ATTENDEES_SUCCESS: 'irl-admin-remove-attendees-success',
     IRL_ADMIN_REMOVE_ATTENDEES_FAILED: 'irl-admin-remove-attendees-failed',
     IRL_FLOATING_BAR_EDIT_BTN_CLICKED: 'irl-floating-bar-edit-btn-clicked',
+    IRL_NO_ATTENDEES_STRIP_RESPOND_BTN_CLICKED:'irl-no-attendees-strip-respond-btn-clicked',
 
     //locations and events
     IRL_LOCATION_CARD_CLICKED:'irl-location-card-button-clicked',
@@ -281,6 +284,14 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADMIN_REMOVE_ATTENDEES_FAILED, { ...params });
   };
 
+  const trackNoAttendeesStripRespondBtnClicked = (location: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_NO_ATTENDEES_STRIP_RESPOND_BTN_CLICKED, { ...params });
+  };
+
   const trackFloatingBarEditBtnClicked = (location: any, others: any) => {
     const params = {
       locationUid: location?.uid,
@@ -288,6 +299,24 @@ export const useIrlAnalytics = () => {
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_FLOATING_BAR_EDIT_BTN_CLICKED, { ...params });
   };
+
+  const trackHostEventClicked = (location: any, event: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_TABLE_HOST_EVENT_CLICKED, { ...params });
+  }
+
+  const trackSpeakerEventClicked = (location: any, event: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_TABLE_SPEAKER_EVENT_CLICKED, { ...params });
+  }
 
   function trackLocationClicked(id: any, locationName: any) {
     const params = {
@@ -372,5 +401,8 @@ export const useIrlAnalytics = () => {
     trackAdminRemoveAttendeesSuccess,
     trackAdminRemoveAttendeesFailed,
     trackFloatingBarEditBtnClicked,
+    trackNoAttendeesStripRespondBtnClicked,
+    trackHostEventClicked,
+    trackSpeakerEventClicked
   };
 };

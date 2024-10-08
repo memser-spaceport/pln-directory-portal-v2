@@ -1,7 +1,6 @@
 "use client"
 
 const IrlHeader = () => {
-  console.log("HEADER");
     return (
         <>
             <div className="irlheaderCnt">

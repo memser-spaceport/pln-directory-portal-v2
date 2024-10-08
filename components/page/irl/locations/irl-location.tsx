@@ -7,6 +7,7 @@ import Modal from "@/components/core/modal";
 import useUpdateQueryParams from "@/hooks/useUpdateQueryParams";
 import { triggerLoader } from "@/utils/common.utils";
 import { useIrlAnalytics } from "@/analytics/irl.analytics";
+import { useRouter } from "next/navigation";
 
 const IrlLocation = (props: any) => {
     const { updateQueryParams } = useUpdateQueryParams();
@@ -16,6 +17,7 @@ const IrlLocation = (props: any) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const searchParams = props?.searchParams;
     const analytics = useIrlAnalytics();
+    const router = useRouter();
 
     const onCloseModal = () => {
         if (dialogRef.current) {
@@ -49,11 +51,26 @@ const IrlLocation = (props: any) => {
         setShowMore(!showMore);
     }
 
-    const handleCardClick = (uid: any, locationName: any) => {
-        activeLocationId = uid;
+    const handleCardClick = (locationDetail:any) => {
+        activeLocationId = locationDetail?.uid;
         triggerLoader(true);
-        updateQueryParams('location', locationName.split(",")[0].trim(), searchParams);
-        analytics.trackLocationClicked(uid, locationName);
+        const currentParams = new URLSearchParams(searchParams);
+
+        // Add or update the new search parameters
+        currentParams.set('location', locationDetail?.location?.split(",")[0].trim());
+        if(locationDetail?.pastEvents?.length > 0) {
+        currentParams.set('eventName', locationDetail?.pastEvents[0]?.name);
+        } else {
+        currentParams.delete('eventName');
+        }
+    
+        // Push the updated URL with the new search params
+        router.push(`${window.location.pathname}?${currentParams.toString()}`);
+        // updateQueryParams('location', locationName.split(",")[0].trim(), searchParams);
+        // if(searchParams.eventName) {
+        // updateQueryParams('eventName', '', searchParams)
+        // }
+        analytics.trackLocationClicked(locationDetail?.uid, locationDetail?.location);
     };
 
     const handleResourceClick = (clickedLocation: any) => {
@@ -90,15 +107,13 @@ const IrlLocation = (props: any) => {
                             key={location.uid}
                             {...location}
                             isActive={activeLocationId ? activeLocationId === location.uid : index === 0}
-                            onCardClick={() => handleCardClick(location.uid, location.location)}
+                            onCardClick={() => handleCardClick(location)}
                         />
                     ))}
                 </div>
                 <div 
                     className="root__irl__expanded" 
                     onClick={handleClick} 
-                    onBlur={() => setShowMore(false)}
-                    tabIndex={0}
                 >
                     <div
                         className="root__irl__expanded__showMore"

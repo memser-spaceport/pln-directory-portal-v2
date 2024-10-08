@@ -8,6 +8,7 @@ import IrlUpcomingEvents from "./irl-upcoming-events";
 import IrlPastEvents from "./irl-past-events";
 import { triggerLoader } from "@/utils/common.utils";
 import { useIrlAnalytics } from "@/analytics/irl.analytics";
+import { useRouter } from "next/navigation";
 
 interface IIrlEvents {
     isLoggedIn: boolean;
@@ -22,6 +23,7 @@ const IrlEvents = (props: any) => {
     const addResRef = useRef<HTMLDialogElement>(null);
     const { updateQueryParams } = useUpdateQueryParams();
     const analytics = useIrlAnalytics();
+    const router = useRouter();
 
     const searchType = searchParams?.type;
     if (searchType === "upcoming" && !isUpcoming) {
@@ -32,14 +34,32 @@ const IrlEvents = (props: any) => {
 
     const handleUpcomingGathering = () => {
         isUpcoming = true;
-        updateQueryParams('type', 'upcoming', searchParams);
+        const currentParams = new URLSearchParams(searchParams);
+        currentParams.set('type', 'upcoming');
+        currentParams.delete('eventName');
+        router.push(`${window.location.pathname}?${currentParams.toString()}`);
+        // updateQueryParams('type', 'upcoming', searchParams);
         triggerLoader(true);
         analytics.trackUpcomingEventsButtonClicked(eventDetails.upcomingEvents);
     }
 
     const handlePastGathering = () => {
         isUpcoming = false;
-        updateQueryParams('type', 'past', searchParams);
+
+        const currentParams = new URLSearchParams(searchParams);
+
+        // Add or update the new search parameters
+        currentParams.set('type', 'past');
+        // if(locationDetail?.pastEvents?.length > 0) {
+        currentParams.set('eventName', eventDetails?.pastEvents[0]?.name);
+        // } else {
+        // currentParams.delete('eventName');
+        // }
+    
+        // Push the updated URL with the new search params
+        router.push(`${window.location.pathname}?${currentParams.toString()}`);
+
+        // updateQueryParams('type', 'past', searchParams);
         triggerLoader(true);
         analytics.trackPastEventsButtonClicked(eventDetails.pastEvents);
     }

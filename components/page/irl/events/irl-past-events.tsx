@@ -53,15 +53,15 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                 selectedEvent = eventsToShow[foundIndex]; // Set selectedEvent to the one found in searchParams
             } else {
                 // If the event name in searchParams doesn't exist, reset to the first event
-                updateQueryParams('eventName', firstEventName, searchParams);
+                // updateQueryParams('eventName', firstEventName, searchParams);
             }
         } else {
             // If there's no eventName in searchParams, set the first event
-            updateQueryParams('eventName', firstEventName, searchParams);
+            // updateQueryParams('eventName', firstEventName, searchParams);
         }
     } else {
         if (searchParams?.eventName) {
-            updateQueryParams('eventName', "", searchParams);
+            // updateQueryParams('eventName', "", searchParams);
         }
     }
 
@@ -328,7 +328,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     justify-content: center;
                     height: 54px;
                     align-items: center;
-                    font-family: Inter;
                     font-size: 13px;
                     font-weight: 400;
                     line-height: 15px;

@@ -15,70 +15,123 @@ export const getAllLocations = async () => {
   return await response.json();
 };
 
-export const getGuestsByLocation = async (location: string, type: string, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?type=${type}`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(authToken),
-  });
-
-  if (!response.ok) {
-    return { isError: true };
-  }
-
-  const groupEventsByMemberUid = (events: any) => {
-    const groupedEvents: any = {};
-    events?.forEach((event: any) => {
-      if (!groupedEvents[event.memberUid]) {
-        groupedEvents[event.memberUid] = [];
-      }
-      groupedEvents[event.memberUid].push(event);
+export const getGuestsByLocation = async (location: string, type: string, authToken: string, eventName: string) => {
+  if (!eventName) {
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?type=${type}`, {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(authToken),
     });
 
-    return groupedEvents;
-  };
+    if (!response.ok) {
+      return { isError: true };
+    }
 
-  const transformGroupedEvents = (groupedEvents: any) => {
-    return Object.keys(groupedEvents).map((memberUid) => {
+    const result = await response.json();
+
+    const groupEventsByMemberUid = (events: any) => {
+      const groupedEvents: any = {};
+      events?.forEach((event: any) => {
+        if (!groupedEvents[event.memberUid]) {
+          groupedEvents[event.memberUid] = [];
+        }
+        groupedEvents[event.memberUid].push(event);
+      });
+
+      return groupedEvents;
+    };
+
+    const transformGroupedEvents = (groupedEvents: any) => {
+      return Object.keys(groupedEvents).map((memberUid) => {
+        return {
+          memberUid: groupedEvents[memberUid][0].member ? memberUid : null,
+          memberName: groupedEvents[memberUid][0]?.member?.name,
+          memberLogo: groupedEvents[memberUid][0]?.member?.image?.url,
+          teamUid: groupedEvents[memberUid][0]?.teamUid,
+          teamName: groupedEvents[memberUid][0]?.team?.name,
+          teamLogo: groupedEvents[memberUid][0]?.team?.logo?.url,
+          teams: groupedEvents[memberUid][0]?.member?.teamMemberRoles?.map((tm: any) => {
+            return {
+              name: tm?.team?.name,
+              id: tm?.team?.uid,
+              role: tm?.role,
+              logo: tm?.team?.logo?.url ?? '',
+            };
+          }),
+          projectContributions: groupedEvents[memberUid][0]?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name),
+          eventNames: groupedEvents[memberUid]?.map((member: any) => member?.event?.name),
+          events: groupedEvents[memberUid]?.map((member: any) => ({
+            ...member?.event,
+            logo: member?.event?.logo?.url,
+            isHost: member?.isHost,
+            isSpeaker: member?.isSpeaker,
+            hostSubEvents: member?.additionalInfo?.hostSubEvents,
+            speakerSubEvents: member?.additionalInfo?.speakerSubEvents,
+            type: member?.event?.type,
+          })),
+          topics: groupedEvents[memberUid][0]?.topics,
+          officeHours: groupedEvents[memberUid][0]?.member?.officeHours,
+          telegramId: groupedEvents[memberUid][0]?.telegramId,
+          reason: groupedEvents[memberUid][0]?.reason,
+          additionalInfo: groupedEvents[memberUid][0]?.additionalInfo,
+        };
+      });
+    };
+
+    const groupedEvents = groupEventsByMemberUid(result);
+    const transformedEvents = transformGroupedEvents(groupedEvents);
+    return { guests: transformedEvents };
+  } else {
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/${eventName}`, {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(authToken),
+    });
+
+    if (!response.ok) {
+      return { isError: true };
+    }
+
+    const result = await response.json();
+
+    const guests = result?.eventGuests?.map((guest: any) => {
+      // const memberRole = guest?.member?.teamMemberRoles?.find((teamRole: any) => guest?.teamUid === teamRole?.teamUid)?.role;
+      const teamMemberRoles = guest?.member?.teamMemberRoles.map((tm: any) => {
+        return {
+          name: tm?.team?.name,
+          id: tm?.team?.uid,
+          role: tm?.role,
+          logo: tm?.team?.logo?.url ?? '',
+        };
+      });
+
+      const projectContributions = guest?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name);
+
       return {
-        memberUid: groupedEvents[memberUid][0].member ? memberUid : null,
-        memberName: groupedEvents[memberUid][0]?.member?.name,
-        memberLogo: groupedEvents[memberUid][0]?.member?.image?.url,
-        teamUid: groupedEvents[memberUid][0]?.teamUid,
-        teamName: groupedEvents[memberUid][0]?.team?.name,
-        teamLogo: groupedEvents[memberUid][0]?.team?.logo?.url,
-        teams: groupedEvents[memberUid][0]?.member?.teamMemberRoles?.map((tm: any) => {
-          return {
-            name: tm?.team?.name,
-            id: tm?.team?.uid,
-            role: tm?.role,
-            logo: tm?.team?.logo?.url ?? '',
-          };
-        }),
-        projectContributions: groupedEvents[memberUid][0]?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name),
-        eventNames: groupedEvents[memberUid]?.map((member: any) => member?.event?.name),
-        events: groupedEvents[memberUid]?.map((member: any) => ({
-          ...member?.event,
-          logo: member?.event?.logo?.url,
-          isHost: member?.isHost,
-          isSpeaker: member?.isSpeaker,
-          hostSubEvents: member?.additionalInfo?.hostSubEvents,
-          speakerSubEvents: member?.additionalInfo?.speakerSubEvents,
-          type: member?.event?.type,
-        })),
-        topics: groupedEvents[memberUid][0]?.topics,
-        officeHours: groupedEvents[memberUid][0]?.member?.officeHours,
-        telegramId: groupedEvents[memberUid][0]?.telegramId,
-        reason: groupedEvents[memberUid][0]?.reason,
-        additionalInfo: groupedEvents[memberUid][0]?.additionalInfo,
+        // uid: guest?.uid,
+        teamUid: guest?.teamUid,
+        teamName: guest?.team?.name,
+        teamLogo: guest?.team?.logo?.url,
+        memberUid: guest?.memberUid,
+        memberName: guest?.member?.name,
+        memberLogo: guest?.member?.image?.url,
+        // memberRole,
+        teams: teamMemberRoles,
+        reason: guest?.reason,
+        telegramId: guest?.member?.telegramHandler || '',
+        isTelegramRemoved: guest?.telegramId === '',
+        officeHours: guest?.member?.officeHours || '',
+        createdAt: guest?.createdAt,
+        projectContributions,
+        topics: guest?.topics,
+        additionalInfo: guest?.additionalInfo,
+        eventNames: [result?.name],
+        events: [{ hostSubEvents: guest?.additionalInfo?.hostSubEvents, speakerSubEvents: guest?.additionalInfo?.speakerSubEvents }],
       };
     });
-  };
 
-  const groupedEvents = groupEventsByMemberUid(await response.json());
-  const transformedEvents = transformGroupedEvents(groupedEvents);
-
-  return { guests: transformedEvents };
+    return { guests };
+  }
 };
 
 export const deleteEventGuestByLocation = async (location: string, payload: any) => {
@@ -117,9 +170,9 @@ export const createEventGuest = async (locationId: string, payload: any) => {
   );
 
   if (!response?.ok) {
-    return {error: response}
+    return { error: response };
   }
-  return {data: response}
+  return { data: response };
 };
 
 export const editEventGuest = async (locationId: string, guestUid: string, payload: any) => {
@@ -137,8 +190,8 @@ export const editEventGuest = async (locationId: string, guestUid: string, paylo
   );
 
   if (!response?.ok) {
-    return {error: response};
+    return { error: response };
   }
 
-  return {data: response};
+  return { data: response };
 };

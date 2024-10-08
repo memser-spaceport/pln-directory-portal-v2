@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import HiddenField from './hidden-field';
 
 interface ICustomCheckbox {
@@ -10,7 +10,7 @@ interface ICustomCheckbox {
 }
 
 const CustomCheckbox = (props: ICustomCheckbox) => {
-  const [ischecked, setIsChecked] = useState(props?.initialValue ?? false);
+  const [ischecked, setIsChecked] = useState(false);
   const name = props?.name;
   const value = props?.value;
   const disabled = props?.disabled ?? false;
@@ -20,6 +20,11 @@ const CustomCheckbox = (props: ICustomCheckbox) => {
       onSelect();
     setIsChecked(!ischecked);
   };
+
+  useEffect(() => {
+    setIsChecked(props?.initialValue ?? false);
+  }, [props?.initialValue]);
+
   return (
     <>
       <button type="button" className={`chbox ${ischecked ? 'checked' : ''} ${disabled ? 'disable' : ''}`} onClick={onisCheckedClicked}>

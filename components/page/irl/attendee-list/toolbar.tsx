@@ -26,13 +26,10 @@ const Toolbar = (props: any) => {
   const isUserGoing = props?.isUserGoing;
   const filteredListLength = props?.filteredListLength ?? 0;
   const roles = userInfo?.roles ?? [];
-  const eventDetails = props?.eventDetails;
-  const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
   const updatedUser = props?.updatedUser;
 
   //states
   const [searchTerm, setSearchTerm] = useState('');
-  const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
   const [isEdit, seIsEdit] = useState(false);
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
@@ -48,12 +45,12 @@ const Toolbar = (props: any) => {
 
   // Open Attendee Details Popup to add guest
   const onIAmGoingClick = () => {
-    setIamGoingPopupProps({ isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADD });
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADD } }));
     analytics.trackImGoingBtnClick(location);
   };
 
   const onIamGoingPopupClose = () => {
-    setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {detail: { isOpen: false, formdata: null, mode: '' }}))
   };
 
 
@@ -92,7 +89,7 @@ const Toolbar = (props: any) => {
   // Open Attendee Details Popup to add the guest by admin
   const onAddMemberClick = () => {
     analytics.trackGuestListAddNewMemberBtnClicked(location);
-    setIamGoingPopupProps({ isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD });
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD } }));
   };
 
   const onRemoveFromGatherings = () => {
@@ -142,23 +139,11 @@ const Toolbar = (props: any) => {
       telegramId: updatedUser?.telegramId,
       officeHours: updatedUser?.officeHours ?? '',
     };
-    setIamGoingPopupProps({ isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT });
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT} }));
   };
 
   return (
     <>
-      {iamGoingPopupProps?.isOpen && (
-        <AttendeeForm
-          onClose={onIamGoingPopupClose}
-          formData={iamGoingPopupProps?.formdata}
-          selectedLocation={location}
-          userInfo={userInfo}
-          allGatherings={eventDetails?.events}
-          defaultTags={defaultTopics}
-          mode={iamGoingPopupProps?.mode}
-          allGuests={eventDetails?.guests}
-        />
-      )}
       <div className="toolbar">
         <span className="toolbar__hdr">
           <span className="toolbar__hdr__count">

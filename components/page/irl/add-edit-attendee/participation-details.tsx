@@ -14,6 +14,7 @@ const ParticipationDetails = (props: any) => {
   }, [errors])
 
   const onHostSelectHandler = (selectedGathering: any) => {
+    if(selectedGathering.hostSubEvents.length === 0) {
     setSelectedGatherings((prev: any) => {
       const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
       const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
@@ -31,6 +32,8 @@ const ParticipationDetails = (props: any) => {
       }
       return prev;
     });
+    return;
+  }
   };
 
   const onAddMoreHostClickHandler = (selectedGathering: any) => {
@@ -174,8 +177,6 @@ const ParticipationDetails = (props: any) => {
     });
   };
 
-  console.log('error is', props?.errors);
-
   return (
     <>
       <div className="ptndtls">
@@ -195,7 +196,15 @@ const ParticipationDetails = (props: any) => {
           </div>
 
           <div className="ptndtls__cnt__pptdtls">
-            {selectedGatherings?.map((selectedGathering: any, index: any) => (
+            {selectedGatherings?.map((selectedGathering: any, index: any) => {
+              console.log("selectedG", selectedGathering);
+              const isHostSubEvents = selectedGathering.hostSubEvents.length > 0;
+              const isSpeakerSubEvents = selectedGathering.speakerSubEvents.length > 0;
+
+              console.log("isHostSubEvents", isHostSubEvents);
+              console.log("isSpeakerSubEvents", isSpeakerSubEvents);  
+
+              return (
               <div className="ptndtls__cnt__pptdtls__pptdtlcnt" key={`${selectedGathering.uid} + ${index}`}>
                 <div
                   className={`ptndtls__cnt__pptdtls__pptdtl ${index > 0 ? 'bordert' : ''} ${
@@ -212,7 +221,7 @@ const ParticipationDetails = (props: any) => {
                       <CustomCheckbox
                         name={`isHost-${selectedGathering.uid}`}
                         value={'true'}
-                        initialValue={selectedGathering?.hostSubEvents?.length > 0 ? true : false}
+                        initialValue={isHostSubEvents}
                         disabled={false}
                         onSelect={() => onHostSelectHandler(selectedGathering)}
                       />
@@ -223,7 +232,7 @@ const ParticipationDetails = (props: any) => {
                       <CustomCheckbox
                         name={`isSpeaker-${selectedGathering.uid}`}
                         value={'true'}
-                        initialValue={selectedGathering?.speakerSubEvents?.length > 0 ? true : false}
+                        initialValue={isSpeakerSubEvents}
                         disabled={false}
                         onSelect={() => onSpeakerSelectHandler(selectedGathering)}
                       />
@@ -332,7 +341,8 @@ const ParticipationDetails = (props: any) => {
                   </div>
                 )}
               </div>
-            ))}
+              )
+})}
           </div>
         </div>
       </div>

@@ -3,18 +3,19 @@ import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
 import { EVENT_TYPE } from '@/utils/constants';
 import { getFormattedDateString } from '@/utils/irl.utils';
-import { useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
 import HiddenField from '@/components/form/hidden-field';
+import { IIrlAttendeeFormErrors, IIrlGathering, IIrlLocation } from '@/types/irl.types';
 
 interface IGatherings {
-  selectedLocation: any;
-  gatherings: any[];
+  selectedLocation: IIrlLocation;
+  gatherings: IIrlGathering[];
   userInfo: IUserInfo | null;
-  errors: any;
+  errors: IIrlAttendeeFormErrors;
   initialValues: any;
   guests: any;
-  setErrors: any;
+  setErrors: SetStateAction<any>;
 }
 
 const Gatherings = (props: IGatherings) => {
@@ -25,7 +26,7 @@ const Gatherings = (props: IGatherings) => {
   const initialValues = props?.initialValues;
   const guests = props?.guests;
 
-  const isGatheringsError = errors?.gatheringsError?.length > 0 ? true : false;
+  const isGatheringsError = errors?.gatheringErrors?.length > 0 ? true : false;
 
   const [selectedGatherings, setSelectedGatherings] = useState<any[]>([]);
 
@@ -60,7 +61,7 @@ const Gatherings = (props: IGatherings) => {
             </p>
           </div>
           <div className={`gatrs__all__gths ${isGatheringsError ? 'error' : ''}`}>
-            {gatherings?.map((gathering: any, index: number) => {
+            {gatherings?.map((gathering: IIrlGathering, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
               return (
                 <div key={`${gathering.uid} - ${index}`} className={`gatrs__all__gatr  ${isBooked ? 'disable' : ''}`}>
@@ -86,7 +87,7 @@ const Gatherings = (props: IGatherings) => {
                   <div className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}>
                     <div className="gatrs__all__gatr__dteandname__dat">{getFormattedDateString(gathering.startDate, gathering.endDate)}</div>
                     <div className="gatrs__all__gatr__dteandname__nmesec">
-                      <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo?.cid} />
+                      <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo} />
                       <span className="gatrs__all__gatr__dteandname__nmesec__name">{gathering?.name}</span>
                     </div>
                   </div>

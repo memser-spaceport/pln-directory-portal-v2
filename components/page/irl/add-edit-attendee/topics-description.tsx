@@ -1,11 +1,15 @@
 import TextArea from '@/components/form/text-area';
 import { useEffect, useState } from 'react';
 
-const TopicsDescription = (props: any) => {
+interface ITopicsDescriptionProps {
+  initialValue: string;
+}
+
+const TopicsDescription = (props: ITopicsDescriptionProps) => {
   const initialValue = props?.initialValue ?? "";
   const [reason, setReason] = useState("");
 
-  const onReasonChange = (e: any) => {
+  const onReasonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setReason(e.target.value);
   };
 

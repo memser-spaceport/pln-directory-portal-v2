@@ -158,7 +158,7 @@ const Toolbar = (props: IToolbar) => {
               </button>
             </>
           )} */}
-          {canUserAddAttendees && type !== 'past' && (
+          {canUserAddAttendees && (
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
                 <img src="/icons/add.svg" width={16} height={16} alt="add" />

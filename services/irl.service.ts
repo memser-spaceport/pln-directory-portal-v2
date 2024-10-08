@@ -95,7 +95,6 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
     const result = await response.json();
 
     const guests = result?.eventGuests?.map((guest: any) => {
-      // const memberRole = guest?.member?.teamMemberRoles?.find((teamRole: any) => guest?.teamUid === teamRole?.teamUid)?.role;
       const teamMemberRoles = guest?.member?.teamMemberRoles.map((tm: any) => {
         return {
           name: tm?.team?.name,
@@ -108,14 +107,12 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
       const projectContributions = guest?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name);
 
       return {
-        // uid: guest?.uid,
         teamUid: guest?.teamUid,
         teamName: guest?.team?.name,
         teamLogo: guest?.team?.logo?.url,
         memberUid: guest?.memberUid,
         memberName: guest?.member?.name,
         memberLogo: guest?.member?.image?.url,
-        // memberRole,
         teams: teamMemberRoles,
         reason: guest?.reason,
         telegramId: guest?.member?.telegramHandler || '',
@@ -126,7 +123,7 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
         topics: guest?.topics,
         additionalInfo: guest?.additionalInfo,
         eventNames: [result?.name],
-        events: [{ hostSubEvents: guest?.additionalInfo?.hostSubEvents, speakerSubEvents: guest?.additionalInfo?.speakerSubEvents }],
+        events: [{ uid: result?.uid, name: result?.name, logo: result?.logo?.url, hostSubEvents: guest?.additionalInfo?.hostSubEvents, speakerSubEvents: guest?.additionalInfo?.speakerSubEvents }],
       };
     });
 

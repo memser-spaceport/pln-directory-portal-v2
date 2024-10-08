@@ -1,15 +1,17 @@
 import { EVENTS } from '@/utils/constants';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const TelegramHandle = (props: any) => {
   // const telegramId = props?.telegramId;
 
   const initialValues = props?.initialValues;
+  const scrollTo = props?.scrollTo;
 
   const [isTelegramNote, setIsTelegramNote] = useState(false);
   const [telegramId, setTelegramId] = useState('');
   const [isHiddenTelegram, setIsHiddenTelegram] = useState(false);
+  const telegramRef: any = useRef(null);
 
   const handleChange = (e: any) => {
     setTelegramId(e.target.value);
@@ -40,7 +42,7 @@ const TelegramHandle = (props: any) => {
         handler(e);
       });
     };
-  });
+  }, []);
 
   useEffect(() => {
     if (initialValues) {
@@ -52,6 +54,13 @@ const TelegramHandle = (props: any) => {
     }
   }, [initialValues]);
 
+  useEffect(() => {
+    if(scrollTo) {
+      if (telegramRef.current) {
+        telegramRef.current.focus();
+      }
+    }
+  }, [])
   return (
     <>
       <div className="details__cn__telegram">
@@ -65,6 +74,7 @@ const TelegramHandle = (props: any) => {
           onChange={handleChange}
           onFocus={handleTelegramFocus}
           onBlur={() => onFocusBlur()}
+          ref={telegramRef}
         />
         <span className="details__cn__telegram__handle">@</span>
         {isHiddenTelegram && (

@@ -7,7 +7,7 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { getParsedValue } from '@/utils/common.utils';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, TOAST_MESSAGES } from '@/utils/constants';
 import { canUserPerformEditAction, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
 import { Tooltip as Popover } from './attendee-popover';
 import EventSummary from './event-summary';
@@ -110,17 +110,40 @@ const GuestTableRow = (props: IGuestTableRow) => {
   };
 
   const handleAddOfficeHoursClick = (uid: string) => {
-    document.dispatchEvent(
-      new CustomEvent('openRsvpModal', {
-        detail: {
-          isOpen: true,
-          isOHFocused: true,
-          type: canUserAddAttendees ? 'admin-edit' : 'self-edit',
-          selectedGuest: uid,
-        },
-      })
-    );
+    const formData = {
+      team: {
+        name: guest?.teamName,
+        logo: guest?.teamLogo,
+        uid: guest?.teamUid,
+      },
+      member: {
+        name: guest?.memberName,
+        logo: guest?.memberLogo,
+        uid: guest?.memberUid,
+      },
+      teamUid: guest?.teamUid,
+      events: guest?.events,
+      teams: guest?.teams?.map((team: any) => {
+        return { ...team, uid: team?.id };
+      }),
+      memberUid: guest?.memberUid,
+      additionalInfo: { checkInDate: guest?.additionalInfo.checkInDate || '', checkOutDate: guest?.additionalInfo?.checkOutDate ?? '' },
+      topics: guest?.topics,
+      reason: guest?.reason,
+      telegramId: guest?.telegramId,
+      officeHours: guest?.officeHours ?? '',
+    };
+
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT, scrollTo: 'officehours-section' } }));
     analytics.trackGuestListTableAddOfficeHoursClicked(location);
+  };
+
+  const onSpeakerEventClick = (event: { name: string; link: string }) => {
+    analytics.trackSpeakerEventClicked(location, { eventName: event?.name, eventLink: event?.link });
+  };
+
+  const onHostEventClick = (event: { name: string; link: string }) => {
+    analytics.trackHostEventClicked(location, { eventName: event?.name, eventLink: event?.link });
   };
 
   return (
@@ -181,7 +204,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                         content={
                           <div className="gtr__guestName__li__info__spkr__list">
                             {speakerEvents.map((event: { link: string; name: string }, index: number) => (
-                              <a key={index} target="_blank" href={event?.link} className="gtr__guestName__li__info__spkr__list__item">
+                              <a key={index} target="_blank" href={event?.link} className="gtr__guestName__li__info__spkr__list__item" onClick={() => onSpeakerEventClick(event)}>
                                 {event?.name}
                                 <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />
                               </a>
@@ -209,7 +232,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                         content={
                           <div className="gtr__guestName__li__info__host__list">
                             {hostEvents?.map((event: { link: string; name: string }, index: number) => (
-                              <a key={index} target="_blank" href={event?.link} className="gtr__guestName__li__info__host__list__item">
+                              <a key={index} target="_blank" href={event?.link} onClick={() => onHostEventClick(event)} className="gtr__guestName__li__info__host__list__item">
                                 {event?.name}
                                 <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />
                               </a>

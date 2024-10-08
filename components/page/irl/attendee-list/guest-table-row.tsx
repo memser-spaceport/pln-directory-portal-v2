@@ -12,8 +12,19 @@ import { canUserPerformEditAction, getFormattedDateString, getTelegramUsername, 
 import { Tooltip as Popover } from './attendee-popover';
 import EventSummary from './event-summary';
 import GuestDescription from './guest-description';
+import { IGuest, IIrlEvent } from '@/types/irl.types';
+import { IUserInfo } from '@/types/shared.types';
+import { SyntheticEvent } from 'react';
 
-const GuestTableRow = (props: any) => {
+interface IGuestTableRow {
+  guest: IGuest;
+  userInfo: IUserInfo;
+  showTelegram: boolean;
+  onchangeSelectionStatus: (uid: string) => void;
+  selectedGuests: string[];
+}
+
+const GuestTableRow = (props: IGuestTableRow) => {
   const guest = props?.guest;
   const userInfo = props?.userInfo;
   const showTelegram = props?.showTelegram;
@@ -34,14 +45,14 @@ const GuestTableRow = (props: any) => {
   const officeHours = guest?.officeHours;
   const eventNames = guest?.eventNames ?? [];
   const events = guest?.events ?? [];
-  const hostEvents = events?.flatMap((event: any) => event?.hostSubEvents || []);
-  const speakerEvents = events?.flatMap((event: any) => event?.speakerSubEvents || []);
+  const hostEvents = events?.flatMap((event: IIrlEvent) => event?.hostSubEvents || []);
+  const speakerEvents = events?.flatMap((event: IIrlEvent) => event?.speakerSubEvents || []);
   const formattedEventRange = getFormattedDateString(checkInDate, checkOutDate);
   const router = useRouter();
 
   const isUserGoing = guestUid === userInfo?.uid;
   const topicsNeedToShow = 2;
-  const remainingTopics = topics?.slice(topicsNeedToShow, topics?.length)?.map((topic: any) => topic);
+  const remainingTopics = topics?.slice(topicsNeedToShow, topics?.length)?.map((topic: string) => topic);
   const atRemovedTelegram = removeAt(getTelegramUsername(telegramId));
   const analytics = useIrlAnalytics();
   const canUserAddAttendees = canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
@@ -70,7 +81,7 @@ const GuestTableRow = (props: any) => {
     const isLoggedInUser = userInfo?.uid === memberUid;
     try {
       const authToken = cookies.get('authToken') || '';
-      const response: any = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
+      const response = await createFollowUp(userInfo?.uid as string, getParsedValue(authToken), {
         data: {},
         hasFollowUp: true,
         type: 'SCHEDULE_MEETING',
@@ -138,7 +149,7 @@ const GuestTableRow = (props: any) => {
                 </div>
                 {hostEvents?.length > 0 && (
                   <button
-                    onClick={(e: any) => {
+                    onClick={(e: SyntheticEvent) => {
                       e.preventDefault();
                     }}
                     className="gtr__team__host__btn"
@@ -169,7 +180,7 @@ const GuestTableRow = (props: any) => {
                         align="end"
                         content={
                           <div className="gtr__guestName__li__info__spkr__list">
-                            {speakerEvents.map((event: any, index: number) => (
+                            {speakerEvents.map((event: { link: string; name: string }, index: number) => (
                               <a key={index} target="_blank" href={event?.link} className="gtr__guestName__li__info__spkr__list__item">
                                 {event?.name}
                                 <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />
@@ -179,7 +190,7 @@ const GuestTableRow = (props: any) => {
                         }
                         trigger={
                           <button
-                            onClick={(e: any) => {
+                            onClick={(e: SyntheticEvent) => {
                               e.preventDefault();
                             }}
                             className="gtr__guestName__li__info__spkr__btn"
@@ -197,7 +208,7 @@ const GuestTableRow = (props: any) => {
                         align="end"
                         content={
                           <div className="gtr__guestName__li__info__host__list">
-                            {hostEvents?.map((event: any, index: number) => (
+                            {hostEvents?.map((event: { link: string; name: string }, index: number) => (
                               <a key={index} target="_blank" href={event?.link} className="gtr__guestName__li__info__host__list__item">
                                 {event?.name}
                                 <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />
@@ -207,7 +218,7 @@ const GuestTableRow = (props: any) => {
                         }
                         trigger={
                           <button
-                            onClick={(e: any) => {
+                            onClick={(e: SyntheticEvent) => {
                               e.preventDefault();
                             }}
                             className="gtr__guestName__li__info__host__btn"
@@ -236,7 +247,7 @@ const GuestTableRow = (props: any) => {
         <div className="gtr__topic">
           <GuestDescription description={reason} />
           <div className="gtr__topic__tags">
-            {topics?.slice(0, topicsNeedToShow).map((topic: any, index: number) => (
+            {topics?.slice(0, topicsNeedToShow).map((topic: string, index: number) => (
               <Tooltip
                 key={`${topic}-${index}`}
                 asChild
@@ -254,7 +265,7 @@ const GuestTableRow = (props: any) => {
                 asChild
                 content={
                   <div className="gtr__topic__tags__re__tp">
-                    {remainingTopics.map((topic: string, index: any) => (
+                    {remainingTopics.map((topic: string, index: number) => (
                       <span className="break-word" key={`${topic} + ${index}`}>
                         {topic}
                         {index !== remainingTopics.length - 1 ? ',' : ''}
@@ -312,7 +323,7 @@ const GuestTableRow = (props: any) => {
             </span>
           )}
           {userInfo.uid === guestUid && !officeHours ? (
-            <button onClick={() => handleAddOfficeHoursClick(canUserAddAttendees ? guest.uid : userInfo.uid)} className="gtr__connect__add">
+            <button onClick={() => handleAddOfficeHoursClick(canUserAddAttendees ? guest.memberUid : (userInfo.uid as string))} className="gtr__connect__add">
               <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
               <span className="gtr__connect__add__txt">Add Office Hours</span>
               <Tooltip

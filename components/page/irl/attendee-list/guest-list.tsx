@@ -1,20 +1,22 @@
-import { useEffect } from 'react';
+import { Dispatch, SetStateAction, useEffect } from 'react';
 
 import { EVENTS } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import GuestTableRow from './guest-table-row';
+import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
 
 interface IGuestList {
   userInfo: IUserInfo;
-  eventDetails: any;
+  eventDetails: IGuestDetails;
   showTelegram: boolean;
-  items: any[];
+  items: IGuest[];
   selectedGuests: string[];
-  setSelectedGuests: any;
+  setSelectedGuests: Dispatch<SetStateAction<string[]>>;
+  location: IAnalyticsGuestLocation;
 }
 
-const GuestList = (props: any) => {
+const GuestList = (props: IGuestList) => {
   const userInfo = props?.userInfo;
   const eventDetails = props?.eventDetails;
   const showTelegram = props?.showTelegram;
@@ -22,7 +24,6 @@ const GuestList = (props: any) => {
   const selectedGuests = props?.selectedGuests;
   const setSelectedGuests = props?.setSelectedGuests;
   const location = props?.location;
-
 
   const analytics = useIrlAnalytics();
 
@@ -54,17 +55,17 @@ const GuestList = (props: any) => {
     <>
       <div className="guestList">
         {filteredList?.length > 0 &&
-          filteredList?.map((guest: any, index: number) => {
+          filteredList?.map((guest: IGuest, index: number) => {
             return (
               <div key={`guests-${guest?.memberUid}`}>
                 <GuestTableRow
-                  eventDetails={eventDetails}
+                  // eventDetails={eventDetails}
                   guest={guest}
                   userInfo={userInfo}
                   showTelegram={showTelegram}
                   selectedGuests={selectedGuests}
                   onchangeSelectionStatus={onchangeSelectionStatus}
-                  location={location}
+                  // location={location}
                 />
               </div>
             );

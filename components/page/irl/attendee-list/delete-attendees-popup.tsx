@@ -1,16 +1,30 @@
-import { useState } from 'react';
-import Cookies from 'js-cookie';
+import { Dispatch, SetStateAction, SyntheticEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { deleteEventGuestByLocation, getGuestsByLocation } from '@/services/irl.service';
-import { getParsedValue } from '@/utils/common.utils';
+import { deleteEventGuestByLocation } from '@/services/irl.service';
 import { EVENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { IAnalyticsGuestLocation, IGuest, IGuestDetails, IIrlEvent } from '@/types/irl.types';
+import { IUserInfo } from '@/types/shared.types';
 
-const DeleteAttendeesPopup = (props: any) => {
+interface IDeleteAttendeesPopup {
+  eventDetails: IGuestDetails;
+  location: IAnalyticsGuestLocation;
+  type: string;
+  userInfo: IUserInfo;
+  selectedGuests?: string[];
+  onClose: () => void;
+  setSelectedGuests: Dispatch<SetStateAction<string[]>>;
+}
+
+interface ISelectedEvents {
+  [key: string]: string[];
+}
+
+const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
   const eventDetails = props?.eventDetails;
   const guests = eventDetails?.guests ?? [];
   const onClose = props?.onClose;
@@ -18,34 +32,38 @@ const DeleteAttendeesPopup = (props: any) => {
   const type = props?.type;
   const userInfo = props?.userInfo;
 
-  const selectedGuestIds = type === 'self-delete' ? [userInfo.uid] : props?.selectedGuests ?? [];
-  const selectedGuests = guests.filter((guest: any) => selectedGuestIds.includes(guest?.memberUid)) ?? [];
+  const selectedGuestIds = type === 'self-delete' ? [userInfo?.uid] : props?.selectedGuests ?? [];
+  const selectedGuests = guests?.filter((guest: IGuest) => selectedGuestIds?.includes(guest?.memberUid)) ?? [];
 
   const setSelectedGuests = props?.setSelectedGuests;
 
-  const [selectedEvents, setSelectedEvents] = useState({}) as any;
+  const [selectedEvents, setSelectedEvents] = useState<ISelectedEvents>({});
   const router = useRouter();
   const analytics = useIrlAnalytics();
 
-  const getEventDetails = async () => {
-    const authToken = getParsedValue(Cookies.get('authToken'));
-    const updatedEventDetails = await getGuestsByLocation(location?.uid, 'upcoming', authToken);
-    document.dispatchEvent(
-      new CustomEvent('updateGuests', {
-        detail: {
-          eventDetails: updatedEventDetails,
-        },
-      })
-    );
-    router.refresh();
-    document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-  };
+  // const getEventDetails = async () => {
+  //   const authToken = getParsedValue(Cookies.get('authToken'));
+  //   const updatedEventDetails = await getGuestsByLocation(location?.uid, 'upcoming', authToken);
+  //   document.dispatchEvent(
+  //     new CustomEvent('updateGuests', {
+  //       detail: {
+  //         eventDetails: updatedEventDetails,
+  //       },
+  //     })
+  //   );
+  //   router.refresh();
+  //   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+  // };
 
-  const onDeleteGuests = async (e: any) => {
+  const onDeleteGuests = async (e: SyntheticEvent) => {
     e.preventDefault();
     const toast = (await import('react-toastify')).toast;
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-    // analytics.removeAttendeesPopupRemoveBtnClicked(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), selectedGuests });
+    if (type === 'self-delete') {
+      analytics.trackSelfRemoveAttendeePopupConfirmRemovalBtnClicked(location);
+    } else if (type === 'admin-delete') {
+      analytics.trackAdminRemoveAttendeesPopupConfirmRemovalBtnClicked(location);
+    }
     try {
       const membersAndEvents = Object.keys(selectedEvents).map((memberUid) => ({
         memberUid,
@@ -70,28 +88,38 @@ const DeleteAttendeesPopup = (props: any) => {
         setSelectedGuests([]);
         onClose();
         toast.success(TOAST_MESSAGES.ATTENDEE_DELETED_SUCCESSFULLY);
-        // analytics.removeAttendeesRemoveSuccess(getAnalyticsUserInfo(userInfo), { ...getAnalyticsEventInfo(eventDetails), selectedGuests });
+        if (type === 'self-delete') {
+          analytics.trackSelfRemovalGatheringsSuccess(location, { membersAndEvents });
+        } else if (type === 'admin-delete') {
+          analytics.trackAdminRemoveAttendeesSuccess(location, { membersAndEvents });
+        }
       }
     } catch (err) {
       onClose();
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      if (type === 'self-delete') {
+        analytics.trackSelfRemovalGatherigsFailed(location, { error: err });
+      } else if (type === 'admin-delete') {
+        analytics.trackAdminRemoveAttendeesFailed(location, { error: err });
+      }
       console.log(err);
     }
   };
 
   // Handle selecting or deselecting all gatherings for all members
   const handleSelectAllGatherings = (isChecked: boolean) => {
-    const updatedEvents = isChecked ? Object.fromEntries(selectedGuests?.map((member: any) => [member?.memberUid, member?.events?.map((g: any) => g?.uid)])) : {};
+    const updatedEvents = isChecked ? Object.fromEntries(selectedGuests?.map((member: IGuest) => [member?.memberUid, member?.events?.map((g: IIrlEvent) => g?.uid)])) : {};
     setSelectedEvents(updatedEvents);
   };
 
   // Handle selecting or deselecting all gatherings for an individual member
   const handleSelectMemberGatherings = (memberUid: string, isChecked: boolean) => {
-    setSelectedEvents((prevSelected: any) => {
+    setSelectedEvents((prevSelected: ISelectedEvents) => {
       const updatedGatherings = { ...prevSelected };
       if (isChecked) {
-        updatedGatherings[memberUid] = selectedGuests?.find((member: any) => member?.memberUid === memberUid).events?.map((gathering: any) => gathering?.uid);
+        const memberEvents = selectedGuests?.find((member: IGuest) => member?.memberUid === memberUid)?.events?.map((gathering: IIrlEvent) => gathering?.uid) || [];
+        updatedGatherings[memberUid] = memberEvents;
       } else {
         delete updatedGatherings[memberUid];
       }
@@ -101,7 +129,7 @@ const DeleteAttendeesPopup = (props: any) => {
 
   // Handle selecting or deselecting individual gatherings for a member
   const handleSelectGathering = (memberUid: string, gatheringId: string, isChecked: boolean) => {
-    setSelectedEvents((prevSelected: any) => {
+    setSelectedEvents((prevSelected: ISelectedEvents) => {
       const updated = { ...prevSelected };
       const memberEvents = updated[memberUid] || [];
       updated[memberUid] = isChecked ? [...memberEvents, gatheringId] : memberEvents.filter((id: string) => id !== gatheringId);
@@ -113,7 +141,7 @@ const DeleteAttendeesPopup = (props: any) => {
   };
 
   // to check if all gatherings for a member are selected
-  const areAllMemberGatheringsSelected = (memberUid: string) => (selectedEvents[memberUid]?.length || 0) === selectedGuests?.find((m: any) => m?.memberUid === memberUid)?.events?.length;
+  const areAllMemberGatheringsSelected = (memberUid: string) => (selectedEvents[memberUid]?.length || 0) === selectedGuests?.find((m: IGuest) => m?.memberUid === memberUid)?.events?.length;
 
   // to check if a specific gathering is selected for a member
   const isGatheringSelected = (memberUid: string, gatheringId: string) => selectedEvents[memberUid]?.includes(gatheringId);
@@ -152,7 +180,7 @@ const DeleteAttendeesPopup = (props: any) => {
 
           {/* Members */}
           <div className="popup__body__members">
-            {selectedGuests?.map((guest: any, index: any) => {
+            {selectedGuests?.map((guest: IGuest, index: number) => {
               return (
                 <div className="popup__member" key={guest?.memberUid}>
                   {type === 'admin-delete' && (
@@ -180,7 +208,7 @@ const DeleteAttendeesPopup = (props: any) => {
                     )}
 
                     <div className="popup__member__gatherings__list">
-                      {guest?.events?.map((event: any) => (
+                      {guest?.events?.map((event: IIrlEvent) => (
                         <div key={event?.uid} className="popup__gathering">
                           <div className="popup__gathering__checkbox-wrapper">
                             {type === 'self-delete' && event?.type === EVENT_TYPE.INVITE_ONLY ? (
@@ -208,7 +236,7 @@ const DeleteAttendeesPopup = (props: any) => {
                           <div className="popup__gathering__details">
                             <span className="popup__gathering__date">{getFormattedDateString(event?.startDate, event?.endDate)}</span>
                             <div className="popup__gathering__info-wrapper">
-                              <img height={20} width={20} src={event.logo || '/icons/irl-event-default-logo.svg'} alt={event.name} className="popup__gathering__logo" />
+                              <img height={20} width={20} src={event?.logo || '/icons/irl-event-default-logo.svg'} alt={event?.name} className="popup__gathering__logo" />
                               <span className="popup__gathering__name">{event.name}</span>
                             </div>
                           </div>

@@ -39,8 +39,10 @@ const IrlEvents = (props: any) => {
         currentParams.delete('event');
         router.push(`${window.location.pathname}?${currentParams.toString()}`);
         // updateQueryParams('type', 'upcoming', searchParams);
-        triggerLoader(true);
-        analytics.trackUpcomingEventsButtonClicked(eventDetails.upcomingEvents);
+        if (searchParams?.type === 'past') {
+            triggerLoader(true);
+            analytics.trackUpcomingEventsButtonClicked(eventDetails.upcomingEvents);
+        }
     }
 
     const handlePastGathering = () => {
@@ -50,11 +52,14 @@ const IrlEvents = (props: any) => {
 
         // Add or update the new search parameters
         currentParams.set('type', 'past');
-        currentParams.set('event', eventDetails?.pastEvents[0]?.slugURL);
-        
+        if (eventDetails?.pastEvents?.length > 0) {
+            currentParams.set('event', eventDetails?.pastEvents[0]?.slugURL);
+        }
 
         router.push(`${window.location.pathname}?${currentParams.toString()}`);
-        triggerLoader(true);
+        if (searchParams?.type === 'upcoming') {
+            triggerLoader(true);
+        }
         analytics.trackPastEventsButtonClicked(eventDetails.pastEvents);
     }
 
@@ -84,6 +89,10 @@ const IrlEvents = (props: any) => {
         analytics.onJoinPLNetworkClicked(eventDetails);
     }
 
+    function handleAdditionalResourceClicked(resource :any) {
+        analytics.trackAdditionalResourcesClicked(resource);
+    }
+
     return (
         <>
             <div className="root">
@@ -93,7 +102,7 @@ const IrlEvents = (props: any) => {
                             <button
                                 className={`root__irl__events__upcoming ${isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
                                 onClick={handleUpcomingGathering}>
-                                upcoming
+                                Upcoming
                                 <span
                                     className={`root__irl__events__count ${isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
                                 >
@@ -103,7 +112,7 @@ const IrlEvents = (props: any) => {
                             <button
                                 className={`root__irl__events__past ${!isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
                                 onClick={handlePastGathering}>
-                                past
+                                Past
                                 <span
                                     className={`root__irl__events__count ${!isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
                                 >
@@ -127,41 +136,43 @@ const IrlEvents = (props: any) => {
                         <IrlPastEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
                     }
 
-                    <div className="root__irl__addRes">
-                        <div className="root__irl__addRes__cnt">
-                            <div className="root__irl__addRes__cnt__icon">📋</div>
-                            <div>Additional resources</div>
-                        </div>
-
-                        <div className="root__irl__addRes__cntr">
-                            <div className="root__irl__addRes__cntr__resource">
-                                {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
-                                    <div key={index} className="root__irl__addRes__cntr__resCnt">
-                                        <div style={{ display: "flex" }}>
-                                            <img
-                                                src="/icons/hyper-link.svg"
-                                                alt="icon" />
-                                        </div>
-                                        <a href={resource?.link} target='_blank'>
-                                            {resource?.type}
-                                        </a>
-                                        <div>
-                                            <img
-                                                src="/icons/arrow-blue.svg"
-                                                alt="arrow icon" />
-                                        </div>
-                                    </div>
-                                ))}
+                    {eventDetails?.resources?.length > 0 &&
+                        <div className="root__irl__addRes">
+                            <div className="root__irl__addRes__cnt">
+                                <div className="root__irl__addRes__cnt__icon">📋</div>
+                                <div>Additional Resources</div>
                             </div>
 
-                            {eventDetails?.resources?.length > 3 && (
-                                <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                                    <div>+{eventDetails?.resources?.length - 3}</div>
-                                    <div>more</div>
+                            <div className="root__irl__addRes__cntr">
+                                <div className="root__irl__addRes__cntr__resource">
+                                    {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
+                                        <div key={index} className="root__irl__addRes__cntr__resCnt">
+                                            <div style={{ display: "flex" }} onClick={() => handleAdditionalResourceClicked(resource)}>
+                                                <img
+                                                    src="/icons/hyper-link.svg"
+                                                    alt="icon" />
+                                            </div>
+                                            <a href={resource?.link} target='_blank'>
+                                                {resource?.type}
+                                            </a>
+                                            <div>
+                                                <img
+                                                    src="/icons/arrow-blue.svg"
+                                                    alt="arrow icon" />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
+
+                                {eventDetails?.resources?.length > 3 && (
+                                    <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
+                                        <div>+{eventDetails?.resources?.length - 3}</div>
+                                        <div>more</div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    }
 
                     {!isLoggedIn &&
                         <div className="root__irl__addRes__loggedOut">
@@ -226,7 +237,7 @@ const IrlEvents = (props: any) => {
                 }
 
                 .root__irl__events {
-                    width: 231px;
+                    width: 310px;
                     height: 48px;
                     padding: 3px;
                     border-radius: 8px;
@@ -245,6 +256,7 @@ const IrlEvents = (props: any) => {
                     text-align: center;
                     border-radius: 8px;
                     border: none;
+                    width: 155px;
                 }
 
                 .root__irl__events__active {
@@ -306,7 +318,7 @@ const IrlEvents = (props: any) => {
                     gap: 4px;
                     border-radius: 24px;
                     border: 1px solid #CBD5E1;
-                    width: 301px;
+                    width: 310px;
                     height: 32px;
                     font-size: 14px;
                     font-weight: 400;
@@ -618,16 +630,27 @@ const IrlEvents = (props: any) => {
                         width: 100%;
                     }
 
-                    .root__irl {
-                         width: ${isUpcoming ? '900px' : 'unset'};
-                    }
-
                     .root__irl__addRes {
                         width: ${isUpcoming ? '900px' : 'unset'};
                     }
 
+                    .root__irl {
+                        flex-direction: column;
+                        align-items: baseline;
+                        // justify-content: left;
+                        gap: 16px;
+                        //  width: ${isUpcoming ? '900px' : 'unset'};
+                    }
+
                     .root__irl__addRes__loggedOut {
                         width: ${isUpcoming ? '900px' : 'unset'};
+                    }
+                }
+
+                @media (min-width: 702px) {
+                    .root__irl {
+                        flex-direction: row;
+                        //  width: ${isUpcoming ? '900px' : 'unset'};
                     }
                 }
 
@@ -640,8 +663,13 @@ const IrlEvents = (props: any) => {
                       width: 864px;
                     }
 
-                    .root__irl, .root__irl__addRes, .root__irl__addRes__loggedOut {
+                    .root__irl__addRes, .root__irl__addRes__loggedOut {
                         width: unset;
+                    }
+
+                    .root__irl {
+                        width: unset;
+                        justify-content: space-between;
                     }
 
                     .root__irl__resPopup, .root__irl__addRes__popup {

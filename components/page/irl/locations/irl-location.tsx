@@ -49,28 +49,26 @@ const IrlLocation = (props: any) => {
             }
         }
         setShowMore(!showMore);
+        analytics.trackSeeOtherLocationClicked(locations.slice(4));
     }
 
     const handleCardClick = (locationDetail: any) => {
         activeLocationId = locationDetail?.uid;
-        triggerLoader(true);
         const currentParams = new URLSearchParams(searchParams);
 
         // Add or update the new search parameters
         currentParams.set('location', locationDetail?.location?.split(",")[0].trim());
-        if (locationDetail?.pastEvents?.length > 0 && searchParams?.type !== 'upcoming') {
+        if (locationDetail?.pastEvents?.length > 0 && searchParams?.type === 'past') {
             currentParams.set('event', locationDetail?.pastEvents[0]?.slugURL);
         } else {
             currentParams.delete('event');
         }
 
-        // Push the updated URL with the new search params
-        router.push(`${window.location.pathname}?${currentParams.toString()}`);
-        // updateQueryParams('location', locationName.split(",")[0].trim(), searchParams);
-        // if(searchParams.eventName) {
-        // updateQueryParams('eventName', '', searchParams)
-        // }
-        analytics.trackLocationClicked(locationDetail?.uid, locationDetail?.location);
+        if (locationDetail?.location?.split(",")[0].trim() !== searchParams?.location) {
+            router.push(`${window.location.pathname}?${currentParams.toString()}`);
+            triggerLoader(true);
+            analytics.trackLocationClicked(locationDetail?.uid, locationDetail?.location);
+        }
     };
 
     const handleResourceClick = (clickedLocation: any) => {
@@ -90,6 +88,7 @@ const IrlLocation = (props: any) => {
             } else {
                 [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
                     [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
+                    analytics.trackLocationClicked(updatedLocations[fourthIndex].uid, updatedLocations[fourthIndex].location);
             }
             setLocations(updatedLocations);
         }
@@ -111,26 +110,29 @@ const IrlLocation = (props: any) => {
                         />
                     ))}
                 </div>
-                <div
-                    className="root__irl__expanded"
-                    onClick={handleClick}
-                >
+                {locations.length > 4 &&
                     <div
-                        className="root__irl__expanded__showMore"
+                        className="root__irl__expanded"
+                        onClick={handleClick}
+                        onBlur={() => setShowMore(false)}
                     >
-                        See Other Locations
+                        <div
+                            className="root__irl__expanded__showMore"
+                        >
+                            See Other Locations
+                        </div>
+                        <div className="root_irl__expanded__imgcntr">
+                            {locations.slice(4, 7).map((location: { flag: any; }, index: React.Key | null | undefined) => (
+                                <div key={index} className="root_irl__expanded__imgcntr__img">
+                                    <div>{location.flag}</div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="root__irl__expanded__icon">
+                            <img src="/images/irl/upsideCap.svg" alt="downArrow" />
+                        </div>
                     </div>
-                    <div className="root_irl__expanded__imgcntr">
-                        {locations.slice(4, 7).map((location: { flag: any; }, index: React.Key | null | undefined) => (
-                            <div key={index} className="root_irl__expanded__imgcntr__img">
-                                <div>{location.flag}</div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="root__irl__expanded__icon">
-                        <img src="/images/irl/upsideCap.svg" alt="downArrow" />
-                    </div>
-                </div>
+                }
 
                 {showMore &&
                     <div className="root__irl__overlay">

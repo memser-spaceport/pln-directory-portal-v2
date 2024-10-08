@@ -6,7 +6,7 @@ import IrlLocation from '@/components/page/irl/locations/irl-location';
 import { getAllLocations, getGuestsByLocation } from '@/services/irl.service';
 import { getMemberPreferences } from '@/services/preferences.service';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
-import { sortByDefault } from '@/utils/irl.utils';
+import { sortByDefault, sortPastEvents } from '@/utils/irl.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import styles from './page.module.css';

@@ -1,6 +1,5 @@
 "use client";
 
-import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { useRef, useState } from 'react';
 import IrlEventsPopupOverlay from './irl-events-popup-overlay';
 import IrlEventsTableView from './irl-events-table-view';
@@ -18,12 +17,9 @@ interface EventDetailsProps {
     searchParams: any;
 }
 
-const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: EventDetailsProps) => {
-    // const eventsToShow = isUpcoming ? eventDetails?.upcomingEvents : eventDetails?.pastEvents;
+const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetailsProps) => {
     const eventType = isUpcoming ? 'Upcoming Events' : 'Past Events';
-    const { updateQueryParams } = useUpdateQueryParams();
     let eventsToShow: any = [];
-    const limit = 4;
     const [isExpanded, setExpanded] = useState(false);
     const [itemsToShow, setItemsToShow] = useState(4);
     const dialogRef = useRef<HTMLDivElement>(null);
@@ -34,16 +30,27 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
     if (eventDetails) {
         // Determine events to show based on upcoming or past
         const events = isUpcoming ? eventDetails.upcomingEvents : eventDetails.pastEvents;
-        // Sort upcomingEvents based on duration and then by start date
-        const sortedUpcoming = events.sort((a: any, b: any) => {
+
+        // Sort events based on startDate first, then by duration (endDate - startDate)
+        const sortedEvents = events.sort((a: any, b: any) => {
+            // First, compare by start date (earlier start first)
+            const startDateComparison = new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+
+            if (startDateComparison !== 0) {
+                return startDateComparison;
+            }
+
+            // If start dates are equal, compare by duration (longer duration first)
             const durationA = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
             const durationB = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
 
-            // Compare by duration first, then by start date
-            return durationB - durationA || new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+            return durationB - durationA;
         });
 
-        eventsToShow = sortedUpcoming;
+        // Set eventsToShow based on the sorted events
+        eventsToShow = sortedEvents;
+
+
     }
 
     const toggleDescription = () => {
@@ -170,7 +177,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
                     border: 1px solid #CBD5E1;
                 }
 
-                .root__irl__table-row__header , .root__irl__table-row__content {
+                .root__irl__table-row__header {
                     display: flex;
                     flex-direction: row;
                     width: 100%;
@@ -180,18 +187,6 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
                     font-weight: 400;
                     line-height: 20px;
                     text-align: left;
-                }
-
-                .root__irl__table-row__content {
-                    border-top: none;
-                    border-right: 1px solid #CBD5E1;
-                    border-bottom: 1px solid #CBD5E1;
-                    border-left: 1px solid #CBD5E1;
-                    min-height: 54px;
-                }
-                    
-                .root__irl__table-row__content--active {
-                    background-color: rgba(219, 234, 254, 0.5);
                 }
 
                 .root__irl__table-col__headerName, .root__irl__table-col__contentName {

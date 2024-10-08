@@ -35,21 +35,29 @@ const IrlEventsPopupOverlay = ({ dialogRef,
                         </div>
                     }
                     <div className="root__irl__popupCntr">
-                        {resources?.map((resource: any, index: number) => (
-                            <div key={index} className="root__irl__popupCnt" onClick={handleAdditionalResourceClick}>
-                                <div>
-                                    {resource?.icon ? <img src={resource?.icon} style={{height:'20px', width: '20px'}}alt="icon" /> : <img src="/icons/hyper-link.svg" alt="icon" />}
+                        {resources?.map((resource: any, index: number) => {
+                            // Check if the resource is public or if the user is logged in (for non-public resources)
+                            const canShowResource = resource.isPublic || (resource.isPublic === false && isLoggedIn);
+
+                            return canShowResource ? (
+                                <div key={index} className="root__irl__popupCnt" onClick={handleAdditionalResourceClick}>
+                                    <div>
+                                        {resource?.icon ? (
+                                            <img src={resource.icon} style={{ height: '20px', width: '20px' }} alt="icon" />
+                                        ) : (
+                                            <img src="/icons/hyper-link.svg" alt="icon" />
+                                        )}
+                                    </div>
+                                    <a href={resource.link} target='_blank' rel="noopener noreferrer">
+                                        {resource.name}
+                                    </a>
+                                    <div>
+                                        <img src="/icons/arrow-blue.svg" alt="arrow icon" />
+                                    </div>
                                 </div>
-                                <a href={resource?.link} target='_blank'>
-                                    {resource?.name}
-                                </a>
-                                <div>
-                                    <img
-                                        src="/icons/arrow-blue.svg"
-                                        alt="arrow icon" />
-                                </div>
-                            </div>
-                        ))}
+                            ) : null; // Return null if the resource should not be displayed
+                        })}
+
                     </div>
                 </div>
             </Modal>

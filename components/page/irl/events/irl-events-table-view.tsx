@@ -55,7 +55,6 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     display: flex;
                     flex-direction: row;
                     width: 100%;
-                    min-height: 40px;
                     clear: both;
                     font-size: 13px;
                     font-weight: 400;

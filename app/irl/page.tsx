@@ -10,6 +10,7 @@ import { sortByDefault } from '@/utils/irl.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import styles from './page.module.css';
+import { IAnalyticsGuestLocation } from '@/types/irl.types';
 
 export default async function Page({ searchParams }: any) {
   const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing } = await getPageData(searchParams);
@@ -36,7 +37,14 @@ export default async function Page({ searchParams }: any) {
         {/* Guests */}
         {guestDetails?.events?.length > 0 && (
           <section className={styles.irlGatheings__guests}>
-            <AttendeeList location={eventLocationSummary} showTelegram={showTelegram} eventDetails={guestDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} isUserGoing={isUserGoing} />
+            <AttendeeList
+              location={eventLocationSummary as IAnalyticsGuestLocation}
+              showTelegram={showTelegram as boolean}
+              eventDetails={guestDetails}
+              userInfo={userInfo}
+              isLoggedIn={isLoggedIn}
+              isUserGoing={isUserGoing as boolean}
+            />
           </section>
         )}
       </div>

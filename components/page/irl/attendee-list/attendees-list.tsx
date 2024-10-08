@@ -1,14 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
 
 import { useIrlDetails } from '@/hooks/irl/use-irl-details';
 import { sortByDefault } from '@/utils/irl.utils';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import Toolbar from './toolbar';
-import TableHeader from './attendee-table-header';
 import GuestList from './guest-list';
 import EmptyList from './empty-list';
 import FloatingBar from './floating-bar';
@@ -17,31 +16,43 @@ import DeleteAttendeesPopup from './delete-attendees-popup';
 import { getParsedValue } from '@/utils/common.utils';
 import { getGuestsByLocation } from '@/services/irl.service';
 import AttendeeForm from '../add-edit-attendee/attendee-form';
+import NoAttendees from './no-attendees';
+import AttendeeTableHeader from './attendee-table-header';
+import { IUserInfo } from '@/types/shared.types';
+import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
 
-const AttendeeList = (props: any) => {
+interface IAttendeeList {
+  userInfo: IUserInfo;
+  isLoggedIn: boolean;
+  eventDetails: IGuestDetails;
+  showTelegram: boolean;
+  location: IAnalyticsGuestLocation;
+  isUserGoing: boolean;
+}
+
+const AttendeeList = (props: IAttendeeList) => {
   const userInfo = props.userInfo;
   const isLoggedIn = props.isLoggedIn;
   const eventDetails = props.eventDetails;
   const showTelegram = props.showTelegram;
   const location = props.location;
 
-  console.log('props', eventDetails);
-
   const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
-  const [selectedGuests, setSelectedGuests] = useState([]);
+  const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [showFloaingBar, setShowFloatingBar] = useState(false);
-  const deleteRef = useRef<HTMLDialogElement>(null);
   const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
+  const deleteRef = useRef<HTMLDialogElement>(null);
+  const searchParams = useSearchParams();
   const router = useRouter();
 
   const { filteredList, sortConfig, filterConfig } = useIrlDetails(updatedEventDetails?.guests, userInfo);
   const registeredGuest = useMemo(() => {
     return updatedEventDetails.guests.find((guest: any) => guest?.memberUid === userInfo?.uid);
-  }, [updatedEventDetails.guests, userInfo.uid]);
-  const [updatedUser, setUpdatedUser] = useState(registeredGuest);
+  }, [updatedEventDetails.guests, userInfo.uid]) as IGuest;
+  const [updatedUser, setUpdatedUser] = useState<IGuest>(registeredGuest);
   const [deleteModalOpen, setDeleteModalOpen] = useState({ isOpen: false, type: '' });
 
   const onCloseFloatingBar = useCallback(() => {
@@ -49,7 +60,7 @@ const AttendeeList = (props: any) => {
     setShowFloatingBar(false);
   }, []);
 
-  const onCloseDeleteModal = (e: any) => {
+  const onCloseDeleteModal = () => {
     deleteRef.current?.close();
     setDeleteModalOpen((prev) => ({ ...prev, isOpen: false }));
   };
@@ -64,13 +75,6 @@ const AttendeeList = (props: any) => {
     }
   }, [router]);
 
-  const onRespondClick = () => {
-    if (!isLoggedIn) {
-      onLogin();
-    } else {
-    }
-  };
-
   // Sync registeredGuest and eventDetails changes
   useEffect(() => {
     setUpdatedEventDetails(eventDetails);
@@ -82,8 +86,8 @@ const AttendeeList = (props: any) => {
   useEffect(() => {
     const handler = async (e: any) => {
       const authToken = getParsedValue(Cookies.get('authToken'));
-      const eventInfo = await getGuestsByLocation(location?.uid, 'upcoming', authToken, '');
-      const goingGuest = eventInfo?.guests?.find((guest: any) => guest?.memberUid === userInfo?.uid);
+      const eventInfo: any = await getGuestsByLocation(location?.uid, 'upcoming', authToken, '');
+      const goingGuest = eventInfo?.guests?.find((guest: any) => guest?.memberUid === userInfo?.uid) as IGuest;
       const sortedGuests = sortByDefault(eventInfo?.guests);
       eventInfo.guests = sortedGuests;
       if (goingGuest) {
@@ -132,13 +136,11 @@ const AttendeeList = (props: any) => {
     };
   }, []);
 
+  //close floating bar on route change
   useEffect(() => {
-    setUpdatedEventDetails(eventDetails);
-  }, [eventDetails]);
-
-  useEffect(() => {
-    setUpdatedUser(registeredGuest);
-  }, [registeredGuest]);
+    setShowFloatingBar(false);
+    setSelectedGuests([]);
+  }, [searchParams, router]);
 
   useEffect(() => {
     document.addEventListener(EVENTS.OPEN_IAM_GOING_POPUP, (e: any) => {
@@ -187,7 +189,7 @@ const AttendeeList = (props: any) => {
         <div className="attendeeList__table">
           {eventDetails?.guests?.length > 0 && (
             <div className={`irl__table  ${isLoggedIn ? 'table__login' : 'table__not-login'} `}>
-              <TableHeader userInfo={userInfo} isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} filterConfig={filterConfig} />
+              <AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} filterConfig={filterConfig} />
               <div className={`irl__table__body  ${isLoggedIn ? '' : 'w-full'}`}>
                 {isLoggedIn && (
                   <GuestList
@@ -204,24 +206,13 @@ const AttendeeList = (props: any) => {
               </div>
             </div>
           )}
-          {eventDetails?.guests?.length === 0 && (
-            <div className="attendeeList__table--no-attendees">
-              <div className="attendeeList__table--no-attendees__content">
-                <span className="attendeeList__table--no-attendees__content__memberIcon">
-                  <img src="/icons/members-blue.svg" alt="members" />
-                </span>
-                <p className="attendeeList__table--no-attendees__content__text">
-                  <span className="attendeeList__table--no-attendees__content__text__respond">Respond</span> to break the ice! Your participation might inspire others to jump in!
-                </p>
-              </div>
-            </div>
-          )}
+          {eventDetails?.guests?.length === 0 && <NoAttendees />}
         </div>
       </div>
       {/* FLOATING BAR */}
       {showFloaingBar && (
         <div className="irl__floating-bar">
-          <FloatingBar eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} />
+          <FloatingBar location={location} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} />
         </div>
       )}
 
@@ -293,48 +284,6 @@ const AttendeeList = (props: any) => {
           overflow-y: auto;
         }
 
-        .attendeeList__table--no-attendees {
-          display: flex;
-          gap: 10px;
-          align-items: center;
-          justify-content: center;
-          height: 54px;
-          background-color: #fff;
-          box-shadow: 0px 4px 4px 0px #0f172a0a;
-          width: 100%;
-          padding: 0px 20px;
-        }
-
-        .attendeeList__table--no-attendees__content {
-          display: flex;
-          gap: 6px;
-          align-items: center;
-        }
-
-        .attendeeList__table--no-attendees__content__memberIcon {
-          background-color: #dbeafe;
-          min-width: 20px;
-          height: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-        }
-
-        .attendeeList__table--no-attendees__content__text__respond {
-          font-size: 13px;
-          font-weight: 500;
-          line-height: 15px;
-          color: #156ff7;
-        }
-
-        .attendeeList__table--no-attendees__content__text {
-          font-size: 13px;
-          font-weight: 400;
-          line-height: 15px;
-          color: #0f172a;
-        }
-
         .table__login {
           height: calc(100svh - 280px);
         }
@@ -382,10 +331,6 @@ const AttendeeList = (props: any) => {
 
           .table__not-login {
             height: calc(100vh - 170px);
-          }
-
-          .attendeeList__table--no-attendees {
-            border-radius: 8px;
           }
         }
       `}</style>

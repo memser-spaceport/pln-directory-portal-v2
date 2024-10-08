@@ -18,12 +18,22 @@ const IrlHeader = () => {
                 .irlsubHeader {
                   font-size: 14px;
                   font-weight: 400;
-                  line-height: 28px;
                 }
 
                 @media (min-width: 360px) {
                   .irlheaderCnt{
                     padding: 15px;
+                  }
+
+                  .irlsubHeader{
+                    line-height: 22px;
+                  }
+                }
+
+                @media (min-width: 10240px) {
+                  .irlsubHeader{
+                    line-height: 28px;
+;
                   }
                 }
         `}</style>

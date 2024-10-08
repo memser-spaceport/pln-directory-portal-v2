@@ -47,7 +47,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
     }
 
     if (searchParams?.eventName) {
-        updateQueryParams('eventName', "", searchParams);
+        // updateQueryParams('eventName', "", searchParams);
     }
 
     const toggleDescription = () => {
@@ -163,7 +163,6 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
                     justify-content: center;
                     height: 54px;
                     align-items: center;
-                    font-family: Inter;
                     font-size: 13px;
                     font-weight: 400;
                     line-height: 15px;

@@ -2,6 +2,7 @@ import useFloatingMultiSelect from '@/hooks/irl/use-floating-multi-select';
 import { getTopics, getUniqueEvents } from '@/utils/irl.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import FloatingMultiSelect from './floating-multi-select';
+import { useSearchParams } from 'next/navigation';
 interface ITableHeader {
   isUserLoggedIn: boolean;
   eventDetails: any;
@@ -18,6 +19,8 @@ const TableHeader = (props: any) => {
   const analytics = useIrlAnalytics();
   const events = getUniqueEvents(eventDetails?.events);
   const topics = getTopics([...eventDetails?.guests]);
+  const searchParams = useSearchParams();
+  const eventType = searchParams.get('past');
 
   const eventsFilterProps = useFloatingMultiSelect({
     items: events,
@@ -152,7 +155,7 @@ const TableHeader = (props: any) => {
 
           <div className="tbl__hdr__attending">
             Attending
-            {events?.length > 0 && (
+            {events?.length > 0 && eventType === 'upcoming' && (
               <>
                 <div className="tbl__hdr__attending__filter">
                   <button className="tbl__hdr__attending__filter__btn" onClick={onEventsFilterclicked}>

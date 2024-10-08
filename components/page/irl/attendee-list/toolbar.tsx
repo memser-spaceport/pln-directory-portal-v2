@@ -50,10 +50,8 @@ const Toolbar = (props: any) => {
   };
 
   const onIamGoingPopupClose = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, {detail: { isOpen: false, formdata: null, mode: '' }}))
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: false, formdata: null, mode: '' } }));
   };
-
-
 
   // Open Attendee Details Popup to edit the guest
   const onEditResponse = () => {
@@ -139,7 +137,7 @@ const Toolbar = (props: any) => {
       telegramId: updatedUser?.telegramId,
       officeHours: updatedUser?.officeHours ?? '',
     };
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT} }));
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
   };
 
   return (
@@ -162,7 +160,7 @@ const Toolbar = (props: any) => {
               </button>
             </>
           )} */}
-          {canUserAddAttendees && (
+          {canUserAddAttendees && type !== 'past' && (
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
                 <img src="/icons/add.svg" width={16} height={16} alt="add" />
@@ -199,7 +197,9 @@ const Toolbar = (props: any) => {
                   <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
                     Edit Details
                   </button>
-                  <button onClick={onRemoveFromGatherings}  className="toolbar__actionCn__edit__list__item">Remove from gathering(s)</button>
+                  <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
+                    Remove from gathering(s)
+                  </button>
                 </div>
               )}
             </div>

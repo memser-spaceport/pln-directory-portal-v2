@@ -1,20 +1,21 @@
 "use client";
 
 import IrlLocationCard from "./irl-location-card";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import React from "react";
 import Modal from "@/components/core/modal";
 import useUpdateQueryParams from "@/hooks/useUpdateQueryParams";
-import { useHomeAnalytics } from "@/analytics/home.analytics";
+import { triggerLoader } from "@/utils/common.utils";
+import { useIrlAnalytics } from "@/analytics/irl.analytics";
 
 const IrlLocation = (props: any) => {
     const { updateQueryParams } = useUpdateQueryParams();
-    const [activeLocationId, setActiveLocationId] = useState(null);
+    let activeLocationId: any = null
     const [locations, setLocations] = useState(props.locationDetails);
     const [showMore, setShowMore] = useState(false);
     const dialogRef = useRef<HTMLDialogElement>(null);
     const searchParams = props?.searchParams;
-    const analytics = useHomeAnalytics();
+    const analytics = useIrlAnalytics();
 
     const onCloseModal = () => {
         if (dialogRef.current) {
@@ -22,42 +23,25 @@ const IrlLocation = (props: any) => {
         }
     };
 
-    useEffect(() => {
-        const queryParams = new URLSearchParams(window.location.search);
-        const locationNameFromQuery = queryParams.get('location');
-        if (locationNameFromQuery) {
-            console.log(locationNameFromQuery, "locationNameFromQuery");
-        } else {
-            const defaultLocation = locations.find((location: any) => location.priority === 1) || locations[0];
-            if (defaultLocation) {
-                setActiveLocationId(defaultLocation.uid);
+    if (searchParams?.location) {
+        const locationName = searchParams.location;
+        const locationDataIndex = locations?.findIndex(
+            (loc: { location: string; }) => loc.location.split(",")[0].trim() === locationName
+        );
+
+        if (locationDataIndex >= 0) {
+            if (locationDataIndex >= 4) {
+                [locations[3], locations[locationDataIndex]] = [locations[locationDataIndex], locations[3]];
+                activeLocationId = locations[3].uid;
+                analytics.trackSeeOtherLocationClicked(locations[3]);
+            } else {
+                activeLocationId = locations[locationDataIndex].uid;
             }
         }
-        setLocations(locations);
-    }, [locations]);
-
-    useEffect(() => {
-        if (searchParams?.location) {
-            const locationName = searchParams.location;
-            const locationDataIndex = locations?.findIndex(
-                (loc: { location: string; }) => loc.location.split(",")[0].trim() === locationName
-            );
-
-            if (locationDataIndex >= 0) {
-                if (locationDataIndex >= 4) {
-                    [locations[3], locations[locationDataIndex]] = [locations[locationDataIndex], locations[3]];
-
-                    setActiveLocationId(locations[3].uid);
-                } else {
-                    setActiveLocationId(locations[locationDataIndex].uid);
-                }
-            }
-        }
-    }, [searchParams]);
+    }
 
     const handleClick = () => {
-        analytics.onSeeOtherLocationClicked(locations);
-        if (window.innerWidth < 1024) {
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
             if (dialogRef.current) {
                 dialogRef.current.showModal();
             }
@@ -66,9 +50,10 @@ const IrlLocation = (props: any) => {
     }
 
     const handleCardClick = (uid: any, locationName: any) => {
-        setActiveLocationId(uid);
+        activeLocationId = uid;
+        triggerLoader(true);
         updateQueryParams('location', locationName.split(",")[0].trim(), searchParams);
-        analytics.onLocationClicked(locationName.split(",")[0].trim());
+        analytics.trackLocationClicked(uid, locationName);
     };
 
     const handleResourceClick = (clickedLocation: any) => {
@@ -82,14 +67,17 @@ const IrlLocation = (props: any) => {
                 [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
                     [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
 
-                setActiveLocationId(updatedLocations[fourthIndex].uid);
+                activeLocationId = updatedLocations[fourthIndex].uid;
                 updateQueryParams('location', updatedLocations[fourthIndex].location.split(",")[0].trim(), searchParams);
-                analytics.onLocationClicked(updatedLocations[fourthIndex].location.split(",")[0].trim());
+                analytics.trackLocationClicked(updatedLocations[fourthIndex].uid, updatedLocations[fourthIndex].location);
             } else {
                 [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
                     [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
             }
             setLocations(updatedLocations);
+        }
+        if (dialogRef.current) {
+            dialogRef.current.close();
         }
     };
 
@@ -97,16 +85,21 @@ const IrlLocation = (props: any) => {
         <>
             <div className="root">
                 <div className="root__card">
-                    {locations.slice(0, 4).map((location: any) => (
+                    {locations.slice(0, 4).map((location: any, index: any) => (
                         <IrlLocationCard
                             key={location.uid}
                             {...location}
-                            isActive={activeLocationId === location.uid} 
+                            isActive={activeLocationId ? activeLocationId === location.uid : index === 0}
                             onCardClick={() => handleCardClick(location.uid, location.location)}
                         />
                     ))}
                 </div>
-                <div className="root__irl__expanded" onClick={handleClick}>
+                <div 
+                    className="root__irl__expanded" 
+                    onClick={handleClick} 
+                    onBlur={() => setShowMore(false)}
+                    tabIndex={0}
+                >
                     <div
                         className="root__irl__expanded__showMore"
                     >
@@ -194,7 +187,8 @@ const IrlLocation = (props: any) => {
 
                 .root__irl__expanded:hover {
                     position: relative;
-                    animation: moveBackground 4s forwards;
+                    animation:moveBackground 4s forwards  // moveBackground 8s linear infinite; /* Infinite smooth animation */
+                    //background-repeat: repeat-x;
                     
                 }
 
@@ -280,7 +274,6 @@ const IrlLocation = (props: any) => {
                 }
 
                 .root__irl__overlay__cnt__events {
-                    font-family: Inter;
                     font-size: 11px;
                     font-weight: 600;
                     line-height: 14px;
@@ -299,7 +292,6 @@ const IrlLocation = (props: any) => {
 
                 .root__irl__header {
                     padding: 15px;
-                    font-family: Inter;
                     font-size: 18px;
                     font-weight: 500;
                     line-height: 14px;
@@ -308,8 +300,6 @@ const IrlLocation = (props: any) => {
                 .root__irl__mobileModal {
                     display: flex;  
                     flex-direction: column;
-                    // padding: 40px 0 40px 0;
-
                 }
 
                 .root__irl__mobileModal__cnt {
@@ -387,7 +377,7 @@ const IrlLocation = (props: any) => {
                     .root__irl__expanded{
                         width: 161px;
                         height: 150px;
-                        background-image: url("/images/irl/Clouds.svg");
+                        background-image: url("/images/irl/Clouds v2.svg");
                         gap: 5px;
                     }
 

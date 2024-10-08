@@ -1,11 +1,13 @@
 "use client";
 
 import Modal from "@/components/core/modal";
-import { useEffect, useRef, useState } from "react";
-import IrlEventTable from "./irl-event-table";
+import { useRef } from "react";
 import useUpdateQueryParams from "@/hooks/useUpdateQueryParams";
-import { useHomeAnalytics } from "@/analytics/home.analytics";
 import { getFormattedDateString } from "@/utils/irl.utils";
+import IrlUpcomingEvents from "./irl-upcoming-events";
+import IrlPastEvents from "./irl-past-events";
+import { triggerLoader } from "@/utils/common.utils";
+import { useIrlAnalytics } from "@/analytics/irl.analytics";
 
 interface IIrlEvents {
     isLoggedIn: boolean;
@@ -15,32 +17,31 @@ const IrlEvents = (props: any) => {
     const searchParams = props?.searchParams;
     const eventDetails = props?.eventDetails;
     const isLoggedIn = props.isLoggedIn;
-    const [isUpcoming, setIsUpcoming] = useState(true);
+    let isUpcoming = true;
     const dialogRef = useRef<HTMLDialogElement>(null);
     const addResRef = useRef<HTMLDialogElement>(null);
-    const [resources, setResources] = useState([]);
     const { updateQueryParams } = useUpdateQueryParams();
-    const analytics = useHomeAnalytics();
+    const analytics = useIrlAnalytics();
 
-    useEffect(() => {
-        const searchType = searchParams?.type;
-        if (searchType === "upcoming" && !isUpcoming) {
-          setIsUpcoming(true);
-        } else if (searchType === "past" && isUpcoming) {
-          setIsUpcoming(false);
-        }
-      }, [searchParams]);
-      
+    const searchType = searchParams?.type;
+    if (searchType === "upcoming" && !isUpcoming) {
+        isUpcoming = true;
+    } else if (searchType === "past" && isUpcoming) {
+        isUpcoming = false;
+    }
+
     const handleUpcomingGathering = () => {
-        setIsUpcoming(true);
+        isUpcoming = true;
         updateQueryParams('type', 'upcoming', searchParams);
-        analytics.onUpcomingEventsButtonClicked(eventDetails);
+        triggerLoader(true);
+        analytics.trackUpcomingEventsButtonClicked(eventDetails.upcomingEvents);
     }
 
     const handlePastGathering = () => {
-        setIsUpcoming(false);
+        isUpcoming = false;
         updateQueryParams('type', 'past', searchParams);
-        analytics.onPastEventsButtonClicked(eventDetails);
+        triggerLoader(true);
+        analytics.trackPastEventsButtonClicked(eventDetails.pastEvents);
     }
 
     const onCloseModal = () => {
@@ -53,33 +54,20 @@ const IrlEvents = (props: any) => {
         }
     };
 
-    const handleClick = (resource: any, eventsToShow: any) => {
-        setResources(resource);
-        if (eventsToShow === 'past') {
-            analytics.onPastEventsButtonClicked(eventDetails);
-        } else {
-            analytics.onUpcomingEventsButtonClicked(eventDetails);
-        }
-
-        if (dialogRef.current) {
-            dialogRef.current.showModal();
-        }
-    }
-
     const handleAddResClick = () => {
         if (addResRef.current) {
             addResRef.current.showModal();
         }
-        analytics.onAdditionalResourceSeeMoreButtonClicked(eventDetails);
-    }
-
-    const handleAdditionalResourceClick = () => {
-        analytics.onAdditionalResourceClicked(eventDetails);
+        analytics.trackAdditionalResourceSeeMoreButtonClicked(eventDetails.resource);
     }
 
     function getFormattedDate(events: any) {
         const result = getFormattedDateString(events[0]?.startDate, events[events?.length - 1]?.endDate);
         return `Upcoming events from ${result}`;
+    }
+
+    function handleJoinPLNetworks() {
+        analytics.onJoinPLNetworkClicked(eventDetails);
     }
 
     return (
@@ -89,21 +77,21 @@ const IrlEvents = (props: any) => {
                     <div className="root__irl">
                         <div className={`root__irl__events`}>
                             <button
-                                className={`root__irl__events__upcoming ${isUpcoming === true ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
+                                className={`root__irl__events__upcoming ${isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
                                 onClick={handleUpcomingGathering}>
                                 upcoming
                                 <span
-                                    className={`root__irl__events__count ${isUpcoming === true ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
+                                    className={`root__irl__events__count ${isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
                                 >
                                     {eventDetails?.upcomingEvents?.length}
                                 </span>
                             </button>
                             <button
-                                className={`root__irl__events__past ${isUpcoming === false ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
+                                className={`root__irl__events__past ${!isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
                                 onClick={handlePastGathering}>
                                 past
                                 <span
-                                    className={`root__irl__events__count ${isUpcoming === false ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
+                                    className={`root__irl__events__count ${!isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
                                 >
                                     {eventDetails?.pastEvents?.length}
                                 </span>
@@ -117,34 +105,13 @@ const IrlEvents = (props: any) => {
                             </div>}
                     </div>
 
-                    <IrlEventTable eventDetails={eventDetails} handleClick={(resources: any, eventsToShow: any) => () => handleClick(resources, eventsToShow)} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} />
+                    {isUpcoming &&
+                        <IrlUpcomingEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
+                    }
 
-                    <Modal modalRef={dialogRef} onClose={onCloseModal}>
-                        <div className="root__irl__resPopup">
-                            <div className="root__irl__modalHeader">
-                                <div className="root__irl__modalHeader__title">Resources</div>
-                                <div className="root__irl__modalHeader__count">({resources?.length})</div>
-                            </div>
-                            <div className="root__irl__popupCntr">
-                                {resources?.map((resource: any, index: number) => (
-                                    <div key={index} className="root__irl__popupCnt" onClick={handleAdditionalResourceClick}>
-                                        <div>
-                                            <img
-                                                src="/icons/hyper-link.svg"
-                                                alt="icon"
-                                            />
-                                        </div>
-                                        <div>{resource?.name}</div>
-                                        <div>
-                                            <img
-                                                src="/icons/arrow-blue.svg"
-                                                alt="arrow icon" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </Modal>
+                    {!isUpcoming &&
+                        <IrlPastEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
+                    }
 
                     <div className="root__irl__addRes">
                         <div className="root__irl__addRes__cnt">
@@ -161,7 +128,9 @@ const IrlEvents = (props: any) => {
                                                 src="/icons/hyper-link.svg"
                                                 alt="icon" />
                                         </div>
-                                        <div>{resource?.type}</div>
+                                        <a href={resource?.link} target='_blank'>
+                                            {resource?.type}
+                                        </a>
                                         <div>
                                             <img
                                                 src="/icons/arrow-blue.svg"
@@ -187,9 +156,10 @@ const IrlEvents = (props: any) => {
                                     <img src="/icons/info-orange.svg" alt="info" />
                                 </div>
                                 <div>Attending an event but aren&apos;t part of the network yet?</div>
-                                <button>Join</button>
+                                <button onClick={handleJoinPLNetworks}>
+                                    <a href='https://airtable.com/appHT5ErKdHcsFznj/shryt1Y1xDKZTemJS' target='_blank'>Join</a>
+                                </button>
                             </div>
-
                         </div>
                     }
 
@@ -208,7 +178,9 @@ const IrlEvents = (props: any) => {
                                                 alt="icon"
                                             />
                                         </div>
-                                        <div>{resource?.name}</div>
+                                        <a href={resource?.link} target='_blank'>
+                                            {resource?.name}
+                                        </a>
                                         <div>
                                             <img
                                                 src="/icons/arrow-blue.svg"
@@ -334,13 +306,10 @@ const IrlEvents = (props: any) => {
                 }
 
                 .root__irl__tableContainer {
-                    // overflow-y: auto;
                     position: relative;
                     max-height: 256px;
                     overflow: auto;
                     scroll-behavior: smooth;
-                    // scrollbar-width: thin;
-
                 }
 
                 .root__irl__table {
@@ -349,9 +318,7 @@ const IrlEvents = (props: any) => {
                     justify-content: space-between;       
                     width: 99.5%;         
                     background-color: #fff;         
-                    // border: 1px solid #CBD5E1;         
                     border-spacing: 5px; 
-                    // padding: 20px 0 20px 0;
                 }
 
                 .root__irl__table__no-data {
@@ -362,38 +329,12 @@ const IrlEvents = (props: any) => {
                     justify-content: center;
                     height: 54px;
                     align-items: center;
-                    font-family: Inter;
                     font-size: 13px;
                     font-weight: 400;
                     line-height: 15px;
-                    // text-align: center;
                     width: 864px;
 
                 }    
-
-                .root__irl__table-row__header {
-                    border: 1px solid #CBD5E1;
-                }
-
-                .root__irl__table-row__header , .root__irl__table-row__content {
-                    display: flex;
-                    flex-direction: row;
-                    width: 100%;
-                    min-height: 40px;
-                    clear: both;
-                    font-size: 13px;
-                    font-weight: 400;
-                    line-height: 20px;
-                    text-align: left;
-                }
-
-                .root__irl__table-row__content {
-                    border-top: none;
-                    border-right: 1px solid #CBD5E1;
-                    border-bottom: 1px solid #CBD5E1;
-                    border-left: 1px solid #CBD5E1;
-                    min-height: 54px;
-                }
 
                 .root__irl__table-col__headerName, .root__irl__table-col__contentName {
                     width: 193px;
@@ -446,17 +387,9 @@ const IrlEvents = (props: any) => {
                     background-color: #F8FAFC;
                 }
 
-                .root__irl__table-col {
-                //   float: left; 
-                //   display: table-column;         
-                //   width: 100%;         
-                //   background-color: #ccc;  
-                }
-
                 .root__irl__addRes ,.root__irl__addRes__loggedOut {
                     display: flex;
                     flex-direction: row;
-                    // width: 860px;
                     border-radius: 4px;
                     border: 1px solid #CBD5E1;
                     font-size: 14px;
@@ -469,14 +402,14 @@ const IrlEvents = (props: any) => {
 
                 .root__irl__addRes {
                     background-color: #F8FAFC;
-                    // justify-content: ${!isLoggedIn ? 'center' : 'unset'};
-                    // align-items: ${!isLoggedIn ? 'center' : 'unset'};
-                    height: 36px;
+                    min-height: 36px;
+                    padding: 5px;
                 }
 
                 .root__irl__addRes__loggedOut {
-                    background-color: #FFE2C8; // ${!isLoggedIn ? '#FFE2C8' : '#fff'};
-                    height: 44px;
+                    background-color: #FFE2C8;
+                    min-height: 44px;
+                    padding: 5px;
                 }
 
                 .root__irl__addRes__cnt__loggedOut {
@@ -570,7 +503,26 @@ const IrlEvents = (props: any) => {
                     flex-direction: column;
                     gap: 16px;
                     overflow-y: auto;
-                    margin-top: 44px;
+                    margin-top: ${isLoggedIn ? '44px' : '14px'};
+                }
+
+                .root__irl__popup__header {
+                    font-size: 13px;
+                    font-weight: 400;
+                    line-height: 20px;
+                    text-align: left;
+                    background-color: #FFE2C8;
+                    margin-top: 50px;
+                    display: flex;
+                    flex-direction: row;
+                    height: 34px;
+                    justify-content: center;
+                    align-items: center;
+                    border-radius: 8px;
+                }
+
+                .root__irl__popup__header__loginBtn {
+                    color: #156FF7;
                 }
 
                 .root__irl__popupCnt {
@@ -631,7 +583,6 @@ const IrlEvents = (props: any) => {
                 @media (min-width: 360px) {
                     .root {
                         overflow-x: auto;
-                        // height: 412px;
                         max-height: 472px;
                         overflow-x: auto;
                         scroll-behavior: smooth;
@@ -639,27 +590,30 @@ const IrlEvents = (props: any) => {
                         border-radius: unset;
                     }
                     .mob {
-                    //   overflow-x: auto;
-                    //   scroll-behavior: smooth;
-                    //   scrollbar-width: none;
-                    //   border-radius: unset;
-                    //   position: absolute;
                       display: flex;
                       flex-direction: column;
                       gap: 16px;
-                      width: 900px;
                     }
 
                     .root__irl__resPopup, .root__irl__addRes__popup {
                         width: 90vw;
-                        // height: 70vh;
-                        // width: 320px;
                         height: 394px;
-                        // padding: 25px;
                     }
 
                     .root__irl__popupCnt {
                         width: 100%;
+                    }
+
+                    .root__irl {
+                         width: ${isUpcoming ? '900px' : 'unset'};
+                    }
+
+                    .root__irl__addRes {
+                        width: ${isUpcoming ? '900px' : 'unset'};
+                    }
+
+                    .root__irl__addRes__loggedOut {
+                        width: ${isUpcoming ? '900px' : 'unset'};
                     }
                 }
 
@@ -672,12 +626,13 @@ const IrlEvents = (props: any) => {
                       width: 864px;
                     }
 
+                    .root__irl, .root__irl__addRes, .root__irl__addRes__loggedOut {
+                        width: unset;
+                    }
+
                     .root__irl__resPopup, .root__irl__addRes__popup {
-                        // width: 90vw;
-                        // height: 70vh;
                         width: 650px;
                         height: 394px;
-                        // padding: 25px;
                     }
                 }
             `}</style>

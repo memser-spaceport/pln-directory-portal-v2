@@ -3,23 +3,16 @@ import TextField from '@/components/form/text-field';
 import useTagsPicker from '@/hooks/use-tag-picker';
 import { useEffect, useRef, useState } from 'react';
 
-interface TopicsProps {
-  selectedItems: any;
-  inputValue: string;
-  placeholder: string;
-  error: any;
-  filteredOptions: any;
-  onItemsSelected: (value: string) => void;
-  onInputChange: (e: any) => void;
-  onInputKeyDown: (e: any) => void;
-  addCurrentInputValue: () => void;
+interface ITopicsProps {
+  defaultTags: string[];
+  selectedItems: string[];
 }
 
-const Topics = (props: any) => {
+const Topics = (props: ITopicsProps ) => {
   const [isPaneActive, setIsPaneActive] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const defaultTags= props?.defaultTags;
-  const allSelectedItems = props?.selectedItems;
+  const allSelectedItems = props?.selectedItems ?? [];
 
   const topicsProps = useTagsPicker({
     defaultTags,
@@ -63,7 +56,7 @@ const Topics = (props: any) => {
           />
           {isPaneActive && (
             <div className="options-shadow picker__cn__options">
-              {topicsProps?.filteredOptions?.map((item: any, index: number) => (
+              {topicsProps?.filteredOptions?.map((item: string, index: number) => (
                 <div className="picker__cn__options__item" onClick={() => topicsProps?.onItemSelected(item)} key={`filter-item-${index}`}>
                   <div className={`picker__cn__options__item__check ${topicsProps.selectedItems?.includes(item) ? 'picker__cn__options__item__check--selected' : ''}`}>
                     <img src="/icons/right-white.svg" alt="check" />
@@ -86,11 +79,10 @@ const Topics = (props: any) => {
               )}
             </div>
           )}
-          {/* {error && <div className="picker__cn__error">{error}</div>} */}
         </div>
         {topicsProps.selectedItems?.length > 0 && (
           <div className="picker__selected">
-            {topicsProps?.selectedItems?.map((item: any, index: number) => (
+            {topicsProps?.selectedItems?.map((item: string, index: number) => (
               <div key={index} className="picker__selected__item">
                 <div title={item} className="picker__selected__item__name">
                   {item}

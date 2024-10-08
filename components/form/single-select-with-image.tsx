@@ -84,6 +84,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
     };
   }, []);
 
+
   return (
     <>
       <div className="select">
@@ -93,7 +94,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
           </label>
         )}
         <div ref={containerRef} className="select_cn">
-          {iconKey  && <img className="selected__icon" height={24} width={24} src={selectedOption[iconKey] || defaultIcon} alt={selectedOption[displayKey]} />}
+          {(iconKey && selectedOption && selectedOption[iconKey])  && (selectedOption[iconKey] || defaultIcon) && <img className="selected__icon" height={24} width={24} src={selectedOption[iconKey] || defaultIcon} alt={selectedOption[displayKey]} />}
           <input
             id={id}
             className={`select__search ${selectedOption && (iconKey && selectedOption[iconKey])  && (selectedOption[iconKey] || defaultIcon) ? 'select__icon' : ''} `}

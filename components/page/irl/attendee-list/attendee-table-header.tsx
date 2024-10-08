@@ -23,7 +23,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const events = getUniqueEvents(eventDetails?.events);
   const topics = getTopics([...eventDetails?.guests]);
   const searchParams = useSearchParams();
-  const eventType = searchParams.get('past');
+  const eventType = searchParams.get('type');
 
   const eventsFilterProps = useFloatingMultiSelect({
     items: events,

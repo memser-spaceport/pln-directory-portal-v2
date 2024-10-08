@@ -15,8 +15,8 @@ export const getAllLocations = async () => {
   return await response.json();
 };
 
-export const getGuestsByLocation = async (location: string, type: string, authToken: string, eventName: string) => {
-  if (!eventName) {
+export const getGuestsByLocation = async (location: string, type: string, authToken: string, slugURL: string) => {
+  if (!slugURL) {
     const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?type=${type}`, {
       cache: 'no-store',
       method: 'GET',
@@ -82,7 +82,7 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
     const transformedEvents = transformGroupedEvents(groupedEvents);
     return { guests: transformedEvents };
   } else {
-    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/${eventName}`, {
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/${slugURL}`, {
       cache: 'no-store',
       method: 'GET',
       headers: getHeader(authToken),

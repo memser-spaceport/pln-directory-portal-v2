@@ -2,10 +2,21 @@ import HiddenField from '@/components/form/hidden-field';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import SingleSelectWithImage from '@/components/form/single-select-with-image';
 import { getMember, getMembersForProjectForm } from '@/services/members.service';
+import { IIrlAttendeeFormErrors } from '@/types/irl.types';
+import { IUserInfo } from '@/types/shared.types';
 import { EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
-import { useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 
-const AttendeeDetails = (props: any) => {
+interface IAttendeeForm {
+  memberInfo: IUserInfo | null;
+  initialValues: any;
+  mode: string;
+  allGuests: any[];
+  errors: IIrlAttendeeFormErrors;
+  setFormInitialValues: SetStateAction<any>;
+}
+
+const AttendeeDetails = (props: IAttendeeForm) => {
   const member = props?.memberInfo;
   const initialValues = props?.initialValues;
   const mode = props?.mode;
@@ -61,7 +72,7 @@ const AttendeeDetails = (props: any) => {
   };
 
   const updateTelegramPermision = async () => {
-    const result = await getMember(selectedMember.uid, { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false);
+    const result = await getMember(selectedMember.uid ?? "", { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false);
     if (!result.error) {
       document.dispatchEvent(
         new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: result.data.formattedData?.telegramHandle, showTelegram: result.data.formattedData?.preferences } })
@@ -114,7 +125,7 @@ const AttendeeDetails = (props: any) => {
   const getAndSetMemberTeams = async () => {
     try {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-      const result = await getMember(selectedMember.uid, { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false);
+      const result = await getMember(selectedMember.uid ?? "", { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false);
       if (!result.error) {
         document.dispatchEvent(
           new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: result.data.formattedData?.telegramHandle, showTelegram: result.data.formattedData?.preferences } })
@@ -156,7 +167,7 @@ const AttendeeDetails = (props: any) => {
               onClear={onResetMember}
               showClear={mode === IAM_GOING_POPUP_MODES.ADMINADD}
               closeImgUrl="/icons/close.svg"
-              isError={isMemberExists || errors?.gatheringsError?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER)}
+              isError={isMemberExists || errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER)}
             />
           </div>
         </div>

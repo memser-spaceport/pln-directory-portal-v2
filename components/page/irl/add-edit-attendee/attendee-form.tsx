@@ -1,55 +1,52 @@
-'use client';
-import Modal from '@/components/core/modal';
-import RegisterFormLoader from '@/components/core/register/register-form-loader';
-import { createEventGuest, editEventGuest } from '@/services/irl.service';
+import React, { FormEvent, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { toast } from 'react-toastify';
+import { IIrlAttendeeFormErrors, IIrlGathering, IIrlGuest, IIrlLocation, IIrlParticipationEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
-import { FormEvent, useEffect, useRef, useState } from 'react';
-import ArrivalAndDepatureDate from './arrival-depature-date';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
+import { canUserPerformEditAction } from '@/utils/irl.utils';
+import { isLink } from '@/utils/third-party.helper';
+import RegisterFormLoader from '@/components/core/register/register-form-loader';
 import AttendeeDetails from './attendee-details';
+import AttendeeFormErrors from './attendee-form-errors';
+import ArrivalAndDepatureDate from './arrival-depature-date';
 import Gatherings from './gatherings';
 import OfficeHours from './office-hours';
 import TelegramHandle from './telegram-handle';
 import Topics from './topics';
 import TopicsDescription from './topics-description';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
-import { toast } from 'react-toastify';
-import { canUserPerformEditAction } from '@/utils/irl.utils';
-import AttendeeFormErrors from './attendee-form-errors';
-import { isLink } from '@/utils/third-party.helper';
-import { compareObjsIfSame } from '@/utils/common.utils';
-import Image from 'next/image';
+import { createEventGuest, editEventGuest } from '@/services/irl.service';
 
 interface IAttendeeForm {
-  selectedLocation: any;
-  userInfo: IUserInfo;
-  allGatherings: any[];
-  defaultTags: any[];
+  selectedLocation: IIrlLocation;
+  userInfo: IUserInfo | null;
+  allGatherings: any;
+  defaultTags: string[];
   mode: string;
-  allGuests: any[];
-  onClose: any;
-  scrollTo: any;
+  allGuests: any;
+  onClose: () => void;
+  scrollTo: string;
   formData: any;
 }
 
-const AttendeeForm = (props: IAttendeeForm) => {
+const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   const ref = useRef<HTMLDialogElement>(null);
 
   const mode = props?.mode;
   const selectedLocation = props?.selectedLocation;
   const gatherings = props?.allGatherings;
-  const userInfo = mode === IAM_GOING_POPUP_MODES.ADMINADD ? null : props?.userInfo;
+  const userInfo = mode === IAM_GOING_POPUP_MODES.ADMINADD ? null : {name: props?.formData?.member?.name, uid: props?.formData?.member?.uid, roles: props?.formData?.member?.roles}; 
   const defaultTags = props?.defaultTags;
   const allGuests = props?.allGuests;
   const onClose = props?.onClose;
   const scrollTo = props?.scrollTo;
-  // const initialValues = props?.formData;
 
   const [formInitialValues, setFormInitialValues] = useState<any>(props?.formData);
   const isAllowedToManageGuests = canUserPerformEditAction(userInfo?.roles ?? [], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
-  const [errors, setErrors] = useState<any>({
-    gatheringsError: [],
-    participationError: [],
+  const [errors, setErrors] = useState<IIrlAttendeeFormErrors>({
+    gatheringErrors: [],
+    participationErrors: [],
     dateErrors: [],
   });
 
@@ -71,59 +68,61 @@ const AttendeeForm = (props: IAttendeeForm) => {
     }
     const formData = new FormData(attendeeFormRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
-    const updatedInitialValues = delete formInitialValues?.team;
 
     if (formattedData.events.length === 0) {
       isError = true;
-      setErrors((prev: any) => ({ ...prev, gatheringsError: Array.from(new Set([...prev?.gatheringsError, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
     } else {
-      let participationsErrors: any = [];
+      let participationErrors: string[] = [];
+      console.log("formattedDate", formattedData?.events);
       formattedData?.events?.map((event: any) => {
-        event?.hostSubEvents?.map((hostSubEvent: any) => {
+        event?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent) => {
           if (!hostSubEvent?.name.trim()) {
             isError = true;
-            participationsErrors.push(`${hostSubEvent?.uid}-name`);
+            participationErrors.push(`${hostSubEvent?.uid}-name`);
           }
           if (!isLink(hostSubEvent?.link)) {
             isError = true;
-            participationsErrors.push(`${hostSubEvent?.uid}-link`);
+            participationErrors.push(`${hostSubEvent?.uid}-link`);
           }
         });
 
-        event?.speakerSubEvents?.map((speakerSubEvent: any) => {
+        event?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent) => {
           if (!speakerSubEvent?.name.trim()) {
             isError = true;
-            participationsErrors.push(`${speakerSubEvent?.uid}-name`);
+            participationErrors.push(`${speakerSubEvent?.uid}-name`);
           }
           if (!isLink(speakerSubEvent?.link.trim())) {
             isError = true;
-            participationsErrors.push(`${speakerSubEvent?.uid}-link`);
+            participationErrors.push(`${speakerSubEvent?.uid}-link`);
           }
         });
       });
-      setErrors((prev: any) => ({ ...prev, participationError: Array.from(new Set([...participationsErrors])) }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: [], participationErrors: Array.from(new Set([...participationErrors])) }));
     }
 
     if (!formattedData?.memberUid) {
       isError = true;
-      setErrors((prev: any) => ({ ...prev, gatheringsError: Array.from(new Set([...prev?.gatheringsError, IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER])) }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER])) }));
     }
 
     if (formattedData.additionalInfo.checkInDate && !formattedData.additionalInfo.checkOutDate) {
       isError = true;
-      setErrors((prev: any) => ({ ...prev, dateErrors: [...prev.dateErrors, IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED] }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED])) }));
     } else if (formattedData.additionalInfo.checkOutDate && !formattedData.additionalInfo.checkInDate) {
       isError = true;
-      setErrors((prev: any) => ({ ...prev, dateErrors: [...prev.dateErrors, IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED] }));
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED])) }));
     } else if (formattedData.additionalInfo.checkInDate && formattedData.additionalInfo.checkOutDate) {
       const checkInDate = new Date(formattedData.additionalInfo.checkInDate);
       const checkOutDate = new Date(formattedData.additionalInfo.checkOutDate);
       if (checkInDate > checkOutDate) {
         isError = true;
-        setErrors((prev: any) => ({ ...prev, dateErrors: { comparisonError: IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE } }));
+        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE])) }));
+      } else {
+        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: [] }));
       }
-    } else if (allGuests?.includes(formattedData?.membeUid)) {
-      isError = true;
+    } else {
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: [] }));
     }
     if (isError) {
       formScroll();
@@ -258,7 +257,6 @@ const AttendeeForm = (props: IAttendeeForm) => {
     return result;
   }
 
-
   useEffect(() => {
     if (scrollTo && formBodyRef.current) {
       const section = formBodyRef.current.querySelector(`#${scrollTo}`);
@@ -277,9 +275,7 @@ const AttendeeForm = (props: IAttendeeForm) => {
         </button>
         <div className="atndform__bdy" ref={formBodyRef}>
           <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
-          <div>
-            <AttendeeFormErrors errors={errors} />
-          </div>
+          <AttendeeFormErrors errors={errors} />
           <div>
             <AttendeeDetails setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} />
           </div>
@@ -290,17 +286,17 @@ const AttendeeForm = (props: IAttendeeForm) => {
             <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
           </div>
           <div>
-            <Topics defaultTags={defaultTags} selectedItems={formInitialValues?.topics} />
+            <Topics defaultTags={defaultTags} selectedItems={formInitialValues?.topics ?? []} />
           </div>
           <div>
             <TopicsDescription initialValue={formInitialValues?.reason} />
           </div>
 
           <div id="telegram-section">
-            <TelegramHandle initialValues={formInitialValues} scrollTo={scrollTo}/>
+            <TelegramHandle initialValues={formInitialValues} scrollTo={scrollTo} />
           </div>
-          <div>
-            <OfficeHours initialValues={formInitialValues} />
+          <div id='officehours-section'>
+            <OfficeHours initialValues={formInitialValues} scrollTo={scrollTo} />
           </div>
         </div>
 
@@ -367,7 +363,6 @@ const AttendeeForm = (props: IAttendeeForm) => {
             gap: 8px;
           }
 
-          
           .modal__cn__closebtn {
             position: absolute;
             border: none;

@@ -1,22 +1,29 @@
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import TextField from '@/components/form/text-field';
 import TextFieldWithCopyIcon from '@/components/form/text-field-with-copy-icon';
-import { useEffect, useState } from 'react';
+import { IIrlAttendeeFormErrors, IIrlGathering, IIrlParticipationEvent } from '@/types/irl.types';
+import { SetStateAction, useEffect, useState } from 'react';
 
-const ParticipationDetails = (props: any) => {
+interface IParticipationDetails {
+  selectedGatherings: IIrlGathering[];
+  setSelectedGatherings: SetStateAction<any>;
+  errors: IIrlAttendeeFormErrors;
+}
+
+const ParticipationDetails = (props: IParticipationDetails) => {
   const selectedGatherings = props?.selectedGatherings ?? [];
   const setSelectedGatherings = props?.setSelectedGatherings;
   const errors = props?.errors;
-  const [participationErrors, setParticipationErrors]: any = useState([]);
+  const [participationErrors, setParticipationErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    setParticipationErrors(errors?.participationError)
+    setParticipationErrors(errors?.participationErrors)
   }, [errors])
 
-  const onHostSelectHandler = (selectedGathering: any) => {
+  const onHostSelectHandler = (selectedGathering: IIrlGathering) => {
     if(selectedGathering.hostSubEvents.length === 0) {
-    setSelectedGatherings((prev: any) => {
-      const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
       const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
       if (index !== -1) {
         const updatedGatherings = [...prev];
@@ -34,18 +41,19 @@ const ParticipationDetails = (props: any) => {
     });
     return;
   }
+
   };
 
-  const onAddMoreHostClickHandler = (selectedGathering: any) => {
-    setSelectedGatherings((prev: any) => {
-      const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
+  const onAddMoreHostClickHandler = (selectedGathering: IIrlGathering) => {
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
 
       if (index !== -1) {
         const updatedGatherings = [...prev];
         const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
         updatedGatherings[index] = {
           ...selectedGathering,
-          hostSubEvents: [...selectedGathering.hostSubEvents, { uid: id, name: '', link: '' }],
+          hostSubEvents: [...selectedGathering?.hostSubEvents, { uid: id, name: '', link: '' }],
         };
         return updatedGatherings;
       }
@@ -53,14 +61,14 @@ const ParticipationDetails = (props: any) => {
     });
   };
 
-  const onDeleteHostSubEventsClickHandler = (selectedGathering: any, hostSubEvent: any) => {
-    setSelectedGatherings((prev: any) => {
-      const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
+  const onDeleteHostSubEventsClickHandler = (selectedGathering: IIrlGathering, hostSubEvent: IIrlParticipationEvent) => {
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
 
       if (index !== -1) {
         const updatedGatherings = [...prev];
         const gatheringToUpdate = { ...updatedGatherings[index] };
-        const updatedHostSubEvents = gatheringToUpdate.hostSubEvents.filter((event: any) => event.uid !== hostSubEvent.uid);
+        const updatedHostSubEvents = gatheringToUpdate.hostSubEvents.filter((event: IIrlParticipationEvent) => event.uid !== hostSubEvent.uid);
         gatheringToUpdate.hostSubEvents = updatedHostSubEvents;
         updatedGatherings[index] = gatheringToUpdate;
         return updatedGatherings;
@@ -70,20 +78,20 @@ const ParticipationDetails = (props: any) => {
     });
   };
 
-  const onHostSubEventFieldChangeHandler = (e: any, selectedGathering: any, hostSubEvent: any, field: any) => {
-    setParticipationErrors((prev: any) => {
+  const onHostSubEventFieldChangeHandler = (e: React.ChangeEvent<HTMLInputElement>, selectedGathering: IIrlGathering, hostSubEvent: IIrlParticipationEvent, field: string) => {
+    setParticipationErrors((prev: string[]) => {
       const updatedErrors = [...prev];
-      const errorIndex = updatedErrors.findIndex((error: any) => error === `${hostSubEvent?.uid}-${field}`);
+      const errorIndex = updatedErrors.findIndex((error: string) => error === `${hostSubEvent?.uid}-${field}`);
       if (errorIndex !== -1) {
         updatedErrors.splice(errorIndex, 1);
       }
       return updatedErrors;
     });
-    setSelectedGatherings((prev: any) => {
-      const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
       if (index !== -1) {
         const updatedGatherings = [...prev];
-        const updatedHostSubEvents = selectedGathering.hostSubEvents.map((event: any) => {
+        const updatedHostSubEvents = selectedGathering.hostSubEvents.map((event: IIrlParticipationEvent) => {
           if (event.uid === hostSubEvent.uid) {
             return { ...hostSubEvent, [field]: e.target.value };
           }
@@ -96,9 +104,9 @@ const ParticipationDetails = (props: any) => {
     });
   };
 
-  const onSpeakerSelectHandler = (selectedGathering: any) => {
-    setSelectedGatherings((prev: any) => {
-      const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
+  const onSpeakerSelectHandler = (selectedGathering: IIrlGathering) => {
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
       const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
       if (index !== -1) {
         const updatedGatherings = [...prev];
@@ -116,14 +124,14 @@ const ParticipationDetails = (props: any) => {
     });
   };
 
-  const onDeleteSpeakerSubEventsClickHandler = (selectedGathering: any, hostSubEvent: any) => {
-    setSelectedGatherings((prev: any) => {
-      const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
+  const onDeleteSpeakerSubEventsClickHandler = (selectedGathering: IIrlGathering, hostSubEvent: IIrlParticipationEvent) => {
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
 
       if (index !== -1) {
         const updatedGatherings = [...prev];
         const gatheringToUpdate = { ...updatedGatherings[index] };
-        const updatedHostSubEvents = gatheringToUpdate.speakerSubEvents.filter((event: any) => event.uid !== hostSubEvent.uid);
+        const updatedHostSubEvents = gatheringToUpdate.speakerSubEvents.filter((event: IIrlParticipationEvent) => event.uid !== hostSubEvent.uid);
         gatheringToUpdate.speakerSubEvents = updatedHostSubEvents;
         updatedGatherings[index] = gatheringToUpdate;
         return updatedGatherings;
@@ -133,21 +141,21 @@ const ParticipationDetails = (props: any) => {
     });
   };
 
-  const onSpeakerSubEventFieldChangeHandler = (e: any, selectedGathering: any, hostSubEvent: any, field: any) => {
-    setParticipationErrors((prev: any) => {
+  const onSpeakerSubEventFieldChangeHandler = (e: React.ChangeEvent<HTMLInputElement>, selectedGathering: IIrlGathering, hostSubEvent: IIrlParticipationEvent, field: string) => {
+    setParticipationErrors((prev: string[]) => {
       const updatedErrors = [...prev];
-      const errorIndex = updatedErrors.findIndex((error: any) => error === `${hostSubEvent?.uid}-${field}`);
+      const errorIndex = updatedErrors.findIndex((error: string) => error === `${hostSubEvent?.uid}-${field}`);
       if (errorIndex !== -1) {
         updatedErrors.splice(errorIndex, 1);
       }
       return updatedErrors;
     });
 
-    setSelectedGatherings((prev: any) => {
-      const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
       if (index !== -1) {
         const updatedGatherings = [...prev];
-        const updatedHostSubEvents = selectedGathering.speakerSubEvents.map((event: any) => {
+        const updatedHostSubEvents = selectedGathering.speakerSubEvents.map((event: IIrlParticipationEvent) => {
           if (event.uid === hostSubEvent.uid) {
             return { ...hostSubEvent, [field]: e.target.value };
           }
@@ -160,9 +168,9 @@ const ParticipationDetails = (props: any) => {
     });
   };
 
-  const onAddMoreSpeakerClickHandler = (selectedGathering: any) => {
-    setSelectedGatherings((prev: any) => {
-      const index = prev.findIndex((gathering: any) => gathering.uid === selectedGathering.uid);
+  const onAddMoreSpeakerClickHandler = (selectedGathering: IIrlGathering) => {
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
 
       if (index !== -1) {
         const updatedGatherings = [...prev];
@@ -196,7 +204,7 @@ const ParticipationDetails = (props: any) => {
           </div>
 
           <div className="ptndtls__cnt__pptdtls">
-            {selectedGatherings?.map((selectedGathering: any, index: any) => {
+            {selectedGatherings?.map((selectedGathering: IIrlGathering, index: number) => {
               console.log("selectedG", selectedGathering);
               const isHostSubEvents = selectedGathering.hostSubEvents.length > 0;
               const isSpeakerSubEvents = selectedGathering.speakerSubEvents.length > 0;
@@ -246,7 +254,7 @@ const ParticipationDetails = (props: any) => {
                     <span className="ptndtls__cnt__pptdtls__pptdtl__evnts__subevnt__ttl">Enter event name in which you are host</span>
 
                     <div className="ptndtls__cnt__pptdtls__pptdtl__evnts">
-                      {selectedGathering.hostSubEvents.map((hostSubEvent: any, index: any) => (
+                      {selectedGathering.hostSubEvents.map((hostSubEvent: IIrlParticipationEvent, index: number) => (
                         <div key={`${hostSubEvent.uid}`} className={`ptndtls__cnt__pptdtls__pptdtl__evnts__evnt`}>
                           <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt">
                             <button
@@ -296,7 +304,7 @@ const ParticipationDetails = (props: any) => {
                     <span className="ptndtls__cnt__pptdtls__pptdtl__evnts__subevnt__ttl">Enter event name in which you are speaking</span>
 
                     <div className="ptndtls__cnt__pptdtls__pptdtl__evnts">
-                      {selectedGathering.speakerSubEvents.map((speakerSubEvent: any, index: any) => (
+                      {selectedGathering.speakerSubEvents.map((speakerSubEvent: IIrlParticipationEvent, index: number) => (
                         <div key={`${speakerSubEvent.uid}`} className={`ptndtls__cnt__pptdtls__pptdtl__evnts__evnt`}>
                           <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt">
                             <button

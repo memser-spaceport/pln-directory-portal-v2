@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction, SyntheticEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { deleteEventGuestByLocation } from '@/services/irl.service';
@@ -34,26 +33,11 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
 
   const selectedGuestIds = type === 'self-delete' ? [userInfo?.uid] : props?.selectedGuests ?? [];
   const selectedGuests = guests?.filter((guest: IGuest) => selectedGuestIds?.includes(guest?.memberUid)) ?? [];
-
   const setSelectedGuests = props?.setSelectedGuests;
 
-  const [selectedEvents, setSelectedEvents] = useState<ISelectedEvents>({});
-  const router = useRouter();
-  const analytics = useIrlAnalytics();
 
-  // const getEventDetails = async () => {
-  //   const authToken = getParsedValue(Cookies.get('authToken'));
-  //   const updatedEventDetails = await getGuestsByLocation(location?.uid, 'upcoming', authToken);
-  //   document.dispatchEvent(
-  //     new CustomEvent('updateGuests', {
-  //       detail: {
-  //         eventDetails: updatedEventDetails,
-  //       },
-  //     })
-  //   );
-  //   router.refresh();
-  //   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-  // };
+  const [selectedEvents, setSelectedEvents] = useState<ISelectedEvents>({});
+  const analytics = useIrlAnalytics(); 
 
   const onDeleteGuests = async (e: SyntheticEvent) => {
     e.preventDefault();
@@ -76,7 +60,6 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       }
       if (deleteGuestsResponse) {
-        // await getEventDetails();
         document.dispatchEvent(new CustomEvent('updateGuests'));
         document.dispatchEvent(
           new CustomEvent(EVENTS.OPEN_FLOATING_BAR, {

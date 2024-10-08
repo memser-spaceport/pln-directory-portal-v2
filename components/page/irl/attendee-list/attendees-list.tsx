@@ -28,6 +28,7 @@ interface IAttendeeList {
   showTelegram: boolean;
   location: IAnalyticsGuestLocation;
   isUserGoing: boolean;
+  searchParams: any;
 }
 
 const AttendeeList = (props: IAttendeeList) => {
@@ -36,6 +37,7 @@ const AttendeeList = (props: IAttendeeList) => {
   const eventDetails = props.eventDetails;
   const showTelegram = props.showTelegram;
   const location = props.location;
+  const searchParams = props?.searchParams;
 
   const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
@@ -45,7 +47,7 @@ const AttendeeList = (props: IAttendeeList) => {
   const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
   const deleteRef = useRef<HTMLDialogElement>(null);
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
   const router = useRouter();
 
   const { filteredList, sortConfig, filterConfig } = useIrlDetails(updatedEventDetails?.guests, userInfo);
@@ -86,7 +88,11 @@ const AttendeeList = (props: IAttendeeList) => {
   useEffect(() => {
     const handler = async (e: any) => {
       const authToken = getParsedValue(Cookies.get('authToken'));
-      const eventInfo: any = await getGuestsByLocation(location?.uid, 'upcoming', authToken, '');
+      // const type = searchParams.get('type') || 'upcoming';
+      const slugURL = searchParams.event || '';
+      const eventType = searchParams.type === 'past' ? '' : 'upcoming';
+      const eventInfo: any = await getGuestsByLocation(location?.uid, eventType, authToken, slugURL);
+
       const goingGuest = eventInfo?.guests?.find((guest: any) => guest?.memberUid === userInfo?.uid) as IGuest;
       const sortedGuests = sortByDefault(eventInfo?.guests);
       eventInfo.guests = sortedGuests;
@@ -212,7 +218,7 @@ const AttendeeList = (props: IAttendeeList) => {
       {/* FLOATING BAR */}
       {showFloaingBar && (
         <div className="irl__floating-bar">
-          <FloatingBar location={location} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} />
+          <FloatingBar location={location} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} />
         </div>
       )}
 

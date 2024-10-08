@@ -13,11 +13,13 @@ import styles from './page.module.css';
 import { IAnalyticsGuestLocation } from '@/types/irl.types';
 
 export default async function Page({ searchParams }: any) {
+
   const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
   }
+
 
   return (
     <div className={styles.irlGatherings}>
@@ -44,6 +46,7 @@ export default async function Page({ searchParams }: any) {
               userInfo={userInfo}
               isLoggedIn={isLoggedIn}
               isUserGoing={isUserGoing as boolean}
+              searchParams={searchParams}
             />
           </section>
         )}
@@ -76,7 +79,7 @@ const getPageData = async (searchParams: any) => {
     const eventLocationSummary = { uid, name };
 
     if(searchParams?.type === 'past' && !searchParams?.event){
-      searchParams.event = pastEvents[0].slugURL;
+      searchParams.event = pastEvents[0]?.slugURL;
     }
     
     // Determine event type and fetch event guest data

@@ -1,17 +1,20 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { IAnalyticsGuestLocation } from '@/types/irl.types';
-import { EVENTS } from '@/utils/constants';
+import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
+import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 
 interface IFloatingBar {
   onClose: () => void;
   selectedGuests: string[];
   location: IAnalyticsGuestLocation;
+  eventDetails: IGuestDetails;
 }
 
 const FloatingBar = (props: IFloatingBar) => {
   //props
   const onClose = props?.onClose;
-  const selectedGuests = props?.selectedGuests ?? [];
+  const selectedGuestIds = props?.selectedGuests ?? [];
+  const guests = props?.eventDetails.guests ?? [];
+  const selectedGuest = guests?.find((guest: IGuest) => selectedGuestIds[0] === guest?.memberUid);
 
   //hooks
   const analytics = useIrlAnalytics();
@@ -31,17 +34,43 @@ const FloatingBar = (props: IFloatingBar) => {
 
   // Open Attendee Details Popup for Edit the guest
   const onEditGuest = () => {
-    analytics.trackFloatingBarEditBtnClicked(location, { selectedGuests });
+
+    const formData = {
+      team: {
+        name: selectedGuest?.teamName,
+        logo: selectedGuest?.teamLogo,
+        uid: selectedGuest?.teamUid,
+      },
+      member: {
+        name: selectedGuest?.memberName,
+        logo: selectedGuest?.memberLogo,
+        uid: selectedGuest?.memberUid,
+      },
+      teamUid: selectedGuest?.teamUid,
+      events: selectedGuest?.events,
+      teams: selectedGuest?.teams?.map((team: any) => {
+        return { ...team, uid: team?.id };
+      }),
+      memberUid: selectedGuest?.memberUid,
+      additionalInfo: { checkInDate: selectedGuest?.additionalInfo.checkInDate || '', checkOutDate: selectedGuest?.additionalInfo?.checkOutDate ?? '' },
+      topics: selectedGuest?.topics,
+      reason: selectedGuest?.reason,
+      telegramId: selectedGuest?.telegramId,
+      officeHours: selectedGuest?.officeHours ?? '',
+    };
+
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
+    analytics.trackFloatingBarEditBtnClicked(location, { selectedGuests: selectedGuestIds });
   };
 
   return (
     <>
       <div className="floatingBar">
-        <div className="floatingBar__count">{selectedGuests?.length}</div>
-        <div className="floatingBar__text">{`${selectedGuests?.length > 1 ? 'Attendees' : 'Attendee'} selected`}</div>
+        <div className="floatingBar__count">{selectedGuestIds?.length}</div>
+        <div className="floatingBar__text">{`${selectedGuestIds?.length > 1 ? 'Attendees' : 'Attendee'} selected`}</div>
         <div className="floatingBar__actions">
           <div className="floatingBar__actions__manipulation">
-            {selectedGuests?.length === 1 && (
+            {selectedGuestIds?.length === 1 && (
               <button onClick={onEditGuest} className="floatingBar__actions__edit">
                 <img src="/icons/edit-blue.svg" alt="edit" />
               </button>

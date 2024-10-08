@@ -1,6 +1,6 @@
 import cookies from 'js-cookie';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
@@ -49,6 +49,8 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const speakerEvents = events?.flatMap((event: IIrlEvent) => event?.speakerSubEvents || []);
   const formattedEventRange = getFormattedDateString(checkInDate, checkOutDate);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const type = searchParams.get('type');
 
   const isUserGoing = guestUid === userInfo?.uid;
   const topicsNeedToShow = 2;
@@ -346,21 +348,25 @@ const GuestTableRow = (props: IGuestTableRow) => {
             </span>
           )}
           {userInfo.uid === guestUid && !officeHours ? (
-            <button onClick={() => handleAddOfficeHoursClick(canUserAddAttendees ? guest.memberUid : (userInfo.uid as string))} className="gtr__connect__add">
-              <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
-              <span className="gtr__connect__add__txt">Add Office Hours</span>
-              <Tooltip
-                asChild
-                align="start"
-                content={
-                  <div className="gtr__connect__add__info">
-                    Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to book time
-                    with you for face-to-face connections.
-                  </div>
-                }
-                trigger={<img style={{ display: 'flex' }} loading="lazy" src="/icons/info.svg" height={16} width={16} alt="plus" />}
-              />
-            </button>
+            <>
+              {type !== 'past' && (
+                <button onClick={() => handleAddOfficeHoursClick(canUserAddAttendees ? guest.memberUid : (userInfo.uid as string))} className="gtr__connect__add">
+                  <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
+                  <span className="gtr__connect__add__txt">Add Office Hours</span>
+                  <Tooltip
+                    asChild
+                    align="start"
+                    content={
+                      <div className="gtr__connect__add__info">
+                        Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to book
+                        time with you for face-to-face connections.
+                      </div>
+                    }
+                    trigger={<img style={{ display: 'flex' }} loading="lazy" src="/icons/info.svg" height={16} width={16} alt="plus" />}
+                  />
+                </button>
+              )}
+            </>
           ) : userInfo.uid !== guestUid && officeHours ? (
             <div className="gtr__connect__book" onClick={() => handleOfficeHoursLinkClick(officeHours, guestUid, guestName)}>
               <img src="/icons/video-cam.svg" height={16} width={16} loading="lazy" alt="cam" />

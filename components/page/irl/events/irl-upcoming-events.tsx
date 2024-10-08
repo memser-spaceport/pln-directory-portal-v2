@@ -46,10 +46,6 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
         eventsToShow = sortedUpcoming;
     }
 
-    if (searchParams?.eventName) {
-        // updateQueryParams('eventName', "", searchParams);
-    }
-
     const toggleDescription = () => {
         setExpanded(!isExpanded);
         setItemsToShow(isExpanded ? 4 : itemsToShow + 4);

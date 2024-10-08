@@ -51,19 +51,19 @@ const IrlLocation = (props: any) => {
         setShowMore(!showMore);
     }
 
-    const handleCardClick = (locationDetail:any) => {
+    const handleCardClick = (locationDetail: any) => {
         activeLocationId = locationDetail?.uid;
         triggerLoader(true);
         const currentParams = new URLSearchParams(searchParams);
 
         // Add or update the new search parameters
         currentParams.set('location', locationDetail?.location?.split(",")[0].trim());
-        if(locationDetail?.pastEvents?.length > 0) {
-        currentParams.set('eventName', locationDetail?.pastEvents[0]?.name);
+        if (locationDetail?.pastEvents?.length > 0 && searchParams?.type !== 'upcoming') {
+            currentParams.set('event', locationDetail?.pastEvents[0]?.slugURL);
         } else {
-        currentParams.delete('eventName');
+            currentParams.delete('event');
         }
-    
+
         // Push the updated URL with the new search params
         router.push(`${window.location.pathname}?${currentParams.toString()}`);
         // updateQueryParams('location', locationName.split(",")[0].trim(), searchParams);
@@ -111,9 +111,9 @@ const IrlLocation = (props: any) => {
                         />
                     ))}
                 </div>
-                <div 
-                    className="root__irl__expanded" 
-                    onClick={handleClick} 
+                <div
+                    className="root__irl__expanded"
+                    onClick={handleClick}
                 >
                     <div
                         className="root__irl__expanded__showMore"

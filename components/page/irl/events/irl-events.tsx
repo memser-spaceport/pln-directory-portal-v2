@@ -36,7 +36,7 @@ const IrlEvents = (props: any) => {
         isUpcoming = true;
         const currentParams = new URLSearchParams(searchParams);
         currentParams.set('type', 'upcoming');
-        currentParams.delete('eventName');
+        currentParams.delete('event');
         router.push(`${window.location.pathname}?${currentParams.toString()}`);
         // updateQueryParams('type', 'upcoming', searchParams);
         triggerLoader(true);
@@ -50,16 +50,10 @@ const IrlEvents = (props: any) => {
 
         // Add or update the new search parameters
         currentParams.set('type', 'past');
-        // if(locationDetail?.pastEvents?.length > 0) {
-        currentParams.set('eventName', eventDetails?.pastEvents[0]?.name);
-        // } else {
-        // currentParams.delete('eventName');
-        // }
-    
-        // Push the updated URL with the new search params
-        router.push(`${window.location.pathname}?${currentParams.toString()}`);
+        currentParams.set('event', eventDetails?.pastEvents[0]?.slugURL);
+        
 
-        // updateQueryParams('type', 'past', searchParams);
+        router.push(`${window.location.pathname}?${currentParams.toString()}`);
         triggerLoader(true);
         analytics.trackPastEventsButtonClicked(eventDetails.pastEvents);
     }

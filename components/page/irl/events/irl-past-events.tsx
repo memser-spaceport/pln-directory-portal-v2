@@ -44,30 +44,16 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
 
     // Determine the selected event based on searchParams
     let selectedEvent = eventsToShow[0];
-    const firstEventName = eventsToShow[0]?.name;
-    console.log(firstEventName, "firstEventName");
-    if (eventsToShow.length > 0) {
-        if (searchParams?.eventName) {
-            const foundIndex = eventsToShow.findIndex(event => event.name === searchParams.eventName);
-            if (foundIndex !== -1) {
-                selectedEvent = eventsToShow[foundIndex]; // Set selectedEvent to the one found in searchParams
-            } else {
-                // If the event name in searchParams doesn't exist, reset to the first event
-                // updateQueryParams('eventName', firstEventName, searchParams);
-            }
-        } else {
-            // If there's no eventName in searchParams, set the first event
-            // updateQueryParams('eventName', firstEventName, searchParams);
+    if (searchParams?.event) {
+        const foundIndex = eventsToShow.findIndex(event => event.slugURL === searchParams.event);
+        if (foundIndex !== -1) {
+            selectedEvent = eventsToShow[foundIndex];
         }
-    } else {
-        if (searchParams?.eventName) {
-            // updateQueryParams('eventName', "", searchParams);
-        }
-    }
+    } 
 
-    const handleElementClick = (gathering: { name: string; }) => {
+    const handleElementClick = (gathering: any) => {
         triggerLoader(true);
-        updateQueryParams('eventName', gathering.name, searchParams);
+        updateQueryParams('event', gathering.slugURL, searchParams);
     };
 
     const handleDropdownToggle = () => {
@@ -80,10 +66,10 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
         setExpanded(prevState => !prevState);
     };
 
-    const handleEventSelection = (gathering: { name: string; }) => {
+    const handleEventSelection = (gathering: { slugURL: string; }) => {
         triggerLoader(true);
         selectedEvent = gathering;
-        updateQueryParams('eventName', gathering.name, searchParams);
+        updateQueryParams('event', gathering.slugURL, searchParams);
         setDropdownOpen(false);
         setSearchText('');
     };
@@ -137,7 +123,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                             {eventsToShow?.map((gathering, index) => (
                                 <div
                                     key={index}
-                                    className={`root__irl__table-row__content ${selectedEvent.name === gathering.name ? 'root__irl__table-row__content--active' : ''}`}
+                                    className={`root__irl__table-row__content ${searchParams?.event === gathering.slugURL ? 'root__irl__table-row__content--active' : ''}`}
                                     onClick={() => handleElementClick(gathering)}
                                 >
                                     <div className="root__irl__table-col__contentName">

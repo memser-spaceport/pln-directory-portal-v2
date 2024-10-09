@@ -39,7 +39,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const onResetMember = () => {
     setSelectedMember({ name: '', uid: '' });
     setInitialTeams([]);
-    setSelectedTeam(null);
+    setSelectedTeam({ name: '', logo: '', uid: '' });
     setFormInitialValues(null);
   };
 
@@ -167,7 +167,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
               onClear={onResetMember}
               showClear={mode === IAM_GOING_POPUP_MODES.ADMINADD}
               closeImgUrl="/icons/close.svg"
-              isError={isMemberExists || errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER)}
+              isError={!selectedMember?.uid && errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER)}
             />
           </div>
         </div>

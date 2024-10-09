@@ -78,6 +78,13 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       const formData = new FormData(attendeeFormRef.current);
       const formattedData = transformObject(Object.fromEntries(formData));
 
+      if (!formattedData?.memberUid) {
+        isError = true;
+        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER])) }));
+      } else {
+        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER) }));
+      }
+
       if (formattedData.events.length === 0) {
         isError = true;
         setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
@@ -106,12 +113,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             }
           });
         });
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: [], participationErrors: Array.from(new Set([...participationErrors])) }));
-      }
-
-      if (!formattedData?.memberUid) {
-        isError = true;
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER])) }));
+        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING), participationErrors: Array.from(new Set([...participationErrors])) }));
       }
 
       if (formattedData.additionalInfo.checkInDate && !formattedData.additionalInfo.checkOutDate) {

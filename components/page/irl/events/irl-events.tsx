@@ -89,7 +89,7 @@ const IrlEvents = (props: any) => {
         analytics.onJoinPLNetworkClicked(eventDetails);
     }
 
-    function handleAdditionalResourceClicked(resource :any) {
+    function handleAdditionalResourceClicked(resource: any) {
         analytics.trackAdditionalResourcesClicked(resource);
     }
 
@@ -128,65 +128,69 @@ const IrlEvents = (props: any) => {
                             </div>}
                     </div>
 
-                    {isUpcoming &&
-                        <IrlUpcomingEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
-                    }
+                    <div className="root__irl__table__cntr">
 
-                    {!isUpcoming &&
-                        <IrlPastEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
-                    }
+                        {isUpcoming &&
+                            <IrlUpcomingEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
+                        }
 
-                    {eventDetails?.resources?.length > 0 &&
-                        <div className="root__irl__addRes">
-                            <div className="root__irl__addRes__cnt">
-                                <div className="root__irl__addRes__cnt__icon">📋</div>
-                                <div>Additional Resources</div>
-                            </div>
+                        {!isUpcoming &&
+                            <IrlPastEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
+                        }
 
-                            <div className="root__irl__addRes__cntr">
-                                <div className="root__irl__addRes__cntr__resource">
-                                    {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
-                                        <div key={index} className="root__irl__addRes__cntr__resCnt">
-                                            <div style={{ display: "flex" }} onClick={() => handleAdditionalResourceClicked(resource)}>
-                                                <img
-                                                    src="/icons/hyper-link.svg"
-                                                    alt="icon" />
-                                            </div>
-                                            <a href={resource?.link} target='_blank'>
-                                                {resource?.type}
-                                            </a>
-                                            <div>
-                                                <img
-                                                    src="/icons/arrow-blue.svg"
-                                                    alt="arrow icon" />
-                                            </div>
-                                        </div>
-                                    ))}
+                        {eventDetails?.resources?.length > 0 &&
+                            <div className="root__irl__addRes">
+                                <div className="root__irl__addRes__cnt">
+                                    <div className="root__irl__addRes__cnt__icon">📋</div>
+                                    <div>Additional Resources</div>
                                 </div>
 
-                                {eventDetails?.resources?.length > 3 && (
-                                    <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                                        <div>+{eventDetails?.resources?.length - 3}</div>
-                                        <div>more</div>
+                                <div className="root__irl__addRes__cntr">
+                                    <div className="root__irl__addRes__cntr__resource">
+                                        {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
+                                            <div key={index} className="root__irl__addRes__cntr__resCnt">
+                                                <div style={{ display: "flex" }} onClick={() => handleAdditionalResourceClicked(resource)}>
+                                                    <img
+                                                        src="/icons/hyper-link.svg"
+                                                        alt="icon" />
+                                                </div>
+                                                <a href={resource?.link} target='_blank'>
+                                                    {resource?.type}
+                                                </a>
+                                                <div>
+                                                    <img
+                                                        src="/icons/arrow-blue.svg"
+                                                        alt="arrow icon" />
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                )}
-                            </div>
-                        </div>
-                    }
 
-                    {!isLoggedIn &&
-                        <div className="root__irl__addRes__loggedOut">
-                            <div className="root__irl__addRes__cnt__loggedOut">
-                                <div>
-                                    <img src="/icons/info-orange.svg" alt="info" />
+                                    {eventDetails?.resources?.length > 3 && (
+                                        <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
+                                            <div>+{eventDetails?.resources?.length - 3}</div>
+                                            <div>more</div>
+                                        </div>
+                                    )}
                                 </div>
-                                <div>Attending an event but aren&apos;t part of the network yet?</div>
-                                <button onClick={handleJoinPLNetworks}>
-                                    <a href='https://airtable.com/appHT5ErKdHcsFznj/shryt1Y1xDKZTemJS' target='_blank'>Join</a>
-                                </button>
                             </div>
-                        </div>
-                    }
+                        }
+
+                        {!isLoggedIn &&
+                            <div className="root__irl__addRes__loggedOut">
+                                <div className="root__irl__addRes__cnt__loggedOut">
+                                    <div>
+                                        <img src="/icons/info-orange.svg" alt="info" />
+                                    </div>
+                                    <div>Attending an event but aren&apos;t part of the network yet?</div>
+                                    <button onClick={handleJoinPLNetworks}>
+                                        <a href='https://airtable.com/appHT5ErKdHcsFznj/shryt1Y1xDKZTemJS' target='_blank'>Join</a>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
 
                     <Modal modalRef={addResRef} onClose={onCloseModal}>
                         <div className="root__irl__addRes__popup">
@@ -319,7 +323,7 @@ const IrlEvents = (props: any) => {
                     border-radius: 24px;
                     border: 1px solid #CBD5E1;
                     min-width: 310px;
-                    height: 32px;
+                    min-height: 32px;
                     font-size: 14px;
                     font-weight: 400;
                     line-height: 20px;
@@ -606,13 +610,20 @@ const IrlEvents = (props: any) => {
                     cursor: pointer;
                 }
 
+                .root__irl__table__cntr {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                    overflow-x: auto;
+                    scroll-behavior: smooth;
+                    scrollbar-width: none;
+                }
+
                 @media (min-width: 360px) {
                     .root {
-                        overflow-x: auto;
-                        max-height: 472px;
-                        overflow-x: auto;
-                        scroll-behavior: smooth;
-                        scrollbar-width: none;
+                        // overflow-x: auto;
+                        // scroll-behavior: smooth;
+                        // scrollbar-width: none;
                         border-radius: unset;
                     }
                     .mob {
@@ -657,6 +668,8 @@ const IrlEvents = (props: any) => {
                 @media (min-width: 1024px) {
                     .root {
                       overflow-x: unset;
+                      max-height: 472px;
+
                     }
                     .mob {
                       overflow-x: unset;

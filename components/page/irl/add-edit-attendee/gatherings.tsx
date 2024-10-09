@@ -1,7 +1,7 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
-import { EVENT_TYPE } from '@/utils/constants';
+import { EVENT_TYPE, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
@@ -50,6 +50,7 @@ const Gatherings = (props: IGatherings) => {
     setSelectedGatherings(initialValues?.events ?? [])
 
   }, [initialValues]);
+
   return (
     <>
       <div className="gatrs">
@@ -60,7 +61,7 @@ const Gatherings = (props: IGatherings) => {
               {`Select gatherings that you are attending in ${selectedLocation?.name}`}<span className="gatrs__ttl__mantry">*</span>
             </p>
           </div>
-          <div className={`gatrs__all__gths ${isGatheringsError ? 'error' : ''}`}>
+          <div className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) ? 'error' : ''}`}>
             {gatherings?.map((gathering: IIrlGathering, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
               return (
@@ -87,7 +88,7 @@ const Gatherings = (props: IGatherings) => {
                   <div className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}>
                     <div className="gatrs__all__gatr__dteandname__dat">{getFormattedDateString(gathering.startDate, gathering.endDate)}</div>
                     <div className="gatrs__all__gatr__dteandname__nmesec">
-                      <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo?.cid} />
+                      <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo?.url ? gathering?.logo?.url : "/icons/irl-event-default-logo.svg"} />
                       <span className="gatrs__all__gatr__dteandname__nmesec__name">{gathering?.name}</span>
                     </div>
                   </div>

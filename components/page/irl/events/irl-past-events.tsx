@@ -268,9 +268,9 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                 {selectedEvent && (
                     <div className="root__irl__mobileView__body">
                         <div className="root__irl__mobileView__body__title">
-                            {isExpanded ? selectedEvent.description : `${selectedEvent.description?.substring(0, limit)}`}
-                            {selectedEvent.description.length > limit && (
-                                <span>...
+                            {isExpanded ? selectedEvent?.description : `${selectedEvent?.description?.substring(0, limit)}`}
+                            {selectedEvent?.description?.length > limit && (
+                                <span>{!isExpanded ? "..." : ""}
                                     <span onClick={toggleDescription} style={{ color: "#156FF7", cursor: 'pointer' }}>
                                         {isExpanded ? ' Show Less' : ' Show More'}
                                     </span>
@@ -562,6 +562,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     position: relative;
                     width: 100%;
                     cursor: pointer;
+                    background: white;
+                    border-radius: 10px;
                 }
 
                 .custom-dropdown__header {
@@ -581,10 +583,10 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     left: 0;
                     right: 0;
                     background-color: white;
-                    z-index: 10;
-                    max-height: 170px; 
+                    z-index: 4;
+                    max-height: 170px;
                     overflow-y: auto;
-                    padding: 10px 15px 10px 15px;
+                    padding: 10px 15px 5px 15px;
                 }
 
                 .custom-dropdown__item {
@@ -653,7 +655,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                         justify-content: center;
                         align-items: left;
                         border-radius: 12px;
-                        border: 1px solid #156FF7;
                     }
 
                     .root__irl__tableContainer {

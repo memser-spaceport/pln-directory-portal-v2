@@ -52,20 +52,42 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     // padding: 8px 12px 16px 12px;
                     gap: 2px;
                     border-radius: 8px;
-                    border: 2px solid transparent;
                     align-items: center;
                     background: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%) 1;
                     
                 }
 
                 .root__active {
+                    position: relative;
+                    // padding: 5px 10px;
                     background: linear-gradient(180deg, #EDF8FF 0%, #E0FFE3 100%);
-                    border-radius: 8px;
-                    border-image: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%) 1;
                 }
+
+                .root__active::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    border-radius: 8px; 
+                    border: 2px solid transparent;
+                    background: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%) border-box;
+                    -webkit-mask:
+                      linear-gradient(#fff 0 0) padding-box, 
+                      linear-gradient(#fff 0 0);
+                    -webkit-mask-composite: destination-out;
+                    mask-composite: exclude;
+                }
+
 
                 .root__active:hover {
                     background: linear-gradient(180deg, #EDF8FF 0%, #E0FFE3 100%);
+                }
+
+                .root__inactive {
+                    border: 2px solid transparent;
+
                 }
 
                 .root__inactive:hover {

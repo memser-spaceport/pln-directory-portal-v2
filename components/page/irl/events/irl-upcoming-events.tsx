@@ -108,7 +108,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                                 ))}
                             </div>
                             {eventsToShow?.length > 4 &&
-                                <div className='root__irl__mobileView' onClick={toggleDescription}>
+                                <div className='root__irl__mobileView__showMore__cntr' onClick={toggleDescription}>
                                     {isExpanded ? ' Show Less' : ' Show More'}
                                     <div className='root__irl__mobileView__icon'>
                                         {!isExpanded ?
@@ -331,7 +331,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                 }
 
                 @media screen and (min-width: 360px) {
-                    .root__irl__mobileView {
+                    .root__irl__mobileView__showMore__cntr {
                         width: 100%;
                         height: 35px;
                         border: 1px solid #CBD5E1;
@@ -349,7 +349,6 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
 
                     .root__irl__tableContainer {
                         position: relative;
-                        max-height: 256px;
                         overflow: auto;
                         scroll-behavior: smooth;
                         width: 900px;
@@ -366,12 +365,13 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                 }
 
                 @media screen and (min-width: 1024px) {
-                    .root__irl__mobileView {
+                    .root__irl__mobileView__showMore__cntr {
                         display: none;
                     }
 
                     .root__irl__tableContainer {
                         width: unset;
+                        max-height: 256px;
                     }
 
                     .root__irl__mobile__view {

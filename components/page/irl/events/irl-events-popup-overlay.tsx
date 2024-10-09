@@ -24,41 +24,53 @@ const IrlEventsPopupOverlay = ({ dialogRef,
                         <div className="root__irl__modalHeader__title">Resources</div>
                         <div className="root__irl__modalHeader__count">({resources?.length})</div>
                     </div>
-                    {!isLoggedIn &&
-                        <div className="root__irl__popup__header">
-                            <div style={{ display: 'flex' }}>
-                                <img src="/icons/info-orange.svg" alt="info" />
+                    {resources?.length > 0 ?
+                        <>
+                            {!isLoggedIn &&
+                                <div className="root__irl__popup__header">
+                                    <div style={{ display: 'flex' }}>
+                                        <img src="/icons/info-orange.svg" alt="info" />
+                                    </div>
+                                    <div>
+                                        This list contains private links. Please <span onClick={onLoginClickHandler} className="root__irl__popup__header__loginBtn">login</span> to access
+                                    </div>
+                                </div>
+                            }
+                            <div className="root__irl__popupCntr">
+                                {resources?.map((resource: any, index: number) => {
+                                    // Check if the resource is public or if the user is logged in (for non-public resources)
+                                    const canShowResource = resource.isPublic || (resource.isPublic === false && isLoggedIn);
+
+                                    return canShowResource ? (
+                                        <div key={index} className="root__irl__popupCnt" onClick={handleAdditionalResourceClick}>
+                                            <div>
+                                                {resource?.icon ? (
+                                                    <img src={resource.icon} style={{ height: '20px', width: '20px' }} alt="icon" />
+                                                ) : (
+                                                    <img src="/icons/hyper-link.svg" alt="icon" />
+                                                )}
+                                            </div>
+                                            <a href={resource.link} target='_blank' rel="noopener noreferrer">
+                                                {resource.name}
+                                            </a>
+                                            <div>
+                                                <img src="/icons/arrow-blue.svg" alt="arrow icon" />
+                                            </div>
+                                        </div>
+                                    ) : null; // Return null if the resource should not be displayed
+                                })}
                             </div>
+                        </>
+                        :
+                        <div className="root__irl__popup__header__noResource">
+                            {/* <div style={{ display: 'flex' }}>
+                                <img src="/icons/warning-red.svg" alt="info" />
+                            </div> */}
                             <div>
-                                This list contains private links. Please <span onClick={onLoginClickHandler} className="root__irl__popup__header__loginBtn">login</span> to access
+                                no resource found
                             </div>
                         </div>
                     }
-                    <div className="root__irl__popupCntr">
-                        {resources?.map((resource: any, index: number) => {
-                            // Check if the resource is public or if the user is logged in (for non-public resources)
-                            const canShowResource = resource.isPublic || (resource.isPublic === false && isLoggedIn);
-
-                            return canShowResource ? (
-                                <div key={index} className="root__irl__popupCnt" onClick={handleAdditionalResourceClick}>
-                                    <div>
-                                        {resource?.icon ? (
-                                            <img src={resource.icon} style={{ height: '20px', width: '20px' }} alt="icon" />
-                                        ) : (
-                                            <img src="/icons/hyper-link.svg" alt="icon" />
-                                        )}
-                                    </div>
-                                    <a href={resource.link} target='_blank' rel="noopener noreferrer">
-                                        {resource.name}
-                                    </a>
-                                    <div>
-                                        <img src="/icons/arrow-blue.svg" alt="arrow icon" />
-                                    </div>
-                                </div>
-                            ) : null; // Return null if the resource should not be displayed
-                        })}
-
-                    </div>
                 </div>
             </Modal>
             <style jsx>{`
@@ -108,6 +120,23 @@ const IrlEventsPopupOverlay = ({ dialogRef,
                         justify-content: center;
                         align-items: center;
                         border-radius: 8px;
+                    }
+
+                    .root__irl__popup__header__noResource {
+                        font-size: 13px;
+                        font-weight: 400;
+                        line-height: 20px;
+                        text-align: left;
+                        color: #475569;
+                        // background-color: #FFE2C8;
+                        margin-top: 50px;
+                        display: flex;
+                        flex-direction: row;
+                        height: 44px;
+                        justify-content: center;
+                        align-items: center;
+                        border-radius: 8px;
+                        border: 1px solid #CBD5E1;
                     }
 
                     .root__irl__popup__header__loginBtn {

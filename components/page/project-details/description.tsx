@@ -21,7 +21,7 @@ const Description = (props: IDescription) => {
   const [description,setDescription] = useState(props?.description ?? '');
   const project = props?.project;
   const analytics = useProjectAnalytics();
-
+  const isDeleted = project?.isDeleted ?? false;
   const [showEditor, setEditor] = useState(false);
   const getContent = (cnt:string) => {
     if (cnt.length > contentLength) {
@@ -53,7 +53,7 @@ const Description = (props: IDescription) => {
 
   const onSaveClickHandler = async () => {
     if(description === ''){
-      toast.error('About cannot be empty');
+      toast.error('Description cannot be empty');
       return;
     }
     setEditor(false);
@@ -86,7 +86,7 @@ const Description = (props: IDescription) => {
         <div className="desc">
           <div className="desc__header">
             <h6 className="desc__header__title">Description</h6>
-            {!showEditor && props?.userHasEditRights &&(
+            {!showEditor && props?.userHasEditRights && !isDeleted && (
               <button className="desc__header__edit" onClick={onEditClickHandler}>
                 Edit
                 {/* <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} /> */}

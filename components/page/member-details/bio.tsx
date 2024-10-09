@@ -50,10 +50,10 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
   };
 
   const onSaveClickHandler = async () => {
-    if(content === ''){
-      toast.error('About cannot be empty');
-      return;
-    }
+    // if(content === ''){
+    //   toast.error('Bio cannot be empty');
+    //   return;
+    // }
     setEditor(false);
     analytics.onMemberDetailsBioEditSaveClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
     try {
@@ -67,7 +67,9 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         participantType: 'MEMBER',
         referenceUid: member.id,
         uniqueIdentifier: member.email,
-        newData: { name: member.name, email: member.email, teamAndRoles: member.teamAndRoles, projectContributions: copymember.projectContributions, skills: member.skills, bio: content },
+        newData: { name: member.name, 
+          imageUid: member.imageUid,
+          email: member.email, teamAndRoles: member.teamAndRoles, projectContributions: copymember.projectContributions, skills: member.skills, bio: content },
       };
 
       const rawToken = Cookies.get('authToken');

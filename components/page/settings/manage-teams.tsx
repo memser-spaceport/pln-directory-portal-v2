@@ -245,6 +245,7 @@ function ManageTeamsSettings(props: any) {
       const formValues = Object.fromEntries(formData);
       const apiObjs = transformTeamApiToFormObj({ ...initialValues });
       const formattedInputValues = transformRawInputsToFormObj(formValues);
+      formattedInputValues.longDescription = content;
       delete formattedInputValues.teamProfile;
       if (!formattedInputValues.teamFocusAreas) {
         formattedInputValues.teamFocusAreas = [];

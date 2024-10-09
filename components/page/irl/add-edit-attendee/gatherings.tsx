@@ -61,7 +61,7 @@ const Gatherings = (props: IGatherings) => {
               {`Select gatherings that you are attending in ${selectedLocation?.name}`}<span className="gatrs__ttl__mantry">*</span>
             </p>
           </div>
-          <div className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) ? 'error' : ''}`}>
+          <div className={`gatrs__all__gths ${(errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length) ? 'error' : ''}`}>
             {gatherings?.map((gathering: IIrlGathering, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
               return (
@@ -145,11 +145,7 @@ const Gatherings = (props: IGatherings) => {
           }
 
           .error {
-            border: 1px solid #dc2625;
-          }
-
-          .error {
-            border: 1px solid #dc2625;
+            border: 1px solid red;
           }
 
           .gatrs__all__gatr {
@@ -220,7 +216,7 @@ const Gatherings = (props: IGatherings) => {
               flex-direction: row;
               align-items: center;
               padding: unset;
-              height: 36px;
+              min-height: 36px;
               gap: unset;
             }
 

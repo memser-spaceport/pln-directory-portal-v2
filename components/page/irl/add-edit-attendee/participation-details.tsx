@@ -193,9 +193,9 @@ const ParticipationDetails = (props: IParticipationDetails) => {
             <div className="ptndtls__cnt__header__lft">Name</div>
 
             <div className="ptndtls__cnt__header__rht">
-              <div className="ptndtls__cnt__header__rht__hst">Host</div>
+              <div className="ptndtls__cnt__header__rht__hst">HOST</div>
 
-              <div className="ptndtls__cnt__header__rht__spkr">Speaker</div>
+              <div className="ptndtls__cnt__header__rht__spkr">SPEAKER</div>
             </div>
           </div>
 
@@ -394,7 +394,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
         }
 
         .ptndtls__cnt__header__rht__hst {
-          width: 52px;
+          width: 61px;
           height: 26px;
           display: flex;
           align-items: center;
@@ -404,7 +404,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
         }
 
         .ptndtls__cnt__header__rht__spkr {
-          width: 52px;
+          width: 61px;
           height: 26px;
           display: flex;
           align-items: center;
@@ -441,7 +441,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
 
         .ptndtls__cnt__pptdtls__pptdtl__lft__hst {
           padding: 8px 16px;
-          width: 52px;
+          width: 61px;
           border-right: 1px solid #cbd5e1;
           border-left: 1px solid #cbd5e1;
           display: flex;
@@ -452,7 +452,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
 
         .ptndtls__cnt__pptdtls__pptdtl__lft__spkr {
           padding: 8px 16px;
-          width: 52px;
+          width: 61px;
           display: flex;
           align-items: center;
           justify-content: center;

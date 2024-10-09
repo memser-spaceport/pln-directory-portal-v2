@@ -39,11 +39,11 @@ const Topics = (props: ITopicsProps ) => {
 
   return (
     <>
-      <div ref={containerRef} className="picker">
+      <div  className="picker">
         <div className='picker__ttlcnt'>
             <p>Select topics of interest</p>
         </div>
-        <div className="picker__cn">
+        <div className="picker__cn" ref={containerRef}>
           <input
             className="picker__cn__input"
             onKeyDown={topicsProps?.onInputKeyDown}

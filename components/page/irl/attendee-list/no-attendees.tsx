@@ -1,15 +1,18 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { IAnalyticsGuestLocation } from '@/types/irl.types';
+import { IUserInfo } from '@/types/shared.types';
 import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 
 interface INoAttendees {
   location: IAnalyticsGuestLocation;
   onLogin: () => void;
   isLoggedIn: boolean;
+  userInfo: IUserInfo;
 }
 
 const NoAttendees = (props: INoAttendees) => {
   const isLoggedIn = props.isLoggedIn;
+  const userInfo = props?.userInfo;
   const onLogin = props.onLogin;
 
   const analytics = useIrlAnalytics();
@@ -19,7 +22,7 @@ const NoAttendees = (props: INoAttendees) => {
     if (!isLoggedIn) {
       onLogin();
     } else {
-      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADD } }));
+      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: {member: userInfo}, mode: IAM_GOING_POPUP_MODES.ADD } }));
     }
   };
 

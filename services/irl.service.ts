@@ -132,7 +132,7 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
         topics: guest?.topics,
         additionalInfo: guest?.additionalInfo,
         eventNames: [result?.name],
-        events: [{ uid: result?.uid, name: result?.name, logo: result?.logo?.url, hostSubEvents: guest?.additionalInfo?.hostSubEvents, speakerSubEvents: guest?.additionalInfo?.speakerSubEvents }],
+        events: [{ uid: result?.uid, name: result?.name, isHost: guest?.isHost, isSpeaker: guest?.isSpeaker, logo: result?.logo?.url, hostSubEvents: guest?.additionalInfo?.hostSubEvents, speakerSubEvents: guest?.additionalInfo?.speakerSubEvents }],
       };
     });
 

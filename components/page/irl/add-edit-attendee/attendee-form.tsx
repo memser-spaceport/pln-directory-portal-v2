@@ -282,6 +282,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   }, []);
 
   const onCloseClickHandler = () => {
+    analytics.irlAddAttendeePopupCloseClicked(getAnalyticsUserInfo(props?.userInfo), getAnalyticsLocationInfo(selectedLocation));
     onClose();
   };
 
@@ -289,7 +290,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     <div className="attndformcnt">
       <RegisterFormLoader />
       <form noValidate onSubmit={(e) => onFormSubmitHandler(e, IAM_GOING_POPUP_MODES.EDIT ? 'Edit' : 'Save')} ref={attendeeFormRef} className="atndform">
-        <button type="button" className="modal__cn__closebtn" onClick={onClose}>
+        <button type="button" className="modal__cn__closebtn" onClick={onCloseClickHandler}>
           <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
         </button>
         <div className="atndform__bdy" ref={formBodyRef}>

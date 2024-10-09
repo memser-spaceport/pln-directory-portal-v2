@@ -244,7 +244,7 @@ const ArrivalAndDepatureDate = (props: IArrivalDepatureDateProps) => {
         }
 
         .dtscnt__dte__arvldte__infield {
-          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED) || dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE) ? '1px solid red' : '1px solid lightgrey'};
+          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED) || dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE)  ? '1px solid red' : '1px solid lightgrey'};
         }
 
         .dtscnt__dte__deprdte__outfield {

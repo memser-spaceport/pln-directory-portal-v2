@@ -1,6 +1,6 @@
 'use client';
 
-import React, { PointerEvent, useEffect, useRef, useState } from 'react';
+import React, { PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 interface Option {
   [key: string]: any;
@@ -33,29 +33,41 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   closeImgUrl,
   label = '',
 }) => {
-  const [showOptions, setShowOptions] = useState(false);
+  // State to manage the visibility of options
+  const [isOptionsVisible, setIsOptionsVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const selectedOptionsIds = [...selectedOptions].map((v) => v[uniqueKey]);
-  const remainingOptions: Option[] = [...options].filter((v) => !selectedOptionsIds.includes(v[uniqueKey]));
 
+  // Memoize selected option IDs for filtering
+  const selectedOptionIds = useMemo(() => selectedOptions.map(option => option[uniqueKey]), [selectedOptions]);
+
+  // Memoize available options to prevent unnecessary recalculations
+  const availableOptions = useMemo(() => 
+    options.filter(option => !selectedOptionIds.includes(option[uniqueKey])),
+    [options, selectedOptionIds]
+  );
+
+  // Handle adding an option
   const handleOptionClick = (option: Option) => {
     onAdd(option);
   };
 
+  // Handle removing an option
   const handleRemoveOption = (e: PointerEvent<HTMLImageElement>, optionToRemove: Option) => {
     e.preventDefault();
     e.stopPropagation();
     onRemove(optionToRemove);
   };
 
-  const toggleOptions = () => {
-    setShowOptions(!showOptions);
+  // Toggle the visibility of options
+  const toggleOptionsVisibility = () => {
+    setIsOptionsVisible(prev => !prev);
   };
 
   useEffect(() => {
+    // Close options when clicking outside the component
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowOptions(false);
+        setIsOptionsVisible(false);
       }
     };
 
@@ -67,54 +79,58 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
   return (
     <>
-      <div className="select">
-        {label !== '' && <label className="select__label">{label}</label>}
-        <div className="select__content" ref={containerRef}>
-          <div className={`select__selectedoptions ${selectedOptions.length === 0 && isMandatory ? 'select__selectedoptions--error' : ''}`} onClick={toggleOptions}>
-            <div className="select__selectedoptions__wrpr">
-              {selectedOptions.length === 0 && <span className="select__placeholder">{placeholder}</span>}
-              {selectedOptions.map((option) => (
-                <div key={option[uniqueKey]} className="select__selectedoptions__item">
-                  {option[displayKey]}
-                  <img width="16" height="16" alt="close tag" src={closeImgUrl} className="select__remove-option" onPointerDown={(e) => handleRemoveOption(e, option)} />
+      <div className="multi-select" data-testid="form-ms">
+        {label && <label className="multi-select__label">{label}</label>}
+        <div className="multi-select__content" ref={containerRef}>
+           {/* Wrapper for selected options */}
+          <div className={`multi-select__selected-options ${selectedOptions.length === 0 && isMandatory ? 'multi-select__selected-options--error' : ''}`} onClick={toggleOptionsVisibility} data-testid="form-msselected-options">
+            <div className="multi-select__selected-options-wrapper"> 
+              {selectedOptions.length === 0 && <span className="multi-select__placeholder">{placeholder}</span>} 
+              {selectedOptions.map(option => (
+                <div key={option[uniqueKey]} className="multi-select__selected-option">
+                  {option[displayKey]} 
+                  <img width="16" height="16" alt="Remove option" data-testid={`form-ms-close-icon-${option[uniqueKey]}`} src={closeImgUrl} className="multi-select__remove-option" onPointerDown={(e) => handleRemoveOption(e, option)} /> 
                 </div>
               ))}
             </div>
-            {arrowImgUrl && <img className="select__arrowimg" src={arrowImgUrl} width="10" height="7" alt="arrow down" />}
+            {arrowImgUrl && <img className="multi-select__arrow-img" src={arrowImgUrl} width="10" height="7" alt="Toggle options" />}
           </div>
-          {showOptions && (
-            <ul className="select__options">
-              {remainingOptions.map((option) => (
+
+          {/* Dropdown options list */}
+          {isOptionsVisible && 
+            <ul className="multi-select__options" data-testid="form-ms-options-list">
+              {availableOptions.map((option: any) => (
                 <li
                   key={option[uniqueKey]}
-                  onClick={() => handleOptionClick(option)}
-                  className={`select__options__item ${selectedOptions.some((selectedOption) => selectedOption[uniqueKey] === option[uniqueKey]) ? 'select__options__item--selected' : ''}`}
+                  onClick={() => handleOptionClick(option)} 
+                  className={`multi-select__option ${selectedOptions.some(selectedOption => selectedOption[uniqueKey] === option[uniqueKey]) ? 'multi-select__option--selected' : ''}`}
                 >
                   {option[displayKey]}
                 </li>
               ))}
-              {remainingOptions.length === 0 && <p className="select__options__noresult">No data available</p>}
+              {availableOptions.length === 0 && <p className="multi-select__no-results">No data available</p>}
             </ul>
-          )}
+          }
         </div>
       </div>
+      
+      {/* Styles for the multi-select component */}
       <style jsx>
         {`
-          .select {
+          .multi-select {
             width: 100%;
             position: relative;
           }
-
-          .select__content {
+          .multi-select__content {
             position: relative;
           }
-          .select__label {
+          .multi-select__label {
             font-weight: 600;
             font-size: 14px;
             margin-bottom: 12px;
             display: block;
           }
-          .select__selectedoptions {
+          .multi-select__selected-options {
             display: flex;
             font-size: 14px;
             gap: 8px;
@@ -125,23 +141,23 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             align-items: center;
             min-height: 40px;
           }
-          .select__selectedoptions--error {
+          .multi-select__selected-options--error {
             border: 1px solid red;
           }
 
-          .select__selectedoptions__wrpr {
+          .multi-select__selected-options-wrapper {
             display: flex;
             gap: 4px;
             flex-wrap: wrap;
           }
-          .select__arrowimg {
+          .multi-select__arrow-img {
             margin-left: auto;
             cursor: pointer;
           }
-          .select__placeholder {
+          .multi-select__placeholder {
             color: #aab0b8;
           }
-          .select__selectedoptions__item {
+          .multi-select__selected-option {
             border: 1px solid #cbd5e1;
             padding: 5px 12px;
             border-radius: 24px;
@@ -151,11 +167,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             align-items: center;
             gap: 3px;
           }
-          .select__remove-option {
+          .multi-select__remove-option {
             margin-left: 5px;
             cursor: pointer;
           }
-          .select__options {
+          .multi-select__options {
             width: 100%;
             list-style-type: none;
             border-radius: 8px;
@@ -170,15 +186,15 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             top: 100%;
             left: 0;
           }
-          .select__options__item {
+          .multi-select__option {
             cursor: pointer;
             font-size: 14px;
             padding: 4px 8px;
           }
-          .select__options__item--selected {
+          .multi-select__option--selected {
             background-color: #e0e0e0;
           }
-          .select__options__noresult {
+          .multi-select__no-results {
             padding: 16px;
             font-size: 14px;
             width: 90%;

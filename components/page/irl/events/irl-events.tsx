@@ -318,7 +318,7 @@ const IrlEvents = (props: any) => {
                     gap: 4px;
                     border-radius: 24px;
                     border: 1px solid #CBD5E1;
-                    width: 310px;
+                    min-width: 310px;
                     height: 32px;
                     font-size: 14px;
                     font-weight: 400;

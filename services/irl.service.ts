@@ -1,5 +1,6 @@
 import { getHeader } from '@/utils/common.utils';
 import { customFetch } from '@/utils/fetch-wrapper';
+import { sortPastEvents } from '@/utils/irl.utils';
 
 export const getAllLocations = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations`, {
@@ -12,7 +13,15 @@ export const getAllLocations = async () => {
     return { isError: true };
   }
 
-  return await response.json();
+  const result = await response.json();
+
+  result.forEach((item: { pastEvents: any[]; }) => {
+    if (Array.isArray(item.pastEvents)) {
+      item.pastEvents = sortPastEvents(item.pastEvents);
+    }
+  });
+
+  return result;
 };
 
 export const getGuestsByLocation = async (location: string, type: string, authToken: string, slugURL: string) => {

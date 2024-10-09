@@ -94,10 +94,10 @@ export const getAnalyticsNotificationInfo = (notification: any) => {
 
 export const getAnalyticsLocationInfo = (location: any) => {
   if (location) {
-    return { locationId: location?.uid, locationName: location?.name };
+    return { locationUid: location?.uid, locationName: location?.name };
   }
   return {
-    locationId: '',
+    locationUid: '',
     locationName: '',
   };
 };

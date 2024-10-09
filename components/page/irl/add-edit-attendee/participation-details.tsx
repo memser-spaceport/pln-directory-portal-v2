@@ -201,13 +201,13 @@ const ParticipationDetails = (props: IParticipationDetails) => {
 
           <div className="ptndtls__cnt__pptdtls">
             {selectedGatherings?.map((selectedGathering: IIrlGathering, index: number) => {
-              const isHostSubEvents = selectedGathering.hostSubEvents.length > 0;
-              const isSpeakerSubEvents = selectedGathering.speakerSubEvents.length > 0;
+              const isHostSubEvents = selectedGathering?.hostSubEvents?.length > 0;
+              const isSpeakerSubEvents = selectedGathering?.speakerSubEvents?.length > 0;
               return (
                 <div className="ptndtls__cnt__pptdtls__pptdtlcnt" key={`${selectedGathering.uid} + ${index}`}>
                   <div
                     className={`ptndtls__cnt__pptdtls__pptdtl ${index > 0 ? 'bordert' : ''} ${
-                      selectedGathering.hostSubEvents.length > 0 || selectedGathering.speakerSubEvents.length > 0 ? 'borderb' : ''
+                      selectedGathering?.hostSubEvents?.length > 0 || selectedGathering?.speakerSubEvents?.length > 0 ? 'borderb' : ''
                     }`}
                   >
                     <div className="ptndtls__cnt__pptdtls__pptdtl__rht">
@@ -240,12 +240,12 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                     </div>
                   </div>
 
-                  {selectedGathering.hostSubEvents.length > 0 && (
+                  {selectedGathering?.hostSubEvents?.length > 0 && (
                     <div className="ptndtls__cnt__pptdtls__pptdtl__evntscnt">
                       <span className="ptndtls__cnt__pptdtls__pptdtl__evnts__subevnt__ttl">Enter event name in which you are host</span>
 
                       <div className="ptndtls__cnt__pptdtls__pptdtl__evnts">
-                        {selectedGathering.hostSubEvents.map((hostSubEvent: IIrlParticipationEvent, index: number) => (
+                        {selectedGathering?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent, index: number) => (
                           <div key={`${hostSubEvent.uid}`} className={`ptndtls__cnt__pptdtls__pptdtl__evnts__evnt`}>
                             <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt">
                               <button
@@ -290,12 +290,12 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                     </div>
                   )}
 
-                  {selectedGathering.speakerSubEvents.length > 0 && (
+                  {selectedGathering?.speakerSubEvents?.length > 0 && (
                     <div className="ptndtls__cnt__pptdtls__pptdtl__evntscnt">
                       <span className="ptndtls__cnt__pptdtls__pptdtl__evnts__subevnt__ttl">Enter event name in which you are speaking</span>
 
                       <div className="ptndtls__cnt__pptdtls__pptdtl__evnts">
-                        {selectedGathering.speakerSubEvents.map((speakerSubEvent: IIrlParticipationEvent, index: number) => (
+                        {selectedGathering?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent, index: number) => (
                           <div key={`${speakerSubEvent.uid}`} className={`ptndtls__cnt__pptdtls__pptdtl__evnts__evnt`}>
                             <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt">
                               <button
@@ -327,7 +327,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                                 defaultValue={speakerSubEvent.link}
                                 id={''}
                                 isMandatory
-                                isError={participationErrors.includes(`${speakerSubEvent?.uid}-link`) ? true : false}
+                                isError={participationErrors?.includes(`${speakerSubEvent?.uid}-link`) ? true : false}
                               />
                             </div>
                           </div>

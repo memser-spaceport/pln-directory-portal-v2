@@ -92,6 +92,16 @@ export const getAnalyticsNotificationInfo = (notification: any) => {
   };
 };
 
+export const getAnalyticsLocationInfo = (location: any) => {
+  if (location) {
+    return { locationId: location?.uid, locationName: location?.name };
+  }
+  return {
+    locationId: '',
+    locationName: '',
+  };
+};
+
 export const getAnalyticsTeamInfo = (team: ITeam | undefined) => {
   if (team?.name && team?.shortDescription) {
     return { name: team?.name ?? '', shortDescription: team?.shortDescription ?? '' };

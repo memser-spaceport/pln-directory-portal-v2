@@ -87,7 +87,7 @@ const Gatherings = (props: IGatherings) => {
                   <div className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}>
                     <div className="gatrs__all__gatr__dteandname__dat">{getFormattedDateString(gathering.startDate, gathering.endDate)}</div>
                     <div className="gatrs__all__gatr__dteandname__nmesec">
-                      <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo} />
+                      <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo?.cid} />
                       <span className="gatrs__all__gatr__dteandname__nmesec__name">{gathering?.name}</span>
                     </div>
                   </div>

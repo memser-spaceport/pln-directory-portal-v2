@@ -61,6 +61,7 @@ export const useIrlAnalytics = () => {
     IRL_RSVP_POPUP_UPDATE_BTN_CLICKED: 'irl-rsvp-popup-update-btn-clicked',
     IRL_RSVP_POPUP_SAVE_BTN_CLICKED: 'irl-rsvp-popup-save-btn-clicked',
     IRL_RSVP_POPUP_SAVE_ERROR: 'irl-rsvp-popup-save-error',
+    IRL_RSVP_POPUP_CLOSE_CLICKED: 'irl-rsvp-popup-close-clicked',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -411,7 +412,7 @@ export const useIrlAnalytics = () => {
     }
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_PAST_EVENT_CLICKED, {...params});
   }
-  
+
   function irlGuestDetailPrivacySettingClick(user: IAnalyticsUserInfo | null, location: any) {
     const params = {
       user,
@@ -455,6 +456,14 @@ export const useIrlAnalytics = () => {
       type,
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_ERROR, params);
+  }
+
+  function irlAddAttendeePopupCloseClicked(user: IAnalyticsUserInfo | null, location: any) {
+    const params = {
+      user,
+      ...location,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_CLOSE_CLICKED, params);
   }
 
   return {
@@ -501,6 +510,7 @@ export const useIrlAnalytics = () => {
     irlGuestDetailOHGuidelineClick,
     irlGuestDetailEditBtnClick,
     irlGuestDetailSaveBtnClick,
-    irlGuestDetailSaveError
+    irlGuestDetailSaveError,
+    irlAddAttendeePopupCloseClicked
   };
 };

@@ -1,3 +1,7 @@
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { IIrlLocation } from '@/types/irl.types';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsLocationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -5,6 +9,8 @@ import { useEffect, useRef, useState } from 'react';
 interface ITelegramHandle {
   initialValues: any;
   scrollTo: string;
+  userInfo: IUserInfo | null;
+  location: IIrlLocation
 }
 
 const TelegramHandle = (props: ITelegramHandle) => {
@@ -12,11 +18,13 @@ const TelegramHandle = (props: ITelegramHandle) => {
 
   const initialValues = props?.initialValues;
   const scrollTo = props?.scrollTo;
+  const location = props?.location;
 
   const [isTelegramNote, setIsTelegramNote] = useState(false);
   const [telegramId, setTelegramId] = useState('');
   const [isHiddenTelegram, setIsHiddenTelegram] = useState(false);
   const telegramRef: any = useRef(null);
+  const analytics = useIrlAnalytics();
 
   const handleChange = (e: any) => {
     setTelegramId(e.target.value);
@@ -31,7 +39,7 @@ const TelegramHandle = (props: ITelegramHandle) => {
   };
 
   const handlePrivacySettingClick = () => {
-    // analytics.irlGuestDetailPrivacySettingClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name });
+    analytics.irlGuestDetailPrivacySettingClick(getAnalyticsUserInfo(props?.userInfo), getAnalyticsLocationInfo(location));
   };
 
   useEffect(() => {

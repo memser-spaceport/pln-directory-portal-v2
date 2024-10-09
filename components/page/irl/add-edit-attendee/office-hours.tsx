@@ -1,3 +1,7 @@
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { IIrlLocation } from '@/types/irl.types';
+import { IUserInfo } from '@/types/shared.types';
+import { getAnalyticsLocationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, OH_GUIDELINE_URL } from '@/utils/constants';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -5,12 +9,18 @@ import { useEffect, useRef, useState } from 'react';
 interface IOfficeHours {
   initialValues: any;
   scrollTo: string;
+  userInfo: IUserInfo  | null;
+  location: IIrlLocation;
 }
 
 const OfficeHours = (props: IOfficeHours) => {
 
   const initialValues = props?.initialValues;
   const scrollTo = props?.scrollTo;
+  const userInfo  = props?.userInfo;
+  const location = props?.location;
+
+  const analytics = useIrlAnalytics();
 
   const officeHoursRef: any = useRef(null);
 
@@ -18,7 +28,7 @@ const OfficeHours = (props: IOfficeHours) => {
   const [isFocusNote, setIsFocusNote] = useState(false);
 
   const handleOHGuidlineClick = () => {
-    // analytics.irlGuestDetailPrivacySettingClick(getAnalyticsUserInfo(userInfo), { eventId: eventDetails?.id, eventName: eventDetails?.name });
+    analytics.irlGuestDetailPrivacySettingClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(location));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +41,6 @@ const OfficeHours = (props: IOfficeHours) => {
 
   useEffect(() => {
     function handler(e: any) {
-      console.log("officehour ", e)
       setOfficeHours(e?.detail?.officeHours || "");
     }
     document.addEventListener(EVENTS.UPDATE_OFFICE_HOURS, (e: any) => {

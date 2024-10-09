@@ -1,3 +1,5 @@
+import { IIrlLocation } from '@/types/irl.types';
+import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
 
@@ -46,6 +48,19 @@ export const useIrlAnalytics = () => {
     IRL_ADDITIONAL_RESOURCE_SEE_MORE_BUTTON_CLICKED: 'on-additional-resource-see-more-button-clicked',
     IRL_JOIN_PL_NETWORK_CLICKED: 'on-join-pl-network-clicked',
     IRL_PAST_EVENT_CLICKED: 'on-past-event-clicked',
+    ON_SEE_OTHER_LOCATION_CARD_CLICKED: 'on-see-other-location-card-clicked',
+    ON_UPCOMING_EVENTS_BUTTON_CLICKED: 'on-upcoming-events-button-clicked',
+    ON_PAST_EVENTS_BUTTON_CLICKED: 'on-past-events-button-clicked',
+    ON_RESOURCE_POPUP_VIEWED: 'on-resource-popup-viewed',
+    ON_ADDITIONAL_RESOURCE_CLICKED: 'on-additional-resource-clicked',
+    ON_ADDITIONAL_RESOURCE_SEE_MORE_BUTTON_CLICKED: 'on-additional-resource-see-more-button-clicked',
+    ON_JOIN_PL_NETWORK_CLICKED: 'on-join-pl-network-clicked',
+
+    IRL_RSVP_POPUP_PRIVACY_SETTING_LINK_CLICKED: 'irl-rsvp-popup-privacy-setting-link-clicked',
+    IRL_RSVP_POPUP_OH_GUIDELINE_URL_CLICKED: 'irl-rsvp-popup-oh-guideline-url-clicked',
+    IRL_RSVP_POPUP_UPDATE_BTN_CLICKED: 'irl-rsvp-popup-update-btn-clicked',
+    IRL_RSVP_POPUP_SAVE_BTN_CLICKED: 'irl-rsvp-popup-save-btn-clicked',
+    IRL_RSVP_POPUP_SAVE_ERROR: 'irl-rsvp-popup-save-error',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -396,6 +411,51 @@ export const useIrlAnalytics = () => {
     }
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_PAST_EVENT_CLICKED, {...params});
   }
+  
+  function irlGuestDetailPrivacySettingClick(user: IAnalyticsUserInfo | null, location: any) {
+    const params = {
+      user,
+      ...location,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_PRIVACY_SETTING_LINK_CLICKED, params);
+  }
+
+  function irlGuestDetailOHGuidelineClick(user: IAnalyticsUserInfo | null, location: any) {
+    const params = {
+      user,
+      ...location,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_OH_GUIDELINE_URL_CLICKED, params);
+  }
+
+  function irlGuestDetailEditBtnClick(user: IAnalyticsUserInfo | null, location: any, type: string, payload?: any) {
+    const params = {
+      user,
+      ...location,
+      ...payload,
+      type,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_UPDATE_BTN_CLICKED, params);
+  }
+
+  function irlGuestDetailSaveBtnClick(user: IAnalyticsUserInfo | null, location: any, type: string, payload?: any) {
+    const params = {
+      user,
+      ...location,
+      ...payload,
+      type,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_BTN_CLICKED, params);
+  }
+
+  function irlGuestDetailSaveError(user: IAnalyticsUserInfo | null, location: any, type: string) {
+    const params = {
+      user,
+      ...location,
+      type,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_RSVP_POPUP_SAVE_ERROR, params);
+  }
 
   return {
     trackImGoingBtnClick,
@@ -437,5 +497,10 @@ export const useIrlAnalytics = () => {
     trackSpeakerEventClicked,
     trackPastEventClicked,
     trackAdditionalResourcesClicked,
+    irlGuestDetailPrivacySettingClick,
+    irlGuestDetailOHGuidelineClick,
+    irlGuestDetailEditBtnClick,
+    irlGuestDetailSaveBtnClick,
+    irlGuestDetailSaveError
   };
 };

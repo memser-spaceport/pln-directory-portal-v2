@@ -86,7 +86,7 @@ export interface IIrlGathering {
   description: string;
   startDate: string;
   endDate: string;
-  logo: string;
+  logo: any;
   banner: {
     uid: string;
     cid: string;

@@ -31,9 +31,18 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     </div>
                 </div>
                 <div className="root__irl__table-col__contentDesc">{gathering?.description}</div>
-                <div className="root__irl__table-col__contentRes" onClick={() => handleClick(gathering?.resources, eventsToShow)}>
-                    <div><img src="/images/irl/elements.svg" alt="view" /></div>
-                    <div style={{ paddingBottom: "4px" }}>view</div>
+                <div className="root__irl__table-col__contentRes">
+                    {gathering?.resources?.length > 0 ?
+                        <div
+                            className="root__irl__table-col__contentRes__viewCnt "
+                            onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}
+                        >
+                            <div><img src="/images/irl/elements.svg" alt="view" /></div>
+                            <div style={{ paddingBottom: "4px" }}>view</div>
+                        </div>
+                        :
+                        <div className="root__irl__table-col__contentRes__noCnt">-</div>
+                    }
                 </div>
             </div>
             <style jsx>{` 
@@ -158,6 +167,13 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
 
                 .root__irl__table-col__inviteOnlyIcon {
                     padding-left: 4px;
+                }
+
+                .root__irl__table-col__contentRes__viewCnt {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 5px;
+                    align-items: center;
                 }
         `}</style>
         </div>

@@ -209,7 +209,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                     border-right: 1px solid #CBD5E1;
                 }
 
-                .root__irl__table-col__headerRes, .root__irl__table-col__contentRes  {
+                .root__irl__table-col__headerRes {
                     width: 91px;
                     padding: 10px;
                 }
@@ -217,23 +217,8 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                 .root__irl__table-col__headerName ,
                 .root__irl__table-col__headerDesc,
                 .root__irl__table-col__headerRes,
-                .root__irl__table-col__contentName,
-                .root__irl__table-col__contentRes {
+                .root__irl__table-col__contentName{
                     padding: 10px;
-                }
-
-                .root__irl__table-col__contentRes {
-                    display: flex;
-                    flex-direction: row;
-                    gap: 4px;
-                    align-items: center;
-                    font-size: 11px;
-                    font-weight: 500;
-                    line-height: 20px;
-                    text-align: center;
-                    color: #156FF7;
-                    cursor: pointer;
-                    justify-content: center;
                 }
                 
                 .root__irl__table__header {

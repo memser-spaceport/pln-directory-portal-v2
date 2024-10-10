@@ -41,8 +41,8 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
     const currentUserEntries = guests?.filter((guest: any) => guest?.member?.uid === userInfo?.uid);
     const inviteOnlyEvents = currentUserEntries?.filter((entry: any) => entry?.event?.type === 'INVITE_ONLY').map((entry: any) => entry?.event?.uid);
 
-    const inviteOnlyEventMembers = guests.filter((r: any) => r?.event?.type === 'INVITE_ONLY' && inviteOnlyEvents.includes(r?.event?.uid));
-    const publicEventMembers = guests.filter((r: any) => r.event.type !== 'INVITE_ONLY');
+    const inviteOnlyEventMembers = guests?.filter((r: any) => r?.event?.type === 'INVITE_ONLY' && inviteOnlyEvents.includes(r?.event?.uid));
+    const publicEventMembers = guests?.filter((r: any) => r.event?.type !== 'INVITE_ONLY');
 
     return [...inviteOnlyEventMembers, ...publicEventMembers];
   };
@@ -120,7 +120,7 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
     if (userInfo && !userInfo?.roles?.includes(ADMIN_ROLE)) {
       result = processGuests(result, userInfo);
     } else if (!userInfo) {
-      result = result.filter((r: any) => r.event.type !== 'INVITE_ONLY');
+      result = result.filter((r: any) => r?.event?.type !== 'INVITE_ONLY');
     }
 
     const groupedMembers = groupMembers(result);
@@ -133,10 +133,10 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
     let result = await fetchGuests(url);
     if (result.isError) return { isError: true };
 
-    if (!userInfo && result.type === 'INVITE_ONLY') {
+    if (!userInfo && result?.type === 'INVITE_ONLY') {
       result.eventGuests = [];
     }
-    if (userInfo && !userInfo.roles.includes(ADMIN_ROLE) && result.type === 'INVITE_ONLY' && !result.eventGuests.find((guest: any) => guest?.memberUid === userInfo?.uid)) {
+    if (userInfo && !userInfo?.roles?.includes(ADMIN_ROLE) && result?.type === 'INVITE_ONLY' && !result?.eventGuests.find((guest: any) => guest?.memberUid === userInfo?.uid)) {
       result.eventGuests = [];
     }
 

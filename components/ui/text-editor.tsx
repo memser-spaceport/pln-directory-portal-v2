@@ -16,7 +16,7 @@ const TextEditor = (props: ITextEditorProps) => {
   // const wordcount = tinymce.activeEditor?.plugins.wordcount;
 
 
-  const maxLen = props.maxLength || 500;
+  const maxLen = props.maxLength || 2000;
   return (
     <>
       <Editor
@@ -32,6 +32,9 @@ const TextEditor = (props: ITextEditorProps) => {
           toolbar_mode: 'wrap',
           plugins: 'lists fullscreen link',
           toolbar: 'undo redo fullscreen  | bold italic underline strikethrough aligncenter alignleft alignright blockquote link bullist numlist removeformat',
+        }}
+        onInit={(evt, editor) => {
+          setTextOnly(editor.getContent({format:'text'}));
         }}
         onEditorChange={(newValue, editor) => {
           

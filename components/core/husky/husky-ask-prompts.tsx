@@ -39,7 +39,6 @@ function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: Husky
     }
     setFilteredPrompts(promptInfos[suggestionTopicSelected]);
     setSelectedPromptInfo(promptInfos[suggestionTopicSelected][0]);
-    console.log(promptInfos[suggestionTopicSelected]);
   }, [suggestionTopicSelected]);
 
   useEffect(() => {

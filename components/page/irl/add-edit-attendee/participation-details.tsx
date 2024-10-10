@@ -26,7 +26,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
       const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
       if (index !== -1) {
         const updatedGatherings = [...prev];
-        if (selectedGathering.hostSubEvents.length > 0) {
+        if (selectedGathering?.hostSubEvents?.length > 0) {
           updatedGatherings[index] = { ...selectedGathering, hostSubEvents: [] };
         } else {
           updatedGatherings[index] = {

@@ -107,7 +107,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
             return { ...team, uid: team?.id };
           }),
           memberUid: member?.memberUid,
-          additionalInfo: { checkInDate: member?.additionalInfo.checkInDate || '', checkOutDate: member?.additionalInfo?.checkOutDate ?? '' },
+          additionalInfo: { checkInDate: member?.additionalInfo?.checkInDate || '', checkOutDate: member?.additionalInfo?.checkOutDate ?? '' },
           topics: member?.topics,
           reason: member?.reason,
           telegramId: member?.telegramId,

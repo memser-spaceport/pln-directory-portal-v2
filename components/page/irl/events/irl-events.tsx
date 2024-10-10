@@ -125,7 +125,7 @@ const IrlEvents = (props: any) => {
                             <div className="root__irl__eventWrapper">
                                 <div className="root__irl__eventWrapper__icon"><img src="/images/irl/calendar.svg" alt="calendar" /></div>
                                 <div>
-                                    <span className="root__irl__eventWrapper__mobileTile">events from</span>
+                                    <span className="root__irl__eventWrapper__mobileTile">Events from</span>
                                     <span className="root__irl__eventWrapper__desktopTile">Upcoming events from</span>
                                     {getFormattedDate(eventDetails?.upcomingEvents)}
                                 </div>
@@ -597,17 +597,16 @@ const IrlEvents = (props: any) => {
 
                 @media (min-width: 360px) {
                     .root {
-                        // max-height: 472px;
-                        // overflow-x: auto;
                         scroll-behavior: smooth;
                         scrollbar-width: none;
                         border-radius: unset;
+                        min-height: 270px;
                     }
                     .mob {
                       display: flex;
                       flex-direction: column;
                       gap: 16px;
-                      overflow-y: auto;
+                      overflow-y: visible;
                         scroll-behavior: smooth;
                         scrollbar-width: none;
                     }

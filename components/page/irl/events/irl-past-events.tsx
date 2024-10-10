@@ -85,7 +85,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
         analytics.trackAdditionalResourceClicked(resources);
     }
 
-    function handleClick(resource: any) {
+    function handleClick(resource: any, event: any) {
+        event.stopPropagation();
         setResources(resource);
         analytics.trackPastResourcePopUpViewed(resource);
         if (dialogRef.current) {
@@ -110,19 +111,19 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
     const handleClickOutside = (event: any) => {
         // If the click is outside the dropdown container, close the dropdown
         if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-          setDropdownOpen(false);
-          setSearchText('');
+            setDropdownOpen(false);
+            setSearchText('');
         }
-      };
-    
-      useEffect(() => {
+    };
+
+    useEffect(() => {
         // Add event listener to detect clicks outside the dropdown
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
-          // Clean up the event listener when the component unmounts
-          document.removeEventListener('mousedown', handleClickOutside);
+            // Clean up the event listener when the component unmounts
+            document.removeEventListener('mousedown', handleClickOutside);
         };
-      }, []);
+    }, []);
 
     return (
         <>
@@ -166,9 +167,18 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                         </div>
                                     </div>
                                     <div className="root__irl__table-col__contentDesc">{gathering?.description}</div>
-                                    <div className="root__irl__table-col__contentRes" onClick={() => handleClick(gathering?.resources)}>
-                                        <div><img src="/images/irl/elements.svg" alt="view" /></div>
-                                        <div style={{ paddingBottom: "4px" }}>view</div>
+                                    <div className="root__irl__table-col__contentRes">
+                                        {gathering?.resources?.length > 0 ?
+                                            <div
+                                                className="root__irl__table-col__contentRes__viewCnt "
+                                                onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}
+                                            >
+                                                <div><img src="/images/irl/elements.svg" alt="view" /></div>
+                                                <div style={{ paddingBottom: "4px" }}>view</div>
+                                            </div>
+                                            :
+                                            <div className="root__irl__table-col__contentRes__noCnt">-</div>
+                                        }
                                     </div>
                                 </div>
                             ))}
@@ -192,7 +202,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
             />
 
             {/* Mobile View Section */}
-            <div className="root__irl__mobileView"  ref={dropdownRef}>
+            <div className="root__irl__mobileView" ref={dropdownRef}>
                 <div className="custom-dropdown">
                     <div className="custom-dropdown__header" onClick={handleDropdownToggle}>
                         <div style={{ display: 'flex' }}>
@@ -295,7 +305,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                             </div>
                             {selectedEvent?.resources.length > 0 &&
                                 <div className="root__irl__mobileView__body__cnt">
-                                    <div className="root__irl__mobileView__body__cnt__contentRes" onClick={() => handleClick(selectedEvent?.resources)}>
+                                    <div className="root__irl__mobileView__body__cnt__contentRes" onClick={(event) => handleClick(selectedEvent?.resources, event)}>
                                         <div><img src="/images/irl/elements.svg" alt="view" /></div>
                                         <div style={{ paddingBottom: "4px" }}>View Resources</div>
                                     </div>
@@ -374,6 +384,10 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     // min-height: 80px;
                 }
                     
+                .root__irl__table-row__content {
+                    cursor: pointer;
+                }
+                
                 .root__irl__table-row__content--active {
                     background-color: rgba(219, 234, 254, 0.5);
                 }
@@ -419,16 +433,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
 
                 .root__irl__table-col__contentRes {
                     display: flex;
-                    flex-direction: row;
-                    gap: 4px;
-                    align-items: center;
-                    font-size: 11px;
-                    font-weight: 500;
-                    line-height: 20px;
-                    text-align: center;
-                    color: #156FF7;
-                    cursor: pointer;
                     justify-content: center;
+                    flex-direction: row;
                 }
                 
                 .root__irl__table__header {
@@ -680,6 +686,27 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     flexDirection: row;
                     gap: 10px;
                     padding-left: 4px;
+                }
+
+                .root__irl__table-col__contentRes__viewCnt {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 4px;
+                    align-items: center;
+                    font-size: 11px;
+                    font-weight: 500;
+                    line-height: 20px;
+                    text-align: center;
+                    color: #156FF7;
+                    cursor: pointer;
+                    justify-content: center;
+                }
+
+                .root__irl__table-col__contentRes__noCnt {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: center;
+                    align-items: center;
                 }
 
                 @media screen and (min-width: 360px) {

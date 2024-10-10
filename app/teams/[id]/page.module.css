@@ -62,6 +62,7 @@
     height: 48px;
     display: flex;
     align-items: center;
+    z-index: 3;
   }
 
 

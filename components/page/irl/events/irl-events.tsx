@@ -597,7 +597,7 @@ const IrlEvents = (props: any) => {
 
                 @media (min-width: 360px) {
                     .root {
-                        max-height: 472px;
+                        // max-height: 472px;
                         // overflow-x: auto;
                         scroll-behavior: smooth;
                         scrollbar-width: none;
@@ -607,7 +607,9 @@ const IrlEvents = (props: any) => {
                       display: flex;
                       flex-direction: column;
                       gap: 16px;
-                      overflow: unset;
+                      overflow-y: auto;
+                        scroll-behavior: smooth;
+                        scrollbar-width: none;
                     }
 
                     .root__irl__resPopup, .root__irl__addRes__popup {

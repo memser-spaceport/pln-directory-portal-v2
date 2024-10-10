@@ -109,7 +109,6 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     flex-direction: row;
                     gap: 5px;
                     align-items: center;
-                    // flex-wrap: wrap;
                 }
 
                 .root__location__name {

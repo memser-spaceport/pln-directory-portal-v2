@@ -599,7 +599,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     padding: 10px;
                     background-color: #fff;
                     border: 1px solid #CBD5E1;
-                    // border-bottom: none;
                     border-radius: 8px;
                     min-height: 50px;
                 }
@@ -614,8 +613,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     max-height: 170px;
                     overflow-y: auto;
                     padding: 10px 15px 5px 15px;
-                    // border: 1px solid #CBD5E1;
-                    // border-top: none;
                     border-bottom-left-radius: 7px;
                     border-bottom-right-radius: 7px;
                     box-shadow: 0px 1px 1px 0px rgba(0,0,0,.25);

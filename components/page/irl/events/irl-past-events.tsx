@@ -67,11 +67,13 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
     };
 
     const handleEventSelection = (gathering: { slugURL: string; }) => {
-        triggerLoader(true);
-        selectedEvent = gathering;
-        updateQueryParams('event', gathering.slugURL, searchParams);
-        setDropdownOpen(false);
-        setSearchText('');
+        if (gathering.slugURL !== searchParams?.event) {
+            triggerLoader(true);
+            selectedEvent = gathering;
+            updateQueryParams('event', gathering.slugURL, searchParams);
+            setDropdownOpen(false);
+        }
+            setSearchText('');
     };
 
 
@@ -240,7 +242,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                         <>
                             <div className="custom-dropdown__menu">
                                 <div>
-                                    <div>
+                                    <div style={{ paddingBottom: '10px' }}>
                                         <img className="root__irl__search__img" height={16} width={16} src="/icons/search-gray.svg" alt="search" />
                                         <input
                                             type="text"
@@ -291,7 +293,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     )}
 
                     {/* Selected event details logic */}
-                    {!isDropdownOpen && selectedEvent && (
+                    {selectedEvent && (
                         <div className="root__irl__mobileView__body">
                             <div className="root__irl__mobileView__body__title">
                                 {isExpanded ? selectedEvent?.description : `${selectedEvent?.description?.substring(0, limit)}`}
@@ -611,17 +613,19 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
 
                 .custom-dropdown__menu {
                     position: absolute;
-                    top: 100%;
+                    top: 50px;
                     left: 0;
                     right: 0;
                     background-color: white;
                     z-index: 4;
-                    max-height: 170px;
+                    max-height: 185px;
                     overflow-y: auto;
                     padding: 10px 15px 5px 15px;
                     border-bottom-left-radius: 7px;
                     border-bottom-right-radius: 7px;
-                    box-shadow: 0px 1px 1px 0px rgba(0,0,0,.25);
+                    // box-shadow: 0px 1px 1px 0px rgba(0,0,0,.25);
+                    border: 1px solid #CBD5E1;
+                    border-top: none;
                 }
 
                 .custom-dropdown__item {
@@ -700,6 +704,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     color: #156FF7;
                     cursor: pointer;
                     justify-content: center;
+                    align-self: center;
                 }
 
                 .root__irl__table-col__contentRes__noCnt {

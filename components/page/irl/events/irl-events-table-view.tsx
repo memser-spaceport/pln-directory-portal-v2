@@ -34,7 +34,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                 <div className="root__irl__table-col__contentRes">
                     {gathering?.resources?.length > 0 ?
                         <div
-                            className="root__irl__table-col__contentRes__viewCnt "
+                            className="root__irl__table-col__contentRes__viewCnt"
                             onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}
                         >
                             <div><img src="/images/irl/elements.svg" alt="view" /></div>
@@ -174,6 +174,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     flex-direction: row;
                     gap: 5px;
                     align-items: center;
+                    align-self: center;
                 }
         `}</style>
         </div>

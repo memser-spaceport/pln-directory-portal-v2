@@ -56,7 +56,7 @@ const About = (props: IAbout) => {
 
   const onSaveClickHandler = async () => {
     if(aboutEditedContent === ''){
-      toast.error('About cannot be empty');
+      toast.error("'About' field cannot be empty");
       return;
     }
     setEditor(false);
@@ -203,6 +203,10 @@ const About = (props: IAbout) => {
             font-size: 15px;
             font-weight: 400;
             line-height: 24px;
+            overflow: hidden;
+            position: relative;
+            word-wrap: break-word; /* Allow long words to be broken and wrapped */
+            word-break: break-all;
           }
 
           .about__content__show-more {

@@ -19,14 +19,27 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
   // const [clippedHtml,setClippedHtml] = useState(clip(content, contentLength, { html: true, maxLines: 5 }));
 
   const analytics = useMemberAnalytics();
+
+  /**
+   * @showEditor - This is the state to show/hide the editor.
+   */
   const [showEditor, setEditor] = useState(false);
 
+  /**
+   * To get the trimmed content to be displayed
+   * @param cnt Content to be trimmed and displayed
+   * @returns trimmed content
+   */
   const getContent = (cnt: string) => {
     if (cnt.length > contentLength) {
       return cnt.substring(0, contentLength) + '...';
     }
     return cnt;
   };
+
+  /**
+   * @clippedContent - This is the state to store the content to be displayed
+   */
   const [clippedContent, setClippedContent] = useState(getContent(content));
 
   const onShowMoreClickHandler = () => {
@@ -46,6 +59,8 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
 
   const onCancelClickHandler = () => {
     analytics.onMemberDetailsBioEditCancelClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
+    setContent(member?.bio ?? '');
+    setClippedContent(clip(member?.bio ?? '', contentLength));
     setEditor(false);
   };
 
@@ -170,6 +185,10 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
           line-height: 20px;
           color: #000000;
           display: inline;
+          overflow: hidden;
+            position: relative;
+            word-wrap: break-word; /* Allow long words to be broken and wrapped */
+            word-break: break-all;
         }
 
         .bioCn__ttl__header__edit {

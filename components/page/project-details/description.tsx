@@ -18,7 +18,14 @@ interface IDescription {
 
 const Description = (props: IDescription) => {
   const contentLength = 347;
+  /**
+   * @description - This is the state to store the description content without trimming.
+   */
   const [description,setDescription] = useState(props?.description ?? '');
+  /**
+   * @unChangedDescription - This is the state to store the description content before editing.
+   */
+  const [unChangedDescription,setUnChangedDescription] = useState(props?.description ?? '');
   const project = props?.project;
   const analytics = useProjectAnalytics();
   const isDeleted = project?.isDeleted ?? false;
@@ -29,6 +36,9 @@ const Description = (props: IDescription) => {
     }
     return cnt;
   }
+  /**
+   * @desc - This is the state to store the description content truncated.
+   */
   const [desc, setDesc] = useState(getContent(description));
 
   const onShowMoreClickHandler = () => {
@@ -39,6 +49,8 @@ const Description = (props: IDescription) => {
   const onCancelClickHandler = () => {
     analytics.onProjectDetailDescEditCancelClicked(getAnalyticsUserInfo(props?.user), project?.id);
     setEditor(false);
+    setDescription(unChangedDescription);
+    setDesc(getContent(unChangedDescription));
   };
 
   const onShowLessClickHandler = () => {
@@ -47,13 +59,14 @@ const Description = (props: IDescription) => {
   };
 
   const onEditClickHandler = () => {
+    setUnChangedDescription(description);
     setEditor(true);
      analytics.onProjectDetailDescEditClicked(getAnalyticsUserInfo(props?.user), project?.id);
   };
 
   const onSaveClickHandler = async () => {
     if(description === ''){
-      toast.error('Description cannot be empty');
+      toast.error("'Description' field cannot be empty");
       return;
     }
     setEditor(false);
@@ -178,21 +191,25 @@ const Description = (props: IDescription) => {
           letter-spacing: 0em;
           color: #0f172a;
           word-break: break-word;
+          overflow: hidden;
+          position: relative;
+          word-wrap: break-word; /* Allow long words to be broken and wrapped */
+          word-break: break-all;
         }
 
         .desc__content__show-more__icon {
-            top: 2px;
-            position: relative;
-            width: 12px;
-            height: 12px;
-            display: inline-block;
-            margin-left: 4px;
-          }
+          top: 2px;
+          position: relative;
+          width: 12px;
+          height: 12px;
+          display: inline-block;
+          margin-left: 4px;
+        }
         .desc__content__show-more {
           color: #156ff7;
           font-size: 14px;
-            font-weight: 500;
-            line-height: 14px;
+          font-weight: 500;
+          line-height: 14px;
           padding: 0;
           border: none;
           background-color: #fff;
@@ -202,8 +219,8 @@ const Description = (props: IDescription) => {
         .desc__content__show-less {
           color: #156ff7;
           font-size: 14px;
-            font-weight: 500;
-            line-height: 14px;
+          font-weight: 500;
+          line-height: 14px;
           padding: 0;
           border: none;
           background-color: #fff;
@@ -211,39 +228,39 @@ const Description = (props: IDescription) => {
         }
 
         .desc__header__action__cancel {
-            padding: 8px 16px;
-            background: white;
-            border: 1px solid #156ff7;
-            border-radius: 8px;
-          }
+          padding: 8px 16px;
+          background: white;
+          border: 1px solid #156ff7;
+          border-radius: 8px;
+        }
 
-          .desc__header__action__cancel__txt {
-            font-size: 15px;
-            font-weight: 600;
-            line-height: 24px;
-            text-align: left;
-            color: #156ff7;
-          }
+        .desc__header__action__cancel__txt {
+          font-size: 15px;
+          font-weight: 600;
+          line-height: 24px;
+          text-align: left;
+          color: #156ff7;
+        }
 
-          .desc__header__action__save {
-            padding: 8px 16px;
-            background: white;
-            border: 1px solid #156ff7;
-            border-radius: 8px;
-            background: #156ff7;
-          }
+        .desc__header__action__save {
+          padding: 8px 16px;
+          background: white;
+          border: 1px solid #156ff7;
+          border-radius: 8px;
+          background: #156ff7;
+        }
 
-          .desc__header__action__save__txt {
-            font-size: 15px;
-            font-weight: 600;
-            line-height: 24px;
-            text-align: left;
-            color: white;
-          }
-          .desc__header__action {
-            display: flex;
-            gap: 8px;
-          }
+        .desc__header__action__save__txt {
+          font-size: 15px;
+          font-weight: 600;
+          line-height: 24px;
+          text-align: left;
+          color: white;
+        }
+        .desc__header__action {
+          display: flex;
+          gap: 8px;
+        }
       `}</style>
     </>
   );

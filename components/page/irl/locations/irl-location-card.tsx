@@ -30,7 +30,7 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     <img src={bannerImage ? bannerImage : "/images/irl/defaultImg.svg"} alt="location" />
                 </div>
                 <div className="root__location">
-                    <div>{locationUrl}</div>
+                    <img src={locationUrl} alt="flag"  style={{width: '20px', height: '20px'}}/>
                     <div className="root__location__name">{locationName}</div>
                 </div>
                 <div className='root__events'>
@@ -109,25 +109,27 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     flex-direction: row;
                     gap: 5px;
                     align-items: center;
-                    flex-wrap: wrap;
+                    // flex-wrap: wrap;
                 }
 
                 .root__location__name {
                     font-size: 14px;
-                    font-weight: 600;
-                    line-height: 28px;
+                    font-weight: 500;
+                    line-height: 20px;
                     text-align: left;
+                    padding-bottom: 2px;
                 }
 
                 .root__events {
                     font-size: 11px;
-                    font-weight: 500;
+                    font-weight: 400;
                     line-height: 14px;
                     text-align: left;
                 }
 
                 .root__events span {
                     color: #156FF7;
+                    font-weight: 500;
                 }
 
                 @media (min-width: 360px) {
@@ -140,7 +142,7 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     }
 
                     .root__location {
-                        padding-bottom: 8px;
+                        padding-bottom: 4px;
                     }
                     
                     .root__irlCard {
@@ -152,10 +154,12 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     .root {
                         width: 161px;
                         height: 150px;
+                        padding-bottom: 12px;
                     }
                     
                     .root__location {
-                        padding: 0px;
+                        padding-left: 6px;
+                        padding-right: 2px;
                     }
 
                     .root__irlCard {

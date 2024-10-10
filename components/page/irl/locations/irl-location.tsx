@@ -88,13 +88,14 @@ const IrlLocation = (props: any) => {
             } else {
                 [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
                     [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
-                    analytics.trackLocationClicked(updatedLocations[fourthIndex].uid, updatedLocations[fourthIndex].location);
+                analytics.trackLocationClicked(updatedLocations[fourthIndex].uid, updatedLocations[fourthIndex].location);
             }
             setLocations(updatedLocations);
         }
         if (dialogRef.current) {
             dialogRef.current.close();
         }
+        setShowMore(false);
     };
 
     return (
@@ -114,7 +115,6 @@ const IrlLocation = (props: any) => {
                     <div
                         className="root__irl__expanded"
                         onClick={handleClick}
-                        onBlur={() => setShowMore(false)}
                     >
                         <div
                             className="root__irl__expanded__showMore"
@@ -124,7 +124,7 @@ const IrlLocation = (props: any) => {
                         <div className="root_irl__expanded__imgcntr">
                             {locations.slice(4, 7).map((location: { flag: any; }, index: React.Key | null | undefined) => (
                                 <div key={index} className="root_irl__expanded__imgcntr__img">
-                                    <div>{location.flag}</div>
+                                    <img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} />
                                 </div>
                             ))}
                         </div>
@@ -139,7 +139,7 @@ const IrlLocation = (props: any) => {
                         {locations.slice(4).map((location: { id: any, flag: any; location: any; upcomingEvents: any; pastEvents: any }, index: React.Key | null | undefined) => (
                             <div key={index} className="root__irl__overlay__cnt" onClick={() => handleResourceClick(location)}>
                                 <div className="root__irl__overlay__cnt__location">
-                                    <div>{location.flag}</div>
+                                    <div className="root__irl__overlay__cnt__location__icon"><img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} /></div>
                                     <div>{location.location.split(",")[0].trim()}</div>
                                 </div>
                                 <div className="root__irl__overlay__cnt__events">
@@ -157,7 +157,7 @@ const IrlLocation = (props: any) => {
                             {locations.slice(4).map((location: { flag: any; location: any; upcomingEvents: any; pastEvents: any }, index: React.Key | null | undefined) => (
                                 <div key={index} className="root__irl__mobileModal__cnt" onClick={() => handleResourceClick(location)}>
                                     <div className="root__irl__mobileModal__cnt__location">
-                                        <div>{location.flag}</div>
+                                        <div><img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} /></div>
                                         <div>{location.location.split(",")[0].trim()}</div>
                                     </div>
                                     <div className="root__irl__mobileModal__cnt__events">
@@ -204,9 +204,7 @@ const IrlLocation = (props: any) => {
 
                 .root__irl__expanded:hover {
                     position: relative;
-                    animation:moveBackground 4s forwards  // moveBackground 8s linear infinite; /* Infinite smooth animation */
-                    //background-repeat: repeat-x;
-                    
+                    animation:moveBackground 4s forwards  // 
                 }
 
                @keyframes moveBackground {
@@ -219,7 +217,7 @@ const IrlLocation = (props: any) => {
                 }
 
                 .root__irl__expanded__showMore {
-                    font-size: 13px;
+                    font-size: 12px;
                     font-weight: 500;
                     line-height: 14px;
                     text-align: center;
@@ -238,7 +236,7 @@ const IrlLocation = (props: any) => {
                     border-radius: 100%;
                     width: 32px;
                     height: 32px;
-                    padding:  5px 0px 5px 0px;
+                    padding:  4px 0px 0px;
                     gap: 10px;
                     border: 1px solid #CBD5E1;
                 }
@@ -256,6 +254,7 @@ const IrlLocation = (props: any) => {
                     position: absolute;
                     z-index: 4;
                     padding: 10px;
+                    box-shadow: 0px 4px 4px 0px #0F172A0A;
                 }
 
                 .root__irl__overlay__cnt {
@@ -281,13 +280,18 @@ const IrlLocation = (props: any) => {
 
                 .root__irl__overlay__cnt__location {
                     max-width: 141px;
-                    height: 28px;
-                    gap: 4px;
+                    min-height: 28px;
+                    gap: 8px;
                     font-size: 14px;
                     font-weight: 600;
-                    line-height: 28px;
+                    line-height: 24px;
                     text-align: left;
                     color: #0F172A;
+                }
+
+                .root__irl__overlay__cnt__location__icon {
+                    display: flex;
+                    align-items: center;
                 }
 
                 .root__irl__overlay__cnt__events {
@@ -366,8 +370,8 @@ const IrlLocation = (props: any) => {
 
                     .root__irl__expanded__showMore {
                         width: 140px;
-                        margin-top: 10px;
-                        padding-bottom: 4px;
+                        margin-top: 6px;
+                        padding-bottom: 1px;
                     }
 
                     .root__irl__openModal, .root__irl__overlay {
@@ -411,8 +415,8 @@ const IrlLocation = (props: any) => {
 
                     .root__irl__expanded__showMore {
                         width: 161px;
-                        margin-top: 20px;
-                        padding-bottom: 0px;
+                        margin-top: 10px;
+                        padding-bottom: 6px;
                     }
 
                     .root__irl__mobileModal, .root__irl__mobileView {

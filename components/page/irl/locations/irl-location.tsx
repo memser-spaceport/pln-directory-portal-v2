@@ -358,8 +358,9 @@ const IrlLocation = (props: any) => {
                     .root__irl__expanded{
                         width: 140px;
                         height: 100px;
-                        background-image: none;
                         gap: 5px;
+                        background: 
+                            linear-gradient(152.61deg, #F5F8FF 24.8%, #BBDEF7 108.1%);
                     }
 
                     .root_irl__expanded__imgcntr__img {
@@ -395,12 +396,31 @@ const IrlLocation = (props: any) => {
                     .root__irl__overlay {
                         overflow-y: auto;
                     }
-                    .root__irl__expanded{
+                    .root__irl__expanded {
                         width: 161px;
                         height: 150px;
-                        background-image: url("/images/irl/Clouds v2.svg");
+                        background: 
+                            linear-gradient(152.61deg, #F5F8FF 24.8%, #BBDEF7 108.1%), 
+                            url("/images/irl/Clouds v2.svg");
+                        background-size: cover; 
+                        background-blend-mode: overlay; 
                         gap: 5px;
+                        transition: background-position 4s; /* Smooth transition */
                     }
+
+                    .root__irl__expanded:hover {
+                        animation: moveBackground 4s linear forwards; /* Ensure keyframes are defined */
+                    }
+
+                    @keyframes moveBackground {
+                        0% {
+                            background-position: 0% 0%;
+                        }
+                        100% {
+                            background-position: 100% 100%;
+                        }
+                    }
+
 
                     .root_irl__expanded__imgcntr {
                         gap: 10px;

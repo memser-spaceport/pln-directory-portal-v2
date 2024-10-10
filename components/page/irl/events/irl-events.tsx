@@ -96,43 +96,42 @@ const IrlEvents = (props: any) => {
     return (
         <>
             <div className="root">
-                <div className="mob">
-                    <div className="root__irl">
-                        <div className={`root__irl__events`}>
-                            <button
-                                className={`root__irl__events__upcoming ${isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
-                                onClick={handleUpcomingGathering}>
-                                Upcoming
-                                <span
-                                    className={`root__irl__events__count ${isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
-                                >
-                                    {eventDetails?.upcomingEvents?.length}
-                                </span>
-                            </button>
-                            <button
-                                className={`root__irl__events__past ${!isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
-                                onClick={handlePastGathering}>
-                                Past
-                                <span
-                                    className={`root__irl__events__count ${!isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
-                                >
-                                    {eventDetails?.pastEvents?.length}
-                                </span>
-                            </button>
-                        </div>
-
-                        {isUpcoming && eventDetails?.upcomingEvents?.length > 0 &&
-                            <div className="root__irl__eventWrapper">
-                                <div className="root__irl__eventWrapper__icon"><img src="/images/irl/calendar.svg" alt="calendar" /></div>
-                                <div>
-                                    <span className="root__irl__eventWrapper__mobileTile">Events from</span>
-                                    <span className="root__irl__eventWrapper__desktopTile">Upcoming events from</span>
-                                    {getFormattedDate(eventDetails?.upcomingEvents)}
-                                </div>
-                            </div>
-                        }
+                <div className="root__irl">
+                    <div className={`root__irl__events`}>
+                        <button
+                            className={`root__irl__events__upcoming ${isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
+                            onClick={handleUpcomingGathering}>
+                            Upcoming
+                            <span
+                                className={`root__irl__events__count ${isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
+                            >
+                                {eventDetails?.upcomingEvents?.length}
+                            </span>
+                        </button>
+                        <button
+                            className={`root__irl__events__past ${!isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
+                            onClick={handlePastGathering}>
+                            Past
+                            <span
+                                className={`root__irl__events__count ${!isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
+                            >
+                                {eventDetails?.pastEvents?.length}
+                            </span>
+                        </button>
                     </div>
 
+                    {isUpcoming && eventDetails?.upcomingEvents?.length > 0 &&
+                        <div className="root__irl__eventWrapper">
+                            <div className="root__irl__eventWrapper__icon"><img src="/images/irl/calendar.svg" alt="calendar" /></div>
+                            <div>
+                                <span className="root__irl__eventWrapper__mobileTile">Events from</span>
+                                <span className="root__irl__eventWrapper__desktopTile">Upcoming events from</span>
+                                {getFormattedDate(eventDetails?.upcomingEvents)}
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div className="mob">
                     {isUpcoming &&
                         <IrlUpcomingEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
                     }
@@ -603,10 +602,10 @@ const IrlEvents = (props: any) => {
                         min-height: 270px;
                     }
                     .mob {
-                      display: flex;
-                      flex-direction: column;
-                      gap: 16px;
-                      overflow-y: visible;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 16px;
+                        overflow-x: ${searchParams?.type === 'past' ? 'visible' : 'auto'};
                         scroll-behavior: smooth;
                         scrollbar-width: none;
                     }

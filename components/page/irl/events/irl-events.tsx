@@ -82,7 +82,7 @@ const IrlEvents = (props: any) => {
 
     function getFormattedDate(events: any) {
         const result = getFormattedDateString(events[0]?.startDate, events[events?.length - 1]?.endDate);
-        return `Upcoming events from ${result}`;
+        return `${result}`;
     }
 
     function handleJoinPLNetworks() {
@@ -124,73 +124,74 @@ const IrlEvents = (props: any) => {
                         {isUpcoming && eventDetails?.upcomingEvents?.length > 0 &&
                             <div className="root__irl__eventWrapper">
                                 <div className="root__irl__eventWrapper__icon"><img src="/images/irl/calendar.svg" alt="calendar" /></div>
-                                <div>{getFormattedDate(eventDetails?.upcomingEvents)}</div>
-                            </div>}
+                                <div>
+                                    <span className="root__irl__eventWrapper__mobileTile">events from</span>
+                                    <span className="root__irl__eventWrapper__desktopTile">Upcoming events from</span>
+                                    {getFormattedDate(eventDetails?.upcomingEvents)}
+                                </div>
+                            </div>
+                        }
                     </div>
 
-                    <div className="root__irl__table__cntr">
+                    {isUpcoming &&
+                        <IrlUpcomingEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
+                    }
 
-                        {isUpcoming &&
-                            <IrlUpcomingEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
-                        }
+                    {!isUpcoming &&
+                        <IrlPastEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
+                    }
 
-                        {!isUpcoming &&
-                            <IrlPastEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={isUpcoming} searchParams={searchParams} />
-                        }
+                    {eventDetails?.resources?.length > 0 &&
+                        <div className="root__irl__addRes">
+                            <div className="root__irl__addRes__cnt">
+                                <div className="root__irl__addRes__cnt__icon">📋</div>
+                                <div>Additional Resources</div>
+                            </div>
 
-                        {eventDetails?.resources?.length > 0 &&
-                            <div className="root__irl__addRes">
-                                <div className="root__irl__addRes__cnt">
-                                    <div className="root__irl__addRes__cnt__icon">📋</div>
-                                    <div>Additional Resources</div>
-                                </div>
-
-                                <div className="root__irl__addRes__cntr">
-                                    <div className="root__irl__addRes__cntr__resource">
-                                        {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
-                                            <div key={index} className="root__irl__addRes__cntr__resCnt">
-                                                <div style={{ display: "flex" }} onClick={() => handleAdditionalResourceClicked(resource)}>
-                                                    <img
-                                                        src="/icons/hyper-link.svg"
-                                                        alt="icon" />
-                                                </div>
-                                                <a href={resource?.link} target='_blank'>
-                                                    {resource?.type}
-                                                </a>
-                                                <div>
-                                                    <img
-                                                        src="/icons/arrow-blue.svg"
-                                                        alt="arrow icon" />
-                                                </div>
+                            <div className="root__irl__addRes__cntr">
+                                <div className="root__irl__addRes__cntr__resource">
+                                    {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
+                                        <div key={index} className="root__irl__addRes__cntr__resCnt">
+                                            <div style={{ display: "flex" }} onClick={() => handleAdditionalResourceClicked(resource)}>
+                                                <img
+                                                    src="/icons/hyper-link.svg"
+                                                    alt="icon" />
                                             </div>
-                                        ))}
-                                    </div>
-
-                                    {eventDetails?.resources?.length > 3 && (
-                                        <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                                            <div>+{eventDetails?.resources?.length - 3}</div>
-                                            <div>more</div>
+                                            <a href={resource?.link} target='_blank'>
+                                                {resource?.type}
+                                            </a>
+                                            <div>
+                                                <img
+                                                    src="/icons/arrow-blue.svg"
+                                                    alt="arrow icon" />
+                                            </div>
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
-                            </div>
-                        }
 
-                        {!isLoggedIn &&
-                            <div className="root__irl__addRes__loggedOut">
-                                <div className="root__irl__addRes__cnt__loggedOut">
-                                    <div>
-                                        <img src="/icons/info-orange.svg" alt="info" />
+                                {eventDetails?.resources?.length > 3 && (
+                                    <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
+                                        <div>+{eventDetails?.resources?.length - 3}</div>
+                                        <div>more</div>
                                     </div>
-                                    <div>Attending an event but aren&apos;t part of the network yet?</div>
-                                    <button onClick={handleJoinPLNetworks}>
-                                        <a href='https://airtable.com/appHT5ErKdHcsFznj/shryt1Y1xDKZTemJS' target='_blank'>Join</a>
-                                    </button>
-                                </div>
+                                )}
                             </div>
-                        }
+                        </div>
+                    }
 
-                    </div>
+                    {!isLoggedIn &&
+                        <div className="root__irl__addRes__loggedOut">
+                            <div className="root__irl__addRes__cnt__loggedOut">
+                                <div>
+                                    <img src="/icons/info-orange.svg" alt="info" />
+                                </div>
+                                <div>Attending an event but aren&apos;t part of the network yet?</div>
+                                <button onClick={handleJoinPLNetworks}>
+                                    <a href='https://airtable.com/appHT5ErKdHcsFznj/shryt1Y1xDKZTemJS' target='_blank'>Join</a>
+                                </button>
+                            </div>
+                        </div>
+                    }
 
                     <Modal modalRef={addResRef} onClose={onCloseModal}>
                         <div className="root__irl__addRes__popup">
@@ -322,8 +323,7 @@ const IrlEvents = (props: any) => {
                     gap: 4px;
                     border-radius: 24px;
                     border: 1px solid #CBD5E1;
-                    min-width: 310px;
-                    min-height: 32px;
+                    height: 32px;
                     font-size: 14px;
                     font-weight: 400;
                     line-height: 20px;
@@ -380,13 +380,13 @@ const IrlEvents = (props: any) => {
 
                 }
 
-                .root__irl__table-col__headerDesc, .root__irl__table-col__contentDesc {
+                .root__irl__table-col__headerDesc {
                     width: 566px;
                     padding: 10px;
                     border-right: 1px solid #CBD5E1;
                 }
 
-                .root__irl__table-col__headerRes, .root__irl__table-col__contentRes  {
+                .root__irl__table-col__headerRes {
                     width: 91px;
                     padding: 10px;
                 }
@@ -394,25 +394,10 @@ const IrlEvents = (props: any) => {
                 .root__irl__table-col__headerName ,
                 .root__irl__table-col__headerDesc,
                 .root__irl__table-col__headerRes,
-                .root__irl__table-col__contentName, 
-                .root__irl__table-col__contentDesc,
-                .root__irl__table-col__contentRes {
+                .root__irl__table-col__contentName{
                     padding: 10px;
                 }
-
-                .root__irl__table-col__contentRes {
-                    display: flex;
-                    flex-direction: row;
-                    gap: 4px;
-                    align-items: center;
-                    font-size: 11px;
-                    font-weight: 500;
-                    line-height: 20px;
-                    text-align: center;
-                    color: #156FF7;
-                    cursor: pointer;
-                }
-                
+              
                 .root__irl__table__header {
                     background-color: #F8FAFC;
                 }
@@ -610,26 +595,19 @@ const IrlEvents = (props: any) => {
                     cursor: pointer;
                 }
 
-                .root__irl__table__cntr {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 20px;
-                    overflow-x: auto;
-                    scroll-behavior: smooth;
-                    scrollbar-width: none;
-                }
-
                 @media (min-width: 360px) {
                     .root {
+                        max-height: 472px;
                         // overflow-x: auto;
-                        // scroll-behavior: smooth;
-                        // scrollbar-width: none;
+                        scroll-behavior: smooth;
+                        scrollbar-width: none;
                         border-radius: unset;
                     }
                     .mob {
                       display: flex;
                       flex-direction: column;
                       gap: 16px;
+                      overflow: unset;
                     }
 
                     .root__irl__resPopup, .root__irl__addRes__popup {
@@ -656,11 +634,24 @@ const IrlEvents = (props: any) => {
                     .root__irl__addRes__loggedOut {
                         width: ${isUpcoming ? '900px' : 'unset'};
                     }
+
+                    .root__irl__eventWrapper__mobileTile {
+                        display: inline;
+                        padding-right: 5px;
+                    }
+                    .root__irl__eventWrapper__desktopTile {
+                        display: none;
+                    }
+
+                    .root__irl__eventWrapper {
+                        min-width: 231px;
+                    }
                 }
 
-                @media (min-width: 702px) {
+                @media (min-width: 700px) {
                     .root__irl {
                         flex-direction: row;
+                        align-items: center;
                         //  width: ${isUpcoming ? '900px' : 'unset'};
                     }
                 }
@@ -668,8 +659,6 @@ const IrlEvents = (props: any) => {
                 @media (min-width: 1024px) {
                     .root {
                       overflow-x: unset;
-                      max-height: 472px;
-
                     }
                     .mob {
                       overflow-x: unset;
@@ -688,6 +677,19 @@ const IrlEvents = (props: any) => {
                     .root__irl__resPopup, .root__irl__addRes__popup {
                         width: 650px;
                         height: 394px;
+                    }
+
+                    .root__irl__eventWrapper__desktopTile {
+                        display: inline;
+                        padding-right: 5px;
+                    }
+
+                    .root__irl__eventWrapper__mobileTile {
+                        display: none;
+                    }
+
+                    .root__irl__eventWrapper {
+                        min-width: 310px;
                     }
                 }
             `}</style>

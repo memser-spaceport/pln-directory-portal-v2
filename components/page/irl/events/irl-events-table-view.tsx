@@ -109,6 +109,11 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     padding: 10px;
                 }
 
+                .root__irl__table-col__contentDesc {
+                    display: flex;
+                    align-items: center;
+                }
+
                 .root__irl__table-col__contentRes {
                     display: flex;
                     flex-direction: row;
@@ -117,9 +122,9 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     font-size: 11px;
                     font-weight: 500;
                     line-height: 20px;
-                    text-align: center;
                     color: #156FF7;
                     cursor: pointer;
+                    justify-content: center;
                 }
                 
                 .root__irl__table__header {
@@ -149,6 +154,10 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     font-weight: 400;
                     line-height: 20px;
                     text-align: left;
+                }
+
+                .root__irl__table-col__inviteOnlyIcon {
+                    padding-left: 4px;
                 }
         `}</style>
         </div>

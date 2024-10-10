@@ -3,10 +3,9 @@ import Image from 'next/image';
 import { toast } from 'react-toastify';
 import { IIrlAttendeeFormErrors, IIrlGathering, IIrlGuest, IIrlLocation, IIrlParticipationEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
 import { canUserPerformEditAction } from '@/utils/irl.utils';
 import { isLink } from '@/utils/third-party.helper';
-import RegisterFormLoader from '@/components/core/register/register-form-loader';
 import AttendeeDetails from './attendee-details';
 import AttendeeFormErrors from './attendee-form-errors';
 import ArrivalAndDepatureDate from './arrival-depature-date';
@@ -17,7 +16,8 @@ import Topics from './topics';
 import TopicsDescription from './topics-description';
 import { createEventGuest, editEventGuest } from '@/services/irl.service';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { getAnalyticsLocationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsLocationInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { useSearchParams } from 'next/navigation';
 
 interface IAttendeeForm {
   selectedLocation: IIrlLocation;
@@ -29,6 +29,7 @@ interface IAttendeeForm {
   onClose: () => void;
   scrollTo: string;
   formData: any;
+  getEventDetails: any;
 }
 
 const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
@@ -42,6 +43,8 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   const allGuests = props?.allGuests;
   const onClose = props?.onClose;
   const scrollTo = props?.scrollTo;
+  const searchParams = useSearchParams();
+  const getEventDetails = props?.getEventDetails;
 
   const analytics = useIrlAnalytics();
 
@@ -113,7 +116,11 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             }
           });
         });
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING), participationErrors: Array.from(new Set([...participationErrors])) }));
+        setErrors((prev: IIrlAttendeeFormErrors) => ({
+          ...prev,
+          gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING),
+          participationErrors: Array.from(new Set([...participationErrors])),
+        }));
       }
 
       if (formattedData.additionalInfo.checkInDate && !formattedData.additionalInfo.checkOutDate) {
@@ -139,21 +146,21 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         return;
       }
 
-      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
+      triggerLoader(true);
       const isUpdate = allGuests?.some((guest: any) => guest.memberUid === formInitialValues?.memberUid);
 
       if ((mode === IAM_GOING_POPUP_MODES.ADMINADD || mode === IAM_GOING_POPUP_MODES.ADD) && !isUpdate) {
         analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
         const result = await createEventGuest(selectedLocation.uid, formattedData);
         if (result?.error) {
-          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+          triggerLoader(false);
           onClose();
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           return;
         }
         analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_success', formattedData);
-        document.dispatchEvent(new CustomEvent('updateGuests'));
         onClose();
+        await getEventDetails();
         if (isAllowedToManageGuests) {
           toast.success(TOAST_MESSAGES.ATTENDEE_ADDED_SUCCESSFULLY);
         } else {
@@ -161,15 +168,16 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         }
       } else if (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate) {
         analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
+        // const eventType = searchParams.get('type') === 'past' ? 'past' : 'upcoming';
         const result = await editEventGuest(selectedLocation.uid, formInitialValues?.memberUid, formattedData);
         if (result?.error) {
-          document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+          triggerLoader(false);
           onClose();
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           return;
         }
         analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_success', formattedData);
-        document.dispatchEvent(new CustomEvent('updateGuests'));
+        await getEventDetails();
         onClose();
         if (isAllowedToManageGuests) {
           toast.success(TOAST_MESSAGES.ATTENDEE_UPDATED_SUCCESSFULLY);
@@ -290,7 +298,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
 
   return (
     <div className="attndformcnt">
-      <RegisterFormLoader />
+      {/* <RegisterFormLoader /> */}
       <form noValidate onSubmit={(e) => onFormSubmitHandler(e, IAM_GOING_POPUP_MODES.EDIT ? 'Edit' : 'Save')} ref={attendeeFormRef} className="atndform">
         <button type="button" className="modal__cn__closebtn" onClick={onCloseClickHandler}>
           <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />

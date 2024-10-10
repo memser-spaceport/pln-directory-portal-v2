@@ -1,11 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
 import { useIrlDetails } from '@/hooks/irl/use-irl-details';
-import { sortByDefault } from '@/utils/irl.utils';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import Toolbar from './toolbar';
 import GuestList from './guest-list';
@@ -13,7 +12,7 @@ import EmptyList from './empty-list';
 import FloatingBar from './floating-bar';
 import Modal from '@/components/core/modal';
 import DeleteAttendeesPopup from './delete-attendees-popup';
-import { getParsedValue } from '@/utils/common.utils';
+import { getParsedValue, triggerLoader } from '@/utils/common.utils';
 import { getGuestsByLocation } from '@/services/irl.service';
 import AttendeeForm from '../add-edit-attendee/attendee-form';
 import NoAttendees from './no-attendees';
@@ -39,16 +38,15 @@ const AttendeeList = (props: IAttendeeList) => {
   const location = props.location;
   const searchParams = props?.searchParams;
 
-
   const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
+
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [showFloaingBar, setShowFloatingBar] = useState(false);
   const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
   const deleteRef = useRef<HTMLDialogElement>(null);
-  // const searchParams = useSearchParams();
   const router = useRouter();
 
   const { filteredList, sortConfig, filterConfig } = useIrlDetails(updatedEventDetails?.guests, userInfo);
@@ -78,31 +76,17 @@ const AttendeeList = (props: IAttendeeList) => {
     }
   }, [router]);
 
-  // Sync registeredGuest and eventDetails changes
-  useEffect(() => {
-    setUpdatedEventDetails(eventDetails);
-    setUpdatedUser(registeredGuest);
-    setIsGoing(props?.isUserGoing);
-  }, [eventDetails, registeredGuest, props?.isUserGoing]);
-
-  //update event details when form submit
-  useEffect(() => {
-    const handler = async (e: any) => {
-      const authToken = getParsedValue(Cookies.get('authToken'));
-      const slugURL = searchParams.event || '';
-      const eventType = searchParams.type === 'past' ? '' : 'upcoming';
-      const eventInfo: any = await getGuestsByLocation(location?.uid, eventType, authToken, slugURL, userInfo);
-      setIsGoing(eventInfo.isUserGoing);
-      setUpdatedUser(eventInfo.currentGuest);
-      setUpdatedEventDetails(eventInfo);
-      router.refresh();
-      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-    };
-    document.addEventListener('updateGuests', handler);
-    return () => {
-      document.removeEventListener('updateGuests', handler);
-    };
-  }, [eventDetails]);
+  const getEventDetails = async () => {
+    const authToken = getParsedValue(Cookies.get('authToken'));
+    const slugURL = searchParams.event || '';
+    const eventType = searchParams.type === 'past' ? '' : 'upcoming';
+    const eventInfo: any = await getGuestsByLocation(location?.uid, eventType, authToken, slugURL, userInfo);
+    setUpdatedEventDetails(eventInfo);
+    setIsGoing(eventInfo.isUserGoing);
+    setUpdatedUser(eventInfo.currentGuest);
+    triggerLoader(false);
+    router.refresh();
+  };
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -147,6 +131,13 @@ const AttendeeList = (props: IAttendeeList) => {
     };
   }, []);
 
+  // Sync registeredGuest and eventDetails changes
+  useEffect(() => {
+    setUpdatedEventDetails(eventDetails);
+    setUpdatedUser(registeredGuest);
+    setIsGoing(props?.isUserGoing);
+  }, [eventDetails, registeredGuest, props?.isUserGoing]);
+
   const onIamGoingPopupClose = () => {
     setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
   };
@@ -164,6 +155,7 @@ const AttendeeList = (props: IAttendeeList) => {
           mode={iamGoingPopupProps?.mode}
           allGuests={eventDetails?.guests}
           scrollTo={iamGoingPopupProps?.scrollTo}
+          getEventDetails={getEventDetails}
         />
       )}
       <div className="attendeeList">
@@ -219,6 +211,7 @@ const AttendeeList = (props: IAttendeeList) => {
             selectedGuests={selectedGuests}
             type={deleteModalOpen?.type}
             setSelectedGuests={setSelectedGuests}
+            getEventDetails={getEventDetails}
           />
         )}
       </Modal>

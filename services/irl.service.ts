@@ -25,96 +25,98 @@ export const getAllLocations = async () => {
   return result;
 };
 
-export const getGuestsByLocation = async (location: string, type: string, authToken: string, slugURL: string, userInfo: any) => {
-  const fetchGuests = async (url: string) => {
-    const response = await fetch(url, {
-      cache: 'no-store',
-      method: 'GET',
-      headers: getHeader(authToken),
-    });
+const fetchGuests = async (url: string, authToken: string,) => {
+  const response = await fetch(url, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(authToken),
+  });
+  if (!response.ok) return { isError: true };
+  return await response.json();
+};
 
-    if (!response.ok) return { isError: true };
-    return await response.json();
-  };
+const processGuests = (guests: any[], userInfo: any) => {
+  const currentUserEntries = guests?.filter((guest: any) => guest?.member?.uid === userInfo?.uid);
+  const inviteOnlyEvents = currentUserEntries?.filter((entry: any) => entry?.event?.type === 'INVITE_ONLY').map((entry: any) => entry?.event?.uid);
 
-  const processGuests = (guests: any[], userInfo: any) => {
-    const currentUserEntries = guests?.filter((guest: any) => guest?.member?.uid === userInfo?.uid);
-    const inviteOnlyEvents = currentUserEntries?.filter((entry: any) => entry?.event?.type === 'INVITE_ONLY').map((entry: any) => entry?.event?.uid);
+  const inviteOnlyEventMembers = guests?.filter((r: any) => r?.event?.type === 'INVITE_ONLY' && inviteOnlyEvents.includes(r?.event?.uid));
+  const publicEventMembers = guests?.filter((r: any) => r.event?.type !== 'INVITE_ONLY');
 
-    const inviteOnlyEventMembers = guests?.filter((r: any) => r?.event?.type === 'INVITE_ONLY' && inviteOnlyEvents.includes(r?.event?.uid));
-    const publicEventMembers = guests?.filter((r: any) => r.event?.type !== 'INVITE_ONLY');
+  return [...inviteOnlyEventMembers, ...publicEventMembers];
+};
 
-    return [...inviteOnlyEventMembers, ...publicEventMembers];
-  };
 
-  const groupMembers = (events: any) => {
-    const groupedMembers: any = {};
-    events?.forEach((event: any) => {
-      if (!groupedMembers[event.memberUid]) {
-        groupedMembers[event.memberUid] = [];
-      }
-      groupedMembers[event.memberUid].push(event);
-    });
-
-    return groupedMembers;
-  };
-
-  const transformMembers = (groupedMembers: any) => {
-    return Object.keys(groupedMembers)?.map((memberUid) => ({
-      memberUid,
-      memberName: groupedMembers[memberUid][0]?.member?.name,
-      memberLogo: groupedMembers[memberUid][0]?.member?.image?.url,
-      teamUid: groupedMembers[memberUid][0]?.teamUid,
-      teamName: groupedMembers[memberUid][0]?.team?.name,
-      teamLogo: groupedMembers[memberUid][0]?.team?.logo?.url,
-      teams: groupedMembers[memberUid][0]?.member?.teamMemberRoles?.map((tm: any) => ({
-        name: tm?.team?.name,
-        id: tm?.team?.uid,
-        role: tm?.role,
-        logo: tm?.team?.logo?.url ?? '',
-      })),
-      projectContributions: groupedMembers[memberUid][0]?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name),
-      eventNames: groupedMembers[memberUid].map((member: any) => member?.event?.name),
-      events: groupedMembers[memberUid].map((member: any) => ({
-        ...member?.event,
-        logo: member?.event?.logo?.url,
-        isHost: member?.isHost,
-        isSpeaker: member?.isSpeaker,
-        hostSubEvents: member?.additionalInfo?.hostSubEvents,
-        speakerSubEvents: member?.additionalInfo?.speakerSubEvents,
-        type: member?.event?.type,
-      })),
-      topics: groupedMembers[memberUid][0]?.topics,
-      officeHours: groupedMembers[memberUid][0]?.member?.officeHours,
-      telegramId: groupedMembers[memberUid][0]?.telegramId,
-      reason: groupedMembers[memberUid][0]?.reason,
-      additionalInfo: groupedMembers[memberUid][0]?.additionalInfo,
-    }));
-  };
-
-  const sortGuestList = (guests: any, userInfo: any) => {
-    let sortedGuests = sortByDefault(guests);
-    let isUserGoing = false;
-    let currentUser = null;
-
-    // Check if the current user is part of the guest list
-    if (userInfo) {
-      const currentUserIndex = sortedGuests.findIndex((guest) => guest.memberUid === userInfo.uid);
-      if (currentUserIndex !== -1) {
-        currentUser = sortedGuests[currentUserIndex];
-        // Move the current user to the top of the list
-        sortedGuests = [currentUser, ...sortedGuests.filter((guest, index) => index !== currentUserIndex)];
-        isUserGoing = true; // Set isUserGoing to true if user is found
-      }
+const groupMembers = (events: any) => {
+  const groupedMembers: any = {};
+  events?.forEach((event: any) => {
+    if (!groupedMembers[event.memberUid]) {
+      groupedMembers[event.memberUid] = [];
     }
+    groupedMembers[event.memberUid].push(event);
+  });
 
-    // Return sortedGuests, isUserGoing, and currentUser
-    return { sortedGuests, isUserGoing, currentUser };
-  };
+  return groupedMembers;
+};
 
+const transformMembers = (groupedMembers: any) => {
+  return Object.keys(groupedMembers)?.map((memberUid) => ({
+    memberUid,
+    memberName: groupedMembers[memberUid][0]?.member?.name,
+    memberLogo: groupedMembers[memberUid][0]?.member?.image?.url,
+    teamUid: groupedMembers[memberUid][0]?.teamUid,
+    teamName: groupedMembers[memberUid][0]?.team?.name,
+    teamLogo: groupedMembers[memberUid][0]?.team?.logo?.url,
+    teams: groupedMembers[memberUid][0]?.member?.teamMemberRoles?.map((tm: any) => ({
+      name: tm?.team?.name,
+      id: tm?.team?.uid,
+      role: tm?.role,
+      logo: tm?.team?.logo?.url ?? '',
+    })),
+    projectContributions: groupedMembers[memberUid][0]?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name),
+    eventNames: groupedMembers[memberUid].map((member: any) => member?.event?.name),
+    events: groupedMembers[memberUid].map((member: any) => ({
+      uid: member?.event?.uid,
+      name: member?.event?.name,
+      logo: member?.event?.logo?.url,
+      isHost: member?.isHost,
+      isSpeaker: member?.isSpeaker,
+      hostSubEvents: member?.additionalInfo?.hostSubEvents,
+      speakerSubEvents: member?.additionalInfo?.speakerSubEvents,
+      type: member?.event?.type,
+    })),
+    topics: groupedMembers[memberUid][0]?.topics,
+    officeHours: groupedMembers[memberUid][0]?.member?.officeHours,
+    telegramId: groupedMembers[memberUid][0]?.telegramId,
+    reason: groupedMembers[memberUid][0]?.reason,
+    additionalInfo: groupedMembers[memberUid][0]?.additionalInfo,
+  }));
+};
+
+const sortGuestList = (guests: any, userInfo: any) => {
+  let sortedGuests = sortByDefault(guests);
+  let isUserGoing = false;
+  let currentUser = null;
+
+  // Check if the current user is part of the guest list
+  if (userInfo) {
+    const currentUserIndex = sortedGuests.findIndex((guest) => guest.memberUid === userInfo.uid);
+    if (currentUserIndex !== -1) {
+      currentUser = sortedGuests[currentUserIndex];
+      // Move the current user to the top of the list
+      sortedGuests = [currentUser, ...sortedGuests.filter((guest, index) => index !== currentUserIndex)];
+      isUserGoing = true; // Set isUserGoing to true if user is found
+    }
+  }
+
+  // Return sortedGuests, isUserGoing, and currentUser
+  return { sortedGuests, isUserGoing, currentUser };
+};
+
+
+export const getGuestsByLocation = async (location: string, type: string, authToken: string, slugURL: string, userInfo: any) => {
   if (!slugURL) {
     const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?type=${type}`;
-    let result = await fetchGuests(url);
+    let result = await fetchGuests(url, authToken);
     if (result.isError) return { isError: true };
 
     if (userInfo && !userInfo?.roles?.includes(ADMIN_ROLE)) {
@@ -130,7 +132,7 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
     return { isUserGoing: sortedList.isUserGoing, currentGuest: sortedList.currentUser, guests: sortedList.sortedGuests };
   } else {
     const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/${slugURL}`;
-    let result = await fetchGuests(url);
+    let result = await fetchGuests(url, authToken);
     if (result.isError) return { isError: true };
 
     if (!userInfo && result?.type === 'INVITE_ONLY') {

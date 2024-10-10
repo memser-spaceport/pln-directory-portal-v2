@@ -17,6 +17,7 @@ interface IDeleteAttendeesPopup {
   selectedGuests?: string[];
   onClose: () => void;
   setSelectedGuests: Dispatch<SetStateAction<string[]>>;
+  getEventDetails: any;
 }
 
 interface ISelectedEvents {
@@ -30,6 +31,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
   const location = props.location;
   const type = props?.type;
   const userInfo = props?.userInfo;
+  const getEventDetails = props?.getEventDetails;
 
   const selectedGuestIds = type === 'self-delete' ? [userInfo?.uid] : props?.selectedGuests ?? [];
   const selectedGuests = guests?.filter((guest: IGuest) => selectedGuestIds?.includes(guest?.memberUid)) ?? [];
@@ -60,7 +62,8 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       }
       if (deleteGuestsResponse) {
-        document.dispatchEvent(new CustomEvent('updateGuests'));
+        await getEventDetails();
+        
         document.dispatchEvent(
           new CustomEvent(EVENTS.OPEN_FLOATING_BAR, {
             detail: {

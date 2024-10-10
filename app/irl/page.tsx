@@ -6,20 +6,17 @@ import IrlLocation from '@/components/page/irl/locations/irl-location';
 import { getAllLocations, getGuestsByLocation } from '@/services/irl.service';
 import { getMemberPreferences } from '@/services/preferences.service';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
-import { sortByDefault, sortPastEvents } from '@/utils/irl.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import styles from './page.module.css';
 import { IAnalyticsGuestLocation } from '@/types/irl.types';
 
 export default async function Page({ searchParams }: any) {
-
   const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
   }
-
 
   return (
     <div className={styles.irlGatherings}>
@@ -37,7 +34,7 @@ export default async function Page({ searchParams }: any) {
           <IrlEvents isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} />
         </section>
         {/* Guests */}
-        {guestDetails?.events?.length > 0 && (
+        {guestDetails?.events?.length > 0 && guestDetails?.guests?.length > 0 && (
           <section className={styles.irlGatheings__guests}>
             <AttendeeList
               location={eventLocationSummary as IAnalyticsGuestLocation}
@@ -78,33 +75,23 @@ const getPageData = async (searchParams: any) => {
     const { uid, location: name, pastEvents } = eventDetails;
     const eventLocationSummary = { uid, name };
 
-    if(searchParams?.type === 'past' && !searchParams?.event){
-      searchParams.event = pastEvents[0]?.slugURL;
-    }
-    
     // Determine event type and fetch event guest data
     const eventType = searchParams?.type === 'past' ? '' : 'upcoming';
 
+    if (searchParams?.type === 'past' && !searchParams?.event) {
+      searchParams.event = pastEvents[0]?.slugURL;
+    }
+
     const slugURL = searchParams?.event;
 
-    const events = await getGuestsByLocation(uid, eventType, authToken, slugURL);
+    const events = await getGuestsByLocation(uid, eventType, authToken, slugURL, userInfo);
     if (events.isError) {
       return { isError: true };
     }
 
     let guestDetails = events as any;
-    const sortedGuests = sortByDefault(guestDetails?.guests);
-    guestDetails.guests = sortedGuests;
+    isUserGoing = guestDetails.isUserGoing;
     guestDetails.events = eventType === 'upcoming' ? eventDetails.upcomingEvents : eventDetails.pastEvents;
-
-    // Check if the current user is attending
-    if (userInfo) {
-      isUserGoing = sortedGuests.some((guest) => guest.memberUid === userInfo.uid);
-      if (isUserGoing) {
-        const currentUser = sortedGuests.find((guest) => guest.memberUid === userInfo.uid);
-        guestDetails.guests = [currentUser, ...sortedGuests.filter((guest) => guest.memberUid !== userInfo.uid)];
-      }
-    }
 
     // Fetch member preferences if the user is logged in
     if (isLoggedIn) {

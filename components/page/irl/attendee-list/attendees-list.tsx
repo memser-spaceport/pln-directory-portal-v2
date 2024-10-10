@@ -39,6 +39,7 @@ const AttendeeList = (props: IAttendeeList) => {
   const location = props.location;
   const searchParams = props?.searchParams;
 
+
   const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
@@ -88,25 +89,11 @@ const AttendeeList = (props: IAttendeeList) => {
   useEffect(() => {
     const handler = async (e: any) => {
       const authToken = getParsedValue(Cookies.get('authToken'));
-      // const type = searchParams.get('type') || 'upcoming';
       const slugURL = searchParams.event || '';
       const eventType = searchParams.type === 'past' ? '' : 'upcoming';
-      const eventInfo: any = await getGuestsByLocation(location?.uid, eventType, authToken, slugURL);
-
-      const goingGuest = eventInfo?.guests?.find((guest: any) => guest?.memberUid === userInfo?.uid) as IGuest;
-      const sortedGuests = sortByDefault(eventInfo?.guests);
-      eventInfo.guests = sortedGuests;
-      if (goingGuest) {
-        setIsGoing(true);
-        const currentUser = [...sortedGuests]?.find((v) => v.memberUid === userInfo?.uid);
-        if (currentUser) {
-          const filteredList = [...sortedGuests]?.filter((v) => v.memberUid !== userInfo?.uid);
-          eventInfo.guests = [currentUser, ...filteredList];
-        }
-      } else {
-        setIsGoing(false);
-      }
-      setUpdatedUser(goingGuest);
+      const eventInfo: any = await getGuestsByLocation(location?.uid, eventType, authToken, slugURL, userInfo);
+      setIsGoing(eventInfo.isUserGoing);
+      setUpdatedUser(eventInfo.currentGuest);
       setUpdatedEventDetails(eventInfo);
       router.refresh();
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));

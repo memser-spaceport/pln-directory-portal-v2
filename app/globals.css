@@ -194,3 +194,11 @@ dialog {
   padding-inline-start: 40px;
   unicode-bidi: isolate;
 }
+
+.tox .tox-dialog {
+  z-index:  40000 !important;
+}
+
+.tox.tox-tinymce-aux {
+  z-index: 4000;
+}

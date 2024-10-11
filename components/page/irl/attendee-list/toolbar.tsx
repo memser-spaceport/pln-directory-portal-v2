@@ -147,17 +147,6 @@ const Toolbar = (props: IToolbar) => {
           </span>
         </span>
         <div className="toolbar__actionCn">
-          {/* {isUserLoggedIn && (
-            <>
-              <button className="toolbar__actionCn__download__btn" onClick={onAddMemberClick}>
-                <img src="/icons/download.svg" width={16} height={16} alt="add" />
-                <span className="toolbar__actionCn__download__btn__txt">Attendee List</span>
-              </button>
-              <button className="toolbar__actionCn__download__btn-mob" onClick={onAddMemberClick}>
-                <img src="/icons/download.svg" width={16} height={16} alt="add" />
-              </button>
-            </>
-          )} */}
           {canUserAddAttendees && (
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
@@ -490,7 +479,8 @@ const Toolbar = (props: IToolbar) => {
             }
 
             .toolbar__actionCn__imGoingBtn {
-              width: 86px;
+              width: 95px;
+              padding: 10px 12px;
             }
 
             .toolbar__actionCn__login {

@@ -77,6 +77,8 @@ const transformMembers = (groupedMembers: any) => {
     events: groupedMembers[memberUid].map((member: any) => ({
       uid: member?.event?.uid,
       name: member?.event?.name,
+      startDate: member?.event?.startDate,
+      endDate: member?.event?.endDate,
       logo: member?.event?.logo?.url,
       isHost: member?.isHost,
       isSpeaker: member?.isSpeaker,
@@ -133,6 +135,7 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
   } else {
     const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/${slugURL}`;
     let result = await fetchGuests(url, authToken);
+
     if (result.isError) return { isError: true };
 
     if (!userInfo && result?.type === 'INVITE_ONLY') {
@@ -166,8 +169,10 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
       eventNames: [result.name],
       events: [
         {
-          uid: result.uid,
-          name: result.name,
+          uid: result?.uid,
+          name: result?.name,
+          startDate: result?.startDate,
+          endDate: result?.endDate,
           isHost: guest?.isHost,
           isSpeaker: guest?.isSpeaker,
           logo: result?.logo?.url,

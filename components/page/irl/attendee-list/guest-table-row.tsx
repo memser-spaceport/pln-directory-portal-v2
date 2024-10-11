@@ -306,11 +306,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
             )}
           </div>
         </div>
-        {/* {isExclusionEvent && (
-          <div className="gtr__date">
-            <span className="gtr__date__txt">{formattedDate}</span>
-          </div>
-        )} */}
+
         {/* Connect */}
         <div className="gtr__connect">
           {!showTelegram && userInfo.uid === guestUid ? (
@@ -460,7 +456,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         .gtr__guestName__li__info__host__list {
           width: 130px;
           border: 1px solid #cbd5e1;
-          background-color: #f5f9ff;
+          background-color: #fff;
           display: flex;
           flex-direction: column;
           gap: 5px;
@@ -511,6 +507,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           line-height: 20px;
           color: #ffffff;
           border-radius: 4px;
+          margin-top: 5px;
         }
 
         .gtr__team {

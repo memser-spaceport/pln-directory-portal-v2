@@ -12,7 +12,7 @@ const GuestDescription = (props: IDescription) => {
     setIsReadMore(!isReadMore);
   };
 
-  if (description?.length <= 100) {
+  if (description?.length <= 50) {
     return (
       <>
         <div className="description-text">{description}</div>
@@ -31,7 +31,7 @@ const GuestDescription = (props: IDescription) => {
   return (
     <>
       <div className="description-container">
-        {isReadMore ? `${description?.slice(0, 100)}...` : description}
+        {isReadMore ? `${description?.slice(0, 50)}...` : description}
         <span onClick={toggleReadMore} className="toggle-text">
           {isReadMore ? ' read more' : ' read less'}
         </span>
@@ -39,6 +39,10 @@ const GuestDescription = (props: IDescription) => {
       <style jsx>{`
         .description-container {
           word-break: break-word;
+          font-size: 13px;
+          line-height: 22px;
+          font-weight: normal;
+          color: #0f172a;
         }
 
         .toggle-text {

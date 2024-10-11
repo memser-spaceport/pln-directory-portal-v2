@@ -38,6 +38,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   const mode = props?.mode;
   const selectedLocation = props?.selectedLocation;
   const gatherings = props?.allGatherings;
+  const loggedInUser = props?.userInfo;
   const userInfo = mode === IAM_GOING_POPUP_MODES.ADMINADD ? null : { name: props?.formData?.member?.name, uid: props?.formData?.member?.uid, roles: props?.formData?.member?.roles };
   const defaultTags = props?.defaultTags;
   const allGuests = props?.allGuests;
@@ -310,7 +311,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             <AttendeeDetails setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} />
           </div>
           <div>
-            <Gatherings initialValues={formInitialValues} errors={errors} setErrors={setErrors} selectedLocation={selectedLocation} gatherings={gatherings} userInfo={userInfo} guests={allGuests} />
+            <Gatherings loggedInUserInfo={loggedInUser} initialValues={formInitialValues} errors={errors} setErrors={setErrors} selectedLocation={selectedLocation} gatherings={gatherings} userInfo={userInfo} guests={allGuests} />
           </div>
           <div>
             <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />

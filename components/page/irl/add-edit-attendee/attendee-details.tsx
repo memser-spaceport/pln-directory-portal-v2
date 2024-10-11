@@ -4,6 +4,7 @@ import SingleSelectWithImage from '@/components/form/single-select-with-image';
 import { getMember, getMembersForProjectForm } from '@/services/members.service';
 import { IIrlAttendeeFormErrors } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
+import { triggerLoader } from '@/utils/common.utils';
 import { EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { SetStateAction, useEffect, useState } from 'react';
 
@@ -51,18 +52,19 @@ const AttendeeDetails = (props: IAttendeeForm) => {
 
   const getAllContributors = async (teamUid: any) => {
     try {
-      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
+      triggerLoader(true);
       const result = await getMembersForProjectForm(teamUid);
       if (result.isError) {
-        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        triggerLoader(false);
         return false;
       }
       setInitialContributors(result.data);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+      triggerLoader(false);
       return true;
     } catch (e) {
       console.error(e);
-      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+      triggerLoader(false);
       return false;
     }
   };
@@ -124,7 +126,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
 
   const getAndSetMemberTeams = async () => {
     try {
-      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
+      triggerLoader(true);
       const result = await getMember(selectedMember.uid ?? "", { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false);
       if (!result.error) {
         document.dispatchEvent(
@@ -135,7 +137,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
         const teams = result?.data?.formattedData?.teams?.map((team: any) => {
           return { ...team, uid: team.id };
         });
-        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
+        triggerLoader(false);
         const mainTeam = teams.find((team: any) => team.mainTeam);
         setInitialTeams(teams);
         setSelectedTeam(mainTeam);

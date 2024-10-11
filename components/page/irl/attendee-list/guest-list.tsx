@@ -57,15 +57,13 @@ const GuestList = (props: IGuestList) => {
         {filteredList?.length > 0 &&
           filteredList?.map((guest: IGuest, index: number) => {
             return (
-              <div key={`guests-${guest?.memberUid}`}>
+              <div key={`${guest?.memberUid}-${index}`}>
                 <GuestTableRow
-                  // eventDetails={eventDetails}
                   guest={guest}
                   userInfo={userInfo}
                   showTelegram={showTelegram}
                   selectedGuests={selectedGuests}
                   onchangeSelectionStatus={onchangeSelectionStatus}
-                  // location={location}
                 />
               </div>
             );

@@ -1,7 +1,12 @@
-import { Editor } from '@tinymce/tinymce-react';
-import React, { useState } from 'react';
-import tinymce from 'tinymce';
+'use client';
+
+import { Editor,Editor as TinyMCEEditor } from '@tinymce/tinymce-react';
+import React, { useEffect, useRef, useState } from 'react';
+import CustomLinkDialog from './link-dialog';
 // import tinymce from 'tinymce';
+import tinymce from 'tinymce/tinymce'; 
+import { set } from 'zod';
+
 
 interface ITextEditorProps {
   text: string;
@@ -13,8 +18,39 @@ interface ITextEditorProps {
 const TextEditor = (props: ITextEditorProps) => {
   const [text, setText] = useState<string>(props.text);
   const [textOnly, setTextOnly] = useState<string>('');
+  const [isDialogOpen, setDialogOpen] = useState(false);
+
+  const [linkObj, setlinkObj] = useState<{text:string,url:string}>({text:'',url:''});
   // const wordcount = tinymce.activeEditor?.plugins.wordcount;
 
+  const editorRef = useRef<any>(null);
+
+
+  useEffect(() => {
+    if (editorRef.current) {
+      const editor = editorRef.current;
+
+      // editor.on('NodeChange', (e:any) => {
+      //   const selectedNode = editor.selection.getNode();
+      //   if (selectedNode.nodeName === 'A') {
+      //     editor.ui.registry.getAll().buttons.customlinkbutton.active = true;
+      //   } else {
+      //     editor.ui.registry.getAll().buttons.customlinkbutton.active = false;
+      //   }
+      // });
+
+      // editor.on('click', (e:any) => {
+      //   const selectedNode = editor.selection.getNode();
+      //   if (selectedNode.nodeName === 'A') {
+      //     e.preventDefault();
+      //     console.log(editor.ui.registry.getAll().buttons.customlinkbutton);
+          
+      //     // openCustomDialog(selectedNode.innerText, selectedNode.getAttribute('href'));
+      //     // setDialogOpen(true);
+      //   }
+      // });
+    }
+  }, [editorRef.current]);
 
   const maxLen = props.maxLength || 2000;
   return (
@@ -31,21 +67,55 @@ const TextEditor = (props: ITextEditorProps) => {
           toolbar_sticky: true,
           toolbar_mode: 'wrap',
           plugins: 'lists fullscreen link',
-          toolbar: 'undo redo fullscreen  | bold italic underline strikethrough aligncenter alignleft alignright blockquote link bullist numlist removeformat',
+          toolbar: 'undo redo fullscreen  | bold italic underline strikethrough aligncenter alignleft alignright blockquote customLinkButton bullist numlist removeformat',
+          setup: (editor) => {
+            // Unregister the default link button
+            editor.ui.registry.addToggleButton('customLinkButton', {
+              icon: 'link',
+              tooltip: 'Insert/edit link',
+              onAction: () => {
+                const selectedNode = editor.selection.getNode();
+                if(selectedNode.nodeName !== 'A'){
+                  setlinkObj({text:'',url:''});
+                }else{
+                  setlinkObj({text:selectedNode.innerText,url:selectedNode.getAttribute('href')||''});
+                }
+                setDialogOpen(true);
+              },
+              onSetup: (buttonApi) => {
+                const nodeChangeHandler = (e: any) => {
+                  const selectedNode = editor.selection.getNode();
+                  if(selectedNode.nodeName === 'A'){
+                    setlinkObj({text:selectedNode.innerText,url:selectedNode.getAttribute('href')||''});
+                    buttonApi.setActive(true);
+                  }else{
+                    // x`
+                    if(buttonApi.isActive()){
+                      buttonApi.setActive(false);
+                    }
+                  }
+                };
+                editor.on('NodeChange', nodeChangeHandler);
+                return () => editor.off('NodeChange', nodeChangeHandler);
+              }
+            });
+            // editor.ui.registry.addButton('customDialogButton', {
+            //   text: 'Open Custom Dialog',
+            //   onAction: () => setDialogOpen(true),
+            // });
+          },
         }}
         onInit={(evt, editor) => {
-          setTextOnly(editor.getContent({format:'text'}));
+          setTextOnly(editor.getContent({ format: 'text' }));
+          editorRef.current = editor;
         }}
         onEditorChange={(newValue, editor) => {
-          
-          setTextOnly(editor.getContent({format:'text'}));
-          
-          if (editor.getContent({format:'text'}).length <= maxLen) {
+          setTextOnly(editor.getContent({ format: 'text' }));
+          if (editor.getContent({ format: 'text' }).length <= maxLen) {
             props?.setContent(newValue);
             setText(newValue);
-          } 
+          }
         }}
-
         onPaste={(e: ClipboardEvent, editor) => {
           e.preventDefault();
           const clipboardData = e.clipboardData;
@@ -61,12 +131,41 @@ const TextEditor = (props: ITextEditorProps) => {
             setText(editor.getContent({}));
             props?.setContent(editor.getContent());
           }
-
         }}
-        
       />
-      <div className='editor__count'>
-        <div className='editor__count__txt'>{maxLen - textOnly.length}/{maxLen}</div>
+      <CustomLinkDialog
+        isOpen={isDialogOpen}
+        linkObj={linkObj}
+        onRequestClose={() => {
+          setlinkObj({text:'',url:''});
+          setDialogOpen(false);
+        }
+        }
+        onSave={(txt,link) => {
+          setDialogOpen(false);
+          const linkMarkup = `<a href='${link}' target="_blank">${txt}</a>`;
+          // if (editorRef.current) {
+          //   editorRef.current.execCommand('mceInsertContent', false, linkMarkup);
+          // }
+
+          if (editorRef.current) {
+            const selectedNode = editorRef.current.selection.getNode();
+            if (selectedNode.nodeName === 'A') {
+              // Update existing link
+              selectedNode.setAttribute('href', link);
+              selectedNode.innerText = txt;
+            } else {
+              // Insert new link
+              editorRef.current.execCommand('mceInsertContent', false, linkMarkup);
+            }
+            setlinkObj({text:'',url:''});
+          }
+        }}
+      />
+      <div className="editor__count">
+        <div className="editor__count__txt">
+          {maxLen - textOnly.length}/{maxLen}
+        </div>
       </div>
       <style jsx>{`
         .editor__save-changes {
@@ -79,15 +178,15 @@ const TextEditor = (props: ITextEditorProps) => {
           float: right;
           margin-top: 8px;
         }
-          .editor__count{
-            position: relative;
-            display: flex;
-            flex-direction: row-reverse;
-          }
-            .editor__count__txt{
-              font-size: 12px;
-              color: #6b7c93;
-            }
+        .editor__count {
+          position: relative;
+          display: flex;
+          flex-direction: row-reverse;
+        }
+        .editor__count__txt {
+          font-size: 12px;
+          color: #6b7c93;
+        }
       `}</style>
     </>
   );

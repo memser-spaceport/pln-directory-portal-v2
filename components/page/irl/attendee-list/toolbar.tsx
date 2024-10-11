@@ -129,7 +129,7 @@ const Toolbar = (props: IToolbar) => {
         return { ...team, uid: team?.id };
       }),
       memberUid: updatedUser?.memberUid,
-      additionalInfo: { checkInDate: updatedUser?.additionalInfo.checkInDate || '', checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '' },
+      additionalInfo: { checkInDate: updatedUser?.additionalInfo?.checkInDate || '', checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '' },
       topics: updatedUser?.topics,
       reason: updatedUser?.reason,
       telegramId: updatedUser?.telegramId,

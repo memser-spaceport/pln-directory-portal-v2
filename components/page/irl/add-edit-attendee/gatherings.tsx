@@ -1,12 +1,13 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
-import { EVENT_TYPE, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
+import { ADMIN_ROLE, EVENT_TYPE, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
 import HiddenField from '@/components/form/hidden-field';
 import { IIrlAttendeeFormErrors, IIrlGathering, IIrlLocation } from '@/types/irl.types';
+import { log } from 'console';
 
 interface IGatherings {
   selectedLocation: IIrlLocation;
@@ -16,15 +17,19 @@ interface IGatherings {
   initialValues: any;
   guests: any;
   setErrors: SetStateAction<any>;
+  loggedInUserInfo: IUserInfo | null;
 }
 
 const Gatherings = (props: IGatherings) => {
   const selectedLocation = props?.selectedLocation ?? '';
   const gatherings = props?.gatherings ?? [];
   const userInfo = props?.userInfo;
+  const loggedInUserInfo = props?.loggedInUserInfo;
   const errors = props?.errors;
   const initialValues = props?.initialValues;
   const guests = props?.guests;
+
+  const isAdmin = Array.isArray(loggedInUserInfo?.roles) && loggedInUserInfo?.roles.includes(ADMIN_ROLE);
 
   const isGatheringsError = errors?.gatheringErrors?.length > 0 ? true : false;
 
@@ -46,9 +51,7 @@ const Gatherings = (props: IGatherings) => {
   };
 
   useEffect(() => {
-
-    setSelectedGatherings(initialValues?.events ?? [])
-
+    setSelectedGatherings(initialValues?.events ?? []);
   }, [initialValues]);
 
   return (
@@ -58,10 +61,11 @@ const Gatherings = (props: IGatherings) => {
         <div className="gatrs__all">
           <div className="gatrs__ttl">
             <p>
-              {`Select gatherings that you are attending in ${selectedLocation?.name}`}<span className="gatrs__ttl__mantry">*</span>
+              {`Select gatherings that you are attending in ${selectedLocation?.name}`}
+              <span className="gatrs__ttl__mantry">*</span>
             </p>
           </div>
-          <div className={`gatrs__all__gths ${(errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length) ? 'error' : ''}`}>
+          <div className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length ? 'error' : ''}`}>
             {gatherings?.map((gathering: IIrlGathering, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
               return (
@@ -70,7 +74,7 @@ const Gatherings = (props: IGatherings) => {
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && isBooked && (
                       <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
                     )}
-                    {gathering?.type === EVENT_TYPE.INVITE_ONLY && !isBooked && (
+                    {gathering?.type === EVENT_TYPE.INVITE_ONLY && !isBooked && !isAdmin && (
                       <Tooltip
                         content={'This is an invite only event'}
                         trigger={
@@ -81,6 +85,10 @@ const Gatherings = (props: IGatherings) => {
                         asChild
                       />
                     )}
+
+                    {gathering?.type === EVENT_TYPE.INVITE_ONLY && !isBooked && isAdmin && (
+                      <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
+                    )}
                     {gathering?.type != EVENT_TYPE.INVITE_ONLY && (
                       <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
                     )}
@@ -88,7 +96,7 @@ const Gatherings = (props: IGatherings) => {
                   <div className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}>
                     <div className="gatrs__all__gatr__dteandname__dat">{getFormattedDateString(gathering.startDate, gathering.endDate)}</div>
                     <div className="gatrs__all__gatr__dteandname__nmesec">
-                      <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo?.url ? gathering?.logo?.url : "/icons/irl-event-default-logo.svg"} />
+                      <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo?.url ? gathering?.logo?.url : '/icons/irl-event-default-logo.svg'} />
                       <span className="gatrs__all__gatr__dteandname__nmesec__name">{gathering?.name}</span>
                     </div>
                   </div>

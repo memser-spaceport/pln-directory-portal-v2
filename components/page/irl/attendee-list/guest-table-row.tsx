@@ -129,7 +129,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         return { ...team, uid: team?.id };
       }),
       memberUid: guest?.memberUid,
-      additionalInfo: { checkInDate: guest?.additionalInfo.checkInDate || '', checkOutDate: guest?.additionalInfo?.checkOutDate ?? '' },
+      additionalInfo: { checkInDate: guest?.additionalInfo?.checkInDate || '', checkOutDate: guest?.additionalInfo?.checkOutDate ?? '' },
       topics: guest?.topics,
       reason: guest?.reason,
       telegramId: guest?.telegramId,

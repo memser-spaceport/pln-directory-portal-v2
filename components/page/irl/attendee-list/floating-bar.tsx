@@ -52,7 +52,7 @@ const FloatingBar = (props: IFloatingBar) => {
         return { ...team, uid: team?.id };
       }),
       memberUid: selectedGuest?.memberUid,
-      additionalInfo: { checkInDate: selectedGuest?.additionalInfo.checkInDate || '', checkOutDate: selectedGuest?.additionalInfo?.checkOutDate ?? '' },
+      additionalInfo: { checkInDate: selectedGuest?.additionalInfo?.checkInDate || '', checkOutDate: selectedGuest?.additionalInfo?.checkOutDate ?? '' },
       topics: selectedGuest?.topics,
       reason: selectedGuest?.reason,
       telegramId: selectedGuest?.telegramId,

@@ -34,7 +34,7 @@ export default async function Page({ searchParams }: any) {
           <IrlEvents isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} />
         </section>
         {/* Guests */}
-        {guestDetails?.events?.length > 0 && guestDetails?.guests?.length > 0 && (
+        {guestDetails?.events?.length > 0 && (
           <section className={styles.irlGatheings__guests}>
             <AttendeeList
               location={eventLocationSummary as IAnalyticsGuestLocation}

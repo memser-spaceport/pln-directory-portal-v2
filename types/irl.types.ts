@@ -72,6 +72,8 @@ export interface IAnalyticsGuestLocation {
 export interface IGuestDetails {
   guests: IGuest[];
   events: IIrlEvent[];
+  isUserGoing: boolean;
+  currentGuest: IGuest;
 }
 
 export interface IIrlLocation {

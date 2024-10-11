@@ -40,20 +40,14 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
-  const [updatedEventDetails, setUpdatedEventDetails] = useState(eventDetails);
-
+  const [updatedEventDetails, setUpdatedEventDetails] = useState({ ...eventDetails });
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [showFloaingBar, setShowFloatingBar] = useState(false);
-  const [isUserGoing, setIsGoing] = useState<boolean>(props?.isUserGoing as boolean);
   const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
   const deleteRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
 
   const { filteredList, sortConfig, filterConfig } = useIrlDetails(updatedEventDetails?.guests, userInfo);
-  const registeredGuest = useMemo(() => {
-    return updatedEventDetails.guests.find((guest: any) => guest?.memberUid === userInfo?.uid);
-  }, [updatedEventDetails.guests, userInfo.uid]) as IGuest;
-  const [updatedUser, setUpdatedUser] = useState<IGuest>(registeredGuest);
   const [deleteModalOpen, setDeleteModalOpen] = useState({ isOpen: false, type: '' });
 
   const onCloseFloatingBar = useCallback(() => {
@@ -82,11 +76,14 @@ const AttendeeList = (props: IAttendeeList) => {
     const eventType = searchParams.type === 'past' ? '' : 'upcoming';
     const eventInfo: any = await getGuestsByLocation(location?.uid, eventType, authToken, slugURL, userInfo);
     setUpdatedEventDetails(eventInfo);
-    setIsGoing(eventInfo.isUserGoing);
-    setUpdatedUser(eventInfo.currentGuest);
-    triggerLoader(false);
     router.refresh();
+    triggerLoader(false);
   };
+
+  // Sync registeredGuest and eventDetails changes
+  useEffect(() => {
+    setUpdatedEventDetails(eventDetails);
+  }, [eventDetails]);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -131,13 +128,6 @@ const AttendeeList = (props: IAttendeeList) => {
     };
   }, []);
 
-  // Sync registeredGuest and eventDetails changes
-  useEffect(() => {
-    setUpdatedEventDetails(eventDetails);
-    setUpdatedUser(registeredGuest);
-    setIsGoing(props?.isUserGoing);
-  }, [eventDetails, registeredGuest, props?.isUserGoing]);
-
   const onIamGoingPopupClose = () => {
     setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
   };
@@ -160,16 +150,7 @@ const AttendeeList = (props: IAttendeeList) => {
       )}
       <div className="attendeeList">
         <div className="attendeeList__toolbar">
-          <Toolbar
-            isUserGoing={isUserGoing}
-            location={location}
-            onLogin={onLogin}
-            filteredListLength={filteredList?.length}
-            eventDetails={updatedEventDetails}
-            userInfo={userInfo}
-            isLoggedIn={isLoggedIn}
-            updatedUser={updatedUser}
-          />
+          <Toolbar location={location} onLogin={onLogin} filteredListLength={filteredList?.length} eventDetails={updatedEventDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} />
         </div>
         <div className="attendeeList__table">
           {eventDetails?.guests?.length > 0 && (

@@ -6,17 +6,15 @@ import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES } fro
 import { IUserInfo } from '@/types/shared.types';
 import { useSearchParams } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
-import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
+import { IAnalyticsGuestLocation, IGuestDetails } from '@/types/irl.types';
 import Search from './search';
 
 interface IToolbar {
   onLogin: () => void;
   userInfo: IUserInfo;
-  isUserGoing: boolean;
   filteredListLength: number;
   isLoggedIn: boolean;
   eventDetails: IGuestDetails;
-  updatedUser: IGuest;
   location: IAnalyticsGuestLocation;
 }
 
@@ -26,10 +24,11 @@ const Toolbar = (props: IToolbar) => {
   const userInfo = props?.userInfo;
   const location = props?.location;
   const isUserLoggedIn = props?.isLoggedIn;
-  const isUserGoing = props?.isUserGoing;
   const filteredListLength = props?.filteredListLength ?? 0;
   const roles = userInfo?.roles ?? [];
-  const updatedUser = props?.updatedUser;
+  const eventDetails = props?.eventDetails;
+  const updatedUser = eventDetails?.currentGuest ?? null;
+  const isUserGoing = eventDetails?.isUserGoing;
 
   //states
   const [searchTerm, setSearchTerm] = useState('');
@@ -135,6 +134,8 @@ const Toolbar = (props: IToolbar) => {
       telegramId: updatedUser?.telegramId,
       officeHours: updatedUser?.officeHours ?? '',
     };
+
+    console.log('formData', formData);
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
   };
 

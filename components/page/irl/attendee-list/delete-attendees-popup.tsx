@@ -124,11 +124,29 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
     });
   };
 
-  // to check if all gatherings for a member are selected
-  const areAllMemberGatheringsSelected = (memberUid: string) => (selectedEvents[memberUid]?.length || 0) === selectedGuests?.find((m: IGuest) => m?.memberUid === memberUid)?.events?.length;
+
+  // Utility function to check if all gatherings for a member are selected
+  const areAllMemberGatheringsSelected = (memberUid: string) => {
+    const memberGatherings = selectedGuests?.find((m: any) => m?.memberUid === memberUid)?.events;
+    return selectedEvents[memberUid]?.length === memberGatherings?.length || false;
+  };
 
   // to check if a specific gathering is selected for a member
   const isGatheringSelected = (memberUid: string, gatheringId: string) => selectedEvents[memberUid]?.includes(gatheringId);
+
+  const getTotalSelectedEvents = () => {
+    return Object.keys(selectedEvents)?.reduce((total, memberUid) => {
+      return total + selectedEvents[memberUid]?.length;
+    }, 0);
+  };
+  
+  const getTotalEvents = () => {
+    return selectedGuests?.reduce((total, guest) => {
+      return total + (guest?.events?.length || 0);
+    }, 0);
+  };
+
+  const allEventsSelected = getTotalSelectedEvents() === getTotalEvents();
 
   return (
     <>
@@ -151,12 +169,12 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
           {type === 'admin-delete' && (
             <div className="popup__body__select-all">
               <div className="popup__body__select-all__checkbox-wrapper">
-                {Object.keys(selectedEvents).length === selectedGuests.length && (
+                {allEventsSelected&& (
                   <button onClick={() => handleSelectAllGatherings(false)} className="checkbox--selected">
                     <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
                   </button>
                 )}
-                {Object.keys(selectedEvents).length !== selectedGuests.length && <button onClick={() => handleSelectAllGatherings(true)} className="checkbox"></button>}
+                {!allEventsSelected && <button onClick={() => handleSelectAllGatherings(true)} className="checkbox"></button>}
               </div>
               <h3 className="popup__body__select-all__title">Check to select all gatherings</h3>
             </div>
@@ -442,8 +460,6 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
           background: transparent;
           display: flex;
         }
-
-  
 
         .popup__footer {
           display: flex;

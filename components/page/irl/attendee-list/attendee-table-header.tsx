@@ -306,8 +306,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             width: 205px;
             align-items: center;
             gap: 5px;
-            gap: 10px;
-            padding-right: 16px;
+            padding-right: 10px;
           }
 
           .tbl__hdr__topics__ttl {
@@ -315,7 +314,6 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             font-weight: 600;
             line-height: 18px;
             text-align: left;
-            width: 148px;
             color: #0f172a;
           }
 

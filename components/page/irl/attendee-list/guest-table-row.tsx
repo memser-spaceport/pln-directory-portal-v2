@@ -508,6 +508,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           color: #ffffff;
           border-radius: 4px;
           margin-top: 5px;
+          cursor: default;
         }
 
         .gtr__team {

@@ -20,9 +20,6 @@
   flex-direction: column;
   gap: 16px;
   margin-top: 20px;
-  background-color: #fff;
-  border: 2px solid #0F172A0A;
-  box-shadow: 0px 4px 4px 0px #0F172A0A;
 }
 
 @media (min-width: 360px) {
@@ -36,6 +33,7 @@
     padding: 10px;
     border-radius: unset;
     margin-right: 13px;
+    /* max-width: 783px; */
   }
 
   .irlGatherings__events {
@@ -46,7 +44,6 @@
 
 @media (min-width: 1024px) {
   .irlGatherings {
-    padding-top: 40px;
     width: 900px;
     margin: auto;
   }
@@ -59,6 +56,7 @@
     gap: 16px;
     overflow: unset;
     position: relative;
+    background-color: unset;
   }
 
   .irlGatherings__events {

@@ -94,17 +94,17 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                                 <div className="root__irl__table-row__header">
                                     <div className="root__irl__table-col__headerName">Name</div>
                                     <div className="root__irl__table-col__headerDesc">Description</div>
-                                    <div className="root__irl__table-col__headerRes">Resource</div>
+                                    <div className="root__irl__table-col__headerRes">Resources</div>
                                 </div>
                             </div>
                             <div className='root__irl__desktop__view'>
                                 {eventsToShow?.map((gathering: any, index: number) => (
-                                    <IrlEventsTableView key={index} gathering={gathering} handleClick={handleClick} eventsToShow={eventsToShow} />
+                                    <IrlEventsTableView key={gathering.id} gathering={gathering} handleClick={handleClick} eventsToShow={eventsToShow} isLastContent={index === eventsToShow.length - 1}/>
                                 ))}
                             </div>
                             <div className='root__irl__mobile__view'>
                                 {eventsToShow?.slice(0, itemsToShow)?.map((gathering: any, index: number) => (
-                                    <IrlEventsTableView key={index} gathering={gathering} handleClick={handleClick} eventsToShow={eventsToShow} />
+                                    <IrlEventsTableView key={gathering.id} gathering={gathering} handleClick={handleClick} eventsToShow={eventsToShow} isLastContent={eventsToShow.length <= 4 && index === eventsToShow.length - 1}/>
                                 ))}
                             </div>
                             {eventsToShow?.length > 4 &&
@@ -114,7 +114,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                                         {!isExpanded ?
                                             <img src="/icons/arrow-blue-down.svg" alt="down-arrow" />
                                             :
-                                            <img src="/icons/chevron-up.svg" alt="up-arrow" className='root__irl__mobileView__icon__up' />
+                                            <img src="/icons/up-arrow-chevron.svg" alt="up-arrow" className='root__irl__mobileView__icon__up' />
                                         }
                                     </div>
                                 </div>
@@ -155,7 +155,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                     justify-content: space-between;       
                     width: 99.5%;         
                     background-color: #fff;         
-                    border-spacing: 5px; 
+                    // border-spacing: 5px; 
                 }
 
                 .root__irl__table__no-data {
@@ -169,12 +169,14 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                     font-size: 13px;
                     font-weight: 400;
                     line-height: 15px;
-                    width: 864px;
+                    // width: 864px;
 
                 }    
 
                 .root__irl__table-row__header {
                     border: 1px solid #CBD5E1;
+                    border-top-right-radius: 4px;
+                    border-top-left-radius: 4px;
                 }
 
                 .root__irl__table-row__header {
@@ -182,14 +184,13 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                     flex-direction: row;
                     width: 100%;
                     min-height: 40px;
-                    clear: both;
                     font-size: 13px;
                     font-weight: 400;
                     line-height: 20px;
                     text-align: left;
                 }
 
-                .root__irl__table-col__headerName, .root__irl__table-col__contentName {
+                .root__irl__table-col__headerName {
                     width: 193px;
                     padding: 10px;
                     border-right: 1px solid #CBD5E1;
@@ -216,8 +217,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
 
                 .root__irl__table-col__headerName ,
                 .root__irl__table-col__headerDesc,
-                .root__irl__table-col__headerRes,
-                .root__irl__table-col__contentName{
+                .root__irl__table-col__headerRes{
                     padding: 10px;
                 }
                 
@@ -278,31 +278,6 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                     justify-content: center;
                 }
 
-                .root__irl__table-col__contentName {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .root__irl__table-col__contentName__top {
-                    display: flex;
-                    flex-direction: row;
-                    gap: 4px;
-                }
-                
-                .root__irl__table-col__contentName__top__title {
-                    font-size: 13px;
-                    font-weight: 600;
-                    line-height: 20px;
-                    text-align: left;
-                }
-
-                .root__irl__table-col__contentName__bottom {
-                    font-size: 11px;
-                    font-weight: 400;
-                    line-height: 20px;
-                    text-align: left;
-                }
-
                 .root__irl__mobileView__icon {
                     display: flex;
                     height: 20px;
@@ -315,11 +290,18 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                     weight: 20px;
                 }
 
+                .root__irl__mobileView__showMore__cntr {
+                    border-bottom-left-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                }
+
                 @media screen and (min-width: 360px) {
                     .root__irl__mobileView__showMore__cntr {
                         width: 100%;
                         height: 35px;
-                        border: 1px solid #CBD5E1;
+                        border-bottom: 1px solid #CBD5E1;
+                        border-left: 1px solid #CBD5E1;
+                        border-right: 1px solid #CBD5E1;
                         background: #DBEAFE66;
                         display: flex;
                         flex-direction: row;
@@ -336,6 +318,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                         position: relative;
                         overflow: auto;
                         scroll-behavior: smooth;
+                        scrollbar-width: thin;
                         width: 900px;
                     }
 

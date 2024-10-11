@@ -1,12 +1,12 @@
 import { getFormattedDateString } from "@/utils/irl.utils";
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
-const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any) => {
+const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent }: any) => {
     return (
-        <div className="root__irl">
+        <>
             <div
                 key={index}
-                className={`root__irl__table-row__content`}
+                className={`root__irl__table-row__content ${isLastContent ? 'last-content' : ''}`}
             >
                 <div className="root__irl__table-col__contentName">
                     <div className="root__irl__table-header">
@@ -38,7 +38,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                             onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}
                         >
                             <div><img src="/images/irl/elements.svg" alt="view" /></div>
-                            <div style={{ paddingBottom: "4px" }}>view</div>
+                            <div style={{ paddingBottom: "4px" }}>View</div>
                         </div>
                         :
                         <div className="root__irl__table-col__contentRes__noCnt">-</div>
@@ -46,9 +46,6 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                 </div>
             </div>
             <style jsx>{` 
-                .root__irl {
-                    cursor: pointer;
-                }
                 .root__irl__table-header {
                     display: flex;
                     flex-direction: row;
@@ -60,11 +57,10 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     flex-direction: column;
                 }
 
-                .root__irl__table-row__header , .root__irl__table-row__content {
+                .root__irl__table-row__content {
                     display: flex;
                     flex-direction: row;
                     width: 100%;
-                    clear: both;
                     font-size: 13px;
                     font-weight: 400;
                     line-height: 20px;
@@ -77,9 +73,13 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     border-bottom: 1px solid #CBD5E1;
                     border-left: 1px solid #CBD5E1;
                     min-height: 54px;
-                    cursor: pointer;
                 }
                     
+                .last-content {
+                    border-bottom-left-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                }
+
                 .root__irl__table-row__content--active {
                     background-color: rgba(219, 234, 254, 0.5);
                 }
@@ -132,7 +132,6 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     font-weight: 500;
                     line-height: 20px;
                     color: #156FF7;
-                    cursor: pointer;
                     justify-content: center;
                 }
                 
@@ -175,9 +174,10 @@ const IrlEventsTableView = ({ index, gathering, handleClick, eventsToShow }: any
                     gap: 5px;
                     align-items: center;
                     align-self: center;
+                    cursor: pointer;
                 }
         `}</style>
-        </div>
+        </>
     )
 }
 

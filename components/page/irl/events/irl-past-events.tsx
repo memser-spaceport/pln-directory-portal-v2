@@ -137,7 +137,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                 <div className="root__irl__table-row__header">
                                     <div className="root__irl__table-col__headerName">Name</div>
                                     <div className="root__irl__table-col__headerDesc">Description</div>
-                                    <div className="root__irl__table-col__headerRes">Resource</div>
+                                    <div className="root__irl__table-col__headerRes">Resources</div>
                                 </div>
                             </div>
                             {eventsToShow?.map((gathering, index) => (
@@ -176,7 +176,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                                 onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}
                                             >
                                                 <div><img src="/images/irl/elements.svg" alt="view" /></div>
-                                                <div style={{ paddingBottom: "4px" }}>view</div>
+                                                <div style={{ paddingBottom: "4px" }}>View</div>
                                             </div>
                                             :
                                             <div className="root__irl__table-col__contentRes__noCnt">-</div>
@@ -246,7 +246,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                         <img className="root__irl__search__img" height={16} width={16} src="/icons/search-gray.svg" alt="search" />
                                         <input
                                             type="text"
-                                            placeholder="Search events..."
+                                            placeholder="Search Gatherings"
                                             className="custom-dropdown__search"
                                             value={searchText}
                                             onChange={handleOnChange} />
@@ -344,7 +344,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     justify-content: space-between;       
                     width: 99.5%;         
                     background-color: #fff;         
-                    border-spacing: 5px; 
+                    // border-spacing: 5px; 
                 }
 
                 .root__irl__table__no-data {
@@ -364,14 +364,19 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
 
                 .root__irl__table-row__header {
                     border: 1px solid #CBD5E1;
+                    border-top-right-radius: 4px;
+                    border-top-left-radius: 4px;
+                }
+
+                .root__irl__table-row__content:last-child {
+                    border-bottom-left-radius: 4px;
+                    border-bottom-right-radius: 4px;
                 }
 
                 .root__irl__table-row__header , .root__irl__table-row__content {
                     display: flex;
                     flex-direction: row;
                     width: 100%;
-                    // min-height: 40px;
-                    clear: both;
                     font-size: 13px;
                     font-weight: 400;
                     line-height: 20px;
@@ -383,7 +388,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     border-right: 1px solid #CBD5E1;
                     border-bottom: 1px solid #CBD5E1;
                     border-left: 1px solid #CBD5E1;
-                    // min-height: 80px;
                 }
                     
                 .root__irl__table-row__content {
@@ -597,7 +601,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     position: relative;
                     width: 100%;
                     cursor: pointer;
-                    // background: white;
                 }
 
                 .custom-dropdown__header {
@@ -606,8 +609,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     align-items: center;
                     padding: 10px;
                     background-color: #fff;
-                    border: 1px solid #CBD5E1;
-                    border-radius: 8px;
+                    border: 1px solid #156FF7;
+                    border-radius: 6px;
                     min-height: 50px;
                 }
 
@@ -618,13 +621,11 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     right: 0;
                     background-color: white;
                     z-index: 4;
-                    max-height: 185px;
+                    max-height: 222px;
                     overflow-y: auto;
                     padding: 10px 15px 5px 15px;
-                    border-bottom-left-radius: 7px;
-                    border-bottom-right-radius: 7px;
-                    // box-shadow: 0px 1px 1px 0px rgba(0,0,0,.25);
-                    border: 1px solid #CBD5E1;
+                    border: 1px solid #E2E8F0;
+                    border-radius: 6px;
                     border-top: none;
                 }
 
@@ -633,7 +634,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     display: flex;
                     justify-content: space-between;
                     cursor: pointer;
-                    border-bottom: 1px solid #eee;
                     overflow-y: auto;
                 }
 
@@ -716,7 +716,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
 
                 @media screen and (min-width: 360px) {
                     .root__irl__mobileView {
-                        background-color: #DBEAFE;
+                        background-color: ${isDropdownOpen ? '#fff' : '#DBEAFE'};
                         display: flex;
                         flex-direction: column;
                         justify-content: center;

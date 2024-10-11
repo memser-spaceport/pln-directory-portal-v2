@@ -294,19 +294,23 @@ const IrlEvents = (props: any) => {
 
                 .root__irl__events__count {
                     margin-left: 5px;
+                    font-size: 11px;
+                    font-weight: 500;
+                    line-height: 14px;
+                    text-align: left;
                 }
                     
                 .root__irl__events__active__count {
                     width: 17px;
                     height: 14px;
-                    padding: 0px 5px 0px 5px;
+                    padding: 1px 4px 0px 4px;
                     gap: 10px;
                     border-radius: 2px ;
                     border: 0.5px solid #fff;
                 }
 
                 .root__irl__events__inactive__count {
-                    padding: 0px 5px 0px 5px;
+                    padding: 1px 4px 0px 4px;
                     border-radius: 2px ;
                     border: 0.5px solid transparent;
                     background-color: #F1F5F9;
@@ -334,22 +338,6 @@ const IrlEvents = (props: any) => {
                     justify-content: center;
                 }
 
-                .root__irl__tableContainer {
-                    position: relative;
-                    max-height: 256px;
-                    overflow: auto;
-                    scroll-behavior: smooth;
-                }
-
-                .root__irl__table {
-                    display: flex;  
-                    flex-direction: column;
-                    justify-content: space-between;       
-                    width: 99.5%;         
-                    background-color: #fff;         
-                    border-spacing: 5px; 
-                }
-
                 .root__irl__table__no-data {
                     border: 1px solid #CBD5E1;
                     display: flex;
@@ -365,7 +353,7 @@ const IrlEvents = (props: any) => {
 
                 }    
 
-                .root__irl__table-col__headerName, .root__irl__table-col__contentName {
+                .root__irl__table-col__headerName {
                     width: 193px;
                     padding: 10px;
                     border-right: 1px solid #CBD5E1;
@@ -392,8 +380,7 @@ const IrlEvents = (props: any) => {
 
                 .root__irl__table-col__headerName ,
                 .root__irl__table-col__headerDesc,
-                .root__irl__table-col__headerRes,
-                .root__irl__table-col__contentName{
+                .root__irl__table-col__headerRes {
                     padding: 10px;
                 }
               
@@ -454,31 +441,6 @@ const IrlEvents = (props: any) => {
                 .root__irl__addRes__cnt__icon {
                     display: flex;
                     justify-content: center;
-                }
-
-                .root__irl__table-col__contentName {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .root__irl__table-col__contentName__top {
-                    display: flex;
-                    flex-direction: row;
-                    gap: 4px;
-                }
-                
-                .root__irl__table-col__contentName__top__title {
-                    font-size: 13px;
-                    font-weight: 600;
-                    line-height: 20px;
-                    text-align: left;
-                }
-
-                .root__irl__table-col__contentName__bottom {
-                    font-size: 11px;
-                    font-weight: 400;
-                    line-height: 20px;
-                    text-align: left;
                 }
 
                 .root__irl__resPopup, .root__irl__addRes__popup {
@@ -600,6 +562,10 @@ const IrlEvents = (props: any) => {
                         scrollbar-width: none;
                         border-radius: unset;
                         min-height: 270px;
+                        background-color: #fff;
+                        border: 1px solid #0F172A0A;
+                        box-shadow: 0px 4px 4px 0px #0F172A0A;
+                        max-width: 946px;
                     }
                     .mob {
                         display: flex;
@@ -659,6 +625,7 @@ const IrlEvents = (props: any) => {
                 @media (min-width: 1024px) {
                     .root {
                       overflow-x: unset;
+                      border-radius: 8px;
                     }
                     .mob {
                       overflow-x: unset;

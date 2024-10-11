@@ -110,7 +110,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
             <ul className="select__options">
               {filteredOptions?.map((option) => (
                 <li key={option[uniqueKey]} onClick={() => handleOptionClick(option)} className={`select__options__item ${option === selectedOption ? 'select__options__item--selected' : ''}`}>
-                  {(iconKey && selectedOption && selectedOption[iconKey]) && (selectedOption[iconKey] || defaultIcon) && <img className="select__options__item__img" src={option[iconKey] || defaultIcon} alt={option[displayKey]} />}
+                  {(iconKey && selectedOption) && (selectedOption[iconKey] || defaultIcon) && <img className="select__options__item__img" src={option[iconKey] || defaultIcon} alt={option[displayKey]} />}
                   <span>{option[displayKey]}</span>
                 </li>
               ))}

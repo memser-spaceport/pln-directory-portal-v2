@@ -54,12 +54,11 @@ const AttendeeDetails = (props: IAttendeeForm) => {
     try {
       triggerLoader(true);
       const result = await getMembersForProjectForm(teamUid);
-      if (result.isError) {
+      if (result?.isError) {
         triggerLoader(false);
         return false;
       }
       setInitialContributors(result.data);
-      document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       triggerLoader(false);
       return true;
     } catch (e) {

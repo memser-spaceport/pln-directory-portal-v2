@@ -13,9 +13,20 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
   const [url, setUrl] = useState(linkObj?.url ?? '');
   const [text, setText] = useState(linkObj?.text ?? '');
 
+  const [error, setError] = useState('');
+
   const handleSave = () => {
-      onSave(text, url);
+    
+    if (text === '') {
+      setError('Text field cannot be empty');
+      return;
+    }
+    if (url === '') {
+      setError('URL field cannot be empty');
+      return;
+    }
     // onSave();
+    onSave(text, url);
     setUrl('');
     setText('');
     onRequestClose();
@@ -25,6 +36,7 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
     // if(isOpen){
         setUrl(linkObj?.url ?? '');
         setText(linkObj?.text ?? '');
+        setError('');
     // }
   }, [isOpen,linkObj.url,linkObj.text]);
 
@@ -38,6 +50,7 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
       >
         <div className="custom-link-dialog__contatiner">
           <h2>Insert Link</h2>
+          <div className="custom-link-dialog__contatiner__error">{error}</div>
           <div className="custom-link-dialog__contatiner__inputs">
             <div className='custom-link-dialog__contatiner__inputs__label'>Text</div>
             <input className='custom-link-dialog__contatiner__inputs__text' name="linkTxt" placeholder="Enter link text" value={text} onChange={(e) => setText(e.target.value)}/>
@@ -150,6 +163,10 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
           .custom-link-dialog__contatiner__inputs__label{
             font-weight: 600;
             font-size: 14px;
+          }
+
+          .custom-link-dialog__contatiner__error{
+            color: red;
           }
         `}
       </style>

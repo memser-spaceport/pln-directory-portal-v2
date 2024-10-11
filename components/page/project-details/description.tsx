@@ -66,7 +66,7 @@ const Description = (props: IDescription) => {
 
   const onSaveClickHandler = async () => {
     if(description === ''){
-      toast.error("'Description' field cannot be empty");
+      toast.error("Description field cannot be empty");
       return;
     }
     setEditor(false);

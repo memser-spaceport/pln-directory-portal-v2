@@ -67,8 +67,11 @@ export default function AddEditProjectForm(props: any) {
     }
     const formData = new FormData(addFormRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
+
+    console.log(formattedData,'formattedData');
     
-    formattedData['description'] = content;
+    
+    // formattedData['description'] = content;
     if (currentStep === 'General') {
       let errors: string[] = [];
       const result = generalInfoSchema.safeParse(formattedData);
@@ -139,6 +142,8 @@ export default function AddEditProjectForm(props: any) {
       triggerLoader(true);
       const formData = new FormData(addFormRef.current);
 
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>',formData,'formData');
+      
       let formattedData = transformObject(Object.fromEntries(formData));
       formattedData.description = content;
       formattedData = {
@@ -289,6 +294,8 @@ export default function AddEditProjectForm(props: any) {
             contributions[contributionsTeamIndex][subKey] = object[key];
           }
         }
+      } else if (key.startsWith('rich-text-editor')) {
+        result['description'] = object[key];
       } else {
         result[key] = object[key];
       }

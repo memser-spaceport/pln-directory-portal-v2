@@ -56,7 +56,7 @@ const About = (props: IAbout) => {
 
   const onSaveClickHandler = async () => {
     if(aboutEditedContent === ''){
-      toast.error("'About' field cannot be empty");
+      toast.error("About field cannot be empty");
       return;
     }
     setEditor(false);

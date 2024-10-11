@@ -134,7 +134,6 @@ const Gatherings = (props: IGatherings) => {
           }
 
           .gatrs__ttl__mantry {
-            color: #ff1a1a;
             font-size: 14px;
             line-height: 20px;
             font-weight: 600;

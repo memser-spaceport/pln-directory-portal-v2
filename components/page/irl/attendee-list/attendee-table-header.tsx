@@ -216,7 +216,6 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
           <div className="tbl__hdr__lo__team">Team</div>
           <div className="tbl__hdr__lo__guestName">Attendee Name</div>
           <div className="tbl__hdr__lo__attendings">Attendings</div>
-          {/* {eventDetails?.isExclusionEvent && <div className="tbl__hdr__lo__dates">{`Date(s) Attending`}</div>} */}
           <div className="tbl__hdr__lo__topics">Topics you are interested in</div>
           <div className="tbl__hdr__lo__connect">Connect</div>
         </div>
@@ -297,8 +296,8 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             display: flex;
             position: relative;
             align-items: center;
-            justify-content: space-between;
             padding-right: 16px;
+            gap: 5px;
           }
 
           .tbl__hdr__topics {
@@ -306,7 +305,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             display: flex;
             width: 205px;
             align-items: center;
-            justify-content: space-between;
+            gap: 5px;
             gap: 10px;
             padding-right: 16px;
           }

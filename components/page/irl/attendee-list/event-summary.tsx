@@ -18,17 +18,17 @@ const EventSummary: React.FC<EventSummaryProps> = ({
     <>
       <div className="eventSummaryContainer">
         <div className="eventsContainer">
-          <span className="eventsList">{visibleEvents.join(', ')}</span>
+          <Tooltip asChild align="start" content={<div className="eventName">{visibleEvents.join(', ')}</div>} trigger={<div className="eventsList">{visibleEvents.join(', ')}</div>}></Tooltip>
           {hiddenEventCount > 0 && (
             <Tooltip
               asChild
               align="start"
               content={
                 <div className="allEvents">
-                  {events.map((event, index) => (
+                  {remainingEvents.map((event, index) => (
                     <div className="eventName" key={index}>
                       {event}
-                      {index < events.length - 1 ? ',' : ''}
+                      {index < remainingEvents.length - 1 ? ',' : ''}
                     </div>
                   ))}
                 </div>

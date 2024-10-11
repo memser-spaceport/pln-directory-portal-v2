@@ -5,7 +5,6 @@ import { deleteEventGuestByLocation } from '@/services/irl.service';
 import { EVENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
-import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails, IIrlEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 
@@ -37,9 +36,8 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
   const selectedGuests = guests?.filter((guest: IGuest) => selectedGuestIds?.includes(guest?.memberUid)) ?? [];
   const setSelectedGuests = props?.setSelectedGuests;
 
-
   const [selectedEvents, setSelectedEvents] = useState<ISelectedEvents>({});
-  const analytics = useIrlAnalytics(); 
+  const analytics = useIrlAnalytics();
 
   const onDeleteGuests = async (e: SyntheticEvent) => {
     e.preventDefault();
@@ -63,7 +61,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
       }
       if (deleteGuestsResponse) {
         await getEventDetails();
-        
+
         document.dispatchEvent(
           new CustomEvent(EVENTS.OPEN_FLOATING_BAR, {
             detail: {
@@ -197,30 +195,18 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
                       {guest?.events?.map((event: IIrlEvent) => (
                         <div key={event?.uid} className="popup__gathering">
                           <div className="popup__gathering__checkbox-wrapper">
-                            {type === 'self-delete' && event?.type === EVENT_TYPE.INVITE_ONLY ? (
-                              <Tooltip
-                                content="This is an invite only event"
-                                trigger={
-                                  <div className="popup__gathering__invite-only-checkbox">
-                                    <img src="/icons/invite-only.svg" height={12} width={12} />
-                                  </div>
-                                }
-                                asChild
-                              />
-                            ) : (
-                              <>
-                                {isGatheringSelected(guest?.memberUid, event?.uid) && (
-                                  <button onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, false)} className="checkbox--selected">
-                                    <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
-                                  </button>
-                                )}
-                                {!isGatheringSelected(guest?.memberUid, event?.uid) && <button className="checkbox" onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, true)}></button>}
-                              </>
-                            )}
+                            <>
+                              {isGatheringSelected(guest?.memberUid, event?.uid) && (
+                                <button onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, false)} className="checkbox--selected">
+                                  <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
+                                </button>
+                              )}
+                              {!isGatheringSelected(guest?.memberUid, event?.uid) && <button className="checkbox" onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, true)}></button>}
+                            </>
                           </div>
 
                           <div className="popup__gathering__details">
-                            <span className="popup__gathering__date">{getFormattedDateString(event?.startDate, event?.endDate)}</span>
+                            {event?.startDate && event?.endDate && <span className="popup__gathering__date">{getFormattedDateString(event?.startDate, event?.endDate)}</span>}
                             <div className="popup__gathering__info-wrapper">
                               <img height={20} width={20} src={event?.logo || '/icons/irl-event-default-logo.svg'} alt={event?.name} className="popup__gathering__logo" />
                               <span className="popup__gathering__name">{event.name}</span>
@@ -457,18 +443,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
           display: flex;
         }
 
-        .popup__gathering__invite-only-checkbox {
-          height: 20px;
-          width: 20px;
-          min-height: 20px;
-          min-width: 20px;
-          background-color: #f9f3e9;
-          border-radius: 50%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          border: 0.83px solid #f19100;
-        }
+  
 
         .popup__footer {
           display: flex;

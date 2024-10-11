@@ -1,11 +1,8 @@
 'use client';
 
-import { Editor,Editor as TinyMCEEditor } from '@tinymce/tinymce-react';
+import { Editor } from '@tinymce/tinymce-react';
 import React, { useEffect, useRef, useState } from 'react';
 import CustomLinkDialog from './link-dialog';
-// import tinymce from 'tinymce';
-import tinymce from 'tinymce/tinymce'; 
-import { set } from 'zod';
 
 
 interface ITextEditorProps {
@@ -74,9 +71,10 @@ const TextEditor = (props: ITextEditorProps) => {
               icon: 'link',
               tooltip: 'Insert/edit link',
               onAction: () => {
+                const selectedText = editor.selection.getContent({ format: 'text' });
                 const selectedNode = editor.selection.getNode();
                 if(selectedNode.nodeName !== 'A'){
-                  setlinkObj({text:'',url:''});
+                  setlinkObj({text:selectedText,url:''});
                 }else{
                   setlinkObj({text:selectedNode.innerText,url:selectedNode.getAttribute('href')||''});
                 }
@@ -89,7 +87,6 @@ const TextEditor = (props: ITextEditorProps) => {
                     setlinkObj({text:selectedNode.innerText,url:selectedNode.getAttribute('href')||''});
                     buttonApi.setActive(true);
                   }else{
-                    // x`
                     if(buttonApi.isActive()){
                       buttonApi.setActive(false);
                     }
@@ -167,6 +164,7 @@ const TextEditor = (props: ITextEditorProps) => {
           {maxLen - textOnly.length}/{maxLen}
         </div>
       </div>
+      <input type="hidden" name='rich-text-editor' value={text}/>
       <style jsx>{`
         .editor__save-changes {
           padding: 10px 24px;

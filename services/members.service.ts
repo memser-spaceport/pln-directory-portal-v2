@@ -322,3 +322,33 @@ export const updateMember = async (uid: string, payload: any, authToken: string)
     data: output
   }
 }
+
+export const updateMemberBio = async (uid: string, payload: any, authToken: string) => {
+  const result =  await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}/bio`, {
+     cache: 'no-store',
+     method: 'PATCH',
+     body: JSON.stringify(payload),
+     credentials: 'include',
+     headers: {
+       'Content-Type': 'application/json',
+       Authorization: `Bearer ${authToken}`,
+     },
+   });
+   
+   if(!result.ok) {
+     const errorData = await result.json();
+     return {
+       isError: true,
+       errorData, 
+       errorMessage: result.statusText,
+       status: result.status
+     }
+   }
+ 
+ 
+   const output = await result.json()
+ 
+   return {
+     data: output
+   }
+ }

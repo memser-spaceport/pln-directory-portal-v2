@@ -7,12 +7,14 @@ import { useState } from 'react';
 import clip from 'text-clipper';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
-import { updateMember } from '@/services/members.service';
+import { updateMember, updateMemberBio } from '@/services/members.service';
 import { ADMIN_ROLE } from '@/utils/constants';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
   const contentLength = 347;
+  
   const [content, setContent] = useState(member?.bio ?? '');
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
@@ -24,6 +26,7 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
    * @showEditor - This is the state to show/hide the editor.
    */
   const [showEditor, setEditor] = useState(false);
+  const router = useRouter();
 
   /**
    * To get the trimmed content to be displayed
@@ -78,21 +81,25 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         delete project.project;
         return project;
       });
+      // const payload = {
+      //   participantType: 'MEMBER',
+      //   referenceUid: member.id,
+      //   uniqueIdentifier: member.email,
+      //   newData: { name: member.name, 
+      //     imageUid: member.imageUid,
+      //     email: member.email, teamAndRoles: member.teamAndRoles, projectContributions: copymember.projectContributions, skills: member.skills, bio: content },
+      // };
+
       const payload = {
-        participantType: 'MEMBER',
-        referenceUid: member.id,
-        uniqueIdentifier: member.email,
-        newData: { name: member.name, 
-          imageUid: member.imageUid,
-          email: member.email, teamAndRoles: member.teamAndRoles, projectContributions: copymember.projectContributions, skills: member.skills, bio: content },
-      };
+        bio: content
+      }
 
       const rawToken = Cookies.get('authToken');
       if (!rawToken) {
         return;
       }
       const authToken = JSON.parse(rawToken);
-      const { data, isError, errorMessage, errorData } = await updateMember(member.id, payload, authToken);
+      const { data, isError, errorMessage, errorData } = await updateMemberBio(member.id, payload, authToken);
       triggerLoader(false);
       if (isError) {
         if (errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
@@ -103,6 +110,7 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         analytics.recordBioSave('save-error', getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
       } else {
         setContent(content);
+        router.refresh();
         setClippedContent(clip(content, contentLength));
         analytics.recordBioSave('save-success', getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
         toast.success('Member updated successfully');

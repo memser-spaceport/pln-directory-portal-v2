@@ -160,6 +160,8 @@ export function transformRawInputsToFormObj(obj: any) {
         }
         industryTags[industryTagIndex][subKey] = obj[key];
       }
+    } else if (key.startsWith('rich-text-editor')) {
+      result['longDescription'] = obj[key];
     } else {
       result[key] = obj[key];
     }

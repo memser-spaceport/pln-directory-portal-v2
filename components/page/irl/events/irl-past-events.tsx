@@ -73,7 +73,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
             updateQueryParams('event', gathering.slugURL, searchParams);
             setDropdownOpen(false);
         }
-            setSearchText('');
+        setSearchText('');
     };
 
 
@@ -99,7 +99,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
     function onLoginClickHandler() {
         router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
         (dialogRef.current as any as HTMLDialogElement).close();
-        // analytics.onLoginClicked(eventDetails);
+        analytics.trackLoginClicked(eventDetails);
     }
 
     const handleSearchTextClear = () => {
@@ -218,7 +218,10 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                         {getFormattedDateString(selectedEvent?.startDate, selectedEvent?.endDate)}
                                     </div></>
                             ) : (
-                                <div className='root__irl__mobileView__top__cnt__eventDate'>No {eventType} currently in this location</div>
+                                <div className="root__irl__mobileView__top__cnt__eventDate">
+                                    <div style={{ display: 'flex', paddingRight: "4px"}}><img src="/icons/no-calender.svg" alt="calendar" /></div>
+                                    <div>No {eventType} currently in this location</div>
+                                </div>
                             )}
                         </div>
                         <div className='root__irl__table-col__inviteOnlyIcon'>

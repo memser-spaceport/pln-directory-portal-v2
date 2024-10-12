@@ -8,8 +8,14 @@ import useUpdateQueryParams from "@/hooks/useUpdateQueryParams";
 import { triggerLoader } from "@/utils/common.utils";
 import { useIrlAnalytics } from "@/analytics/irl.analytics";
 import { useRouter } from "next/navigation";
+import { ILocationDetails } from "@/types/irl.types";
 
-const IrlLocation = (props: any) => {
+interface IrlLocation {
+    locationDetails: ILocationDetails[];
+    searchParams: any;
+}
+
+const IrlLocation = (props: IrlLocation) => {
     const { updateQueryParams } = useUpdateQueryParams();
     let activeLocationId: any = null
     const [locations, setLocations] = useState(props.locationDetails);
@@ -136,7 +142,7 @@ const IrlLocation = (props: any) => {
 
                 {showMore &&
                     <div className="root__irl__overlay">
-                        {locations.slice(4).map((location: { id: any, flag: any; location: any; upcomingEvents: any; pastEvents: any }, index: React.Key | null | undefined) => (
+                        {locations.slice(4).map((location: ILocationDetails, index: React.Key | null | undefined) => (
                             <div key={index} className="root__irl__overlay__cnt" onClick={() => handleResourceClick(location)}>
                                 <div className="root__irl__overlay__cnt__location">
                                     <div className="root__irl__overlay__cnt__location__icon"><img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} /></div>

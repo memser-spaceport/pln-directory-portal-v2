@@ -5,15 +5,15 @@ import IrlEventsPopupOverlay from './irl-events-popup-overlay';
 import IrlEventsTableView from './irl-events-table-view';
 import { useRouter } from 'next/navigation';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { IPastEvents, IUpcomingEvents } from '@/types/irl.types';
 
 interface EventDetailsProps {
     eventDetails: {
-        upcomingEvents: Array<any>;
-        pastEvents: Array<any>;
+        upcomingEvents: IUpcomingEvents[];
+        pastEvents: IPastEvents[];
     };
     isLoggedIn: boolean;
     isUpcoming: boolean;
-    // handleClick: (resources: any, eventsToShow: any) => () => void;
     searchParams: any;
 }
 
@@ -79,8 +79,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
     function onLoginClickHandler() {
         router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
         (dialogRef.current as any as HTMLDialogElement).close();
-        // analytics.onLoginClicked(eventDetails);
-
+        analytics.trackLoginClicked(eventDetails);
     }
 
 

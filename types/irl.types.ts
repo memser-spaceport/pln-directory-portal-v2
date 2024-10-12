@@ -161,3 +161,64 @@ export interface IIrlParticipationEvent {
   name: string;
   link: string
 }
+
+export interface AdditionalResource {
+  link: string;
+  type: string;
+}
+export interface Resource {
+  icon: string;
+  link: string;
+  name: string;
+  isPublic: boolean;
+  description: string;
+}
+
+export interface Logo {
+  uid: string;
+  cid: string;
+  width: number;
+  height: number;
+  url: string;
+}
+export interface IUpcomingEvents {
+  uid: string;
+  name: string;
+  description: string;
+  location: string;
+  slugURL: string;
+  bannerUrl: string;
+  startDate: Date;
+  endDate: Date;
+  type: string;
+  logo: Logo;
+  resources: Resource[];
+}
+
+export interface IPastEvents {
+  uid: string;
+  name: string;
+  description: string;
+  location: string;
+  slugURL: string;
+  bannerUrl: string;
+  startDate: Date;
+  endDate: Date;
+  type: string;
+  logo: Logo;
+  resources: Resource[];
+}
+
+export interface ILocationDetails {
+  uid: string;
+  location: string;
+  flag: string;
+  icon: string;
+  upcomingEvents: IUpcomingEvents[];
+  pastEvents: IPastEvents[];
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  resources: AdditionalResource[];
+}

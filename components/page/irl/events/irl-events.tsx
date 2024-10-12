@@ -9,15 +9,18 @@ import IrlPastEvents from "./irl-past-events";
 import { triggerLoader } from "@/utils/common.utils";
 import { useIrlAnalytics } from "@/analytics/irl.analytics";
 import { useRouter } from "next/navigation";
+import { ILocationDetails } from "@/types/irl.types";
 
 interface IIrlEvents {
+    searchParams: any;
+    eventDetails: ILocationDetails;
     isLoggedIn: boolean;
 }
 
-const IrlEvents = (props: any) => {
+const IrlEvents = (props: IIrlEvents) => {
     const searchParams = props?.searchParams;
     const eventDetails = props?.eventDetails;
-    const isLoggedIn = props.isLoggedIn;
+    const isLoggedIn = props?.isLoggedIn;
     let isUpcoming = true;
     const dialogRef = useRef<HTMLDialogElement>(null);
     const addResRef = useRef<HTMLDialogElement>(null);
@@ -77,7 +80,7 @@ const IrlEvents = (props: any) => {
         if (addResRef.current) {
             addResRef.current.showModal();
         }
-        analytics.trackAdditionalResourceSeeMoreButtonClicked(eventDetails.resource);
+        analytics.trackAdditionalResourceSeeMoreButtonClicked(eventDetails.resources);
     }
 
     function getFormattedDate(events: any) {
@@ -561,7 +564,7 @@ const IrlEvents = (props: any) => {
                         scroll-behavior: smooth;
                         scrollbar-width: none;
                         border-radius: unset;
-                        min-height: 270px;
+                        min-height: 228px;
                         background-color: #fff;
                         border: 1px solid #0F172A0A;
                         box-shadow: 0px 4px 4px 0px #0F172A0A;

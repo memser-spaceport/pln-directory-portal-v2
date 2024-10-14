@@ -5,7 +5,7 @@ const IrlHeader = () => {
         <>
             <div className="irlheaderCnt">
                 <div className="irlHeader">IRL Gatherings</div>
-                <div className="irlsubHeader">Choose a destination to view upcoming gathering, attendees, resources & let the network know about your presence</div>
+                <div className="irlsubHeader">Choose a destination to view upcoming Gatherings, attendees, resources & let the network know about your presence</div>
             </div>
             <style jsx> {`
                 .irlHeader {

@@ -157,8 +157,8 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
             <img src="/icons/info-red.svg" alt="info" />
             <span className="popup__header__info__text">
               {type === 'self-delete'
-                ? 'You will be removed from the attendee list if you remove yourself from all gatherings.'
-                : 'Attendees will be removed completely if all gatherings are selected for removal.'}
+                ? 'You will be removed from the attendee list if you remove yourself from all Gatherings.'
+                : 'Attendees will be removed completely if all Gatherings are selected for removal.'}
             </span>
           </div>
         </div>
@@ -175,7 +175,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
                 )}
                 {!allEventsSelected && <button onClick={() => handleSelectAllGatherings(true)} className="checkbox"></button>}
               </div>
-              <h3 className="popup__body__select-all__title">Check to select all gatherings</h3>
+              <h3 className="popup__body__select-all__title">Check to select all Gatherings</h3>
             </div>
           )}
 
@@ -204,7 +204,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
                           )}
                           {!areAllMemberGatheringsSelected(guest?.memberUid) && <button onClick={() => handleSelectMemberGatherings(guest?.memberUid, true)} className="checkbox"></button>}
                         </div>
-                        <h3 className="popup__member__gatherings__header__title">Select gathering(s) that you want to remove</h3>
+                        <h3 className="popup__member__gatherings__header__title">Select Gathering(s) that you want to remove</h3>
                       </div>
                     )}
 

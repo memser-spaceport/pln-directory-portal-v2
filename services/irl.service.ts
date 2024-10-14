@@ -36,7 +36,7 @@ const fetchGuests = async (url: string, authToken: string,) => {
 };
 
 const processGuests = (guests: any[], userInfo: any) => {
-  const currentUserEntries = guests?.filter((guest: any) => guest?.member?.uid === userInfo?.uid);
+  const currentUserEntries = guests?.filter((guest: any) => guest?.memberUid === userInfo?.uid);
   const inviteOnlyEvents = currentUserEntries?.filter((entry: any) => entry?.event?.type === 'INVITE_ONLY').map((entry: any) => entry?.event?.uid);
 
   const inviteOnlyEventMembers = guests?.filter((r: any) => r?.event?.type === 'INVITE_ONLY' && inviteOnlyEvents.includes(r?.event?.uid));

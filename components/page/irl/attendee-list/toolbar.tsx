@@ -158,7 +158,7 @@ const Toolbar = (props: IToolbar) => {
 
           {!isUserGoing && isUserLoggedIn && type !== 'past' && (
             <button onClick={onIAmGoingClick} className="mb-btn toolbar__actionCn__imGoingBtn">
-              I'm Going
+              I&apos;m Going
             </button>
           )}
 

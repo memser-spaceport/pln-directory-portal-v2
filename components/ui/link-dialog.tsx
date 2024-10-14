@@ -64,12 +64,32 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
           <h2>Insert Link</h2>
           <div className="custom-link-dialog__contatiner__error">{error}</div>
           <div className="custom-link-dialog__contatiner__inputs">
-            <div className='custom-link-dialog__contatiner__inputs__label'>Text</div>
-            <input className='custom-link-dialog__contatiner__inputs__text' placeholder="Enter link text" value={text} onChange={(e) => setText(e.target.value)}/>
-            
-            <div className='custom-link-dialog__contatiner__inputs__label'>URL</div>
-            <input className='custom-link-dialog__contatiner__inputs__text' placeholder="Enter link URL" value={url} onChange={(e) => setUrl(e.target.value)} type='url'/>
-            
+            <div className="custom-link-dialog__contatiner__inputs__label">Text</div>
+            <input
+              className="custom-link-dialog__contatiner__inputs__text"
+              placeholder="Enter link text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+
+            <div className="custom-link-dialog__contatiner__inputs__label">URL</div>
+            <input
+              className="custom-link-dialog__contatiner__inputs__text"
+              placeholder="Enter link URL"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+
             {/* <TextField id="link-text" label="Text" name="linkText" type="text" placeholder="Enter link text" defaultValue={text} onChange={(e) => setText(e.target.value)} />
             <TextField id="link-url" label="URL" name="linkURL" type="url" placeholder="Enter link URL" defaultValue={url} onChange={(e) => setUrl(e.target.value)} /> */}
             {/* <label>
@@ -92,10 +112,10 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
           </label> */}
           </div>
           <div className="desc__header__action">
-            <button className="desc__header__action__cancel" onClick={onRequestClose} type='button'>
+            <button className="desc__header__action__cancel" onClick={onRequestClose} type="button">
               <span className="desc__header__action__cancel__txt">Cancel</span>
             </button>
-            <button className="desc__header__action__save" onClick={handleSave} type='button'>
+            <button className="desc__header__action__save" onClick={handleSave} type="button">
               <span className="desc__header__action__save__txt">Insert Link</span>
             </button>
           </div>
@@ -163,21 +183,21 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
             justify-content: space-between;
           }
 
-          .custom-link-dialog__contatiner__inputs__text{
-          width: 100%;
+          .custom-link-dialog__contatiner__inputs__text {
+            width: 100%;
             padding: 8px 12px;
             border: 1px solid lightgrey;
             border-radius: 8px;
-            min-height:40px;
+            min-height: 40px;
             font-size: 14px;
           }
 
-          .custom-link-dialog__contatiner__inputs__label{
+          .custom-link-dialog__contatiner__inputs__label {
             font-weight: 600;
             font-size: 14px;
           }
 
-          .custom-link-dialog__contatiner__error{
+          .custom-link-dialog__contatiner__error {
             color: red;
           }
         `}

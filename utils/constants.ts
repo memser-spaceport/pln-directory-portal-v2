@@ -890,7 +890,7 @@ export const IRL_ATTENDEE_FORM_ERRORS = {
   CHECKIN_DATE_REQUIRED: "Arrival date is required",
   DATE_DIFFERENCE : "Departure date should be greater than or equal to the Arrival date",
   SELECT_MEMBER: "Please select a member",
-  SELECT_GATHERING: "At least one gathering should be selected",
+  SELECT_GATHERING: "At least one Gathering should be selected",
 
 }
 

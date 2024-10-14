@@ -123,8 +123,8 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         }
       } else if (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate) {
         analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
-        // const eventType = searchParams.get('type') === 'past' ? 'past' : 'upcoming';
-        const result = await editEventGuest(selectedLocation.uid, formInitialValues?.memberUid, formattedData);
+        const eventType = searchParams.get('type') === 'past' ? 'past' : 'upcoming';
+        const result = await editEventGuest(selectedLocation.uid, formInitialValues?.memberUid, formattedData, eventType);
         if (result?.error) {
           triggerLoader(false);
           onClose();

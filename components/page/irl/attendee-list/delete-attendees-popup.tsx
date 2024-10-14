@@ -124,7 +124,6 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
     });
   };
 
-
   // Utility function to check if all gatherings for a member are selected
   const areAllMemberGatheringsSelected = (memberUid: string) => {
     const memberGatherings = selectedGuests?.find((m: any) => m?.memberUid === memberUid)?.events;
@@ -139,7 +138,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
       return total + selectedEvents[memberUid]?.length;
     }, 0);
   };
-  
+
   const getTotalEvents = () => {
     return selectedGuests?.reduce((total, guest) => {
       return total + (guest?.events?.length || 0);
@@ -169,7 +168,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
           {type === 'admin-delete' && (
             <div className="popup__body__select-all">
               <div className="popup__body__select-all__checkbox-wrapper">
-                {allEventsSelected&& (
+                {allEventsSelected && (
                   <button onClick={() => handleSelectAllGatherings(false)} className="checkbox--selected">
                     <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
                   </button>
@@ -225,9 +224,14 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
 
                           <div className="popup__gathering__details">
                             {event?.startDate && event?.endDate && <span className="popup__gathering__date">{getFormattedDateString(event?.startDate, event?.endDate)}</span>}
-                            <div className="popup__gathering__info-wrapper">
-                              <img height={20} width={20} src={event?.logo || '/icons/irl-event-default-logo.svg'} alt={event?.name} className="popup__gathering__logo" />
-                              <span className="popup__gathering__name">{event.name}</span>
+                            <div className="popup__gathering__details__info">
+                              <div className="popup__gathering__info-wrapper">
+                                <img height={20} width={20} src={event?.logo || '/icons/irl-event-default-logo.svg'} alt={event?.name} className="popup__gathering__logo" />
+                                <span className="popup__gathering__name">{event.name}</span>
+                              </div>
+                              {event?.type === EVENT_TYPE.INVITE_ONLY && (
+                                  <img src="/icons/invite-only-circle.svg" height={16} width={16} />
+                              )}
                             </div>
                           </div>
                         </div>
@@ -503,6 +507,12 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
           opacity: 0.5;
         }
 
+        .popup__gathering__details__info {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
         @media (min-width: 1024px) {
           .popup {
             width: 656px;
@@ -512,6 +522,10 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
           .popup__gathering__details {
             flex-direction: row;
             gap: 24px;
+          }
+
+          .popup__gathering__date {
+            min-width: 120px;
           }
         }
       `}</style>

@@ -74,17 +74,6 @@ const Gatherings = (props: IGatherings) => {
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && isBooked && (
                       <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
                     )}
-                    {gathering?.type === EVENT_TYPE.INVITE_ONLY && !isBooked && !isAdmin && (
-                      <Tooltip
-                        content={'This is an invite only event'}
-                        trigger={
-                          <div className="gatrs__all__gatr__ckbox__invtonly">
-                            <img src="/icons/invite-only.svg" height={12} width={12} />
-                          </div>
-                        }
-                        asChild
-                      />
-                    )}
 
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && !isBooked && isAdmin && (
                       <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
@@ -98,6 +87,16 @@ const Gatherings = (props: IGatherings) => {
                     <div className="gatrs__all__gatr__dteandname__nmesec">
                       <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo?.url ? gathering?.logo?.url : '/icons/irl-event-default-logo.svg'} />
                       <span className="gatrs__all__gatr__dteandname__nmesec__name">{gathering?.name}</span>
+                
+                      {gathering?.type === EVENT_TYPE.INVITE_ONLY && (
+                      <Tooltip
+                        content={'This is an invite only event'}
+                        trigger={
+                          <img className='gatrs__all__gatr__dteandname__nmesec__invite-only' src="/icons/invite-only-circle.svg" height={16} width={16} />
+                        }
+                        asChild
+                      />
+                    )}
                     </div>
                   </div>
                 </div>
@@ -200,21 +199,12 @@ const Gatherings = (props: IGatherings) => {
             word-break: break-word;
           }
 
-          .gatrs__all__gatr__ckbox__invtonly {
-            height: 20px;
-            width: 20px;
-            min-height: 20px;
-            min-width: 20px;
-            background-color: #f9f3e9;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 0.83px solid #f19100;
-          }
-
           .gatrs__all__gatr__dteandname__nmesec__logo {
             object-fit: cover;
+          }
+
+          .gatrs__all__gatr__dteandname__nmesec__invite-only {
+            display: flex;
           }
 
           @media (min-width: 1024px) {

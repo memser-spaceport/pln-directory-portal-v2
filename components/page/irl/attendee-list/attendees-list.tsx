@@ -146,6 +146,7 @@ const AttendeeList = (props: IAttendeeList) => {
           allGuests={eventDetails?.guests}
           scrollTo={iamGoingPopupProps?.scrollTo}
           getEventDetails={getEventDetails}
+          searchParams={searchParams}
         />
       )}
       <div className="attendeeList">

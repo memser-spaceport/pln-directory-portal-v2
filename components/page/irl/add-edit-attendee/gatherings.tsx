@@ -6,12 +6,12 @@ import { getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';
 import HiddenField from '@/components/form/hidden-field';
-import { IIrlAttendeeFormErrors, IIrlGathering, IIrlLocation } from '@/types/irl.types';
+import { IIrlAttendeeFormErrors, IIrlEvent, IIrlGathering, IIrlLocation } from '@/types/irl.types';
 import { log } from 'console';
 
 interface IGatherings {
   selectedLocation: IIrlLocation;
-  gatherings: IIrlGathering[];
+  gatherings: IIrlEvent[];
   userInfo: IUserInfo | null;
   errors: IIrlAttendeeFormErrors;
   initialValues: any;
@@ -66,7 +66,7 @@ const Gatherings = (props: IGatherings) => {
             </p>
           </div>
           <div className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length ? 'error' : ''}`}>
-            {gatherings?.map((gathering: IIrlGathering, index: number) => {
+            {gatherings?.map((gathering: any, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
               return (
                 <div key={`${gathering.uid} - ${index}`} className={`gatrs__all__gatr  ${isBooked ? 'disable' : ''}`}>

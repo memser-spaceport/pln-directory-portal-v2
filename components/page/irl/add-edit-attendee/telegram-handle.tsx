@@ -45,7 +45,7 @@ const TelegramHandle = (props: ITelegramHandle) => {
   useEffect(() => {
     function handler(e: any) {
       setTelegramId(e?.detail?.telegramHandle || '');
-      setIsHiddenTelegram(e.detail?.showTelegram);
+      setIsHiddenTelegram(!e.detail?.showTelegram);
     }
     document.addEventListener(EVENTS.UPDATE_TELEGRAM_HANDLE, (e: any) => {
       handler(e);

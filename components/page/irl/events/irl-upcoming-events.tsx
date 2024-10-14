@@ -318,7 +318,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                         overflow: auto;
                         scroll-behavior: smooth;
                         scrollbar-width: thin;
-                        width: 900px;
+                        width: 862px;
                     }
 
                     .root__irl__mobile__view {

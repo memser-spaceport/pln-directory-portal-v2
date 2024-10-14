@@ -8,6 +8,8 @@ import IrlEventsPopupOverlay from './irl-events-popup-overlay';
 import { useRouter } from "next/navigation";
 import { triggerLoader } from '@/utils/common.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import useClickedOutside from '@/hooks/useClickedOutside';
+import IrlEventsTableView from './irl-events-table-view';
 
 interface EventDetailsProps {
     eventDetails: {
@@ -110,23 +112,14 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
         setSearchText(e.target.value);
     }
 
-    const handleClickOutside = (event: any) => {
-        // If the click is outside the dropdown container, close the dropdown
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    useClickedOutside({
+        ref: dropdownRef,
+        callback: () => {
             setDropdownOpen(false);
             setSearchText('');
-        }
-    };
-
-    useEffect(() => {
-        // Add event listener to detect clicks outside the dropdown
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            // Clean up the event listener when the component unmounts
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
+        },
+    });
+    
     return (
         <>
             <div className="root__irl__tableContainer">
@@ -141,48 +134,16 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                 </div>
                             </div>
                             {eventsToShow?.map((gathering, index) => (
-                                <div
-                                    key={index}
-                                    className={`root__irl__table-row__content ${searchParams?.event === gathering.slugURL ? 'root__irl__table-row__content--active' : ''}`}
-                                    onClick={() => handleElementClick(gathering)}
-                                >
-                                    <div className="root__irl__table-col__contentName">
-                                        <div className="root__irl__table-header">
-                                            <div className="root__irl__table-col-header">
-                                                <div className="root__irl__table-col__contentName__top">
-                                                    <div><img src={gathering?.logo?.url} style={{ height: '20px', width: '20px' }} alt="logo" /></div>
-                                                    <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>
-                                                </div>
-                                                <div className="root__irl__table-col__contentName__bottom">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</div>
-                                            </div>
-                                            {gathering?.type && (
-                                                <div className="root__irl__table-col__inviteOnlyIcon">
-                                                    <Tooltip
-                                                        asChild
-                                                        side="top"
-                                                        align="center"
-                                                        trigger={<div><img src='/icons/Invite_only.svg' alt="invite-only" /></div>}
-                                                        content={<div>This is an invite only event</div>}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="root__irl__table-col__contentDesc">{gathering?.description}</div>
-                                    <div className="root__irl__table-col__contentRes">
-                                        {gathering?.resources?.length > 0 ?
-                                            <div
-                                                className="root__irl__table-col__contentRes__viewCnt "
-                                                onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}
-                                            >
-                                                <div><img src="/images/irl/elements.svg" alt="view" /></div>
-                                                <div style={{ paddingBottom: "4px" }}>View</div>
-                                            </div>
-                                            :
-                                            <div className="root__irl__table-col__contentRes__noCnt">-</div>
-                                        }
-                                    </div>
-                                </div>
+                                <IrlEventsTableView 
+                                    key={gathering.id} 
+                                    gathering={gathering} 
+                                    handleClick={handleClick} 
+                                    eventsToShow={eventsToShow} 
+                                    isLastContent={index === eventsToShow.length - 1} 
+                                    handleElementClick={() => handleElementClick(gathering)} 
+                                    isEventSelected={searchParams?.event === gathering.slugURL} 
+                                    eventType={eventType}
+                                />
                             ))}
                         </>
                     ) : (

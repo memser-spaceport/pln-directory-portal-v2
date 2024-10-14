@@ -116,7 +116,7 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     font-weight: 500;
                     line-height: 20px;
                     text-align: left;
-                    padding-bottom: 2px;
+                    // padding-bottom: 2px;
                 }
 
                 .root__events {

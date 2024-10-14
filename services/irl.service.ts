@@ -88,7 +88,7 @@ const transformMembers = (groupedMembers: any) => {
     })),
     topics: groupedMembers[memberUid][0]?.topics,
     officeHours: groupedMembers[memberUid][0]?.member?.officeHours,
-    telegramId: groupedMembers[memberUid][0]?.telegramId,
+    telegramId: groupedMembers[memberUid][0]?.member?.telegramHandler || '',
     reason: groupedMembers[memberUid][0]?.reason,
     additionalInfo: groupedMembers[memberUid][0]?.additionalInfo,
   }));
@@ -230,9 +230,9 @@ export const createEventGuest = async (locationId: string, payload: any) => {
   return { data: response };
 };
 
-export const editEventGuest = async (locationId: string, guestUid: string, payload: any) => {
+export const editEventGuest = async (locationId: string, guestUid: string, payload: any, eventType:string) => {
   const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestUid}`,
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestUid}?type=${eventType}`,
     {
       method: 'PUT',
       cache: 'no-store',

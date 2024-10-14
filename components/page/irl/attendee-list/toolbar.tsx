@@ -135,7 +135,6 @@ const Toolbar = (props: IToolbar) => {
       officeHours: updatedUser?.officeHours ?? '',
     };
 
-    console.log('formData', formData);
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
   };
 
@@ -159,7 +158,7 @@ const Toolbar = (props: IToolbar) => {
 
           {!isUserGoing && isUserLoggedIn && type !== 'past' && (
             <button onClick={onIAmGoingClick} className="mb-btn toolbar__actionCn__imGoingBtn">
-              I am Going
+              I'm Going
             </button>
           )}
 
@@ -186,7 +185,7 @@ const Toolbar = (props: IToolbar) => {
                     Edit Details
                   </button>
                   <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
-                    Remove from gathering(s)
+                    Remove from Gathering(s)
                   </button>
                 </div>
               )}
@@ -258,7 +257,6 @@ const Toolbar = (props: IToolbar) => {
             height: 40px;
             padding: 10px 12px;
             border-radius: 8px;
-            width: 132px;
             justify-content: center;
           }
 

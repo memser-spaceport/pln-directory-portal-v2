@@ -27,13 +27,13 @@
     overflow-x: auto;
     scroll-behavior: smooth;
     scrollbar-width: none;
-    margin: none;
+    margin: unset;
     background-color: #E4EDF7;
     height: 122px;
     padding: 10px;
     border-radius: unset;
     margin-right: 13px;
-    /* max-width: 783px; */
+    max-width: 782px;
   }
 
   .irlGatherings__events {
@@ -57,6 +57,7 @@
     overflow: unset;
     position: relative;
     background-color: unset;
+    max-width: 900px;
   }
 
   .irlGatherings__events {

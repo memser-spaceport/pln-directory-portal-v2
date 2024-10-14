@@ -9,6 +9,7 @@ import { triggerLoader } from "@/utils/common.utils";
 import { useIrlAnalytics } from "@/analytics/irl.analytics";
 import { useRouter } from "next/navigation";
 import { ILocationDetails } from "@/types/irl.types";
+import useClickedOutside from "@/hooks/useClickedOutside";
 
 interface IrlLocation {
     locationDetails: ILocationDetails[];
@@ -24,6 +25,7 @@ const IrlLocation = (props: IrlLocation) => {
     const searchParams = props?.searchParams;
     const analytics = useIrlAnalytics();
     const router = useRouter();
+    const locationRef = useRef<HTMLDivElement>(null);
 
     const onCloseModal = () => {
         if (dialogRef.current) {
@@ -104,6 +106,13 @@ const IrlLocation = (props: IrlLocation) => {
         setShowMore(false);
     };
 
+    useClickedOutside({
+        ref: locationRef,
+        callback: () => {
+            setShowMore(false);
+        },
+    });
+
     return (
         <>
             <div className="root">
@@ -119,6 +128,7 @@ const IrlLocation = (props: IrlLocation) => {
                 </div>
                 {locations.length > 4 &&
                     <div
+                        ref={locationRef}
                         className="root__irl__expanded"
                         onClick={handleClick}
                     >
@@ -146,7 +156,7 @@ const IrlLocation = (props: IrlLocation) => {
                             <div key={index} className="root__irl__overlay__cnt" onClick={() => handleResourceClick(location)}>
                                 <div className="root__irl__overlay__cnt__location">
                                     <div className="root__irl__overlay__cnt__location__icon"><img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} /></div>
-                                    <div>{location.location.split(",")[0].trim()}</div>
+                                    <div className="root__irl__overlay__cnt__location__title">{location.location.split(",")[0].trim()}</div>
                                 </div>
                                 <div className="root__irl__overlay__cnt__events">
                                     <div><span>{location.upcomingEvents?.length ?? 0}</span>{' '} Upcoming Events </div>
@@ -295,7 +305,7 @@ const IrlLocation = (props: IrlLocation) => {
                     color: #0F172A;
                 }
 
-                .root__irl__overlay__cnt__location__icon {
+                .root__irl__overlay__cnt__location__icon, .root__irl__overlay__cnt__location__title {
                     display: flex;
                     align-items: center;
                 }

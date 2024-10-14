@@ -229,7 +229,6 @@ const IrlEvents = (props: IIrlEvents) => {
             <style jsx>{`
                 .root {
                     color: #0F172A;
-                    padding: 20px;
                     display: flex;
                     flex-direction: column;
                     gap: 16px;
@@ -306,7 +305,7 @@ const IrlEvents = (props: IIrlEvents) => {
                 .root__irl__events__active__count {
                     width: 17px;
                     height: 14px;
-                    padding: 1px 4px 0px 4px;
+                    padding: 1px 5px 0px 5px;
                     gap: 10px;
                     border-radius: 2px ;
                     border: 0.5px solid #fff;
@@ -568,7 +567,8 @@ const IrlEvents = (props: IIrlEvents) => {
                         background-color: #fff;
                         border: 1px solid #0F172A0A;
                         box-shadow: 0px 4px 4px 0px #0F172A0A;
-                        max-width: 946px;
+                        max-width: 900px;
+                        padding: 20px 0px 20px 20px;
                     }
                     .mob {
                         display: flex;
@@ -577,6 +577,7 @@ const IrlEvents = (props: IIrlEvents) => {
                         overflow-x: ${searchParams?.type === 'past' ? 'visible' : 'auto'};
                         scroll-behavior: smooth;
                         scrollbar-width: none;
+                        margin-right: ${!isUpcoming ? "20px" : ""};
                     }
 
                     .root__irl__resPopup, .root__irl__addRes__popup {
@@ -589,19 +590,17 @@ const IrlEvents = (props: IIrlEvents) => {
                     }
 
                     .root__irl__addRes {
-                        width: ${isUpcoming ? '900px' : 'unset'};
+                        width: ${isUpcoming ? '858px' : 'unset'};
                     }
 
                     .root__irl {
                         flex-direction: column;
                         align-items: baseline;
-                        // justify-content: left;
                         gap: 16px;
-                        //  width: ${isUpcoming ? '900px' : 'unset'};
                     }
 
                     .root__irl__addRes__loggedOut {
-                        width: ${isUpcoming ? '900px' : 'unset'};
+                        width: ${isUpcoming ? '858px' : 'unset'};
                     }
 
                     .root__irl__eventWrapper__mobileTile {
@@ -614,6 +613,7 @@ const IrlEvents = (props: IIrlEvents) => {
 
                     .root__irl__eventWrapper {
                         min-width: 231px;
+                        margin-right: 20px;
                     }
                 }
 
@@ -621,7 +621,6 @@ const IrlEvents = (props: IIrlEvents) => {
                     .root__irl {
                         flex-direction: row;
                         align-items: center;
-                        //  width: ${isUpcoming ? '900px' : 'unset'};
                     }
                 }
 
@@ -629,6 +628,7 @@ const IrlEvents = (props: IIrlEvents) => {
                     .root {
                       overflow-x: unset;
                       border-radius: 8px;
+                      padding: 20px;
                     }
                     .mob {
                       overflow-x: unset;
@@ -660,6 +660,7 @@ const IrlEvents = (props: IIrlEvents) => {
 
                     .root__irl__eventWrapper {
                         min-width: 310px;
+                        margin-right: unset;
                     }
                 }
             `}</style>

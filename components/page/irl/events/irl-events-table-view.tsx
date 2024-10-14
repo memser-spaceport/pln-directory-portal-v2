@@ -1,12 +1,19 @@
 import { getFormattedDateString } from "@/utils/irl.utils";
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
-const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent }: any) => {
+const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, handleElementClick, isEventSelected, eventType }: any) => {
+    const handleRowClick = (gathering: any) => {
+        if (eventType) {
+            handleElementClick(gathering);
+        }
+    }
+    
     return (
         <>
             <div
                 key={index}
-                className={`root__irl__table-row__content ${isLastContent ? 'last-content' : ''}`}
+                className={`root__irl__table-row__content ${isLastContent ? 'last-content' : ''} ${isEventSelected ? 'root__irl__table-row__content--active' : ''}`}
+                onClick={() => handleRowClick(gathering)}
             >
                 <div className="root__irl__table-col__contentName">
                     <div className="root__irl__table-header">
@@ -72,7 +79,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent }: an
                     border-right: 1px solid #CBD5E1;
                     border-bottom: 1px solid #CBD5E1;
                     border-left: 1px solid #CBD5E1;
-                    min-height: 54px;
+                    min-height: ${eventType ? "" : "54px"};
                 }
                     
                 .last-content {

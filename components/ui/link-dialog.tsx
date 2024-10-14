@@ -15,11 +15,9 @@ const CustomLinkDialog = ({ isOpen, onRequestClose, onSave,linkObj }: CustomLink
   const [error, setError] = useState('');
 
   const validateUrl = (url: string) => {
-    const urlPattern = new RegExp(
-      '(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$'
-    );
+    const urlPattern = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/mg
     
-    return !!urlPattern.test(url);
+    return !!url.match(urlPattern);
   };
 
   const handleSave = () => {

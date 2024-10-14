@@ -324,7 +324,7 @@ export const updateMember = async (uid: string, payload: any, authToken: string)
 }
 
 export const updateMemberBio = async (uid: string, payload: any, authToken: string) => {
-  const result =  await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}/bio`, {
+  const result =  await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}`, {
      cache: 'no-store',
      method: 'PATCH',
      body: JSON.stringify(payload),

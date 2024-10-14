@@ -80,31 +80,28 @@ const IrlLocation = (props: IrlLocation) => {
     };
 
     const handleResourceClick = (clickedLocation: any) => {
-        const clickedIndex = locations.findIndex((location: { uid: any }) => location.uid === clickedLocation.uid);
+        const clickedIndex = locations.findIndex(({ uid }) => uid === clickedLocation.uid);
+        if (clickedIndex === -1) return;
+        triggerLoader(true);
+    
+        const updatedLocations = [...locations];
         const fourthIndex = 3;
-
-        if (clickedIndex !== -1 && clickedIndex !== fourthIndex) {
-            const updatedLocations = [...locations];
-
-            if (activeLocationId === locations[fourthIndex].uid) {
-                [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
-                    [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
-
-                activeLocationId = updatedLocations[fourthIndex].uid;
-                updateQueryParams('location', updatedLocations[fourthIndex].location.split(",")[0].trim(), searchParams);
-                analytics.trackLocationClicked(updatedLocations[fourthIndex].uid, updatedLocations[fourthIndex].location);
-            } else {
-                [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
-                    [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
-                analytics.trackLocationClicked(updatedLocations[fourthIndex].uid, updatedLocations[fourthIndex].location);
-            }
-            setLocations(updatedLocations);
-        }
-        if (dialogRef.current) {
-            dialogRef.current.close();
-        }
+    
+        [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] = 
+            [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
+    
+        activeLocationId = updatedLocations[fourthIndex]?.uid;
+    
+        updateQueryParams('location', updatedLocations[fourthIndex]?.location.split(',')[0].trim(), searchParams);
+    
+        dialogRef.current?.close();
         setShowMore(false);
+        setLocations(updatedLocations);
+
+    
+        analytics.trackLocationClicked(updatedLocations[fourthIndex]?.uid, updatedLocations[fourthIndex]?.location);
     };
+    
 
     useClickedOutside({
         ref: locationRef,
@@ -216,6 +213,7 @@ const IrlLocation = (props: IrlLocation) => {
                     border-radius: 8px;
                     border: 1px solid #156FF7;
                     position: relative;
+                    cursor: pointer;
                 }
 
                 .root__irl__expanded:hover {

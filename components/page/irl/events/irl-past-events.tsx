@@ -234,7 +234,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                                     .map((gathering, index) => (
                                                         <div
                                                             key={index}
-                                                            className="custom-dropdown__item"
+                                                            className={`custom-dropdown__item ${gathering.slugURL === searchParams?.event ? 'custom-dropdown__item--active' : ''}`}
                                                             onClick={() => handleEventSelection(gathering)}
                                                         >
                                                             <div style={{ display: 'flex' }}>
@@ -603,6 +603,10 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
 
                 .custom-dropdown__item:hover {
                     background-color: #f5f5f5;
+                }
+
+                .custom-dropdown__item--active {
+                    background-color: #F1F5F9;
                 }
 
                 .custom-dropdown__search {

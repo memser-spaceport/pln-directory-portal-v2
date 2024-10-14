@@ -68,9 +68,6 @@ export default function AddEditProjectForm(props: any) {
     const formData = new FormData(addFormRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
 
-    console.log(formattedData,'formattedData');
-    
-    
     // formattedData['description'] = content;
     if (currentStep === 'General') {
       let errors: string[] = [];
@@ -142,8 +139,6 @@ export default function AddEditProjectForm(props: any) {
       triggerLoader(true);
       const formData = new FormData(addFormRef.current);
 
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>',formData,'formData');
-      
       let formattedData = transformObject(Object.fromEntries(formData));
       formattedData.description = content;
       formattedData = {

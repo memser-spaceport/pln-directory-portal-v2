@@ -1,12 +1,12 @@
 'use client';
 
-import { IIrlAttendeeFormErrors, IIrlGathering } from '@/types/irl.types';
+import { IIrlAttendeeFormErrors, IIrlEvent, IIrlGathering } from '@/types/irl.types';
 import { IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { formatDateRangeForDescription } from '@/utils/irl.utils';
 import { useEffect, useState } from 'react';
 
 interface IArrivalDepatureDateProps {
-  allGatherings: IIrlGathering[];
+  allGatherings: IIrlEvent[];
   errors: IIrlAttendeeFormErrors;
   initialValues: any;
 }
@@ -31,41 +31,45 @@ const ArrivalAndDepatureDate = (props: IArrivalDepatureDateProps) => {
   const [depatureDate, setDepatureDate] = useState('');
 
   useEffect(() => {
-    const startDateList = gatherings.map((gathering: IIrlGathering) => gathering.startDate);
-    const endDateList = gatherings.map((gathering: IIrlGathering) => gathering.endDate);
+    try {
+      const startDateList = gatherings.map((gathering: IIrlEvent) => gathering.startDate);
+      const endDateList = gatherings.map((gathering: IIrlEvent) => gathering.endDate);
 
-    let leastStartDate = startDateList[0];
-    let highestEndDate = endDateList[0];
+      let leastStartDate = startDateList[0];
+      let highestEndDate = endDateList[0];
 
-    startDateList?.map((startDate: string) => {
-      const date = new Date(startDate);
-      if (date < new Date(leastStartDate)) {
-        leastStartDate = startDate;
-      }
-    });
+      startDateList?.map((startDate: string) => {
+        const date = new Date(startDate);
+        if (date < new Date(leastStartDate)) {
+          leastStartDate = startDate;
+        }
+      });
 
-    endDateList?.map((endDate: string) => {
-      const date = new Date(endDate);
-      if (date > new Date(highestEndDate)) {
-        highestEndDate = endDate;
-      }
-    });
+      endDateList?.map((endDate: string) => {
+        const date = new Date(endDate);
+        if (date > new Date(highestEndDate)) {
+          highestEndDate = endDate;
+        }
+      });
 
-    const fiveDaysBeforeLeastStartDate = new Date(leastStartDate);
-    fiveDaysBeforeLeastStartDate.setDate(fiveDaysBeforeLeastStartDate.getDate() - 5);
+      const fiveDaysBeforeLeastStartDate = new Date(leastStartDate);
+      fiveDaysBeforeLeastStartDate.setDate(fiveDaysBeforeLeastStartDate.getDate() - 5);
 
-    const fiveDaysAfterHighestEndDate = new Date(highestEndDate);
-    fiveDaysAfterHighestEndDate.setDate(fiveDaysAfterHighestEndDate.getDate() + 5);
+      const fiveDaysAfterHighestEndDate = new Date(highestEndDate);
+      fiveDaysAfterHighestEndDate.setDate(fiveDaysAfterHighestEndDate.getDate() + 5);
 
-    setArrivalDateDetails({
-      min: fiveDaysBeforeLeastStartDate.toISOString().split('T')[0],
-      max: highestEndDate.split('T')[0],
-    });
+      setArrivalDateDetails({
+        min: fiveDaysBeforeLeastStartDate.toISOString().split('T')[0],
+        max: highestEndDate.split('T')[0],
+      });
 
-    setDepatureDateDetails({
-      min: leastStartDate.split('T')[0],
-      max: fiveDaysAfterHighestEndDate.toISOString().split('T')[0],
-    });
+      setDepatureDateDetails({
+        min: leastStartDate.split('T')[0],
+        max: fiveDaysAfterHighestEndDate.toISOString().split('T')[0],
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }, []);
 
   useEffect(() => {
@@ -102,8 +106,8 @@ const ArrivalAndDepatureDate = (props: IArrivalDepatureDateProps) => {
   };
 
   function getDateRange() {
-    const startDateList = gatherings.map((gathering: IIrlGathering) => gathering.startDate);
-    const endDateList = gatherings.map((gathering: IIrlGathering) => gathering.endDate);
+    const startDateList = gatherings.map((gathering: IIrlEvent) => gathering.startDate);
+    const endDateList = gatherings.map((gathering: IIrlEvent) => gathering.endDate);
 
     let leastStartDate = startDateList[0];
     let highestEndDate = endDateList[0];
@@ -244,7 +248,7 @@ const ArrivalAndDepatureDate = (props: IArrivalDepatureDateProps) => {
         }
 
         .dtscnt__dte__arvldte__infield {
-          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED) || dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE)  ? '1px solid red' : '1px solid lightgrey'};
+          border: ${dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED) || dateErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE) ? '1px solid red' : '1px solid lightgrey'};
         }
 
         .dtscnt__dte__deprdte__outfield {

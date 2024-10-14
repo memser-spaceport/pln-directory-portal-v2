@@ -34,6 +34,7 @@ export interface IIrlEvent {
   name: string;
   isHost: boolean;
   isSpeaker: boolean;
+  slugURL: string;
   hostSubEvents: {
     link: string;
     name: string;

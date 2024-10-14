@@ -1,7 +1,7 @@
 import React, { FormEvent, use, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
-import { IIrlAttendeeFormErrors, IIrlGathering, IIrlGuest, IIrlLocation, IIrlParticipationEvent } from '@/types/irl.types';
+import { IIrlAttendeeFormErrors, IIrlEvent, IIrlGathering, IIrlGuest, IIrlLocation, IIrlParticipationEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
 import { canUserPerformEditAction } from '@/utils/irl.utils';
@@ -22,7 +22,7 @@ import { useSearchParams } from 'next/navigation';
 interface IAttendeeForm {
   selectedLocation: IIrlLocation;
   userInfo: IUserInfo | null;
-  allGatherings: any;
+  allGatherings: IIrlEvent[];
   defaultTags: string[];
   mode: string;
   allGuests: any;
@@ -30,6 +30,7 @@ interface IAttendeeForm {
   scrollTo: string;
   formData: any;
   getEventDetails: any;
+  searchParams: any;
 }
 
 const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
@@ -37,15 +38,16 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
 
   const mode = props?.mode;
   const selectedLocation = props?.selectedLocation;
-  const gatherings = props?.allGatherings;
   const loggedInUser = props?.userInfo;
   const userInfo = mode === IAM_GOING_POPUP_MODES.ADMINADD ? null : { name: props?.formData?.member?.name, uid: props?.formData?.member?.uid, roles: props?.formData?.member?.roles };
   const defaultTags = props?.defaultTags;
   const allGuests = props?.allGuests;
   const onClose = props?.onClose;
   const scrollTo = props?.scrollTo;
-  const searchParams = useSearchParams();
+  const searchParams = props?.searchParams;
   const getEventDetails = props?.getEventDetails;
+  const gatherings = getGatherings();
+
 
   const analytics = useIrlAnalytics();
 
@@ -67,6 +69,19 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     }
   }, []);
 
+  function getGatherings(): IIrlEvent[] {
+    if (searchParams?.type === 'past') {
+      if (searchParams?.event) {
+        const filteredList = props?.allGatherings.filter((gathering: IIrlEvent) => gathering?.slugURL === searchParams?.event);
+        if (filteredList?.length > 0) {
+          return filteredList;
+        }
+      }
+      return [];
+    }
+    return props?.allGatherings ?? [];
+  }
+
   const onFormSubmitHandler = async (e: FormEvent, type: string) => {
     e.preventDefault();
     try {
@@ -75,73 +90,12 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       }
       analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(props?.userInfo), getAnalyticsLocationInfo(selectedLocation), 'clicked');
 
-      let isError = false;
       if (!attendeeFormRef.current) {
         return;
       }
       const formData = new FormData(attendeeFormRef.current);
       const formattedData = transformObject(Object.fromEntries(formData));
-
-      if (!formattedData?.memberUid) {
-        isError = true;
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER])) }));
-      } else {
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER) }));
-      }
-
-      if (formattedData.events.length === 0) {
-        isError = true;
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
-      } else {
-        let participationErrors: string[] = [];
-        formattedData?.events?.map((event: any) => {
-          event?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent) => {
-            if (!hostSubEvent?.name.trim()) {
-              isError = true;
-              participationErrors.push(`${hostSubEvent?.uid}-name`);
-            }
-            if (!isLink(hostSubEvent?.link)) {
-              isError = true;
-              participationErrors.push(`${hostSubEvent?.uid}-link`);
-            }
-          });
-
-          event?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent) => {
-            if (!speakerSubEvent?.name.trim()) {
-              isError = true;
-              participationErrors.push(`${speakerSubEvent?.uid}-name`);
-            }
-            if (!isLink(speakerSubEvent?.link.trim())) {
-              isError = true;
-              participationErrors.push(`${speakerSubEvent?.uid}-link`);
-            }
-          });
-        });
-        setErrors((prev: IIrlAttendeeFormErrors) => ({
-          ...prev,
-          gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING),
-          participationErrors: Array.from(new Set([...participationErrors])),
-        }));
-      }
-
-      if (formattedData.additionalInfo.checkInDate && !formattedData.additionalInfo.checkOutDate) {
-        isError = true;
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED])) }));
-      } else if (formattedData.additionalInfo.checkOutDate && !formattedData.additionalInfo.checkInDate) {
-        isError = true;
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED])) }));
-      } else if (formattedData.additionalInfo.checkInDate && formattedData.additionalInfo.checkOutDate) {
-        const checkInDate = new Date(formattedData.additionalInfo.checkInDate);
-        const checkOutDate = new Date(formattedData.additionalInfo.checkOutDate);
-        if (checkInDate > checkOutDate) {
-          isError = true;
-          setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE])) }));
-        } else {
-          setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: [] }));
-        }
-      } else {
-        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: [] }));
-      }
+      const isError = validateForm(formattedData);
       if (isError) {
         formScroll();
         return;
@@ -297,6 +251,72 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     onClose();
   };
 
+
+  const validateForm = (formattedData: any) => {
+    let isError = false;
+    if (!formattedData?.memberUid) {
+      isError = true;
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER])) }));
+    } else {
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER) }));
+    }
+
+    if (formattedData.events.length === 0) {
+      isError = true;
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
+    } else {
+      let participationErrors: string[] = [];
+      formattedData?.events?.map((event: any) => {
+        event?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent) => {
+          if (!hostSubEvent?.name.trim()) {
+            isError = true;
+            participationErrors.push(`${hostSubEvent?.uid}-name`);
+          }
+          if (!isLink(hostSubEvent?.link)) {
+            isError = true;
+            participationErrors.push(`${hostSubEvent?.uid}-link`);
+          }
+        });
+
+        event?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent) => {
+          if (!speakerSubEvent?.name.trim()) {
+            isError = true;
+            participationErrors.push(`${speakerSubEvent?.uid}-name`);
+          }
+          if (!isLink(speakerSubEvent?.link.trim())) {
+            isError = true;
+            participationErrors.push(`${speakerSubEvent?.uid}-link`);
+          }
+        });
+      });
+      setErrors((prev: IIrlAttendeeFormErrors) => ({
+        ...prev,
+        gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING),
+        participationErrors: Array.from(new Set([...participationErrors])),
+      }));
+    }
+
+    if (formattedData.additionalInfo.checkInDate && !formattedData.additionalInfo.checkOutDate) {
+      isError = true;
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKOUT_DATE_REQUIRED])) }));
+    } else if (formattedData.additionalInfo.checkOutDate && !formattedData.additionalInfo.checkInDate) {
+      isError = true;
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.CHECKIN_DATE_REQUIRED])) }));
+    } else if (formattedData.additionalInfo.checkInDate && formattedData.additionalInfo.checkOutDate) {
+      const checkInDate = new Date(formattedData.additionalInfo.checkInDate);
+      const checkOutDate = new Date(formattedData.additionalInfo.checkOutDate);
+      if (checkInDate > checkOutDate) {
+        isError = true;
+        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: Array.from(new Set([IRL_ATTENDEE_FORM_ERRORS.DATE_DIFFERENCE])) }));
+      } else {
+        setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: [] }));
+      }
+    } else {
+      setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: [] }));
+    }
+    return isError;
+  }
+
   return (
     <div className="attndformcnt">
       {/* <RegisterFormLoader /> */}
@@ -311,7 +331,16 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             <AttendeeDetails setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} />
           </div>
           <div>
-            <Gatherings loggedInUserInfo={loggedInUser} initialValues={formInitialValues} errors={errors} setErrors={setErrors} selectedLocation={selectedLocation} gatherings={gatherings} userInfo={userInfo} guests={allGuests} />
+            <Gatherings
+              loggedInUserInfo={loggedInUser}
+              initialValues={formInitialValues}
+              errors={errors}
+              setErrors={setErrors}
+              selectedLocation={selectedLocation}
+              gatherings={gatherings}
+              userInfo={userInfo}
+              guests={allGuests}
+            />
           </div>
           <div>
             <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />

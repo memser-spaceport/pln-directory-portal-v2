@@ -37,7 +37,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
                             </div>}
                     </div>
                 </div>
-                <div className="root__irl__table-col__contentDesc">{gathering?.description}</div>
+                <div className="root__irl__table-col__contentDesc" dangerouslySetInnerHTML={{ __html: gathering?.description }}></div>
                 <div className="root__irl__table-col__contentRes">
                     {gathering?.resources?.length > 0 ?
                         <div

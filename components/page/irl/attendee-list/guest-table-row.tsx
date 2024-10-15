@@ -436,6 +436,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           display: flex;
           align-items: center;
           gap: 4px;
+          flex-wrap: wrap;
         }
 
         .gtr__guestName__li__info__spkr {
@@ -659,6 +660,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           flex-direction: column;
           gap: 4px;
           padding-right: 10px;
+          justify-content: center;
         }
 
         .gtr__connect__pvtTel__tp {

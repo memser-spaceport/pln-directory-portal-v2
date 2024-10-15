@@ -7,7 +7,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
             handleElementClick(gathering);
         }
     }
-    
+
     return (
         <>
             <div
@@ -72,7 +72,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
                     font-weight: 400;
                     line-height: 20px;
                     text-align: left;
-                    cursor: ${eventType ? "" : "pointer"};
+                    cursor: ${eventType ? "pointer" : ""};
                 }
 
                 .root__irl__table-row__content {

@@ -130,7 +130,9 @@ export function getFormattedDateString(startDate: string, endDate: string) {
     const startMonthName = monthNames[parseInt(startMonth, 10) - 1];
     const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
 
-    if (startMonth === endMonth && startYear === endYear) {
+    if (startDateOnly === endDateOnly) {
+      return `${startMonthName} ${parseInt(startDay, 10)}`;
+    } else if (startMonth === endMonth && startYear === endYear) {
       return `${startMonthName} ${parseInt(startDay, 10)}-${parseInt(endDay, 10)}`;
     } else if (startYear === endYear) {
       return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)}`;
@@ -141,6 +143,7 @@ export function getFormattedDateString(startDate: string, endDate: string) {
     return '';
   }
 }
+
 
 function getDayWithSuffix(day: number) {
   if (day > 3 && day < 21) return day + 'th';

@@ -158,16 +158,16 @@ const AttendeeList = (props: IAttendeeList) => {
             <div className={`irl__table table__login`}>
               <AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} filterConfig={filterConfig} />
               <div className={`irl__table__body w-full`}>
-                  <GuestList
-                    userInfo={userInfo}
-                    items={filteredList}
-                    eventDetails={updatedEventDetails}
-                    showTelegram={showTelegram}
-                    selectedGuests={selectedGuests}
-                    setSelectedGuests={setSelectedGuests}
-                    location={location}
-                    isLoggedIn={isLoggedIn}
-                  />
+                <GuestList
+                  userInfo={userInfo}
+                  items={filteredList}
+                  eventDetails={updatedEventDetails}
+                  showTelegram={showTelegram}
+                  selectedGuests={selectedGuests}
+                  setSelectedGuests={setSelectedGuests}
+                  location={location}
+                  isLoggedIn={isLoggedIn}
+                />
               </div>
             </div>
           )}
@@ -207,7 +207,6 @@ const AttendeeList = (props: IAttendeeList) => {
         .attendeeList__table {
           display: flex;
           max-width: 900px;
-          overflow: auto;
         }
 
         .irl__floating-bar {
@@ -272,7 +271,15 @@ const AttendeeList = (props: IAttendeeList) => {
           z-index: 3;
         }
 
+        @media (min-width: 360px) {
+          .attendeeList__table {
+            overflow: auto;
+          }
+        }
         @media (min-width: 1024px) {
+          .attendeeList__table {
+            overflow: unset;
+          }
           .attendeeList {
             gap: 18px;
           }

@@ -73,8 +73,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
             triggerLoader(true);
             selectedEvent = gathering;
             updateQueryParams('event', gathering.slugURL, searchParams);
-            setDropdownOpen(false);
         }
+        setDropdownOpen(false);
         setSearchText('');
     };
 
@@ -260,7 +260,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     {selectedEvent && (
                         <div className="root__irl__mobileView__body">
                             <div className="root__irl__mobileView__body__title">
-                                {isExpanded ? selectedEvent?.description : `${selectedEvent?.description?.substring(0, limit)}`}
+                                
+                                <div dangerouslySetInnerHTML={{ __html: isExpanded ? selectedEvent?.description : `${selectedEvent?.description?.substring(0, limit)}` }}></div>
                                 {selectedEvent?.description?.length > limit && (
                                     <span>{!isExpanded ? "..." : ""}
                                         <span onClick={toggleDescription} style={{ color: "#156FF7", cursor: 'pointer' }}>
@@ -589,7 +590,11 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     overflow-y: auto;
                     padding: 10px 15px 5px 15px;
                     border: 1px solid #E2E8F0;
-                    border-radius: 6px;
+                    // border-radius: 6px;
+                    border-top-left-radius: 2px;
+                    border-top-right-radius: 2px;
+                    border-bottom-left-radius: 6px;
+                    border-bottom-right-radius: 6px;
                     border-top: none;
                 }
 
@@ -684,7 +689,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
 
                 @media screen and (min-width: 360px) {
                     .root__irl__mobileView {
-                        background-color: ${isDropdownOpen ? '#fff' : '#DBEAFE'};
+                        background-color: #DBEAFE;
                         display: flex;
                         flex-direction: column;
                         justify-content: center;

@@ -378,6 +378,7 @@ const Toolbar = (props: IToolbar) => {
             color: #0f172a;
             cursor: pointer;
             padding: 4px 8px;
+            white-space: nowrap;
           }
 
           .toolbar__actionCn__edit__list__item:hover {
@@ -429,6 +430,7 @@ const Toolbar = (props: IToolbar) => {
 
             .toolbar__actionCn {
               justify-content: flex-end;
+              flex: unset;
             }
 
             .toolbar__search {

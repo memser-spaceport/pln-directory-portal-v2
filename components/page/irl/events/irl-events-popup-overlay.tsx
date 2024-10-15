@@ -54,9 +54,11 @@ const IrlEventsPopupOverlay = ({ dialogRef,
                                         <img src="/icons/hyper-link.svg" alt="icon" />
                                     )}
                                 </div>
-                                <a href={resource.link} target='_blank'>
-                                    {resource.name}
-                                </a>
+                                <div className="root__irl__popupcnt__title">
+                                    <a href={resource.link} target='_blank'>
+                                        {resource.name}
+                                    </a>
+                                </div>
                                 <div>
                                     <img src="/icons/arrow-blue.svg" alt="arrow icon" />
                                 </div>
@@ -141,7 +143,6 @@ const IrlEventsPopupOverlay = ({ dialogRef,
                         flex-direction: row;
                         gap: 8px;
                         width: 594px;
-                        height: 48px;
                         padding: 14px 0px 14px 0px;
                         gap: 10px;
                         border-bottom: 1px solid #CBD5E1;
@@ -154,6 +155,10 @@ const IrlEventsPopupOverlay = ({ dialogRef,
                         gap: 16px;
                         overflow-y: auto;
                         margin-top: ${isLoggedIn ? '44px' : '14px'};
+                    }
+
+                    .root__irl__popupcnt__title {
+                        min-height: 24px;
                     }
 
                 @media screen and (min-width: 360px) {

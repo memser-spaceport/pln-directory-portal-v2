@@ -142,7 +142,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                     isLastContent={index === eventsToShow.length - 1} 
                                     handleElementClick={() => handleElementClick(gathering)} 
                                     isEventSelected={searchParams?.event === gathering.slugURL} 
-                                    eventType={eventType}
+                                    eventType={!isUpcoming}
                                 />
                             ))}
                         </>

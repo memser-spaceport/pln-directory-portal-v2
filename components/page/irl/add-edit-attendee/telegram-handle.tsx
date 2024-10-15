@@ -1,7 +1,7 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { IIrlLocation } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsLocationInfo, getAnalyticsUserInfo, removeAtSymbol } from '@/utils/common.utils';
+import { getAnalyticsLocationInfo, getAnalyticsUserInfo, getTelegramUsername, removeAtSymbol } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -45,7 +45,7 @@ const TelegramHandle = (props: ITelegramHandle) => {
   useEffect(() => {
     function handler(e: any) {
       const formattedValue = removeAtSymbol(e?.detail?.telegramHandle || "");
-      setTelegramId(formattedValue);
+      setTelegramId(getTelegramUsername(formattedValue));
       setIsHiddenTelegram(!e.detail?.showTelegram);
     }
     document.addEventListener(EVENTS.UPDATE_TELEGRAM_HANDLE, (e: any) => {
@@ -61,7 +61,7 @@ const TelegramHandle = (props: ITelegramHandle) => {
   useEffect(() => {
     if (initialValues) {
       const formattedValue = removeAtSymbol(initialValues?.telegramId || "");
-      setTelegramId(formattedValue);
+      setTelegramId(getTelegramUsername(formattedValue));
     } else {
       setIsTelegramNote(false);
       setIsHiddenTelegram(false);

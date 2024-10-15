@@ -325,3 +325,15 @@ export const calculateTime = (inputDate: any) => {
     }
   }
 };
+
+
+export function removeAtSymbol(str: string) {
+  try {
+    if (str.startsWith('@')) {
+      return str.slice(1);
+    }
+    return str;
+  } catch (error) {
+    return str
+  }
+}

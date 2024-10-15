@@ -16,7 +16,7 @@ import Topics from './topics';
 import TopicsDescription from './topics-description';
 import { createEventGuest, editEventGuest } from '@/services/irl.service';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { getAnalyticsLocationInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsLocationInfo, getAnalyticsUserInfo, removeAtSymbol, triggerLoader } from '@/utils/common.utils';
 import { useSearchParams } from 'next/navigation';
 import AttendeeOptions from './attendee-options';
 
@@ -230,7 +230,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         additionalInfo[key] = formValues[key];
       } else if (key.startsWith('topics')) {
         topics = [...topics, formValues[key]];
-      } else {
+      } else if (key === "telegramId") {
+        result[key] = removeAtSymbol(formValues[key].trim());
+      }
+      else {
         result[key] = formValues[key];
       }
     }

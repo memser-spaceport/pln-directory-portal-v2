@@ -192,11 +192,9 @@ const Toolbar = (props: IToolbar) => {
             </div>
           )}
         </div>
-        {isUserLoggedIn && (
           <div className="toolbar__search">
             <Search onChange={getValue} placeholder="Search by Attendee, Team or Project" />
           </div>
-        )}
       </div>
 
       <style jsx>

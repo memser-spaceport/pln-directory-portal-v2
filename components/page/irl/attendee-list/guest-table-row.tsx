@@ -22,6 +22,7 @@ interface IGuestTableRow {
   showTelegram: boolean;
   onchangeSelectionStatus: (uid: string) => void;
   selectedGuests: string[];
+  isLoggedIn: boolean;
 }
 
 const GuestTableRow = (props: IGuestTableRow) => {
@@ -58,6 +59,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const atRemovedTelegram = removeAt(getTelegramUsername(telegramId));
   const analytics = useIrlAnalytics();
   const canUserAddAttendees = canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const isLoggedIn = props.isLoggedIn;
 
   const onTeamClick = (teamUid: string, teamName: string) => {
     analytics.trackGuestListTableTeamClicked(location, {
@@ -151,8 +153,8 @@ const GuestTableRow = (props: IGuestTableRow) => {
   return (
     <>
       <div className={`gtr ${isUserGoing ? 'user__going' : ''}`}>
-        {/* Team */}
-        <div className="gtr__team">
+        {/* Name */}
+        <div className="gtr__guestName">
           {canUserAddAttendees && (
             <div className="gtr__guestName__checkbox">
               {selectedGuests.includes(guest?.memberUid) && (
@@ -163,31 +165,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
               {!selectedGuests.includes(guest?.memberUid) && <button className="notHappenedCtr__bdy__optnCtr__optn__ntsltd" onClick={() => onchangeSelectionStatus(guest.memberUid)}></button>}
             </div>
           )}
-          <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
-            <a target="_blank" className="gtr__team__link" onClick={() => onTeamClick(teamUid, teamName)}>
-              <div className="gtr__team__link__imgWrpr">
-                <img title={teamName} className="gtr__team__link__img" width={32} height={32} alt="team logo" src={teamLogo} loading="lazy" />
-              </div>
-              <div>
-                <div title={teamName} className="break-word">
-                  {teamName}
-                </div>
-                {hostEvents?.length > 0 && (
-                  <button
-                    onClick={(e: SyntheticEvent) => {
-                      e.preventDefault();
-                    }}
-                    className="gtr__team__host__btn"
-                  >
-                    Host
-                  </button>
-                )}
-              </div>
-            </a>
-          </Link>
-        </div>
-        {/* Name */}
-        <div className="gtr__guestName">
           <Link passHref legacyBehavior href={`/members/${guestUid}`}>
             <a target="_blank" className="gtr__guestName__li" onClick={() => onMemberClick(guestUid, guestName)}>
               <div className="gtr__guestName__li__imgWrpr">
@@ -259,6 +236,98 @@ const GuestTableRow = (props: IGuestTableRow) => {
             </a>
           </Link>
         </div>
+        {/* Team */}
+        <div className="gtr__team">
+          <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
+            <a target="_blank" className="gtr__team__link" onClick={() => onTeamClick(teamUid, teamName)}>
+              <div className="gtr__team__link__imgWrpr">
+                <img title={teamName} className="gtr__team__link__img" width={32} height={32} alt="team logo" src={teamLogo} loading="lazy" />
+              </div>
+              <div>
+                <div title={teamName} className="break-word">
+                  {teamName}
+                </div>
+                {hostEvents?.length > 0 && (
+                  <button
+                    onClick={(e: SyntheticEvent) => {
+                      e.preventDefault();
+                    }}
+                    className="gtr__team__host__btn"
+                  >
+                    Host
+                  </button>
+                )}
+              </div>
+            </a>
+          </Link>
+        </div>
+
+        {/* Connect */}
+        {isLoggedIn &&
+          <div className="gtr__connect">
+            {!showTelegram && userInfo.uid === guestUid ? (
+              <Tooltip
+                asChild
+                align="start"
+                content={<div className="gtr__connect__pvtTel__tp">Change your privacy settings to display</div>}
+                trigger={
+                  <div className="gtr__connect__pvtTel">
+                    <img onClick={(e) => e.preventDefault()} className="cursor-default" src="/icons/telegram-eye.svg" alt="telegram-hidden" loading="lazy" />
+                    <span className="gtr__connect__pvtTel__txt">Hidden from public</span>
+                  </div>
+                }
+              />
+            ) : telegramId ? (
+              <span className="gtr__connect__tel">
+                <img onClick={(e) => e.preventDefault()} className="cursor-default" src="/icons/telegram-solid.svg" alt="telegram" />
+                <a
+                  target="_blank"
+                  title={telegramId}
+                  href={`https://t.me/${atRemovedTelegram}`}
+                  className="gtr__connect__tel__li"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTelegramClick(telegramId, guestUid, guestName);
+                  }}
+                  rel="noreferrer"
+                >
+                  @{atRemovedTelegram}
+                </a>
+              </span>
+            ) : (
+              <span onClick={(e) => e.preventDefault()} className="empty">
+                -
+              </span>
+            )}
+            {userInfo.uid === guestUid && !officeHours ? (
+              <>
+                {type !== 'past' && (
+                  <button onClick={() => handleAddOfficeHoursClick(canUserAddAttendees ? guest.memberUid : (userInfo.uid as string))} className="gtr__connect__add">
+                    <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
+                    <span className="gtr__connect__add__txt">Add Office Hours</span>
+                    <Tooltip
+                      asChild
+                      align="start"
+                      content={
+                        <div className="gtr__connect__add__info">
+                          Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to book
+                          time with you for face-to-face connections.
+                        </div>
+                      }
+                      trigger={<img style={{ display: 'flex' }} loading="lazy" src="/icons/info.svg" height={16} width={16} alt="plus" />}
+                    />
+                  </button>
+                )}
+              </>
+            ) : userInfo.uid !== guestUid && officeHours ? (
+              <div className="gtr__connect__book" onClick={() => handleOfficeHoursLinkClick(officeHours, guestUid, guestName)}>
+                <img src="/icons/video-cam.svg" height={16} width={16} loading="lazy" alt="cam" />
+                <span className="gtr__connect__book__txt">Book Time</span>
+              </div>
+            ) : null}
+          </div>
+        }
+
         {/* Attending */}
         <div className="gtr__attending">
           <div className="gtr__attending__cn">
@@ -307,69 +376,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
           </div>
         </div>
 
-        {/* Connect */}
-        <div className="gtr__connect">
-          {!showTelegram && userInfo.uid === guestUid ? (
-            <Tooltip
-              asChild
-              align="start"
-              content={<div className="gtr__connect__pvtTel__tp">Change your privacy settings to display</div>}
-              trigger={
-                <div className="gtr__connect__pvtTel">
-                  <img onClick={(e) => e.preventDefault()} className="cursor-default" src="/icons/telegram-eye.svg" alt="telegram-hidden" loading="lazy" />
-                  <span className="gtr__connect__pvtTel__txt">Hidden from public</span>
-                </div>
-              }
-            />
-          ) : telegramId ? (
-            <span className="gtr__connect__tel">
-              <img onClick={(e) => e.preventDefault()} className="cursor-default" src="/icons/telegram-solid.svg" alt="telegram" />
-              <a
-                target="_blank"
-                title={telegramId}
-                href={`https://t.me/${atRemovedTelegram}`}
-                className="gtr__connect__tel__li"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTelegramClick(telegramId, guestUid, guestName);
-                }}
-                rel="noreferrer"
-              >
-                @{atRemovedTelegram}
-              </a>
-            </span>
-          ) : (
-            <span onClick={(e) => e.preventDefault()} className="empty">
-              -
-            </span>
-          )}
-          {userInfo.uid === guestUid && !officeHours ? (
-            <>
-              {type !== 'past' && (
-                <button onClick={() => handleAddOfficeHoursClick(canUserAddAttendees ? guest.memberUid : (userInfo.uid as string))} className="gtr__connect__add">
-                  <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
-                  <span className="gtr__connect__add__txt">Add Office Hours</span>
-                  <Tooltip
-                    asChild
-                    align="start"
-                    content={
-                      <div className="gtr__connect__add__info">
-                        Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to book
-                        time with you for face-to-face connections.
-                      </div>
-                    }
-                    trigger={<img style={{ display: 'flex' }} loading="lazy" src="/icons/info.svg" height={16} width={16} alt="plus" />}
-                  />
-                </button>
-              )}
-            </>
-          ) : userInfo.uid !== guestUid && officeHours ? (
-            <div className="gtr__connect__book" onClick={() => handleOfficeHoursLinkClick(officeHours, guestUid, guestName)}>
-              <img src="/icons/video-cam.svg" height={16} width={16} loading="lazy" alt="cam" />
-              <span className="gtr__connect__book__txt">Book Time</span>
-            </div>
-          ) : null}
-        </div>
       </div>
       <style jsx>{`
         .gtr {
@@ -382,7 +388,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__guestName {
           display: flex;
-          width: 180px;
+          width: ${!isLoggedIn ? "200px" : "180px"};
           align-items: center;
           justify-content: flex-start;
           gap: 10px;
@@ -513,7 +519,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__team {
           display: flex;
-          width: 150px;
+          width: ${!isLoggedIn ? "200px" : "150px"};
           align-items: center;
           justify-content: flex-start;
           gap: 10px;
@@ -649,9 +655,10 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__connect {
           display: flex;
-          width: 132px;
+          width: 150px;
           flex-direction: column;
           gap: 4px;
+          padding-right: 10px;
         }
 
         .gtr__connect__pvtTel__tp {

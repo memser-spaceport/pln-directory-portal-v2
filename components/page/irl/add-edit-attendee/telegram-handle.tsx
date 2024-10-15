@@ -107,7 +107,7 @@ const TelegramHandle = (props: ITelegramHandle) => {
         {isTelegramNote && (
           <div className="details__cn__telegram__warning hidden-message" id="telegram-message">
             <img src="/icons/info-yellow.svg" alt="info" width={16} height={16} />
-            <p className="details__cn__telegram__warning__msg">Any changes made here will also update your directory profile&apos;s Telegram handle, except for deletions.</p>
+            <p className="details__cn__telegram__warning__msg">Any changes made here will also update your directory profile&apos;s Telegram handle.</p>
           </div>
         )}
       </div>

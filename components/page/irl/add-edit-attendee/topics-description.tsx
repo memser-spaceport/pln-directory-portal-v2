@@ -22,7 +22,7 @@ const TopicsDescription = (props: ITopicsDescriptionProps) => {
     <>
       <div className="desccnt">
         <div className="desccnt__ttlcnt">
-          <p>Briefly describe about the topics you are interested in</p>
+          <p>Describe your interests</p>
         </div>
 
         <div className="desccnt__reasoncnt">

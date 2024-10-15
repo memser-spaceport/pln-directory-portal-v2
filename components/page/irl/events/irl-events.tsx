@@ -60,7 +60,7 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         router.push(`${window.location.pathname}?${currentParams.toString()}`);
-        if (searchParams?.type === 'upcoming') {
+        if (searchParams?.type !== 'past') {
             triggerLoader(true);
         }
         analytics.trackPastEventsButtonClicked(eventDetails.pastEvents);

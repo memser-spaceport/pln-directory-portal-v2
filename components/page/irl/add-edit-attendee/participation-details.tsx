@@ -185,7 +185,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
     <>
       <div className="ptndtls">
         <div className="ptndtls__ttl">
-          <h2 className="ptndtls__ttl__txt">Are you hosting or speaking at any of these Gatherings?</h2>
+          <h2 className="ptndtls__ttl__txt">Are you hosting or speaking at any of these gatherings?</h2>
         </div>
 
         <div className="ptndtls__cnt">

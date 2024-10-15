@@ -61,7 +61,7 @@ const Gatherings = (props: IGatherings) => {
         <div className="gatrs__all">
           <div className="gatrs__ttl">
             <p>
-              {`Select Gatherings that you are attending in ${selectedLocation?.name}`}
+              {`Select gatherings that you are attending in ${selectedLocation?.name}`}
               <span className="gatrs__ttl__mantry">*</span>
             </p>
           </div>

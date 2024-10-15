@@ -18,6 +18,7 @@ import { createEventGuest, editEventGuest } from '@/services/irl.service';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsLocationInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useSearchParams } from 'next/navigation';
+import AttendeeOptions from './attendee-options';
 
 interface IAttendeeForm {
   selectedLocation: IIrlLocation;
@@ -323,9 +324,9 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     <div className="attndformcnt">
       {/* <RegisterFormLoader /> */}
       <form noValidate onSubmit={(e) => onFormSubmitHandler(e, IAM_GOING_POPUP_MODES.EDIT ? 'Edit' : 'Save')} ref={attendeeFormRef} className="atndform">
-        <button type="button" className="modal__cn__closebtn" onClick={onCloseClickHandler}>
+        {/* <button type="button" className="modal__cn__closebtn" onClick={onCloseClickHandler}>
           <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
-        </button>
+        </button> */}
         <div className="atndform__bdy" ref={formBodyRef}>
           <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
           <AttendeeFormErrors errors={errors} />
@@ -363,13 +364,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         </div>
 
         <div className="atndform__optns">
-          <button type="button" className="atndform__optns__cls" onClick={onCloseClickHandler}>
-            Close
-          </button>
-
-          <button type="submit" className="atndform__optns__sbmt">
-            {mode === IAM_GOING_POPUP_MODES.EDIT ? 'Save' : 'Submit'}
-          </button>
+          <AttendeeOptions mode={mode} onCloseClickHandler={onCloseClickHandler}/>
         </div>
       </form>
 
@@ -435,23 +430,6 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             outline: none;
           }
 
-          .atndform__optns__cls,
-          .atndform__optns__sbmt {
-            height: 40px;
-            border-radius: 8px;
-            padding: 10px 24px;
-            font-size: 14px;
-            line-height: 20px;
-            font-weight: 500;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0px 1px 1px 0px #0f172a14;
-            background-color: inherit;
-          }
-
-          .atndform__optns__sbmt {
-            background: #156ff7;
-            color: white;
-          }
 
           @media (min-width: 1024px) {
             .atndform {

@@ -126,8 +126,8 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       let showTelegram = memberPreferencesResponse?.memberPreferences?.telegram ?? true;
       if (!memberResult.error) {
         document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: memberResult?.data?.formattedData?.telegramHandle, showTelegram } }));
+        document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: memberResult?.data?.formattedData?.officeHours } }));
         if (updateAll) {
-          document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: memberResult?.data?.formattedData?.officeHours } }));
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           const teams = memberResult?.data?.formattedData?.teams?.map((team: any) => {
             return { ...team, uid: team.id };

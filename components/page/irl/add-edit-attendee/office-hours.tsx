@@ -105,7 +105,7 @@ const OfficeHours = (props: IOfficeHours) => {
         {isFocusNote && (
           <div className="details__cn__oh__warning hidden-message" id="oh-message">
             <img src="/icons/info-yellow.svg" alt="info" width={16} height={16} />
-            <p className="details__cn__oh__warning__msg">Any changes made here will also update your directory profile&apos;s Office Hours link, except for deletions.</p>
+            <p className="details__cn__oh__warning__msg">Any changes made here will also update your directory profile&apos;s Office Hours link.</p>
           </div>
         )}
       </div>

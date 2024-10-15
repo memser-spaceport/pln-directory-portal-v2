@@ -185,7 +185,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
     <>
       <div className="ptndtls">
         <div className="ptndtls__ttl">
-          <h2 className="ptndtls__ttl__txt">Are you hosting or speaking at any of these events?</h2>
+          <h2 className="ptndtls__ttl__txt">Are you hosting or speaking at any of these Gatherings?</h2>
         </div>
 
         <div className="ptndtls__cnt">
@@ -242,7 +242,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
 
                   {selectedGathering?.hostSubEvents?.length > 0 && (
                     <div className="ptndtls__cnt__pptdtls__pptdtl__evntscnt">
-                      <span className="ptndtls__cnt__pptdtls__pptdtl__evnts__subevnt__ttl">Enter event name in which you are host</span>
+                      <span className="ptndtls__cnt__pptdtls__pptdtl__evnts__subevnt__ttl">Event you are hosting</span>
 
                       <div className="ptndtls__cnt__pptdtls__pptdtl__evnts">
                         {selectedGathering?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent, index: number) => (
@@ -292,7 +292,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
 
                   {selectedGathering?.speakerSubEvents?.length > 0 && (
                     <div className="ptndtls__cnt__pptdtls__pptdtl__evntscnt">
-                      <span className="ptndtls__cnt__pptdtls__pptdtl__evnts__subevnt__ttl">Enter event name in which you are speaking</span>
+                      <span className="ptndtls__cnt__pptdtls__pptdtl__evnts__subevnt__ttl">Event you are speaking at</span>
 
                       <div className="ptndtls__cnt__pptdtls__pptdtl__evnts">
                         {selectedGathering?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent, index: number) => (

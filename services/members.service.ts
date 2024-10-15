@@ -173,10 +173,12 @@ export const getMembersForProjectForm = async (teamId = null) => {
   let response;
   if (teamId) {
     response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc`, {
-      cache: 'no-store'
+      method: 'GET',
+      cache: 'no-store',
     });
   } else {
-    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc`, {
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url&pagination=false&orderBy=name,asc`, {
+      method: 'GET',
       cache: 'no-store'
     });
   }
@@ -186,9 +188,9 @@ export const getMembersForProjectForm = async (teamId = null) => {
   }
   const result = await response.json();
   const formattedData = result?.map((member: any) => {
-    const mainTeam = member.teamMemberRoles.find((team: any) => team.mainTeam) || null;
-    const teamLead = member.teamMemberRoles.some((team: any) => team.teamLead);
-    const teams = member.teamMemberRoles?.map((teamMemberRole: any) => ({
+    const mainTeam = member?.teamMemberRoles?.find((team: any) => team?.mainTeam) || null;
+    const teamLead = member?.teamMemberRoles?.some((team: any) => team?.teamLead);
+    const teams = member?.teamMemberRoles?.map((teamMemberRole: any) => ({
       id: teamMemberRole.team?.uid ?? '',
       name: teamMemberRole.team?.name ?? '',
       logo: teamMemberRole?.team?.logo?.url ?? '',
@@ -196,12 +198,12 @@ export const getMembersForProjectForm = async (teamId = null) => {
     return {
       uid: member.uid,
       name: member.name,
-      logo: member.image?.url ? member.image.url : null,
+      logo: member.image?.url ? member.image?.url : null,
       teamMemberRoles: member?.teamMemberRoles,
       mainTeam: mainTeam,
       teamLead,
       teams,
-      preferences: member.preferences,
+      preferences: member?.preferences,
     }
   });
 

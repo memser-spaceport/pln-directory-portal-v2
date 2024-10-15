@@ -182,7 +182,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             )}
           </div>
           <div className="tbl__hdr__topics">
-            <div className="tbl__hdr__topics__ttl">Topics you are interested in</div>
+            <div className="tbl__hdr__topics__ttl">Interested in</div>
             {topics?.length > 0 && (
               <>
                 <div className="tbl__hdr__topics__filter">
@@ -215,8 +215,8 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
         <div className="hideInMobile tbl__hdr__lo">
           <div className="tbl__hdr__lo__team">Team</div>
           <div className="tbl__hdr__lo__guestName">Attendee Name</div>
-          <div className="tbl__hdr__lo__attendings">Attendings</div>
-          <div className="tbl__hdr__lo__topics">Topics you are interested in</div>
+          <div className="tbl__hdr__lo__attendings">Attending</div>
+          <div className="tbl__hdr__lo__topics">Interested in</div>
           <div className="tbl__hdr__lo__connect">Connect</div>
         </div>
       )}

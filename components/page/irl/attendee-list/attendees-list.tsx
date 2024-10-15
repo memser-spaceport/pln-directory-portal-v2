@@ -155,10 +155,9 @@ const AttendeeList = (props: IAttendeeList) => {
         </div>
         <div className="attendeeList__table">
           {eventDetails?.guests?.length > 0 && (
-            <div className={`irl__table  ${isLoggedIn ? 'table__login' : 'table__not-login'} `}>
+            <div className={`irl__table table__login`}>
               <AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} filterConfig={filterConfig} />
-              <div className={`irl__table__body  ${isLoggedIn ? '' : 'w-full'}`}>
-                {isLoggedIn && (
+              <div className={`irl__table__body w-full`}>
                   <GuestList
                     userInfo={userInfo}
                     items={filteredList}
@@ -167,9 +166,8 @@ const AttendeeList = (props: IAttendeeList) => {
                     selectedGuests={selectedGuests}
                     setSelectedGuests={setSelectedGuests}
                     location={location}
+                    isLoggedIn={isLoggedIn}
                   />
-                )}
-                {!isLoggedIn && <EmptyList onLogin={onLogin} items={filteredList} eventDetails={updatedEventDetails} location={location} />}
               </div>
             </div>
           )}

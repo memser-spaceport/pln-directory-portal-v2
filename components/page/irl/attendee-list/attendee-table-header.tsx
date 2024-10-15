@@ -141,90 +141,77 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
   return (
     <>
-      {isUserLoggedIn && (
-        <div className="tbl__hdr">
-          <div className="tbl__hdr__teams">
-            <div className="tbl__hdr__teams__txt" onClick={() => onSort('teamName')}>
-              <img src={getSortIcon('teamName')} alt="sort" width={16} height={16} />
-              Team
-            </div>
+      <div className="tbl__hdr">
+        <div className="tbl__hdr__guestName">
+          <div onClick={() => onSort('memberName')} className="tbl__hdr__guestName__txt">
+            <img src={getSortIcon('memberName')} alt="sort" width={16} height={16} />
+            Attendee Name
           </div>
-          <div className="tbl__hdr__guestName">
-            <div onClick={() => onSort('memberName')} className="tbl__hdr__guestName__txt">
-              <img src={getSortIcon('memberName')} alt="sort" width={16} height={16} />
-              Attendee Name
-            </div>
-          </div>
+        </div>
 
-          <div className="tbl__hdr__attending">
-            Attending
-            {events?.length > 0 && eventType === 'upcoming' && (
-              <>
-                <div className="tbl__hdr__attending__filter">
-                  <button className="tbl__hdr__attending__filter__btn" onClick={onEventsFilterclicked}>
-                    <img width={16} height={16} src="/icons/filter-blue.svg" alt="filter" />
-                  </button>
-                  {filterConfig?.events?.length > 0 && (
-                    <div className="tbl__hdr__attending__filter__tag">
-                      {filterConfig?.events?.length}
-                      <button className="tbl__hdr__attending__filter__tag__btn" onClick={onClearEventsFilter}>
-                        <img width={10} height={10} src="/icons/close-white.svg" alt="count" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {eventsFilterProps?.isPaneActive && (
-                  <div className="tbl__hdr__attending__multiselect">
-                    <FloatingMultiSelect {...eventsFilterProps} items={events} onFilter={onFilterByEvents} />
-                  </div>
-                )}
-              </>
-            )}
+        <div className="tbl__hdr__teams">
+          <div className="tbl__hdr__teams__txt" onClick={() => onSort('teamName')}>
+            <img src={getSortIcon('teamName')} alt="sort" width={16} height={16} />
+            Team
           </div>
-          <div className="tbl__hdr__topics">
-            <div className="tbl__hdr__topics__ttl">Interested in</div>
-            {topics?.length > 0 && (
-              <>
-                <div className="tbl__hdr__topics__filter">
-                  <button className="tbl__hdr__topics__filter__btn" onClick={onTopicsFilterclicked}>
-                    <img width={16} height={16} src="/icons/filter-blue.svg" alt="filter" />
-                  </button>
-                  {filterConfig?.topics?.length > 0 && (
-                    <div className="tbl__hdr__topics__filter__tag">
-                      {filterConfig?.topics?.length}
-                      <button className="tbl__hdr__topics__filter__tag__btn" onClick={onClearTopicFilter}>
-                        <img width={10} height={10} src="/icons/close-white.svg" alt="count" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {topicFilterProps?.isPaneActive && (
-                  <div className="tbl__hdr__topics__multiselect">
-                    <FloatingMultiSelect {...topicFilterProps} items={topics} onFilter={onFilterByTopics} />
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+        </div>
 
-          {eventDetails?.isExclusionEvent && <div className="tbl__hdr__dates">{`Date(s) Attending`}</div>}
+        {isUserLoggedIn &&
           <div className="tbl__hdr__connect">Connect</div>
+        }
+        <div className="tbl__hdr__attending">
+          Attending
+          {events?.length > 0 && eventType !== 'past' && (
+            <>
+              <div className="tbl__hdr__attending__filter">
+                <button className="tbl__hdr__attending__filter__btn" onClick={onEventsFilterclicked}>
+                  <img width={16} height={16} src="/icons/filter-blue.svg" alt="filter" />
+                </button>
+                {filterConfig?.events?.length > 0 && (
+                  <div className="tbl__hdr__attending__filter__tag">
+                    {filterConfig?.events?.length}
+                    <button className="tbl__hdr__attending__filter__tag__btn" onClick={onClearEventsFilter}>
+                      <img width={10} height={10} src="/icons/close-white.svg" alt="count" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              {eventsFilterProps?.isPaneActive && (
+                <div className="tbl__hdr__attending__multiselect">
+                  <FloatingMultiSelect {...eventsFilterProps} items={events} onFilter={onFilterByEvents} />
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
-      {!isUserLoggedIn && (
-        <div className="hideInMobile tbl__hdr__lo">
-          <div className="tbl__hdr__lo__team">Team</div>
-          <div className="tbl__hdr__lo__guestName">Attendee Name</div>
-          <div className="tbl__hdr__lo__attendings">Attending</div>
-          <div className="tbl__hdr__lo__topics">Interested in</div>
-          <div className="tbl__hdr__lo__connect">Connect</div>
+        <div className="tbl__hdr__topics">
+          <div className="tbl__hdr__topics__ttl">Interested in</div>
+          {topics?.length > 0 && (
+            <>
+              <div className="tbl__hdr__topics__filter">
+                <button className="tbl__hdr__topics__filter__btn" onClick={onTopicsFilterclicked}>
+                  <img width={16} height={16} src="/icons/filter-blue.svg" alt="filter" />
+                </button>
+                {filterConfig?.topics?.length > 0 && (
+                  <div className="tbl__hdr__topics__filter__tag">
+                    {filterConfig?.topics?.length}
+                    <button className="tbl__hdr__topics__filter__tag__btn" onClick={onClearTopicFilter}>
+                      <img width={10} height={10} src="/icons/close-white.svg" alt="count" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              {topicFilterProps?.isPaneActive && (
+                <div className="tbl__hdr__topics__multiselect">
+                  <FloatingMultiSelect {...topicFilterProps} items={topics} onFilter={onFilterByTopics} />
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
-      {!isUserLoggedIn && (
-        <div className="hideInDesktop tbl__hdr__lo">
-          <div className="tbl__hdr__lo__team">Team</div>
-        </div>
-      )}
+
+        {eventDetails?.isExclusionEvent && <div className="tbl__hdr__dates">{`Date(s) Attending`}</div>}
+      </div>
       <style jsx>
         {`
           .tbl__hdr {
@@ -245,14 +232,14 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
           .tbl__hdr__guestName {
             display: flex;
-            width: 180px;
+            width: ${!isUserLoggedIn ? "200px" : "180px"};
             align-items: center;
             justify-content: flex-start;
           }
 
           .tbl__hdr__teams {
             display: flex;
-            width: 150px;
+            width: ${!isUserLoggedIn ? "200px" : "150px"};
             align-items: center;
             justify-content: flex-start;
           }
@@ -267,10 +254,12 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
           .tbl__hdr__connect {
             display: flex;
-            flex: 1;
+            // flex: 1;
             align-items: center;
             justify-content: flex-start;
             gap: 10px;
+            width: 150px;
+            padding-right: 10px;
           }
 
           .tbl__hdr__guestName__txt {

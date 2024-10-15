@@ -92,8 +92,17 @@ const IrlLocation = (props: IrlLocation) => {
     
         activeLocationId = updatedLocations[fourthIndex]?.uid;
     
-        updateQueryParams('location', updatedLocations[fourthIndex]?.location.split(',')[0].trim(), searchParams);
+        // updateQueryParams('location', updatedLocations[fourthIndex]?.location.split(',')[0].trim(), searchParams);
     
+        const currentParams = new URLSearchParams(searchParams);
+        currentParams.set('location', updatedLocations[fourthIndex]?.location.split(',')[0].trim());
+        if (clickedLocation?.pastEvents?.length > 0 && searchParams?.type === 'past') {
+            currentParams.set('event', updatedLocations[fourthIndex].pastEvents[0]?.slugURL);
+        } else {
+            currentParams.delete('event');
+        }
+        router.push(`${window.location.pathname}?${currentParams.toString()}`);
+
         dialogRef.current?.close();
         setShowMore(false);
         setLocations(updatedLocations);

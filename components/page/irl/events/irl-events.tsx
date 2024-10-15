@@ -563,7 +563,7 @@ const IrlEvents = (props: IIrlEvents) => {
                         scroll-behavior: smooth;
                         scrollbar-width: none;
                         border-radius: unset;
-                        min-height: 228px;
+                        min-height: 162px;
                         background-color: #fff;
                         border: 1px solid #0F172A0A;
                         box-shadow: 0px 4px 4px 0px #0F172A0A;

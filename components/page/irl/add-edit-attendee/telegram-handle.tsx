@@ -1,7 +1,7 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { IIrlLocation } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsLocationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsLocationInfo, getAnalyticsUserInfo, removeAtSymbol } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -44,7 +44,8 @@ const TelegramHandle = (props: ITelegramHandle) => {
 
   useEffect(() => {
     function handler(e: any) {
-      setTelegramId(e?.detail?.telegramHandle || '');
+      const formattedValue = removeAtSymbol(e?.detail?.telegramHandle || "");
+      setTelegramId(formattedValue);
       setIsHiddenTelegram(!e.detail?.showTelegram);
     }
     document.addEventListener(EVENTS.UPDATE_TELEGRAM_HANDLE, (e: any) => {
@@ -59,7 +60,8 @@ const TelegramHandle = (props: ITelegramHandle) => {
 
   useEffect(() => {
     if (initialValues) {
-      setTelegramId(initialValues?.telegramId);
+      const formattedValue = removeAtSymbol(initialValues?.telegramId || "");
+      setTelegramId(formattedValue);
     } else {
       setIsTelegramNote(false);
       setIsHiddenTelegram(false);
@@ -74,6 +76,8 @@ const TelegramHandle = (props: ITelegramHandle) => {
       }
     }
   }, [])
+
+
   return (
     <>
       <div className="details__cn__telegram">

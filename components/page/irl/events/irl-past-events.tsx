@@ -10,6 +10,8 @@ import { triggerLoader } from '@/utils/common.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import IrlEventsTableView from './irl-events-table-view';
+import clip from 'text-clipper';
+import { sanitize } from 'isomorphic-dompurify';
 
 interface EventDetailsProps {
     eventDetails: {
@@ -119,7 +121,10 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
             setSearchText('');
         },
     });
-    
+   
+    const sanitizedDesc = sanitize(selectedEvent?.description);
+    const clippedDesc = clip(sanitizedDesc, 80, { html: true, maxLines: 2 });
+
     return (
         <>
             <div className="root__irl__tableContainer">
@@ -134,14 +139,14 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                 </div>
                             </div>
                             {eventsToShow?.map((gathering, index) => (
-                                <IrlEventsTableView 
-                                    key={gathering.id} 
-                                    gathering={gathering} 
-                                    handleClick={handleClick} 
-                                    eventsToShow={eventsToShow} 
-                                    isLastContent={index === eventsToShow.length - 1} 
-                                    handleElementClick={() => handleElementClick(gathering)} 
-                                    isEventSelected={searchParams?.event === gathering.slugURL} 
+                                <IrlEventsTableView
+                                    key={gathering.id}
+                                    gathering={gathering}
+                                    handleClick={handleClick}
+                                    eventsToShow={eventsToShow}
+                                    isLastContent={index === eventsToShow.length - 1}
+                                    handleElementClick={() => handleElementClick(gathering)}
+                                    isEventSelected={searchParams?.event === gathering.slugURL}
                                     eventType={!isUpcoming}
                                 />
                             ))}
@@ -180,7 +185,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                                     </div></>
                             ) : (
                                 <div className="root__irl__mobileView__top__cnt__eventDate">
-                                    <div style={{ display: 'flex', paddingRight: "4px"}}><img src="/icons/no-calender.svg" alt="calendar" /></div>
+                                    <div style={{ display: 'flex', paddingRight: "4px" }}><img src="/icons/no-calender.svg" alt="calendar" /></div>
                                     <div>No {eventType} currently in this location</div>
                                 </div>
                             )}
@@ -260,10 +265,9 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
                     {selectedEvent && (
                         <div className="root__irl__mobileView__body">
                             <div className="root__irl__mobileView__body__title">
-                                
-                                <div dangerouslySetInnerHTML={{ __html: isExpanded ? selectedEvent?.description : `${selectedEvent?.description?.substring(0, limit)}` }}></div>
+                                <div dangerouslySetInnerHTML={{ __html: isExpanded ? selectedEvent?.description : clippedDesc }}></div>
                                 {selectedEvent?.description?.length > limit && (
-                                    <span>{!isExpanded ? "..." : ""}
+                                    <span>
                                         <span onClick={toggleDescription} style={{ color: "#156FF7", cursor: 'pointer' }}>
                                             {isExpanded ? ' Show Less' : ' Show More'}
                                         </span>

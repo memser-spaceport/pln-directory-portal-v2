@@ -23,6 +23,7 @@ interface IGuestTableRow {
   onchangeSelectionStatus: (uid: string) => void;
   selectedGuests: string[];
   isLoggedIn: boolean;
+  onLogin: () => void;
 }
 
 const GuestTableRow = (props: IGuestTableRow) => {
@@ -60,6 +61,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const analytics = useIrlAnalytics();
   const canUserAddAttendees = canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const isLoggedIn = props.isLoggedIn;
+  const onLogin = props.onLogin
 
   const onTeamClick = (teamUid: string, teamName: string) => {
     analytics.trackGuestListTableTeamClicked(location, {
@@ -148,6 +150,11 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
   const onHostEventClick = (event: { name: string; link: string }) => {
     analytics.trackHostEventClicked(location, { eventName: event?.name, eventLink: event?.link });
+  };
+
+  const onLoginClick = () => {
+    analytics.trackLoginToRespondBtnClick(location);
+    onLogin();
   };
 
   return (
@@ -263,7 +270,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         </div>
 
         {/* Connect */}
-        {isLoggedIn &&
+        {isLoggedIn ?
           <div className="gtr__connect">
             {!showTelegram && userInfo.uid === guestUid ? (
               <Tooltip
@@ -326,7 +333,34 @@ const GuestTableRow = (props: IGuestTableRow) => {
               </div>
             ) : null}
           </div>
+          :
+          <div className='gtr__connect__loggedOut'>
+            <Popover
+              asChild
+              align="center"
+              content={
+                <div className='gtr__content__loggedOut__icon'>
+                  <div className='gtr__content__loggedOut__icon__title' onClick={onLoginClick}>
+                    Login to View
+                  </div>
+                </div>
+              }
+              trigger={
+                <div 
+                  className='gtr__connect__loggedOut__cntr' 
+                  onClick={(e: SyntheticEvent) => {
+                    e.preventDefault();
+                  }}
+                >
+                  <img src="/icons/video-cam.svg" height={22} width={22} loading="lazy" alt="cam" />
+                  <img src="/icons/telegram-rounded.svg" height={22} width={22} loading="lazy" alt="cam" />
+                </div>
+              } />
+          </div>
         }
+
+
+
 
         {/* Attending */}
         <div className="gtr__attending">
@@ -388,7 +422,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__guestName {
           display: flex;
-          width: ${!isLoggedIn ? "200px" : "180px"};
+          width: 180px;
           align-items: center;
           justify-content: flex-start;
           gap: 10px;
@@ -520,7 +554,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__team {
           display: flex;
-          width: ${!isLoggedIn ? "200px" : "150px"};
+          width: 150px;
           align-items: center;
           justify-content: flex-start;
           gap: 10px;
@@ -654,13 +688,51 @@ const GuestTableRow = (props: IGuestTableRow) => {
           color: #0f172a;
         }
 
-        .gtr__connect {
+        .gtr__connect, .gtr__connect__loggedOut {
           display: flex;
           width: 150px;
           flex-direction: column;
           gap: 4px;
           padding-right: 10px;
           justify-content: center;
+        }
+
+        .gtr__connect__loggedOut__cntr {
+          display: flex;
+          flex-direction: row;
+          width: 50px;
+          height: 27px;
+          padding: 2px;
+          gap: 2px;
+          border-radius: 24px;
+          border: 0.5px solid transparent;
+          background: #F1F5F9;
+          cursor: pointer
+        }
+
+        .gtr__connect__loggedOut__cntr:hover {
+          border: 0.5px solid #156FF7;
+        }
+
+        .gtr__content__loggedOut__icon {
+          width: 98px;
+          height: 38px;
+          top: 238px;
+          left: 316px;
+          padding: 10px;
+          gap: 10px;
+          border-radius: 4px ;
+          border: 1px ;
+          background: #F5F9FF;
+
+        }
+        .gtr__content__loggedOut__icon__title {
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 18px;
+          text-align: left;
+          color: #156FF7;
+          cursor: pointer;
         }
 
         .gtr__connect__pvtTel__tp {

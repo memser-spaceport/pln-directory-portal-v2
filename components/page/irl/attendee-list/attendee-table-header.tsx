@@ -156,9 +156,8 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
           </div>
         </div>
 
-        {isUserLoggedIn &&
-          <div className="tbl__hdr__connect">Connect</div>
-        }
+        <div className="tbl__hdr__connect">Connect</div>
+          
         <div className="tbl__hdr__attending">
           Attending
           {events?.length > 0 && eventType !== 'past' && (
@@ -232,14 +231,14 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
           .tbl__hdr__guestName {
             display: flex;
-            width: ${!isUserLoggedIn ? "200px" : "180px"};
+            width: 180px;
             align-items: center;
             justify-content: flex-start;
           }
 
           .tbl__hdr__teams {
             display: flex;
-            width: ${!isUserLoggedIn ? "200px" : "150px"};
+            width: 150px;
             align-items: center;
             justify-content: flex-start;
           }

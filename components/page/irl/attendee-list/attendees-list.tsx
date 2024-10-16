@@ -167,6 +167,7 @@ const AttendeeList = (props: IAttendeeList) => {
                   setSelectedGuests={setSelectedGuests}
                   location={location}
                   isLoggedIn={isLoggedIn}
+                  onLogin={onLogin}
                 />
               </div>
             </div>

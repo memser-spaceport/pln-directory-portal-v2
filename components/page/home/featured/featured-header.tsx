@@ -22,7 +22,14 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
           <div className="featured__hdr__desc">
             <span className="featured__hdr__desc__txt">
               Want to feature your team, project, team member or event?{' '}
-              <a href={featuredRequestUrl} target="_blank" className="featured__hdr__desc__link" onClick={onSumbitRequestClick}>
+              <a
+                aria-label="Submit a request to feature content"
+                rel="noopener noreferrer"
+                href={featuredRequestUrl}
+                target="_blank"
+                className="featured__hdr__desc__link"
+                onClick={onSumbitRequestClick}
+              >
                 Submit a request
               </a>
             </span>

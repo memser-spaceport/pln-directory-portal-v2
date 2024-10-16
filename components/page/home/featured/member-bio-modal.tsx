@@ -15,11 +15,11 @@ const MemberBioModal = () => {
   const name = member?.name;
   const bio = member?.bio as string;
 
-  const onModalOpen = () => {
-    if (bioModalRef.current) {
-      bioModalRef.current.showModal();
-    }
-  };
+  // const onModalOpen = () => {
+  //   if (bioModalRef.current) {
+  //     bioModalRef.current.showModal();
+  //   }
+  // };
 
   const onCloseModal = () => {
     if (bioModalRef.current) {

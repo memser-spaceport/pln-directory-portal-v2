@@ -37,22 +37,22 @@ const Discover = (props: any) => {
 
   return (
     <>
-      <div className="discover">
+      <section className="discover">
         {/* Header */}
-        <div className="discover__hdr">
+        <header className="discover__hdr">
           <div className="discover__hdr__ttl">
             <img className="discover__hdr__ttl__img" src="icons/discover.svg" alt="discover" />
             <h2 className="discover__hdr__ttl__txt">Discover</h2>
           </div>
           <p className="discover__hdr__desc">
             Explore Protocol Labs with{' '}
-            <button onClick={onHuskyClick} className="discover__hdr__desc__husky">
+            <button aria-label="Explore with Husky" onClick={onHuskyClick} className="discover__hdr__desc__husky">
               Husky
             </button>
           </p>
-        </div>
+        </header>
         {/* Carousel */}
-        <div className="embla">
+        <div className="embla" aria-label="Discover carousel">
           <div className="embla__viewport" ref={emblaRef}>
             <div className="discover__body embla__container">
               <div className="discover__body__sec embla__slide">
@@ -78,28 +78,34 @@ const Discover = (props: any) => {
         </div>
         {/* Footer */}
         <div className="discover__ftr">
-          <div className="discover__ftr__actions">
+          <div className="discover__ftr__actions" aria-label="Carousel navigation">
             <button
+              data-testid="prev-button"
               className={`discover__ftr__actions__left ${prevBtnDisabled ? 'disabled' : ''}`}
               onClick={() => {
                 analytics.onDiscoverCarouselActionsClicked(getAnalyticsUserInfo(userInfo));
                 onPrevButtonClick();
               }}
+              aria-label="Previous slide"
+              disabled={prevBtnDisabled}
             >
               <img className="discover__ftr__actions__left__img" src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'} alt="left arrow" />
             </button>
             <button
+              data-testid="next-button"
               className={`discover__ftr__actions__right ${nextBtnDisabled ? 'disabled' : ''}`}
               onClick={() => {
                 analytics.onDiscoverCarouselActionsClicked(getAnalyticsUserInfo(userInfo));
                 onNextButtonClick();
               }}
+              aria-label="Next slide"
+              disabled={nextBtnDisabled}
             >
               <img className="discover__ftr__actions__right__img" src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'} alt="right arrow" />
             </button>
           </div>
         </div>
-      </div>
+      </section>
       <style jsx>{`
         .embla__viewport {
           overflow: hidden;

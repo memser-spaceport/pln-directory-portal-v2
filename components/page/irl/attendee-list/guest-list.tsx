@@ -15,6 +15,7 @@ interface IGuestList {
   setSelectedGuests: Dispatch<SetStateAction<string[]>>;
   location: IAnalyticsGuestLocation;
   isLoggedIn: boolean;
+  onLogin: () => void;
 }
 
 const GuestList = (props: IGuestList) => {
@@ -26,6 +27,7 @@ const GuestList = (props: IGuestList) => {
   const setSelectedGuests = props?.setSelectedGuests;
   const location = props?.location;
   const isLoggedIn = props.isLoggedIn;
+  const onLogin = props.onLogin
 
   const analytics = useIrlAnalytics();
 
@@ -67,6 +69,7 @@ const GuestList = (props: IGuestList) => {
                   selectedGuests={selectedGuests}
                   onchangeSelectionStatus={onchangeSelectionStatus}
                   isLoggedIn={isLoggedIn}
+                  onLogin={onLogin}
                 />
               </div>
             );

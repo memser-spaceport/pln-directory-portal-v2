@@ -1,7 +1,7 @@
 'use client';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import { ReactNode, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import useClickedOutside from '@/hooks/useClickedOutside';
 
 interface ITooptip {
@@ -24,6 +24,18 @@ export function Tooltip({ trigger, triggerClassName = '', content, asChild = fal
   };
 
   useClickedOutside({ callback: () => setIsOpen(false), ref: tooltipRef });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
 
   return (
     <>

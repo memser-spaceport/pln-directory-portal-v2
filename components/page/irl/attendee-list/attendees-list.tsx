@@ -76,8 +76,12 @@ const AttendeeList = (props: IAttendeeList) => {
     const eventType = searchParams.type === 'past' ? '' : 'upcoming';
     const eventInfo: any = await getGuestsByLocation(location?.uid, eventType, authToken, slugURL, userInfo);
     setUpdatedEventDetails(eventInfo);
-    router.refresh();
     triggerLoader(false);
+    router.refresh();
+  };
+
+  const onIamGoingPopupClose = () => {
+    setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
   };
 
   // Sync registeredGuest and eventDetails changes
@@ -86,27 +90,30 @@ const AttendeeList = (props: IAttendeeList) => {
   }, [eventDetails]);
 
   useEffect(() => {
-    const handler = (e: any) => {
+    const floatingBarhandler = (e: any) => {
       setShowFloatingBar(e.detail.isOpen);
     };
-    document.addEventListener(EVENTS.OPEN_FLOATING_BAR, handler);
-    return () => {
-      document.removeEventListener(EVENTS.OPEN_FLOATING_BAR, handler);
-    };
-  }, []);
 
-  //toggle remove guests modal
-  useEffect(() => {
-    const handler = (e: any) => {
+    const deleteGuestsHandler = (e: any) => {
       const { isOpen, type } = e.detail;
       if (deleteRef.current && isOpen) {
         setDeleteModalOpen((prev) => ({ ...prev, isOpen: true, type }));
         deleteRef.current.showModal();
       }
     };
-    document.addEventListener(EVENTS.OPEN_REMOVE_GUESTS_POPUP, handler);
+
+    const iamGoingHandler = (e: any) => {
+      setIamGoingPopupProps(e.detail);
+    };
+
+    document.addEventListener(EVENTS.OPEN_FLOATING_BAR, floatingBarhandler);
+    document.addEventListener(EVENTS.OPEN_REMOVE_GUESTS_POPUP, deleteGuestsHandler);
+    document.addEventListener(EVENTS.OPEN_IAM_GOING_POPUP, iamGoingHandler);
+
     return () => {
-      document.removeEventListener(EVENTS.OPEN_REMOVE_GUESTS_POPUP, handler);
+      document.removeEventListener(EVENTS.OPEN_FLOATING_BAR, floatingBarhandler);
+      document.removeEventListener(EVENTS.OPEN_REMOVE_GUESTS_POPUP, deleteGuestsHandler);
+      document.removeEventListener(EVENTS.OPEN_IAM_GOING_POPUP, iamGoingHandler);
     };
   }, []);
 
@@ -115,22 +122,6 @@ const AttendeeList = (props: IAttendeeList) => {
     setShowFloatingBar(false);
     setSelectedGuests([]);
   }, [searchParams, router]);
-
-  useEffect(() => {
-    document.addEventListener(EVENTS.OPEN_IAM_GOING_POPUP, (e: any) => {
-      setIamGoingPopupProps(e.detail);
-    });
-
-    return () => {
-      document.removeEventListener(EVENTS.OPEN_IAM_GOING_POPUP, (e: any) => {
-        setIamGoingPopupProps(e.detail);
-      });
-    };
-  }, []);
-
-  const onIamGoingPopupClose = () => {
-    setIamGoingPopupProps({ isOpen: false, formdata: null, mode: '' });
-  };
 
   return (
     <>

@@ -212,3 +212,81 @@ export function sortPastEvents(events: any[]) {
   return events; // Return the sorted array if needed
 }
 
+export const processGuests = (guests: any[], userInfo: any) => {
+  const currentUserEntries = guests?.filter((guest: any) => guest?.memberUid === userInfo?.uid);
+  const inviteOnlyEvents = currentUserEntries?.filter((entry: any) => entry?.event?.type === 'INVITE_ONLY').map((entry: any) => entry?.event?.uid);
+
+  const inviteOnlyEventMembers = guests?.filter((r: any) => r?.event?.type === 'INVITE_ONLY' && inviteOnlyEvents.includes(r?.event?.uid));
+  const publicEventMembers = guests?.filter((r: any) => r.event?.type !== 'INVITE_ONLY');
+
+  return [...inviteOnlyEventMembers, ...publicEventMembers];
+};
+
+
+export const groupMembers = (events: any) => {
+  const groupedMembers: any = {};
+  events?.forEach((event: any) => {
+    if (!groupedMembers[event.memberUid]) {
+      groupedMembers[event.memberUid] = [];
+    }
+    groupedMembers[event.memberUid].push(event);
+  });
+
+  return groupedMembers;
+};
+
+export const transformMembers = (groupedMembers: any) => {
+  return Object.keys(groupedMembers)?.map((memberUid) => ({
+    memberUid,
+    memberName: groupedMembers[memberUid][0]?.member?.name,
+    memberLogo: groupedMembers[memberUid][0]?.member?.image?.url,
+    teamUid: groupedMembers[memberUid][0]?.teamUid,
+    teamName: groupedMembers[memberUid][0]?.team?.name,
+    teamLogo: groupedMembers[memberUid][0]?.team?.logo?.url,
+    teams: groupedMembers[memberUid][0]?.member?.teamMemberRoles?.map((tm: any) => ({
+      name: tm?.team?.name,
+      id: tm?.team?.uid,
+      role: tm?.role,
+      logo: tm?.team?.logo?.url ?? '',
+    })),
+    projectContributions: groupedMembers[memberUid][0]?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name),
+    eventNames: groupedMembers[memberUid].map((member: any) => member?.event?.name),
+    events: groupedMembers[memberUid].map((member: any) => ({
+      uid: member?.event?.uid,
+      name: member?.event?.name,
+      startDate: member?.event?.startDate,
+      endDate: member?.event?.endDate,
+      logo: member?.event?.logo?.url,
+      isHost: member?.isHost,
+      isSpeaker: member?.isSpeaker,
+      hostSubEvents: member?.additionalInfo?.hostSubEvents,
+      speakerSubEvents: member?.additionalInfo?.speakerSubEvents,
+      type: member?.event?.type,
+    })),
+    topics: groupedMembers[memberUid][0]?.topics,
+    officeHours: groupedMembers[memberUid][0]?.member?.officeHours,
+    telegramId: groupedMembers[memberUid][0]?.member?.telegramHandler || '',
+    reason: groupedMembers[memberUid][0]?.reason,
+    additionalInfo: groupedMembers[memberUid][0]?.additionalInfo,
+  }));
+};
+
+export const sortGuestList = (guests: any, userInfo: any) => {
+  let sortedGuests = sortByDefault(guests);
+  let isUserGoing = false;
+  let currentUser = null;
+
+  // Check if the current user is part of the guest list
+  if (userInfo) {
+    const currentUserIndex = sortedGuests.findIndex((guest) => guest.memberUid === userInfo.uid);
+    if (currentUserIndex !== -1) {
+      currentUser = sortedGuests[currentUserIndex];
+      // Move the current user to the top of the list
+      sortedGuests = [currentUser, ...sortedGuests.filter((guest, index) => index !== currentUserIndex)];
+      isUserGoing = true; // Set isUserGoing to true if user is found
+    }
+  }
+
+  // Return sortedGuests, isUserGoing, and currentUser
+  return { sortedGuests, isUserGoing, currentUser };
+};

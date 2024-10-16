@@ -10,7 +10,9 @@ import { EVENTS } from '@/utils/constants';
 
 const MemberCard = (props: any) => {
   const member = props?.member;
-  const profileUrl = member?.profile ?? '/icons/default_profile.svg';
+  const profileUrl = member?.profile || '/icons/default_profile.svg';
+
+  console.log('member', member,profileUrl);
   const mainTeam = member?.mainTeam;
   const otherTeams = member?.teams
     ?.filter((team: any) => team.id !== mainTeam?.id)
@@ -61,13 +63,13 @@ const MemberCard = (props: any) => {
               {isOpenToWork && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" className="member__profile__cn__outer-section__inner-circle__opento-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
+                  trigger={<img loading="lazy" alt='open to collaborate' className="member__profile__cn__outer-section__inner-circle__opento-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
                   content={'Open To Collaborate'}
                 />
               )}
             </div>
           </div>
-          {isNew && <div className="projectCard__header__badge">New</div>}
+          {isNew && <div data-testid='new badge' className="projectCard__header__badge">New</div>}
         </div>
         <div className="member__details">
           <div className="member__details__primary">

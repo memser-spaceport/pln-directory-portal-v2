@@ -14,29 +14,31 @@ const DiscoverCard = (props: any) => {
 
   return (
     <>
-      <div className="discover-card" onClick={onDiscoverCardClick}>
+      <div data-testid="discover-card" className="discover-card" onClick={onDiscoverCardClick} aria-label={`Discover card for ${data.question}`}>
         <div className="discover-card__pattern">
           <picture>
             <source media="(max-width: 1024px)" srcSet={data.image?.mob} />
             <img className="discover-card__pattern__img" src={data.image?.desktop} alt="pattern" />
           </picture>
         </div>
-        <div lang="en" className="discover-card__qus">
-          {data.question}
-        </div>
+        <h2 lang="en" className="discover-card__qus" aria-label="Question">
+          {data?.question}
+        </h2>
         <div className="discover-card__sub__cn">
-          <p className="discover-card__sub">{data?.subText}</p>
+          <p className="discover-card__sub" aria-label="Subtext">
+            {data?.subText}
+          </p>
         </div>
-        <div className="discover-card_chips">
-          <div className="discover-card_chips_chip">
+        <div className="discover-card_chips" role="list" aria-label="Card statistics">
+          <div className="discover-card_chips_chip" role="listitem" aria-label={`${data.viewCount} views`}>
             <img className="discover-card_chips_chip__img" src="/icons/eye-gray.svg" alt="views" />
             <span className="discover-card_chips_chip__txt">{data.viewCount}</span>
           </div>
-          <div className="discover-card_chips_chip">
+          <div className="discover-card_chips_chip" role="listitem" aria-label={`${data.shareCount} shares`}>
             <img className="discover-card_chips_chip__img" src="/icons/share-gray.svg" alt="share" />
             <span className="discover-card_chips_chip__txt">{data.shareCount}</span>
           </div>
-          <div className="discover-card_chips_chip">
+          <div className="discover-card_chips_chip" role="listitem" aria-label={`${data?.answerSourceLinks?.length} sources`}>
             <img className="discover-card_chips_chip__img" src="/icons/language-gray.svg" alt="sources" />
             <span className="discover-card_chips_chip__txt">{data?.answerSourceLinks?.length} sources</span>
           </div>

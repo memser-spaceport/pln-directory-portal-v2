@@ -8,7 +8,7 @@ import clip from 'text-clipper';
 export default function IrlCard(props: IIrlCard) {
   //props
   const name = props?.name;
-  const description = props?.description ?? '';
+  const description = props?.description;
   const location = props?.location;
   const isInviteOnly = props?.type === 'INVITE_ONLY';
   const attendees = props?.attendees;
@@ -18,22 +18,24 @@ export default function IrlCard(props: IIrlCard) {
 
   //variables
   const formattedDate = formatIrlEventDate(startDate, endDate);
+  console.log('formattedDate', startDate, endDate);
   const isPastEvent = isPastDate(endDate);
   const isLongName = name?.length > 25;
 
   const sanitizedDesc = sanitize(description);
+  
   const clippedDesc = clip(sanitizedDesc, 250, { html: true, maxLines: isLongName ? 2 : 3 });
 
   return (
     <>
-      <div className="irlCard">
+      <div data-testid='featured-irl-card' className="irlCard">
         <div className="irlCard__hdr">
-          <img src={bannerImage} alt="IRL header" />
+          <img src={bannerImage} alt="banner image" />
         </div>
         <div className="irlCard__body">
           <div className={`irlCard__body__name ${isLongName ? 'irlCard__body__name--long' : ''}`}>{name}</div>
-          {clippedDesc && <div className={`irlCard__body__desc ${isLongName ? 'irlCard__body__desc--short' : ''}`} dangerouslySetInnerHTML={{ __html: clippedDesc }}></div>}
-          <div className="irlCard__body__location">
+          {clippedDesc && <div  aria-label="Event description" className={`irlCard__body__desc ${isLongName ? 'irlCard__body__desc--short' : ''}`} dangerouslySetInnerHTML={{ __html: clippedDesc }}></div>}
+          <div className="irlCard__body__location" aria-label="Event location">
             <img src="/icons/location.svg" alt="location" />
             <span>{location}</span>
           </div>
@@ -42,20 +44,20 @@ export default function IrlCard(props: IIrlCard) {
         <div className="irlCard__footer">
           <div className="irlCard__footer__left">
             {isInviteOnly ? (
-              <div className="irlCard__footer__left__invite">
+              <div className="irlCard__footer__left__invite" aria-label="Invite only event">
                 <img src="/icons/invite-only.svg" alt="Invite Only" />
                 <span>Invite Only</span>
               </div>
             ) : (
               attendees > 0 && (
-                <div className="irlCard__footer__left__attendee">
+                <div className="irlCard__footer__left__attendee"  aria-label={`${attendees} attendees`}>
                   <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
                   <span>{`${attendees} ${isPastEvent ? 'Joined' : 'Going'}`}</span>
                 </div>
               )
             )}
           </div>
-          <div className="irlCard__footer__right">
+          <div className="irlCard__footer__right" aria-label="Event date">
             <img src="/icons/flat-calendar.svg" alt="Calendar" />
             <span>{formattedDate}</span>
           </div>

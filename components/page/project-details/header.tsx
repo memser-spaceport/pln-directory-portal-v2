@@ -80,7 +80,7 @@ const Header = (props: IHeader) => {
     <>
       <div className="header">
         <div className="header__profile">
-          <img className="header__profile__img" src={project?.logo ?? '/icons/default-project.svg'} alt="logo" />
+          <img fetchPriority="high" className="header__profile__img" src={project?.logo ?? '/icons/default-project.svg'} alt="logo" />
         </div>
         <div className="header__details">
           <div className="header__details__specifics">

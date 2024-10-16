@@ -5,39 +5,51 @@ import { ChangeLogList, tagColors } from '@/utils/constants';
 const ChangelogList = () => {
   return (
     <>
-      <div className="changelog">
-        <div className="changelog__hdr">
-          <h1 className="changelog__hdr__txt">Changelog</h1>
-        </div>
-        <div className="change-logs-container">
+      <section className="changelog" aria-label="Changelog Section">
+        <header className="changelog__hdr">
+          <h1 className="changelog__hdr__txt" aria-label="Changelog Title">
+            Changelog
+          </h1>
+        </header>
+        <div className="change-logs-container" role="list" aria-label="List of changelogs">
           {ChangeLogList.map((changeLog, index) => {
             const tagColor = tagColors.find((item: any) => item.name === changeLog.tag)?.color;
             const releaseType = changeLog?.releaseType?.name;
             const releaseTypeImg = changeLog?.releaseType?.icon;
             return (
-              <div className={`change-log-entry ${index !== ChangeLogList.length - 1 ? 'change-log-entry-border' : ''}`} key={`changelog-${index}`}>
+              <div
+                aria-label={`Changelog entry for ${changeLog.title} on ${changeLog.date}`}
+                role="listitem"
+                className={`change-log-entry ${index !== ChangeLogList.length - 1 ? 'change-log-entry-border' : ''}`}
+                key={`changelog-${index}`}
+                data-testid={`changelog-${index}`}
+              >
                 <div className="change-log-header">
-                  <span className="change-log-date">{changeLog.date}</span>
-                  <span className="change-log-tag">
+                  <time className="change-log-date" dateTime={changeLog.date}>
+                    {changeLog.date}
+                  </time>
+                  <span className="change-log-tag" aria-label={`Tag: ${changeLog.tag}`}>
                     <span style={{ backgroundColor: tagColor }} className="change-log-tag-color" />
                     <span className="change-log-tag-text">{changeLog.tag}</span>
                   </span>
                   {releaseType && (
-                    <span className="change-log-tag-releaseType">
+                    <span className="change-log-tag-releaseType" aria-label={`Release Type: ${releaseType}`}>
                       <img src={releaseTypeImg} width={14} height={14} alt="tag" />
                       <span className="change-log-tag-text">{releaseType}</span>
                     </span>
                   )}
                 </div>
                 <div className="change-log-content">
-                  <h6 className="change-log-title">{changeLog.title}</h6>
+                  <h2 className="change-log-title" aria-label={changeLog.title}>
+                    {changeLog.title}
+                  </h2>
                   <div className="change-log-short-content" dangerouslySetInnerHTML={{ __html: changeLog.shortContent }}></div>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </section>
       <style jsx>{`
         .changelog {
           display: flex;
@@ -51,6 +63,7 @@ const ChangelogList = () => {
 
         .changelog__hdr__txt {
           color: #0f172a;
+          font-size: 24px;
         }
 
         .change-log-title {

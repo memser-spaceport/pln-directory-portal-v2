@@ -1,21 +1,21 @@
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
-const DiscoverHuskyCard = (props:any) => {
+const DiscoverHuskyCard = (props: any) => {
   const analytics = useHomeAnalytics();
   const userInfo = props?.userInfo;
 
   const onHuskyClick = () => {
-    analytics.onDiscoverHuskyClicked({from:"home page"}, getAnalyticsUserInfo(userInfo))
+    analytics.onDiscoverHuskyClicked({ from: 'home page' }, getAnalyticsUserInfo(userInfo));
     document.dispatchEvent(new CustomEvent('open-husky-dialog'));
   };
 
   return (
     <>
-      <div className="dh" onClick={onHuskyClick}>
-        <img className="dh__pattern-1" src="/images/discover/discover-husky-pattern-1.svg" alt="" />
-        <img className="dh__pattern-2" src="/images/discover/discover-husky-pattern-2.svg" alt="" />
-        <img className="dh__pattern-3" src="/images/discover/discover-husky-pattern-3.svg" alt="" />
+      <div className="dh" data-testid= "discover-husky-card" role="button" onClick={onHuskyClick} aria-label="Discover more using Husky">
+        <img className="dh__pattern-1" src="/images/discover/discover-husky-pattern-1.svg" alt="Decorative pattern 1" aria-hidden="true" />
+        <img className="dh__pattern-2" src="/images/discover/discover-husky-pattern-2.svg" alt="Decorative pattern 2" aria-hidden="true" />
+        <img className="dh__pattern-3" src="/images/discover/discover-husky-pattern-3.svg" alt="Decorative pattern 3" aria-hidden="true" />
 
         <div className="dh__body">
           <div className="dh__text">
@@ -23,8 +23,8 @@ const DiscoverHuskyCard = (props:any) => {
             <br />
             using Husky
           </div>
-          <button className="dh__btn">
-            <img height={16} width={14} src="/icons/right-arrow-white.svg" alt="" />
+          <button className="dh__btn" aria-label="Discover more using Husky">
+            <img height={16} width={14} src="/icons/right-arrow-white.svg" alt="Right arrow icon" />
           </button>
         </div>
       </div>

@@ -13,16 +13,14 @@ import { IAnalyticsGuestLocation } from '@/types/irl.types';
 import IrlErrorPage from '@/components/core/irl-error-page';
 
 export default async function Page({ searchParams }: any) {
-  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError} = await getPageData(searchParams);
+  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError } = await getPageData(searchParams);
 
   if (isLocationError) {
     return <IrlErrorPage />;
-  }
-
-  if (isError) {
+  } else if (isError) {
     return <Error />;
   }
-  
+
   return (
     <div className={styles.irlGatherings}>
       <div className={styles.irlGatherings__cn}>
@@ -69,24 +67,31 @@ const getPageData = async (searchParams: any) => {
   try {
     // Fetch locations data
     const locationDetails = await getAllLocations();
-    if (locationDetails.isError) {
+    if (locationDetails?.isError) {
       return { isError: true };
+    }
+
+    if (searchParams?.location) {
+      const locationObject = locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location)
+      if (!locationObject) {
+        return { isLocationError: true }
+      }
     }
 
     // Find event details based on search parameters or default to first location
     const eventDetails = searchParams?.location ? locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location) : locationDetails[0];
     const { uid, location: name, pastEvents } = eventDetails;
 
-    if(searchParams?.type) {
+    if (searchParams?.type) {
       isEventActive = ['upcoming', 'past'].includes(searchParams?.type);
     }
 
-    if(searchParams?.event) {
+    if (searchParams?.event) {
       isEventAvailable = pastEvents.some((event: any) => event.slugURL === searchParams?.event);
     }
 
     if (!eventDetails || !isEventActive || !isEventAvailable) {
-      return { isLocationError: true };
+      return { isLocationError: true }
     }
     const eventLocationSummary = { uid, name };
 
@@ -101,7 +106,7 @@ const getPageData = async (searchParams: any) => {
 
     const events = await getGuestsByLocation(uid, eventType, authToken, slugURL, userInfo);
     if (events.isError) {
-      return { isError: true };
+      return { isLocationError: true }
     }
 
     let guestDetails = events as any;

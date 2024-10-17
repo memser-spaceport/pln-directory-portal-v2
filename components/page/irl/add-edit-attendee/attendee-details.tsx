@@ -1,7 +1,7 @@
 import HiddenField from '@/components/form/hidden-field';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import SingleSelectWithImage from '@/components/form/single-select-with-image';
-import { getMember, getMembersForProjectForm } from '@/services/members.service';
+import { getMember, getMembersForAttendeeForm, getMembersForProjectForm } from '@/services/members.service';
 import { getMemberPreferences } from '@/services/preferences.service';
 import { IIrlAttendeeFormErrors } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -53,7 +53,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const getAllContributors = async (teamUid: any) => {
     try {
       triggerLoader(true);
-      const result = await getMembersForProjectForm(teamUid);
+      const result = await getMembersForAttendeeForm();
       if (result?.isError) {
         triggerLoader(false);
         return false;

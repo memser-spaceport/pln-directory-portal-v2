@@ -436,6 +436,28 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.0 - Enhanced IRL Gatherings Experience!',
+    tag: 'Improvements',
+    releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },
+    date: '17, Oct 2024',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <p>We are excited to announce a complete overhaul of our IRL Gatherings platform! This revamp brings several key updates designed to make discovering, attending, and engaging with events and their organizers easier.</p>
+    <br/>
+    <p>This new layout is designed to be intuitive, ensuring you can quickly find the events that matter most to you based on your location. Whether you’re searching for upcoming events or reflecting on past ones, you will be able to move through the platform with ease.</p>
+    <br/>
+    <p>Here’s what’s new:</p>
+    <br/>
+    <p><b>Location-Centric Event Grouping</b>: In this new version, all events are now grouped by their respective locations, making it simpler to explore gatherings happening in your area. You can now view a comprehensive list of events happening at any given location, with an easy-to-use interface that allows you to toggle between upcoming and past events. Whether you are looking forward to the next big gathering or want to revisit an event that took place earlier, all the details are at your fingertips.</p>
+    <br/>
+    <p><b>Comprehensive Event Insights</b>: Each event listing now comes with expanded details, including information on the speakers and hosts for specific events. This gives you a better understanding of who will be leading the event, offering insights into their expertise and the topics they will cover. With this update, you will know exactly who’s shaping the conversation and experience, allowing you to make more informed decisions about which gatherings to attend.</p>
+    <br/>
+    <p>This revamp transforms the way you explore and engage with IRL gatherings, helping you stay connected with the right events and the right people.</p>
+    <br/>
+    <p> Dive in today and make the most out of your experience with our network!</p>
+    </div>`,
+  },
+  {
     title: 'Version 4.0.0 -  Introducing the All New Home Page',
     tag: 'New Feature',
     releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },

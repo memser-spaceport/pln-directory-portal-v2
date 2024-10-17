@@ -31,7 +31,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
         } else {
           updatedGatherings[index] = {
             ...selectedGathering,
-            hostSubEvents: [...selectedGathering?.hostSubEvents, { uid: id, name: '', link: '' }],
+            hostSubEvents: [...(selectedGathering?.hostSubEvents || []), { uid: id, name: '', link: '' }],
           };
         }
         return updatedGatherings;
@@ -106,12 +106,12 @@ const ParticipationDetails = (props: IParticipationDetails) => {
       const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
       if (index !== -1) {
         const updatedGatherings = [...prev];
-        if (selectedGathering.speakerSubEvents.length > 0) {
+        if (selectedGathering?.speakerSubEvents?.length > 0) {
           updatedGatherings[index] = { ...selectedGathering, speakerSubEvents: [] };
         } else {
           updatedGatherings[index] = {
             ...selectedGathering,
-            speakerSubEvents: [...selectedGathering?.speakerSubEvents, { uid: id, name: '', link: '' }],
+            speakerSubEvents: [...(selectedGathering?.speakerSubEvents || []), { uid: id, name: '', link: '' }],
           };
         }
         return updatedGatherings;
@@ -211,7 +211,13 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                     }`}
                   >
                     <div className="ptndtls__cnt__pptdtls__pptdtl__rht">
-                      <img alt="logo" src={selectedGathering?.logo ? selectedGathering?.logo : "/icons/irl-event-default-logo.svg"} className="ptndtls__cnt__pptdtls__pptdtl__rht__logo" height={20} width={20} />
+                      <img
+                        alt="logo"
+                        src={selectedGathering?.logo ? selectedGathering?.logo : '/icons/irl-event-default-logo.svg'}
+                        className="ptndtls__cnt__pptdtls__pptdtl__rht__logo"
+                        height={20}
+                        width={20}
+                      />
                       <span className="ptndtls__cnt__pptdtls__pptdtl__rht__nme">{selectedGathering?.name}</span>
                     </div>
 

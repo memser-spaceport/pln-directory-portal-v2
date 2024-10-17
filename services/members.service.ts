@@ -69,13 +69,13 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
   const memberResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}?${new URLSearchParams(query)}`, requestOPtions);
   // let memberRepository;
   let member;
-  
+
   if (!memberResponse?.ok) {
     return { error: { status: memberResponse?.status, statusText: memberResponse?.statusText } };
   }
-  
+
   const result = await memberResponse?.json();
-  
+
   const teamAndRoles: { teamTitle: any; role: any; teamUid: any; }[] = [];
   const teams =
     result.teamMemberRoles?.map((teamMemberRole: any) => {
@@ -177,7 +177,7 @@ export const getMembersForProjectForm = async (teamId = null) => {
       cache: 'no-store',
     });
   } else {
-    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url&pagination=false&orderBy=name,asc`, {
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc`, {
       method: 'GET',
       cache: 'no-store'
     });
@@ -209,6 +209,39 @@ export const getMembersForProjectForm = async (teamId = null) => {
 
   return { data: formattedData };
 };
+
+export const getMembersForAttendeeForm = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url&pagination=false&orderBy=name,asc`, {
+    method: 'GET',
+    cache: 'no-store'
+  });
+
+  if (!response.ok) {
+    return { isError: true, message: response.statusText }
+  }
+  const result = await response.json();
+  const formattedData = result?.map((member: any) => {
+    const mainTeam = member?.teamMemberRoles?.find((team: any) => team?.mainTeam) || null;
+    const teamLead = member?.teamMemberRoles?.some((team: any) => team?.teamLead);
+    const teams = member?.teamMemberRoles?.map((teamMemberRole: any) => ({
+      id: teamMemberRole.team?.uid ?? '',
+      name: teamMemberRole.team?.name ?? '',
+      logo: teamMemberRole?.team?.logo?.url ?? '',
+    })) || [];
+    return {
+      uid: member.uid,
+      name: member.name,
+      logo: member.image?.url ? member.image?.url : null,
+      teamMemberRoles: member?.teamMemberRoles,
+      mainTeam: mainTeam,
+      teamLead,
+      teams,
+      preferences: member?.preferences,
+    }
+  });
+  return { data: formattedData };
+};
+
 export const getMemberInfo = async (memberUid: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}`, {
     cache: 'no-store',
@@ -326,31 +359,31 @@ export const updateMember = async (uid: string, payload: any, authToken: string)
 }
 
 export const updateMemberBio = async (uid: string, payload: any, authToken: string) => {
-  const result =  await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}`, {
-     cache: 'no-store',
-     method: 'PATCH',
-     body: JSON.stringify(payload),
-     credentials: 'include',
-     headers: {
-       'Content-Type': 'application/json',
-       Authorization: `Bearer ${authToken}`,
-     },
-   });
-   
-   if(!result.ok) {
-     const errorData = await result.json();
-     return {
-       isError: true,
-       errorData, 
-       errorMessage: result.statusText,
-       status: result.status
-     }
-   }
- 
- 
-   const output = await result.json()
- 
-   return {
-     data: output
-   }
- }
+  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}`, {
+    cache: 'no-store',
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!result.ok) {
+    const errorData = await result.json();
+    return {
+      isError: true,
+      errorData,
+      errorMessage: result.statusText,
+      status: result.status
+    }
+  }
+
+
+  const output = await result.json()
+
+  return {
+    data: output
+  }
+}

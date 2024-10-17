@@ -36,7 +36,7 @@ export default async function ProjectDetails({ params }: any) {
         <div className={styles.project__container__details}>
           <div className={styles.project__container__details__primary}>
             <Header project={project} userHasEditRights={hasEditAccess} userHasDeleteRights={hasDeleteAccess} user={userInfo} authToken={authToken} />
-            <Description description={project?.description} />
+            <Description description={project?.description} project={project} userHasEditRights={hasEditAccess} user={userInfo}/>
           </div>
 
           {project?.projectLinks?.length > 0 && (

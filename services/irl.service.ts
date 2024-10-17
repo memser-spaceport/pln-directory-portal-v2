@@ -1,117 +1,140 @@
 import { getHeader } from '@/utils/common.utils';
+import { ADMIN_ROLE } from '@/utils/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
+import { groupMembers, processGuests, sortGuestList, sortPastEvents, transformMembers } from '@/utils/irl.utils';
 
-export const getAllEvents = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events?orderBy=priority`, {
+export const getAllLocations = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),
   });
 
-  const result = await response.json();
-
   if (!response.ok) {
-    return { errorCode: 500, errorMessage: 'Something went wrong' };
+    return { isError: true };
   }
 
-  const events = result?.map((event: any) => {
-    return {
-      id: event?.uid,
-      name: event?.name,
-      slugUrl: event?.slugURL,
-      bannerUrl: event?.banner?.url,
-      description: event?.description,
-      location: event?.location,
-      startDate: event?.startDate,
-      endDate: event?.endDate,
-      createdAt: event?.createdAt,
-      type: event?.type,
-      attendees: event?.eventGuests?.length,
-      priority: event?.priority,
-    };
+  const result = await response.json();
+  result.sort((a: { priority: number; }, b: { priority: number; }) => a.priority - b.priority);
+
+  result.forEach((item: { pastEvents: any[] }) => {
+    if (Array.isArray(item.pastEvents)) {
+      item.pastEvents = sortPastEvents(item.pastEvents);
+    }
   });
 
-  return events;
+  return result;
 };
 
-export const getEventDetailBySlug = async (slug: string, token: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}`, {
-    method: 'GET',
+const fetchGuests = async (url: string, authToken: string,) => {
+  const response = await fetch(url, {
     cache: 'no-store',
-    headers: getHeader(token),
+    method: 'GET',
+    headers: getHeader(authToken),
   });
+  if (!response.ok) return { isError: true };
+  return await response.json();
+};
 
-  if (!response.ok) {
-    return {
-      isError: true,
-    };
-  }
 
-  const output = await response.json();
+export const getGuestsByLocation = async (location: string, type: string, authToken: string, slugURL: string, userInfo: any) => {
+  if (!slugURL) {
+    const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?type=${type}`;
+    let result = await fetchGuests(url, authToken);
+    if (result.isError) return { isError: true };
 
-  const isExclusionEvent = output?.additionalInfo?.isExclusiveEvent ?? false;
-  const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',');
-  const topics = output?.additionalInfo?.topics ?? defaultTopics;
+    if (userInfo && !userInfo?.roles?.includes(ADMIN_ROLE)) {
+      result = processGuests(result, userInfo);
+    } else if (!userInfo) {
+      result = result.filter((r: any) => r?.event?.type !== 'INVITE_ONLY');
+    }
 
-  const guests = output?.eventGuests?.map((guest: any) => {
-    const memberRole = guest?.member?.teamMemberRoles?.find((teamRole: any) => guest?.teamUid === teamRole?.teamUid)?.role;
-    const teamMemberRoles = guest?.member?.teamMemberRoles.map((tm: any) => {
-      return {
-        name: tm?.team?.name,
-        id: tm?.team?.uid,
-        role: tm?.role,
-        logo: tm?.team?.logo?.url ?? '',
-      };
-    });
+    const groupedMembers = groupMembers(result);
+    const transformedMembers = transformMembers(groupedMembers);
+    const sortedList = sortGuestList(transformedMembers, userInfo);
 
-    const projectContributions = guest?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name);
+    return { isUserGoing: sortedList.isUserGoing, currentGuest: sortedList.currentUser, guests: sortedList.sortedGuests };
+  } else {
+    const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/${slugURL}`;
+    let result = await fetchGuests(url, authToken);
 
-    return {
-      uid: guest?.uid,
+    if (result.isError) return { isError: true };
+
+    if (!userInfo && result?.type === 'INVITE_ONLY') {
+      result.eventGuests = [];
+    }
+    if (userInfo && !userInfo?.roles?.includes(ADMIN_ROLE) && result?.type === 'INVITE_ONLY' && !result?.eventGuests.find((guest: any) => guest?.memberUid === userInfo?.uid)) {
+      result.eventGuests = [];
+    }
+
+    const guests = result.eventGuests.map((guest: any) => ({
       teamUid: guest?.teamUid,
       teamName: guest?.team?.name,
       teamLogo: guest?.team?.logo?.url,
       memberUid: guest?.memberUid,
       memberName: guest?.member?.name,
       memberLogo: guest?.member?.image?.url,
-      memberRole,
-      teams: teamMemberRoles,
+      teams: guest?.member?.teamMemberRoles.map((tm: any) => ({
+        name: tm?.team?.name,
+        id: tm?.team?.uid,
+        role: tm?.role,
+        logo: tm?.team?.logo?.url ?? '',
+      })),
       reason: guest?.reason,
       telegramId: guest?.member?.telegramHandler || '',
       isTelegramRemoved: guest?.telegramId === '',
       officeHours: guest?.member?.officeHours || '',
       createdAt: guest?.createdAt,
-      projectContributions,
+      projectContributions: guest?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted).map((item: any) => item?.project?.name),
       topics: guest?.topics,
       additionalInfo: guest?.additionalInfo,
-    };
-  });
+      eventNames: [result.name],
+      events: [
+        {
+          uid: result?.uid,
+          name: result?.name,
+          startDate: result?.startDate,
+          endDate: result?.endDate,
+          isHost: guest?.isHost,
+          isSpeaker: guest?.isSpeaker,
+          logo: result?.logo?.url,
+          hostSubEvents: guest?.additionalInfo?.hostSubEvents,
+          speakerSubEvents: guest?.additionalInfo?.speakerSubEvents,
+          type: guest?.event?.type,
+        },
+      ],
+    }));
 
-  return {
-    id: output?.uid,
-    name: output?.name,
-    slugUrl: output?.slugURL,
-    bannerUrl: output?.banner?.url,
-    eventCount: output?.eventsCount,
-    description: output?.description,
-    websiteUrl: output?.websiteURL,
-    telegram: output?.telegramId,
-    type: output?.type,
-    startDate: output?.startDate,
-    endDate: output?.endDate,
-    eventLocation: output?.location,
-    // isPastEvent,
-    resources: output?.resources,
-    guests,
-    topics: Array.isArray(topics) ? topics : [],
-    isExclusionEvent,
-    additionalInfo: output?.additionalInfo,
-  };
+    const sortedList = sortGuestList(guests, userInfo);
+
+    return { isUserGoing: sortedList.isUserGoing, currentGuest: sortedList.currentUser, guests: sortedList.sortedGuests };
+  }
 };
 
-export const createEventGuest = async (slug: string, payload: any, authToken: string) => {
+export const deleteEventGuestByLocation = async (location: string, payload: any) => {
   const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest`,
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/guests`,
+    {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+    true
+  );
+
+  if (!response?.ok) {
+    return false;
+  }
+
+  return true;
+};
+
+export const createEventGuest = async (locationId: string, payload: any) => {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests`,
     {
       method: 'POST',
       cache: 'no-store',
@@ -124,14 +147,14 @@ export const createEventGuest = async (slug: string, payload: any, authToken: st
   );
 
   if (!response?.ok) {
-    return false;
+    return { error: response };
   }
-  return true;
+  return { data: response };
 };
 
-export const editEventGuest = async (slug: string, uid: string, payload: any, authToken: string) => {
+export const editEventGuest = async (locationId: string, guestUid: string, payload: any, eventType:string) => {
   const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/irl/events/${slug}/guest/${uid}`,
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestUid}?type=${eventType}`,
     {
       method: 'PUT',
       cache: 'no-store',
@@ -144,45 +167,8 @@ export const editEventGuest = async (slug: string, uid: string, payload: any, au
   );
 
   if (!response?.ok) {
-    return false;
+    return { error: response };
   }
 
-  return true;
-};
-
-export const getUserEvents = async (token: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/me/events`, {
-    method: 'GET',
-    cache: 'no-store',
-    headers: getHeader(token),
-  });
-
-  if (!response.ok) {
-    return {
-      errorCode: 500,
-    };
-  }
-
-  return await response.json();
-};
-
-export const deleteGuests = async (eventId: string, token: string, payload: { guests: [] }) => {
-  const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/irl/events/${eventId}/guests`,
-    {
-      method: 'POST',
-      cache: 'no-store',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    },
-    true
-  );
-
-  if (!response?.ok) {
-    return false;
-  }
-
-  return true;
+  return { data: response };
 };

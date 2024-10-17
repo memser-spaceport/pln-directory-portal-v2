@@ -126,6 +126,7 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED, params);
   }
 
+
   return {
     featuredSubmitRequestClicked,
     onMemberCardClicked,

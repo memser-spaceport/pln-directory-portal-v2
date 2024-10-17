@@ -90,13 +90,16 @@ export const getHuskyAugmentedInfo = async (authToken: string, query: string, an
   }
 };
 
-export const getHuskyResponse = async (authToken: string, query: string, source: string, chatUid: string, previousQues?: string | null, previousAns?: string | null, isBlog = false) => {
+export const getHuskyResponse = async (userInfo: any,authToken: string, query: string, source: string, chatUid: string, previousQues?: string | null, previousAns?: string | null, isBlog = false) => {
   const payload = {
     query,
     UID: chatUid,
     source,
     ...(previousQues && { promptHistory: previousQues }),
     ...(previousAns && { answerHistory: previousAns }),
+    ...(userInfo?.name && { name: userInfo?.name }),
+    ...(userInfo?.email && { email: userInfo?.email }), 
+    ...(userInfo?.uid && { directoryId: userInfo?.uid }),
   };
   const queryResponse = await fetch(`${process.env.HUSKY_API_URL}/retrieve`, {
     cache: 'no-store',

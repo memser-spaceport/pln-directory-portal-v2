@@ -147,7 +147,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
           font-size: 15px;
           line-height: 24px;
           color: #156ff7;
-          font-weight: 600;
+          font-weight: 500;
         }
 
         .addDetails__hdr__actions {

@@ -29,6 +29,8 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
   const [initialValues, setInitialValues] = useState({...teamRegisterDefault});
+  const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
+  
   const analytics = useJoinNetworkAnalytics();
 
   const scrollToTop = () => {
@@ -133,6 +135,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
+      formattedData['longDescription'] = content;
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
       if (currentStep === 'basic') {
         const teamBasicInfoErrors = await validateTeamBasicErrors(formattedData)
@@ -199,7 +202,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
         <form className="trf" onSubmit={onFormSubmit} ref={formRef} noValidate>
           <div ref={formContainerRef} className="trf__form">
             <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
-              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} />
+              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent}/>
             </div>
             <div className={currentStep !== 'project details' ? 'hidden' : 'form'}>
               <TeamProjectsInfo

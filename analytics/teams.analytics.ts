@@ -134,6 +134,30 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_SHOW_LESS_CLICKED, params)
       }
 
+      function onTeamDetailAboutEditClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params = {
+          ...team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_EDIT_CLICKED, params)
+      }
+
+      function onTeamDetailAboutEditCancelClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params =  {
+          ...team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_EDIT_CANCEL_CLICKED, params);
+      }
+
+      function onTeamDetailAboutEditSaveClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
+        const params = {
+          ...team,
+          user
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_EDIT_SAVE_CLICKED, params)
+      }
+
       function onTeamDetailShowMoreTechnologiesClicked(team: IAnalyticsTeamInfo | null, user: IAnalyticsUserInfo | null) {
         const params = {
           ...team,
@@ -223,7 +247,14 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED, params);
       }
 
-
+      function recordAboutSave(type: string, user: IAnalyticsUserInfo | null, payload?: any){
+        const params = {
+          type,
+          user,
+          ...payload,
+        };
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_SAVE, params);
+      }
 
       return {
         onOfficeHoursSelected,
@@ -252,7 +283,11 @@ export const useTeamAnalytics = () => {
         onScheduleMeetingClicked,
         onTeamDetailAddProjectClicked,
         onTeamDetailProjectEditClicked,
-        onTeamDetailOfficeHoursLoginClicked
+        onTeamDetailOfficeHoursLoginClicked,
+        onTeamDetailAboutEditSaveClicked,
+        onTeamDetailAboutEditCancelClicked,
+        onTeamDetailAboutEditClicked,
+        recordAboutSave
       }
 
 }

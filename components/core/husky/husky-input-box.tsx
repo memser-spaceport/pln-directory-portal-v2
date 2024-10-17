@@ -41,17 +41,39 @@ function HuskyInputBox(props: any) {
     onSourceSelected(value);
   };
 
+  const isMobileDevice = () => {
+    return /Mobi|Android/i.test(navigator.userAgent);
+  };
+
   useEffect(() => {
-    function handler(e: any) {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (inputRef.current) {
-        inputRef.current.innerText = e?.detail;
+        const isMobile = isMobileDevice();
+        if (event.key === 'Enter') {
+          if (isMobile || event.shiftKey) {
+            // Allow new line on mobile or with Shift + Enter on desktop
+            document.execCommand('insertLineBreak');
+            event.preventDefault();
+          } else {
+            // Submit on Enter on desktop
+            event.preventDefault();
+            onTextSubmit();
+          }
+        }
       }
-    }
-    document.addEventListener('husky-ai-input', handler);
-    return function () {
-      document.removeEventListener('husky-ai-input', handler);
     };
-  }, []);
+
+    const inputElement = inputRef.current;
+    if (inputElement) {
+      inputElement.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      if (inputElement) {
+        inputElement.removeEventListener('keydown', handleKeyDown);
+      }
+    };
+  }, [isAnswerLoading]);
 
   return (
     <>
@@ -59,6 +81,13 @@ function HuskyInputBox(props: any) {
         <img width={24} height={24} className="huskyinput__img" src="/images/husky-brain.png" alt="Husky Brain" />
         <div className="huskyinput__itemcn">
           <div ref={inputRef} data-placeholder="Ask follow up..." contentEditable={true} className="huskyinput__itemcn__textbox" tabIndex={0}></div>
+          {!isMobileDevice() && (
+            <div className="huskyinput__itemcn__instruction">
+              <p>
+                <span className="huskyinput__itemcn__instruction__tag">Shift</span> + <span className="huskyinput__itemcn__instruction__tag">Enter</span> for new line
+              </p>
+            </div>
+          )}
         </div>
         <div className="huskyinput__action">
           <PopoverDp.Wrapper>
@@ -97,6 +126,7 @@ function HuskyInputBox(props: any) {
             display: flex;
             gap: 8px;
             align-items: center;
+            position: relative;
           }
 
           .huskyinput::before {
@@ -146,6 +176,16 @@ function HuskyInputBox(props: any) {
             display: flex;
             gap: 8px;
             align-items: center;
+            position: relative;
+          }
+          .huskyinput__itemcn__instruction {
+            display: none;
+          }
+
+          .huskyinput__itemcn__instruction__tag {
+            border: 1px solid #CBD5E1;
+            padding: 2px 4px;
+            border-radius: 4px;
           }
 
           .huskyinput__action__menu {
@@ -230,6 +270,24 @@ function HuskyInputBox(props: any) {
               width: 30px;
               height: 30px;
               margin-left: -3px;
+            }
+            .huskyinput__itemcn__instruction {
+              position: absolute;
+              top: 0px;
+              right: 188px;
+              width: 180px;
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 11px;
+              color: #64748b;
+            }
+            .huskyinput__itemcn__instruction {
+              display: none;
+            }
+            .huskyinput__itemcn__textbox:empty + .huskyinput__itemcn__instruction {
+              display: flex;
             }
           }
         `}

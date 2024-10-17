@@ -64,7 +64,7 @@ export const getMemberRepositories = async (id: string) => {
   return result;
 };
 
-export const getMember = async (id: string, query: any, isLoggedIn?: boolean, userInfo?: any) => {
+export const getMember = async (id: string, query: any, isLoggedIn?: boolean, userInfo?: any, isHidePref: boolean = true) => {
   const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'no-store' };
   const memberResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}?${new URLSearchParams(query)}`, requestOPtions);
   // let memberRepository;
@@ -76,15 +76,19 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
 
   const result = await memberResponse?.json();
 
+  const teamAndRoles: { teamTitle: any; role: any; teamUid: any; }[] = [];
   const teams =
-    result.teamMemberRoles?.map((teamMemberRole: any) => ({
-      id: teamMemberRole.team?.uid || '',
-      name: teamMemberRole.team?.name || '',
-      role: teamMemberRole.role || 'Contributor',
-      teamLead: !!teamMemberRole.teamLead,
-      mainTeam: !!teamMemberRole.mainTeam,
-      logo: teamMemberRole?.team?.logo?.url ?? '',
-    })) || [];
+    result.teamMemberRoles?.map((teamMemberRole: any) => {
+      teamAndRoles.push({ teamTitle: teamMemberRole.team?.name, role: teamMemberRole.role, teamUid: teamMemberRole.team?.uid });
+      return {
+        id: teamMemberRole.team?.uid || '',
+        name: teamMemberRole.team?.name || '',
+        role: teamMemberRole.role || 'Contributor',
+        teamLead: !!teamMemberRole.teamLead,
+        mainTeam: !!teamMemberRole.mainTeam,
+        logo: teamMemberRole?.team?.logo?.url ?? '',
+      }
+    }) || [];
 
   const mainTeam = teams.find((team: any) => team?.mainTeam);
   const teamLead = teams.some((team: any) => team?.teamLead);
@@ -93,6 +97,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     name: result.name,
     email: result.email,
     bio: result.bio,
+    imageUid: result.image?.uid,
     profile: result.image?.url,
     githubHandle: result.githubHandler || null,
     discordHandle: result.discordHandler || null,
@@ -108,6 +113,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     openToWork: result.openToWork || false,
     linkedinHandle: result.linkedinHandler,
     repositories: [],
+    teamAndRoles: teamAndRoles,
     preferences: result.preferences ?? null,
   };
 
@@ -124,7 +130,9 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     } else {
       preferences = memberPreferences;
     }
-    hidePreferences(preferences, member);
+    if (isHidePref) {
+      hidePreferences(preferences, member);
+    }
   }
 
   if (!isLoggedIn) {
@@ -165,11 +173,13 @@ export const getMembersForProjectForm = async (teamId = null) => {
   let response;
   if (teamId) {
     response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc`, {
-      cache:'no-store'
+      method: 'GET',
+      cache: 'no-store',
     });
   } else {
     response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc`, {
-      cache:'no-store'
+      method: 'GET',
+      cache: 'no-store'
     });
   }
 
@@ -178,9 +188,9 @@ export const getMembersForProjectForm = async (teamId = null) => {
   }
   const result = await response.json();
   const formattedData = result?.map((member: any) => {
-    const mainTeam = member.teamMemberRoles.find((team: any) => team.mainTeam) || null;
-    const teamLead = member.teamMemberRoles.some((team: any) => team.teamLead);
-    const teams = member.teamMemberRoles?.map((teamMemberRole: any) => ({
+    const mainTeam = member?.teamMemberRoles?.find((team: any) => team?.mainTeam) || null;
+    const teamLead = member?.teamMemberRoles?.some((team: any) => team?.teamLead);
+    const teams = member?.teamMemberRoles?.map((teamMemberRole: any) => ({
       id: teamMemberRole.team?.uid ?? '',
       name: teamMemberRole.team?.name ?? '',
       logo: teamMemberRole?.team?.logo?.url ?? '',
@@ -188,17 +198,50 @@ export const getMembersForProjectForm = async (teamId = null) => {
     return {
       uid: member.uid,
       name: member.name,
-      logo: member.image?.url ? member.image.url : null,
+      logo: member.image?.url ? member.image?.url : null,
       teamMemberRoles: member?.teamMemberRoles,
       mainTeam: mainTeam,
       teamLead,
       teams,
-      preferences:member.preferences,
+      preferences: member?.preferences,
     }
   });
 
-  return {data: formattedData};
+  return { data: formattedData };
 };
+
+export const getMembersForAttendeeForm = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url&pagination=false&orderBy=name,asc`, {
+    method: 'GET',
+    cache: 'no-store'
+  });
+
+  if (!response.ok) {
+    return { isError: true, message: response.statusText }
+  }
+  const result = await response.json();
+  const formattedData = result?.map((member: any) => {
+    const mainTeam = member?.teamMemberRoles?.find((team: any) => team?.mainTeam) || null;
+    const teamLead = member?.teamMemberRoles?.some((team: any) => team?.teamLead);
+    const teams = member?.teamMemberRoles?.map((teamMemberRole: any) => ({
+      id: teamMemberRole.team?.uid ?? '',
+      name: teamMemberRole.team?.name ?? '',
+      logo: teamMemberRole?.team?.logo?.url ?? '',
+    })) || [];
+    return {
+      uid: member.uid,
+      name: member.name,
+      logo: member.image?.url ? member.image?.url : null,
+      teamMemberRoles: member?.teamMemberRoles,
+      mainTeam: mainTeam,
+      teamLead,
+      teams,
+      preferences: member?.preferences,
+    }
+  });
+  return { data: formattedData };
+};
+
 export const getMemberInfo = async (memberUid: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}`, {
     cache: 'no-store',
@@ -236,7 +279,7 @@ export const getMemberInfo = async (memberUid: string) => {
       currentProject: pc?.currentProject ?? false
     }
   })
-  
+
   const formatted = { ...result, imageUrl: result?.image?.url, moreDetails: result.moreDetails ?? '', openToWork: result.openToWork ?? false, officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills };
 
   return { data: formatted };
@@ -248,8 +291,8 @@ export const updateUserDirectoryEmail = async (payload: any, uid: string, header
     body: JSON.stringify(payload),
     headers: header
   })
-  
-  if(!result.ok) {
+
+  if (!result.ok) {
     return {
       isError: true,
       status: result.status,
@@ -286,7 +329,7 @@ export const getMembersInfoForDp = async () => {
 
 
 export const updateMember = async (uid: string, payload: any, authToken: string) => {
- const result =  await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}`, {
+  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member/${uid}`, {
     cache: 'no-store',
     method: 'PUT',
     body: JSON.stringify(payload),
@@ -296,12 +339,42 @@ export const updateMember = async (uid: string, payload: any, authToken: string)
       Authorization: `Bearer ${authToken}`,
     },
   });
-  
-  if(!result.ok) {
+
+  if (!result.ok) {
     const errorData = await result.json();
     return {
       isError: true,
-      errorData, 
+      errorData,
+      errorMessage: result.statusText,
+      status: result.status
+    }
+  }
+
+
+  const output = await result.json()
+
+  return {
+    data: output
+  }
+}
+
+export const updateMemberBio = async (uid: string, payload: any, authToken: string) => {
+  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}`, {
+    cache: 'no-store',
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!result.ok) {
+    const errorData = await result.json();
+    return {
+      isError: true,
+      errorData,
       errorMessage: result.statusText,
       status: result.status
     }

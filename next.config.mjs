@@ -8,10 +8,10 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: '/irl/token-2049',
-        destination: '/irl/token2049-24sg',
+        source: '/irl/lw24-web3',
+        destination: '/irl?location=Thailand',
         permanent: true,
-      },
+      }
     ];
   },
   env: {
@@ -29,6 +29,7 @@ const nextConfig = {
     IRL_DEFAULT_TOPICS: process.env.IRL_DEFAULT_TOPICS,
     IRL_PGF_FORM_URL: process.env.IRL_PGF_FORM_URL,
     HUSKY_API_URL: process.env.HUSKY_API_URL,
+    TEXT_EDITOR_API_KEY: process.env.TEXT_EDITOR_API_KEY
   },
   images: {
     remotePatterns: [

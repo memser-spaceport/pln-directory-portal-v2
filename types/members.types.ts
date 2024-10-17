@@ -10,6 +10,7 @@ export type IMemberListOptions = IListOptions & {
   'teamMemberRoles.team.uid'?: string | string[];
   plnFriend?: boolean;
   openToWork?: boolean;
+  isRecent?: boolean;
 };
 
 export interface IMemberResponse {
@@ -123,6 +124,7 @@ export interface IMembersSearchParams {
   openToWork: string;
   officeHoursOnly: string;
   memberRoles: string;
+  isRecent: string;
 }
 
 export interface IMemberDetailParams {

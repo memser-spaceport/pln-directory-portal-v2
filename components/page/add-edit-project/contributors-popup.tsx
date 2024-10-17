@@ -1,7 +1,4 @@
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
-import useClickedOutside from '@/hooks/useClickedOutside';
-import { getMembersForProjectForm } from '@/services/members.service';
-import { triggerLoader } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import { Fragment, useEffect, useRef, useState } from 'react';
 

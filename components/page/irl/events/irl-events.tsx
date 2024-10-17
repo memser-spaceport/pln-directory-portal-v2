@@ -84,7 +84,10 @@ const IrlEvents = (props: IIrlEvents) => {
     }
 
     function getFormattedDate(events: any) {
-        const result = getFormattedDateString(events[0]?.startDate, events[events?.length - 1]?.endDate);
+        const latestEvent = events.reduce((latest: { endDate: string | number | Date; }, event: { endDate: string | number | Date; }) => {
+            return new Date(event.endDate) > new Date(latest.endDate) ? event : latest;
+        }, events[0]);
+        const result = getFormattedDateString(events[0]?.startDate, latestEvent?.endDate);
         return `${result}`;
     }
 

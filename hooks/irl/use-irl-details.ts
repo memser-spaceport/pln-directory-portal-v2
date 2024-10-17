@@ -48,7 +48,7 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
   }, []);
 
   useEffect(() => {
-    let filteredItems = [...rawGuest];
+    let filteredItems = [...rawGuest] as any;
 
     //search by memberName, teamName, projectName
     if (searchItem?.trim() !== '') {
@@ -58,7 +58,7 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
           v?.teamName?.toLowerCase()?.includes(searchItem?.toLowerCase()?.trim()) ||
           v?.projectContributions?.some((project: string) => project?.toLowerCase()?.includes(searchItem?.toLowerCase()?.trim()))
       );
-      filteredItems = filteredItems.sort((a, b) => a?.memberName.localeCompare(b?.memberName));
+      filteredItems = filteredItems.sort((a:any, b:any) => a?.memberName.localeCompare(b?.memberName));
     }
 
     //sort by team & member
@@ -75,7 +75,7 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
         const sortedGuests = sortByDefault(filteredItems);
         filteredItems = sortedGuests;
 
-        const isUserGoing = filteredItems.some((guest) => guest.memberUid === userInfo.uid);
+        const isUserGoing = filteredItems.some((guest:any) => guest.memberUid === userInfo.uid);
 
         if (isUserGoing) {
           const currentUser = [...sortedGuests]?.find((v) => v.memberUid === userInfo?.uid);
@@ -100,6 +100,12 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
     if (filterConfig['topics']?.length > 0) {
       const selectedTopics = new Set(filterConfig['topics']);
       filteredItems = [...filteredItems]?.filter((item) => item.topics.some((topic: any) => selectedTopics?.has(topic)));
+    }
+
+    // events filter
+    if (filterConfig['events']?.length > 0) {
+      const selectedEvents = new Set(filterConfig['events']);
+      filteredItems = [...filteredItems]?.filter((item) => item.eventNames?.some((event: any) => selectedEvents?.has(event)));
     }
 
     // Update the filtered list

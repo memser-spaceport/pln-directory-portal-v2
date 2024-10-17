@@ -12,6 +12,7 @@ export interface ITeamsSearchParams {
     page?: string;
     officeHoursOnly: string;
     focusAreas: string;
+    isRecent: string;
   }
   
 
@@ -61,6 +62,7 @@ export interface ITeamsSearchParams {
     role?: string;
     id: string;
     logo?: string;
+    logoUid?: string;
     name?: string | null;
     shortDescription?: string | null;
     longDescription?: string | null;

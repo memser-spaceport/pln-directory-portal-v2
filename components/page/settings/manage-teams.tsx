@@ -40,6 +40,7 @@ function ManageTeamsSettings(props: any) {
   };
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
+  const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
   const analytics = useSettingsAnalytics();
 
   const handleTabClick = (v: string) => {
@@ -160,6 +161,7 @@ function ManageTeamsSettings(props: any) {
 
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
+      formValues.longDescription = content;
       const formattedInputValues = transformRawInputsToFormObj(formValues);
       analytics.recordManageTeamSave('save-click', getAnalyticsUserInfo(userInfo), formattedInputValues);
       const basicInfoErrors: any = await validateBasicInfo({ ...formattedInputValues });
@@ -227,7 +229,7 @@ function ManageTeamsSettings(props: any) {
             actionRef.current.style.visibility = 'hidden';
           } */
         toast.success('Team updated successfully');
-        window.location.href = `/settings/teams?id=${selectedTeam.uid}`;
+        // window.location.href = `/settings/teams?id=${selectedTeam.uid}`;
         analytics.recordManageTeamSave('save-success', getAnalyticsUserInfo(userInfo), payload);
       }
     } catch (e) {
@@ -243,6 +245,7 @@ function ManageTeamsSettings(props: any) {
       const formValues = Object.fromEntries(formData);
       const apiObjs = transformTeamApiToFormObj({ ...initialValues });
       const formattedInputValues = transformRawInputsToFormObj(formValues);
+      // formattedInputValues.longDescription = content;
       delete formattedInputValues.teamProfile;
       if (!formattedInputValues.teamFocusAreas) {
         formattedInputValues.teamFocusAreas = [];
@@ -335,7 +338,7 @@ function ManageTeamsSettings(props: any) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <TeamBasicInfo isEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} />
+            <TeamBasicInfo isEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent}/>
           </div>
           <div className={`${activeTab.name !== 'project details' ? 'hidden' : ''}`}>
             <TeamProjectsInfo

@@ -1,40 +1,71 @@
-.irl {
+.irlGatherings__cn {
   display: flex;
   flex-direction: column;
-  width: 100dvw;
   background-color: #f1f5f9;
 }
 
-.irl__banner {
-  height: 230px;
-  border: 8px solid #ffffff;
-  box-shadow: 0px 4px 4px 0px #0f172a0a;
+.irlGatherings {
+  background-color: #f1f5f9;
 }
 
-.irl__header {
-  width: 100%;
-  padding: 16px 20px;
-  border-bottom: 1px solid #cbd5e1;
+.irlGatheings__locations {
+  height: 177px;
+  border-radius: 16px;
+  padding: 16px;
+  gap: 16px;
+}
+
+.irlGatherings__events {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+@media (min-width: 360px) {
+  .irlGatheings__locations {
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    margin: unset;
+    background-color: #E4EDF7;
+    height: 122px;
+    padding: 10px;
+    border-radius: unset;
+    margin-right: 13px;
+    max-width: 782px;
+  }
+
+  .irlGatherings__events {
+    border-radius: unset;
+    margin: none;
+  }
 }
 
 @media (min-width: 1024px) {
-  .irl {
-    padding-top: 40px;
+  .irlGatherings {
     width: 900px;
     margin: auto;
   }
 
-  .irlWrpr {
-    background-color: #f1f5f9;
+  .irlGatheings__locations {
+    border-radius: 16px;
+    height: 173px;
+    border: 1px solid #0f172a0a;
+    border-radius: 16px;
+    gap: 16px;
+    overflow: unset;
+    position: relative;
+    background-color: unset;
+    max-width: 900px;
   }
 
-  .irl__banner {
-    height: 200px;
+  .irlGatherings__events {
+    overflow-x: unset;
     border-radius: 16px;
   }
-
-  .irl__header {
-    margin-top: 12px;
-    padding: 18px 0px;
+  
+  .irlGatheings__guests {
+    padding-top: 32px;
   }
 }

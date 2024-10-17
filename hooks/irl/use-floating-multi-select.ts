@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react';
 const useFloatingMultiSelect = (props: any) => {
   const items = props.items ?? [];
   const alreadySelected = props?.selectedItems ?? [];
-  const sortedItems = [...items].sort((a, b) =>
-    a?.toLowerCase() > b?.toLowerCase() ? 1 : -1
-  );
+  // const sortedItems = [...items].sort((a, b) =>
+  //   a?.toLowerCase() > b?.toLowerCase() ? 1 : -1
+  // );
   const [isPaneActive, setIsPaneActive] = useState(false);
-  const [filteredItems, setFilteredItems] = useState([...sortedItems]);
+  const [filteredItems, setFilteredItems] = useState([...items]);
+
   const [selectedItems, setSelectedItems] = useState(alreadySelected);
 
   const onOpenPane = () => {
@@ -49,8 +50,11 @@ const useFloatingMultiSelect = (props: any) => {
   }, [alreadySelected?.length]);
 
   useEffect(() => {
+    const sortedItems = [...items].sort((a, b) =>
+      a?.toLowerCase() > b?.toLowerCase() ? 1 : -1
+    );
     setFilteredItems(sortedItems);
-  }, [items?.length]);
+  }, [JSON.stringify(items)]);
 
   return {
     onInputChange,

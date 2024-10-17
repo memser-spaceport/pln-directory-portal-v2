@@ -143,7 +143,7 @@ export const dateDifference = (date1: any, date2: any) => {
 };
 
 export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): IMemberListOptions {
-  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles } = queryParams;
+  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent } = queryParams;
 
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase();
@@ -160,6 +160,7 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
     ...(metroArea ? { 'location.city__with': stringifyQueryValues(metroArea) } : {}),
     ...(includeFriends ? {} : { plnFriend: false }),
     ...(openToWork ? { openToWork: true } : {}),
+    ...(isRecent ? { isRecent: true } : {}),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(memberRoles ? { memberRoles: stringifyQueryValues(memberRoles) } : {}),
     orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
@@ -171,7 +172,7 @@ export function getMembersListOptions(options: IMemberListOptions) {
     ...options,
     pagination: false,
     select:
-      'uid,name,openToWork,image.url,location.metroArea,location.country,location.region,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
+      'uid,name,openToWork,isRecent,image.url,location.metroArea,location.country,location.region,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
   };
 }
 

@@ -56,6 +56,9 @@ export const EVENTS = {
   GET_NOTIFICATIONS: 'get-notifications',
   TRIGGER_RATING_POPUP: 'trigger-notification-popup',
   OPEN_MEMBER_BIO_POPUP: 'open-member-bio-popup',
+  UPDATE_TELEGRAM_HANDLE: 'update-telegram-handle',
+  UPDATE_OFFICE_HOURS: 'update-office-hours',
+  OPEN_IAM_GOING_POPUP: 'open-iam-going-popup',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -161,6 +164,12 @@ export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_DETAIL_SEEALL_CLICKED: 'project-detail-teams-seeall-clicked',
   PROJECT_DETAIL_SEE_ALL_CONTRIBUTORS_CLICKED: 'project-detail-see-all-contributors-clicked',
   PROJECT_DETAIL_CONTRIBUTOR_PROFILE_CLICKED: 'project-detail-contributor-profile-clicked',
+  PROJECT_DETAIL_DESC_SHOW_MORE_CLICKED: 'project-detail-desc-show-more-clicked',
+  PROJECT_DETAIL_DESC_SHOW_LESS_CLICKED: 'project-detail-desc-show-less-clicked',
+  PROJECT_DETAIL_DESC_CANCEL_CLICKED: 'project-detail-desc-cancel-clicked',
+  PROJECT_DETAIL_DESC_EDIT_CLICKED: 'project-detail-desc-edit-clicked',
+  PROJECT_DETAIL_DESC_EDIT_SAVE_CLICKED:  'project-detail-desc-edit-save-clicked',
+  PROJECT_DETAIL_DESC_EDIT_SAVE: 'project-detail-desc-edit-save',
 
   PROJECT_LIST_FILTERS_APPLIED: 'projects-filters-applied',
   PROJECT_LIST_FILTERS_CLEARED: 'projects-filters-cleared',
@@ -234,6 +243,9 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_EDIT_BY_ADMIN: 'team-edit-by-admin',
   TEAM_DETAIL_ABOUT_SHOW_MORE_CLICKED: 'team-detail-about-show-more-clicked',
   TEAM_DETAIL_ABOUT_SHOW_LESS_CLICKED: 'team-detail-show-less-clicked',
+  TEAM_DETAIL_ABOUT_EDIT_CLICKED: 'team-detail-edit-clicked',
+  TEAM_DETAIL_ABOUT_EDIT_CANCEL_CLICKED: 'team-detail-about-edit-cancel-clicked',
+  TEAM_DETAIL_ABOUT_EDIT_SAVE_CLICKED: 'team-detail-about-edit-save-clicked',
   TEAM_DETAIL_SHOW_MORE_TECHNOLOGY_CLICKED: 'team-detail-show-more-technology-clicked',
   TEAM_DETAIL_CONTACT_CLICKED: 'team-detail-contact-clicked',
   TEAM_DETAIL_SEE_ALL_PROJECTS_CLICKED: 'team-detail-projects-see-all-clicked',
@@ -244,6 +256,7 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_OFFICEHOURS_CLICKED: 'team-officehours-clicked',
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
   TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED: 'team-officehours-login-btn-clicked',
+  TEAM_DETAIL_ABOUT_SAVE: 'team-detail-about-save',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -280,49 +293,14 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_GITHUB_HANDLE_UPDATE_CLICKED: 'member-detail-github-handle-update-clicked',
   MEMBER_DETAIL_BIO_READ_MORE_CLICKED: 'member-detail-bio-read-more-clicked',
   MEMBER_DETAIL_BIO_READ_LESS_CLICKED: 'member-detail-bio-read-less-clicked',
+  MEMBER_DETAIL_BIO_EDIT_CLICKED: 'member-detail-bio-edit-clicked',
+  MEMBER_DETAIL_BIO_EDIT_CANCEL_CLICKED: 'member-detail-bio-edit-cancel-clicked',
+  MEMBER_DETAIL_BIO_EDIT_SAVE_CLICKED: 'member-detail-bio-edit-save-clicked',
+  MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE: 'member-detail-bio-edit-record-save',
 };
 
 export const IRL_ANALYTICS_EVENTS = {
-  IRL_GATHERING_CARD_CLICKED: 'irl_gathering_card_clicked',
-  IRL_INVITE_ONLY_RESTRICTION_POPUP_LOGIN_CLICKED: 'irl_invite_only_restriction_popup_login_clicked',
-
-  IRL_DETAILS_NAVBAR_BACK_BTN_CLICKED: 'irl-navbar-back-btn-clicked',
-  IRL_DETAILS_RESOURCE_CLICKED: 'irl-resource-clicked',
-  IRL_DETAILS_RESOURCES_LOGIN_BTN_CLICKED: 'irl-resources-login-btn-clicked',
-  IRL_DETAILS_RESOURCE_POPUP_RESOURCE_LINK_CLICKED: 'irl-banner-resource-popup-resource-link-clicked',
-  IRL_DETAILS_RESOURCE_POPUP_LOGIN_CLICKED: 'irl-resource-popup-login-clicked',
-  IRL_DETAILS_RESOURCES_SEE_MORE_CLICKED: 'irl-resources-see-more-clicked',
-  IRL_DETAILS_INFO_STRIP_JOIN_BTN_CLICKED: 'irl-info-strip-join-btn-clicked',
-  IRL_DETAILS_JOIN_EVENT_STRIP_LOGIN_BTN_CLICKED: 'irl-join-event-strip-login-btn-clicked',
-  IRL_DETAILS_JOIN_EVENT_STRIP_IAM_GOING_BTN_CLICKED: 'irl-join-event-strip-iam-going-btn-clicked',
-
-  IRL_DETAILS_GUEST_LIST_SEARCH: 'irl-guest-list-search',
-  IRL_DETAILS_BANNER_VIEW_SCHEDULE_BTN_CLICKED: 'irl-banner-view-schedule-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_LOGIN_BTN_CLICKED: 'irl-guest-list-login-btn-clicked',
-  IRL_DETAILS_EDIT_RESPONSE_BTN_CLICKED: 'irl-edit-response-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_IAM_GOING_BTN_CLICKED: 'irl-guest-list-iam-going-btn-clicked',
-
-  IRL_DETAILS_GUEST_LIST_TABLE_SORT_CLICKED: 'irl-guest-list-table-sort-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_FILTER_BTN_CLICKED: 'irl-guest-list-table-filter-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_FILTER_APPLY_BTN_CLICKED: 'irl-guest-list-table-filter-apply-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_LOGIN_BTN_CLICKED: 'irl-guest-list-table-login-btn-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_TEAM_CLICKED: 'irl-guest-list-table-team-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_MEMBER_CLICKED: 'irl-guest-list-table-member-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_TELEGRAM_LINK_CLICKED: 'irl-guest-list-table-telegram-link-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_OFFICE_HOURS_LINK_CLICKED: 'irl-guest-list-table-office-hours-link-clicked',
-  IRL_DETAILS_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED: 'irl-guest-list-table-add-office-hours-clicked',
-  IRL_DETAILS_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
-  IRL_DETAILS_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
-  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-remove-attendees-popup-open',
-  IRL_DETAILS_FLOATING_BAR_EDIT_BTN_CLICKED: 'irl-floating-bar-edit-btn-clicked',
-  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_BTN_CLICKED: 'irl-remove-attendees-popup-remove-btn-clicked',
-  IRL_DETAILS_REMOVE_ATTENDEES_POPUP_REMOVE_SUCCESS: 'irl-remove-attendees-popup-remove-success',
-
-  IRL_RSVP_POPUP_SAVE_BTN_CLICKED: 'irl-rsvp-popup-save-btn-clicked',
-  IRL_RSVP_POPUP_UPDATE_BTN_CLICKED: 'irl-rsvp-popup-update-btn-clicked',
-  IRL_RSVP_POPUP_SAVE_ERROR: 'irl-rsvp-popup-save-error',
-  IRL_RSVP_POPUP_OH_GUIDELINE_URL_CLICKED: 'irl-rsvp-popup-oh-guideline-url-clicked',
-  IRL_RSVP_POPUP_PRIVACY_SETTING_LINK_CLICKED: 'irl-rsvp-popup-privacy-setting-link-clicked',
+  
 };
 
 export const HOME_ANALYTICS_EVENTS = {
@@ -449,18 +427,36 @@ export const TEAM_OFFICE_HOURS_MSG = 'Join office hours discussion with';
 
 export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Details'];
 
-export const INVITE_ONLY_RESTRICTION_ERRORS = {
-  NOT_LOGGED_IN: 'not_logged_in',
-  UNAUTHORIZED: 'unauthorized',
-};
-
 export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
+  PUBLIC: 'PUBLIC',
 };
 
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.0 - Enhanced IRL Gatherings Experience!',
+    tag: 'Improvements',
+    releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },
+    date: '17, Oct 2024',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <p>We are excited to announce a complete overhaul of our IRL Gatherings platform! This revamp brings several key updates designed to make discovering, attending, and engaging with events and their organizers easier.</p>
+    <br/>
+    <p>This new layout is designed to be intuitive, ensuring you can quickly find the events that matter most to you based on your location. Whether you’re searching for upcoming events or reflecting on past ones, you will be able to move through the platform with ease.</p>
+    <br/>
+    <p>Here’s what’s new:</p>
+    <br/>
+    <p><b>Location-Centric Event Grouping</b>: In this new version, all events are now grouped by their respective locations, making it simpler to explore gatherings happening in your area. You can now view a comprehensive list of events happening at any given location, with an easy-to-use interface that allows you to toggle between upcoming and past events. Whether you are looking forward to the next big gathering or want to revisit an event that took place earlier, all the details are at your fingertips.</p>
+    <br/>
+    <p><b>Comprehensive Event Insights</b>: Each event listing now comes with expanded details, including information on the speakers and hosts for specific events. This gives you a better understanding of who will be leading the event, offering insights into their expertise and the topics they will cover. With this update, you will know exactly who’s shaping the conversation and experience, allowing you to make more informed decisions about which gatherings to attend.</p>
+    <br/>
+    <p>This revamp transforms the way you explore and engage with IRL gatherings, helping you stay connected with the right events and the right people.</p>
+    <br/>
+    <p> Dive in today and make the most out of your experience with our network!</p>
+    </div>`,
+  },
   {
     title: 'Version 4.0.0 -  Introducing the All New Home Page',
     tag: 'New Feature',
@@ -688,8 +684,6 @@ export const tagColors = [
   { name: 'Fixed', color: '#4871D9' },
 ];
 
-export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
-
 export const SOCIAL_IMAGE_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Directory-Portal-Thumbnail-BETA-removed.png';
 
 export const OFFICE_HOURS_STEPS = {
@@ -801,5 +795,125 @@ export const NOTIFICATION_REFETCH_TIME = 300000;
 
 export const HOME_PAGE_LINKS = {
   FEATURED_REQUEST_URL: 'https://airtable.com/appgb6O7eF6mBEl8t/pagZ15qnE9hcxpuP0/form',
-  FOCUSAREA_PROTOCOL_LABS_VISION_URL: 'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/',
+  FOCUSAREA_PROTOCOL_LABS_VISION_URL: 'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/'
 };
+
+export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
+
+export const IAM_GOING_POPUP_MODES = {
+  ADD: 'ADD',
+  EDIT: 'EDIT',
+  ADMINADD: 'ADMINADD',
+}
+
+export const PLN_LOCATIONS = [{
+  id: 1,
+  location: "Kyoto",
+  flag: "&#127471;&#127477;",
+  icon: "/images/irl/kyoto.svg",
+  pastEvents: 7,
+  upcomingEvents: 6,
+  isActive: true,
+}, 
+{
+  id: 2,
+  location: "Mumbai",
+  flag: "&#127470;&#127475;",
+  icon: "/images/irl/mumbai.svg",
+  pastEvents: 4,
+  upcomingEvents: 10,
+  isActive: false,
+}, 
+{
+  id: 3,
+  location: "Australia",
+  flag: "&#127462;&#127482;",
+  icon: "/images/irl/australia.svg",
+  pastEvents: 2,
+  upcomingEvents: 4,
+  isActive: false,
+}, 
+{
+  id: 4,
+  location: "France", 
+  flag: "&#127467;&#127479;",
+  icon: "/images/irl/france.svg",
+  pastEvents: 8,
+  upcomingEvents: 2,
+  isActive: false,
+},
+{
+  id: 5,
+  location: "USA",
+  flag: "&#127482;&#127480;",
+  icon: "",
+  pastEvents: 2,  
+  upcomingEvents: 3,
+  isActive: false,
+},
+{
+  id: 6,
+  location: "Bali",
+  flag: "&#127470;&#127465",
+  icon: "",
+  pastEvents: 1,  
+  upcomingEvents: 6,
+  isActive: false,
+},
+{
+  id: 7,
+  location: "Brazil",
+  flag: "&#127463;&#127479;",
+  icon: "",
+  pastEvents: 3,  
+  upcomingEvents: 2,
+  isActive: false,
+},
+{
+  id: 8,
+  location: "Bangalore",
+  flag: "&#127470;&#127475;",
+  icon: "",
+  pastEvents: 5,  
+  upcomingEvents: 7,
+  isActive: false,
+},
+{
+  id: 9,
+  location: "Canberra",
+  flag: "&#127462;&#127482;",
+  icon: "",
+  pastEvents: 4,  
+  upcomingEvents: 3,
+  isActive: false,
+},
+{
+  id: 10,
+  location: "Bangalore",
+  flag: "&#127470;&#127475;",
+  icon: "",
+  pastEvents: 5,  
+  upcomingEvents: 7,
+  isActive: false,
+},
+{
+  id: 11,
+  location: "Canberra",
+  flag: "&#127462;&#127482;",
+  icon: "",
+  pastEvents: 4,  
+  upcomingEvents: 3,
+  isActive: false,
+}
+];
+
+export const IRL_ATTENDEE_FORM_ERRORS = {
+  CHECKOUT_DATE_REQUIRED: "Departure date is required",
+  CHECKIN_DATE_REQUIRED: "Arrival date is required",
+  DATE_DIFFERENCE : "Departure date should be greater than or equal to the Arrival date",
+  SELECT_MEMBER: "Please select a member",
+  SELECT_GATHERING: "At least one Gathering should be selected",
+
+}
+
+export const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

@@ -32,7 +32,7 @@ const HuskyFeedback = (props: any) => {
       forceUserLogin()
     }
     if (userInfo) {
-      trackFeedbackStatus('initiated')
+      trackFeedbackStatus('initiated', ratingInfo.rating, question)
       const memberInfo = await getMemberInfo(userInfo.uid);
       const memberDetails = memberInfo.data;
       const payload = {
@@ -50,15 +50,15 @@ const HuskyFeedback = (props: any) => {
       const response = await saveFeedback(newAuthToken, payload);
       setLoadingStatus(false);
       if(response.isSaved) {
-        trackFeedbackStatus('success')
+        trackFeedbackStatus('success', ratingInfo.rating, question)
         setStep('success')
       } else {
-        trackFeedbackStatus('error')
+        trackFeedbackStatus('error', ratingInfo.rating, question)
         setStep('error');
       }
     }
     } catch (error) {
-      trackFeedbackStatus('error')
+      trackFeedbackStatus('error', ratingInfo.rating, question)
       setStep('error');
     }
   };

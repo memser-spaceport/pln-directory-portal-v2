@@ -1,7 +1,6 @@
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from './constants';
 import { ITeam } from '@/types/teams.types';
-import { isPastDate } from './irl.utils';
 import Cookies from 'js-cookie'
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
@@ -93,6 +92,16 @@ export const getAnalyticsNotificationInfo = (notification: any) => {
   };
 };
 
+export const getAnalyticsLocationInfo = (location: any) => {
+  if (location) {
+    return { locationUid: location?.uid, locationName: location?.name };
+  }
+  return {
+    locationUid: '',
+    locationName: '',
+  };
+};
+
 export const getAnalyticsTeamInfo = (team: ITeam | undefined) => {
   if (team?.name && team?.shortDescription) {
     return { name: team?.name ?? '', shortDescription: team?.shortDescription ?? '' };
@@ -128,10 +137,6 @@ export const getAnalyticsProjectInfo = (project: any) => {
   return null;
 };
 
-export const getAnalyticsEventInfo = (event: any) => {
-  const isPastEvent = isPastDate(event?.endDate);
-  return { eventId: event?.id, eventName: event?.name, isPastEvent, type: event?.type };
-};
 
 export const getQuery = (searchParams: any) => {
   return {
@@ -140,6 +145,7 @@ export const getQuery = (searchParams: any) => {
     fundingStage: searchParams?.fundingStage ?? '',
     technology: searchParams?.technology ?? '',
     includeFriends: searchParams?.includeFriends ?? '',
+    isRecent: searchParams?.isRecent ?? '',
     openToWork: searchParams?.openToWork ?? '',
     officeHoursOnly: searchParams?.officeHoursOnly ?? '',
     skills: searchParams?.skills ?? '',
@@ -319,3 +325,21 @@ export const calculateTime = (inputDate: any) => {
     }
   }
 };
+
+
+export function removeAtSymbol(str: string) {
+  try {
+    if (str.startsWith('@')) {
+      return str.slice(1);
+    }
+    return str;
+  } catch (error) {
+    return str
+  }
+}
+
+export function getTelegramUsername(input: string) {
+  const regex = /(?:https?:\/\/)?(?:www\.)?t(?:elegram)?\.me\/([a-zA-Z0-9_]+)/;
+  const match = input?.match(regex);
+  return match ? match[1] : input;
+}

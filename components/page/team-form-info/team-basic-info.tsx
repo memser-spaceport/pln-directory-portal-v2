@@ -1,12 +1,15 @@
 'use client';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
+import TextEditor from '@/components/ui/text-editor';
 import { useEffect, useRef, useState } from 'react';
 
 interface ITeamBasicInfo {
   errors: string[];
   initialValues: any;
   isEdit?: boolean;
+  longDesc: string;
+  setLongDesc: (content: string) => void;
 }
 
 function TeamBasicInfo(props: ITeamBasicInfo) {
@@ -131,7 +134,13 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           </p>
         </div>
         <div className="teaminfo__form__item">
-          <TextArea
+          {
+            <label className={`tf__label`}>
+              Long Description*
+            </label>
+          }
+          <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id="register-team-longDescription" />
+          {/* <TextArea
             defaultValue={initialValues?.longDescription}
             maxLength={2000}
             isMandatory
@@ -139,7 +148,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             name="longDescription"
             label="Long description*"
             placeholder="Elaborate on your elevator pitch here"
-          />
+          /> */}
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
             <span className="info__text">Please explain what your team does in a bit more detail. 4-5 sentences will be great!</span>
@@ -163,6 +172,11 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
       </div>
       <style jsx>
         {`
+        .tf__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+          }
           .teaminfo__form {
             display: flex;
             flex-direction: column;

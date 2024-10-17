@@ -701,7 +701,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         }
 
         .gtr__connect {
-        align-self: baseline;
+        align-self: flex-start;
         }
 
         .gtr__connect__loggedOut__cntr {

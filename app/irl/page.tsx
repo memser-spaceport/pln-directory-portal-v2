@@ -15,15 +15,14 @@ import IrlErrorPage from '@/components/core/irl-error-page';
 export default async function Page({ searchParams }: any) {
   const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError} = await getPageData(searchParams);
 
-  if (isError) {
-    return <Error />;
-  }
-  
   if (isLocationError) {
     return <IrlErrorPage />;
   }
 
-
+  if (isError) {
+    return <Error />;
+  }
+  
   return (
     <div className={styles.irlGatherings}>
       <div className={styles.irlGatherings__cn}>

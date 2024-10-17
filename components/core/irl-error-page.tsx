@@ -23,7 +23,7 @@ const IrlErrorPage = () => {
                 {`
             .error-container {
                 position: fixed;
-                top: 0;
+                top: 40px;
                 width: 100vw;
                 height: 100dvh;
                 display: flex; 
@@ -107,7 +107,7 @@ const IrlErrorPage = () => {
                 }
 
                 .error-container__content__message  {
-                    padding: 0px 20px 20px 20px;
+                    padding: 0px 20px 0px 20px;
                 }
             }
 
@@ -115,7 +115,7 @@ const IrlErrorPage = () => {
                 .error-container__content__notfoundcontainer {
                     height: 232px;
                 }
-                    
+
                 .error-container__content__message__title {
                     font-size: 26px;
                     line-height: 31px;

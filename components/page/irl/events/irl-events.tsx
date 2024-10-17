@@ -84,10 +84,28 @@ const IrlEvents = (props: IIrlEvents) => {
     }
 
     function getFormattedDate(events: any) {
-        const latestEvent = events.reduce((latest: { endDate: string | number | Date; }, event: { endDate: string | number | Date; }) => {
-            return new Date(event.endDate) > new Date(latest.endDate) ? event : latest;
-        }, events[0]);
-        const result = getFormattedDateString(events[0]?.startDate, latestEvent?.endDate);
+
+        const startDateList = events?.map((gathering: any) => gathering.startDate);
+        const endDateList = events?.map((gathering: any) => gathering.endDate);
+    
+        let leastStartDate = startDateList[0];
+        let highestEndDate = endDateList[0];
+    
+        startDateList?.map((startDate: string) => {
+          const date = new Date(startDate);
+          if (date < new Date(leastStartDate)) {
+            leastStartDate = startDate;
+          }
+        });
+    
+        endDateList?.map((endDate: string) => {
+          const date = new Date(endDate);
+          if (date > new Date(highestEndDate)) {
+            highestEndDate = endDate;
+          }
+        });
+    
+        const result = getFormattedDateString(leastStartDate, highestEndDate);
         return `${result}`;
     }
 

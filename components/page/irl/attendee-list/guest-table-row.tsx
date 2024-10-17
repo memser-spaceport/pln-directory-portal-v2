@@ -697,7 +697,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           flex-direction: column;
           gap: 4px;
           padding-right: 10px;
-          justify-content: center;
+          justify-content: flex-start;
         }
 
         .gtr__connect {

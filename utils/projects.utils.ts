@@ -1,7 +1,7 @@
 import { getSortFromQuery, stringifyQueryValues } from './common.utils';
 
 export const getProjectsFiltersFromQuery = (queryParams: any) => {
-  const { sort, funding, team, searchBy, focusAreas } = queryParams;
+  const { sort, funding, team, searchBy, focusAreas, isRecent } = queryParams;
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase();
 
@@ -10,6 +10,7 @@ export const getProjectsFiltersFromQuery = (queryParams: any) => {
     ...(team ? { maintainingTeamUid: team } : {}),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(focusAreas ? { focusAreas: stringifyQueryValues(focusAreas) } : {}),
+    ...(isRecent ? { isRecent: true } : {}),
     orderBy: sort ? `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}` : 'score,name',
   };
 };

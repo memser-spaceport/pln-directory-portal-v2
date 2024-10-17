@@ -49,6 +49,7 @@ export default function AddEditProjectForm(props: any) {
   const [generalErrors, setGeneralErrors] = useState<string[]>([]);
   const [kpiErrors, setKpiErrors] = useState<string[]>([]);
   const [contributorsErrors, setcontributorsErrors] = useState<string[]>([]);
+  const [content, setContent] = useState(project?.description ?? '');
 
   const analytics = useProjectAnalytics();
 
@@ -66,6 +67,8 @@ export default function AddEditProjectForm(props: any) {
     }
     const formData = new FormData(addFormRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
+
+    // formattedData['description'] = content;
     if (currentStep === 'General') {
       let errors: string[] = [];
       const result = generalInfoSchema.safeParse(formattedData);
@@ -137,6 +140,7 @@ export default function AddEditProjectForm(props: any) {
       const formData = new FormData(addFormRef.current);
 
       let formattedData = transformObject(Object.fromEntries(formData));
+      formattedData.description = content;
       formattedData = {
         ...formattedData,
         logoUid: project?.logoUid,
@@ -285,6 +289,8 @@ export default function AddEditProjectForm(props: any) {
             contributions[contributionsTeamIndex][subKey] = object[key];
           }
         }
+      } else if (key.startsWith('rich-text-editor')) {
+        result['description'] = object[key];
       } else {
         result[key] = object[key];
       }
@@ -334,7 +340,7 @@ export default function AddEditProjectForm(props: any) {
       <form className="addEditForm" ref={addFormRef} onSubmit={onFormSubmitHandler} noValidate>
         <div className="addEditForm__container">
           <div className={`${currentStep === 'General' ? 'form addEditForm__container__general ' : 'hidden'}`}>
-            <ProjectGeneralInfo errors={generalErrors} project={project} />
+            <ProjectGeneralInfo errors={generalErrors} project={project} longDesc={content} setLongDesc={setContent}/>
           </div>
           <div className={`${currentStep === 'Contributors' ? 'form' : 'hidden'}`}>
             <ProjectContributorsInfo project={project} errors={contributorsErrors} />

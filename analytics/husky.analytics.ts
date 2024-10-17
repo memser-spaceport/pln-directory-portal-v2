@@ -59,8 +59,8 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_action_card_clicked, {...action})
   }
 
-  function trackSharedBlog(blogId: string, mode: string) {
-    captureEvent(events.husky_open_shared_blog, {blogId, mode });
+  function trackSharedBlog(blogId: string, mode: string, question: string) {
+    captureEvent(events.husky_open_shared_blog, {blogId, mode, question });
   }
 
   function trackFollowupQuestionClick(mode: string, question: string, blogId?: string | null) {
@@ -75,12 +75,12 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_user_feedback_clicked, { question, answer });
   }
 
-  function trackFeedbackStatus( status: string) {
-    captureEvent(events.husky_user_feedback_status, { status });
+  function trackFeedbackStatus( status: string, rating: string, question: string) {
+    captureEvent(events.husky_user_feedback_status, { feedbackStatus: status, rating, question });
   }
 
-  function trackAiResponse(status: string, mode: string) {
-    captureEvent(events.husky_ai_response, { status, mode, });
+  function trackAiResponse(status: string, mode: string, isBlog: boolean, question: string) {
+    captureEvent(events.husky_ai_response, { huskyResponse: status, mode, isBlog, question });
   }
 
   function trackRegenerate() {

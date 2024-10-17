@@ -149,14 +149,6 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_CANCELLED, params);
   }
 
-  function onProjectDetailReadMeEditSaveBtnClicked(user: IAnalyticsUserInfo | null, projectId: string) {
-    const params = {
-      user,
-      projectId,
-    };
-    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE, params);
-  }
-
   function onProjectDetailReadMeEditSuccess(user: IAnalyticsUserInfo | null, projectId: string) {
     const params = {
       user,
@@ -307,6 +299,63 @@ export const useProjectAnalytics = () => {
     captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_EDIT_SAVE_CLICKED, params);
   }
 
+  function onProjectDetailDescShowMoreClicked(user: IAnalyticsUserInfo | null, projectId: string) {
+    const params = {
+      user,
+      projectId,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_DESC_SHOW_MORE_CLICKED, params);
+  }
+
+  function onProjectDetailDescShowLessClicked(user: IAnalyticsUserInfo | null, projectId: string) {
+    const params = {
+      user,
+      projectId,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_DESC_SHOW_LESS_CLICKED, params);
+  }
+
+  function onProjectDetailReadMeEditSaveBtnClicked(user: IAnalyticsUserInfo | null, projectId: string) {
+    const params = {
+      user,
+      projectId,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_ADDITIONAL_DETAIL_EDIT_SAVE, params);
+  }
+
+  function onProjectDetailDescEditCancelClicked(user: IAnalyticsUserInfo | null, projectId: string) {
+    const params = {
+      user,
+      projectId,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_DESC_CANCEL_CLICKED, params);
+  }
+
+  function onProjectDetailDescEditClicked(user: IAnalyticsUserInfo | null, projectId: string) {
+    const params = {
+      user,
+      projectId,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_DESC_EDIT_CLICKED, params);
+  }
+
+  function onProjectDetailDescEditSaveClicked(user: IAnalyticsUserInfo | null, projectId: string) {
+    const params = {
+      user,
+      projectId,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_DESC_EDIT_SAVE_CLICKED, params);
+  }
+
+  function recordDescSave(type: string, user: IAnalyticsUserInfo | null, payload?: any){
+    const params = {
+      type,
+      user,
+      ...payload,
+    };
+    captureEvent(PROJECT_ANALYTICS_EVENTS.PROJECT_DETAIL_DESC_EDIT_SAVE, params);
+  }
+
   return {
     onProjectDeleteSuccess,
     onProjectDeleteFailed,
@@ -343,6 +392,12 @@ export const useProjectAnalytics = () => {
     onProjectAddCancelClicked,
     onProjectEditCancelClicked,
     onProjectAddSaveClicked,
-    onProjectEditSaveClicked
+    onProjectEditSaveClicked,
+    onProjectDetailDescShowMoreClicked,
+    onProjectDetailDescShowLessClicked,
+    onProjectDetailDescEditCancelClicked,
+    onProjectDetailDescEditClicked,
+    onProjectDetailDescEditSaveClicked,
+    recordDescSave
   };
 };

@@ -172,7 +172,7 @@ const TeamDetails = (props: ITeamDetails) => {
         </div>
 
         {/* About */}
-        <About team={team} userInfo={userInfo} about={about} />
+        <About team={team} userInfo={userInfo} about={about} hasTeamEditAccess={hasTeamEditAccess}/>
 
         {/* Technology */}
         <Technologies technologies={technologies} team={team} userInfo={userInfo} />

@@ -25,6 +25,7 @@ const ProjectFilter = (props: any) => {
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
   const isRaisingFund = searchParams['funding'] ?? false;
+  const isRecent = searchParams['isRecent'] ?? false;
   const teamId = searchParams['team'] ?? '';
   const router = useRouter();
   const projectTeamRef = useRef<HTMLInputElement>(null);
@@ -57,7 +58,7 @@ const ProjectFilter = (props: any) => {
       setSearchText("");
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
-      const clearQuery = ['team', 'funding', 'focusAreas'];
+      const clearQuery = ['team', 'funding', 'focusAreas', 'isRecent'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           triggerLoader(true);
@@ -84,6 +85,21 @@ const ProjectFilter = (props: any) => {
       updateQueryParams('funding', '', searchParams);
       analytics.onProjectFilterApplied(getAnalyticsUserInfo(userInfo), {
         raisingFunds: false,
+      });
+    }
+  };
+
+  const onRecentToggleClicked = () => {
+    triggerLoader(true);
+    if (!isRecent) {
+      updateQueryParams('isRecent', 'true', searchParams);
+      analytics.onProjectFilterApplied(getAnalyticsUserInfo(userInfo), {
+        isRecent: true,
+      });
+    } else {
+      updateQueryParams('isRecent', '', searchParams);
+      analytics.onProjectFilterApplied(getAnalyticsUserInfo(userInfo), {
+        isRecent: false,
       });
     }
   };
@@ -158,6 +174,14 @@ const ProjectFilter = (props: any) => {
           </button>
         </div>
         <div className="project-filter__body">
+        <div className="project-filter__body__raisingfund">
+            <div className="project-filter__body__raisingfund__wrpr">
+              <h3 className="project-filter__body__raisingfund__title">New Projects</h3>
+            </div>
+            <div className="project-filter__body__raisingfund__toggle">
+              <Toggle height="16px" width="28px" callback={onRecentToggleClicked} isChecked={!!isRecent} />
+            </div>
+          </div>
           <FocusAreaFilter
             title="Focus Area"
             uniqueKey={FOCUS_AREAS_FILTER_KEYS.projects as 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas'}

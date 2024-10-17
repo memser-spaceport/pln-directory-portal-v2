@@ -1,11 +1,9 @@
 import { ITeamMemberRole } from '@/types/members.types';
-import { IFormatedTeamProject, ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
+import { ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
 import { getHeader } from '@/utils/common.utils';
 import { getTagsFromValues, parseTeamsFilters } from '@/utils/team.utils';
 import { getFocusAreas } from './common.service';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { IProjectResponse } from '@/types/project.types';
-import { IUserInfo } from '@/types/shared.types';
 
 export const getAllTeams = async (authToken: string, queryParams: any, currentPage: number, limit: number) => {
   const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'no-store' };
@@ -112,6 +110,7 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
     id: result?.uid,
     name: result?.name,
     logo: result?.logo?.url,
+    logoUid: result?.logo?.uid,
     shortDescription: result?.shortDescription,
     website: result?.website,
     twitter: result?.twitterHandler,
@@ -225,3 +224,18 @@ export const searchTeamsByName = async (searchTerm: string) => {
     return { label: item.name, value: item.uid, logo: item.logo?.url };
   });
 };
+
+export const getMemberTeams = async (memberId: string) => {
+  const requestOptions = { method: 'GET', headers: getHeader('') };
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?memberId=${memberId}`, requestOptions);
+  if (!response?.ok) {
+    return {
+      error: { status: response?.status, statusText: response?.statusText },
+    };
+  }
+  const result = await response?.json();
+
+  return result.map((item: any) => {
+    return { label: item.name, value: item.uid };
+  });
+}

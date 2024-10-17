@@ -13,7 +13,7 @@
   height: 48px;
   width: 100%;
   position: sticky;
-  z-index: 1;
+  z-index: 3;
   top: 80px;
   display: flex;
   align-items: center;

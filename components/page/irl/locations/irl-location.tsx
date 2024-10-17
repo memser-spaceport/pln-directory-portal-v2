@@ -57,7 +57,7 @@ const IrlLocation = (props: IrlLocation) => {
             }
         }
         setShowMore(!showMore);
-        analytics.trackSeeOtherLocationClicked(locations.slice(4));
+        analytics.trackSeeOtherLocationClicked(locations?.slice(4));
     }
 
     const handleCardClick = (locationDetail: any) => {
@@ -123,7 +123,7 @@ const IrlLocation = (props: IrlLocation) => {
         <>
             <div className="root">
                 <div className="root__card">
-                    {locations.slice(0, 4).map((location: any, index: any) => (
+                    {locations?.slice(0, 4).map((location: any, index: any) => (
                         <IrlLocationCard
                             key={location.uid}
                             {...location}
@@ -132,7 +132,7 @@ const IrlLocation = (props: IrlLocation) => {
                         />
                     ))}
                 </div>
-                {locations.length > 4 &&
+                {locations?.length > 4 &&
                     <div
                         ref={locationRef}
                         className="root__irl__expanded"
@@ -144,7 +144,7 @@ const IrlLocation = (props: IrlLocation) => {
                             See Other Locations
                         </div>
                         <div className="root_irl__expanded__imgcntr">
-                            {locations.slice(4, 7).map((location: { flag: any; }, index: React.Key | null | undefined) => (
+                            {locations?.slice(4, 7).map((location: { flag: any; }, index: React.Key | null | undefined) => (
                                 <div key={index} className="root_irl__expanded__imgcntr__img">
                                     <img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} />
                                 </div>
@@ -158,7 +158,7 @@ const IrlLocation = (props: IrlLocation) => {
 
                 {showMore &&
                     <div className="root__irl__overlay">
-                        {locations.slice(4).map((location: ILocationDetails, index: React.Key | null | undefined) => (
+                        {locations?.slice(4).map((location: ILocationDetails, index: React.Key | null | undefined) => (
                             <div key={index} className="root__irl__overlay__cnt" onClick={() => handleResourceClick(location)}>
                                 <div className="root__irl__overlay__cnt__location">
                                     <div className="root__irl__overlay__cnt__location__icon"><img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} /></div>
@@ -176,7 +176,7 @@ const IrlLocation = (props: IrlLocation) => {
                     <Modal modalRef={dialogRef} onClose={onCloseModal}>
                         <div className="root__irl__header"> Select a location</div>
                         <div className="root__irl__mobileModal">
-                            {locations.slice(4).map((location: { flag: any; location: any; upcomingEvents: any; pastEvents: any }, index: React.Key | null | undefined) => (
+                            {locations?.slice(4).map((location: { flag: any; location: any; upcomingEvents: any; pastEvents: any }, index: React.Key | null | undefined) => (
                                 <div key={index} className="root__irl__mobileModal__cnt" onClick={() => handleResourceClick(location)}>
                                     <div className="root__irl__mobileModal__cnt__location">
                                         <div><img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} /></div>

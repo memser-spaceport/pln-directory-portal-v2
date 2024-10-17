@@ -1,7 +1,7 @@
 import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import JoinNetwork from './join-network';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
@@ -31,12 +31,16 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
 
   useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
 
+  const router = useRouter();
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
       onNavMenuClick();
       triggerLoader(true);
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
+
+    router.replace(url);
+    router.refresh();
   };
 
   const onHelpItemClickHandler = (name: string) => {
@@ -73,8 +77,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
               {/* Pages */}
               <div className="md__container__bdy__menus">
                 {NAV_OPTIONS.map((option, index) => (
-                  <Link
-                    href={option.url}
+                  <div
                     key={`${option.url} + ${index}`}
                     onClick={() => onNavItemClickHandler(option?.url, option?.name)}
                   >
@@ -95,7 +98,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
                       />
                       <p className="md__container__bdy__menus__menu__name">{option.name}</p>
                     </li>
-                  </Link>
+                  </div>
                 ))}
               </div>
 

@@ -333,6 +333,18 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             display: flex;
           }
 
+          .tbl__hdr__attending__filter__btn,
+          .tbl__hdr__topics__filter__btn {
+          border-radius: 50%;
+          border: 1px solid #156FF7;
+          height: 22px;
+          width: 22px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          }
+          
+
           .tbl__hdr__topics__multiselect,
           .tbl__hdr__attending__multiselect {
             position: absolute;

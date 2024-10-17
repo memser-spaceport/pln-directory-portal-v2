@@ -427,6 +427,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           justify-content: flex-start;
           gap: 10px;
           padding-right: 8px;
+          align-self: baseline;
         }
 
         .gtr__guestName__li {
@@ -558,6 +559,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           align-items: center;
           justify-content: flex-start;
           gap: 10px;
+          align-items: baseline;
         }
 
         .gtr__team__link {
@@ -587,6 +589,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           justify-content: flex-start;
           align-items: center;
           padding-right: 8px;
+          align-items: baseline;
         }
 
         .gtr__attending__cn__evnt {
@@ -695,6 +698,10 @@ const GuestTableRow = (props: IGuestTableRow) => {
           gap: 4px;
           padding-right: 10px;
           justify-content: center;
+        }
+
+        .gtr__connect {
+        align-self: baseline;
         }
 
         .gtr__connect__loggedOut__cntr {

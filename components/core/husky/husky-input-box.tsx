@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import { PopoverDp } from '../popover-dp';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
+// This component represents an input box for the Husky application, allowing users to submit queries and select sources.
+
 function HuskyInputBox(props: any) {
   const onHuskyInput = props.onHuskyInput;
   const inputRef = useRef<HTMLDivElement>(null);
@@ -20,6 +22,7 @@ function HuskyInputBox(props: any) {
   const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
   const { trackSourceChange } = useHuskyAnalytics();
 
+  // Handles the submission of text input
   const onTextSubmit = async () => {
     if (isAnswerLoading) {
       return;
@@ -36,16 +39,19 @@ function HuskyInputBox(props: any) {
     }
   };
 
+  // Handles the selection of a source
   const onSourceClicked = (value: string) => {
     trackSourceChange(value);
     onSourceSelected(value);
   };
 
+  // Checks if the device is mobile
   const isMobileDevice = () => {
     return /Mobi|Android/i.test(navigator.userAgent);
   };
 
   useEffect(() => {
+    // Handles keydown events for input submission
     const handleKeyDown = (event: KeyboardEvent) => {
       if (inputRef.current) {
         const isMobile = isMobileDevice();
@@ -77,10 +83,10 @@ function HuskyInputBox(props: any) {
 
   return (
     <>
-      <div className={`huskyinput`}>
+      <div className={`huskyinput`} data-testid="husky-input-box">
         <img width={24} height={24} className="huskyinput__img" src="/images/husky-brain.png" alt="Husky Brain" />
-        <div className="huskyinput__itemcn">
-          <div ref={inputRef} data-placeholder="Ask follow up..." contentEditable={true} className="huskyinput__itemcn__textbox" tabIndex={0}></div>
+        <div className="huskyinput__itemcn" data-testid="husky-input-container">
+          <div ref={inputRef} data-placeholder="Ask follow up..." contentEditable={true} className="huskyinput__itemcn__textbox" tabIndex={0} data-testid="husky-input-textbox"></div>
           {!isMobileDevice() && (
             <div className="huskyinput__itemcn__instruction">
               <p>

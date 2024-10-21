@@ -1,6 +1,8 @@
 'use client';
 import React, { FC, ChangeEvent, useRef, useEffect } from 'react';
 
+// This component renders a custom toggle switch (checkbox) with optional props for checked state, disabled state, and event handling.
+
 interface CustomToggleProps {
   id: string;
   name: string;
@@ -14,6 +16,7 @@ const CustomToggle: FC<CustomToggleProps> = ({ id, name, checked, disabled = fal
   const inputRef = useRef<HTMLInputElement | null>(null);
   
   useEffect(() => {
+    // Update the input's checked state when the checked prop changes
     if((checked === true || checked === false) && inputRef.current ) {
       inputRef.current.checked = checked;
     }
@@ -22,11 +25,21 @@ const CustomToggle: FC<CustomToggleProps> = ({ id, name, checked, disabled = fal
   return (
     <>
       <label className="custom-toggle" style={{'pointerEvents': `${disabled ? 'none': 'auto'}`}} htmlFor={id}>
-        <input ref={inputRef} type="checkbox" id={id} name={name} style={{'pointerEvents': `${disabled ? 'none': 'auto'}`}} {...((defaultChecked === true || defaultChecked === false)) && {defaultChecked: defaultChecked}} onClick={onChange} />
+        <input 
+          ref={inputRef} 
+          type="checkbox" 
+          id={id} 
+          name={name} 
+          data-testid={`${name}-toggle`}
+          style={{'pointerEvents': `${disabled ? 'none': 'auto'}`}} 
+          {...((defaultChecked === true || defaultChecked === false)) && {defaultChecked: defaultChecked}} 
+          onClick={onChange} 
+        />
         <span className="slider" />
       </label>
       <style jsx>
         {`
+          // Styles for the custom toggle switch
           .custom-toggle {
             position: relative;
             display: inline-block;
@@ -97,4 +110,5 @@ const CustomToggle: FC<CustomToggleProps> = ({ id, name, checked, disabled = fal
   );
 };
 
+// Exporting the CustomToggle component for use in other parts of the application
 export default CustomToggle;

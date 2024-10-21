@@ -11,7 +11,6 @@ const mockOptions = [
 
 const mockOnAdd = jest.fn();
 const mockOnRemove = jest.fn((option) => {
-  console.log(option, 'passed option')
   const index = mockOptions.findIndex((opt) => opt.id === option.id);
   if (index !== -1) {
     mockOptions.splice(index, 1);

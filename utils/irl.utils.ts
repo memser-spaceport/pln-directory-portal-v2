@@ -206,7 +206,7 @@ export function sortPastEvents(events: any[]) {
   // Use forEach to perform actions on each sorted event
   events.forEach((event: any) => {
     // Perform any additional actions needed for each event
-    console.log(event); // Example: log the event or perform some processing
+     // Example: log the event or perform some processing
   });
 
   return events; // Return the sorted array if needed

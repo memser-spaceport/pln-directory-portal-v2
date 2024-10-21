@@ -31,16 +31,12 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
 
   useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
 
-  const router = useRouter();
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
       onNavMenuClick();
       triggerLoader(true);
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
-
-    router.replace(url);
-    router.refresh();
   };
 
   const onHelpItemClickHandler = (name: string) => {
@@ -77,7 +73,8 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
               {/* Pages */}
               <div className="md__container__bdy__menus">
                 {NAV_OPTIONS.map((option, index) => (
-                  <div
+                  <Link
+                    href={option.url}
                     key={`${option.url} + ${index}`}
                     onClick={() => onNavItemClickHandler(option?.url, option?.name)}
                   >
@@ -98,7 +95,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
                       />
                       <p className="md__container__bdy__menus__menu__name">{option.name}</p>
                     </li>
-                  </div>
+                  </Link>
                 ))}
               </div>
 

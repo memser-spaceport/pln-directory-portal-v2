@@ -1,6 +1,5 @@
 "use client";
 
-import { triggerLoader } from "@/utils/common.utils";
 import { usePathname, useRouter } from "next/navigation";
 
 const EmptyResult = (props: any) => {

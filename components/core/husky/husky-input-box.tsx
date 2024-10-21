@@ -97,7 +97,7 @@ function HuskyInputBox(props: any) {
         </div>
         <div className="huskyinput__action">
           <PopoverDp.Wrapper>
-            <div className="huskyinput__action__menu">
+            <div data-testid="husky-input-source-menu" className="huskyinput__action__menu">
               <div className="huskyinput__action__menu__dp">
                 <img src={selectedIcon} alt={selectedSourceName} />
                 <p className="huskyinput__action__menu__dp__name">{selectedSourceName}</p>
@@ -107,7 +107,7 @@ function HuskyInputBox(props: any) {
             <PopoverDp.Pane position="top">
               <div className="huskyinput__action__pane" style={{ zIndex: 20 }}>
                 {sources.map((source: any, index: number) => (
-                  <div key={`input-source-${index}`} onClick={() => onSourceClicked(source.value)} className="huskyinput__action__pane__item">
+                  <div data-testid={`input-source-${index}`} key={`input-source-${index}`} onClick={() => onSourceClicked(source.value)} className="huskyinput__action__pane__item">
                     <img src={source.icon} alt={source.name} />
                     <p>{source.name}</p>
                   </div>

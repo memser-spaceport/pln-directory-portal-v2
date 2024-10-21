@@ -1,19 +1,24 @@
 import { useHuskyAnalytics } from "@/analytics/husky.analytics";
 
+// This component renders a login popup for the Husky application.
+// It tracks user login actions and provides options to dismiss or log in.
+
 interface HuskyLoginProps {
   onLoginBoxClose: () => void;
   onLoginClick: () => void;
 }
 
 function HuskyLogin({ onLoginBoxClose, onLoginClick }: HuskyLoginProps) {
-const { trackHuskyLogin } = useHuskyAnalytics()
+  const { trackHuskyLogin } = useHuskyAnalytics();
 
-const onLoginBtnClicked = () => {
-  trackHuskyLogin();
-  if(onLoginClick) {
-    onLoginClick()
-  }
-}
+  // Handles the login button click event
+  const onLoginBtnClicked = () => {
+    trackHuskyLogin(); // Track the login action
+    if (onLoginClick) {
+      onLoginClick(); // Call the onLoginClick callback if provided
+    }
+  };
+
   return (
     <>
       <div className="login-popup">
@@ -24,12 +29,21 @@ const onLoginBtnClicked = () => {
           </p>
           <div className="login-popup__box__actions">
             <div className="login-popup__box__actions__left">
-              <button type="button" onClick={onLoginBoxClose} className="login-popup__box__actions__left__dismiss">
+              <button 
+                type="button" 
+                onClick={onLoginBoxClose} 
+                className="login-popup__box__actions__left__dismiss" 
+                data-testid="dismiss-button"
+              >
                 Dismiss
               </button>
             </div>
             <div className="login-popup__box__actions__right">
-              <button onClick={onLoginBtnClicked} className="login-popup__box__actions__right__login">
+              <button 
+                onClick={onLoginBtnClicked} 
+                className="login-popup__box__actions__right__login" 
+                data-testid="login-button"
+              >
                 Login
               </button>
             </div>

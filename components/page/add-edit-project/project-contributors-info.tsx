@@ -13,7 +13,7 @@ import { IProjectResponse } from '@/types/project.types';
 import { ITeam } from '@/types/teams.types';
 import { IMemberResponse } from '@/types/members.types';
 
-interface IProjectContributorsInfo {
+export interface IProjectContributorsInfo {
   project: IProjectResponse;
   errors: string[];
 }

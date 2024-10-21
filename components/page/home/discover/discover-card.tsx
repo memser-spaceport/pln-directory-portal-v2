@@ -38,7 +38,7 @@ const DiscoverCard = (props: DiscoverCardProps) => {
         <div className="discover-card__pattern">
           <picture>
             <source media="(max-width: 1024px)" srcSet={data.image?.mob} />
-            <img className="dcard__img" src={data.image?.desktop} alt="pattern" />
+            <img className="discover-card__pattern__img" src={data.image?.desktop} alt="pattern" />
           </picture>
         </div>
         <h2 lang="en" className="discover-card__qus" aria-label="Question">
@@ -65,7 +65,7 @@ const DiscoverCard = (props: DiscoverCardProps) => {
         </div>
       </div>
       <style jsx>{`
-        .dcard {
+        .discover-card {
           position: relative;
           z-index: 1;
           padding: 16px;
@@ -80,11 +80,11 @@ const DiscoverCard = (props: DiscoverCardProps) => {
           justify-content: space-between;
         }
 
-        .dcard:hover {
+        .discover-card:hover {
           box-shadow: 0px 0px 0px 2px #156ff740;
         }
 
-        .dcard__pattern {
+        .discover-card__pattern {
           display: flex;
           justify-content: end;
           position: absolute;
@@ -93,24 +93,22 @@ const DiscoverCard = (props: DiscoverCardProps) => {
           right: 0;
         }
 
-        .dcard__img {
+        .discover-card__pattern__img {
           border-radius: 12px 12px 0px 0px;
           max-width: 100%;
         }
 
-        .dcard__question {
+        .discover-card__qus {
           font-size: 14px;
           font-weight: 500;
           line-height: 18px;
           color: #000000;
           word-break: break-word;
+          // overflow: hidden;
+          // max-height: 66px;
         }
 
-        .dcard__sub-container {
-          flex: 1;
-        }
-
-        .dcard__sub-container__sub {
+        .discover-card__sub {
           font-size: 10px;
           font-weight: 400;
           line-height: 16px;
@@ -119,9 +117,15 @@ const DiscoverCard = (props: DiscoverCardProps) => {
           overflow: hidden;
           word-break: break-word;
           margin-top: 3px;
+          overflow: hidden;
+          // max-height: 32px;
         }
 
-        .dcard__chips {
+        .discover-card__sub__cn {
+          flex: 1;
+        }
+
+        .discover-card_chips {
           display: flex;
           gap: 5px;
           justify-content: start;
@@ -129,7 +133,7 @@ const DiscoverCard = (props: DiscoverCardProps) => {
           margin-top: 11px;
         }
 
-        .dcard__chips__chip {
+        .discover-card_chips_chip {
           background: #f1f5f9;
           display: inline-flex;
           gap: 2px;
@@ -141,12 +145,12 @@ const DiscoverCard = (props: DiscoverCardProps) => {
           align-items: center;
         }
 
-        .dcard__chips__chip__img {
+        .discover-card_chips_chip__img {
           width: 12px;
           height: 12px;
         }
 
-        .dcard__chips__chip__txt {
+        .discover-card_chips_chip__txt {
           font-size: 10px;
           font-weight: 500;
           line-height: 14px;
@@ -155,23 +159,25 @@ const DiscoverCard = (props: DiscoverCardProps) => {
         }
 
         @media (min-width: 1024px) {
-          .dcard__question {
+          .discover-card__qus {
             font-size: 23px;
             font-weight: 500;
             line-height: 33px;
+            // max-height: 99px;
           }
 
-          .dcard__sub-container__sub {
+          .discover-card__sub {
             font-size: 14px;
             font-weight: 400;
             line-height: 23px;
+            // max-height: 69px;
           }
 
-          .dcard {
+          .discover-card {
             padding: 20px;
           }
 
-          .dcard__chips {
+          .discover-card_chips {
             right: 20px;
             bottom: 20px;
             justify-content: end;
@@ -179,17 +185,17 @@ const DiscoverCard = (props: DiscoverCardProps) => {
             margin-top: 3px;
           }
 
-          .dcard__chips__chip {
+          .discover-card_chips_chip {
             height: 26px;
             padding: 0px 8px;
           }
 
-          .dcard__chips__chip__txt {
+          .discover-card_chips_chip__txt {
             font-size: 12px;
             line-height: 14px;
           }
 
-          .dcard__chips__chip__img {
+          .discover-card_chips_chip__img {
             width: 14px;
             height: 14px;
           }

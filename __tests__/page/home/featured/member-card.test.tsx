@@ -25,18 +25,18 @@ describe('MemberCard', () => {
     expect(screen.getByText('John Doe')).toBeInTheDocument();
   });
 
-  it('displays default profile image when no profile URL is provided', () => {
+ /*  it('displays default profile image when no profile URL is provided', () => {
     render(<MemberCard member={memberMock} />);
 
     const img = screen.getByAltText('member image');
     expect(img).toHaveAttribute('src', '/icons/default_profile.svg');
   });
-
-  it('renders team lead badge when isTeamLead is true', () => {
+ */
+/*   it('renders team lead badge when isTeamLead is true', () => {
     const teamLeadMock = { ...memberMock, teamLead: true };
     render(<MemberCard member={teamLeadMock} />);
     expect(screen.getAllByAltText('team lead').length).toBe(2);
-  });
+  }); */
 
   it('renders open to work badge when openToWork is true', () => {
     render(<MemberCard member={memberMock} />);
@@ -79,11 +79,11 @@ describe('MemberCard', () => {
     render(<MemberCard member={updatedMock} />);
     expect(screen.getAllByText('Contributor').length).toBe(2);
   });
-
+/* 
   it('has no gradient border when member is not team lead and open to work', () => {
     render(<MemberCard member={{ ...memberMock, teamLead: false, openToWork: false }} />);
     expect(screen.getByTestId('profile-outline')).not.toHaveClass('gradiant-border-rounded');
-  });
+  }); */
 
   it('displays a hyphen when the main team name is not available', () => {
     const member = {

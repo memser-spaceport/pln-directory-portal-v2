@@ -1,3 +1,9 @@
+/**
+ * MemberBasicInfo component for displaying and editing member information.
+ * This component allows users to upload a profile image, update their name,
+ * email, join date, city, state, and country.
+ */
+
 'use client';
 import TextField from '@/components/form/text-field';
 import { useEffect, useRef, useState } from 'react';
@@ -20,10 +26,14 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const isAdminEdit = props.isAdminEdit ?? false;
   const uid = props.uid;
   const uploadImageRef = useRef<HTMLInputElement>(null);
-  const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '')
+  const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
 
+  /**
+   * Handles image upload and sets the profile image state.
+   * @param event - The change event from the file input.
+   */
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -35,6 +45,10 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
     }
   };
 
+  /**
+   * Deletes the uploaded image and resets the image state.
+   * @param e - The pointer event from the delete image action.
+   */
   const onDeleteImage = (e: React.PointerEvent<HTMLImageElement>) => {
     e.stopPropagation();
     e.preventDefault();
@@ -46,14 +60,14 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   };
 
   useEffect(() => {
-    setSavedImage(initialValues?.imageFile ?? '')
+    setSavedImage(initialValues?.imageFile ?? '');
     setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
-        setSavedImage(initialValues?.imageFile ?? '')
+        setSavedImage(initialValues?.imageFile ?? '');
         setProfileImage('');
-      }    
+      }
     }
     document.addEventListener('reset-member-register-form', resetHandler);
     return function () {
@@ -61,10 +75,9 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
     };
   }, [initialValues]);
 
-
   return (
     <>
-      <div className="memberinfo">
+      <div className="memberinfo" data-testid="member-basic-info">
         <ul className="memberinfo__errors">
           {errors.map((error: string, index: number) => (
             <li key={`member-error-${index}`}>{error}</li>
@@ -72,10 +85,10 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
         </ul>
         <div className="memberinfo__form">
           <div className="memberinfo__form__user">
-            <label htmlFor="member-image-upload" className="memberinfo__form__user__profile">
+            <label htmlFor="member-image-upload" className="memberinfo__form__user__profile" data-testid="profile-image-upload">
               {(!profileImage && !savedImage) && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
               {(!profileImage && !savedImage) && <span className="memberinfo__form__user__profile__text">Add Image</span>}
-              {(profileImage || savedImage) && <img className="memberinfo__form__user__profile__preview" src={formImage} alt="user profile" width="95" height="95" />}
+              {(profileImage || savedImage) && <img className="memberinfo__form__user__profile__preview" src={formImage} data-testid="profile-image-preview" alt="user profile" width="95" height="95" />}
               {(profileImage || savedImage) && (
                 <span className="memberinfo__form__user__profile__actions">
                   <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
@@ -84,7 +97,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
               )}
             </label>
             <input type='text' readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
-            <input onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
+            <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
             <div className="memberinfo__form__item">
               <TextField
                 pattern="^[a-zA-Z\s]*$"
@@ -96,6 +109,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 name="name"
                 type="text"
                 placeholder="Enter your full name"
+                data-testid="member-name-input"
               />
             </div>
           </div>
@@ -104,22 +118,22 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
           </p>
           {!isMemberSelfEdit && !isAdminEdit && (
             <div className="memberinfo__form__item">
-              <TextField defaultValue={initialValues.email} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" />
+              <TextField defaultValue={initialValues.email} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" data-testid="member-email-input" />
             </div>
           )}
 
-          {isMemberSelfEdit && <SelfEmailUpdate uid={uid} email={initialValues.email}/>}
-          {isAdminEdit && <AdminEmailUpdate email={initialValues.email}/>}
+          {isMemberSelfEdit && <SelfEmailUpdate uid={uid} email={initialValues.email} />}
+          {isAdminEdit && <AdminEmailUpdate email={initialValues.email} />}
           {isMemberSelfEdit && (
             <div className="memberinfo__form__item">
               <LinkAuthAccounts />
             </div>
           )}
           <div className="memberinfo__form__item">
-            <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="Join date" name="plnStartDate" type="date" placeholder="Enter Start Date" />
+            <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="Join date" name="plnStartDate" type="date" placeholder="Enter Start Date" data-testid="member-join-date-input" />
           </div>
           <div className="memberinfo__form__item">
-            <TextField defaultValue={initialValues.city} id="register-member-city" label="Metro Area/City" name="city" type="text" placeholder="Enter your metro area or city" />
+            <TextField defaultValue={initialValues.city} id="register-member-city" label="Metro Area/City" name="city" type="text" placeholder="Enter your metro area or city" data-testid="member-city-input" />
             <p className="info">
               <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
               <span className="info__text">Please share location details to receive invitations for the network events happening in your area.</span>
@@ -128,8 +142,8 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
 
           <div className="memberinfo__form__item">
             <div className="memberinfo__form__item__cn">
-              <TextField defaultValue={initialValues.region} id="register-member-state" label="State or Province" name="region" type="text" placeholder="Enter state or province" />
-              <TextField defaultValue={initialValues.country} id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" />
+              <TextField defaultValue={initialValues.region} id="register-member-state" label="State or Province" name="region" type="text" placeholder="Enter state or province" data-testid="member-state-input" />
+              <TextField defaultValue={initialValues.country} id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" data-testid="member-country-input" />
             </div>
           </div>
         </div>

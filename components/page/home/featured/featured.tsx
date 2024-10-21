@@ -13,6 +13,7 @@ import { PAGE_ROUTES } from '@/utils/constants';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
+import { isPastDate } from '@/utils/irl.utils';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
@@ -42,10 +43,20 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
     analytics.onProjectCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
   };
 
+  const getEventLocation = (event: any) => {
+    try {
+    const isPast = isPastDate(event.endDate);
+    const country = event?.location?.split(',')[0].trim();
+    return `${PAGE_ROUTES.IRL}/?location=${country}&type=${isPast ? 'past' : 'upcoming'}&${isPast ? `event=${event?.slugUrl}` : ''}`;
+    } catch (error) {
+      return ""
+    }
+  }
+
   switch (category) {
     case 'event':
       return (
-        <a target="_blank" href={`${PAGE_ROUTES.IRL}/?location=${item?.location}`} onClick={() => onEventClicked(item)}>
+        <a target="_blank" href={getEventLocation(item)} onClick={() => onEventClicked(item)}>
           <IrlCard {...item} />
         </a>
       );

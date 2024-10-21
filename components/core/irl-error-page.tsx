@@ -1,7 +1,16 @@
 "use client";
 import { PAGE_ROUTES } from "@/utils/constants";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const IrlErrorPage = () => {
+
+    const router = useRouter();
+    
+    useEffect(() => {
+        router.refresh();
+    }, [])
+
     return (
         <>
             <div className="error-container">

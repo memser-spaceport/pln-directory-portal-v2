@@ -45,7 +45,7 @@ const Gatherings = (props: IGatherings) => {
       if (isAlreadySelected) {
         return prev.filter((item) => item.uid !== gathering.uid);
       } else {
-        return [...prev, { ...gathering, hostSubEvents: [], speakerSubEvents: [], logo: gathering?.logo?.cid }];
+        return [...prev, { ...gathering, hostSubEvents: [], speakerSubEvents: [], logo: gathering?.logo?.url }];
       }
     });
   };

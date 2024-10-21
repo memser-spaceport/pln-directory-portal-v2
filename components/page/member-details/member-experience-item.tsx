@@ -7,8 +7,7 @@ interface IMemberExperienceDescription {
 }
 
 function MemberExperienceDescription(props: IMemberExperienceDescription) {
-  const fullDesc = props?.desc ?? '';
-  //   const exp = props?.exp;
+  const fullDesc = props?.desc || '';
   const shortDesc = fullDesc;
   const [isShowMoreActive, showMoreStatus] = useState(false);
   const isBigDesc = fullDesc?.length >= 300;

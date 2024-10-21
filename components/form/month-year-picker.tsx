@@ -60,10 +60,10 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
 
 
   const onMonthSelected = (e: any, index: number) => {
-    e.preventDefault();
+    e.preventDefault(); 
     e.stopPropagation();
     if(initialMonthYear?.year) {
-      onDateChange(formatISODate(index, initialMonthYear?.year));
+      onDateChange(formatISODate(index, initialMonthYear?.year)); // Format and change date
     }
     setMonthDpStatus(false);
   };
@@ -72,44 +72,44 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
     e.preventDefault();
     e.stopPropagation();
     if(initialMonthYear?.month) {
-      onDateChange(formatISODate(initialMonthYear.month, year));
+      onDateChange(formatISODate(initialMonthYear.month, year)); // Format and change date
     }
-   
     setYearDpStatus(false);
   };
 
+  // Effect to handle clicks outside the dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         monthDropdownRef.current &&
         !monthDropdownRef.current.contains(event.target as Node)
       ) {
-        setMonthDpStatus(false);
+        setMonthDpStatus(false); // Close month dropdown if clicked outside
       }
       if (
         yearDropdownRef.current &&
         !yearDropdownRef.current.contains(event.target as Node)
       ) {
-        setYearDpStatus(false);
+        setYearDpStatus(false); // Close year dropdown if clicked outside
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside); // Add event listener
+    return function(){
+      document.removeEventListener('mousedown', handleClickOutside); // Cleanup listener
     };
-  }, []);
+  },[]);
  
 
-  return (
-    <>
-      <div className="month-year-field">
+  return <>
+      <div className="month-year-field" data-testid="month-year-picker"> {/* Added data-testid */}
         <label className={`month-year-field__label ${disabled ? 'label--disabled' : ''}`}>{label}* </label>
         <div className={`month-year-field__dropdowns ${disabled ? 'month-year-field__dropdowns--disabled' : ''}`}>
           <div
             ref={monthDropdownRef}
             className={`month-year-field__dropdown month-dropdown ${disabled ? 'dropdown--disabled' : ''}`}
             onClick={() => !disabled && setMonthDpStatus((v) => !v)}
+            data-testid="month-dropdown" 
           >
             {!disabled && <p className="month-year-field__dropdown-text">{monthNames[currentMonth]}</p>}
             {disabled && <p className="month-year-field__dropdown-text">Month</p>}
@@ -121,6 +121,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
                     key={`month-${index}`}
                     className={`month-year-field__dropdown-item dropdown-item ${currentMonth === index ? 'active' : ''}`}
                     onClick={(e) => onMonthSelected(e, index + 1)}
+                    data-testid={`month-item-${monthName}`} 
                   >
                     <p>{monthName}</p>
                   </div>
@@ -132,6 +133,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
             ref={yearDropdownRef}
             className={`month-year-field__dropdown year-dropdown ${disabled ? 'dropdown--disabled' : ''}`}
             onClick={() => !disabled && setYearDpStatus((v) => !v)}
+            data-testid="year-dropdown" 
           >
             {!disabled && <p className="month-year-field__dropdown-text">{initialMonthYear?.year}</p>}
             {disabled && <p className="month-year-field__dropdown-text">Year</p>}
@@ -143,6 +145,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
                     key={`year-${index}`}
                     className={`month-year-field__dropdown-item dropdown-item ${initialMonthYear?.year === year ? 'active' : ''}`}
                     onClick={(e) => onYearSelected(e, year)}
+                    data-testid={`year-item-${year}`}
                   >
                     <p>{year}</p>
                   </div>
@@ -157,6 +160,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
             type="hidden"
             name={name}
             value={formatISODate(initialMonthYear.month, initialMonthYear.year, dayValue)}
+            data-testid="hidden-input" 
           />
         )}
       </div>
@@ -243,7 +247,6 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
         `}
       </style>
     </>
-  );
 };
 
 export default MonthYearPicker;

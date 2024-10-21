@@ -8,7 +8,7 @@ import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS } from '@/utils/constants';
 import cookies from 'js-cookie';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { SyntheticEvent, useEffect, useRef, useState } from 'react';
 import AllNotifications from './all-notifications';
 import JoinNetwork from './join-network';
@@ -37,8 +37,6 @@ export default function Navbar(props: Readonly<INavbar>) {
   const [notifications, setNotifications] = useState([]);
   const [isNotification, setIsNotification] = useState(false);
 
-  const router = useRouter();
-
   useClickedOutside({ callback: () => setIsHelperMenuOpen(false), ref: helpMenuRef });
   useClickedOutside({ callback: () => setIsNotification(false), ref: notificationRef });
 
@@ -49,9 +47,6 @@ export default function Navbar(props: Readonly<INavbar>) {
     if (pathName !== url) {
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
-
-    router.replace(url);
-    router.refresh();
   };
 
   const onHelpClickHandler = (e: SyntheticEvent) => {
@@ -108,12 +103,12 @@ export default function Navbar(props: Readonly<INavbar>) {
           </Link>
           <div className="nb__left__web-optns">
             {NAV_OPTIONS.map((option, index) => (
-              <div key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)}>
+              <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)}>
                 <li key={option.name} tabIndex={0} className={`nb__left__web-optns__optn ${pathName === option.url ? 'nb__left__web-optns__optn--active' : ''}`}>
                   <Image height={20} width={20} className="nb__left__web-optns__optn__img" src={pathName === option.url ? option.selectedLogo : option.unSelectedLogo} alt={option.name} />
                   <p className="nb__left__web-optns__optn__name">{option.name}</p>
                 </li>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

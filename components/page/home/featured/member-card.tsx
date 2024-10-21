@@ -51,12 +51,12 @@ const MemberCard = (props: any) => {
       <div className="member">
         <div className="member__profile__cn">
           <div className="member__profile__cn__outer-section">
-            <div className={`${isBorder ? 'gradiant-border-rounded' : ''} member__profile__cn__outer-section__inner-circle`}>
-              <img className="member__profile__cn__outer-section__inner-circle__profile" src={profileUrl} alt="profile"/>
+            <div data-testid='profile-outline' className={`${isBorder ? 'gradiant-border-rounded' : ''} member__profile__cn__outer-section__inner-circle`}>
+              <img className="member__profile__cn__outer-section__inner-circle__profile" src={profileUrl} alt='member image' />
               {isTeamLead && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" className="member__profile__cn__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg"  alt="Team Lead"/>}
+                  trigger={<img loading="lazy" className="member__profile__cn__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" alt='team lead' />}
                   content={'Team Lead'}
                 />
               )}

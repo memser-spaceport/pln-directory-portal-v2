@@ -13,6 +13,7 @@ import { PAGE_ROUTES } from '@/utils/constants';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
+import { isPastDate } from '@/utils/irl.utils';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
@@ -42,29 +43,39 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
     analytics.onProjectCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
   };
 
+  const getEventLocation = (event: any) => {
+    try {
+    const isPast = isPastDate(event.endDate);
+    const country = event?.location?.split(',')[0].trim();
+    return `${PAGE_ROUTES.IRL}/?location=${country}&type=${isPast ? 'past' : 'upcoming'}&${isPast ? `event=${event?.slugUrl}` : ''}`;
+    } catch (error) {
+      return ""
+    }
+  }
+
   switch (category) {
     case 'event':
       return (
-        <a target="_blank" href={`${PAGE_ROUTES.IRL}/${item.slugUrl}`} onClick={() => onEventClicked(item)}>
+        <a target="_blank" href={getEventLocation(item)} onClick={() => onEventClicked(item)}>
           <IrlCard {...item} />
         </a>
       );
 
     case 'member':
       return (
-        <a target="_blank" href={`${PAGE_ROUTES.MEMBERS}/${item.id}`} onClick={() => onMemberClicked(item)}>
+        <a target="_blank" href={`${PAGE_ROUTES.MEMBERS}/${item?.id}`} onClick={() => onMemberClicked(item)}>
           <MemberCard member={item} />
         </a>
       );
     case 'team':
       return (
-        <a target="_blank" href={`${PAGE_ROUTES.TEAMS}/${item.id}`} onClick={() => onTeamClicked(item)}>
+        <a target="_blank" href={`${PAGE_ROUTES.TEAMS}/${item?.id}`} onClick={() => onTeamClicked(item)}>
           <TeamCard {...item} />
         </a>
       );
     case 'project':
       return (
-        <a target="_blank" href={`${PAGE_ROUTES.PROJECTS}/${item.id}`} onClick={() => onProjectClicked(item)}>
+        <a target="_blank" href={`${PAGE_ROUTES.PROJECTS}/${item?.id}`} onClick={() => onProjectClicked(item)}>
           <ProjectCard {...item} />
         </a>
       );

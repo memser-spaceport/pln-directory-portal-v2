@@ -99,7 +99,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
               </label>
               
               <input readOnly id="team-info-basic-image" value={formImage} hidden name="imageFile"  />
-              <input onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" /> 
+              <input data-testid="team-image-upload" onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" /> 
             </div>
             <div className="teaminfo__form__item">
               <TextField

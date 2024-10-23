@@ -115,7 +115,7 @@ const IrlEvents = (props: IIrlEvents) => {
   }
 
   function handleAddGathering() {
-    analytics.onAddGatheringClicked();
+    analytics.onAddGatheringClicked(IRL_ADD_GATHERING_FORM_LINK);
   }
 
   function handleAdditionalResourceClicked(resource: any) {
@@ -255,6 +255,7 @@ const IrlEvents = (props: IIrlEvents) => {
           box-shadow: 0px 4px 4px 0px #0f172a0a;
           border: 1px solid #0f172a0a;
           border-top: 0;
+          border-radius: 0;
           padding: 13px;
           display: flex;
           gap: 10px;
@@ -674,6 +675,11 @@ const IrlEvents = (props: IIrlEvents) => {
             border-top-right-radius: 8px;
             border-top-left-radius: 8px;
             padding: 20px;
+          }
+
+          .add-gathering {
+            border-bottom-right-radius: 8px;
+            border-bottom-left-radius: 8px;
           }
           .mob {
             overflow-x: unset;

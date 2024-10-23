@@ -232,9 +232,9 @@ const IrlEvents = (props: IIrlEvents) => {
       </div>
       <div className="add-gathering">
         <div>
-          <Image src="/icons/irl/add-gathering.svg" alt="My Image" width={19} height={19} />
+          <Image src="/icons/irl/add-gathering.svg" alt="add-gathering" width={19} height={19} />
         </div>
-        <div className="add-gathering__txt">Don't see a gathering listed here?</div>
+        <div className="add-gathering__txt">Don&apos;t see a gathering listed here?</div>
         <div className="add-gathering__click">
           <a href={IRL_ADD_GATHERING_FORM_LINK} target="_blank" onClick={handleAddGathering}>
             Click Here

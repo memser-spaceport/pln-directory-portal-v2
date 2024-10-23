@@ -253,12 +253,12 @@ const IrlEvents = (props: IIrlEvents) => {
         .add-gathering {
           background-color: #f8fafc;
           box-shadow: 0px 4px 4px 0px #0f172a0a;
-          border: 1px solid #0f172a0a;
+        //   border: 1px solid #f8fafc;
           border-top: 0;
           border-radius: 0;
           padding: 13px;
+          padding-left: 20px;
           display: flex;
-          gap: 10px;
         }
 
         .add-gathering__txt {
@@ -266,6 +266,8 @@ const IrlEvents = (props: IIrlEvents) => {
           font-weight: 500;
           line-height: 20px;
           text-align: center;
+          padding-left: 10px;
+          padding-right: 4px;
         }
 
         .add-gathering__click {
@@ -605,8 +607,9 @@ const IrlEvents = (props: IIrlEvents) => {
             border-radius: unset;
             min-height: 162px;
             background-color: #fff;
-            border: 1px solid #0f172a0a;
+            // border: 1px solid #0f172a0a;
             // box-shadow: 0px 4px 4px 0px #0F172A0A;
+            box-shadow: 0px -4px 4px 0px #0F172A0A;
             max-width: 900px;
             padding: 20px 0px 20px 20px;
             border-bottom: 0;

@@ -17,7 +17,14 @@ const config: Config = {
   collectCoverageFrom: [
     '**/*.{ts,tsx}',
     '!**/node_modules/**',
-    '!**/vendor/**'
+    '!**/vendor/**',
+    '!**/analytics/**',
+    '!**/app/**',
+    '!jest.config.ts',
+    '!next.config.js',
+    '!next-i18next.config.js',
+    '!tsconfig.json',
+    '!jest.setup.ts'
   ],
   silent: true,
   // Add more setup options before each test is run

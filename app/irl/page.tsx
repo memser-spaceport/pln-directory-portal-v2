@@ -104,7 +104,7 @@ const getPageData = async (searchParams: any) => {
 
     const slugURL = searchParams?.event;
 
-    const events = await getGuestsByLocation(uid, eventType, authToken, slugURL, userInfo);
+    const events = await getGuestsByLocation(uid, eventType, authToken, slugURL, userInfo, searchParams);
     if (events.isError) {
       return { isLocationError: true }
     }

@@ -36,14 +36,20 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
       setFilterConfig((prev: any) => ({ ...prev, [key]: selectedItems }));
     };
 
+    const resetSortList = () => {
+      setSortConfig({ key: null, order: 'default' });
+    };
+
     document.addEventListener('irl-details-searchlist', searchHandler);
     document.addEventListener('irl-details-sortlist', sortHandler);
     document.addEventListener('irl-details-filterList', filterHandler);
+    document.addEventListener('reset-irl-details-sortlist', resetSortList);
 
     return () => {
       document.removeEventListener('irl-details-searchlist', searchHandler);
       document.removeEventListener('irl-details-sortlist', sortHandler);
       document.removeEventListener('irl-details-filterList', filterHandler);
+      document.removeEventListener('reset-irl-details-sortlist', resetSortList);
     };
   }, []);
 
@@ -58,7 +64,7 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
           v?.teamName?.toLowerCase()?.includes(searchItem?.toLowerCase()?.trim()) ||
           v?.projectContributions?.some((project: string) => project?.toLowerCase()?.includes(searchItem?.toLowerCase()?.trim()))
       );
-      filteredItems = filteredItems.sort((a:any, b:any) => a?.memberName.localeCompare(b?.memberName));
+      filteredItems = filteredItems.sort((a: any, b: any) => a?.memberName.localeCompare(b?.memberName));
     }
 
     //sort by team & member
@@ -75,7 +81,7 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
         const sortedGuests = sortByDefault(filteredItems);
         filteredItems = sortedGuests;
 
-        const isUserGoing = filteredItems.some((guest:any) => guest.memberUid === userInfo.uid);
+        const isUserGoing = filteredItems.some((guest: any) => guest.memberUid === userInfo.uid);
 
         if (isUserGoing) {
           const currentUser = [...sortedGuests]?.find((v) => v.memberUid === userInfo?.uid);
@@ -103,10 +109,10 @@ export const useIrlDetails = (rawGuestList: any, userInfo: any) => {
     }
 
     // events filter
-    if (filterConfig['events']?.length > 0) {
-      const selectedEvents = new Set(filterConfig['events']);
-      filteredItems = [...filteredItems]?.filter((item) => item.eventNames?.some((event: any) => selectedEvents?.has(event)));
-    }
+    // if (filterConfig['events']?.length > 0) {
+    //   const selectedEvents = new Set(filterConfig['events']);
+    //   filteredItems = [...filteredItems]?.filter((item) => item.eventNames?.some((event: any) => selectedEvents?.has(event)));
+    // }
 
     // Update the filtered list
     setFilteredList(filteredItems);

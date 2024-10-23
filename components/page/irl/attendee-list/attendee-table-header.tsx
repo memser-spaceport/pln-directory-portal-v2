@@ -2,7 +2,9 @@ import useFloatingMultiSelect from '@/hooks/irl/use-floating-multi-select';
 import { getTopics, getUniqueEvents } from '@/utils/irl.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import FloatingMultiSelect from './floating-multi-select';
-import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { triggerLoader } from '@/utils/common.utils';
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 interface IAttendeeTableHeader {
   isLoggedIn: boolean;
   eventDetails: any;
@@ -11,6 +13,7 @@ interface IAttendeeTableHeader {
     events: string[];
     topics: string[];
   };
+  searchParams: any;
 }
 
 const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
@@ -18,16 +21,22 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const eventDetails = props?.eventDetails;
   const sortConfig = props?.sortConfig;
   const filterConfig = props?.filterConfig;
+  const searchParams = props?.searchParams;
 
   const analytics = useIrlAnalytics();
   const events = getUniqueEvents(eventDetails?.events);
   const topics = getTopics([...eventDetails?.guests]);
-  const searchParams = useSearchParams();
-  const eventType = searchParams.get('type');
+  const eventType = searchParams.type;
+
+  const attendingQueryParam = searchParams.attending;
+  const attendingItems = attendingQueryParam ? attendingQueryParam.split(URL_QUERY_VALUE_SEPARATOR) : [];
+
+  const matchedEvents = attendingItems?.filter((event: string) => events?.includes(event));
+  const router = useRouter();
 
   const eventsFilterProps = useFloatingMultiSelect({
     items: events,
-    selectedItems: filterConfig?.events,
+    selectedItems: matchedEvents,
   });
 
   const topicFilterProps = useFloatingMultiSelect({
@@ -84,19 +93,28 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
   //filter column by events
   const onFilterByEvents = (items: string[], from: string) => {
+    const queryParams = new URLSearchParams(searchParams);
+    const currentItems = queryParams.get('attending')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
+    const newItems = items.join(URL_QUERY_VALUE_SEPARATOR);
+
+    if (currentItems.join(URL_QUERY_VALUE_SEPARATOR) === newItems) {
+      eventsFilterProps?.onClosePane();
+      eventsFilterProps?.setFilteredItems(events);
+      return; 
+    }
+
+    triggerLoader(true);
+    if (items.length > 0) {
+      queryParams.set('attending', newItems);
+    } else {
+      queryParams.delete('attending');
+    }
+
+    const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
+    router.push(newUrl, { scroll: false });
     if (from !== 'reset') {
       analytics.trackGuestListTableFilterApplyClicked(location, { column: 'attending', filterValues: items });
     }
-
-    document.dispatchEvent(
-      new CustomEvent('irl-details-filterList', {
-        detail: {
-          key: 'events',
-          selectedItems: items,
-        },
-      })
-    );
-    // setTopicFilterItems(items);
     eventsFilterProps?.onClosePane();
     eventsFilterProps?.setFilteredItems(events);
   };
@@ -116,14 +134,19 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
   //clear event filter
   const onClearEventsFilter = (e: any) => {
-    document.dispatchEvent(
-      new CustomEvent('irl-details-filterList', {
-        detail: {
-          key: 'events',
-          selectedItems: [],
-        },
-      })
-    );
+    triggerLoader(true);
+    const currentParams = new URLSearchParams(searchParams);
+    currentParams.delete('attending');
+    router.push(`${window.location.pathname}?${currentParams.toString()}`, { scroll: false });
+
+    // document.dispatchEvent(
+    //   new CustomEvent('irl-details-filterList', {
+    //     detail: {
+    //       key: 'events',
+    //       selectedItems: [],
+    //     },
+    //   })
+    // );
     topicFilterProps?.onClearSelection(e);
   };
 
@@ -157,7 +180,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
         </div>
 
         <div className="tbl__hdr__connect">Connect</div>
-          
+
         <div className="tbl__hdr__attending">
           Attending
           {events?.length > 0 && eventType !== 'past' && (
@@ -166,9 +189,9 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
                 <button className="tbl__hdr__attending__filter__btn" onClick={onEventsFilterclicked}>
                   <img width={16} height={16} src="/icons/filter-blue.svg" alt="filter" />
                 </button>
-                {filterConfig?.events?.length > 0 && (
+                {matchedEvents?.length > 0 && (
                   <div className="tbl__hdr__attending__filter__tag">
-                    {filterConfig?.events?.length}
+                    {matchedEvents?.length}
                     <button className="tbl__hdr__attending__filter__tag__btn" onClick={onClearEventsFilter}>
                       <img width={10} height={10} src="/icons/close-white.svg" alt="count" />
                     </button>
@@ -335,15 +358,14 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
           .tbl__hdr__attending__filter__btn,
           .tbl__hdr__topics__filter__btn {
-          border-radius: 50%;
-          border: 1px solid #156FF7;
-          height: 22px;
-          width: 22px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+            border-radius: 50%;
+            border: 1px solid #156ff7;
+            height: 22px;
+            width: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
-          
 
           .tbl__hdr__topics__multiselect,
           .tbl__hdr__attending__multiselect {

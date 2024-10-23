@@ -63,6 +63,8 @@ export const useIrlAnalytics = () => {
     IRL_RSVP_POPUP_SAVE_BTN_CLICKED: 'irl-rsvp-popup-save-btn-clicked',
     IRL_RSVP_POPUP_SAVE_ERROR: 'irl-rsvp-popup-save-error',
     IRL_RSVP_POPUP_CLOSE_CLICKED: 'irl-rsvp-popup-close-clicked',
+
+    IRL_ADD_GATHERING:'irl-add-gathering-clicked',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -406,6 +408,10 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_JOIN_PL_NETWORK_CLICKED, {...params});
   }
 
+  function onAddGatheringClicked() {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADD_GATHERING);
+  }
+
   function trackPastEventClicked(pastEvent: any) {
     const params = {
       pastEventUid: pastEvent.uid,
@@ -518,5 +524,6 @@ export const useIrlAnalytics = () => {
     irlGuestDetailSaveError,
     irlAddAttendeePopupCloseClicked,
     trackLoginClicked,
+    onAddGatheringClicked
   };
 };

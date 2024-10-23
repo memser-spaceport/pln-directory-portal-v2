@@ -54,10 +54,14 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
     }
 
     const toggleDescription = () => {
-        setExpanded(!isExpanded);
         setItemsToShow(isExpanded ? 4 : itemsToShow + 4);
+        if (itemsToShow  >= eventsToShow?.length - 4) {
+            setExpanded(!isExpanded);
+        } else {
+            setExpanded(isExpanded); 
+        }
     };
-
+    
     const onCloseModal = () => {
         if (dialogRef.current) {
             (dialogRef.current as any as HTMLDialogElement).close();

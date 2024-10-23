@@ -37,10 +37,12 @@ const IrlEvents = (props: IIrlEvents) => {
 
     const handleUpcomingGathering = () => {
         isUpcoming = true;
-        const currentParams = new URLSearchParams(searchParams);
-        currentParams.set('type', 'upcoming');
-        currentParams.delete('event');
-        router.push(`${window.location.pathname}?${currentParams.toString()}`);
+        if(searchParams?.type !== 'upcoming') {
+            const currentParams = new URLSearchParams(searchParams);
+            currentParams.set('type', 'upcoming');
+            currentParams.delete('event');
+            router.push(`${window.location.pathname}?${currentParams.toString()}`);
+        }
         // updateQueryParams('type', 'upcoming', searchParams);
         if (searchParams?.type === 'past') {
             triggerLoader(true);
@@ -59,10 +61,11 @@ const IrlEvents = (props: IIrlEvents) => {
             currentParams.set('event', eventDetails?.pastEvents[0]?.slugURL);
         }
 
-        router.push(`${window.location.pathname}?${currentParams.toString()}`);
         if (searchParams?.type !== 'past') {
             triggerLoader(true);
+            currentParams.delete('attending');
         }
+        router.push(`${window.location.pathname}?${currentParams.toString()}`);
         analytics.trackPastEventsButtonClicked(eventDetails.pastEvents);
     }
 

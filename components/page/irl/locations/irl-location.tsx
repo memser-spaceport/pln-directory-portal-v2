@@ -73,6 +73,7 @@ const IrlLocation = (props: IrlLocation) => {
         }
 
         if (locationDetail?.location?.split(",")[0].trim() !== searchParams?.location) {
+            currentParams.delete('attending');
             router.push(`${window.location.pathname}?${currentParams.toString()}`);
             triggerLoader(true);
             analytics.trackLocationClicked(locationDetail?.uid, locationDetail?.location);
@@ -101,6 +102,7 @@ const IrlLocation = (props: IrlLocation) => {
         } else {
             currentParams.delete('event');
         }
+        currentParams.delete('attending');
         router.push(`${window.location.pathname}?${currentParams.toString()}`);
 
         dialogRef.current?.close();

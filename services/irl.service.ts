@@ -1,5 +1,5 @@
 import { getHeader } from '@/utils/common.utils';
-import { ADMIN_ROLE } from '@/utils/constants';
+import { ADMIN_ROLE, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { groupMembers, processGuests, sortGuestList, sortPastEvents, transformMembers } from '@/utils/irl.utils';
 
@@ -15,7 +15,7 @@ export const getAllLocations = async () => {
   }
 
   const result = await response.json();
-  result.sort((a: { priority: number; }, b: { priority: number; }) => a.priority - b.priority);
+  result.sort((a: { priority: number }, b: { priority: number }) => a.priority - b.priority);
 
   result.forEach((item: { pastEvents: any[] }) => {
     if (Array.isArray(item.pastEvents)) {
@@ -26,7 +26,7 @@ export const getAllLocations = async () => {
   return result;
 };
 
-const fetchGuests = async (url: string, authToken: string,) => {
+const fetchGuests = async (url: string, authToken: string) => {
   const response = await fetch(url, {
     cache: 'no-store',
     method: 'GET',
@@ -36,8 +36,7 @@ const fetchGuests = async (url: string, authToken: string,) => {
   return await response.json();
 };
 
-
-export const getGuestsByLocation = async (location: string, type: string, authToken: string, slugURL: string, userInfo: any) => {
+export const getGuestsByLocation = async (location: string, type: string, authToken: string, slugURL: string, userInfo: any, searchParams: any) => {
   if (!slugURL) {
     const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?type=${type}`;
     let result = await fetchGuests(url, authToken);
@@ -53,7 +52,16 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
     const transformedMembers = transformMembers(groupedMembers);
     const sortedList = sortGuestList(transformedMembers, userInfo);
 
-    return { isUserGoing: sortedList.isUserGoing, currentGuest: sortedList.currentUser, guests: sortedList.sortedGuests };
+    const attendingQueryParam = searchParams?.attending;
+    const attendingItems = new Set(attendingQueryParam ? attendingQueryParam.split(URL_QUERY_VALUE_SEPARATOR) : []);
+    const attendingFilteredList =
+      attendingItems.size > 0 ? [...sortedList.sortedGuests]?.filter((item) => item.eventNames?.some((event: any) => attendingItems?.has(event))) : [...sortedList.sortedGuests];
+
+    // const topicsQueryParam = searchParams?.topics;
+    // const selectedTopics = new Set(topicsQueryParam ? topicsQueryParam.split(',') : []);
+    // const topicsFilteredList = selectedTopics.size > 0 ? [...attendingFilteredList]?.filter((item) => item.topics.some((topic: any) => selectedTopics?.has(topic))) : [...attendingFilteredList];
+
+    return { isUserGoing: sortedList.isUserGoing, currentGuest: sortedList.currentUser, guests: attendingFilteredList, hasAttendees: result.length > 0 };
   } else {
     const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/${slugURL}`;
     let result = await fetchGuests(url, authToken);
@@ -107,7 +115,8 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
 
     const sortedList = sortGuestList(guests, userInfo);
 
-    return { isUserGoing: sortedList.isUserGoing, currentGuest: sortedList.currentUser, guests: sortedList.sortedGuests };
+  
+    return { isUserGoing: sortedList.isUserGoing, currentGuest: sortedList.currentUser, guests:sortedList.sortedGuests, hasAttendees: result.eventGuests.length > 0 };
   }
 };
 
@@ -152,7 +161,7 @@ export const createEventGuest = async (locationId: string, payload: any) => {
   return { data: response };
 };
 
-export const editEventGuest = async (locationId: string, guestUid: string, payload: any, eventType:string) => {
+export const editEventGuest = async (locationId: string, guestUid: string, payload: any, eventType: string) => {
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestUid}?type=${eventType}`,
     {

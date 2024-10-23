@@ -75,6 +75,7 @@ export interface IGuestDetails {
   events: IIrlEvent[];
   isUserGoing: boolean;
   currentGuest: IGuest;
+  hasAttendees: boolean;
 }
 
 export interface IIrlLocation {

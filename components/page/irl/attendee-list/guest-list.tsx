@@ -5,6 +5,8 @@ import { IUserInfo } from '@/types/shared.types';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import GuestTableRow from './guest-table-row';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
+import { triggerLoader } from '@/utils/common.utils';
+import { useRouter } from 'next/navigation';
 
 interface IGuestList {
   userInfo: IUserInfo;
@@ -27,9 +29,10 @@ const GuestList = (props: IGuestList) => {
   const setSelectedGuests = props?.setSelectedGuests;
   const location = props?.location;
   const isLoggedIn = props.isLoggedIn;
-  const onLogin = props.onLogin
+  const onLogin = props.onLogin;
 
   const analytics = useIrlAnalytics();
+  const router = useRouter();
 
   const onchangeSelectionStatus = (uid: string) => {
     setSelectedGuests((prevSelectedIds: string[]) => {
@@ -39,6 +42,30 @@ const GuestList = (props: IGuestList) => {
         return [...prevSelectedIds, uid];
       }
     });
+  };
+
+  const onResetFilters = () => {
+    const currentParams = new URLSearchParams(window.location.search);
+    const attendingParam = currentParams.get('attending');
+ 
+    document.dispatchEvent(
+      new CustomEvent('irl-details-filterList', {
+        detail: {
+          key: 'topics',
+          selectedItems: [],
+        },
+      })
+    );
+    
+    document.dispatchEvent(new CustomEvent('reset-irl-search'));
+    document.dispatchEvent(new CustomEvent('irl-details-searchlist', { detail: { searchValue: '' } }));
+    document.dispatchEvent(new CustomEvent('reset-irl-details-sortlist'));
+    if (attendingParam) {
+      triggerLoader(true);
+      currentParams.delete('attending');
+      router.push(`${window.location.pathname}?${currentParams.toString()}`, { scroll: false });
+      router.refresh();
+    }
   };
 
   useEffect(() => {
@@ -74,7 +101,14 @@ const GuestList = (props: IGuestList) => {
               </div>
             );
           })}
-        {filteredList.length === 0 && <div className="guestList__empty">No results found</div>}
+        {filteredList.length === 0 && (
+          <div className="guestList__empty">
+            No results found for the applied input{' '}
+            <span onClick={onResetFilters} className="guestList__empty__reset" role="button">
+              Reset to default
+            </span>
+          </div>
+        )}
       </div>
       <style jsx>
         {`
@@ -96,6 +130,12 @@ const GuestList = (props: IGuestList) => {
             font-size: 14px;
             font-weight: 500;
             color: #64748b;
+            gap: 4px;
+          }
+
+          .guestList__empty__reset {
+            color: #156ff7;
+            cursor: pointer;
           }
 
           .divider {

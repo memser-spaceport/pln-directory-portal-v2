@@ -37,6 +37,7 @@ const AttendeeList = (props: IAttendeeList) => {
   const showTelegram = props.showTelegram;
   const location = props.location;
   const searchParams = props?.searchParams;
+  const hasAttendees = eventDetails?.hasAttendees;
 
   const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
@@ -74,7 +75,7 @@ const AttendeeList = (props: IAttendeeList) => {
     const authToken = getParsedValue(Cookies.get('authToken'));
     const slugURL = searchParams.event || '';
     const eventType = searchParams.type === 'past' ? '' : 'upcoming';
-    const eventInfo: any = await getGuestsByLocation(location?.uid, eventType, authToken, slugURL, userInfo);
+    const eventInfo: any = await getGuestsByLocation(location?.uid, eventType, authToken, slugURL, userInfo, searchParams);
     setUpdatedEventDetails(eventInfo);
     triggerLoader(false);
     router.refresh();
@@ -145,9 +146,9 @@ const AttendeeList = (props: IAttendeeList) => {
           <Toolbar location={location} onLogin={onLogin} filteredListLength={filteredList?.length} eventDetails={updatedEventDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} />
         </div>
         <div className="attendeeList__table">
-          {eventDetails?.guests?.length > 0 && (
+          {hasAttendees && (
             <div className={`irl__table table__login`}>
-              <AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} filterConfig={filterConfig} />
+              <AttendeeTableHeader isLoggedIn={isLoggedIn} eventDetails={updatedEventDetails} sortConfig={sortConfig} filterConfig={filterConfig} searchParams={searchParams} />
               <div className={`irl__table__body w-full`}>
                 <GuestList
                   userInfo={userInfo}
@@ -163,7 +164,7 @@ const AttendeeList = (props: IAttendeeList) => {
               </div>
             </div>
           )}
-          {eventDetails?.guests?.length === 0 && searchParams.type !== 'past' && <NoAttendees userInfo={userInfo} isLoggedIn location={location} onLogin={onLogin} />}
+          {!hasAttendees && searchParams.type !== 'past' && <NoAttendees userInfo={userInfo} isLoggedIn={isLoggedIn} location={location} onLogin={onLogin} />}
         </div>
       </div>
       {/* FLOATING BAR */}

@@ -917,3 +917,5 @@ export const IRL_ATTENDEE_FORM_ERRORS = {
 }
 
 export const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+export const IRL_SUBMIT_FORM_LINK = "https://eventsmanagement.labweek.io/"

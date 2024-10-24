@@ -29,7 +29,7 @@ const config: Config = {
   silent: true,
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  coverageReporters: ['text', 'json'],
+  coverageReporters: ['text', 'json','html'],
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
     prefix: '<rootDir>/',
   }),

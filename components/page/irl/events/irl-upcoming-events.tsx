@@ -19,7 +19,7 @@ interface EventDetailsProps {
   searchParams: any;
 }
 
-const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetailsProps) => {
+const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: EventDetailsProps) => {
   const eventType = isUpcoming ? 'Upcoming Events' : 'Past Events';
   let eventsToShow = getEventsToShow() || [];
   const [isExpanded, setExpanded] = useState(false);
@@ -97,7 +97,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
               <div className="root__irl__table__header">
                 <div className="root__irl__table-row__header">
                   <div className="root__irl__table-col__headerName">
-                    <SearchGatherings eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={setItemsToShow} />
+                    <SearchGatherings searchParams={searchParams} type={"upcoming"} eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={setItemsToShow} />
                   </div>
                   <div className="root__irl__table-col__headerDesc">Description</div>
                   <div className="root__irl__table-col__headerRes">Resources</div>
@@ -106,7 +106,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
               <div className="">
                 <div className="root__irl__desktop__view">
                   {eventsToShow?.map((gathering: any, index: number) => (
-                    <div key={gathering?.uid}>
+                    <div key={gathering?.uid} id={`upcoming-web-${gathering?.uid}`}>
                       <IrlEventsTableView
                         isLoggedIn={isLoggedIn}
                         key={gathering.uid}
@@ -120,7 +120,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                 </div>
                 <div className="root__irl__mobile__view">
                   {eventsToShow?.slice(0, itemsToShow)?.map((gathering: any, index: number) => (
-                    <div key={`mob-${gathering?.uid}`} id={`mob-${gathering?.uid}`}>
+                    <div key={`mob-${gathering?.uid}`} id={`upcoming-mob-${gathering?.uid}`}>
                       <IrlEventsTableView
                         isLoggedIn={isLoggedIn}
                         key={gathering?.uid}

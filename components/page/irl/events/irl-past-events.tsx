@@ -134,8 +134,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
               <div className="root__irl__table__header">
                 <div className="root__irl__table-row__header">
                   <div className="root__irl__table-col__headerName">
-                  <SearchGatherings eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={null} />
-                    
+                    <SearchGatherings eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={null} />
                   </div>
                   <div className="root__irl__table-col__headerDesc">Description</div>
                   <div className="root__irl__table-col__headerRes">Resources</div>
@@ -143,6 +142,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
               </div>
               {eventsToShow?.map((gathering, index) => (
                 <IrlEventsTableView
+                  isLoggedIn={isLoggedIn}
+                  resources={resources}
                   key={gathering.id}
                   gathering={gathering}
                   handleClick={handleClick}

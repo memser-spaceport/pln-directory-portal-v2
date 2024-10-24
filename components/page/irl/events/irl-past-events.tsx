@@ -127,32 +127,34 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
 
   return (
     <>
-      <div className="root__irl__tableContainer">
+      <div className="root__irl__tableContainer" id='container'>
         <div className="root__irl__table">
           {eventsToShow?.length > 0 ? (
             <>
               <div className="root__irl__table__header">
                 <div className="root__irl__table-row__header">
                   <div className="root__irl__table-col__headerName">
-                    <SearchGatherings eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={null} />
+                    <SearchGatherings searchParams={searchParams} type="past" eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={null} />
                   </div>
                   <div className="root__irl__table-col__headerDesc">Description</div>
                   <div className="root__irl__table-col__headerRes">Resources</div>
                 </div>
               </div>
               {eventsToShow?.map((gathering, index) => (
-                <IrlEventsTableView
-                  isLoggedIn={isLoggedIn}
-                  resources={resources}
-                  key={gathering.id}
-                  gathering={gathering}
-                  handleClick={handleClick}
-                  eventsToShow={eventsToShow}
-                  isLastContent={index === eventsToShow.length - 1}
-                  handleElementClick={() => handleElementClick(gathering)}
-                  isEventSelected={searchParams?.event === gathering.slugURL}
-                  eventType={!isUpcoming}
-                />
+                <div key={gathering?.uid} id={`past-web-${gathering?.uid}`}>
+                  <IrlEventsTableView
+                    isLoggedIn={isLoggedIn}
+                    resources={resources}
+                    key={gathering.uid}
+                    gathering={gathering}
+                    handleClick={handleClick}
+                    eventsToShow={eventsToShow}
+                    isLastContent={index === eventsToShow.length - 1}
+                    handleElementClick={() => handleElementClick(gathering)}
+                    isEventSelected={searchParams?.event === gathering.slugURL}
+                    eventType={!isUpcoming}
+                  />
+                </div>
               ))}
             </>
           ) : (

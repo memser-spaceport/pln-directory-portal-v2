@@ -26,7 +26,6 @@ const IrlEvents = (props: IIrlEvents) => {
   let isUpcoming = true;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const addResRef = useRef<HTMLDialogElement>(null);
-  const { updateQueryParams } = useUpdateQueryParams();
   const analytics = useIrlAnalytics();
   const router = useRouter();
 

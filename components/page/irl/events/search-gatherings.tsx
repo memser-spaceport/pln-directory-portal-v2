@@ -1,12 +1,15 @@
 import useClickedOutside from '@/hooks/useClickedOutside';
+import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { getFormattedDateString } from '@/utils/irl.utils';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface ISearchGatherings {
   eventsToShow: any;
   setExpanded: any;
   setItemsToShow: any;
+  type: any;
+  searchParams: any;
 }
 
 const SearchGatherings = (props: ISearchGatherings) => {
@@ -15,11 +18,14 @@ const SearchGatherings = (props: ISearchGatherings) => {
   const searchOptionsRef = useRef<HTMLDivElement>(null);
   const setExpanded = props?.setExpanded;
   const setItemsToShow = props?.setItemsToShow;
+  const type = props?.type;
 
   const [gatheringSearchProperties, setGatheringSearchProperties] = useState({
     filteredValues: eventsToShow,
     isExpanded: false,
   });
+  const searchParams = props?.searchParams;
+  const {updateQueryParams} = useUpdateQueryParams();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -71,12 +77,18 @@ const SearchGatherings = (props: ISearchGatherings) => {
     if (inputRef.current) {
       inputRef.current.value = "";
     }
+
+    if(type === "past") {
+      updateQueryParams('event', gathering.slugURL, searchParams);
+
+    }
+
     const container = document.getElementById('container');
-    const element = document.getElementById(gathering.uid);
+    const element = document.getElementById(`${type}-web-${gathering.uid}`);
     const windowWidth = window.innerWidth;
     if (windowWidth < 1024) {
       const scrollableElement = document.querySelector('body');
-      const mobileElement = document.getElementById(`mob-${gathering?.uid}`);
+      const mobileElement = document.getElementById(`${type}-mob-${gathering?.uid}`);
       const bodyReact = scrollableElement?.getBoundingClientRect();
       const elementReact = mobileElement?.getBoundingClientRect();
       const scrollTop = elementReact?.top ? elementReact.top - (bodyReact?.top ?? 0) + (scrollableElement?.scrollTop ?? 0) : 0;

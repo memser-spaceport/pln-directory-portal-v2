@@ -245,6 +245,10 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
           padding: 10px;
         }
 
+        .root__irl__table-col__headerName {
+          padding: 6px 8px;
+        }
+
         .root__irl__table__header {
           background-color: #f8fafc;
           position: sticky;

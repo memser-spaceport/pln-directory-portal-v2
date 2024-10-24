@@ -11,7 +11,7 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useRouter } from 'next/navigation';
 import { ILocationDetails } from '@/types/irl.types';
 import Image from 'next/image';
-import { IRL_ADD_GATHERING_FORM_LINK } from '@/utils/constants';
+import { IRL_SUBMIT_FORM_LINK } from '@/utils/constants';
 
 interface IIrlEvents {
   searchParams: any;
@@ -115,7 +115,7 @@ const IrlEvents = (props: IIrlEvents) => {
   }
 
   function handleAddGathering() {
-    analytics.onAddGatheringClicked(IRL_ADD_GATHERING_FORM_LINK);
+    analytics.onAddGatheringClicked(IRL_SUBMIT_FORM_LINK);
   }
 
   function handleAdditionalResourceClicked(resource: any) {
@@ -234,10 +234,10 @@ const IrlEvents = (props: IIrlEvents) => {
         <div>
           <Image src="/icons/irl/add-gathering.svg" alt="add-gathering" width={19} height={19} />
         </div>
-        <div className="add-gathering__txt">Don&apos;t see a gathering listed here?</div>
+        <div className="add-gathering__txt">Don&apos;t see the event you are interested in?</div>
         <div className="add-gathering__click">
-          <a href={IRL_ADD_GATHERING_FORM_LINK} target="_blank" onClick={handleAddGathering}>
-            Click Here
+          <a href={IRL_SUBMIT_FORM_LINK} target="_blank" onClick={handleAddGathering}>
+          Submit an Event.
           </a>
         </div>
       </div>

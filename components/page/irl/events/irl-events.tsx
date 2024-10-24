@@ -237,7 +237,7 @@ const IrlEvents = (props: IIrlEvents) => {
         <div className="add-gathering__txt">Don&apos;t see the event you are interested in?</div>
         <div className="add-gathering__click">
           <a href={IRL_SUBMIT_FORM_LINK} target="_blank" onClick={handleAddGathering}>
-          Submit an Event.
+          Submit an Event
           </a>
         </div>
       </div>

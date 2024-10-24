@@ -403,6 +403,10 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
           padding: 10px;
         }
 
+        .root__irl__table-col__headerName {
+          padding: 6px 8px;
+        }
+
         .root__irl__table-col__contentDesc {
           display: flex;
           align-items: center;

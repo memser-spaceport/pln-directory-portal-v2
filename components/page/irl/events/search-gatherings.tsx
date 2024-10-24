@@ -155,7 +155,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
             gap: 5px;
             align-items: center;
             padding: 0px 0px 0px 8px;
-            height: 24px;
+            height: 28px;
             background: white;
             position: relative;
           }

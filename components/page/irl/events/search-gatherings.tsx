@@ -1,6 +1,7 @@
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { getFormattedDateString } from '@/utils/irl.utils';
-import { useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 interface ISearchGatherings {
   eventsToShow: any;
@@ -19,10 +20,14 @@ const SearchGatherings = (props: ISearchGatherings) => {
     filteredValues: eventsToShow,
     isExpanded: false,
   });
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useClickedOutside({
     callback: () => {
+        if(inputRef?.current) {
+            inputRef.current.value = ""
+        }
       setGatheringSearchProperties({
         ...gatheringSearchProperties,
         isExpanded: false,
@@ -53,7 +58,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
   };
 
   const ongatheringSearchHandler = (event: any) => {
-    const searchValue = event.target.value.toLowerCase();
+    const searchValue = event.target.value.toLowerCase().trim();
     const filteredValues = eventsToShow.filter((gathering: any) => gathering?.name?.toLowerCase().includes(searchValue));
     setGatheringSearchProperties({
       ...gatheringSearchProperties,
@@ -63,6 +68,9 @@ const SearchGatherings = (props: ISearchGatherings) => {
   };
 
   const onGatheringSelectHandler = (gathering: any) => {
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
     const container = document.getElementById('container');
     const element = document.getElementById(gathering.uid);
     const windowWidth = window.innerWidth;
@@ -107,6 +115,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
           onChange={ongatheringSearchHandler}
           className="root__irl__table-col__headerName__srchCont__inpt"
           type="text"
+          value={inputRef?.current?.value}
           placeholder="Search Gatherings"
         />
       </div>
@@ -182,7 +191,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
             font-size: 13px;
             font-weight: 600;
             line-height: 20px;
-            max-width: 100px;
+            max-width: 140px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;

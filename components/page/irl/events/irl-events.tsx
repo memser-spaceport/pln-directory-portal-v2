@@ -231,14 +231,16 @@ const IrlEvents = (props: IIrlEvents) => {
         </div>
       </div>
       <div className="add-gathering">
-        <div>
+        <div className="add-gathering__icon">
           <Image src="/icons/irl/add-gathering.svg" alt="add-gathering" width={19} height={19} />
         </div>
-        <div className="add-gathering__txt">Don&apos;t see the event you are interested in?</div>
-        <div className="add-gathering__click">
-          <a href={IRL_SUBMIT_FORM_LINK} target="_blank" onClick={handleAddGathering}>
-          Submit an Event
-          </a>
+        <div className="add-gathering__content">
+          <div className="add-gathering__txt">Don&apos;t see the event you are interested in?</div>
+          <div className="add-gathering__click">
+            <a href={IRL_SUBMIT_FORM_LINK} target="_blank" onClick={handleAddGathering}>
+              Submit an Event
+            </a>
+          </div>
         </div>
       </div>
       <style jsx>{`
@@ -251,14 +253,20 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         .add-gathering {
+          max-width: 900px;
           background-color: #f8fafc;
           box-shadow: 0px 4px 4px 0px #0f172a0a;
-        //   border: 1px solid #f8fafc;
+          //   border: 1px solid #f8fafc;
           border-top: 0;
           border-radius: 0;
           padding: 13px;
           padding-left: 20px;
           display: flex;
+          align-items: center;
+        }
+
+        .add-gathering__icon{
+            display: flex;
         }
 
         .add-gathering__txt {
@@ -266,8 +274,15 @@ const IrlEvents = (props: IIrlEvents) => {
           font-weight: 500;
           line-height: 20px;
           text-align: center;
+          //   padding-left: 10px;
+          //   padding-right: 4px;
+        }
+
+        .add-gathering__content {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
           padding-left: 10px;
-          padding-right: 4px;
         }
 
         .add-gathering__click {
@@ -609,7 +624,7 @@ const IrlEvents = (props: IIrlEvents) => {
             background-color: #fff;
             // border: 1px solid #0f172a0a;
             // box-shadow: 0px 4px 4px 0px #0F172A0A;
-            box-shadow: 0px -4px 4px 0px #0F172A0A;
+            box-shadow: 0px -4px 4px 0px #0f172a0a;
             max-width: 900px;
             padding: 20px 0px 20px 20px;
             border-bottom: 0;
@@ -664,6 +679,15 @@ const IrlEvents = (props: IIrlEvents) => {
             margin-right: 20px;
           }
         }
+
+        @media (min-width: 425px) {
+          
+            .add-gathering__content{
+                flex-direction: row;
+                gap: 4px;
+              }
+        }
+        
 
         @media (min-width: 700px) {
           .root__irl {

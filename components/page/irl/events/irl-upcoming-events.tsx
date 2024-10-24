@@ -57,12 +57,12 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
 
   const toggleDescription = () => {
     setItemsToShow(isExpanded ? 4 : itemsToShow + 4);
-    if (itemsToShow  >= eventsToShow?.length - 4) {
-        setExpanded(!isExpanded);
+    if (itemsToShow >= eventsToShow?.length - 4) {
+      setExpanded(!isExpanded);
     } else {
-        setExpanded(isExpanded); 
+      setExpanded(isExpanded);
     }
-};
+  };
 
   const onCloseModal = () => {
     if (dialogRef.current) {
@@ -107,7 +107,14 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                 <div className="root__irl__desktop__view">
                   {eventsToShow?.map((gathering: any, index: number) => (
                     <div key={gathering?.uid}>
-                      <IrlEventsTableView key={gathering.uid} gathering={gathering} handleClick={handleClick} eventsToShow={eventsToShow} isLastContent={index === eventsToShow.length - 1} />
+                      <IrlEventsTableView
+                        isLoggedIn={isLoggedIn}
+                        key={gathering.uid}
+                        gathering={gathering}
+                        handleClick={handleClick}
+                        eventsToShow={eventsToShow}
+                        isLastContent={index === eventsToShow.length - 1}
+                      />
                     </div>
                   ))}
                 </div>
@@ -115,6 +122,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming }: EventDetail
                   {eventsToShow?.slice(0, itemsToShow)?.map((gathering: any, index: number) => (
                     <div key={`mob-${gathering?.uid}`} id={`mob-${gathering?.uid}`}>
                       <IrlEventsTableView
+                        isLoggedIn={isLoggedIn}
                         key={gathering?.uid}
                         gathering={gathering}
                         handleClick={handleClick}

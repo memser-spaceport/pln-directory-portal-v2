@@ -1,5 +1,6 @@
 import useClickedOutside from '@/hooks/useClickedOutside';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
+import { triggerLoader } from '@/utils/common.utils';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -25,15 +26,15 @@ const SearchGatherings = (props: ISearchGatherings) => {
     isExpanded: false,
   });
   const searchParams = props?.searchParams;
-  const {updateQueryParams} = useUpdateQueryParams();
+  const { updateQueryParams } = useUpdateQueryParams();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useClickedOutside({
     callback: () => {
-        if(inputRef?.current) {
-            inputRef.current.value = ""
-        }
+      if (inputRef?.current) {
+        inputRef.current.value = '';
+      }
       setGatheringSearchProperties({
         ...gatheringSearchProperties,
         isExpanded: false,
@@ -44,15 +45,14 @@ const SearchGatherings = (props: ISearchGatherings) => {
 
   const onSearchGatheringClicked = () => {
     setExpanded(true);
-    if(inputRef?.current?.value) {
-        const searchValue = inputRef?.current?.value.toLowerCase();
-        const filteredValues = eventsToShow.filter((gathering: any) => gathering?.name?.toLowerCase().includes(searchValue));
-        setGatheringSearchProperties({
-          ...gatheringSearchProperties,
-          filteredValues,
-          isExpanded: inputRef?.current?.value ? true : false,
-        });
-
+    if (inputRef?.current?.value) {
+      const searchValue = inputRef?.current?.value.toLowerCase();
+      const filteredValues = eventsToShow.filter((gathering: any) => gathering?.name?.toLowerCase().includes(searchValue));
+      setGatheringSearchProperties({
+        ...gatheringSearchProperties,
+        filteredValues,
+        isExpanded: inputRef?.current?.value ? true : false,
+      });
     }
     if (setItemsToShow) {
       setItemsToShow(eventsToShow?.length);
@@ -75,12 +75,14 @@ const SearchGatherings = (props: ISearchGatherings) => {
 
   const onGatheringSelectHandler = (gathering: any) => {
     if (inputRef.current) {
-      inputRef.current.value = "";
+      inputRef.current.value = '';
     }
 
-    if(type === "past") {
-      updateQueryParams('event', gathering.slugURL, searchParams);
-
+    if (type === 'past') {
+      if (searchParams?.event !==  gathering.slugURL) {
+        updateQueryParams('event', gathering.slugURL, searchParams);
+        triggerLoader(true);
+      }
     }
 
     const container = document.getElementById('container');
@@ -186,7 +188,6 @@ const SearchGatherings = (props: ISearchGatherings) => {
             position: absolute;
             border: 1px solid #cbd5e1;
             top: 40px;
-            width: 272px;
             background: #f5f9ff;
             overflow: auto;
             max-height: 150px;

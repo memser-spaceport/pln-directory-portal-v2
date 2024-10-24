@@ -64,7 +64,7 @@ export const useIrlAnalytics = () => {
     IRL_RSVP_POPUP_SAVE_ERROR: 'irl-rsvp-popup-save-error',
     IRL_RSVP_POPUP_CLOSE_CLICKED: 'irl-rsvp-popup-close-clicked',
 
-    IRL_ADD_GATHERING_CLICKED:'irl-add-gathering-clicked',
+    IRL_ADD_EVENT_CLICKED:'irl-add-event-clicked',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -409,7 +409,7 @@ export const useIrlAnalytics = () => {
   }
 
   function onAddGatheringClicked(url:string) {
-    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADD_GATHERING_CLICKED,url);
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ADD_EVENT_CLICKED,url);
   }
 
   function trackPastEventClicked(pastEvent: any) {

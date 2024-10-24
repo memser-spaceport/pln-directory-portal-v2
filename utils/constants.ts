@@ -918,4 +918,4 @@ export const IRL_ATTENDEE_FORM_ERRORS = {
 
 export const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-export const IRL_ADD_GATHERING_FORM_LINK = "https://airtable.com/appHT5ErKdHcsFznj/shryt1Y1xDKZTemJS"
+export const IRL_SUBMIT_FORM_LINK = "https://eventsmanagement.labweek.io/"

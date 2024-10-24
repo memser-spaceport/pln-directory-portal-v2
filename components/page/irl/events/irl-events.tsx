@@ -680,7 +680,7 @@ const IrlEvents = (props: IIrlEvents) => {
           }
         }
 
-        @media (min-width: 425px) {
+        @media (min-width: 450px) {
           
             .add-gathering__content{
                 flex-direction: row;

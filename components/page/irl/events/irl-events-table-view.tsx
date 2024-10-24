@@ -11,6 +11,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
     return (
         <>
             <div
+                id={gathering?.uid}
                 key={index}
                 className={`root__irl__table-row__content ${isLastContent ? 'last-content' : ''} ${isEventSelected ? 'root__irl__table-row__content--active' : ''}`}
                 onClick={() => handleRowClick(gathering)}

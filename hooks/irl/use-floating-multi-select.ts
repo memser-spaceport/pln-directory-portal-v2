@@ -20,6 +20,11 @@ const useFloatingMultiSelect = (props: any) => {
     setIsPaneActive(false);
   };
 
+  const onTogglePane = ()=> {
+    setSelectedItems(alreadySelected);
+    setIsPaneActive(!isPaneActive);
+  }
+
   const onClearSelection = (e: any) => {
     e.stopPropagation();
     setSelectedItems([]);
@@ -65,7 +70,8 @@ const useFloatingMultiSelect = (props: any) => {
     isPaneActive,
     setFilteredItems,
     onOpenPane,
-    onClosePane
+    onClosePane,
+    onTogglePane
   };
 };
 

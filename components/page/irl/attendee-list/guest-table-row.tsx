@@ -61,7 +61,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const analytics = useIrlAnalytics();
   const canUserAddAttendees = canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const isLoggedIn = props.isLoggedIn;
-  const onLogin = props.onLogin
+  const onLogin = props.onLogin;
 
   const onTeamClick = (teamUid: string, teamName: string) => {
     analytics.trackGuestListTableTeamClicked(location, {
@@ -189,12 +189,28 @@ const GuestTableRow = (props: IGuestTableRow) => {
                         align="end"
                         content={
                           <div className="gtr__guestName__li__info__spkr__list">
-                            {speakerEvents.map((event: { link: string; name: string }, index: number) => (
-                              <a key={index} target="_blank" href={event?.link} className="gtr__guestName__li__info__spkr__list__item" onClick={() => onSpeakerEventClick(event)}>
-                                {event?.name}
-                                <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />
-                              </a>
-                            ))}
+                            {speakerEvents?.map((event: { link: string; name: string }, index: number) => {
+                              const isLinkAvailable = !!event?.link;
+                              const displayName = event?.name || `Link${index + 1}`;
+
+                              const Element = isLinkAvailable ? 'a' : 'span';
+                              const elementProps = isLinkAvailable
+                                ? {
+                                    href: event.link,
+                                    target: '_blank',
+                                    onClick: () => onSpeakerEventClick(event),
+                                  }
+                                : {
+                                    onClick: (e: SyntheticEvent) => e.preventDefault(),
+                                  };
+
+                              return (
+                                <Element key={index} {...elementProps} className="gtr__guestName__li__info__spkr__list__item">
+                                  {displayName}
+                                  {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
+                                </Element>
+                              );
+                            })}
                           </div>
                         }
                         trigger={
@@ -217,12 +233,28 @@ const GuestTableRow = (props: IGuestTableRow) => {
                         align="end"
                         content={
                           <div className="gtr__guestName__li__info__host__list">
-                            {hostEvents?.map((event: { link: string; name: string }, index: number) => (
-                              <a key={index} target="_blank" href={event?.link} onClick={() => onHostEventClick(event)} className="gtr__guestName__li__info__host__list__item">
-                                {event?.name}
-                                <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />
-                              </a>
-                            ))}
+                            {hostEvents?.map((event: { link: string; name: string }, index: number) => {
+                              const isLinkAvailable = !!event?.link;
+                              const displayName = event?.name || `Link${index + 1}`;
+
+                              const Element = isLinkAvailable ? 'a' : 'span';
+                              const elementProps = isLinkAvailable
+                                ? {
+                                    href: event.link,
+                                    target: '_blank',
+                                    onClick: () => onHostEventClick(event),
+                                  }
+                                : {
+                                    onClick: (e: SyntheticEvent) => e.preventDefault(),
+                                  };
+
+                              return (
+                                <Element key={index} {...elementProps} className="gtr__guestName__li__info__host__list__item">
+                                  {displayName}
+                                  {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
+                                </Element>
+                              );
+                            })}
                           </div>
                         }
                         trigger={
@@ -346,7 +378,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                 </div>
               }
               trigger={
-                <div 
+                <div
                   className='gtr__connect__loggedOut__cntr' 
                   onClick={(e: SyntheticEvent) => {
                     e.preventDefault();
@@ -356,8 +388,8 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   <img src="/icons/telegram-rounded.svg" height={22} width={22} loading="lazy" alt="cam" />
                 </div>
               } />
-          </div>
-        }
+                </div>
+              }
 
 
 
@@ -496,7 +528,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__guestName__li__info__spkr__list,
         .gtr__guestName__li__info__host__list {
-          width: 130px;
+          width: 150px;
           border: 1px solid #cbd5e1;
           background-color: #fff;
           display: flex;
@@ -512,7 +544,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         .gtr__guestName__li__info__host__list__item {
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          gap: 8px;
           font-size: 12px;
           font-weight: 400;
           line-height: 18px;
@@ -691,7 +723,8 @@ const GuestTableRow = (props: IGuestTableRow) => {
           color: #0f172a;
         }
 
-        .gtr__connect, .gtr__connect__loggedOut {
+        .gtr__connect,
+        .gtr__connect__loggedOut {
           display: flex;
           width: 150px;
           flex-direction: column;
@@ -701,7 +734,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         }
 
         .gtr__connect {
-        align-self: flex-start;
+          align-self: flex-start;
         }
 
         .gtr__connect__loggedOut__cntr {
@@ -713,12 +746,12 @@ const GuestTableRow = (props: IGuestTableRow) => {
           gap: 2px;
           border-radius: 24px;
           border: 0.5px solid transparent;
-          background: #F1F5F9;
-          cursor: pointer
+          background: #f1f5f9;
+          cursor: pointer;
         }
 
         .gtr__connect__loggedOut__cntr:hover {
-          border: 0.5px solid #156FF7;
+          border: 0.5px solid #156ff7;
         }
 
         .gtr__content__loggedOut__icon {
@@ -728,17 +761,16 @@ const GuestTableRow = (props: IGuestTableRow) => {
           left: 316px;
           padding: 10px;
           gap: 10px;
-          border-radius: 4px ;
-          border: 1px ;
-          background: #F5F9FF;
-
+          border-radius: 4px;
+          border: 1px;
+          background: #f5f9ff;
         }
         .gtr__content__loggedOut__icon__title {
           font-size: 12px;
           font-weight: 500;
           line-height: 18px;
           text-align: left;
-          color: #156FF7;
+          color: #156ff7;
           cursor: pointer;
         }
 

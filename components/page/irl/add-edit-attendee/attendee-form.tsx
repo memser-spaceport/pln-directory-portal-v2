@@ -274,25 +274,29 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     } else {
       let participationErrors: string[] = [];
       formattedData?.events?.map((event: any) => {
-        event?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent) => {
-          if (!hostSubEvent?.name.trim()) {
-            isError = true;
-            participationErrors.push(`${hostSubEvent?.uid}-name`);
-          }
-          if (!isLink(hostSubEvent?.link)) {
-            isError = true;
-            participationErrors.push(`${hostSubEvent?.uid}-link`);
+        event?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent, index: number) => {
+          if(index !== 0) {
+            if (!hostSubEvent?.name.trim()) {
+              isError = true;
+              participationErrors.push(`${hostSubEvent?.uid}-name`);
+            }
+            if (!isLink(hostSubEvent?.link)) {
+              isError = true;
+              participationErrors.push(`${hostSubEvent?.uid}-link`);
+            }
           }
         });
 
-        event?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent) => {
-          if (!speakerSubEvent?.name.trim()) {
-            isError = true;
-            participationErrors.push(`${speakerSubEvent?.uid}-name`);
-          }
-          if (!isLink(speakerSubEvent?.link.trim())) {
-            isError = true;
-            participationErrors.push(`${speakerSubEvent?.uid}-link`);
+        event?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent, index: number) => {
+          if(index !== 0) {
+            if (!speakerSubEvent?.name.trim()) {
+              isError = true;
+              participationErrors.push(`${speakerSubEvent?.uid}-name`);
+            }
+            if (!isLink(speakerSubEvent?.link.trim())) {
+              isError = true;
+              participationErrors.push(`${speakerSubEvent?.uid}-link`);
+            }
           }
         });
       });

@@ -302,7 +302,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         </div>
 
         {/* Connect */}
-        {isLoggedIn ?
+        {isLoggedIn ? (
           <div className="gtr__connect">
             {!showTelegram && userInfo.uid === guestUid ? (
               <Tooltip
@@ -349,8 +349,8 @@ const GuestTableRow = (props: IGuestTableRow) => {
                       align="start"
                       content={
                         <div className="gtr__connect__add__info">
-                          Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to book
-                          time with you for face-to-face connections.
+                          Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to
+                          book time with you for face-to-face connections.
                         </div>
                       }
                       trigger={<img style={{ display: 'flex' }} loading="lazy" src="/icons/info.svg" height={16} width={16} alt="plus" />}
@@ -365,21 +365,21 @@ const GuestTableRow = (props: IGuestTableRow) => {
               </div>
             ) : null}
           </div>
-          :
-          <div className='gtr__connect__loggedOut'>
+        ) : (
+          <div className="gtr__connect__loggedOut">
             <Popover
               asChild
               align="center"
               content={
-                <div className='gtr__content__loggedOut__icon'>
-                  <div className='gtr__content__loggedOut__icon__title' onClick={onLoginClick}>
+                <div className="gtr__content__loggedOut__icon">
+                  <div className="gtr__content__loggedOut__icon__title" onClick={onLoginClick}>
                     Login to View
                   </div>
                 </div>
               }
               trigger={
                 <div
-                  className='gtr__connect__loggedOut__cntr' 
+                  className="gtr__connect__loggedOut__cntr"
                   onClick={(e: SyntheticEvent) => {
                     e.preventDefault();
                   }}
@@ -387,12 +387,10 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   <img src="/icons/video-cam.svg" height={22} width={22} loading="lazy" alt="cam" />
                   <img src="/icons/telegram-rounded.svg" height={22} width={22} loading="lazy" alt="cam" />
                 </div>
-              } />
-                </div>
               }
-
-
-
+            />
+          </div>
+        )}
 
         {/* Attending */}
         <div className="gtr__attending">
@@ -441,7 +439,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
             )}
           </div>
         </div>
-
       </div>
       <style jsx>{`
         .gtr {

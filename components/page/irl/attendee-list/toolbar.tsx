@@ -452,7 +452,7 @@ const Toolbar = (props: IToolbar) => {
             }
 
             .toolbar__search {
-              width: 300px;
+              width: 400px;
               margin-left: 16px;
               order: 1;
               flex-basis: unset;

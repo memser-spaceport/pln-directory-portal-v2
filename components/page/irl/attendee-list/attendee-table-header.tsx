@@ -129,13 +129,15 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
   const onTopicsFilterclicked = () => {
     analytics.trackGuestListTableFilterClicked(location, 'topics');
-    topicFilterProps?.onOpenPane();
+    topicFilterProps?.onTogglePane();
+    topicFilterProps?.setFilteredItems([...topics]);
     eventsFilterProps?.onClosePane();
   };
 
   const onEventsFilterclicked = () => {
     analytics.trackGuestListTableFilterClicked(location, 'attending');
-    eventsFilterProps?.onOpenPane();
+    eventsFilterProps?.onTogglePane();
+    eventsFilterProps?.setFilteredItems([...events]);
     topicFilterProps?.onClosePane();
   };
 

@@ -186,7 +186,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                     <div className="gtr__guestName__li__info__spkr">
                       <Popover
                         asChild
-                        align="end"
+                        align="start"
                         content={
                           <div className="gtr__guestName__li__info__spkr__list">
                             {speakerEvents?.map((event: { link: string; name: string }, index: number) => {
@@ -205,7 +205,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                                   };
 
                               return (
-                                <Element key={index} {...elementProps} className="gtr__guestName__li__info__spkr__list__item">
+                                <Element key={index} {...elementProps} className={`gtr__guestName__li__info__spkr__list__item ${speakerEvents?.length !== index + 1 ? 'border-bottom' : ''}`}>
                                   {displayName}
                                   {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
                                 </Element>
@@ -230,7 +230,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                     <div className="gtr__guestName__li__info__host">
                       <Popover
                         asChild
-                        align="end"
+                        align="start"
                         content={
                           <div className="gtr__guestName__li__info__host__list">
                             {hostEvents?.map((event: { link: string; name: string }, index: number) => {
@@ -249,7 +249,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                                   };
 
                               return (
-                                <Element key={index} {...elementProps} className="gtr__guestName__li__info__host__list__item">
+                                <Element key={index} {...elementProps} className={`gtr__guestName__li__info__host__list__item ${hostEvents?.length !== index + 1 ? 'border-bottom' : ''}`}>
                                   {displayName}
                                   {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
                                 </Element>
@@ -525,13 +525,12 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__guestName__li__info__spkr__list,
         .gtr__guestName__li__info__host__list {
-          width: 150px;
+          width: 168px;
           border: 1px solid #cbd5e1;
           background-color: #fff;
           display: flex;
           flex-direction: column;
-          gap: 5px;
-          padding: 10px;
+          padding: 0px 10px;
           border-radius: 4px;
           max-height: 200px;
           overflow: auto;
@@ -547,6 +546,12 @@ const GuestTableRow = (props: IGuestTableRow) => {
           line-height: 18px;
           text-align: left;
           color: #000000;
+          justify-content: space-between;
+          padding: 12px 0px;
+        }
+
+        .border-bottom {
+          border-bottom: 0.5px solid #cbd5e1;
         }
 
         .gtr__guestName__li__info__host__btn {

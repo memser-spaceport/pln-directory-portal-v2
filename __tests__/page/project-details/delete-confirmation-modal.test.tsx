@@ -1,4 +1,3 @@
-import ContactInfos from '@/components/page/project-details/contact-infos';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DeleteConfirmationModal from '@/components/page/project-details/delete-confirmation-modal';

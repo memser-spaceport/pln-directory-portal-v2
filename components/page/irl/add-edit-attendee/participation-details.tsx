@@ -278,8 +278,8 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                                 defaultValue={hostSubEvent.name}
                                 id={''}
                                 readOnly = {index === 0}
-                                isMandatory = {index !== 0}
-                                isError={participationErrors.includes(`${hostSubEvent?.uid}-name`) ? true : false}
+                                // isMandatory = {index !== 0}
+                                // isError={participationErrors.includes(`${hostSubEvent?.uid}-name`) ? true : false}
                               />
                             </div>
 
@@ -292,7 +292,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                                 defaultValue={hostSubEvent.link}
                                 id={''}
                                 readOnly = {index === 0}
-                                isMandatory = {index !== 0}
+                                // isMandatory = {index !== 0}
                                 isError={participationErrors.includes(`${hostSubEvent?.uid}-link`) ? true : false}
                               />
                             </div>
@@ -330,8 +330,8 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                                 defaultValue={speakerSubEvent.name}
                                 id={''}
                                 readOnly = {index === 0}
-                                isMandatory = {index !== 0}
-                                isError={participationErrors.includes(`${speakerSubEvent?.uid}-name`) ? true : false}
+                                // isMandatory = {index !== 0}
+                                // isError={participationErrors.includes(`${speakerSubEvent?.uid}-name`) ? true : false}
                               />
                             </div>
 
@@ -344,7 +344,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                                 defaultValue={speakerSubEvent.link}
                                 id={''}
                                 readOnly = {index === 0}
-                                isMandatory = {index !== 0}
+                                // isMandatory = {index !== 0}
                                 isError={participationErrors?.includes(`${speakerSubEvent?.uid}-link`) ? true : false}
                               />
                             </div>

@@ -262,6 +262,7 @@ export const transformMembers = (groupedMembers: any) => {
       hostSubEvents: member?.additionalInfo?.hostSubEvents,
       speakerSubEvents: member?.additionalInfo?.speakerSubEvents,
       type: member?.event?.type,
+      resources: member?.event?.resources
     })),
     topics: groupedMembers[memberUid][0]?.topics,
     officeHours: groupedMembers[memberUid][0]?.member?.officeHours,

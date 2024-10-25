@@ -21,6 +21,10 @@ const ParticipationDetails = (props: IParticipationDetails) => {
   }, [errors]);
 
   const onHostSelectHandler = (selectedGathering: IIrlGathering) => {
+    const websiteLink = selectedGathering?.resources?.find(
+      (resource: any) => resource.name.toLowerCase().includes('website')
+    )?.link;
+    
     setSelectedGatherings((prev: IIrlGathering[]) => {
       const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
       const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
@@ -31,7 +35,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
         } else {
           updatedGatherings[index] = {
             ...selectedGathering,
-            hostSubEvents: [...(selectedGathering?.hostSubEvents || []), { uid: id, name: '', link: '' }],
+            hostSubEvents: [...(selectedGathering?.hostSubEvents || []), { uid: id, name: selectedGathering?.name ?? '', link: websiteLink ?? '' }],
           };
         }
         return updatedGatherings;
@@ -101,6 +105,10 @@ const ParticipationDetails = (props: IParticipationDetails) => {
   };
 
   const onSpeakerSelectHandler = (selectedGathering: IIrlGathering) => {
+    const websiteLink = selectedGathering?.resources?.find(
+      (resource: any) => resource.name.toLowerCase().includes('website')
+    )?.link;
+
     setSelectedGatherings((prev: IIrlGathering[]) => {
       const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
       const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
@@ -111,7 +119,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
         } else {
           updatedGatherings[index] = {
             ...selectedGathering,
-            speakerSubEvents: [...(selectedGathering?.speakerSubEvents || []), { uid: id, name: '', link: '' }],
+            speakerSubEvents: [...(selectedGathering?.speakerSubEvents || []), { uid: id, name: selectedGathering?.name ?? '', link: websiteLink ?? '' }],
           };
         }
         return updatedGatherings;
@@ -254,13 +262,13 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                         {selectedGathering?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent, index: number) => (
                           <div key={`${hostSubEvent.uid}`} className={`ptndtls__cnt__pptdtls__pptdtl__evnts__evnt`}>
                             <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt">
-                              <button
+                              {index !== 0 && <button
                                 type="button"
                                 className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt__dltbtn"
                                 onClick={() => onDeleteHostSubEventsClickHandler(selectedGathering, hostSubEvent)}
                               >
                                 <img src="/icons/delete.svg" height={16} width={16} />
-                              </button>
+                              </button>}
                               <TextField
                                 onChange={(e) => onHostSubEventFieldChangeHandler(e, selectedGathering, hostSubEvent, 'name')}
                                 isDelete={true}
@@ -269,8 +277,9 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                                 name={`hostSubEvent-${selectedGathering.uid}-${hostSubEvent.uid}-name`}
                                 defaultValue={hostSubEvent.name}
                                 id={''}
-                                isMandatory
-                                isError={participationErrors.includes(`${hostSubEvent?.uid}-name`) ? true : false}
+                                readOnly = {index === 0}
+                                // isMandatory = {index !== 0}
+                                // isError={participationErrors.includes(`${hostSubEvent?.uid}-name`) ? true : false}
                               />
                             </div>
 
@@ -282,7 +291,8 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                                 name={`hostSubEvent-${selectedGathering.uid}-${hostSubEvent.uid}-link`}
                                 defaultValue={hostSubEvent.link}
                                 id={''}
-                                isMandatory
+                                readOnly = {index === 0}
+                                // isMandatory = {index !== 0}
                                 isError={participationErrors.includes(`${hostSubEvent?.uid}-link`) ? true : false}
                               />
                             </div>
@@ -304,13 +314,13 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                         {selectedGathering?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent, index: number) => (
                           <div key={`${speakerSubEvent.uid}`} className={`ptndtls__cnt__pptdtls__pptdtl__evnts__evnt`}>
                             <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt">
-                              <button
+                              {index !== 0 && <button
                                 type="button"
                                 className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt__dltbtn"
                                 onClick={() => onDeleteSpeakerSubEventsClickHandler(selectedGathering, speakerSubEvent)}
                               >
                                 <img src="/icons/delete.svg" height={16} width={16} />
-                              </button>
+                              </button>}
                               <TextField
                                 onChange={(e) => onSpeakerSubEventFieldChangeHandler(e, selectedGathering, speakerSubEvent, 'name')}
                                 isDelete={true}
@@ -319,8 +329,9 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                                 name={`speakerSubEvent-${selectedGathering.uid}-${speakerSubEvent?.uid}-name`}
                                 defaultValue={speakerSubEvent.name}
                                 id={''}
-                                isMandatory
-                                isError={participationErrors.includes(`${speakerSubEvent?.uid}-name`) ? true : false}
+                                readOnly = {index === 0}
+                                // isMandatory = {index !== 0}
+                                // isError={participationErrors.includes(`${speakerSubEvent?.uid}-name`) ? true : false}
                               />
                             </div>
 
@@ -332,7 +343,8 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                                 name={`speakerSubEvent-${selectedGathering.uid}-${speakerSubEvent.uid}-link`}
                                 defaultValue={speakerSubEvent.link}
                                 id={''}
-                                isMandatory
+                                readOnly = {index === 0}
+                                // isMandatory = {index !== 0}
                                 isError={participationErrors?.includes(`${speakerSubEvent?.uid}-link`) ? true : false}
                               />
                             </div>
@@ -503,6 +515,10 @@ const ParticipationDetails = (props: IParticipationDetails) => {
           display: flex;
           align-items: center;
           gap: 4px;
+          border: 1px solid #156FF7;
+          border-radius: 6px;
+          padding: 7px;
+          height: 30px;
         }
 
         .ptndtls__cnt__pptdtls__pptdtl__evntscnt__addmrecnt__txt {

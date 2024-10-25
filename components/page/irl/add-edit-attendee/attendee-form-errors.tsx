@@ -1,6 +1,6 @@
 const AttendeeFormErrors = (props: any) => {
   const errors = props?.errors ?? [];
-  const participationErrors = errors?.participationErrors.length > 0 ? ['Host/Speaker details has to be entered'] : [];
+  const participationErrors = errors?.participationErrors.length > 0 ? ['Please enter a valid URL'] : [];
 
   const allErrors = [...errors?.gatheringErrors, ...participationErrors, ...errors?.dateErrors];
 

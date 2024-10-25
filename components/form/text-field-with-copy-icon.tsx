@@ -15,6 +15,7 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   hide?: boolean;
   maxLength?: number;
   isError?: boolean;
+  readOnly?: boolean;
 }
 
 const TextFieldWithCopyIcon: React.FC<TextFieldProps> = ({
@@ -31,6 +32,7 @@ const TextFieldWithCopyIcon: React.FC<TextFieldProps> = ({
   maxLength,
   isDelete,
   isError = false,
+  readOnly = false,
   ...rest
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -66,6 +68,7 @@ const TextFieldWithCopyIcon: React.FC<TextFieldProps> = ({
             defaultValue={defaultValue}
             maxLength={maxLength}
             autoComplete="off"
+            readOnly={readOnly}
             {...rest}
           />
         </div>
@@ -89,9 +92,11 @@ const TextFieldWithCopyIcon: React.FC<TextFieldProps> = ({
             min-height: 40px;
             font-size: 14px;
             border: none;
-            border-radius: 8px;
+            border-radius: 0px 8px 8px 0px;
             outline: none;
             padding-right: ${isDelete ? '35px' : ''};
+            background-color: ${readOnly ? '#F1F5F9': ""};
+            cursor: ${readOnly ? 'not-allowed': ""};
           }
 
           .tf__inptcnt {

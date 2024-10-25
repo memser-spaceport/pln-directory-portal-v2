@@ -15,8 +15,9 @@ const Search = (props: any) => {
           width: 100%;
           background-color: #ffffff;
           display: flex;
-          box-shadow: 0px 1px 2px 0px #0f172a29;
           border-radius: 4px;
+          border: 0.5px solid #156FF7;
+          box-shadow: 0px 0px 4px 0px #0F172A33;
         }
 
         .search__input {

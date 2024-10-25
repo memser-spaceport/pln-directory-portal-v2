@@ -2,10 +2,22 @@
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
+/**
+ * The contact information interface.
+ * @interface IContactInfos
+ * @property {string} contactEmail - The contact email address.
+ */
 interface IContactInfos {
   contactEmail: string;
 }
 
+/**
+ * component to render the contact information.
+ *
+ * @param {object} props - The component props.
+ * @param {string} props.contactEmail - The contact email address.
+ * @returns {JSX.Element} The rendered component.
+ */
 const ContactInfos = (props: IContactInfos) => {
   const contactEmail = props?.contactEmail;
 

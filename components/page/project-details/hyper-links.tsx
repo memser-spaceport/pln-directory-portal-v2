@@ -1,7 +1,7 @@
 "use client";
 
 import { useProjectAnalytics } from "@/analytics/project.analytics";
-import { IAnalyticsUserInfo, IUserInfo } from "@/types/shared.types";
+import { IUserInfo } from "@/types/shared.types";
 import { getAnalyticsUserInfo } from "@/utils/common.utils";
 
 
@@ -10,12 +10,22 @@ interface IHyperlinks {
   user: IUserInfo;
 }
 
+/**
+ * A component to display the relavant hyperlinks of a project
+ * @param props Project details along with the hyperlinks and the user details
+ * @returns a JSX.Element with the hyperlinks
+ */
+
 const Hyperlinks = (props: IHyperlinks) => {
   const project = props?.project;
   const links = project?.projectLinks ?? [];
   const user = props?.user;
   const analytics = useProjectAnalytics();
 
+  /**
+   * on link click event handler to record the analytics
+   * @param link The link that is clicked
+   */
   const onLinkClick = (link: string) => {
     analytics.onProjectDetailContactClicked(getAnalyticsUserInfo(user), project?.id, link);
   };

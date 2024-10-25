@@ -143,7 +143,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
         <div className="projectContributorsc__teams">
           <div className="projectContributorsc__teams__titlesec">
             <h2 className="projectContributorsc__teams__title">TEAMS ({getTeamsCount()})</h2>
-            {(selectedContributingTeams.length > 0 || selectedMaintainingTeam) && <Adddropdown onOpenPopup={onOpenPopup} maintainerTeam={selectedMaintainingTeam} />}
+            {(selectedContributingTeams.length > 0 || selectedMaintainingTeam) && <AddDropdown onOpenPopup={onOpenPopup} maintainerTeam={selectedMaintainingTeam} />}
           </div>
 
           <div className="projectContributorsc__teams__selectedTeams">

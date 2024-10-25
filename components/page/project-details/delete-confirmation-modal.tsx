@@ -5,11 +5,32 @@ import ModalButton from '@/components/ui/modal-button';
 import { EVENTS } from '@/utils/constants';
 import { useEffect, useRef } from 'react';
 
+/**
+ * @typedef IDeleteConfirmationModal
+ * @property {Function} onClose - The callback function to be called when the modal is closed.
+ * @property {Function} onDeleteProject - The callback function to be called when the project is deleted.
+ * @description The DeleteConfirmationModal component props.
+ */
 interface IDeleteConfirmationModal {
   onClose: () => void;
   onDeleteProject: () => void;
 }
-
+/**
+ * DeleteConfirmationModal component displays a modal for confirming the deletion of a project.
+ *
+ * @component
+ * @example
+ * // Usage:
+ * <DeleteConfirmationModal
+ *   onClose={() => handleModalClose()}
+ *   onDeleteProject={() => handleDeleteProject()}
+ * />
+ *
+ * @param {Object} props - The component props.
+ * @param {Function} props.onClose - The callback function to be called when the modal is closed.
+ * @param {Function} props.onDeleteProject - The callback function to be called when the project is deleted.
+ * @returns {JSX.Element} The DeleteConfirmationModal component.
+ */
 const DeleteConfirmationModal = (props: IDeleteConfirmationModal) => {
   const onClose = props?.onClose;
   const onDeleteProject = props?.onDeleteProject;

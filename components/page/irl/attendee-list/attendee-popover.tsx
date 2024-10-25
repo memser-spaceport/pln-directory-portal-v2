@@ -83,6 +83,7 @@ export function Tooltip({ trigger, triggerClassName = '', content, asChild = fal
           color: white;
           text-align: left;
           cursor: default;
+          margin-top: -4px;
         }
 
         .tooltip__trigger__web {

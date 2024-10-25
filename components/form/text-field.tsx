@@ -15,9 +15,10 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement>  {
   hide?:boolean;
   maxLength?:number;
   isError?: boolean;
+  readOnly?: boolean;
 }
 
-const TextField: React.FC<TextFieldProps> = ({ label, id, hide = false, name, value = '', defaultValue = '', onChange, isMandatory, placeholder, type, maxLength, isDelete, isError=false, ...rest }) => {
+const TextField: React.FC<TextFieldProps> = ({ label, id, hide = false, name, value = '', defaultValue = '', onChange, isMandatory, placeholder, type, maxLength, isDelete, isError=false, readOnly=false, ...rest }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const onTextChange = (e: ChangeEvent<HTMLInputElement>) => {
     if(onChange) {
@@ -42,6 +43,7 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, hide = false, name, va
           maxLength={maxLength}
           autoComplete="off"
           {...rest}
+          readOnly={readOnly}
         />
       </div>
       <style jsx>
@@ -67,6 +69,8 @@ const TextField: React.FC<TextFieldProps> = ({ label, id, hide = false, name, va
             font-size: 14px;
             padding-right: ${isDelete ? '35px' : ''};
             border: ${isError ? '1px solid red' : ''};
+            background-color: ${readOnly ? '#F1F5F9': ""};
+            cursor: ${readOnly ? 'not-allowed': ""};
           }
           .tf__input:invalid {
             border: 1px solid red;

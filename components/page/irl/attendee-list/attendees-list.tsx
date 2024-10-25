@@ -163,7 +163,7 @@ const AttendeeList = (props: IAttendeeList) => {
               </div>
             </div>
           )}
-          {eventDetails?.guests?.length === 0 && searchParams.type !== 'past' && <NoAttendees userInfo={userInfo} isLoggedIn location={location} onLogin={onLogin} />}
+          {eventDetails?.guests?.length === 0 && searchParams.type !== 'past' && <NoAttendees userInfo={userInfo} isLoggedIn={isLoggedIn} location={location} onLogin={onLogin} />}
         </div>
       </div>
       {/* FLOATING BAR */}

@@ -101,6 +101,7 @@ export const getGuestsByLocation = async (location: string, type: string, authTo
           hostSubEvents: guest?.additionalInfo?.hostSubEvents,
           speakerSubEvents: guest?.additionalInfo?.speakerSubEvents,
           type: guest?.event?.type,
+          resources: guest?.event?.resources,
         },
       ],
     }));

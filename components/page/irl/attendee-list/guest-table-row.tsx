@@ -895,6 +895,65 @@ const GuestTableRow = (props: IGuestTableRow) => {
             width: 100%;
           }
         }
+
+        @media (min-width: 1440px) {
+          .gtr__guestName {
+            width: 224px;
+          }
+
+          .gtr__team {
+             width: 188px;
+          }
+
+          .gtr__connect , .gtr__connect__loggedOut {
+             width: 188px;
+          }
+
+          .gtr__attending {
+             width: 216px;
+          }
+
+          .gtr__topic {
+            width: unset;
+            flex: 1;
+          }
+        }
+
+        @media (min-width: 1920px) {
+          .irl__table {
+            width: 1678px;
+          }
+
+          .gtr__guestName {
+            width: 331px;
+          }
+
+          .gtr__team {
+            width: 278px;  
+          }
+
+          .gtr__connect, .gtr__connect__loggedOut {
+            width: 335px;
+          }
+
+          .gtr__attending {
+            width: 370px;
+          }
+        }
+
+        @media (min-width: 2560px) {
+          .irl__table {
+            width: 2240px;
+          }
+
+          .gtr__guestName, .gtr__team, .gtr__connect, .gtr__connect__loggedOut {
+              width: 439.67px;
+            }
+
+            .gtr__attending {
+              width: 370px;
+            }
+        }
       `}</style>
     </>
   );

@@ -86,7 +86,13 @@ const getPageData = async (searchParams: any) => {
     }
 
     if (searchParams?.event) {
-      isEventAvailable = pastEvents.some((event: any) => event.slugURL === searchParams?.event);
+      const eventResult = locationDetails.flatMap((item: { pastEvents: any[]; upcomingEvents: any[]; }) => [
+        ...item.pastEvents.map(event => ({ ...event })),
+        ...item.upcomingEvents.map(event => ({ ...event}))
+      ]);
+      isEventAvailable = eventResult.some((event: any) => {
+        return event.slugURL === searchParams?.event
+      });
     }
 
     if (!eventDetails || !isEventActive || !isEventAvailable) {

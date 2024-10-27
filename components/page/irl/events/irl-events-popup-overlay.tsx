@@ -72,7 +72,7 @@ const IrlEventsPopupOverlay = ({ dialogRef,
                         display: flex;
                         overflow-y: auto;
                         flex-direction: column;
-                        padding: 25px;
+                        padding: 20px;
                     }
 
                     .root__irl__modalHeader {

@@ -207,7 +207,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
             font-size: 13px;
             font-weight: 600;
             line-height: 20px;
-            max-width: 140px;
+            max-width: 240px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;

@@ -175,10 +175,6 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           justify-content: center;
         }
 
-        .root__irl__table__header {
-          background-color: #f8fafc;
-        }
-
         .root__irl__table-col__contentName {
           display: flex;
           flex-direction: column;
@@ -215,6 +211,58 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           align-items: center;
           align-self: center;
           cursor: pointer;
+        }
+
+         @media (min-width: 1440px) {
+          .root__irl__table-col__headerName,
+          .root__irl__table-col__contentName {
+            width: 299px;
+          }
+
+          .root__irl__table-col__headerDesc,
+          .root__irl__table-col__contentDesc {
+            width: 727px;
+          }
+
+          .root__irl__table-col__headerRes,
+          .root__irl__table-col__contentRes {
+            width: 177px;
+            text-align: center;
+          }
+        }
+
+        @media (min-width: 1920px) {
+          .root__irl__table-col__headerName,
+          .root__irl__table-col__contentName {
+            width: 355px;
+          }
+
+          .root__irl__table-col__headerDesc,
+          .root__irl__table-col__contentDesc {
+            width: 1095px;
+          }
+
+          .root__irl__table-col__headerRes,
+          .root__irl__table-col__contentRes {
+            width: 178px;
+          }
+        }
+
+        @media (min-width: 2560px) {
+          .root__irl__table-col__headerName,
+          .root__irl__table-col__contentName {
+            width: 502px;
+          }
+
+          .root__irl__table-col__headerDesc,
+          .root__irl__table-col__contentDesc {
+            width: 1411px; 
+          }
+
+          .root__irl__table-col__headerRes,
+          .root__irl__table-col__contentRes {
+            width: 277px;
+          }
         }
       `}</style>
     </>

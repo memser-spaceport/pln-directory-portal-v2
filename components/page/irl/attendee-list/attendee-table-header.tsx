@@ -563,6 +563,64 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
               display: none;
             }
           }
+
+          @media (min-width: 1440px) {
+            .tbl__hdr {
+              width: 1244px;
+            }
+
+            .tbl__hdr__guestName{
+              width: 224px;
+            }
+
+            .tbl__hdr__teams {
+              width: 188px;
+            }
+
+            .tbl__hdr__connect {
+              width: 188px;
+            }
+
+            .tbl__hdr__attending {
+              width: 216px;
+            }
+          }
+
+          @media (min-width: 1920px) {
+            .tbl__hdr {
+              width: 1678px;
+            }
+
+            .tbl__hdr__guestName{
+              width: 331px;
+            }
+
+            .tbl__hdr__teams {
+              width: 278px;
+            }
+
+            .tbl__hdr__connect {
+              width: 335px;
+            }
+
+            .tbl__hdr__attending {
+              width: 370px;
+            }
+          }
+
+          @media (min-width: 2560px) {
+            .tbl__hdr {
+              width: 2240px;
+            }
+
+            .tbl__hdr__guestName, .tbl__hdr__teams, .tbl__hdr__connect {
+              width: 439.67px;
+            }
+
+            .tbl__hdr__attending {
+              width: 370px;
+            }
+          }
         `}
       </style>
     </>

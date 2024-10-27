@@ -29,14 +29,28 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                 <div className='root__irlCard'>
                     <img src={bannerImage ? bannerImage : "/images/irl/defaultImg.svg"} alt="location" />
                 </div>
-                <div className="root__location">
-                    <img src={locationUrl} alt="flag"  style={{width: '20px', height: '20px'}}/>
-                    <div className="root__location__name">{locationName}</div>
-                </div>
-                <div className='root__events'>
-                    <span>{upcomingEvents}{' '}</span>{' '}Upcoming Events
-                </div><div className='root__events'>
-                    <span>{pastEvents}{' '}</span>{' '}Past Events
+                <div className='root__irlLocation'>
+                    <div className="root__location">
+                        <img src={locationUrl} alt="flag" style={{ width: '20px', height: '20px' }} />
+                        <div className="root__location__name">{locationName}</div>
+                    </div>
+                    <div className='root__event__cntr'>
+                        <div className='root__events p-2'>
+                            {upcomingEvents > 0 && (
+                                <>
+                                    <span>{upcomingEvents}{' '}</span>Upcoming
+                                </>
+                            )}
+                        </div>
+                        <div className='root__events'>
+                            {pastEvents > 0 && (
+                                <>
+                                    <span>{pastEvents}{' '}</span>{' '}Past
+
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
             <style jsx>{`
@@ -47,8 +61,8 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     background-color: #ffffff;
                     box-shadow: 0px 4px 4px 0px #0f172a0a;
                     cursor: pointer;
-                    width: 161px;
-                    height: 150px;
+                    width: 164px;
+                    height: 100px;
                     // padding: 8px 12px 16px 12px;
                     gap: 2px;
                     border-radius: 8px;
@@ -131,11 +145,21 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     font-weight: 500;
                 }
 
-                @media (min-width: 360px) {
+                .root__irlLocation {
+                    display: flex;
+                    flex-direction: column;
+                    text-align: center;
+                    align-items: center;
+                }   
 
+                .root__event__cntr {
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                @media (min-width: 360px) {
                     .root {
                         width: 140px;
-                        height: 100px;
                         justify-content: center;
                         left :0
                     }
@@ -151,7 +175,7 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
 
                 @media (min-width: 1024px) {
                     .root {
-                        width: 161px;
+                        width: 164px;
                         height: 150px;
                         padding-bottom: 12px;
                     }
@@ -163,6 +187,42 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
 
                     .root__irlCard {
                         display: flex;
+                    }
+                }
+
+                @media (min-width: 1440px) {
+                    .root {
+                        width: 162px;
+                        height: 149px;
+                    }
+
+                    .root__event__cntr {
+                        flex-direction: row;
+                        gap: 5px;
+                    }
+
+                    .root__irlLocation {
+                        align-items: start;
+                    } 
+                }
+
+                @media (min-width: 1920px) {
+                     .root {
+                        flex-direction: row;
+                        gap: 10px;
+                        width: 223px;
+                        height: 150px;
+                    }
+
+                    .p-2 {
+                        padding-left: 5px;
+                    }
+                }
+
+                @media (min-width: 2560px) {
+                    .root {
+                        width: 304px;
+                        height: 150px;
                     }
                 }
             `}</style>

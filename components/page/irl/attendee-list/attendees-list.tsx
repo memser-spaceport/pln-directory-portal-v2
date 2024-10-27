@@ -353,6 +353,36 @@ const AttendeeList = (props: IAttendeeList) => {
             height: calc(100vh - 170px);
           }
         }
+
+        @media (min-width: 1440px) {
+          .irl__table {
+            width: 1244px;
+          }
+
+          .attendeeList__table {
+            max-width: 1244px;
+          }
+        }
+
+        @media (min-width: 1920px) {
+          .irl__table {
+            width: 1678px;
+          }
+
+          .attendeeList__table {
+            max-width: 1678px;
+          }
+        }
+
+        @media (min-width: 2560px) {
+          .irl__table {
+            width: 2240px;
+          }
+
+          .attendeeList__table {
+            max-width: 2240px;
+          }
+        }
       `}</style>
     </>
   );

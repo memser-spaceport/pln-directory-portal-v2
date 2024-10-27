@@ -20,10 +20,11 @@ const IrlHeader = () => {
                   font-weight: 400;
                 }
 
+                .irlheaderCnt{
+                    padding: 24px 15px 15px 15px
+                }
+
                 @media (min-width: 360px) {
-                  .irlheaderCnt{
-                    padding: 15px;
-                  }
 
                   .irlsubHeader{
                     line-height: 22px;

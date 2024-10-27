@@ -32,7 +32,7 @@
     height: 122px;
     padding: 10px;
     border-radius: unset;
-    margin-right: 13px;
+    /* margin-right: 13px; */
     max-width: 782px;
   }
 
@@ -51,7 +51,7 @@
   .irlGatheings__locations {
     border-radius: 16px;
     height: 173px;
-    border: 1px solid #0f172a0a;
+    border: 1px solid #cbd5e1;
     border-radius: 16px;
     gap: 16px;
     overflow: unset;
@@ -67,5 +67,36 @@
   
   .irlGatheings__guests {
     padding-top: 32px;
+  }
+}
+
+
+@media (min-width: 1440px) {
+  .irlGatherings {
+    width: 1244px;
+  }
+
+  .irlGatheings__locations {
+    max-width: 1244px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .irlGatherings {
+    width: 1678px;
+  }
+
+  .irlGatheings__locations {
+    max-width: 1678px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .irlGatherings {
+    width: 2240px;
+  }
+
+  .irlGatheings__locations {
+    max-width: 2240px;
   }
 }

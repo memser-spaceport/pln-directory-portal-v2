@@ -22,9 +22,11 @@ interface EventDetailsProps {
   isLoggedIn: boolean;
   isUpcoming: boolean;
   searchParams: any;
+  handleDataNotFound: () => void;
 }
 
-const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: EventDetailsProps) => {
+const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, handleDataNotFound }: EventDetailsProps) => {
+
   const dialogRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { updateQueryParams } = useUpdateQueryParams();
@@ -145,11 +147,14 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
   const sanitizedDesc = sanitize(selectedEvent?.description);
   const clippedDesc = clip(sanitizedDesc, 80, { html: true, maxLines: 2 });
 
+const isEventAvailable = searchParams?.type === 'past' &&
+        eventDetails?.pastEvents?.some(event => event.slugURL === searchParams?.event)
+
   return (
     <>
       <div className="root__irl__tableContainer" id='container'>
         <div className="root__irl__table">
-          {eventsToShow?.length > 0 ? (
+          {eventsToShow?.length > 0 && isEventAvailable ? (
             <>
               <div className="root__irl__table__header">
                 <div className="root__irl__table-row__header">
@@ -182,7 +187,13 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
               <div>
                 <img src="/icons/no-calender.svg" alt="calendar" />
               </div>
-              <div>No {eventType} currently in this location</div>
+              <div>No results found for the applied input
+                  {' '}<span
+                      className="root__irl__table__no-data__errorMsg"
+                      onClick={handleDataNotFound}>
+                      Reset to default
+                  </span>
+              </div>
             </div>
           )}
         </div>
@@ -722,6 +733,11 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
           align-items: center;
         }
 
+        .root__irl__table__no-data__errorMsg {
+            cursor: pointer;
+            color: #156FF7;
+        }
+
         @media screen and (min-width: 360px) {
           .root__irl__mobileView {
             background-color: #dbeafe;
@@ -747,7 +763,71 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
             max-height: 256px;
             overflow: auto;
             scroll-behavior: smooth;
-            display: flex;
+            display: block;
+          }
+        }
+
+        @media (min-width: 1440px) {
+          .root__irl__table-col__headerName,
+          .root__irl__table-col__contentName {
+            width: 299px;
+          }
+
+          .root__irl__table-col__headerDesc,
+          .root__irl__table-col__contentDesc {
+            width: 727px;
+          }
+
+          .root__irl__table-col__headerRes,
+          .root__irl__table-col__contentRes {
+            width: 177px;
+            text-align: center;
+          }
+
+          .root__irl__table__no-data {
+              width: 1203px;
+          }
+        }
+
+        @media (min-width: 1920px) {
+          .root__irl__table-col__headerName,
+          .root__irl__table-col__contentName {
+            width: 355px;
+          }
+
+          .root__irl__table-col__headerDesc,
+          .root__irl__table-col__contentDesc {
+            width: 1095px;
+          }
+
+          .root__irl__table-col__headerRes,
+          .root__irl__table-col__contentRes {
+            width: 178px;
+          }
+
+          .root__irl__table__no-data {
+              width: 1638px;
+          }
+        }
+
+        @media (min-width: 2560px) {
+          .root__irl__table-col__headerName,
+          .root__irl__table-col__contentName {
+            width: 502px;
+          }
+
+          .root__irl__table-col__headerDesc,
+          .root__irl__table-col__contentDesc {
+            width: 1411px; 
+          }
+
+          .root__irl__table-col__headerRes,
+          .root__irl__table-col__contentRes {
+            width: 277px;
+          }
+
+          .root__irl__table__no-data {
+              width: 2196px;
           }
         }
       `}</style>

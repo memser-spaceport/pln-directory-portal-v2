@@ -50,7 +50,6 @@ const IrlEvents = (props: IIrlEvents) => {
     }
   
     let isUpcoming = assignIsUpcoming(searchType, eventDetails);
-
     const handleUpcomingGathering = () => {
         isUpcoming = true;
         const currentParams = new URLSearchParams(searchParams);

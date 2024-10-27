@@ -147,8 +147,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
   const sanitizedDesc = sanitize(selectedEvent?.description);
   const clippedDesc = clip(sanitizedDesc, 80, { html: true, maxLines: 2 });
 
-const isEventAvailable = searchParams?.type === 'past' &&
-        eventDetails?.pastEvents?.some(event => event.slugURL === searchParams?.event)
+const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' &&
+        eventDetails?.pastEvents?.some(event => event.slugURL === searchParams?.event) : true;
 
   return (
     <>
@@ -176,7 +176,7 @@ const isEventAvailable = searchParams?.type === 'past' &&
                     eventsToShow={eventsToShow}
                     isLastContent={index === eventsToShow.length - 1}
                     handleElementClick={() => handleElementClick(gathering)}
-                    isEventSelected={searchParams?.event === gathering.slugURL}
+                    isEventSelected={searchParams?.event ? searchParams?.event === gathering.slugURL : eventsToShow[0]?.slugURL === gathering.slugURL}
                     eventType={!isUpcoming}
                   />
                 </div>
@@ -191,7 +191,7 @@ const isEventAvailable = searchParams?.type === 'past' &&
                   {' '}<span
                       className="root__irl__table__no-data__errorMsg"
                       onClick={handleDataNotFound}>
-                      Reset to default
+                      Reset to default im
                   </span>
               </div>
             </div>

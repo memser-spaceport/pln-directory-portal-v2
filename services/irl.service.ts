@@ -1,3 +1,4 @@
+import { IPastEvents, IUpcomingEvents } from '@/types/irl.types';
 import { getHeader } from '@/utils/common.utils';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { sortPastEvents, transformMembers } from '@/utils/irl.utils';
@@ -22,7 +23,12 @@ export const getAllLocations = async () => {
     }
   });
 
-  return result;
+  const filteredResult = result.filter(
+    (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[]; }) =>
+      item.pastEvents.length > 0 || item.upcomingEvents.length > 0
+  );
+
+  return filteredResult;
 };
 
 const fetchGuests = async (url: string, authToken: string) => {

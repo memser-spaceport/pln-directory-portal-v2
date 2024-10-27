@@ -201,9 +201,7 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                         gap: 5px;
                     }
 
-                    .root__irlLocation {
-                        align-items: start;
-                    } 
+                    
                 }
 
                 @media (min-width: 1920px) {
@@ -217,6 +215,10 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
                     .p-2 {
                         padding-left: 5px;
                     }
+
+                    .root__irlLocation {
+                        align-items: start;
+                    } 
                 }
 
                 @media (min-width: 2560px) {

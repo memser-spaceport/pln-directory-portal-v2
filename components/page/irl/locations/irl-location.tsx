@@ -23,7 +23,6 @@ const IrlLocation = (props: IrlLocation) => {
     let activeLocationId: any = null
     const [locations, setLocations] = useState(props.locationDetails);
     const [showMore, setShowMore] = useState(false);
-    const [showMoreds, setShowMoreDs] = useState(false);
     const dialogRef = useRef<HTMLDialogElement>(null);
     const searchParams = props?.searchParams;
     const analytics = useIrlAnalytics();
@@ -73,13 +72,7 @@ const IrlLocation = (props: IrlLocation) => {
             }
         }
         setShowMore(!showMore);
-        analytics.trackSeeOtherLocationClicked(locations?.slice(4));
-    }
-
-    const handleDesktopClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setShowMoreDs(!showMoreds);
-        analytics.trackSeeOtherLocationClicked(locations?.slice(6));
+        analytics.trackSeeOtherLocationClicked(locations?.slice(cardLimit));
     }
 
     const setSearchParams = (
@@ -210,22 +203,22 @@ const IrlLocation = (props: IrlLocation) => {
                     {locations?.length > 4 &&
                         <IrlSeeMoreLocationCard
                             count={4}
-                            handleClick={(e) => handleClick(e)}
+                            handleClick={handleClick}
                             locations={locations}
                             locationRef={locationRef} />
                     }
                 </div>
                 <div className="root__irl__seeMoreCard__desktop--lg">
-                    {locations?.length > 6 &&
+                    {locations?.length > cardLimit &&
                         <IrlSeeMoreLocationCard
-                            count={6}
-                            handleClick={(e) => handleDesktopClick(e)}
+                            count={cardLimit}
+                            handleClick={handleClick}
                             locations={locations}
                             locationRef={locationRef} />
                     }
                 </div>
 
-                {showMore &&
+                {/* {showMore &&
                     <div className="root__irl__seeMoreCard__desktop--sm">
                         <div className="root__irl__overlay">
                             {locations?.slice(4).map((location: ILocationDetails, index: React.Key | null | undefined) => (
@@ -236,12 +229,12 @@ const IrlLocation = (props: IrlLocation) => {
                             ))}
                         </div>
                     </div>
-                }
+                } */}
 
-                {showMoreds &&
+                {showMore &&
                     <div className="root__irl__seeMoreCard__desktop--lg">
                         <div className="root__irl__overlay">
-                            {locations?.slice(6).map((location: ILocationDetails, index: React.Key | null | undefined) => (
+                            {locations?.slice(cardLimit).map((location: ILocationDetails, index: React.Key | null | undefined) => (
                                 <IrlLocationPopupView
                                     key={location.location}
                                     location={location}
@@ -492,6 +485,15 @@ const IrlLocation = (props: IrlLocation) => {
                 }
 
                 @media (min-width: 1024px) {
+
+                    .root__irl__seeMoreCard__desktop--sm {
+                        display: none;
+                    }
+                    .root__irl__seeMoreCard__desktop--lg {
+                        display: flex;
+                        // margin-left: 10px;
+                    }
+
                     .root__irl__openModal, .root__irl__overlay {
                         display: flex;
                         flex-direction: column;
@@ -547,11 +549,7 @@ const IrlLocation = (props: IrlLocation) => {
                         display: none;
                     }
 
-                    .root__card__desktop-sm, .root__irl__seeMoreCard__desktop--lg  {
-                        display: none;
-                    }
-
-                    .root__irl__seeMoreCard__desktop--lg {
+                    .root__card__desktop-sm {
                         display: none;
                     }
                 }
@@ -574,14 +572,6 @@ const IrlLocation = (props: IrlLocation) => {
                         width: 159.43px;
                         height: 137px;
                         gap: 14px;
-                    }
-
-                    .root__irl__seeMoreCard__desktop--sm {
-                        display: none;
-                    }
-                    .root__irl__seeMoreCard__desktop--lg {
-                        display: flex;
-                        // margin-left: 10px;
                     }
 
                     .root__irl__overlay {

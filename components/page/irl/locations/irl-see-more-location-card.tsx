@@ -16,7 +16,7 @@ const IrlSeeMoreLocationCard = (props: IrlSeeMoreLocationCardProps) => {
             <div
                 ref={locationRef}
                 className="root__irl__expanded"
-                onClick={handleClick}
+                onClick={(e:any)=>handleClick(e)}
             >
                 <div
                     className="root__irl__expanded__showMore"

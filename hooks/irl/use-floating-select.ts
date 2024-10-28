@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 const useFloatingSelect = (props: any) => {
   const items = props.items ?? [];
+  console.log('items', items);
   const isMultiSelect = props.isMultiSelect;
   const alreadySelected = props?.selectedItems ?? [];
   // const sortedItems = [...items].sort((a, b) =>

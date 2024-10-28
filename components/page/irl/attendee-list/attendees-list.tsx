@@ -18,7 +18,7 @@ import AttendeeTableHeader from './attendee-table-header';
 import { IUserInfo } from '@/types/shared.types';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
 import usePagination from '@/hooks/irl/use-pagination';
-import { parseSearchParams } from '@/utils/irl.utils';
+import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 
 interface IAttendeeList {
   userInfo: IUserInfo;
@@ -87,17 +87,16 @@ const AttendeeList = (props: IAttendeeList) => {
     }
     setPagination({ page: 1, limit: 10 });
 
-    const [eventInfo, currentGuestResponse, topics]: any = await Promise.all([
+    const [eventInfo, currentGuestResponse, topics, loggedInUserEvents]: any = await Promise.all([
       await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken),
       await getGuestsByLocation(location?.uid, { type: eventType }, authToken, 1, 1),
       await getTopicsByLocation(location?.uid, eventType),
-      // await getGuestEvents(location?.uid, authToken),
+      await getGuestEvents(location?.uid, authToken),
     ]);
     const currentGuest = currentGuestResponse?.guests[0].memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
     eventInfo.isUserGoing = currentGuestResponse?.guests[0].memberUid === userInfo?.uid;
     eventInfo.topics = topics;
-    // const filteredEvents = !isLoggedIn ? eventDetails?.events.filter((event: any) => event.type !== 'INVITE_ONLY') : userInfo?.roles?.includes(ADMIN_ROLE) ? eventDetails?.events : eventDetails?.events?.filter((event: any) => event.type !== 'INVITE_ONLY');
-    // eventInfo.events = filteredEvents;
+    eventInfo.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, eventDetails?.events, isLoggedIn, userInfo);
 
     setUpdatedEventDetails((prev) => ({ ...eventInfo, events: prev.events, currentGuest, totalGuests: eventInfo.totalGuests }));
     triggerLoader(false);

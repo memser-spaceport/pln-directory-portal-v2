@@ -128,7 +128,7 @@ export const editEventGuest = async (locationId: string, guestUid: string, paylo
   return { data: response };
 };
 
-export const getGuestEvents = async (authToken: string, locationId: string) => {
+export const getGuestEvents = async (locationId: string, authToken: string,) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/me/events`, {
     cache: 'no-store',
     method: 'GET',

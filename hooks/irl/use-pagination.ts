@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 const usePagination = (props: any) => {
   const observerTarget = props.observerTargetRef;
@@ -16,7 +16,7 @@ const usePagination = (props: any) => {
           setPagination((prev) => ({ ...prev, page: prev.page + 1 }));
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.1, }
     );
 
     if (observerTarget.current) {

@@ -265,6 +265,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         section.scrollIntoView({ behavior: 'smooth' });
       }
     }
+    setFormInitialValues(props?.formData);
   }, []);
 
   const onCloseClickHandler = () => {

@@ -1,3 +1,5 @@
+import { URL_QUERY_VALUE_SEPARATOR } from './constants';
+
 export const isPastDate = (date: any) => {
   const currentDate = new Date();
   const inputDate = new Date(date);
@@ -144,7 +146,6 @@ export function getFormattedDateString(startDate: string, endDate: string) {
   }
 }
 
-
 function getDayWithSuffix(day: number) {
   if (day > 3 && day < 21) return day + 'th';
   switch (day % 10) {
@@ -191,103 +192,121 @@ export function sortPastEvents(events: any[]) {
   events.sort((a: any, b: any) => {
     // Compare by start date (latest start first)
     const startDateComparison = new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
-    
+
     if (startDateComparison !== 0) {
       return startDateComparison;
     }
-    
+
     // If start dates are equal, compare by duration (shorter duration first)
     const durationA = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
     const durationB = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
-    
+
     return durationA - durationB;
   });
 
   // Use forEach to perform actions on each sorted event
   events.forEach((event: any) => {
     // Perform any additional actions needed for each event
-     // Example: log the event or perform some processing
+    // Example: log the event or perform some processing
   });
 
   return events; // Return the sorted array if needed
 }
 
-export const processGuests = (guests: any[], userInfo: any) => {
-  const currentUserEntries = guests?.filter((guest: any) => guest?.memberUid === userInfo?.uid);
-  const inviteOnlyEvents = currentUserEntries?.filter((entry: any) => entry?.event?.type === 'INVITE_ONLY').map((entry: any) => entry?.event?.uid);
-
-  const inviteOnlyEventMembers = guests?.filter((r: any) => r?.event?.type === 'INVITE_ONLY' && inviteOnlyEvents.includes(r?.event?.uid));
-  const publicEventMembers = guests?.filter((r: any) => r.event?.type !== 'INVITE_ONLY');
-
-  return [...inviteOnlyEventMembers, ...publicEventMembers];
-};
-
-
-export const groupMembers = (events: any) => {
-  const groupedMembers: any = {};
-  events?.forEach((event: any) => {
-    if (!groupedMembers[event.memberUid]) {
-      groupedMembers[event.memberUid] = [];
-    }
-    groupedMembers[event.memberUid].push(event);
-  });
-
-  return groupedMembers;
-};
-
-export const transformMembers = (groupedMembers: any) => {
-  return Object.keys(groupedMembers)?.map((memberUid) => ({
-    memberUid,
-    memberName: groupedMembers[memberUid][0]?.member?.name,
-    memberLogo: groupedMembers[memberUid][0]?.member?.image?.url,
-    teamUid: groupedMembers[memberUid][0]?.teamUid,
-    teamName: groupedMembers[memberUid][0]?.team?.name,
-    teamLogo: groupedMembers[memberUid][0]?.team?.logo?.url,
-    teams: groupedMembers[memberUid][0]?.member?.teamMemberRoles?.map((tm: any) => ({
+export const transformMembers = (result: any) => {
+  return result?.map((guest: any) => ({
+    memberUid: guest?.memberUid,
+    memberName: guest?.member?.name,
+    memberLogo: guest?.member?.image?.url,
+    teamUid: guest?.teamUid,
+    teamName: guest?.team?.name,
+    teamLogo: guest?.team?.logo?.url,
+    teams: guest?.member?.teamMemberRoles?.map((tm: any) => ({
       name: tm?.team?.name,
       id: tm?.team?.uid,
-      role: tm?.role,
       logo: tm?.team?.logo?.url ?? '',
     })),
-    projectContributions: groupedMembers[memberUid][0]?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted)?.map((item: any) => item?.project?.name),
-    eventNames: groupedMembers[memberUid].map((member: any) => member?.event?.name),
-    events: groupedMembers[memberUid].map((member: any) => ({
-      uid: member?.event?.uid,
-      name: member?.event?.name,
-      startDate: member?.event?.startDate,
-      endDate: member?.event?.endDate,
-      logo: member?.event?.logo?.url,
-      isHost: member?.isHost,
-      isSpeaker: member?.isSpeaker,
-      hostSubEvents: member?.additionalInfo?.hostSubEvents,
-      speakerSubEvents: member?.additionalInfo?.speakerSubEvents,
-      type: member?.event?.type,
-      resources: member?.event?.resources
+    eventNames: guest?.events?.map((event: any) => event?.name),
+    events: guest?.events.map((event: any) => ({
+      uid: event?.uid,
+      name: event?.name,
+      startDate: event?.startDate,
+      endDate: event?.endDate,
+      logo: event?.logo?.url,
+      isHost: guest?.isHost,
+      isSpeaker: guest?.isSpeaker,
+      hostSubEvents: guest?.additionalInfo?.hostSubEvents,
+      speakerSubEvents: guest?.additionalInfo?.speakerSubEvents,
+      type: event?.type,
+      resources: event?.resources,
     })),
-    topics: groupedMembers[memberUid][0]?.topics,
-    officeHours: groupedMembers[memberUid][0]?.member?.officeHours,
-    telegramId: groupedMembers[memberUid][0]?.member?.telegramHandler || '',
-    reason: groupedMembers[memberUid][0]?.reason,
-    additionalInfo: groupedMembers[memberUid][0]?.additionalInfo,
+    topics: guest?.topics,
+    officeHours: guest?.member?.officeHours,
+    telegramId: guest?.member?.telegramHandler || '',
+    reason: guest?.reason,
+    additionalInfo: guest?.additionalInfo,
+    count: guest?.count,
   }));
 };
 
-export const sortGuestList = (guests: any, userInfo: any) => {
-  let sortedGuests = sortByDefault(guests);
-  let isUserGoing = false;
-  let currentUser = null;
+export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
+  const { type, sortDirection, sortBy, search, attending, attendees, topics, event } = searchParams;
+  const result: any = {};
 
-  // Check if the current user is part of the guest list
-  if (userInfo) {
-    const currentUserIndex = sortedGuests.findIndex((guest) => guest.memberUid === userInfo.uid);
-    if (currentUserIndex !== -1) {
-      currentUser = sortedGuests[currentUserIndex];
-      // Move the current user to the top of the list
-      sortedGuests = [currentUser, ...sortedGuests.filter((guest, index) => index !== currentUserIndex)];
-      isUserGoing = true; // Set isUserGoing to true if user is found
-    }
+  result.type = type === 'past' ? '' : 'upcoming';
+  result.sortDirection = sortDirection ?? '';
+  result.sortBy = sortBy ?? '';
+  result.search = search ?? '';
+  result.slugURL = searchParams?.event ?? '';
+
+  // Initialize 'filteredEvents[]' as an array
+  result['filteredEvents[]'] = [];
+  result['topics[]'] = [];
+
+  let isHost = false;
+  let isSpeaker = false;
+
+  // Handle attending names if present
+  if (attending) {
+    const attendingNames = attending.split(URL_QUERY_VALUE_SEPARATOR).map((name: string) => name.trim());
+    const matchingUIDs = currentEvents.filter((event: any) => attendingNames.includes(event.name)).map((event: any) => event.uid);
+
+    // Push matching UIDs into the 'filteredEvents[]' array
+    matchingUIDs.forEach((uid) => {
+      result['filteredEvents[]'].push(uid);
+    });
   }
 
-  // Return sortedGuests, isUserGoing, and currentUser
-  return { sortedGuests, isUserGoing, currentUser };
+  if (event) {
+    const matchingEvent = currentEvents.find((event: any) => event.slugURL === searchParams?.event);
+    result['filteredEvents[]'].push(matchingEvent?.uid);
+  }
+
+  if (attendees) {
+    const attendeeTypes = attendees.split(URL_QUERY_VALUE_SEPARATOR).map((name: string) => name.trim());
+
+    attendeeTypes.forEach((name: string) => {
+      if (name === 'hosts') {
+        isHost = true;
+      } else if (name === 'speakers') {
+        isSpeaker = true;
+      } else if (name === 'hostsAndSpeakers') {
+        isHost = true;
+        isSpeaker = true;
+      }
+    });
+  }
+
+  if (topics) {
+    const topicNames = topics.split(URL_QUERY_VALUE_SEPARATOR).map((name: string) => name.trim());
+
+    topicNames?.forEach((topic: string) => {
+      result['topics[]']?.push(topic);
+    });
+  }
+
+  result.isHost = isHost;
+  result.isSpeaker = isSpeaker;
+
+  return result;
 };

@@ -56,7 +56,17 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
   const handleElementClick = (gathering: any) => {
     if (gathering.slugURL !== searchParams?.event) {
       triggerLoader(true);
-      updateQueryParams('event', gathering.slugURL, searchParams);
+      const currentParams = new URLSearchParams(searchParams);
+      const allowedParams = ['event', 'type', 'location']; 
+  
+      // Remove parameters not in the allowed list
+      for (const [key, value] of Object.entries(searchParams)) {
+        if (!allowedParams.includes(key)) {
+          currentParams.delete(key);
+        }
+      }
+      currentParams.set('event', gathering.slugURL);
+      router.push(`${window.location.pathname}?${currentParams.toString()}`);
       analytics.trackPastEventClicked(gathering);
     }
   };
@@ -75,7 +85,17 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: E
     if (gathering.slugURL !== searchParams?.event) {
       triggerLoader(true);
       selectedEvent = gathering;
-      updateQueryParams('event', gathering.slugURL, searchParams);
+      const currentParams = new URLSearchParams(searchParams);
+      const allowedParams = ['event', 'type', 'location']; 
+  
+      // Remove parameters not in the allowed list
+      for (const [key, value] of Object.entries(searchParams)) {
+        if (!allowedParams.includes(key)) {
+          currentParams.delete(key);
+        }
+      }
+      currentParams.set('event', gathering.slugURL);
+      router.push(`${window.location.pathname}?${currentParams.toString()}`);
     }
     setDropdownOpen(false);
     setSearchText('');

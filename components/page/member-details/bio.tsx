@@ -195,8 +195,8 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
           display: inline;
           overflow: hidden;
             position: relative;
-            word-wrap: break-word; /* Allow long words to be broken and wrapped */
-            word-break: break-all;
+            // word-wrap: break-word; /* Allow long words to be broken and wrapped */
+            // word-break: break-all;
         }
 
         .bioCn__ttl__header__edit {

@@ -89,7 +89,6 @@ const Toolbar = (props: IToolbar) => {
       params.delete('search');
     }
     router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
-    router.refresh();
     analytics.trackGuestListSearch(location, value);
   }, 300); 
 

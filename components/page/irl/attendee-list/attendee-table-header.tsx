@@ -93,7 +93,6 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
     // Push the updated query parameters to the router
     router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
-    router.refresh();
     analytics.trackGuestListTableSortClicked(location, sortBy);
   };
 

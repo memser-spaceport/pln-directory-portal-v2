@@ -1,4 +1,5 @@
-import { URL_QUERY_VALUE_SEPARATOR } from './constants';
+import { IUserInfo } from '@/types/shared.types';
+import { ADMIN_ROLE, URL_QUERY_VALUE_SEPARATOR } from './constants';
 
 export const isPastDate = (date: any) => {
   const currentDate = new Date();
@@ -309,4 +310,25 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
   result.isSpeaker = isSpeaker;
 
   return result;
+};
+
+export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents: any, isLoggedIn: boolean, userInfo: IUserInfo) => {
+
+  const uniqueEventsMap = new Map();
+
+  // Determine if the user has the admin role
+  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  const publicEvents = currentEvents.filter((event: any) => event.type !== 'INVITE_ONLY')
+
+  // Combine events based on the user's login and role status
+  const eventsToConsider = isLoggedIn ? isAdmin ? currentEvents : [...loggedInUserEvents, ...publicEvents] : publicEvents;
+
+  eventsToConsider.forEach((event: any) => {
+    if (!uniqueEventsMap.has(event.uid)) {
+      uniqueEventsMap.set(event.uid, event);
+    }
+  });
+
+  // Convert the map values to an array for the final unique events list
+  return Array.from(uniqueEventsMap.values());
 };

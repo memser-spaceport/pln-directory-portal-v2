@@ -11,7 +11,7 @@ import { Metadata } from 'next';
 import styles from './page.module.css';
 import { IAnalyticsGuestLocation } from '@/types/irl.types';
 import IrlErrorPage from '@/components/core/irl-error-page';
-import { parseSearchParams } from '@/utils/irl.utils';
+import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 
 export default async function Page({ searchParams }: any) {
   const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError } = await getPageData(searchParams);
@@ -86,12 +86,12 @@ const getPageData = async (searchParams: any) => {
     }
 
     if (searchParams?.event) {
-      const eventResult = locationDetails.flatMap((item: { pastEvents: any[]; upcomingEvents: any[]; }) => [
-        ...item.pastEvents.map(event => ({ ...event })),
-        ...item.upcomingEvents.map(event => ({ ...event}))
+      const eventResult = locationDetails.flatMap((item: { pastEvents: any[]; upcomingEvents: any[] }) => [
+        ...item.pastEvents.map((event) => ({ ...event })),
+        ...item.upcomingEvents.map((event) => ({ ...event })),
       ]);
       isEventAvailable = eventResult.some((event: any) => {
-        return event.slugURL === searchParams?.event
+        return event.slugURL === searchParams?.event;
       });
     }
 
@@ -109,13 +109,12 @@ const getPageData = async (searchParams: any) => {
 
     // const slugURL = searchParams?.event;
     const currentEvents = eventType === 'upcoming' ? eventDetails.upcomingEvents : eventDetails.pastEvents;
-    const filteredEvents = !isLoggedIn ? currentEvents.filter((event: any) => event.type !== 'INVITE_ONLY') : currentEvents;
 
-    const [events, currentGuestResponse, topics] = await Promise.all([
+    const [events, currentGuestResponse, topics, loggedInUserEvents] = await Promise.all([
       await getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken),
       await getGuestsByLocation(uid, { type: eventType }, authToken, 1, 1),
       await getTopicsByLocation(uid, eventType),
-      // await getGuestEvents(uid, authToken),
+      await getGuestEvents(uid, authToken),
     ]);
     if (events.isError) {
       return { isError: true };
@@ -123,10 +122,12 @@ const getPageData = async (searchParams: any) => {
 
     let guestDetails = events as any;
 
-    guestDetails.events = filteredEvents;
+    guestDetails.events = currentEvents;
     guestDetails.currentGuest = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
     guestDetails.isUserGoing = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid;
     guestDetails.topics = topics;
+    guestDetails.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, currentEvents, isLoggedIn, userInfo);
+
 
     // Fetch member preferences if the user is logged in
     if (isLoggedIn) {

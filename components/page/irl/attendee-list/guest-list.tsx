@@ -113,7 +113,7 @@ const GuestList = (props: IGuestList) => {
 
           .guestList__empty {
             display: flex;
-            width: 896px;
+            width: 100%;
             justify-content: center;
             // border-bottom: 1px solid #cbd5e1;
             padding-top: 20px;

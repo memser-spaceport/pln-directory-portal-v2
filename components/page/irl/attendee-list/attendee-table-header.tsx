@@ -15,7 +15,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const eventDetails = props?.eventDetails;
 
   const analytics = useIrlAnalytics();
-  const events = getUniqueEvents(eventDetails?.events ?? []);
+  const events = getUniqueEvents(eventDetails?.eventsForFilter ?? []);
   const topics = eventDetails?.topics ?? [];
   const searchParams = useSearchParams();
   const eventType = searchParams.get('type');
@@ -68,14 +68,14 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
     // If the column changed, reset to 'asc'
     if (currentSortBy !== sortBy) {
-      newSortDirection = 'asc'; 
+      newSortDirection = 'asc';
     } else {
       if (currentSortDirection === 'asc') {
-        newSortDirection = 'desc'; 
+        newSortDirection = 'desc';
       } else if (currentSortDirection === 'desc') {
-        newSortDirection = null; 
+        newSortDirection = null;
       } else {
-        newSortDirection = 'asc'; 
+        newSortDirection = 'asc';
       }
     }
 
@@ -93,8 +93,8 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
     // Push the updated query parameters to the router
     router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+    router.refresh();
     analytics.trackGuestListTableSortClicked(location, sortBy);
-
   };
 
   //get updated sort icon
@@ -137,6 +137,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
     const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
     router.push(newUrl, { scroll: false });
+    router.refresh();
 
     topicFilterProps?.onClosePane();
     topicFilterProps?.setFilteredItems(topics);
@@ -167,12 +168,17 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
     const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
     router.push(newUrl, { scroll: false });
+    router.refresh();
 
     eventsFilterProps?.onClosePane();
     eventsFilterProps?.setFilteredItems(events);
   };
 
   const onFilterByAttendeeType = (items: string[], from: string) => {
+    if (from !== 'reset') {
+      analytics.trackGuestListTableFilterApplyClicked(location, { column: 'attendeeName', filterValues: items });
+    }
+
     const roleMapping = {
       'Show hosts only': 'hosts',
       'Show speakers only': 'speakers',
@@ -182,14 +188,17 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
     const queryParams = new URLSearchParams(searchParams);
 
     const currentAttendees = queryParams.get('attendees');
-    const newRoles = items.map((option) => roleMapping[option]).filter(Boolean).join(URL_QUERY_VALUE_SEPARATOR);
-    
+    const newRoles = items
+      .map((option) => roleMapping[option])
+      .filter(Boolean)
+      .join(URL_QUERY_VALUE_SEPARATOR);
+
     if (currentAttendees === newRoles) {
       attendeeTypeFilterProps?.onClosePane();
       attendeeTypeFilterProps?.setFilteredItems(attendeeTypeFilterItems);
       return;
     }
-  
+
     triggerLoader(true);
     queryParams.delete('attendees');
     items.forEach((option) => {
@@ -201,6 +210,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
     const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
     router.push(newUrl, { scroll: false });
+    router.refresh();
 
     attendeeTypeFilterProps?.onClosePane();
     attendeeTypeFilterProps?.setFilteredItems(attendeeTypeFilterItems);
@@ -212,6 +222,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
     const currentParams = new URLSearchParams(searchParams);
     currentParams.delete('topics');
     router.push(`${window.location.pathname}?${currentParams.toString()}`, { scroll: false });
+    router.refresh();
     topicFilterProps?.onClearSelection(e);
   };
 
@@ -221,6 +232,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
     const currentParams = new URLSearchParams(searchParams);
     currentParams.delete('attending');
     router.push(`${window.location.pathname}?${currentParams.toString()}`, { scroll: false });
+    router.refresh();
     topicFilterProps?.onClearSelection(e);
   };
 
@@ -229,6 +241,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
     const currentParams = new URLSearchParams(searchParams);
     currentParams.delete('attendees');
     router.push(`${window.location.pathname}?${currentParams.toString()}`, { scroll: false });
+    router.refresh();
     attendeeTypeFilterProps?.onClearSelection(e);
   };
 
@@ -237,6 +250,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
     topicFilterProps?.onTogglePane();
     topicFilterProps?.setFilteredItems([...topics]);
     eventsFilterProps?.onClosePane();
+    attendeeTypeFilterProps?.onClosePane();
   };
 
   const onEventsFilterclicked = () => {
@@ -244,10 +258,15 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
     eventsFilterProps?.onTogglePane();
     eventsFilterProps?.setFilteredItems([...events]);
     topicFilterProps?.onClosePane();
+    attendeeTypeFilterProps?.onClosePane();
   };
 
   const onAttendeeTypeFilterclicked = () => {
+    analytics.trackGuestListTableFilterClicked(location, 'attendeeName');
     attendeeTypeFilterProps?.onTogglePane();
+    attendeeTypeFilterProps?.setFilteredItems([...attendeeTypeFilterItems]);
+    topicFilterProps?.onClosePane();
+    eventsFilterProps?.onClosePane();
   };
 
   return (
@@ -308,7 +327,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
               </div>
               {eventsFilterProps?.isPaneActive && (
                 <div className="tbl__hdr__attending__multiselect">
-                  <FloatingMultiSelect {...eventsFilterProps} items={events} onFilter={onFilterByEvents} search/>
+                  <FloatingMultiSelect {...eventsFilterProps} items={events} onFilter={onFilterByEvents} search />
                 </div>
               )}
             </>
@@ -365,6 +384,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             width: 180px;
             align-items: center;
             justify-content: flex-start;
+            gap: 5px;
           }
 
           .tbl__hdr__teams {
@@ -569,7 +589,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
               width: 1244px;
             }
 
-            .tbl__hdr__guestName{
+            .tbl__hdr__guestName {
               width: 224px;
             }
 
@@ -591,7 +611,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
               width: 1678px;
             }
 
-            .tbl__hdr__guestName{
+            .tbl__hdr__guestName {
               width: 331px;
             }
 
@@ -613,7 +633,9 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
               width: 2240px;
             }
 
-            .tbl__hdr__guestName, .tbl__hdr__teams, .tbl__hdr__connect {
+            .tbl__hdr__guestName,
+            .tbl__hdr__teams,
+            .tbl__hdr__connect {
               width: 439.67px;
             }
 

@@ -56,6 +56,7 @@ export const useIrlAnalytics = () => {
     ON_ADDITIONAL_RESOURCE_SEE_MORE_BUTTON_CLICKED: 'on-additional-resource-see-more-button-clicked',
     ON_JOIN_PL_NETWORK_CLICKED: 'on-join-pl-network-clicked',
     TRACK_LOGIN_BUTTON_CLICKED: 'on-login-button-clicked',
+    IRL_SEARCH_EVENT_CLICKED: 'irl-search-event-clicked',
 
     IRL_RSVP_POPUP_PRIVACY_SETTING_LINK_CLICKED: 'irl-rsvp-popup-privacy-setting-link-clicked',
     IRL_RSVP_POPUP_OH_GUIDELINE_URL_CLICKED: 'irl-rsvp-popup-oh-guideline-url-clicked',
@@ -477,6 +478,10 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.TRACK_LOGIN_BUTTON_CLICKED, {...params});
   }
 
+  function searchEventClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SEARCH_EVENT_CLICKED, {...params})
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -524,6 +529,7 @@ export const useIrlAnalytics = () => {
     irlGuestDetailSaveError,
     irlAddAttendeePopupCloseClicked,
     trackLoginClicked,
-    onAddGatheringClicked
+    onAddGatheringClicked,
+    searchEventClicked
   };
 };

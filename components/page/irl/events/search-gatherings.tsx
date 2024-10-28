@@ -1,3 +1,4 @@
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { triggerLoader } from '@/utils/common.utils';
@@ -29,6 +30,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
   const { updateQueryParams } = useUpdateQueryParams();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const analytics = useIrlAnalytics();
 
   useClickedOutside({
     callback: () => {
@@ -77,6 +79,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
     if (inputRef.current) {
       inputRef.current.value = '';
     }
+    analytics.searchEventClicked(gathering);
 
     if (type === 'past') {
       if (searchParams?.event !==  gathering.slugURL) {

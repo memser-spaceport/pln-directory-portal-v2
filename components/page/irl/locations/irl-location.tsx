@@ -63,6 +63,15 @@ const IrlLocation = (props: IrlLocation) => {
     const handleCardClick = (locationDetail: any) => {
         activeLocationId = locationDetail?.uid;
         const currentParams = new URLSearchParams(searchParams);
+        const allowedParams = ['event', 'type', 'location']; 
+    
+        // Remove parameters not in the allowed list
+        for (const [key, value] of Object.entries(searchParams)) {
+          if (!allowedParams.includes(key)) {
+            currentParams.delete(key);
+          }
+        }
+      
 
         // Add or update the new search parameters
         currentParams.set('location', locationDetail?.location?.split(",")[0].trim());
@@ -95,6 +104,14 @@ const IrlLocation = (props: IrlLocation) => {
         // updateQueryParams('location', updatedLocations[fourthIndex]?.location.split(',')[0].trim(), searchParams);
     
         const currentParams = new URLSearchParams(searchParams);
+        const allowedParams = ['event', 'type', 'location']; 
+    
+        // Remove parameters not in the allowed list
+        for (const [key, value] of Object.entries(searchParams)) {
+          if (!allowedParams.includes(key)) {
+            currentParams.delete(key);
+          }
+        }
         currentParams.set('location', updatedLocations[fourthIndex]?.location.split(',')[0].trim());
         if (clickedLocation?.pastEvents?.length > 0 && searchParams?.type === 'past') {
             currentParams.set('event', updatedLocations[fourthIndex].pastEvents[0]?.slugURL);

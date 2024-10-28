@@ -39,8 +39,17 @@ const IrlEvents = (props: IIrlEvents) => {
   const handleUpcomingGathering = () => {
     isUpcoming = true;
     const currentParams = new URLSearchParams(searchParams);
+    const allowedParams = ['type', 'location']; 
+
+    // Remove parameters not in the allowed list
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (!allowedParams.includes(key)) {
+        currentParams.delete(key);
+      }
+    }
+
     currentParams.set('type', 'upcoming');
-    currentParams.delete('event');
+    // currentParams.delete('event');
     router.push(`${window.location.pathname}?${currentParams.toString()}`);
     // updateQueryParams('type', 'upcoming', searchParams);
     if (searchParams?.type === 'past') {
@@ -53,7 +62,15 @@ const IrlEvents = (props: IIrlEvents) => {
     isUpcoming = false;
 
     const currentParams = new URLSearchParams(searchParams);
+    const allowedParams = ['event', 'type', 'location']; 
 
+    // Remove parameters not in the allowed list
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (!allowedParams.includes(key)) {
+        currentParams.delete(key);
+      }
+    }
+  
     // Add or update the new search parameters
     currentParams.set('type', 'past');
     if (eventDetails?.pastEvents?.length > 0) {

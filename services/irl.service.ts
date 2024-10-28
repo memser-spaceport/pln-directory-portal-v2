@@ -1,7 +1,6 @@
 import { getHeader } from '@/utils/common.utils';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
-import { groupMembers, processGuests, sortGuestList, sortPastEvents, transformMembers } from '@/utils/irl.utils';
+import { sortPastEvents, transformMembers } from '@/utils/irl.utils';
 
 export const getAllLocations = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations`, {
@@ -15,7 +14,7 @@ export const getAllLocations = async () => {
   }
 
   const result = await response.json();
-  result.sort((a: { priority: number; }, b: { priority: number; }) => a.priority - b.priority);
+  result.sort((a: { priority: number }, b: { priority: number }) => a.priority - b.priority);
 
   result.forEach((item: { pastEvents: any[] }) => {
     if (Array.isArray(item.pastEvents)) {
@@ -26,7 +25,7 @@ export const getAllLocations = async () => {
   return result;
 };
 
-const fetchGuests = async (url: string, authToken: string,) => {
+const fetchGuests = async (url: string, authToken: string) => {
   const response = await fetch(url, {
     cache: 'no-store',
     method: 'GET',
@@ -36,80 +35,29 @@ const fetchGuests = async (url: string, authToken: string,) => {
   return await response.json();
 };
 
+export const getGuestsByLocation = async (location: string, searchParams: any, authToken: string, currentPage = 1, limit = 10) => {
+  const urlParams = new URLSearchParams() as any;
 
-export const getGuestsByLocation = async (location: string, type: string, authToken: string, slugURL: string, userInfo: any) => {
-  if (!slugURL) {
-    const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?type=${type}`;
-    let result = await fetchGuests(url, authToken);
-    if (result.isError) return { isError: true };
-
-    if (userInfo && !userInfo?.roles?.includes(ADMIN_ROLE)) {
-      result = processGuests(result, userInfo);
-    } else if (!userInfo) {
-      result = result.filter((r: any) => r?.event?.type !== 'INVITE_ONLY');
+  // Loop through the searchParams object
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (Array.isArray(value)) {
+      // If the value is an array, append each item
+      value.forEach((item) => urlParams.append(key, item));
+    } else if (value) {
+      // Append other values normally
+      urlParams.append(key, value);
     }
-
-    const groupedMembers = groupMembers(result);
-    const transformedMembers = transformMembers(groupedMembers);
-    const sortedList = sortGuestList(transformedMembers, userInfo);
-
-    return { isUserGoing: sortedList.isUserGoing, currentGuest: sortedList.currentUser, guests: sortedList.sortedGuests };
-  } else {
-    const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/events/${slugURL}`;
-    let result = await fetchGuests(url, authToken);
-
-    if (result.isError) return { isError: true };
-
-    if (!userInfo && result?.type === 'INVITE_ONLY') {
-      result.eventGuests = [];
-    }
-    if (userInfo && !userInfo?.roles?.includes(ADMIN_ROLE) && result?.type === 'INVITE_ONLY' && !result?.eventGuests.find((guest: any) => guest?.memberUid === userInfo?.uid)) {
-      result.eventGuests = [];
-    }
-
-    const guests = result.eventGuests.map((guest: any) => ({
-      teamUid: guest?.teamUid,
-      teamName: guest?.team?.name,
-      teamLogo: guest?.team?.logo?.url,
-      memberUid: guest?.memberUid,
-      memberName: guest?.member?.name,
-      memberLogo: guest?.member?.image?.url,
-      teams: guest?.member?.teamMemberRoles.map((tm: any) => ({
-        name: tm?.team?.name,
-        id: tm?.team?.uid,
-        role: tm?.role,
-        logo: tm?.team?.logo?.url ?? '',
-      })),
-      reason: guest?.reason,
-      telegramId: guest?.member?.telegramHandler || '',
-      isTelegramRemoved: guest?.telegramId === '',
-      officeHours: guest?.member?.officeHours || '',
-      createdAt: guest?.createdAt,
-      projectContributions: guest?.member?.projectContributions?.filter((pc: any) => !pc?.project?.isDeleted).map((item: any) => item?.project?.name),
-      topics: guest?.topics,
-      additionalInfo: guest?.additionalInfo,
-      eventNames: [result.name],
-      events: [
-        {
-          uid: result?.uid,
-          name: result?.name,
-          startDate: result?.startDate,
-          endDate: result?.endDate,
-          isHost: guest?.isHost,
-          isSpeaker: guest?.isSpeaker,
-          logo: result?.logo?.url,
-          hostSubEvents: guest?.additionalInfo?.hostSubEvents,
-          speakerSubEvents: guest?.additionalInfo?.speakerSubEvents,
-          type: guest?.event?.type,
-          resources: guest?.event?.resources,
-        },
-      ],
-    }));
-
-    const sortedList = sortGuestList(guests, userInfo);
-
-    return { isUserGoing: sortedList.isUserGoing, currentGuest: sortedList.currentUser, guests: sortedList.sortedGuests };
   }
+  const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?&page=${currentPage}&limit=${limit}&${urlParams.toString()}`;
+
+  console.log('url', url)
+
+  let result = await fetchGuests(url, authToken);
+  if (result.isError) return { isError: true };
+
+  const transformedMembers = transformMembers(result);
+
+  return { guests: transformedMembers, totalGuests: transformedMembers[0]?.count ?? 0 };
 };
 
 export const deleteEventGuestByLocation = async (location: string, payload: any) => {
@@ -153,7 +101,7 @@ export const createEventGuest = async (locationId: string, payload: any) => {
   return { data: response };
 };
 
-export const editEventGuest = async (locationId: string, guestUid: string, payload: any, eventType:string) => {
+export const editEventGuest = async (locationId: string, guestUid: string, payload: any, eventType: string) => {
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestUid}?type=${eventType}`,
     {
@@ -172,4 +120,28 @@ export const editEventGuest = async (locationId: string, guestUid: string, paylo
   }
 
   return { data: response };
+};
+
+export const getGuestEvents = async (authToken: string, locationId: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/me/events`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(authToken),
+  });
+  if (!response.ok) return [];
+  return await response.json();
+};
+
+export const getTopicsByLocation = async (locationId: string, type: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/topics?type=${type}`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  return await response.json();
 };

@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
 import useFloatingSelect from '@/hooks/irl/use-floating-select';
+import { getUniqueEvents } from '@/utils/irl.utils';
 interface IAttendeeTableHeader {
   isLoggedIn: boolean;
   eventDetails: any;
@@ -14,7 +15,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const eventDetails = props?.eventDetails;
 
   const analytics = useIrlAnalytics();
-  const events = eventDetails?.events ?? [];
+  const events = getUniqueEvents(eventDetails?.events ?? []);
   const topics = eventDetails?.topics ?? [];
   const searchParams = useSearchParams();
   const eventType = searchParams.get('type');

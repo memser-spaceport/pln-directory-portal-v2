@@ -4,7 +4,6 @@ import IrlLocationCard from "./irl-location-card";
 import { useEffect, useRef, useState } from "react";
 import React from "react";
 import Modal from "@/components/core/modal";
-import useUpdateQueryParams from "@/hooks/useUpdateQueryParams";
 import { triggerLoader } from "@/utils/common.utils";
 import { useIrlAnalytics } from "@/analytics/irl.analytics";
 import { useRouter } from "next/navigation";
@@ -19,8 +18,7 @@ interface IrlLocation {
 }
 
 const IrlLocation = (props: IrlLocation) => {
-    const { updateQueryParams } = useUpdateQueryParams();
-    let activeLocationId: any = null
+    const [activeLocationId, setActiveLocationId] = useState<string|null>(null);
     const [locations, setLocations] = useState(props.locationDetails);
     const [showMore, setShowMore] = useState(false);
     const dialogRef = useRef<HTMLDialogElement>(null);
@@ -47,22 +45,28 @@ const IrlLocation = (props: IrlLocation) => {
         return () => window.removeEventListener('resize', updateCardLimit);
     }, []);
 
-    if (searchParams?.location) {
-        const locationName = searchParams.location;
-        const locationDataIndex = locations?.findIndex(
-            (loc: { location: string; }) => loc.location.split(",")[0].trim() === locationName
-        );
+    useEffect(() => {
+        const showCardLimit = window.innerWidth < 1440 ? 3 : 5;
+        if (searchParams?.location) {
+            const locationName = searchParams.location;
+            const locationDataIndex = locations.findIndex(
+                (loc) => loc.location.split(",")[0].trim() === locationName
+            );
 
-        if (locationDataIndex >= 0) {
-            if (locationDataIndex >= cardLimit) {
-                [locations[cardLimit], locations[locationDataIndex]] = [locations[locationDataIndex], locations[cardLimit]];
-                activeLocationId = locations[cardLimit].uid;
-                analytics.trackSeeOtherLocationClicked(locations[cardLimit]);
-            } else {
-                activeLocationId = locations[locationDataIndex].uid;
+            if (locationDataIndex >= 0) {
+                if (locationDataIndex >= showCardLimit) {
+                    const updatedLocations = [...locations];
+                    [updatedLocations[locationDataIndex], updatedLocations[showCardLimit]] =
+                    [updatedLocations[showCardLimit], updatedLocations[locationDataIndex]];
+                    setActiveLocationId(updatedLocations[showCardLimit].uid);
+                    setLocations(updatedLocations);
+                    analytics.trackSeeOtherLocationClicked(updatedLocations[showCardLimit]);
+                } else {
+                    setActiveLocationId(locations[locationDataIndex].uid);
+                }
             }
         }
-    }
+    }, [searchParams]);
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -110,7 +114,6 @@ const IrlLocation = (props: IrlLocation) => {
     };
 
     const handleCardClick = (locationDetail: any) => {
-        activeLocationId = locationDetail?.uid;
         const currentParams = new URLSearchParams(searchParams);
         const allowedParams = ['event', 'type', 'location']; 
     
@@ -137,14 +140,12 @@ const IrlLocation = (props: IrlLocation) => {
         if (clickedIndex === -1) return;
         triggerLoader(true);
 
-        const updatedLocations = [...locations];
-        const fourthIndex = cardLimit - 1;
+        // const updatedLocations = [...locations];
+        // const fourthIndex = cardLimit - 1;
 
-        // Swap locations
-        [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
-            [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
-
-        activeLocationId = updatedLocations[fourthIndex]?.uid;
+        // // Swap locations
+        // [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
+        //     [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
 
         const currentParams = new URLSearchParams(searchParams);
         const allowedParams = ['event', 'type', 'location']; 
@@ -155,15 +156,15 @@ const IrlLocation = (props: IrlLocation) => {
             currentParams.delete(key);
           }
         }
-        setSearchParams(updatedLocations[fourthIndex], currentParams, searchParams);
+        setSearchParams(clickedLocation, currentParams, searchParams);
 
         router.push(`${window.location.pathname}?${currentParams.toString()}`);
 
         dialogRef.current?.close();
-        setLocations(updatedLocations);
+        // setLocations(updatedLocations);
         setShowMore(false);
 
-        analytics.trackLocationClicked(updatedLocations[fourthIndex]?.uid, updatedLocations[fourthIndex]?.location);
+        analytics.trackLocationClicked(clickedLocation.uid, clickedLocation?.location);
     };
 
 

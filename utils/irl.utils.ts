@@ -234,10 +234,10 @@ export const transformMembers = (result: any) => {
       startDate: event?.startDate,
       endDate: event?.endDate,
       logo: event?.logo?.url,
-      isHost: guest?.isHost,
-      isSpeaker: guest?.isSpeaker,
-      hostSubEvents: guest?.additionalInfo?.hostSubEvents,
-      speakerSubEvents: guest?.additionalInfo?.speakerSubEvents,
+      isHost: event?.isHost,
+      isSpeaker: event?.isSpeaker,
+      hostSubEvents: event?.additionalInfo?.hostSubEvents,
+      speakerSubEvents: event?.additionalInfo?.speakerSubEvents,
       type: event?.type,
       resources: event?.resources,
     })),
@@ -289,7 +289,9 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
     attendeeTypes.forEach((name: string) => {
       if (name === 'hosts') {
         isHost = true;
+        isSpeaker = false;
       } else if (name === 'speakers') {
+        isHost = false;
         isSpeaker = true;
       } else if (name === 'hostsAndSpeakers') {
         isHost = true;
@@ -306,22 +308,23 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
     });
   }
 
-  result.isHost = isHost;
-  result.isSpeaker = isSpeaker;
+  if (isHost || isSpeaker) {
+    result.isHost = isHost;
+    result.isSpeaker = isSpeaker;
+  }
 
   return result;
 };
 
 export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents: any, isLoggedIn: boolean, userInfo: IUserInfo) => {
-
   const uniqueEventsMap = new Map();
 
   // Determine if the user has the admin role
   const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
-  const publicEvents = currentEvents.filter((event: any) => event.type !== 'INVITE_ONLY')
+  const publicEvents = currentEvents.filter((event: any) => event.type !== 'INVITE_ONLY');
 
   // Combine events based on the user's login and role status
-  const eventsToConsider = isLoggedIn ? isAdmin ? currentEvents : [...loggedInUserEvents, ...publicEvents] : publicEvents;
+  const eventsToConsider = isLoggedIn ? (isAdmin ? currentEvents : [...loggedInUserEvents, ...publicEvents]) : publicEvents;
 
   eventsToConsider.forEach((event: any) => {
     if (!uniqueEventsMap.has(event.uid)) {

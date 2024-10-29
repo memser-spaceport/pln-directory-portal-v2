@@ -49,7 +49,7 @@ export const getGuestsByLocation = async (location: string, searchParams: any, a
     if (Array.isArray(value)) {
       // If the value is an array, append each item
       value.forEach((item) => urlParams.append(key, item));
-    } else if (value) {
+    } else {
       // Append other values normally
       urlParams.append(key, value);
     }

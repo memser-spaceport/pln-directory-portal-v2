@@ -19,6 +19,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
 import usePagination from '@/hooks/irl/use-pagination';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
+import TableLoader from '@/components/core/table-loader';
 
 interface IAttendeeList {
   userInfo: IUserInfo;
@@ -42,6 +43,7 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState({ ...eventDetails });
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
+  const [isAttendeeLoading, setIsAttendeeLoading] = useState<boolean>(false);
   const [showFloaingBar, setShowFloatingBar] = useState(false);
   const [iamGoingPopupProps, setIamGoingPopupProps]: any = useState({ isOpen: false, formdata: null, mode: '' });
   const deleteRef = useRef<HTMLDialogElement>(null);
@@ -143,12 +145,12 @@ const AttendeeList = (props: IAttendeeList) => {
 
   useEffect(() => {
     if (currentPage !== 1) {
-      triggerLoader(true);
+      setIsAttendeeLoading(true);
       const getEventDetails = async () => {
         const authToken = getParsedValue(Cookies.get('authToken'));
         const eventInfo: any = await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken, currentPage, limit);
         setUpdatedEventDetails((prev) => ({ ...prev, guests: [...prev.guests, ...eventInfo.guests], totalGuests: eventInfo.totalGuests }));
-        triggerLoader(false);
+        setIsAttendeeLoading(false);
         // router.refresh();
       };
 
@@ -207,6 +209,7 @@ const AttendeeList = (props: IAttendeeList) => {
                 onLogin={onLogin}
                 searchParams={searchParams}
               />
+              {isAttendeeLoading && <TableLoader />}
               <div ref={observerRef} className="scroll-observer"></div>
             </div>
           </div>

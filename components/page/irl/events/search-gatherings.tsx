@@ -166,7 +166,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
       <style jsx>
         {`
           .root__irl__table-col__headerName__srchCont {
-            border: 1px solid #cbd5e1;
+            border: 0.5px solid #156FF7;
             border-radius: 4px;
             display: flex;
             gap: 5px;
@@ -175,6 +175,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
             height: 28px;
             background: white;
             position: relative;
+            box-shadow: 0px 0px 4px 0px #00000033;
           }
 
           .root__irl__table-col__headerName__srchCont__inpt {

@@ -29,6 +29,7 @@ interface IAttendeeList {
   location: IAnalyticsGuestLocation;
   isUserGoing: boolean;
   searchParams: any;
+  currentEventNames: string[];
 }
 
 const AttendeeList = (props: IAttendeeList) => {
@@ -38,6 +39,7 @@ const AttendeeList = (props: IAttendeeList) => {
   const showTelegram = props.showTelegram;
   const location = props.location;
   const searchParams = props?.searchParams;
+  const currentEventNames = props?.currentEventNames;
 
   const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
@@ -90,8 +92,8 @@ const AttendeeList = (props: IAttendeeList) => {
     setPagination({ page: 1, limit: 10 });
 
     const [eventInfo, currentGuestResponse, topics, loggedInUserEvents]: any = await Promise.all([
-      await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken),
-      await getGuestsByLocation(location?.uid, { type: eventType }, authToken, 1, 1),
+      await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken,currentEventNames),
+      await getGuestsByLocation(location?.uid, { type: eventType }, authToken,currentEventNames, 1, 1),
       await getTopicsByLocation(location?.uid, eventType),
       await getGuestEvents(location?.uid, authToken),
     ]);
@@ -148,10 +150,11 @@ const AttendeeList = (props: IAttendeeList) => {
       setIsAttendeeLoading(true);
       const getEventDetails = async () => {
         const authToken = getParsedValue(Cookies.get('authToken'));
-        const eventInfo: any = await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken, currentPage, limit);
-        setUpdatedEventDetails((prev) => ({ ...prev, guests: [...prev.guests, ...eventInfo.guests], totalGuests: eventInfo.totalGuests }));
+        const eventInfo: any = await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken,currentEventNames, currentPage, limit);
+        if (eventInfo.totalGuests>0){
+          setUpdatedEventDetails((prev) => ({ ...prev, guests: [...prev.guests, ...eventInfo.guests], totalGuests: eventInfo.totalGuests }));
+        }
         setIsAttendeeLoading(false);
-        // router.refresh();
       };
 
       const fetchData = async () => {
@@ -220,7 +223,7 @@ const AttendeeList = (props: IAttendeeList) => {
       {/* FLOATING BAR */}
       {showFloaingBar && (
         <div className="irl__floating-bar">
-          <FloatingBar location={location} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} />
+          <FloatingBar location={location} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} searchParams={searchParams}/>
         </div>
       )}
 

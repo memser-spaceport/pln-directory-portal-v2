@@ -14,7 +14,7 @@ import IrlErrorPage from '@/components/core/irl-error-page';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 
 export default async function Page({ searchParams }: any) {
-  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError } = await getPageData(searchParams);
+  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(searchParams);
 
   if (isLocationError) {
     return <IrlErrorPage />;
@@ -47,6 +47,7 @@ export default async function Page({ searchParams }: any) {
             isLoggedIn={isLoggedIn}
             isUserGoing={isUserGoing as boolean}
             searchParams={searchParams}
+            currentEventNames={currentEventNames}
           />
         </section>
       </div>
@@ -107,15 +108,17 @@ const getPageData = async (searchParams: any) => {
       searchParams.event = pastEvents[0]?.slugURL;
     }
 
-    // const slugURL = searchParams?.event;
     const currentEvents = eventType === 'upcoming' ? eventDetails.upcomingEvents : eventDetails.pastEvents;
+    const currentEventNames = currentEvents.map((item: any) => item.name); // Get current event names
 
+    // Proceed with API calls only after currentEventNames is set
     const [events, currentGuestResponse, topics, loggedInUserEvents] = await Promise.all([
-      await getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken),
-      await getGuestsByLocation(uid, { type: eventType }, authToken, 1, 1),
-      await getTopicsByLocation(uid, eventType),
-      await getGuestEvents(uid, authToken),
+      getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken,currentEventNames),
+      getGuestsByLocation(uid, { type: eventType }, authToken,currentEventNames, 1, 1),
+      getTopicsByLocation(uid, eventType),
+      getGuestEvents(uid, authToken),
     ]);
+
     if (events.isError) {
       return { isError: true };
     }
@@ -123,11 +126,10 @@ const getPageData = async (searchParams: any) => {
     let guestDetails = events as any;
 
     guestDetails.events = currentEvents;
-    guestDetails.currentGuest = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
-    guestDetails.isUserGoing = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid;
+    guestDetails.currentGuest = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests?.[0] : null;
+    guestDetails.isUserGoing = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid;
     guestDetails.topics = topics;
     guestDetails.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, currentEvents, isLoggedIn, userInfo);
-
 
     // Fetch member preferences if the user is logged in
     if (isLoggedIn) {
@@ -149,12 +151,14 @@ const getPageData = async (searchParams: any) => {
       guestDetails,
       eventLocationSummary,
       locationDetails,
+      currentEventNames,
     };
   } catch (e) {
     console.error('Error fetching IRL data', e);
     return { isError: true };
   }
 };
+
 
 export const metadata: Metadata = {
   title: 'IRL Gatherings | Protocol Labs Directory',

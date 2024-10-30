@@ -1,15 +1,16 @@
 "use client";
 
 import IrlLocationCard from "./irl-location-card";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
 import Modal from "@/components/core/modal";
-import useUpdateQueryParams from "@/hooks/useUpdateQueryParams";
 import { triggerLoader } from "@/utils/common.utils";
 import { useIrlAnalytics } from "@/analytics/irl.analytics";
 import { useRouter } from "next/navigation";
 import { ILocationDetails } from "@/types/irl.types";
 import useClickedOutside from "@/hooks/useClickedOutside";
+import IrlLocationPopupView from "./irl-location-popupView";
+import IrlSeeMoreLocationCard from "./irl-see-more-location-card";
 
 interface IrlLocation {
     locationDetails: ILocationDetails[];
@@ -17,8 +18,7 @@ interface IrlLocation {
 }
 
 const IrlLocation = (props: IrlLocation) => {
-    const { updateQueryParams } = useUpdateQueryParams();
-    let activeLocationId: any = null
+    const [activeLocationId, setActiveLocationId] = useState<string|null>(null);
     const [locations, setLocations] = useState(props.locationDetails);
     const [showMore, setShowMore] = useState(false);
     const dialogRef = useRef<HTMLDialogElement>(null);
@@ -26,6 +26,7 @@ const IrlLocation = (props: IrlLocation) => {
     const analytics = useIrlAnalytics();
     const router = useRouter();
     const locationRef = useRef<HTMLDivElement>(null);
+    const [cardLimit, setCardLimit] = useState(4);
 
     const onCloseModal = () => {
         if (dialogRef.current) {
@@ -33,46 +34,101 @@ const IrlLocation = (props: IrlLocation) => {
         }
     };
 
-    if (searchParams?.location) {
-        const locationName = searchParams.location;
-        const locationDataIndex = locations?.findIndex(
-            (loc: { location: string; }) => loc.location.split(",")[0].trim() === locationName
-        );
+    useEffect(() => {
+        const updateCardLimit = () => {
+            setCardLimit(window.innerWidth < 1440 ? 4 : 6);
+        };
 
-        if (locationDataIndex >= 0) {
-            if (locationDataIndex >= 4) {
-                [locations[3], locations[locationDataIndex]] = [locations[locationDataIndex], locations[3]];
-                activeLocationId = locations[3].uid;
-                analytics.trackSeeOtherLocationClicked(locations[3]);
-            } else {
-                activeLocationId = locations[locationDataIndex].uid;
+        updateCardLimit();
+        window.addEventListener('resize', updateCardLimit);
+
+        return () => window.removeEventListener('resize', updateCardLimit);
+    }, []);
+
+    useEffect(() => {
+        const showCardLimit = window.innerWidth < 1440 ? 3 : 5;
+        if (searchParams?.location) {
+            const locationName = searchParams.location;
+            const locationDataIndex = locations.findIndex(
+                (loc) => loc.location.split(",")[0].trim() === locationName
+            );
+
+            if (locationDataIndex >= 0) {
+                if (locationDataIndex >= showCardLimit) {
+                    const updatedLocations = [...locations];
+                    [updatedLocations[locationDataIndex], updatedLocations[showCardLimit]] =
+                    [updatedLocations[showCardLimit], updatedLocations[locationDataIndex]];
+                    setActiveLocationId(updatedLocations[showCardLimit].uid);
+                    setLocations(updatedLocations);
+                    analytics.trackSeeOtherLocationClicked(updatedLocations[showCardLimit]);
+                } else {
+                    setActiveLocationId(locations[locationDataIndex].uid);
+                }
             }
         }
-    }
+    }, [searchParams]);
 
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (typeof window !== 'undefined' && window.innerWidth < 1024) {
             if (dialogRef.current) {
                 dialogRef.current.showModal();
             }
         }
         setShowMore(!showMore);
-        analytics.trackSeeOtherLocationClicked(locations?.slice(4));
+        analytics.trackSeeOtherLocationClicked(locations?.slice(cardLimit));
     }
 
-    const handleCardClick = (locationDetail: any) => {
-        activeLocationId = locationDetail?.uid;
-        const currentParams = new URLSearchParams(searchParams);
+    const setSearchParams = (
+        locationDetail: any,
+        currentParams: URLSearchParams,
+        searchParams: any
+    ) => {
+        const hasPastEvents = locationDetail?.pastEvents?.length > 0;
+        const hasUpcomingEvents = locationDetail?.upcomingEvents?.length > 0;
+        const isTypePast = searchParams?.type === 'past';
+        const isTypeUpcoming = searchParams?.type === 'upcoming';
 
-        // Add or update the new search parameters
         currentParams.set('location', locationDetail?.location?.split(",")[0].trim());
-        if (locationDetail?.pastEvents?.length > 0 && searchParams?.type === 'past') {
-            currentParams.set('event', locationDetail?.pastEvents[0]?.slugURL);
-        } else {
+
+        if (!searchParams?.type) {
+            if (hasUpcomingEvents) currentParams.set('type', 'upcoming');
+            else if (hasPastEvents) setPastEvent();
+        } else if (hasPastEvents && hasUpcomingEvents) {
+            currentParams.set('type', 'upcoming');
             currentParams.delete('event');
+        } else if (hasPastEvents && isTypePast) setPastEvent();
+        else if (!hasPastEvents && isTypePast) switchToUpcoming();
+        else if (!hasUpcomingEvents && isTypeUpcoming) setPastEvent();
+        else currentParams.delete('event');
+
+        function setPastEvent() {
+            currentParams.set('type', 'past');
+            currentParams.set('event', locationDetail.pastEvents[0]?.slugURL);
         }
 
-        if (locationDetail?.location?.split(",")[0].trim() !== searchParams?.location) {
+        function switchToUpcoming() {
+            currentParams.set('type', 'upcoming');
+            currentParams.delete('event');
+        }
+    };
+
+    const handleCardClick = (locationDetail: any) => {
+        const currentParams = new URLSearchParams(searchParams);
+        const allowedParams = ['event', 'type', 'location']; 
+    
+        // Remove parameters not in the allowed list
+        for (const [key, value] of Object.entries(searchParams)) {
+          if (!allowedParams.includes(key)) {
+            currentParams.delete(key);
+          }
+        }
+      
+
+        setSearchParams(locationDetail, currentParams, searchParams);
+
+        const locationChanged = locationDetail?.location?.split(",")[0].trim() !== searchParams?.location;
+        if (locationChanged) {
             router.push(`${window.location.pathname}?${currentParams.toString()}`);
             triggerLoader(true);
             analytics.trackLocationClicked(locationDetail?.uid, locationDetail?.location);
@@ -83,34 +139,34 @@ const IrlLocation = (props: IrlLocation) => {
         const clickedIndex = locations.findIndex(({ uid }) => uid === clickedLocation.uid);
         if (clickedIndex === -1) return;
         triggerLoader(true);
-    
-        const updatedLocations = [...locations];
-        const fourthIndex = 3;
-    
-        [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] = 
-            [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
-    
-        activeLocationId = updatedLocations[fourthIndex]?.uid;
-    
-        // updateQueryParams('location', updatedLocations[fourthIndex]?.location.split(',')[0].trim(), searchParams);
-    
+
+        // const updatedLocations = [...locations];
+        // const fourthIndex = cardLimit - 1;
+
+        // // Swap locations
+        // [updatedLocations[clickedIndex], updatedLocations[fourthIndex]] =
+        //     [updatedLocations[fourthIndex], updatedLocations[clickedIndex]];
+
         const currentParams = new URLSearchParams(searchParams);
-        currentParams.set('location', updatedLocations[fourthIndex]?.location.split(',')[0].trim());
-        if (clickedLocation?.pastEvents?.length > 0 && searchParams?.type === 'past') {
-            currentParams.set('event', updatedLocations[fourthIndex].pastEvents[0]?.slugURL);
-        } else {
-            currentParams.delete('event');
+        const allowedParams = ['event', 'type', 'location']; 
+    
+        // Remove parameters not in the allowed list
+        for (const [key, value] of Object.entries(searchParams)) {
+          if (!allowedParams.includes(key)) {
+            currentParams.delete(key);
+          }
         }
+        setSearchParams(clickedLocation, currentParams, searchParams);
+
         router.push(`${window.location.pathname}?${currentParams.toString()}`);
 
         dialogRef.current?.close();
+        // setLocations(updatedLocations);
         setShowMore(false);
-        setLocations(updatedLocations);
 
-    
-        analytics.trackLocationClicked(updatedLocations[fourthIndex]?.uid, updatedLocations[fourthIndex]?.location);
+        analytics.trackLocationClicked(clickedLocation.uid, clickedLocation?.location);
     };
-    
+
 
     useClickedOutside({
         ref: locationRef,
@@ -132,46 +188,63 @@ const IrlLocation = (props: IrlLocation) => {
                         />
                     ))}
                 </div>
-                {locations?.length > 4 &&
-                    <div
-                        ref={locationRef}
-                        className="root__irl__expanded"
-                        onClick={handleClick}
-                    >
-                        <div
-                            className="root__irl__expanded__showMore"
-                        >
-                            See Other Locations
-                        </div>
-                        <div className="root_irl__expanded__imgcntr">
-                            {locations?.slice(4, 7).map((location: { flag: any; }, index: React.Key | null | undefined) => (
-                                <div key={index} className="root_irl__expanded__imgcntr__img">
-                                    <img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} />
-                                </div>
+
+                <div className="root__card__desktop-sm">
+                    {locations?.slice(0, 6).map((location: any, index: any) => (
+                        <IrlLocationCard
+                            key={location.uid}
+                            {...location}
+                            isActive={activeLocationId ? activeLocationId === location.uid : index === 0}
+                            onCardClick={() => handleCardClick(location)}
+                        />
+                    ))}
+                </div>
+
+                <div className="root__irl__seeMoreCard__desktop--sm">
+                    {locations?.length > 4 &&
+                        <IrlSeeMoreLocationCard
+                            count={4}
+                            handleClick={handleClick}
+                            locations={locations}
+                            locationRef={locationRef} />
+                    }
+                </div>
+                <div className="root__irl__seeMoreCard__desktop--lg">
+                    {locations?.length > cardLimit &&
+                        <IrlSeeMoreLocationCard
+                            count={cardLimit}
+                            handleClick={handleClick}
+                            locations={locations}
+                            locationRef={locationRef} />
+                    }
+                </div>
+
+                {/* {showMore &&
+                    <div className="root__irl__seeMoreCard__desktop--sm">
+                        <div className="root__irl__overlay">
+                            {locations?.slice(4).map((location: ILocationDetails, index: React.Key | null | undefined) => (
+                                <IrlLocationPopupView
+                                    key={location.location}
+                                    location={location}
+                                    handleResourceClick={handleResourceClick} />
                             ))}
                         </div>
-                        <div className="root__irl__expanded__icon">
-                            <img src="/images/irl/upsideCap.svg" alt="downArrow" />
+                    </div>
+                } */}
+
+                {showMore &&
+                    <div className="root__irl__seeMoreCard__desktop--lg">
+                        <div className="root__irl__overlay">
+                            {locations?.slice(cardLimit).map((location: ILocationDetails, index: React.Key | null | undefined) => (
+                                <IrlLocationPopupView
+                                    key={location.location}
+                                    location={location}
+                                    handleResourceClick={handleResourceClick} />
+                            ))}
                         </div>
                     </div>
                 }
 
-                {showMore &&
-                    <div className="root__irl__overlay">
-                        {locations?.slice(4).map((location: ILocationDetails, index: React.Key | null | undefined) => (
-                            <div key={index} className="root__irl__overlay__cnt" onClick={() => handleResourceClick(location)}>
-                                <div className="root__irl__overlay__cnt__location">
-                                    <div className="root__irl__overlay__cnt__location__icon"><img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} /></div>
-                                    <div className="root__irl__overlay__cnt__location__title">{location.location.split(",")[0].trim()}</div>
-                                </div>
-                                <div className="root__irl__overlay__cnt__events">
-                                    <div><span>{location.upcomingEvents?.length ?? 0}</span>{' '} Upcoming Events </div>
-                                    <div><span>{location.pastEvents?.length ?? 0}</span>{' '} Past Events </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                }
                 <div className="root__irl__mobileView">
                     <Modal modalRef={dialogRef} onClose={onCloseModal}>
                         <div className="root__irl__header"> Select a location</div>
@@ -183,8 +256,17 @@ const IrlLocation = (props: IrlLocation) => {
                                         <div>{location.location.split(",")[0].trim()}</div>
                                     </div>
                                     <div className="root__irl__mobileModal__cnt__events">
-                                        <div><span>{location.upcomingEvents?.length ?? 0}</span>{' '} Upcoming Events </div>
-                                        <div><span>{location.pastEvents?.length ?? 0}</span>{' '} Past Events </div>
+                                        {location.upcomingEvents?.length > 0 &&
+                                            <>
+                                                <span>{location.upcomingEvents?.length ?? 0}</span>{' '} Upcoming
+                                            </>
+                                        }
+                                        {location.pastEvents?.length > 0 &&
+                                            <>
+                                                <span>{location.pastEvents?.length ?? 0}</span>{' '} Past
+
+                                            </>
+                                        }
                                     </div>
                                 </div>
                             ))}
@@ -205,30 +287,15 @@ const IrlLocation = (props: IrlLocation) => {
                     display: flex;
                     flex-direction: row;
                     gap: 15px;
+                // display: grid;
+                // grid-template-columns: repeat(4, 1fr); /* Default: 4 cards */
+                // gap: 16px;
               }
               .show-more {
                   /* Add styles for showing the rest of the data */
               }
 
-              .root__irl__expanded {
-                    display: flex;
-                    flex-direction: column;
-                    text-align: center;
-                    background-color: #D0E7FA;
-                    width: 161px;
-                    height: 150px;
-                    justify-content: center;
-                    text-align: center;
-                    border-radius: 8px;
-                    border: 1px solid #156FF7;
-                    position: relative;
-                    cursor: pointer;
-                }
-
-                .root__irl__expanded:hover {
-                    position: relative;
-                    animation:moveBackground 4s forwards  // 
-                }
+              
 
                @keyframes moveBackground {
                     0% {
@@ -266,10 +333,10 @@ const IrlLocation = (props: IrlLocation) => {
 
                 .root__irl__overlay {
                     background-color: #fff;
-                    width: 367px;
+                    width: 170px;
                     max-height: 196px;
                     top: 156px;
-                    right: 8px;
+                    right: 4px;
                     gap: 0px;
                     -webkit-border-radius: 12px;
                     -moz-border-radius: 12px;
@@ -282,7 +349,7 @@ const IrlLocation = (props: IrlLocation) => {
 
                 .root__irl__overlay__cnt {
                     display: flex;
-                    flex-direction: row;
+                    flex-direction: column;
                     justify-content: space-between;
                     gap: 10px;
                     padding: 5px;
@@ -374,6 +441,10 @@ const IrlLocation = (props: IrlLocation) => {
                     text-align: left;
                 }
 
+                .root__irl__seeMoreCard__desktop--sm {
+                    display: flex;
+                }
+
                 @media (min-width: 360px) {
                     .root {
                         height: 100px;
@@ -408,9 +479,22 @@ const IrlLocation = (props: IrlLocation) => {
                         max-height: 70vh;
                         overflow-y: auto;
                     }
+
+                    .root__irl__seeMoreCard__desktop--lg, .root__card__desktop-sm  {
+                        display: none;
+                    }
                 }
 
                 @media (min-width: 1024px) {
+
+                    .root__irl__seeMoreCard__desktop--sm {
+                        display: none;
+                    }
+                    .root__irl__seeMoreCard__desktop--lg {
+                        display: flex;
+                        // margin-left: 10px;
+                    }
+
                     .root__irl__openModal, .root__irl__overlay {
                         display: flex;
                         flex-direction: column;
@@ -464,6 +548,59 @@ const IrlLocation = (props: IrlLocation) => {
 
                     .root__irl__mobileModal, .root__irl__mobileView {
                         display: none;
+                    }
+
+                    .root__card__desktop-sm {
+                        display: none;
+                    }
+                }
+
+                @media (min-width: 1440px) {
+                    .root__card {
+                        display: none;
+                        // display: grid;
+                        // grid-template-columns: repeat(6, 1fr);
+                        // gap: 15px;
+                    }
+
+                    .root__card__desktop-sm {
+                        display: flex;
+                        flex-direction: row;
+                        gap: 15px;
+                    }
+
+                    .root {
+                        width: 159.43px;
+                        height: 137px;
+                        gap: 14px;
+                    }
+
+                    .root__irl__overlay {
+                        width: 174px;
+                    }
+                }
+
+                @media (min-width: 1920px) {
+                    .root__irl__expanded {
+                        align-items: center;
+                        width: 225px;
+                        background: 
+                        linear-gradient(152.61deg, #F5F8FF 24.8%, #BBDEF7 108.1%), 
+                        url("/images/irl/2560 animation asset v3.2.svg");
+                    }
+                    .root__irl__overlay {
+                        width: 232px;
+                        right: 9px;
+                    }
+                }
+
+                @media (min-width: 2560px) {
+                    .root__irl__expanded {
+                        width: 305px;
+                        height: 150px;
+                    }
+                    .root__irl__overlay {
+                        width: 306px;
                     }
                 }
             `}

@@ -5,6 +5,8 @@ import { IUserInfo } from '@/types/shared.types';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import GuestTableRow from './guest-table-row';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
+import { useRouter } from 'next/navigation';
+import { triggerLoader } from '@/utils/common.utils';
 
 interface IGuestList {
   userInfo: IUserInfo;
@@ -16,6 +18,7 @@ interface IGuestList {
   location: IAnalyticsGuestLocation;
   isLoggedIn: boolean;
   onLogin: () => void;
+  searchParams: any;
 }
 
 const GuestList = (props: IGuestList) => {
@@ -27,9 +30,11 @@ const GuestList = (props: IGuestList) => {
   const setSelectedGuests = props?.setSelectedGuests;
   const location = props?.location;
   const isLoggedIn = props.isLoggedIn;
-  const onLogin = props.onLogin
+  const onLogin = props.onLogin;
+  const searchParams = props?.searchParams;
 
   const analytics = useIrlAnalytics();
+  const router = useRouter();
 
   const onchangeSelectionStatus = (uid: string) => {
     setSelectedGuests((prevSelectedIds: string[]) => {
@@ -40,6 +45,22 @@ const GuestList = (props: IGuestList) => {
       }
     });
   };
+
+  const onClearFilters = () => {
+    triggerLoader(true)
+    const currentParams = new URLSearchParams(searchParams);
+    const allowedParams = ['event', 'type', 'location']; 
+
+    // Remove parameters not in the allowed list
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (!allowedParams.includes(key)) {
+        currentParams.delete(key);
+      }
+    }
+
+    router.push(`${window.location.pathname}?${currentParams.toString()}`);
+
+  }
 
   useEffect(() => {
     document.dispatchEvent(
@@ -74,7 +95,11 @@ const GuestList = (props: IGuestList) => {
               </div>
             );
           })}
-        {filteredList.length === 0 && <div className="guestList__empty">No results found</div>}
+        {filteredList.length === 0 && (
+          <div className="guestList__empty">
+            No results found for the applied input <span role='button' onClick={onClearFilters} className="guestList__empty__reset">Reset to default</span>
+          </div>
+        )}
       </div>
       <style jsx>
         {`
@@ -88,7 +113,7 @@ const GuestList = (props: IGuestList) => {
 
           .guestList__empty {
             display: flex;
-            width: 896px;
+            width: 100%;
             justify-content: center;
             // border-bottom: 1px solid #cbd5e1;
             padding-top: 20px;
@@ -96,6 +121,12 @@ const GuestList = (props: IGuestList) => {
             font-size: 14px;
             font-weight: 500;
             color: #64748b;
+            gap: 4px;
+          }
+
+          .guestList__empty__reset {
+            color: #156ff7;
+            cursor: pointer;
           }
 
           .divider {

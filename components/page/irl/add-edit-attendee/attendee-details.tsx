@@ -3,12 +3,14 @@ import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import SingleSelectWithImage from '@/components/form/single-select-with-image';
 import { getMember, getMembersForAttendeeForm, getMembersForProjectForm } from '@/services/members.service';
 import { getMemberPreferences } from '@/services/preferences.service';
-import { IIrlAttendeeFormErrors } from '@/types/irl.types';
+import { IIrlAttendeeFormErrors, IIrlLocation } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue, getUserInfoFromLocal, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { SetStateAction, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
+import { getGuestDetail } from '@/services/irl.service';
+import { transformGuestDetail } from '@/utils/irl.utils';
 
 interface IAttendeeForm {
   memberInfo: IUserInfo | null;
@@ -17,6 +19,8 @@ interface IAttendeeForm {
   allGuests: any[];
   errors: IIrlAttendeeFormErrors;
   setFormInitialValues: SetStateAction<any>;
+  location: IIrlLocation;
+  eventType: string;
 }
 
 const AttendeeDetails = (props: IAttendeeForm) => {
@@ -26,12 +30,17 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const allGuests = props?.allGuests ?? [];
   const errors = props?.errors ?? [];
   const setFormInitialValues = props?.setFormInitialValues;
+  const location = props?.location;
+  const eventType = props?.eventType ?? '';
 
   const [initialContributors, setInitialContributors] = useState([]);
   const [initialTeams, setInitialTeams] = useState(initialValues?.teams ?? []);
 
+  //variables
+  const authToken = getParsedValue(Cookies.get('authToken'));
+
   const [selectedTeam, setSelectedTeam] = useState(initialValues?.team ?? { name: '', logo: '', uid: '' });
-  const [selectedMember, setSelectedMember] = useState(member ?? { name: '', uid: '' });
+  const [selectedMember, setSelectedMember] = useState<IUserInfo>(member || { name: '', uid: '' });
 
   const handleTeamChange = (option: any) => {
     setSelectedTeam(option);
@@ -74,50 +83,80 @@ const AttendeeDetails = (props: IAttendeeForm) => {
 
   useEffect(() => {
     if (selectedMember.uid) {
-      const isMemberAvailable = allGuests.some((guest: any) => guest.memberUid === selectedMember.uid);
-      if (!isMemberAvailable) {
-        updateMemberDetails(true);
-        setFormInitialValues(null);
-        return;
-      } else {
-        const member = allGuests.find((guest: any) => guest.memberUid === selectedMember.uid);
-        updateMemberDetails(false);
-        const formData = {
-          team: {
-            name: member?.teamName,
-            logo: member?.teamLogo,
-            uid: member?.teamUid,
-          },
-          member: {
-            name: member?.memberName,
-            logo: member?.memberLogo,
-            uid: member?.memberUid,
-          },
-          events: member?.events,
-          teamUid: member?.teamUid,
-          teams: member?.teams?.map((team: any) => {
-            return { ...team, uid: team?.id };
-          }),
-          memberUid: member?.memberUid,
-          additionalInfo: { checkInDate: member?.additionalInfo?.checkInDate || '', checkOutDate: member?.additionalInfo?.checkOutDate ?? '' },
-          topics: member?.topics,
-          reason: member?.reason,
-          telegramId: member?.telegramId,
-          officeHours: member?.officeHours ?? '',
-        };
-        setSelectedTeam(formData.team);
-        setInitialTeams(formData.teams);
-        setFormInitialValues(formData);
-      }
-      // document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: '', showTelegram: false } }));
-      // document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: '' } }));
+      const fetchGuestDetails = async () => {
+        try {
+          let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, eventType);
+  
+          if (result.length>0) {
+            const formData = transformGuestDetail(result);
+
+            updateMemberDetails(false);
+            setSelectedTeam({name: formData?.teamName,
+              uid: formData?.teamUid,
+              logo: formData?.teamLogo ?? '',});
+            setInitialTeams(formData.teams);
+            setFormInitialValues(formData);
+          } else {
+            updateMemberDetails(true);
+            setFormInitialValues(null);
+            return;
+          }
+        } catch (error) {
+          console.error("Error fetching guest details:", error);
+          // Optionally handle error
+        }
+      };
+  
+      fetchGuestDetails();
     }
   }, [selectedMember]);
+  
+
+  // useEffect(() => {
+  //   if (selectedMember.uid) {
+  //     const isMemberAvailable = allGuests.some((guest: any) => guest.memberUid === selectedMember.uid);
+  //     if (!isMemberAvailable) {
+  //       updateMemberDetails(true);
+  //       setFormInitialValues(null);
+  //       return;
+  //     } else {
+  //       const member = allGuests.find((guest: any) => guest.memberUid === selectedMember.uid);
+  //       updateMemberDetails(false);
+  //       const formData = {
+  //         team: {
+  //           name: member?.teamName,
+  //           logo: member?.teamLogo,
+  //           uid: member?.teamUid,
+  //         },
+  //         member: {
+  //           name: member?.memberName,
+  //           logo: member?.memberLogo,
+  //           uid: member?.memberUid,
+  //         },
+  //         events: member?.events,
+  //         teamUid: member?.teamUid,
+  //         teams: member?.teams?.map((team: any) => {
+  //           return { ...team, uid: team?.id };
+  //         }),
+  //         memberUid: member?.memberUid,
+  //         additionalInfo: { checkInDate: member?.additionalInfo?.checkInDate || '', checkOutDate: member?.additionalInfo?.checkOutDate ?? '' },
+  //         topics: member?.topics,
+  //         reason: member?.reason,
+  //         telegramId: member?.telegramId,
+  //         officeHours: member?.officeHours ?? '',
+  //       };
+  //       setSelectedTeam(formData.team);
+  //       setInitialTeams(formData.teams);
+  //       setFormInitialValues(formData);
+  //     }
+  //     // document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: '', showTelegram: false } }));
+  //     // document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: '' } }));
+  //   }
+  // }, [selectedMember]);
 
   const updateMemberDetails = async (updateAll: boolean) => {
     try {
       triggerLoader(true);
-      const authToken = getParsedValue(Cookies.get('authToken'));
       const memberResult = await getMember(selectedMember.uid ?? '', { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false);
       const memberPreferencesResponse = await getMemberPreferences(selectedMember.uid ?? '', authToken);
       if (memberPreferencesResponse.isError) {

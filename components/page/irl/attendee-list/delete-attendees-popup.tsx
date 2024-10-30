@@ -33,7 +33,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
   const getEventDetails = props?.getEventDetails;
 
   const selectedGuestIds = type === 'self-delete' ? [userInfo?.uid] : props?.selectedGuests ?? [];
-  const selectedGuests = guests?.filter((guest: IGuest) => selectedGuestIds?.includes(guest?.memberUid)) ?? [];
+  const selectedGuests = type === 'self-delete' ? [eventDetails?.currentGuest] : guests?.filter((guest: IGuest) => selectedGuestIds?.includes(guest?.memberUid)) ?? [];
   const setSelectedGuests = props?.setSelectedGuests;
 
   const [selectedEvents, setSelectedEvents] = useState<ISelectedEvents>({});

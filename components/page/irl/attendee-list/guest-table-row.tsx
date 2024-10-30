@@ -451,11 +451,11 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__guestName {
           display: flex;
-          width: 180px;
+          width: 209px;
           align-items: center;
           justify-content: flex-start;
           gap: 10px;
-          padding-right: 8px;
+          padding-right: 20px;
           align-self: baseline;
         }
 
@@ -589,7 +589,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__team {
           display: flex;
-          width: 150px;
+          width: 209px;
           align-items: center;
           justify-content: flex-start;
           gap: 10px;
@@ -601,7 +601,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           width: fit-content;
           align-items: center;
           gap: 4px;
-          padding-right: 8px;
+          padding-right: 15px;
         }
 
         .gtr__team__link__imgWrpr {
@@ -618,7 +618,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         }
 
         .gtr__attending {
-          width: 200px;
+          width: 154px;
           display: flex;
           justify-content: flex-start;
           align-items: center;
@@ -640,7 +640,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
         .gtr__topic {
           display: flex;
-          width: 205px;
+          width: 158px;
           flex-direction: column;
           justify-content: center;
           align-items: flex-start;
@@ -728,7 +728,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         .gtr__connect,
         .gtr__connect__loggedOut {
           display: flex;
-          width: 150px;
+          width: 130px;
           flex-direction: column;
           gap: 4px;
           padding-right: 10px;
@@ -894,6 +894,65 @@ const GuestTableRow = (props: IGuestTableRow) => {
           .gtr {
             width: 100%;
           }
+        }
+
+        @media (min-width: 1440px) {
+          .gtr__guestName {
+            width: 224px;
+          }
+
+          .gtr__team {
+             width: 188px;
+          }
+
+          .gtr__connect , .gtr__connect__loggedOut {
+             width: 188px;
+          }
+
+          .gtr__attending {
+             width: 216px;
+          }
+
+          .gtr__topic {
+            width: unset;
+            flex: 1;
+          }
+        }
+
+        @media (min-width: 1920px) {
+          .irl__table {
+            width: 1678px;
+          }
+
+          .gtr__guestName {
+            width: 331px;
+          }
+
+          .gtr__team {
+            width: 278px;  
+          }
+
+          .gtr__connect, .gtr__connect__loggedOut {
+            width: 335px;
+          }
+
+          .gtr__attending {
+            width: 370px;
+          }
+        }
+
+        @media (min-width: 2560px) {
+          .irl__table {
+            width: 2240px;
+          }
+
+          .gtr__guestName, .gtr__team, .gtr__connect, .gtr__connect__loggedOut {
+              width: 439.67px;
+            }
+
+            .gtr__attending {
+              width: 370px;
+            }
         }
       `}</style>
     </>

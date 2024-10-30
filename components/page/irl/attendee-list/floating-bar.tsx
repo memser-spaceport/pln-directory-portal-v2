@@ -1,12 +1,18 @@
+import Cookies from 'js-cookie';
+
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import { getGuestDetail } from '@/services/irl.service';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
+import { getParsedValue, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
+import { transformGuestDetail } from '@/utils/irl.utils';
 
 interface IFloatingBar {
   onClose: () => void;
   selectedGuests: string[];
   location: IAnalyticsGuestLocation;
   eventDetails: IGuestDetails;
+  searchParams: any;
 }
 
 const FloatingBar = (props: IFloatingBar) => {
@@ -15,6 +21,12 @@ const FloatingBar = (props: IFloatingBar) => {
   const selectedGuestIds = props?.selectedGuests ?? [];
   const guests = props?.eventDetails.guests ?? [];
   const selectedGuest = guests?.find((guest: IGuest) => selectedGuestIds[0] === guest?.memberUid);
+  const location = props.location;
+  const searchParams = props.searchParams;
+
+  //variables
+  const authToken = getParsedValue(Cookies.get('authToken'));
+  const eventType = searchParams?.type === 'past' ? '' : 'upcoming';
 
   //hooks
   const analytics = useIrlAnalytics();
@@ -33,34 +45,38 @@ const FloatingBar = (props: IFloatingBar) => {
   };
 
   // Open Attendee Details Popup for Edit the guest
-  const onEditGuest = () => {
+  const onEditGuest = async () => {
+    if (selectedGuest?.memberUid) {
+      let guestDetails = await getGuestDetail(selectedGuest?.memberUid, location.uid, authToken, eventType);
+      guestDetails = transformGuestDetail(guestDetails);
 
-    const formData = {
-      team: {
-        name: selectedGuest?.teamName,
-        logo: selectedGuest?.teamLogo,
-        uid: selectedGuest?.teamUid,
-      },
-      member: {
-        name: selectedGuest?.memberName,
-        logo: selectedGuest?.memberLogo,
-        uid: selectedGuest?.memberUid,
-      },
-      teamUid: selectedGuest?.teamUid,
-      events: selectedGuest?.events,
-      teams: selectedGuest?.teams?.map((team: any) => {
-        return { ...team, uid: team?.id };
-      }),
-      memberUid: selectedGuest?.memberUid,
-      additionalInfo: { checkInDate: selectedGuest?.additionalInfo?.checkInDate || '', checkOutDate: selectedGuest?.additionalInfo?.checkOutDate ?? '' },
-      topics: selectedGuest?.topics,
-      reason: selectedGuest?.reason,
-      telegramId: selectedGuest?.telegramId,
-      officeHours: selectedGuest?.officeHours ?? '',
-    };
+      const formData = {
+        team: {
+          name: guestDetails?.teamName,
+          logo: guestDetails?.teamLogo,
+          uid: guestDetails?.teamUid,
+        },
+        member: {
+          name: guestDetails?.memberName,
+          logo: guestDetails?.memberLogo,
+          uid: guestDetails?.memberUid,
+        },
+        teamUid: guestDetails?.teamUid,
+        events: guestDetails?.events,
+        teams: guestDetails?.teams?.map((team: any) => {
+          return { ...team, uid: team?.id };
+        }),
+        memberUid: guestDetails?.memberUid,
+        additionalInfo: { checkInDate: guestDetails?.additionalInfo?.checkInDate || '', checkOutDate: guestDetails?.additionalInfo?.checkOutDate ?? '' },
+        topics: guestDetails?.topics,
+        reason: guestDetails?.reason,
+        telegramId: guestDetails?.telegramId,
+        officeHours: guestDetails?.officeHours ?? '',
+      };
 
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
-    analytics.trackFloatingBarEditBtnClicked(location, { selectedGuests: selectedGuestIds });
+      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
+      analytics.trackFloatingBarEditBtnClicked(location, { selectedGuests: selectedGuestIds });
+    }
   };
 
   return (

@@ -41,7 +41,7 @@ const fetchGuests = async (url: string, authToken: string) => {
   return await response.json();
 };
 
-export const getGuestsByLocation = async (location: string, searchParams: any, authToken: string, currentPage = 1, limit = 10) => {
+export const getGuestsByLocation = async (location: string, searchParams: any, authToken: string,currentEventNames: string[], currentPage = 1, limit = 10) => {
   const urlParams = new URLSearchParams() as any;
 
   // Loop through the searchParams object
@@ -61,7 +61,7 @@ export const getGuestsByLocation = async (location: string, searchParams: any, a
   let result = await fetchGuests(url, authToken);
   if (result.isError) return { isError: true };
 
-  const transformedMembers = transformMembers(result);
+  const transformedMembers = transformMembers(result, currentEventNames);
 
   return { guests: transformedMembers, totalGuests: transformedMembers[0]?.count ?? 0 };
 };
@@ -143,6 +143,20 @@ export const getTopicsByLocation = async (locationId: string, type: string) => {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  return await response.json();
+};
+
+export const getGuestDetail = async (guestId: string, locationId: string, authToken:string, type: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestId}?type=${type}`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(authToken),
   });
 
   if (!response.ok) {

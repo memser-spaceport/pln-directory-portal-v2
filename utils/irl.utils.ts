@@ -214,41 +214,50 @@ export function sortPastEvents(events: any[]) {
   return events; // Return the sorted array if needed
 }
 
-export const transformMembers = (result: any) => {
-  return result?.map((guest: any) => ({
-    memberUid: guest?.memberUid,
-    memberName: guest?.member?.name,
-    memberLogo: guest?.member?.image?.url,
-    teamUid: guest?.teamUid,
-    teamName: guest?.team?.name,
-    teamLogo: guest?.team?.logo?.url,
-    teams: guest?.member?.teamMemberRoles?.map((tm: any) => ({
-      name: tm?.team?.name,
-      id: tm?.team?.uid,
-      logo: tm?.team?.logo?.url ?? '',
-    })),
-    eventNames: guest?.events?.map((event: any) => event?.name),
-    events: guest?.events.map((event: any) => ({
-      uid: event?.uid,
-      name: event?.name,
-      startDate: event?.startDate,
-      endDate: event?.endDate,
-      logo: event?.logo?.url,
-      isHost: event?.isHost,
-      isSpeaker: event?.isSpeaker,
-      hostSubEvents: event?.additionalInfo?.hostSubEvents,
-      speakerSubEvents: event?.additionalInfo?.speakerSubEvents,
-      type: event?.type,
-      resources: event?.resources,
-    })),
-    topics: guest?.topics,
-    officeHours: guest?.member?.officeHours,
-    telegramId: guest?.member?.telegramHandler || '',
-    reason: guest?.reason,
-    additionalInfo: guest?.additionalInfo,
-    count: guest?.count,
-  }));
+export const transformMembers = (result: any, currentEvents:string[]) => {
+  if (!Array.isArray(result)) return []; // Return empty array if result is not iterable
+  
+  return result.map((guest: any) => {
+    const { member, team, events } = guest || {};
+    const memberTeams = member?.teamMemberRoles || [];
+    const validEvents = events?.filter((event: any) => currentEvents.includes(event?.name));
+    
+    return {
+      memberUid: guest?.memberUid,
+      memberName: member?.name,
+      memberLogo: member?.image?.url || '',
+      teamUid: guest?.teamUid,
+      teamName: team?.name,
+      teamLogo: team?.logo?.url || '',
+      teams: memberTeams.map((tm: any) => ({
+        name: tm?.team?.name || '',
+        id: tm?.team?.uid || '',
+        logo: tm?.team?.logo?.url || '',
+      })),
+      eventNames: validEvents.map((event: any) => event?.name),
+      events: validEvents.map((event: any) => ({
+        uid: event?.uid || '',
+        name: event?.name || '',
+        startDate: event?.startDate || '',
+        endDate: event?.endDate || '',
+        logo: event?.logo?.url || '',
+        isHost: event?.isHost || false,
+        isSpeaker: event?.isSpeaker || false,
+        hostSubEvents: event?.additionalInfo?.hostSubEvents || [],
+        speakerSubEvents: event?.additionalInfo?.speakerSubEvents || [],
+        type: event?.type || '',
+        resources: event?.resources || [],
+      })),
+      topics: guest?.topics || [],
+      officeHours: member?.officeHours || '',
+      telegramId: member?.telegramHandler || '',
+      reason: guest?.reason || '',
+      additionalInfo: guest?.additionalInfo || {},
+      count: guest?.count || 0,
+    };
+  });
 };
+
 
 export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
   const { type, sortDirection, sortBy, search, attending, attendees, topics, event } = searchParams;
@@ -336,4 +345,41 @@ export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents:
 
   // Convert the map values to an array for the final unique events list
   return filteredEvents;
+};
+
+export const transformGuestDetail = (result: any) => {
+  const detail = result[0] || {};
+  return {
+    memberUid: detail?.memberUid,
+    memberName: detail?.member?.name,
+    memberLogo: detail?.member?.image?.url,
+    teamUid: detail?.teamUid,
+    teamName: detail?.team?.name,
+    teamLogo: detail?.team?.logo?.url || '',
+    teams: detail?.member?.teamMemberRoles?.map((tm: any) => ({
+      name: tm?.team?.name,
+      id: tm?.team?.uid,
+      logo: tm?.team?.logo?.url ?? '',
+    })),
+    eventNames: result?.map((item: any) => item?.event?.name),
+    events: result.map((item: any) => ({
+      uid: item?.event?.uid,
+      name: item?.event?.name,
+      startDate: item?.event?.startDate,
+      endDate: item?.event?.endDate,
+      logo: item?.event?.logo?.url,
+      isHost: item?.isHost,
+      isSpeaker: item?.isSpeaker,
+      hostSubEvents: item?.additionalInfo?.hostSubEvents,
+      speakerSubEvents: item?.additionalInfo?.speakerSubEvents,
+      type: item?.event?.type,
+      resources: item?.event?.resources,
+    })),
+    topics: detail?.topics,
+    officeHours: detail?.member?.officeHours,
+    telegramId: detail?.member?.telegramHandler || '',
+    reason: detail?.reason,
+    additionalInfo: detail?.additionalInfo,
+    count: detail?.count,
+  };
 };

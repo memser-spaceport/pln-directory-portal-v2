@@ -380,7 +380,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
           .tbl__hdr__guestName {
             display: flex;
-            width: 180px;
+            width: 209px;
             align-items: center;
             justify-content: flex-start;
             gap: 5px;
@@ -388,7 +388,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
 
           .tbl__hdr__teams {
             display: flex;
-            width: 150px;
+            width: 206px;
             align-items: center;
             justify-content: flex-start;
           }
@@ -407,7 +407,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
             align-items: center;
             justify-content: flex-start;
             gap: 10px;
-            width: 150px;
+            width: 136px;
             padding-right: 10px;
           }
 
@@ -430,7 +430,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
           }
 
           .tbl__hdr__attending {
-            width: 200px;
+            width: 152px;
             display: flex;
             position: relative;
             align-items: center;
@@ -441,7 +441,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
           .tbl__hdr__topics {
             position: relative;
             display: flex;
-            width: 205px;
+            width: 173px;
             align-items: center;
             gap: 5px;
             padding-right: 10px;

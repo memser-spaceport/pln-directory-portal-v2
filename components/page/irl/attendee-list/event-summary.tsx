@@ -65,7 +65,7 @@ const EventSummary: React.FC<EventSummaryProps> = ({
           white-space: nowrap;
           text-overflow: ellipsis;
           overflow: hidden;
-          max-width: 150px;
+          max-width: 100px;
           padding: 0px 6px;
           font-size: 11.5px;
           font-weight: 400;

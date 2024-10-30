@@ -265,6 +265,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         section.scrollIntoView({ behavior: 'smooth' });
       }
     }
+    setFormInitialValues(props?.formData);
   }, []);
 
   const onCloseClickHandler = () => {
@@ -341,7 +342,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
           <AttendeeFormErrors errors={errors} />
           <div>
-            <AttendeeDetails setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} />
+            <AttendeeDetails setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {searchParams?.type === 'past' ? 'past' : 'upcoming'}/>
           </div>
           <div>
             <Gatherings

@@ -23,6 +23,16 @@ export default function Page() {
             </div>
           ))}
         </div>
+        <div className={styles.irlGatherings__location__list2}>
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className={styles.irlGatherings__location__list__item2}>
+              <div className={styles.irlGatherings__location__list__item__desc}>
+                <div className={styles.irlGatherings__location__list__item__desc__line1}></div>
+                <div className={styles.irlGatherings__location__list__item__desc__line2}></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
       {/* Events agenda */}
       <section className={styles.irlGatherings__agenda}>

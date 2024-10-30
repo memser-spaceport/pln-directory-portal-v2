@@ -1,3 +1,4 @@
+import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { triggerLoader } from '@/utils/common.utils';
@@ -29,6 +30,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
   const { updateQueryParams } = useUpdateQueryParams();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const analytics = useIrlAnalytics();
 
   useClickedOutside({
     callback: () => {
@@ -77,6 +79,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
     if (inputRef.current) {
       inputRef.current.value = '';
     }
+    analytics.searchEventClicked(gathering);
 
     if (type === 'past') {
       if (searchParams?.event !==  gathering.slugURL) {
@@ -163,7 +166,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
       <style jsx>
         {`
           .root__irl__table-col__headerName__srchCont {
-            border: 1px solid #cbd5e1;
+            border: 0.5px solid #156FF7;
             border-radius: 4px;
             display: flex;
             gap: 5px;
@@ -172,6 +175,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
             height: 28px;
             background: white;
             position: relative;
+            box-shadow: 0px 0px 4px 0px #00000033;
           }
 
           .root__irl__table-col__headerName__srchCont__inpt {
@@ -204,7 +208,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
             font-size: 13px;
             font-weight: 600;
             line-height: 20px;
-            max-width: 140px;
+            max-width: 240px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;

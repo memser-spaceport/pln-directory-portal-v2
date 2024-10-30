@@ -205,8 +205,8 @@ const About = (props: IAbout) => {
             line-height: 24px;
             overflow: hidden;
             position: relative;
-            word-wrap: break-word; /* Allow long words to be broken and wrapped */
-            word-break: break-all;
+            // word-wrap: break-word; /* Allow long words to be broken and wrapped */
+            // word-break: break-all;
           }
 
           .about__content__show-more {

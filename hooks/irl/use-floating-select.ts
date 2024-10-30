@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
-const useFloatingMultiSelect = (props: any) => {
+const useFloatingSelect = (props: any) => {
   const items = props.items ?? [];
+  const isMultiSelect = props.isMultiSelect;
   const alreadySelected = props?.selectedItems ?? [];
   // const sortedItems = [...items].sort((a, b) =>
   //   a?.toLowerCase() > b?.toLowerCase() ? 1 : -1
@@ -20,10 +21,10 @@ const useFloatingMultiSelect = (props: any) => {
     setIsPaneActive(false);
   };
 
-  const onTogglePane = ()=> {
+  const onTogglePane = () => {
     setSelectedItems(alreadySelected);
     setIsPaneActive(!isPaneActive);
-  }
+  };
 
   const onClearSelection = (e: any) => {
     e.stopPropagation();
@@ -31,10 +32,18 @@ const useFloatingMultiSelect = (props: any) => {
   };
 
   const onItemSelected = (value: string) => {
-    if (selectedItems?.includes(value)) {
-      setSelectedItems(selectedItems?.filter((item: string) => item !== value));
+    if (!isMultiSelect) {
+      if (selectedItems?.[0] === value) {
+        setSelectedItems([]);
+      } else {
+        setSelectedItems([value]);
+      }
     } else {
-      setSelectedItems([...selectedItems, value]);
+      if (selectedItems?.includes(value)) {
+        setSelectedItems(selectedItems?.filter((item: string) => item !== value));
+      } else {
+        setSelectedItems([...selectedItems, value]);
+      }
     }
   };
 
@@ -43,9 +52,7 @@ const useFloatingMultiSelect = (props: any) => {
     if (inputValue === '') {
       setFilteredItems([...items]);
     } else {
-      const filteredValues = [...items].filter((v) =>
-        v?.toLowerCase().includes(inputValue?.toLowerCase())
-      );
+      const filteredValues = [...items].filter((v) => v?.toLowerCase().includes(inputValue?.toLowerCase()));
       setFilteredItems([...filteredValues]);
     }
   };
@@ -55,9 +62,7 @@ const useFloatingMultiSelect = (props: any) => {
   }, [alreadySelected?.length]);
 
   useEffect(() => {
-    const sortedItems = [...items].sort((a, b) =>
-      a?.toLowerCase() > b?.toLowerCase() ? 1 : -1
-    );
+    const sortedItems = [...items].sort((a, b) => (a?.toLowerCase() > b?.toLowerCase() ? 1 : -1));
     setFilteredItems(sortedItems);
   }, [JSON.stringify(items)]);
 
@@ -71,8 +76,8 @@ const useFloatingMultiSelect = (props: any) => {
     setFilteredItems,
     onOpenPane,
     onClosePane,
-    onTogglePane
+    onTogglePane,
   };
 };
 
-export default useFloatingMultiSelect;
+export default useFloatingSelect;

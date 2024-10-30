@@ -4,10 +4,11 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { canUserPerformEditAction } from '@/utils/irl.utils';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { IAnalyticsGuestLocation, IGuestDetails } from '@/types/irl.types';
 import Search from './search';
+import { triggerLoader } from '@/utils/common.utils';
 
 interface IToolbar {
   onLogin: () => void;
@@ -31,11 +32,16 @@ const Toolbar = (props: IToolbar) => {
   const isUserGoing = eventDetails?.isUserGoing;
 
   //states
-  const [searchTerm, setSearchTerm] = useState('');
+  // const [searchTerm, setSearchTerm] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
   const [isEdit, seIsEdit] = useState(false);
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
+  const search = searchParams.get('search');
   const editResponseRef = useRef<HTMLButtonElement>(null);
+
+  const router = useRouter();
+
   useClickedOutside({
     ref: editResponseRef,
     callback: () => {
@@ -62,16 +68,33 @@ const Toolbar = (props: IToolbar) => {
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: false, formdata: null, mode: '' } }));
   };
 
+  const debounce = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  };
+
+  const updateQueryParams = debounce((value: string) => {
+    triggerLoader(true);
+    const params = new URLSearchParams(searchParams);
+    if (value) {
+      params.set('search', value);
+    } else {
+      params.delete('search');
+    }
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+    analytics.trackGuestListSearch(location, value);
+  }, 300); 
+
   const getValue = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event?.target?.value;
-    setSearchTerm(searchValue);
-    document.dispatchEvent(
-      new CustomEvent('irl-details-searchlist', {
-        detail: {
-          searchValue: searchValue,
-        },
-      })
-    );
+    updateQueryParams(searchValue?.trim())
   };
 
   const onLoginClick = () => {
@@ -96,18 +119,6 @@ const Toolbar = (props: IToolbar) => {
       })
     );
   };
-
-  useEffect(() => {
-    if (searchTerm) {
-      const handler = setTimeout(() => {
-        analytics.trackGuestListSearch(location, searchTerm);
-      }, 500);
-
-      return () => {
-        clearTimeout(handler);
-      };
-    }
-  }, [searchTerm]);
 
   const onEditDetailsClicked = () => {
     analytics.trackSelfEditDetailsClicked(location);
@@ -135,8 +146,18 @@ const Toolbar = (props: IToolbar) => {
       officeHours: updatedUser?.officeHours ?? '',
     };
 
+    console.log('formData', formData);
+
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
   };
+
+  
+  useEffect(() => {
+    if (searchRef.current) {
+      searchRef.current.value = search ?? '';
+    }
+  }, [router, searchParams]);
+
 
   return (
     <>
@@ -193,7 +214,7 @@ const Toolbar = (props: IToolbar) => {
           )}
         </div>
           <div className="toolbar__search">
-            <Search onChange={getValue} placeholder="Search by Attendee, Team or Project" />
+            <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
           </div>
       </div>
 

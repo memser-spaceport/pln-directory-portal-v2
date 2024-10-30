@@ -9,6 +9,7 @@ const FloatingMultiSelect = (props: any) => {
   const onFilter = props?.onFilter;
   const onClosePane = props?.onClosePane;
   const setFilteredItems = props?.setFilteredItems;
+  const search = props?.search ?? false;
 
   return (
     <>
@@ -25,12 +26,12 @@ const FloatingMultiSelect = (props: any) => {
             <img src="/icons/close.svg" alt="close" width={16} height={16} />
           </button>
         </div>
-        <div className="fms__inputCn">
+        {search && <div className="fms__inputCn">
           <div className="cursor-default">
             <img src="/icons/search-gray-v2.svg" alt="search" width={16} height={16} />
           </div>
           <input onChange={(e) => onInputChange(e.target?.value)} className="fms__inputCn__input" placeholder="Search" />
-        </div>
+        </div>}
         <div className="fms__body">
           {sortedItems?.map((item: any, index: number) => (
             <div className="fms__body__item" onClick={() => onItemSelected(item)} key={`filter-item-${index}`}>

@@ -3,7 +3,7 @@ import AttendeeList from '@/components/page/irl/attendee-list/attendees-list';
 import IrlEvents from '@/components/page/irl/events/irl-events';
 import IrlHeader from '@/components/page/irl/irl-header';
 import IrlLocation from '@/components/page/irl/locations/irl-location';
-import { getAllLocations, getGuestsByLocation } from '@/services/irl.service';
+import { getAllLocations, getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
 import { getMemberPreferences } from '@/services/preferences.service';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -11,9 +11,10 @@ import { Metadata } from 'next';
 import styles from './page.module.css';
 import { IAnalyticsGuestLocation } from '@/types/irl.types';
 import IrlErrorPage from '@/components/core/irl-error-page';
+import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 
 export default async function Page({ searchParams }: any) {
-  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError } = await getPageData(searchParams);
+  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(searchParams);
 
   if (isLocationError) {
     return <IrlErrorPage />;
@@ -37,19 +38,18 @@ export default async function Page({ searchParams }: any) {
           <IrlEvents isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} />
         </section>
         {/* Guests */}
-        {guestDetails?.events?.length > 0 && (
-          <section className={styles.irlGatheings__guests}>
-            <AttendeeList
-              location={eventLocationSummary as IAnalyticsGuestLocation}
-              showTelegram={showTelegram as boolean}
-              eventDetails={guestDetails}
-              userInfo={userInfo}
-              isLoggedIn={isLoggedIn}
-              isUserGoing={isUserGoing as boolean}
-              searchParams={searchParams}
-            />
-          </section>
-        )}
+        <section className={styles.irlGatheings__guests}>
+          <AttendeeList
+            location={eventLocationSummary as IAnalyticsGuestLocation}
+            showTelegram={showTelegram as boolean}
+            eventDetails={guestDetails}
+            userInfo={userInfo}
+            isLoggedIn={isLoggedIn}
+            isUserGoing={isUserGoing as boolean}
+            searchParams={searchParams}
+            currentEventNames={currentEventNames}
+          />
+        </section>
       </div>
     </div>
   );
@@ -72,9 +72,9 @@ const getPageData = async (searchParams: any) => {
     }
 
     if (searchParams?.location) {
-      const locationObject = locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location)
+      const locationObject = locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location);
       if (!locationObject) {
-        return { isLocationError: true }
+        return { isLocationError: true };
       }
     }
 
@@ -87,11 +87,17 @@ const getPageData = async (searchParams: any) => {
     }
 
     if (searchParams?.event) {
-      isEventAvailable = pastEvents.some((event: any) => event.slugURL === searchParams?.event);
+      const eventResult = locationDetails.flatMap((item: { pastEvents: any[]; upcomingEvents: any[] }) => [
+        ...item.pastEvents.map((event) => ({ ...event })),
+        ...item.upcomingEvents.map((event) => ({ ...event })),
+      ]);
+      isEventAvailable = eventResult.some((event: any) => {
+        return event.slugURL === searchParams?.event;
+      });
     }
 
     if (!eventDetails || !isEventActive || !isEventAvailable) {
-      return { isLocationError: true }
+      return { isLocationError: true };
     }
     const eventLocationSummary = { uid, name };
 
@@ -102,16 +108,28 @@ const getPageData = async (searchParams: any) => {
       searchParams.event = pastEvents[0]?.slugURL;
     }
 
-    const slugURL = searchParams?.event;
+    const currentEvents = eventType === 'upcoming' ? eventDetails.upcomingEvents : eventDetails.pastEvents;
+    const currentEventNames = currentEvents.map((item: any) => item.name); // Get current event names
 
-    const events = await getGuestsByLocation(uid, eventType, authToken, slugURL, userInfo);
+    // Proceed with API calls only after currentEventNames is set
+    const [events, currentGuestResponse, topics, loggedInUserEvents] = await Promise.all([
+      getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken,currentEventNames),
+      getGuestsByLocation(uid, { type: eventType }, authToken,currentEventNames, 1, 1),
+      getTopicsByLocation(uid, eventType),
+      getGuestEvents(uid, authToken),
+    ]);
+
     if (events.isError) {
-      return { isLocationError: true }
+      return { isError: true };
     }
 
     let guestDetails = events as any;
-    isUserGoing = guestDetails.isUserGoing;
-    guestDetails.events = eventType === 'upcoming' ? eventDetails.upcomingEvents : eventDetails.pastEvents;
+
+    guestDetails.events = currentEvents;
+    guestDetails.currentGuest = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests?.[0] : null;
+    guestDetails.isUserGoing = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid;
+    guestDetails.topics = topics;
+    guestDetails.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, currentEvents, isLoggedIn, userInfo);
 
     // Fetch member preferences if the user is logged in
     if (isLoggedIn) {
@@ -133,12 +151,14 @@ const getPageData = async (searchParams: any) => {
       guestDetails,
       eventLocationSummary,
       locationDetails,
+      currentEventNames,
     };
   } catch (e) {
     console.error('Error fetching IRL data', e);
     return { isError: true };
   }
 };
+
 
 export const metadata: Metadata = {
   title: 'IRL Gatherings | Protocol Labs Directory',

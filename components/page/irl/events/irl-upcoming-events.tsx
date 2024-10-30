@@ -17,9 +17,10 @@ interface EventDetailsProps {
   isLoggedIn: boolean;
   isUpcoming: boolean;
   searchParams: any;
+  handleDataNotFound: () => void;
 }
 
-const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams }: EventDetailsProps) => {
+const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, handleDataNotFound }: EventDetailsProps) => {
   const eventType = isUpcoming ? 'Upcoming Events' : 'Past Events';
   let eventsToShow = getEventsToShow() || [];
   const [isExpanded, setExpanded] = useState(false);
@@ -31,27 +32,29 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
 
   function getEventsToShow() {
     if (eventDetails) {
-      // Determine events to show based on upcoming or past
-      const events = isUpcoming ? eventDetails.upcomingEvents : eventDetails.pastEvents;
+        // Determine events to show based on upcoming or past
+        const events = isUpcoming ? eventDetails.upcomingEvents : [];
 
-      // Sort events based on startDate first, then by duration (endDate - startDate)
-      const sortedEvents = events.sort((a: any, b: any) => {
-        // First, compare by start date (earlier start first)
-        const startDateComparison = new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
-
-        if (startDateComparison !== 0) {
-          return startDateComparison;
-        }
-
-        // If start dates are equal, compare by duration (longer duration first)
-        const durationA = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
-        const durationB = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
-
-        return durationB - durationA;
-      });
-
-      // Set eventsToShow based on the sorted events
-      return sortedEvents;
+      if (events && events.length > 0) {      
+        // Sort events based on startDate first, then by duration (endDate - startDate)
+        const sortedEvents = events.sort((a: any, b: any) => {
+          // First, compare by start date (earlier start first)
+          const startDateComparison = new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+  
+          if (startDateComparison !== 0) {
+            return startDateComparison;
+          }
+  
+          // If start dates are equal, compare by duration (longer duration first)
+          const durationA = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
+          const durationB = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
+  
+          return durationB - durationA;
+        });
+  
+        // Set eventsToShow based on the sorted events
+        return sortedEvents;
+      }
     }
   }
 
@@ -147,7 +150,13 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
               <div>
                 <img src="/icons/no-calender.svg" alt="calendar" />
               </div>
-              <div>No {eventType} currently in this location</div>
+              <div>No results found for the applied input
+                  {' '}<span
+                      className="root__irl__table__no-data__errorMsg"
+                      onClick={handleDataNotFound}>
+                      Reset to default
+                  </span>
+              </div>
             </div>
           )}
         </div>
@@ -326,6 +335,11 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
           border-bottom-right-radius: 4px;
         }
 
+        .root__irl__table__no-data__errorMsg {
+            cursor: pointer;
+            color: #156FF7;
+        }
+
         @media screen and (min-width: 360px) {
           .root__irl__mobileView__showMore__cntr {
             width: 100%;
@@ -380,6 +394,70 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams 
           .root__irl__desktop__view {
             display: flex;
             flex-direction: column;
+          }
+        }
+
+         @media (min-width: 1440px) {
+          .root__irl__table-col__headerName,
+          .root__irl__table-col__contentName {
+            width: 299px;
+          }
+
+          .root__irl__table-col__headerDesc,
+          .root__irl__table-col__contentDesc {
+            width: 727px;
+          }
+
+          .root__irl__table-col__headerRes,
+          .root__irl__table-col__contentRes {
+            width: 177px;
+            text-align: center;
+          }
+
+          .root__irl__table__no-data {
+            width: 1203px;
+          }
+        }
+
+        @media (min-width: 1920px) {
+          .root__irl__table-col__headerName,
+          .root__irl__table-col__contentName {
+            width: 355px;
+          }
+
+          .root__irl__table-col__headerDesc,
+          .root__irl__table-col__contentDesc {
+            width: 1095px;
+          }
+
+          .root__irl__table-col__headerRes,
+          .root__irl__table-col__contentRes {
+            width: 178px;
+          }
+
+          .root__irl__table__no-data {
+            width: 1638px;
+          }
+        }
+
+        @media (min-width: 2560px) {
+          .root__irl__table-col__headerName,
+          .root__irl__table-col__contentName {
+            width: 502px;
+          }
+
+          .root__irl__table-col__headerDesc,
+          .root__irl__table-col__contentDesc {
+            width: 1411px; 
+          }
+
+          .root__irl__table-col__headerRes,
+          .root__irl__table-col__contentRes {
+            width: 277px;
+          }
+
+          .root__irl__table__no-data {
+            width: 2196px;
           }
         }
       `}</style>

@@ -50,17 +50,29 @@ function PrivyModals() {
 
   const loginInUser = (output: any) => {
     clearPrivyParams();
+  
+    const showSuccessMessage = () => {
+      setLinkAccountKey('');
+      toast.success(TOAST_MESSAGES.LOGIN_MSG);
+      Cookies.set('showNotificationPopup', JSON.stringify(true));
+      document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+    };
+  
     if (output.userInfo?.isFirstTimeLogin) {
-      router.replace('/settings/profile');
+      showSuccessMessage();
+      window.location.href = '/settings/profile';
+      return;
     }
-    setLinkAccountKey('');
-    toast.success(TOAST_MESSAGES.LOGIN_MSG);
-    Cookies.set('showNotificationPopup', JSON.stringify(true));
-    document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
+  
+    // For subsequent logins
+    showSuccessMessage();
+    
+    // Reload the page after a delay
     setTimeout(() => {
       window.location.reload();
-    }, 800);
+    }, 500);
   };
+  
 
   const saveTokensAndUserInfo = (output: any, user: User) => {
     const authLinkedAccounts = getLinkedAccounts(user);

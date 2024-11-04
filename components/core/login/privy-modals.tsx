@@ -57,7 +57,9 @@ function PrivyModals() {
     toast.success(TOAST_MESSAGES.LOGIN_MSG);
     Cookies.set('showNotificationPopup', JSON.stringify(true));
     document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
-    window.location.reload();
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   const saveTokensAndUserInfo = (output: any, user: User) => {

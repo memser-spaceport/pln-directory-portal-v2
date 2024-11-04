@@ -51,7 +51,7 @@ function PrivyModals() {
   const loginInUser = (output: any) => {
     clearPrivyParams();
     if (output.userInfo?.isFirstTimeLogin) {
-      router.push('/settings/profile');
+      router.replace('/settings/profile');
     }
     setLinkAccountKey('');
     toast.success(TOAST_MESSAGES.LOGIN_MSG);

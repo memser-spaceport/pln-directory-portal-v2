@@ -59,7 +59,7 @@ function PrivyModals() {
     document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: {status: true, isShowPopup: false} }));
     setTimeout(() => {
       window.location.reload();
-    }, 500);
+    }, 800);
   };
 
   const saveTokensAndUserInfo = (output: any, user: User) => {

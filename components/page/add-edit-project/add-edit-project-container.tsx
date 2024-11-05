@@ -17,7 +17,7 @@ interface IAddEditProjectContainerProps {
  * @param {IAddEditProjectContainerProps} props - The properties for the component.
  * @returns {JSX.Element} The rendered component.
  */
-export default function AddEditProjectContainer(props: IAddEditProjectContainerProps): JSX.Element {
+export default function AddEditProjectContainer(props: any): JSX.Element {
   const { project, type, userInfo } = props;
 
   return (

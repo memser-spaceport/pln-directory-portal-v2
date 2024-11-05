@@ -25,7 +25,7 @@ interface IAddEditProjectFormProps {
   type: 'Add' | 'Edit';
 }
 
-export default function AddEditProjectForm({ userInfo, project, type }: IAddEditProjectFormProps) {
+export default function AddEditProjectForm({ userInfo, project, type }: any) {
   const addFormRef = useRef<HTMLFormElement | null>(null);
   const initialValue: any = {
     name: '',
@@ -234,7 +234,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: IAddEdit
   };
 
   // Transforms the form data into the desired format
-  function transformObject(object: Record<string, string | File>): IProjectResponse {
+  function transformObject(object: Record<string, string | File>): any {
     let result: any = {};
     const projectLinks: any = {};
     const kpis: any = {};

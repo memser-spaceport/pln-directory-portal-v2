@@ -5,10 +5,11 @@ import { useRef } from 'react';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createStateUid } from '@/services/auth.service';
+import { LOGIN_BANNER_URL } from '@/utils/constants';
 
 const AuthInfo = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const loginBanner = process.env.LOGIN_BANNER_URL;
+  const loginBanner = LOGIN_BANNER_URL;
   const router = useRouter();
   const { logout } = usePrivyWrapper();
   const analytics = useAuthAnalytics();

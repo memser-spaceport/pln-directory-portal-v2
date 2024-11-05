@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
-import { ADMIN_ROLE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
+import { ADMIN_ROLE, EVENTS, IRL_DEFAULT_TOPICS, TOAST_MESSAGES } from '@/utils/constants';
 import Toolbar from './toolbar';
 import GuestList from './guest-list';
 import FloatingBar from './floating-bar';
@@ -41,7 +41,7 @@ const AttendeeList = (props: IAttendeeList) => {
   const searchParams = props?.searchParams;
   const currentEventNames = props?.currentEventNames;
 
-  const defaultTopics = process.env.IRL_DEFAULT_TOPICS?.split(',') ?? [];
+  const defaultTopics = IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState({ ...eventDetails });
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);

@@ -32,46 +32,41 @@ The folder structure of this project is organized as follows:
 - **__tests__/**: Contains test files for the application. And its maintains the same folder structure as components.
 
 
-# Follow the below Steps to run the Directory Frontend
+# Steps to run frontend service locally
 
-### Step 1: Make sure to have the following applications are setup and running
+### Dependent services:
+
+| Name                      | Type     | Purpose                                                           | Mandatory |
+|---------------------------|----------|-------------------------------------------------------------------|-----------|
+| [Privy](https://www.privy.io/)                    | External | The hybrid auth solution provider for users to login               | Yes       |
+| [PostHog](https://posthog.com/)                  | External | For analytics purpose                                             | No        |
+| [Directory Backend](https://github.com/memser-spaceport/pln-directory-portal)        | Internal | For communicating to the directory database through REST API       | Yes       |
+| Husky (sandbox mode)       | Internal | To leverage the AI assist feature                                 | No        |
+| PL Auth service (sandbox mode) | Internal | To manage user auth requests and issue tokens, works in OAuth 2.0 standard | Yes       |
 
 
-- [Privy](https://www.privy.io/) - register an app and get the `PRIVY_AUTH_ID`. 
-- [Auth Sandbox API](https://github.com/memser-spaceport/auth-sandbox-api) running locally on port 3000. Make sure to have the Privy configured in the Auth Sandbox API. More details [here](https://github.com/memser-spaceport/auth-sandbox-api/blob/main/README.md).
-- [Directory API](https://github.com/memser-spaceport/pln-directory-portal) running locally on port 3001 and make sure to register as client in Auth Sandbox API and get the AUTH_APP_CLIENT_ID
-- Husky API is available and configured for the Auth Sandbox API.
-- [PostHog](https://posthog.com/) (optional, for analytics) - Register an app and get the `POSTHOG_KEY` and `POSTHOG_HOST`
+### Step 1: Install dependencies
 
-
-
-### Step 2: Set up the environment variables
-
-Make sure to set up your environment variables in a `.env` file at the root of the project. This file should contain all necessary environment variables required for the application to run properly. Here are the key variables you need to define:
+To install the dependencies use the below command
 
 ```dotenv
-# Directory API
-DIRECTORY_API_URL=<directory-api-url>
-
-# Auth API and Client ID
-AUTH_API_URL=<auth-api-url>
-AUTH_APP_CLIENT_ID=<auth-app-client-id>
-PRIVY_AUTH_ID=<privy-auth-id>
-COOKIE_DOMAIN=localhost
-
-# Application Base URL (This will be the URL of the Directory Frontend)
-APPLICATION_BASE_URL=http://localhost:4200
-
-# HUSKY
-HUSKY_API_URL=<husky-sandbox-api-url>
-
-# PostHog (Optional)
-POSTHOG_KEY=<posthog-key>
-POSTHOG_HOST=<posthog-host>
+npm install
 ```
 
+### Step 2: Create the env file
 
-### Step 3: Run the Directory Frontend
+Use the below command to create .env using .env.example
+
+```dotenv
+cp .env.example .env
+```
+### Step 3: Setup env variables
+
+Set the env variables based on the instructions provided in the .env.example file.
+
+For *local development* use the test values mentioned in the comments for each env variable.
+
+### Step 4: Run the Directory Frontend
 
 Open the terminal and run the following command:
 

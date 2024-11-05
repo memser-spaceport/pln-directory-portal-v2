@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import LinkAuthAccounts from './link-auth-accounts';
 import SelfEmailUpdate from './self-email-update';
 import AdminEmailUpdate from './admin-email-update';
+import TextEditor from '@/components/ui/text-editor';
 
 interface MemberBasicInfoProps {
   errors: string[];
@@ -28,6 +29,10 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
   const [profileImage, setProfileImage] = useState<string>('');
+  console.log(initialValues?.bio);
+  
+  const [bioContent, setBioContent] = useState(initialValues?.bio ?? '');
+
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
 
   /**
@@ -146,6 +151,26 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
               <TextField defaultValue={initialValues.country} id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" data-testid="member-country-input" />
             </div>
           </div>
+          <div className="memberinfo__form__item">
+            <div className="memberinfo__form__item__bio">
+              {<div className={`memberinfo__form__item__bio__label`}>Bio</div>}
+              <TextEditor text={bioContent} setContent={setBioContent} id="register-member-bio" name="bio"/>
+              <p className="info">
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+                <span className="info__text">Please explain what yourself in a bit more detail. 4-5 sentences will be great!</span>
+              </p>
+            </div>
+          </div>
+          <div className="memberinfo__form__item">
+            <div className="memberinfo__form__item__bio">
+              {<div className={`memberinfo__form__item__bio__label`}>Bio</div>}
+              <TextEditor text={bioContent} setContent={setBioContent} id="register-member-bio" name="bio"/>
+              <p className="info">
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+                <span className="info__text">Please explain what yourself in a bit more detail. 4-5 sentences will be great!</span>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
       <style jsx>
@@ -178,6 +203,12 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             display: flex;
             gap: 10px;
             width: 100%;
+          }
+
+          .memberinfo__form__item__bio__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
           }
 
           .memberinfo__form__user {

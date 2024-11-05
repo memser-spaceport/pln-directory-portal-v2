@@ -74,6 +74,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
           formValues.plnStartDate = null;
         }
 
+        console.log(formValues);
+        
+
         // Create registration request
         const bodyData = {
           participantType: 'MEMBER',

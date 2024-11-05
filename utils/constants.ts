@@ -919,3 +919,6 @@ export const IRL_ATTENDEE_FORM_ERRORS = {
 export const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 export const IRL_SUBMIT_FORM_LINK = "https://eventsmanagement.labweek.io/"
+
+export const LOGIN_BANNER_URL="https://plabs-assets.s3.us-west-1.amazonaws.com/images/login-banner.png"
+export const IRL_DEFAULT_TOPICS="AI,Apps,AR/VR,Argentina,Automation,AVS,BCI,Capital Allocation,Collaboration,Compliance,Compute,Cryptography,Culture,Decentralized IP,Decentralized Compute,Decentralized AI,DeFi,DePin,DeSci,Dev Tooling,Distributed Systems,Encryption,Events,Extended Reality,Filecoin,Funding Mechanism,Fundraising,Governance,Growth,GTM,Hackathon,Hard Tech,Human Organization,Human AI-Cooperation,Incentives,InfoSec,Interoperability,IoT,Longevity & Biotech,Marketing,Networks,Neurotech,OpSec,Partnerships,Privacy,Product Market Fit,Products,Public Goods,Real World Crypto,Retrieval,RWA,Scaling,Security,SLA's,Startups,Storage,Sustainability,Tokenomics,UI/UX,Wallet,Web3,ZK Proofs"

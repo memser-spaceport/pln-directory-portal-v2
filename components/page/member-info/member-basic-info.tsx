@@ -29,7 +29,6 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
   const [profileImage, setProfileImage] = useState<string>('');
-  console.log(initialValues?.bio);
   
   const [bioContent, setBioContent] = useState(initialValues?.bio ?? '');
 

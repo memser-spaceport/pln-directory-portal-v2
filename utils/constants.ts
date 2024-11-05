@@ -388,7 +388,6 @@ export const TELEGRAM_URL_REGEX = /t\.me\/([^/]+)/;
 export const EMAIL_REGEX = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;
 
 export const LEARN_MORE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
-export const LOGIN_BANNER_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/login-banner.png';
 const DEFAULT_PRIVACY_VISIBILITY = true;
 
 export const PRIVACY_CONSTANTS = {

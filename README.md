@@ -29,10 +29,10 @@ The folder structure of this project is organized as follows:
 - **utils/**: Utility functions that can be used throughout the application.
 - **analytics/**: Contains files related to analytics tracking and reporting.
 - **public/**: Contains static assets such as images, fonts, and other resources.
-- **__tests__/**: Contains test files for the application. And its maintains the same folder structure as components.
+- **\_\_tests\_\_/**: Contains test files for the application. And its maintains the same folder structure as components.
 
 
-# Steps to run frontend service locally
+# Steps to run directory frontend service locally
 
 ### Dependent services:
 
@@ -86,4 +86,8 @@ npm run test
 ```
 
 
+# Steps to run directory admin frontend service locally
 
+#### This app is used by admin to approve/reject/edit member and team join requests.
+
+Follow the instructions [here](https://github.com/memser-spaceport/pln-directory-portal) to setup and run the directory admin frontend.

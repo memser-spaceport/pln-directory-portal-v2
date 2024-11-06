@@ -22,8 +22,8 @@ const ParticipationDetails = (props: IParticipationDetails) => {
 
   const onHostSelectHandler = (selectedGathering: IIrlGathering) => {
     const websiteLink = selectedGathering?.resources?.find(
-      (resource: any) => resource.name.toLowerCase().includes('website')
-    )?.link;
+      (resource: any) => resource?.name?.toLowerCase().includes('website')
+    )?.link || null;
     
     setSelectedGatherings((prev: IIrlGathering[]) => {
       const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
@@ -106,8 +106,8 @@ const ParticipationDetails = (props: IParticipationDetails) => {
 
   const onSpeakerSelectHandler = (selectedGathering: IIrlGathering) => {
     const websiteLink = selectedGathering?.resources?.find(
-      (resource: any) => resource.name.toLowerCase().includes('website')
-    )?.link;
+      (resource: any) => resource?.name?.toLowerCase().includes('website')
+    )?.link || null;
 
     setSelectedGatherings((prev: IIrlGathering[]) => {
       const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);

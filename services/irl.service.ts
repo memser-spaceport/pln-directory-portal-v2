@@ -56,8 +56,6 @@ export const getGuestsByLocation = async (location: string, searchParams: any, a
   }
   const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?&page=${currentPage}&limit=${limit}&${urlParams.toString()}`;
 
-  console.log('url', url)
-
   let result = await fetchGuests(url, authToken);
   if (result.isError) return { isError: true };
 

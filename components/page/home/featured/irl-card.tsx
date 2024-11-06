@@ -18,7 +18,6 @@ export default function IrlCard(props: IIrlCard) {
 
   //variables
   const formattedDate = formatIrlEventDate(startDate, endDate);
-  console.log('formattedDate', startDate, endDate);
   const isPastEvent = isPastDate(endDate);
   const isLongName = name?.length > 25;
 

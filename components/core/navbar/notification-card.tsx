@@ -28,7 +28,7 @@ const NotificationCard = (props: INotification) => {
         </div>
 
         <div className="noticrd__cnt">
-          <div className="noticrd__cnt__ttl" dangerouslySetInnerHTML={{ __html: text }}></div>
+          <div data-testid='notification-text' className="noticrd__cnt__ttl" dangerouslySetInnerHTML={{ __html: text }}></div>
           <div className='noticrd__cnt__date'>{daysAgo}</div>
         </div>
       </div>

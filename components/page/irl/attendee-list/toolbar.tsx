@@ -146,8 +146,6 @@ const Toolbar = (props: IToolbar) => {
       officeHours: updatedUser?.officeHours ?? '',
     };
 
-    console.log('formData', formData);
-
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
   };
 

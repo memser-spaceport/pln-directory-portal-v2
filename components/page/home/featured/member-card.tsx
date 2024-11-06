@@ -11,8 +11,6 @@ import { EVENTS } from '@/utils/constants';
 const MemberCard = (props: any) => {
   const member = props?.member;
   const profileUrl = member?.profile || '/icons/default_profile.svg';
-
-  console.log('member', member,profileUrl);
   const mainTeam = member?.mainTeam;
   const otherTeams = member?.teams
     ?.filter((team: any) => team.id !== mainTeam?.id)

@@ -59,18 +59,35 @@ const MembersFilter = (props: IMembersFilter) => {
   const isOpenToWork = searchParams['openToWork'] === 'true' || false;
   const isOfficeHoursOnly = searchParams['officeHoursOnly'] === 'true' || false;
   const includeUnVerified = searchParams['includeUnVerified'] === 'true' || false;
+  const isHost = searchParams['isHost'] === 'true' || false;
+  const isSpeaker = searchParams['isSpeaker'] === 'true' || false;
+  const isHostAndSpeaker = searchParams['isHostAndSpeaker'] === 'true' || false;
 
   const onToggleClicked = async (param: string, id: string, event: BaseSyntheticEvent) => {
-    const isIncluded = searchParams[param] === 'true' || false;
+    const currentParams = new URLSearchParams(searchParams);
+    const isIncluded = currentParams.get(param) === 'true';
     triggerLoader(true);
+
     if (!isIncluded) {
       analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, true, getAnalyticsUserInfo(userInfo));
-      updateQueryParams(param, 'true', searchParams);
-      return;
+      currentParams.set(param, 'true');
+      if (param === 'isHost') {
+        currentParams.delete('isSpeaker');
+        currentParams.delete('isHostAndSpeaker');
+      } else if (param === 'isSpeaker') {
+        currentParams.delete('isHost');
+        currentParams.delete('isHostAndSpeaker');
+      } else if (param === 'isHostAndSpeaker') {
+        currentParams.delete('isHost');
+        currentParams.delete('isSpeaker');
+      }
+    } else {
+      analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, false, getAnalyticsUserInfo(userInfo));
+      currentParams.delete(param);
     }
-    analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, false, getAnalyticsUserInfo(userInfo));
-    updateQueryParams(param, '', searchParams);
+    router.push(`${window.location.pathname}?${currentParams.toString()}`);
   };
+
 
   const onTagClickHandler = async (key: string, value: string, isSelected: boolean) => {
     try {
@@ -84,7 +101,7 @@ const MembersFilter = (props: IMembersFilter) => {
       updateQueryParams(key, currentTags.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
       analytics.onTagSelected(PAGE_ROUTES.TEAMS, key, getAnalyticsUserInfo(userInfo), value);
       return;
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const onClearAllClicked = () => {
@@ -94,7 +111,7 @@ const MembersFilter = (props: IMembersFilter) => {
       const pathname = window?.location?.pathname;
       analytics.onClearAllClicked(PAGE_ROUTES.TEAMS, selectedItems, getAnalyticsUserInfo(userInfo));
 
-      const clearQuery = ['skills', 'region', 'country', 'metroArea', 'includeFriends', 'includeUnVerified', 'openToWork', 'officeHoursOnly', 'memberRoles','isRecent'];
+      const clearQuery = ['skills', 'region', 'country', 'metroArea', 'includeFriends', 'includeUnVerified', 'openToWork', 'officeHoursOnly', 'memberRoles','isRecent', 'isHost', 'isSpeaker', 'isHostAndSpeaker'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           triggerLoader(true);
@@ -224,7 +241,53 @@ const MembersFilter = (props: IMembersFilter) => {
 
           {/* Border line */}
           <div className="team-filter__bl"></div>
-          <RolesFilter memberRoles={filterValues.memberRoles} searchParams={searchParams} userInfo={userInfo} />
+          <div className='team-filter__body__event '>
+            {/* <div className="team-filter__bod"> */}
+            <p className="team-filter__body__ttl">Event Contributors</p>
+            <div className="team-filter__body__toggle-section__toggle-option">
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host only</h3>
+              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
+                <Toggle
+                  height="16px"
+                  width="28px"
+                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isHost', 'member-is-host', e)}
+                  isChecked={isHost}
+                  id="member-is-host"
+                />
+              </div>
+            </div>
+
+            <div className="team-filter__body__toggle-section__toggle-option">
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Speaker only</h3>
+              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
+                <Toggle
+                  height="16px"
+                  width="28px"
+                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isSpeaker', 'member-is-speaker', e)}
+                  isChecked={isSpeaker}
+                  id="member-is-speaker"
+                />
+              </div>
+            </div>
+
+            <div className="team-filter__body__toggle-section__toggle-option">
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host and Speaker only</h3>
+              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
+                <Toggle
+                  height="16px"
+                  width="28px"
+                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isHostAndSpeaker', 'member-is-host-speaker', e)}
+                  isChecked={isHostAndSpeaker}
+                  id="member-is-host-speaker"
+                />
+              </div>
+            </div>
+          </div>
+          {/* </div> */}
+
+          {/* Border line */}
+          <div className="team-filter__bl"></div>
+          <RolesFilter memberRoles={filterValues?.memberRoles} searchParams={searchParams} userInfo={userInfo} />
           <div className="team-filter__bl"></div>
           <TagContainer page={PAGE_ROUTES.MEMBERS} label="Skills" name="skills" items={filterValues?.skills ?? []} onTagClickHandler={onTagClickHandler} initialCount={10} userInfo={userInfo} />
           <div className="team-filter__bl"></div>
@@ -284,6 +347,19 @@ const MembersFilter = (props: IMembersFilter) => {
             z-index: 3;
             // height: calc(100vh - 80px);
             height: inherit;
+          }
+
+          .team-filter__body__event {
+            display: flex;
+            gap: 20px;
+            flex-direction: column;
+          }
+
+          .team-filter__body__ttl {
+            margin-bottom: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 20px;
           }
           .team-filter__header {
             display: flex;

@@ -184,7 +184,7 @@ export const dateDifference = (date1: any, date2: any) => {
 };
 
 export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): IMemberListOptions {
-  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent, includeUnVerified } = queryParams;
+  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent, includeUnVerified, isHost, isSpeaker, isHostAndSpeaker } = queryParams;
 
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase();
@@ -202,6 +202,9 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
     ...(includeFriends ? {isVerified: 'all'} : { plnFriend: false, isVerified: 'true' }),
     ...(openToWork ? { openToWork: true } : {}),
     ...(isRecent ? { isRecent: true } : {}),
+    ...(isHost ? { isHost: true } : {}),
+    ...(isSpeaker ? { isSpeaker: true } : {}),
+    ...(isHostAndSpeaker ? { isHostAndSpeaker: true } : {}),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(memberRoles ? { memberRoles: stringifyQueryValues(memberRoles) } : {}),
    /*  ...(includeUnVerified ? { isVerified: 'all' } : {}), */
@@ -271,6 +274,11 @@ export function getRoleTagsFromValues(allValues: any[], queryValues: string | st
 }
 
 export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedIn: boolean, roleValues: any[]) => {
+  // if(query?.isHostAndSpeaker && query?.isHostAndSpeaker === 'true') {
+  //   delete query.isHostAndSpeaker;
+  //   query.isHost = 'true';
+  //   query.isSpeaker = 'true';
+  // }
   const { parsedValuesByFilter, parsedAvailableValuesByFilter } = filtersValues;
 
   const formattedData = {
@@ -660,3 +668,10 @@ export function getFormattedDateString(startDate: string, endDate: string) {
 }
 
 
+export function handleHostAndSpeaker(options: any) {
+  if (options?.isHostAndSpeaker && options?.isHostAndSpeaker === true) {
+    delete options.isHostAndSpeaker;
+    options.isHost = true;
+    options.isSpeaker = true;
+  }
+}

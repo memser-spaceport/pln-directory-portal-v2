@@ -1,8 +1,7 @@
 import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
-import { hidePreferences, parseMemberDetails, getUniqueFilters } from '@/utils/member.utils';
-
+import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpeaker } from '@/utils/member.utils';
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/filters${options? '?': ''}${options ? new URLSearchParams(options as any) : ''}`, {
@@ -20,6 +19,7 @@ export const getFilterValuesForQuery = async (options?: IMemberListOptions | nul
 }
 
 export const getMembers = async (options: IMemberListOptions, teamId: string, currentPage: number, limit: number, isLoggedIn: boolean) => {
+  handleHostAndSpeaker(options);
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}&${new URLSearchParams(options as any)}`, {
     cache: 'no-store',
     method: 'GET',
@@ -35,6 +35,7 @@ export const getMembers = async (options: IMemberListOptions, teamId: string, cu
 };
 
 export const getMembersFilters = async (options: IMemberListOptions, isUserLoggedIn: boolean) => {
+  handleHostAndSpeaker(options);
   const [valuesByFilter, availableValuesByFilter] = await Promise.all([getMembersFiltersValues({ plnFriend: false }, isUserLoggedIn), getMembersFiltersValues(options, isUserLoggedIn)]);
 
   if (valuesByFilter?.error || availableValuesByFilter?.error) {
@@ -179,6 +180,7 @@ export const findRoleByName = async (params: any) => {
 };
 
 export const getMemberRoles = async (options: IMemberListOptions) => {
+  handleHostAndSpeaker(options);
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(options as any)}`, {
     cache: 'force-cache',
     method: 'GET',

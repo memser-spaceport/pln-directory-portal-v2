@@ -11,6 +11,9 @@ export type IMemberListOptions = IListOptions & {
   plnFriend?: boolean;
   openToWork?: boolean;
   isRecent?: boolean;
+  isHost?: boolean;
+  isSpeaker?: boolean;
+  isHostAndSpeaker?: boolean;
 };
 
 export interface IMemberResponse {
@@ -125,6 +128,9 @@ export interface IMembersSearchParams {
   officeHoursOnly: string;
   memberRoles: string;
   isRecent: string;
+  isHost: string;
+  isSpeaker: string;
+  isHostAndSpeaker: string;
 }
 
 export interface IMemberDetailParams {

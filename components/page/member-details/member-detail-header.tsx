@@ -11,6 +11,7 @@ import { parseMemberLocation } from '@/utils/member.utils';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useEffect } from 'react';
+import Bio from './bio';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -173,6 +174,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           )}
         </div>
       </div>
+      <Bio member={member} userInfo={userInfo} isLoggedIn={isLoggedIn} hasEditRights={isAdmin||isOwner}/>
       <style jsx>{`
         .header {
           display: grid;

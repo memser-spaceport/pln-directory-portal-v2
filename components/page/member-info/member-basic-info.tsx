@@ -156,17 +156,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
               <TextEditor text={bioContent} setContent={setBioContent} id="register-member-bio" name="bio"/>
               <p className="info">
                 <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-                <span className="info__text">Please explain what yourself in a bit more detail. 4-5 sentences will be great!</span>
-              </p>
-            </div>
-          </div>
-          <div className="memberinfo__form__item">
-            <div className="memberinfo__form__item__bio">
-              {<div className={`memberinfo__form__item__bio__label`}>Bio</div>}
-              <TextEditor text={bioContent} setContent={setBioContent} id="register-member-bio" name="bio"/>
-              <p className="info">
-                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-                <span className="info__text">Please explain what yourself in a bit more detail. 4-5 sentences will be great!</span>
+                <span className="info__text">Please explain about yourself in a bit more detail. 4-5 sentences will be great!</span>
               </p>
             </div>
           </div>

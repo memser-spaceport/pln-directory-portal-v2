@@ -3,7 +3,7 @@
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import TextEditor from '@/components/ui/text-editor';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import clip from 'text-clipper';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
@@ -11,7 +11,8 @@ import { updateMember, updateMemberBio } from '@/services/members.service';
 import { ADMIN_ROLE } from '@/utils/constants';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import BioAction from './bio-action-buttons';
+import NoBio from './no-bio';
+import BioEditor from './bio-editor';
 
 const Bio = ({ member, userInfo, isLoggedIn, hasEditRights }: { member: any; userInfo: any; isLoggedIn: boolean; hasEditRights: boolean }) => {
   const contentLength = 347;
@@ -29,6 +30,11 @@ const Bio = ({ member, userInfo, isLoggedIn, hasEditRights }: { member: any; use
    */
   const [showEditor, setEditor] = useState(false);
   const router = useRouter();
+  const [showNoBio, setNoBioFlag] = useState(!content && isLoggedIn && hasEditRights && !showEditor);
+
+  useEffect(() => {
+      setNoBioFlag(!content && isLoggedIn && hasEditRights && !showEditor);
+  }, [showEditor]);
 
   /**
    * To get the trimmed content to be displayed
@@ -73,9 +79,8 @@ const Bio = ({ member, userInfo, isLoggedIn, hasEditRights }: { member: any; use
   const onAddBioClick = () => {
     setEditMode('ADD');
     setEditor(true);
-    analytics.onMemberDetailsBioEditClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo
-    ));
-  } 
+    analytics.onMemberDetailsBioEditClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
+  };
 
   const onSaveClickHandler = async () => {
     // if(content === ''){
@@ -125,69 +130,51 @@ const Bio = ({ member, userInfo, isLoggedIn, hasEditRights }: { member: any; use
     }
   };
 
-
   return (
     <>
       {(content || (!content && isLoggedIn && hasEditRights)) && (
         <div className="bioCn">
-          {
-            <div className="bioCn__header">
-              {(!showEditor || (showEditor && bioEditMode === 'EDIT')) && <h2 className="bioCn__ttl">Bio</h2>}
-              {showEditor && bioEditMode === 'ADD' && <div className="bioCn__ttl__add">Enter your bio details below</div>}
-              {!showEditor && (isAdmin || isOwner) && (
-                <button className="bioCn__ttl__header__edit" onClick={onEditClickHandler}>
-                  {content ? 'Edit' : ''}
-                  {/* <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} /> */}
-                </button>
-              )}
-              {showEditor && (
-                <div className="bioCn__ttl__header__action">
-                  <BioAction onCancelClickHandler={onCancelClickHandler} onSaveClickHandler={onSaveClickHandler} bioEditMode={bioEditMode} />
+          {!showEditor && !showNoBio && (
+            <>
+              {
+                <div className="bioCn__header">
+                  {<h2 className="bioCn__ttl">Bio</h2>}
+                  {hasEditRights && (
+                    <button className="bioCn__ttl__header__edit" onClick={onEditClickHandler}>
+                      {content ? 'Edit' : ''}
+                      {/* <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} /> */}
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
-          }
-          {!content && isLoggedIn && hasEditRights && !showEditor && (
-            <div className="bioCn__add">
-              <div>Your bio is empty. Tell others about yourself—your background, interests, or expertise!</div>
+              }
+
               <div>
-                <button className="bioCn__add__bio-btn" onClick={onAddBioClick}>
-                  Add Bio
-                </button>
+                <div className="bioCn__content" dangerouslySetInnerHTML={{ __html: clippedContent }} />
+                {content?.length > clippedContent?.length && (
+                  <button className="bioCn__content__show-more" onClick={onShowMoreClickHandler}>
+                    show more{' '}
+                    <span className="bioCn__content__show-more__icon">
+                      <Image src="/icons/chevron-up.svg" alt="Edit" height={12} width={12} />
+                    </span>
+                  </button>
+                )}
+                {content?.length > contentLength && content === clippedContent && (
+                  <button className="bioCn__content__show-less" onClick={onShowLessClickHandler}>
+                    show less
+                    <span className="bioCn__content__show-more__icon">
+                      <Image src="/icons/showless.svg" alt="Edit" height={12} width={12} />
+                    </span>
+                  </button>
+                )}
               </div>
-            </div>
+            </>
           )}
-          {!showEditor && (
-            <div>
-              <div className="bioCn__content" dangerouslySetInnerHTML={{ __html: clippedContent }} />
-              {content?.length > clippedContent?.length && (
-                <button className="bioCn__content__show-more" onClick={onShowMoreClickHandler}>
-                  show more{' '}
-                  <span className="bioCn__content__show-more__icon">
-                    <Image src="/icons/chevron-up.svg" alt="Edit" height={12} width={12} />
-                  </span>
-                </button>
-              )}
-              {content?.length > contentLength && content === clippedContent && (
-                <button className="bioCn__content__show-less" onClick={onShowLessClickHandler}>
-                  show less
-                  <span className="bioCn__content__show-more__icon">
-                    <Image src="/icons/showless.svg" alt="Edit" height={12} width={12} />
-                  </span>
-                </button>
-              )}
-            </div>
-          )}
-          {showEditor && (
-            <div className="bioCn__content">
-              <TextEditor text={content} setContent={setContent} />
-              {showEditor && (
-                <div className="bioCn__content__action">
-                  <BioAction onCancelClickHandler={onCancelClickHandler} onSaveClickHandler={onSaveClickHandler} bioEditMode={bioEditMode} />
-                </div>
-              )}
-            </div>
-          )}
+
+          {/* Conditional rendering: This component only renders when  there is no Bio */}
+          {showNoBio && <NoBio onAddBioClick={onAddBioClick} />}
+          {/* Conditional rendering: This component only renders when Add/Edit bio is clicked */}
+          {showEditor && <BioEditor content={content} setContent={setContent} bioEditMode={bioEditMode} onCancelClickHandler={onCancelClickHandler} onSaveClickHandler={onSaveClickHandler} />}
+          {/* Conditional rendering: This component is to display the bio content */}
         </div>
       )}
 
@@ -197,50 +184,12 @@ const Bio = ({ member, userInfo, isLoggedIn, hasEditRights }: { member: any; use
           padding: 16px;
         }
 
-        .bioCn__ttl__header__action {
-          visibility: hidden;
-        }
-
-        .bioCn__content__action{
-          visibility: visible;
-          justify-content : flex-end;
-          display: flex;
-        }
-
-        @media (min-width: 426px) {
-          .bioCn__ttl__header__action {
-            visibility: visible;
-          }
-            .bioCn__content__action{
-          visibility: hidden;
-        }
-        }
-
         .bioCn__ttl {
           color: #64748b;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
           // margin-bottom: 10px;
-        }
-
-        .bioCn__add {
-          font-size: 15px;
-          font-weight: 400;
-          line-height: 24px;
-          text-align: left;
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        @media (min-width: 426px) {
-          .bioCn__add {
-            flex-direction: row;
-            align-items: center;
-          }
         }
 
         .bioCn__ttl__add {
@@ -262,14 +211,6 @@ const Bio = ({ member, userInfo, isLoggedIn, hasEditRights }: { member: any; use
           // word-break: break-all;
         }
 
-        .bioCn__add__bio-btn {
-          height: 40px;
-          padding: 10px 24px 10px 24px;
-          border-radius: 8px;
-          border: 1px solid #cbd5e1;
-          box-shadow: 0px 1px 1px 0px #0f172a14;
-          background: white;
-        }
         .bioCn__ttl__header__edit {
           display: flex;
           font-size: 14px;

@@ -37,6 +37,8 @@ const DEFAULT_TAB_ITEMS = [
   { key: 'supported-scope', displayText: 'Supported Scope' }
 ];
 
+// This component represents the Husky AI interface, allowing users to interact with the AI in chat or blog modes.
+
 function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose }: HuskyAiProps) {
   const [activeTab, setActiveTab] = useState<string>(DEFAULT_TAB_ITEMS[0].key);
   const [chats, setChats] = useState<Chat[]>(initialChats);
@@ -52,26 +54,31 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const router = useRouter();
   const { trackTabSelection, trackUserPrompt, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse } = useHuskyAnalytics();
 
+  // Handles the selection of a tab in the UI
   const onTabSelected = (item: string) => {
     setActiveTab(item);
     trackTabSelection(item);
   };
 
+  // Forces the user to log in by displaying the login box
   const forceUserLogin = () => {
     onCloseFeedback();
     setLoginExpiryStatus(true);
   };
 
+  // Handles the login process when the user clicks the login button
   const onForceLogin = () => {
     onClose && onClose();
     setLoginBoxStatus(false);
     createLogoutChannel().postMessage('logout');
   };
 
+  // Copies the provided answer to the clipboard
   const onCopyAnswer = async (answer: string) => {
     trackAnswerCopy(answer);
   };
 
+  // Fetches user credentials and handles login state
   const getUserCredentials = async () => {
     if (!isLoggedIn) {
       setLoginBoxStatus(true);
@@ -96,6 +103,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     };
   };
 
+  // Checks and sets the prompt ID for the current chat session
   const checkAndSetPromptId = () => {
     let chatUid = threadId;
     if (!threadId) {
@@ -105,6 +113,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     return chatUid;
   };
 
+  // Handles the event when a prompt is clicked
   const onPromptClicked = async (question: string) => {
     try {
       const { authToken, userInfo } = await getUserCredentials();
@@ -132,6 +141,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     }
   };
 
+  // Handles the event when the share button is clicked
   const onShareClicked = async () => {
     if (blogId) {
       trackCopyUrl(blogId);
@@ -139,14 +149,17 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     }
   };
 
+  // Closes the login box
   const onLoginBoxClose = () => {
     setLoginBoxStatus(false);
   };
 
+  // Handles the selection of a source for the chat
   const onSourceSelected = (value: string) => {
     setSelectedSource(value);
   };
 
+  // Handles follow-up questions
   const onFollowupClicked = async (question: string) => {
     try {
       const { authToken, userInfo } = await getUserCredentials();
@@ -178,16 +191,19 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     }
   };
 
+  // Edits the question and tracks the event
   const onQuestionEdit = (question: string) => {
     trackQuestionEdit(question);
     document.dispatchEvent(new CustomEvent('husky-ai-input', { detail: question }));
   };
 
+  // Handles feedback submission
   const onFeedback = async (question: string, answer: string) => {
     trackFeedbackClick(question, answer);
     setFeedbackQandA({ question, answer });
   };
 
+  // Regenerates the response based on the query
   const onRegenerate = async (query: string) => {
     const { authToken } = await getUserCredentials();
     if (!authToken) {
@@ -197,6 +213,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     await onHuskyInput(query);
   };
 
+  // Handles user input and fetches the AI response
   const onHuskyInput = async (query: string) => {
     try {
       const { authToken, userInfo } = await getUserCredentials();
@@ -232,17 +249,20 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     }
   };
 
+  // Handles the login click event
   const onLoginClick = () => {
     onClose && onClose();
     setLoginBoxStatus(false);
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 
+  // Closes the feedback popup
   const onCloseFeedback = () => {
     setFeedbackQandA({ question: '', answer: '' });
   };
 
   useEffect(() => {
+    // Scrolls to the answer loader when loading
     if (isAnswerLoading) {
       const loader = document.getElementById('answer-loader');
       loader?.scrollIntoView({ behavior: 'smooth' }); 
@@ -252,14 +272,14 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   return (
     <>
       {mode === 'chat' && (
-        <div className="huskyai">
+        <div className="huskyai" data-testid="husky-ai-chat">
           <div className="huskyai__tab">
             <BookmarkTabs tabItems={DEFAULT_TAB_ITEMS} activeTab={activeTab} onTabSelect={onTabSelected} />
           </div>
-          <div className={`${activeTab === 'supported-scope' ? 'huskyai__selection' : 'huskyai__selection--hidden'}`}>
+          <div className={`${activeTab === 'supported-scope' ? 'huskyai__selection' : 'huskyai__selection--hidden'}`} data-testid="supported-scope">
             <HuskyAsk onPromptClicked={onPromptClicked} />
           </div>
-          <div ref={chatCnRef} className={`${activeTab === 'home' ? 'huskyai__selection' : 'huskyai__selection--hidden'}`}>
+          <div ref={chatCnRef} className={`${activeTab === 'home' ? 'huskyai__selection' : 'huskyai__selection--hidden'}`} data-testid="chat-container">
             <HuskyChat
               onFeedback={onFeedback}
               onRegenerate={onRegenerate}
@@ -272,17 +292,17 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               mode="chat"
               onCopyAnswer={onCopyAnswer}
             />
-            {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} />}
+            {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} data-testid="answer-loader" />}
           </div>
-          {((activeTab === 'home' && chats.length !== 0) || activeTab === 'supported-scope') && <div className="huskyai__input">
+          {((activeTab === 'home' && chats.length !== 0) || activeTab === 'supported-scope') && <div className="huskyai__input" data-testid="input-box">
             <HuskyInputBox isAnswerLoading={isAnswerLoading} selectedSource={selectedSource} onSourceSelected={onSourceSelected} onHuskyInput={onHuskyInput} />
           </div> }
         </div>
       )}
 
       {mode === 'blog' && (
-        <div className="huskyai">
-          <div ref={chatCnRef} className="huskyai__cn">
+        <div className="huskyai" data-testid="husky-ai-blog">
+          <div ref={chatCnRef} className="huskyai__cn" data-testid="blog-chat-container">
             <HuskyChat
               onFeedback={onFeedback}
               onRegenerate={onHuskyInput}
@@ -296,20 +316,20 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               mode="blog"
               onCopyAnswer={onCopyAnswer}
             />
-            {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} />}
+            {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} data-testid="blog-answer-loader" />}
           </div>
         </div>
       )}
 
       {feedbackQandA.answer && feedbackQandA.question && (
-        <div className="feedback-popup">
+        <div className="feedback-popup" data-testid="feedback-popup">
           <HuskyFeedback forceUserLogin={forceUserLogin} setLoadingStatus={setLoadingStatus} question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
         </div>
       )}
 
-      {isLoading && <PageLoader />}
-      {isLoginExpired && <HuskyLoginExpired onLoginClick={onForceLogin} />}
-      {showLoginBox && <HuskyLogin onLoginClick={onLoginClick} onLoginBoxClose={onLoginBoxClose} />}
+      {isLoading && <PageLoader data-testid="page-loader" />}
+      {isLoginExpired && <HuskyLoginExpired onLoginClick={onForceLogin} data-testid="login-expired" />}
+      {showLoginBox && <HuskyLogin onLoginClick={onLoginClick} onLoginBoxClose={onLoginBoxClose} data-testid="login-box" />}
 
       <style jsx>
         {`

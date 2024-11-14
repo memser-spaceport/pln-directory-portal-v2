@@ -1,10 +1,16 @@
+// This component renders follow-up questions as suggestions in a chat interface.
+// It allows users to click on a question to trigger a follow-up action.
+
 interface HuskyChatSuggestionsProps {
   followupQuestions: string[];
   onFollowupClicked?: (question: string) => Promise<void>;
   chatIndex?: number;
   isAnswerLoading: boolean;
 }
+
 function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowupClicked, isAnswerLoading }: HuskyChatSuggestionsProps) {
+  // Handles the click event for a follow-up question.
+  // If an answer is loading, it prevents further actions.
   const onQuestionClicked = (question: string) => {
     if(isAnswerLoading) {
       return;
@@ -15,16 +21,22 @@ function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowu
         .catch((e) => console.error(e));
     }
   };
+
   return (
     <>
-      <div className="chat__suggestions">
-        <h3 className="chat__suggestions__title">
-          <img width={16} height={16} src="/icons/suggestions-orange.svg" />
+      <div className="chat__suggestions" data-testid="chat-suggestions">
+        <h3 className="chat__suggestions__title" data-testid="suggestions-title">
+          <img width={16} height={16} src="/icons/suggestions-orange.svg" alt="follow up questions" />
           <span>Follow up questions</span>
         </h3>
-        <div className="chat__suggestions__list">
+        <div className="chat__suggestions__list" data-testid="suggestions-list">
           {followupQuestions.map((ques: any, index: number) => (
-            <p onClick={() => onQuestionClicked(ques)} key={`${chatIndex}-follow-up-question-${index}`} className="chat__suggestions__list__item">
+            <p 
+              onClick={() => onQuestionClicked(ques)} 
+              key={`${chatIndex}-follow-up-question-${index}`} 
+              className="chat__suggestions__list__item" 
+              data-testid={`follow-up-question-${index}`}
+            >
               {ques}
             </p>
           ))}

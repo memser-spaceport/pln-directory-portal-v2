@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+// Interface for MonthYearField component props
 interface MonthYearFieldProps {
   label: string;
   defaultValue?: Date | string;
@@ -38,15 +39,16 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
   const [isMonthDpActive, setMonthDpStatus] = useState(false);
   const [isYearDpActive, setYearDpStatus] = useState(false);
 
-  // Event handlers
-  const onMonthSelected = (e:any, index: number): void => {
+  // Event handler for selecting a month
+  const onMonthSelected = (e: any, index: number): void => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedMonth(index);
     setMonthDpStatus(false);
   };
 
-  const onYearSelected = (e:any, index: number): void => {
+  // Event handler for selecting a year
+  const onYearSelected = (e: any, index: number): void => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedYear(yearValues[index]);
@@ -59,19 +61,19 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
   };
 
   useEffect(() => {
-   if(value && inputRef.current) {
-    inputRef.current.value = value
-    const newDateValue = new Date(value)
-    const newYear = newDateValue.getFullYear();
-    const newMonth = newDateValue.getMonth();
-    setSelectedYear(newYear);
-    setSelectedMonth(newMonth)
-   }
-  }, [value])
+    if (value && inputRef.current) {
+      inputRef.current.value = value;
+      const newDateValue = new Date(value);
+      const newYear = newDateValue.getFullYear();
+      const newMonth = newDateValue.getMonth();
+      setSelectedYear(newYear);
+      setSelectedMonth(newMonth);
+    }
+  }, [value]);
 
   // Effect for updating input field and parent component on change
   useEffect(() => {
-    if(selectedYear && selectedMonth) {
+    if (selectedYear && selectedMonth) {
       const formattedDate = formatDate(selectedYear, selectedMonth);
       if (inputRef.current) {
         if (disabled) {
@@ -108,32 +110,32 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
   }, []);
 
   return (
-    <div className="month-year-field">
-      <label className={`month-year-field__label ${disabled ? 'label--disabled': ''}`}>{label}</label>
-      <input name={name} ref={inputRef} type="text" className="month-year-field__hidden-input" />
+    <div className="month-year-field" data-testid="month-year-field">
+      <label className={`month-year-field__label ${disabled ? 'label--disabled' : ''}`} data-testid="month-year-label">{label}</label>
+      <input name={name} ref={inputRef} type="text" className="month-year-field__hidden-input" data-testid="month-year-input" />
       <div className={`month-year-field__dropdowns ${disabled ? 'month-year-field__dropdowns--disabled' : ''}`}>
-        <div ref={monthDropdownRef} className={`month-year-field__dropdown month-dropdown ${disabled ? 'dropdown--disabled': ''}`} onClick={() => !disabled && setMonthDpStatus((v) => !v)}>
+        <div ref={monthDropdownRef} className={`month-year-field__dropdown month-dropdown ${disabled ? 'dropdown--disabled' : ''}`} onClick={() => !disabled && setMonthDpStatus((v) => !v)} data-testid="month-dropdown">
           {!disabled && <p className="month-year-field__dropdown-text">{monthNames[selectedMonth]}</p>}
           {disabled && <p className="month-year-field__dropdown-text">Month</p>}
           {!disabled && <img className="month-year-field__dropdown-icon" src="/icons/arrow-down.svg" alt="expand icon" />}
           {isMonthDpActive && !disabled && (
             <div className="month-year-field__dropdown-pane">
               {monthNames.map((monthName, index) => (
-                <div key={`month-${index}`} className={`month-year-field__dropdown-item dropdown-item ${selectedMonth === index ? 'active' : ''}`} onClick={(e) => onMonthSelected(e, index)}>
+                <div key={`month-${index}`} className={`month-year-field__dropdown-item dropdown-item ${selectedMonth === index ? 'active' : ''}`} onClick={(e) => onMonthSelected(e, index)} data-testid={`month-item-${index}`}>
                   <p>{monthName}</p>
                 </div>
               ))}
             </div>
           )}
         </div>
-        <div ref={yearDropdownRef} className={`month-year-field__dropdown year-dropdown ${disabled ? 'dropdown--disabled': ''}`} onClick={() => !disabled && setYearDpStatus((v) => !v)}>
+        <div ref={yearDropdownRef} className={`month-year-field__dropdown year-dropdown ${disabled ? 'dropdown--disabled' : ''}`} onClick={() => !disabled && setYearDpStatus((v) => !v)} data-testid="year-dropdown">
           {!disabled && <p className="month-year-field__dropdown-text">{selectedYear}</p>}
           {disabled && <p className="month-year-field__dropdown-text">Year</p>}
           {!disabled && <img className="month-year-field__dropdown-icon" src="/icons/arrow-down.svg" alt="expand icon" />}
           {isYearDpActive && !disabled && (
             <div className="month-year-field__dropdown-pane">
               {yearValues.map((year, index) => (
-                <div key={`year-${index}`} className={`month-year-field__dropdown-item dropdown-item ${selectedYear === year ? 'active' : ''}`} onClick={(e) => onYearSelected(e, index)}>
+                <div key={`year-${index}`} className={`month-year-field__dropdown-item dropdown-item ${selectedYear === year ? 'active' : ''}`} onClick={(e) => onYearSelected(e, index)} data-testid={`year-item-${index}`}>
                   <p>{year}</p>
                 </div>
               ))}
@@ -142,8 +144,8 @@ const MonthYearField: React.FC<MonthYearFieldProps> = ({ label, dateBoundary = '
         </div>
       </div>
 
+      {/* Styles for the component */}
       <style jsx>{`
-       
         .month-year-field {
           /* Container styles */
         }

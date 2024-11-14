@@ -5,11 +5,10 @@ export interface IIrlCard {
   location: string;
   slugUrl: string;
   bannerUrl: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   type: string;
   attendees: number;
-  priority: number;
   userInfo?: any;
 }
 export interface IIrlLocationCard {

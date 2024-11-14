@@ -12,6 +12,16 @@ import { toast } from 'react-toastify';
 const MdEditor = dynamic(() => import('md-editor-rt').then((mod) => mod.MdEditor));
 const MdPreview = dynamic(() => import('md-editor-rt').then((mod) => mod.MdPreview));
 
+/**
+ * Interface for Additional Details component
+ * @interface
+ * @property {any} project - project details
+ * @property {boolean} userHasEditRights - user has edit rights
+ * @property {string} authToken - auth token
+ * @property {IUserInfo | null} user - user info
+ * @name IAdditionalDetails
+ *
+ */
 interface IAdditionalDetails {
   project: any;
   userHasEditRights: boolean;
@@ -19,6 +29,29 @@ interface IAdditionalDetails {
   user: IUserInfo | null;
 }
 
+/**
+ *  Additional Details component to showcase extra details of the project
+ * @param props  - project, userHasEditRights, authToken, user
+ * @returns   - Additional Details component
+ * @component   - AdditionalDetails
+ * @example
+ * const project = {
+ *  id: '123',
+ *  readMe: 'This is a sample readme',
+ *  isDeleted: false,
+ *  maintainingTeam: {
+ *    uid: '123',
+ *  }
+ * }
+ * const user = {
+ *  leadingTeams: ['123']
+ * }
+ * const authToken = XYZ
+ * const userHasEditRights = true
+ * return (
+ * <AdditionalDetails project={project} userHasEditRights={userHasEditRights} authToken={authToken} user={user} />
+ * )
+ */
 export const AdditionalDetails = (props: IAdditionalDetails) => {
   const project = props?.project;
   const isDeleted = project?.isDeleted ?? false;

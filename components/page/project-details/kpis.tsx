@@ -5,7 +5,7 @@ interface IKpis {
 }
 
 const KPIs = (props: IKpis) => {
-  const kpis = props?.kpis ?? [];
+  const kpis = props?.kpis;
 
   return (
     <>

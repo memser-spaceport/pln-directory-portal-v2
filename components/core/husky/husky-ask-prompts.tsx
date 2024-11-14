@@ -1,3 +1,5 @@
+// This component allows users to select prompts based on a selected topic and search for specific prompts.
+
 import SingleSelectWithImage from '@/components/form/single-select-with-image';
 import { getIrlPrompts, getProjectsPrompts, getTeamPrompts } from '@/services/home.service';
 import React, { useEffect, useRef, useState } from 'react';
@@ -7,7 +9,13 @@ interface HuskyAskPromptsProps {
   onPromptItemClicked: (ques: string) => void;
 }
 
+/**
+ * HuskyAskPrompts component for displaying and selecting prompts based on a topic.
+ * @param suggestionTopicSelected - The currently selected topic for suggestions.
+ * @param onPromptItemClicked - Callback function when a prompt item is clicked.
+ */
 function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: HuskyAskPromptsProps) {
+  // State to hold prompt information
   const [promptInfos, setPromptInfos] = useState<any>({
     teams: [],
     projects: [],
@@ -16,6 +24,11 @@ function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: Husky
   const [selectedPromptInfo, setSelectedPromptInfo] = useState<any | null>(null);
   const [filteredPrompts, setFilteredPrompts] = useState<any[]>([]);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  /**
+   * Filters prompts based on the search key.
+   * @param searchKey - The key to filter prompts by name.
+   */
   const onFilterSearch = (searchKey: string) => {
     const prmtsInfo: any[] = promptInfos[suggestionTopicSelected];
     if (searchKey.trim() === '') {
@@ -25,6 +38,7 @@ function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: Husky
       setFilteredPrompts(filtered);
     }
   };
+
   useEffect(() => {
     if (filteredPrompts.length > 0) {
       setSelectedPromptInfo(filteredPrompts[0]);
@@ -54,16 +68,28 @@ function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: Husky
 
   return (
     <>
-      <div className="hap">
+      <div className="hap" data-testid="husky-ask-prompts">
         <div className="hap__sgs">
           <div className="hap__sgs__search">
-            <img className="hap__sgs__search__icon" src="/icons/search-blue.svg" />
-            <input ref={searchInputRef} onChange={(e) => onFilterSearch(e.target.value)} placeholder="Search by name" className="hap__cn__search__input" type="search" />
+            <img alt="search icon" className="hap__sgs__search__icon" src="/icons/search-blue.svg" />
+            <input 
+              ref={searchInputRef} 
+              onChange={(e) => onFilterSearch(e.target.value)} 
+              placeholder="Search by name" 
+              className="hap__cn__search__input" 
+              type="search" 
+              data-testid="search-input"
+            />
           </div>
-          <div className="hap__sgs__list">
+          <div className="hap__sgs__list" data-testid="prompt-list">
             {filteredPrompts.map((v: any) => (
-              <div onClick={() => setSelectedPromptInfo(v)} className={`hap__sgs__list__item ${v?.name === selectedPromptInfo?.name ? 'hap__sgs__list__item--active' : ''}`} key={v.name}>
-                {v?.logo && <img src={v?.logo} className="hap__sgs__list__item__img" />}
+              <div 
+                onClick={() => setSelectedPromptInfo(v)} 
+                className={`hap__sgs__list__item ${v?.name === selectedPromptInfo?.name ? 'hap__sgs__list__item--active' : ''}`} 
+                key={v.name}
+                data-testid={`prompt-item-${v.name}`}
+              >
+                {v?.logo && <img alt="prompt logo" src={v?.logo} className="hap__sgs__list__item__img" />}
                 {!v?.logo && <span className="hap__sgs__list__item__img"></span>}
                 <p className="hap__sgs__list__item__text">{v.name}</p>
               </div>
@@ -82,6 +108,7 @@ function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: Husky
                 displayKey="name"
                 iconKey="logo"
                 arrowImgUrl="/icons/arrow-blue-down.svg"
+                data-testid="single-select"
               />
             )}
             {filteredPrompts.length === 0 && <p className="hap__sgs__list__empty">No results found</p>}
@@ -89,13 +116,18 @@ function HuskyAskPrompts({ suggestionTopicSelected, onPromptItemClicked }: Husky
         </div>
         <div className="hap__prompts">
           <h4 className="hap__prompts__title">
-            <img width={16} height={16} src="/icons/suggestions-orange.svg" />
+            <img alt="suggested prompts" width={16} height={16} src="/icons/suggestions-orange.svg" />
             <span>Suggested Prompts</span>
           </h4>
           {selectedPromptInfo?.relatedQuestions.length > 0 ? (
-            <div className="hap__prompts__list">
+            <div className="hap__prompts__list" data-testid="related-questions-list">
               {selectedPromptInfo.relatedQuestions.map((question: string) => (
-                <div onClick={() => onPromptItemClicked(question)} className="hap__prompts__list__item" key={question}>
+                <div 
+                  onClick={() => onPromptItemClicked(question)} 
+                  className="hap__prompts__list__item" 
+                  key={question}
+                  data-testid={`related-question-${question}`}
+                >
                   <p className="hap__prompts__list__item__text">{question}</p>
                 </div>
               ))}

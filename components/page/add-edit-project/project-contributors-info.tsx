@@ -4,7 +4,7 @@ import { getMembersForProjectForm } from '@/services/members.service';
 import { getTeamsForProject } from '@/services/teams.service';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import { useEffect, useRef, useState } from 'react';
-import { Adddropdown } from './add-drop-down';
+import { AddDropdown } from './add-drop-down';
 import { ContributingTeamPopup } from './contributing-team-popup';
 import ContributorsPopup from './contributors-popup';
 import { MaintainingTeamPopup } from './maintaining-team-popup';
@@ -13,7 +13,7 @@ import { IProjectResponse } from '@/types/project.types';
 import { ITeam } from '@/types/teams.types';
 import { IMemberResponse } from '@/types/members.types';
 
-interface IProjectContributorsInfo {
+export interface IProjectContributorsInfo {
   project: IProjectResponse;
   errors: string[];
 }
@@ -143,7 +143,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
         <div className="projectContributorsc__teams">
           <div className="projectContributorsc__teams__titlesec">
             <h2 className="projectContributorsc__teams__title">TEAMS ({getTeamsCount()})</h2>
-            {(selectedContributingTeams.length > 0 || selectedMaintainingTeam) && <Adddropdown onOpenPopup={onOpenPopup} maintainerTeam={selectedMaintainingTeam} />}
+            {(selectedContributingTeams.length > 0 || selectedMaintainingTeam) && <AddDropdown onOpenPopup={onOpenPopup} maintainerTeam={selectedMaintainingTeam} />}
           </div>
 
           <div className="projectContributorsc__teams__selectedTeams">
@@ -152,7 +152,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
                 <div className="projectContributorsc__teams__selectedTeams__teamc">
                   <p className="projectContributorsc__teams__selectedTeams__teamc__nrf">No teams added</p>
                 </div>
-                <Adddropdown onOpenPopup={onOpenPopup} maintainerTeam={selectedMaintainingTeam} />
+                <AddDropdown onOpenPopup={onOpenPopup} maintainerTeam={selectedMaintainingTeam} />
               </div>
             )}
             {selectedMaintainingTeam && (

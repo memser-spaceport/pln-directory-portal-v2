@@ -18,15 +18,16 @@ import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { IProjectResponse } from '@/types/project.types';
 
-interface IAddEditProjectForm {
+// Define the props for the AddEditProjectForm component
+interface IAddEditProjectFormProps {
   userInfo: IUserInfo;
   project: IProjectResponse;
+  type: 'Add' | 'Edit';
 }
 
-export default function AddEditProjectForm(props: any) {
-  const addFormRef = useRef(null);
-  const userInfo = props.userInfo;
-  const initialValue = {
+export default function AddEditProjectForm({ userInfo, project, type }: any) {
+  const addFormRef = useRef<HTMLFormElement | null>(null);
+  const initialValue: any = {
     name: '',
     tagline: '',
     description: '',
@@ -43,16 +44,13 @@ export default function AddEditProjectForm(props: any) {
     focusAreas: [],
   };
 
-  const project = props?.project ?? initialValue;
-  const type = props?.type;
-
+  const projectData = project ?? initialValue;
   const [generalErrors, setGeneralErrors] = useState<string[]>([]);
   const [kpiErrors, setKpiErrors] = useState<string[]>([]);
-  const [contributorsErrors, setcontributorsErrors] = useState<string[]>([]);
-  const [content, setContent] = useState(project?.description ?? '');
+  const [contributorsErrors, setContributorsErrors] = useState<string[]>([]);
+  const [content, setContent] = useState<string>(projectData?.description ?? '');
 
   const analytics = useProjectAnalytics();
-
   const router = useRouter();
 
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({
@@ -61,6 +59,7 @@ export default function AddEditProjectForm(props: any) {
     uniqueKey: 'add-project',
   });
 
+  // Handles the click event for the "Next" button
   const onNextClicked = () => {
     if (!addFormRef.current) {
       return;
@@ -115,21 +114,23 @@ export default function AddEditProjectForm(props: any) {
       if (!formattedData.maintainingTeamUid) {
         const error = [];
         error.push('Please add maintainer team details');
-        setcontributorsErrors(error);
+        setContributorsErrors(error);
         return;
       } else {
-        setcontributorsErrors([]);
+        setContributorsErrors([]);
       }
     }
     document.body.scrollTop = 0;
     goToNextStep();
   };
 
+  // Handles the click event for the "Back" button
   const onBackClicked = () => {
     document.body.scrollTop = 0;
     goToPreviousStep();
   }
 
+  // Handles the form submission
   const onFormSubmitHandler = async (event: SyntheticEvent) => {
     event.preventDefault();
     if (!addFormRef?.current) {
@@ -143,13 +144,13 @@ export default function AddEditProjectForm(props: any) {
       formattedData.description = content;
       formattedData = {
         ...formattedData,
-        logoUid: project?.logoUid,
+        logoUid: projectData?.logoUid,
       }
 
       if (type === 'Add') {
         analytics.onProjectAddSaveClicked();
       } else {
-        analytics.onProjectEditSaveClicked(project?.id);
+        analytics.onProjectEditSaveClicked(projectData?.id);
       }
 
       if (formattedData?.projectProfile?.size > 0) {
@@ -190,7 +191,7 @@ export default function AddEditProjectForm(props: any) {
       if (type === 'Edit') {
         analytics.onProjectEditInitiated(getAnalyticsUserInfo(userInfo), formattedData);
         const deletedContributorsIds: string[] = [];
-        const previousContributors = project?.contributions ?? [];
+        const previousContributors = projectData?.contributions ?? [];
         const currentContributors = formattedData?.contributions ?? [];
 
         for (const contributor of previousContributors) {
@@ -213,17 +214,17 @@ export default function AddEditProjectForm(props: any) {
           ...formattedData,
           contributions: [...updatedCurrentContributors, ...currentContributors],
         };
-        const result = await updateProject(project?.id, formattedData, authToken);
+        const result = await updateProject(projectData?.id, formattedData, authToken);
         if (result?.error) {
-          analytics.onProjectEditFailed(getAnalyticsUserInfo(userInfo), formattedData, project?.id);
+          analytics.onProjectEditFailed(getAnalyticsUserInfo(userInfo), formattedData, projectData?.id);
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           triggerLoader(false);
           return;
         }
-        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData, project?.id);
+        analytics.onProjectEditSuccess(getAnalyticsUserInfo(userInfo), formattedData, projectData?.id);
         triggerLoader(false);
         toast.info('Project updated successfully.');
-        router.push(`/projects/${project?.id}`);
+        router.push(`/projects/${projectData?.id}`);
         router.refresh();
       }
     } catch (error) {
@@ -232,7 +233,8 @@ export default function AddEditProjectForm(props: any) {
     }
   };
 
-  function transformObject(object: any) {
+  // Transforms the form data into the desired format
+  function transformObject(object: Record<string, string | File>): any {
     let result: any = {};
     const projectLinks: any = {};
     const kpis: any = {};
@@ -322,13 +324,15 @@ export default function AddEditProjectForm(props: any) {
     return result;
   }
 
+  // Scrolls the page to the top
   function scrollToTop() {
     document.body.scrollTop = 0;
   }
 
-  const onCancelClicHandler = () => {
+  // Handles the click event for the "Cancel" button
+  const onCancelClickHandler = () => {
     if (type === 'Edit') {
-      analytics.onProjectEditCancelClicked(project?.id);
+      analytics.onProjectEditCancelClicked(projectData?.id);
     } else {
       analytics.onProjectAddCancelClicked();
     }
@@ -337,53 +341,53 @@ export default function AddEditProjectForm(props: any) {
 
   return (
     <>
-      <form className="addEditForm" ref={addFormRef} onSubmit={onFormSubmitHandler} noValidate>
-        <div className="addEditForm__container">
-          <div className={`${currentStep === 'General' ? 'form addEditForm__container__general ' : 'hidden'}`}>
-            <ProjectGeneralInfo errors={generalErrors} project={project} longDesc={content} setLongDesc={setContent}/>
+      <form className="add-edit-form" ref={addFormRef} onSubmit={onFormSubmitHandler} noValidate data-testid="add-edit-project-form">
+        <div className="add-edit-form__container" data-testid="form-container">
+          <div className={`${currentStep === 'General' ? 'add-edit-form__container--general' : 'hidden'}`} data-testid="general-info">
+            <ProjectGeneralInfo errors={generalErrors} project={projectData} longDesc={content} setLongDesc={setContent} />
           </div>
-          <div className={`${currentStep === 'Contributors' ? 'form' : 'hidden'}`}>
-            <ProjectContributorsInfo project={project} errors={contributorsErrors} />
+          <div className={`${currentStep === 'Contributors' ? 'add-edit-form__container--contributors' : 'hidden'}`} data-testid="contributors-info">
+            <ProjectContributorsInfo project={projectData} errors={contributorsErrors} />
           </div>
-          <div className={`${currentStep === 'KPIs' ? 'form' : 'hidden'}`}>
-            <ProjectKpisInfo project={project} errors={kpiErrors} />
+          <div className={`${currentStep === 'KPIs' ? 'add-edit-form__container--kpis' : 'hidden'}`} data-testid="kpis-info">
+            <ProjectKpisInfo project={projectData} errors={kpiErrors} />
           </div>
-          <div className={`${currentStep === 'More Details' ? 'form' : 'hidden'}`}>
-            <ProjectMoreDetails readMe={project?.readMe} />
+          <div className={`${currentStep === 'More Details' ? 'add-edit-form__container--more-details' : 'hidden'}`} data-testid="more-details">
+            <ProjectMoreDetails readMe={projectData?.readMe} />
           </div>
         </div>
 
-        <div className="addEditForm__opts">
+        <div className="add-edit-form__opts" data-testid="form-options">
           <div>
             {currentStep === 'General' && (
-              <button onClick={onCancelClicHandler} className="addEditForm__opts__cancel" type="button">
+              <button onClick={onCancelClickHandler} className="add-edit-form__opts__cancel" type="button" data-testid="cancel-button">
                 Cancel
               </button>
             )}
           </div>
 
-          <div className="addEditForm__opts__acts">
+          <div className="add-edit-form__opts__acts">
             {currentStep !== 'General' && (
               <div>
-                <button type="button" className="addEditForm__opts__acts__back" onClick={onBackClicked}>
+                <button type="button" className="add-edit-form__opts__acts__back" onClick={onBackClicked} data-testid="back-button">
                   Back
                 </button>
               </div>
             )}
             {currentStep !== 'More Details' && (
-              <button type="button" className="addEditForm__opts__acts__next" onClick={onNextClicked}>
+              <button type="button" className="add-edit-form__opts__acts__next" onClick={onNextClicked} data-testid="next-button">
                 Next
               </button>
             )}
             {currentStep === 'More Details' && (
               <div>
                 {type === 'Add' && (
-                  <button className="addEditForm__opts__acts__next" type="submit">
+                  <button className="add-edit-form__opts__acts__next" type="submit" data-testid="add-project-button">
                     Add Project
                   </button>
                 )}
                 {type === 'Edit' && (
-                  <button className="addEditForm__opts__acts__next" type="submit">
+                  <button className="add-edit-form__opts__acts__next" type="submit" data-testid="update-project-button">
                     Update Project
                   </button>
                 )}
@@ -400,17 +404,13 @@ export default function AddEditProjectForm(props: any) {
             overflow: hidden;
           }
 
-          .form {
-            visibility: default;
-          }
-
-          .addEditForm__container__general {
+          .add-edit-form__container--general {
             background-color: white;
             padding: 24px 26px;
             padding-bottom: 80px;
           }
 
-          .addEditForm__opts {
+          .add-edit-form__opts {
             height: 60px;
             background-color: white;
             box-shadow: 0px -2px 6px 0px #0f172a29;
@@ -424,13 +424,13 @@ export default function AddEditProjectForm(props: any) {
             gap: 8px;
           }
 
-          .addEditForm__opts__acts {
+          .add-edit-form__opts__acts {
             display: flex;
             gap: 8px;
             align-items: center;
           }
 
-          .addEditForm__opts__acts__next {
+          .add-edit-form__opts__acts__next {
             background: #156ff7;
             color: white;
             border-radius: 8px;
@@ -440,7 +440,7 @@ export default function AddEditProjectForm(props: any) {
             font-weight: 500;
           }
 
-          .addEditForm__opts__cancel {
+          .add-edit-form__opts__cancel {
             border-radius: 8px;
             padding: 10px 24px;
             border: 1px solid #cbd5e1;
@@ -452,7 +452,7 @@ export default function AddEditProjectForm(props: any) {
             height: fit-content;
           }
 
-          .addEditForm__opts__acts__back {
+          .add-edit-form__opts__acts__back {
             border-radius: 8px;
             padding: 10px 24px;
             border: 1px solid #cbd5e1;
@@ -464,22 +464,22 @@ export default function AddEditProjectForm(props: any) {
           }
 
           @media (min-width: 1024px) {
-            .addEditForm__container {
+            .add-edit-form__container {
               width: 656px;
               border-radius: 8px;
             }
 
-            . .addEditForm__container__general {
+            .add-edit-form__container--general {
               padding-bottom: unset;
             }
 
-            .addEditForm__container__general {
+            .add-edit-form__container--general {
               background-color: white;
               padding: 32px 54px;
               border-radius: 8px;
             }
 
-            .addEditForm__opts {
+            .add-edit-form__opts {
               position: unset;
               background-color: unset;
               box-shadow: unset;

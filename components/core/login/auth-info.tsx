@@ -5,10 +5,12 @@ import { useRef } from 'react';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createStateUid } from '@/services/auth.service';
+import { LOGIN_BANNER_URL } from '@/utils/constants';
 
 const AuthInfo = () => {
+  // Reference to the dialog element
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const loginBanner = process.env.LOGIN_BANNER_URL;
+  const loginBanner = LOGIN_BANNER_URL;
   const router = useRouter();
   const { logout } = usePrivyWrapper();
   const analytics = useAuthAnalytics();
@@ -56,7 +58,7 @@ const AuthInfo = () => {
 
   return (
     <>
-      <div className="authinfo">
+      <div className="authinfo" data-testid="authinfo-container">
         <dialog open className="authinfo__dialog" ref={dialogRef}>
           <div className="authinfo__dialog__box">
             <div className="authinfo__dialog__box__info">
@@ -73,9 +75,10 @@ const AuthInfo = () => {
                 email or link it to a login method of your choice. If you don&apos;t remember which email is tied to
                 your Directory profile, please{' '}
                 <a
+                  data-testid="contact-us-link"
+                  rel="noopener noreferrer"
                   className="link"
                   target="_blank"
-                  rel="noreferrer"
                   href="https://www.plnetwork.io/contact?showModal=getSupport"
                 >
                   contact us here

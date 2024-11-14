@@ -1,3 +1,6 @@
+// This component represents an empty chat interface for the Husky chatbot,
+// allowing users to submit prompts and view suggestions.
+
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useState, useRef } from 'react';
 
@@ -6,12 +9,14 @@ interface HuskyEmptyChatProps {
 }
 
 function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
+  // Initial prompts displayed to the user
   const initialPrompts = [
     { text: 'Summary of discussions from the LabWeek Field Building sessions?', icon: '/icons/send-black.svg' },
     { text: 'Recent updates from the Filecoin ecosystem?', icon: '/icons/send-black.svg' },
     { text: 'What initiatives or programs does Protocol Labs offer to foster innovation in decentralized technologies?', icon: '/icons/send-black.svg' },
   ];
 
+  // Function to check if the user is on a mobile device
   const isMobileDevice = () => {
     return /Mobi|Android/i.test(navigator.userAgent);
   };
@@ -19,6 +24,7 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
   const { trackExplorationPromptSelection } = useHuskyAnalytics();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Handles the submission of the prompt
   const handlePromptSubmission = async () => {
     const trimmedValue = textareaRef.current?.value.trim();
     if (!trimmedValue) {
@@ -32,11 +38,13 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
     }
   };
 
+  // Handles the click event for exploration prompts
   const onExplorationPromptClicked = async (ques: string) => {
     trackExplorationPromptSelection(ques);
     await onPromptClicked(ques);
   };
 
+  // Handles key down events in the textarea
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const isMobileOrTablet = /Mobi|Android|iPad|iPhone/i.test(navigator.userAgent);
     if (!isMobileOrTablet && window.innerWidth >= 1024) {
@@ -49,7 +57,7 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
 
   return (
     <>
-      <div className="hec">
+      <div className="hec" data-testid="husky-empty-chat">
         <div className="hec__info">
           <div className="hec__info__title">
             <img alt="Husky Bone Blue" src="/icons/husky-bone-blue.svg" className="hec__info__title__icon" />
@@ -74,15 +82,16 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
                 className="hec__content__box__search__input"
                 placeholder="Go ahead, ask anything.."
                 onKeyDown={handleKeyDown}
+                data-testid="prompt-input" // Added data-testid for testing
               />
               {!isMobileDevice() && (
-            <div className="hec__content__box__search__instruction">
-              <p>
-                <span className="hec__content__box__search__instruction__tag">Shift</span> + <span className="hec__content__box__search__instruction__tag">Enter</span> for new line
-              </p>
-            </div>
-          )}
-              <button onClick={handlePromptSubmission} className="hec__content__box__search__button">
+                <div className="hec__content__box__search__instruction">
+                  <p>
+                    <span className="hec__content__box__search__instruction__tag">Shift</span> + <span className="hec__content__box__search__instruction__tag">Enter</span> for new line
+                  </p>
+                </div>
+              )}
+              <button onClick={handlePromptSubmission} className="hec__content__box__search__button" data-testid="submit-button"> {/* Added data-testid for testing */}
                 <img alt="Send" src="/icons/send.svg" />
               </button>
             </div>
@@ -93,7 +102,7 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
               </h4>
               <div className="hec__content__box__prompts__list">
                 {initialPrompts.map((prompt, index) => (
-                  <div className="hec__content__box__prompts__list__item" key={index} onClick={() => onExplorationPromptClicked(prompt.text)}>
+                  <div className="hec__content__box__prompts__list__item" key={index} onClick={() => onExplorationPromptClicked(prompt.text)} data-testid={`prompt-${index}`}> {/* Added data-testid for each prompt */}
                     <img alt="Prompt Icon" src={prompt.icon} className="hec__content__box__prompts__list__item__icon" />
                     <span className="hec__content__box__prompts__list__item__text">{prompt.text}</span>
                   </div>

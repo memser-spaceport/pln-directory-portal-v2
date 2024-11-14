@@ -52,7 +52,7 @@ const AllTeamsModal = (props: IAllTeamsModal) => {
     <>
       <Modal modalRef={allTeamsModalRef} onClose={onModalCloseClickHandler}>
         <div className="tm">
-          <div className="tm__hdr">Teams ({project?.contributingTeams.length + 1})</div>
+          <div className="tm__hdr">Teams ({(project?.contributingTeams ? project.contributingTeams.length : 0) + 1})</div>
           <div>
             <div className="tm__body__search">
               <div className="tm__body__search__icon">

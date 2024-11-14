@@ -47,17 +47,18 @@ const GuestList = (props: IGuestList) => {
   };
 
   const onClearFilters = () => {
-    triggerLoader(true)
+    let isTriggerLoader = false;
     const currentParams = new URLSearchParams(searchParams);
     const allowedParams = ['event', 'type', 'location']; 
 
     // Remove parameters not in the allowed list
     for (const [key, value] of Object.entries(searchParams)) {
-      if (!allowedParams.includes(key)) {
-        currentParams.delete(key);
+      if (!allowedParams?.includes(key)) {
+        currentParams?.delete(key);
+        isTriggerLoader = true;
       }
     }
-
+    triggerLoader(isTriggerLoader);
     router.push(`${window.location.pathname}?${currentParams.toString()}`);
 
   }

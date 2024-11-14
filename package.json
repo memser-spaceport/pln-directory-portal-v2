@@ -13,6 +13,7 @@
   "dependencies": {
     "@privy-io/react-auth": "^1.71.0",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "@testing-library/user-event": "^14.5.2",
     "@tinymce/tinymce-react": "^5.1.1",
     "embla-carousel-react": "^8.1.8",
     "isomorphic-dompurify": "^2.13.0",
@@ -28,7 +29,7 @@
     "react-dom": "^18",
     "react-syntax-highlighter": "^15.5.0",
     "react-toastify": "^10.0.5",
-    "react-virtuoso": "^4.10.4",
+    "react-virtuoso": "^4.12.0",
     "text-clipper": "^2.2.0",
     "tinymce": "^7.3.0",
     "zod": "^3.23.8"
@@ -37,6 +38,7 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
+    "@types/jest": "^29.5.13",
     "@types/js-cookie": "^3.0.6",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20",

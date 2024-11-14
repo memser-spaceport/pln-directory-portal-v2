@@ -6,55 +6,59 @@ import AddEditProjectForm from './add-edit-project-form';
 import FormStepIndicatorMob from './form-step-indicator-mob';
 import { FormStepIndicatorWeb } from './form-step-indicator-web';
 
-interface IAddEditProjectContainer {
-  project: IProjectResponse
+interface IAddEditProjectContainerProps {
+  project: IProjectResponse;
   type: string;
   userInfo: IUserInfo;
 }
-export default function AddEditProjectContainer(props: any) {
-  const project = props?.project;
-  const type = props?.type;
-  const userInfo = props?.userInfo;
+
+/**
+ * Renders the AddEditProjectContainer component.
+ * @param {IAddEditProjectContainerProps} props - The properties for the component.
+ * @returns {JSX.Element} The rendered component.
+ */
+export default function AddEditProjectContainer(props: any): JSX.Element {
+  const { project, type, userInfo } = props;
 
   return (
     <>
-      <div className="addEditPc">
-        <div className="addEditPc__mobInd">
+      <div className="add-edit-project">
+        <div className="add-edit-project__indicator--mobile">
           <FormStepIndicatorMob />
         </div>
 
-        <div className="addEditPc__webInd">
+        <div className="add-edit-project__indicator--web">
           <FormStepIndicatorWeb />
         </div>
 
-        <div className="addEditPc__formCon">
+        <div className="add-edit-project__form-container">
           <AddEditProjectForm type={type} project={project} userInfo={userInfo} />
         </div>
       </div>
 
       <style jsx>
         {`
-          .addEditPc {
+          .add-edit-project {
             width: 100%;
           }
 
-          .addEditPc__webInd {
+          .add-edit-project__indicator--web {
             display: none;
           }
 
           @media (min-width: 1024px) {
-            .addEditPc {
+            .add-edit-project {
               display: flex;
               gap: 24px;
               padding: 24px;
               width: unset;
             }
 
-            .addEditPc__mobInd {
+            .add-edit-project__indicator--mobile {
               display: none;
             }
 
-            .addEditPc__webInd {
+            .add-edit-project__indicator--web {
               display: unset;
               width: 296px;
               border: 1px solid #cbd5e1;

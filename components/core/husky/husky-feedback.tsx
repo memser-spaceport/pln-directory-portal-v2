@@ -1,3 +1,9 @@
+/**
+ * HuskyFeedback Component
+ * This component allows users to provide feedback on responses.
+ * It includes rating buttons, a comment section, and handles submission of feedback.
+ */
+
 import { useState } from 'react';
 import { RATINGS } from '@/utils/constants';
 import TextArea from '@/components/form/text-area';
@@ -6,137 +12,156 @@ import { getMemberInfo } from '@/services/members.service';
 import { saveFeedback } from '@/services/husky.service';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-const HuskyFeedback = (props: any) => {
-  const onClose = props.onClose;
-  const question = props.question;
-  const answer = props.answer;
-  const setLoadingStatus = props.setLoadingStatus
-  const forceUserLogin = props.forceUserLogin;
-  const [step, setStep] = useState('form');
+
+// Define the types for props
+interface HuskyFeedbackProps {
+  onClose: () => void;
+  question: string;
+  answer: string;
+  setLoadingStatus: (loading: boolean) => void;
+  forceUserLogin: () => void;
+}
+
+const HuskyFeedback = (props: HuskyFeedbackProps) => {
+  const { onClose, question, answer, setLoadingStatus, forceUserLogin } = props;
+  const [step, setStep] = useState<'form' | 'success' | 'error'>('form');
   const ratings = [...RATINGS];
-  const [ratingInfo, setRatingInfo] = useState<any>({
+  const [ratingInfo, setRatingInfo] = useState<{ rating: number; comment: string }>({
     rating: 3,
     comment: '',
   });
 
-  const {trackFeedbackStatus} = useHuskyAnalytics()
+  const { trackFeedbackStatus } = useHuskyAnalytics();
 
+  /**
+   * Handles the click event for rating buttons.
+   * @param rating - The rating value selected by the user.
+   */
   const onRatingClickHandler = (rating: number) => {
     setRatingInfo({ ...ratingInfo, rating });
   };
 
+  /**
+   * Submits the feedback provided by the user.
+   */
   const onFeedbackSubmit = async () => {
     try {
       const { isLoginRequired, newAuthToken, newUserInfo: userInfo } = await getUserCredentialsInfo();
-    if(isLoginRequired) {
-      forceUserLogin()
-    }
-    if (userInfo) {
-      trackFeedbackStatus('initiated', ratingInfo.rating, question)
-      const memberInfo = await getMemberInfo(userInfo.uid);
-      const memberDetails = memberInfo.data;
-      const payload = {
-        name: memberDetails.name,
-        email: memberDetails.email,
-        team: memberDetails.teamMemberRoles[0].teamTitle,
-        directoryId: memberDetails.uid,
-        rating: ratingInfo.rating,
-        comment: ratingInfo.comment,
-        prompt:question,
-        response: answer
-      };
-      
-      setLoadingStatus(true);
-      const response = await saveFeedback(newAuthToken, payload);
-      setLoadingStatus(false);
-      if(response.isSaved) {
-        trackFeedbackStatus('success', ratingInfo.rating, question)
-        setStep('success')
-      } else {
-        trackFeedbackStatus('error', ratingInfo.rating, question)
-        setStep('error');
+      if (isLoginRequired) {
+        forceUserLogin();
       }
-    }
+      if (userInfo) {
+        trackFeedbackStatus('initiated', ratingInfo.rating.toString(), question);
+        const memberInfo = await getMemberInfo(userInfo.uid);
+        const memberDetails = memberInfo.data;
+        const payload = {
+          name: memberDetails.name,
+          email: memberDetails.email,
+          team: memberDetails.teamMemberRoles[0].teamTitle,
+          directoryId: memberDetails.uid,
+          rating: ratingInfo.rating,
+          comment: ratingInfo.comment,
+          prompt: question,
+          response: answer,
+        };
+
+        setLoadingStatus(true);
+        const response = await saveFeedback(newAuthToken, payload);
+        setLoadingStatus(false);
+        if (response.isSaved) {
+          trackFeedbackStatus('success', ratingInfo.rating.toString(), question);
+          setStep('success');
+        } else {
+          trackFeedbackStatus('error', ratingInfo.rating.toString(), question);
+          setStep('error');
+        }
+      }
     } catch (error) {
-      trackFeedbackStatus('error', ratingInfo.rating, question)
+      trackFeedbackStatus('error', ratingInfo.rating.toString(), question);
       setStep('error');
     }
   };
 
   return (
     <>
-      {step === 'form' && <div className="feedback">
-        <div className="feedback__hdr">
-          <h6 className="feedback__hdr__ttl">How useful was this response?</h6>
-        </div>
-        <div className="feedback__body">
-          <div className="feedback__body__wrpr">
-            <div className="feedback__body__ratingCn">
-              {ratings?.map((rating: any, index: number) => (
-                <button
-                  type="button"
-                  onClick={() => onRatingClickHandler(index + 1)}
-                  className={`feedback__body__ratingCn__rating ${ratingInfo?.rating === index + 1 ? 'selected' : ''} `}
-                  style={{ backgroundColor: rating.backgroundColor }}
-                  key={`${rating}+${index}`}
-                >
-                  {rating.value}
-                </button>
-              ))}
-            </div>
-            <div className="feedback__body__ratingInfo">
-              <div className="feedback__body__ratingInfo__text">Not Valuable</div>
-              <div className="feedback__body__ratingInfo__text">Extremely Valuable</div>
-            </div>
-            <HiddenField value={ratingInfo?.rating.toString()} defaultValue={'0'} name={`rating`} />
+      {step === 'form' && (
+        <div className="feedback" data-testid="feedback-form">
+          <div className="feedback__hdr">
+            <h6 className="feedback__hdr__ttl">How useful was this response?</h6>
           </div>
-          <div className="feedback__body__cmnt">
-            <h6 className="feedback__body__cmnt__ttl">Comment (Optional)</h6>
-            <div className="feedback__body__cmnt__textarea">
-              <TextArea
-                onChange={(e) =>
-                  setRatingInfo((v: any) => {
-                    v.comment = e.target.value;
-                    return v;
-                  })
-                }
-                maxLength={1000}
-                placeholder="Enter comments if you have any"
-                isMandatory={false}
-                name={'feedbackComment'}
-                id={'feedbackComment'}
-              />
+          <div className="feedback__body">
+            <div className="feedback__body__wrpr">
+              <div className="feedback__body__ratingCn">
+                {ratings?.map((rating: any, index: number) => (
+                  <button
+                    type="button"
+                    onClick={() => onRatingClickHandler(index + 1)}
+                    className={`feedback__body__ratingCn__rating ${ratingInfo?.rating === index + 1 ? 'selected' : ''} `}
+                    style={{ backgroundColor: rating.backgroundColor }}
+                    key={`${rating.value}+${index}`}
+                    data-testid={`rating-button-${index + 1}`} 
+                  >
+                    {rating.value}
+                  </button>
+                ))}
+              </div>
+              <div className="feedback__body__ratingInfo">
+                <div className="feedback__body__ratingInfo__text">Not Valuable</div>
+                <div className="feedback__body__ratingInfo__text">Extremely Valuable</div>
+              </div>
+              <HiddenField value={ratingInfo?.rating.toString()} defaultValue={'0'} name={`rating`} />
+            </div>
+            <div className="feedback__body__cmnt">
+              <h6 className="feedback__body__cmnt__ttl">Comment (Optional)</h6>
+              <div className="feedback__body__cmnt__textarea">
+                <TextArea
+                  onChange={(e) =>
+                    setRatingInfo((v) => {
+                      v.comment = e.target.value;
+                      return v;
+                    })
+                  }
+                  maxLength={1000}
+                  placeholder="Enter comments if you have any"
+                  isMandatory={false}
+                  name={'feedbackComment'}
+                  id={'feedbackComment'}
+                  data-testid="feedback-comment"
+                />
+              </div>
             </div>
           </div>
+          <div className="feeback__ftr">
+            <button type="button" onClick={onClose} className="feeback__ftr__cancelBtn" data-testid="cancel-button">
+              Cancel
+            </button>
+            <button onClick={onFeedbackSubmit} type="button" className="feeback__ftr__submitBtn" data-testid="submit-button">
+              Submit
+            </button>
+          </div>
         </div>
-        <div className="feeback__ftr">
-          <button type="button" onClick={onClose} className="feeback__ftr__cancelBtn">
-            Cancel
-          </button>
-          <button onClick={onFeedbackSubmit} type="button" className="feeback__ftr__submitBtn">
-            Submit
-          </button>
+      )}
+      {step === 'success' && (
+        <div className='feedback' data-testid="feedback-success">
+          <h3>Thanks for your response</h3>
+          <p>Your feedback has been saved successfully</p>
+          <div className="feeback__ftr">
+            <button onClick={onClose} type="button" className="feeback__ftr__submitBtn" data-testid="close-success-button">
+              Close
+            </button>
+          </div>
         </div>
-      </div>}
-      {step === 'success' && <div className='feedback'>
-         <h3>Thanks for your response</h3>
-         <p>Your feedback has been saved successfully</p>
-         <div className="feeback__ftr">
-          
-          <button onClick={onClose} type="button" className="feeback__ftr__submitBtn">
-            Close
-          </button>
+      )}
+      {step === 'error' && (
+        <div className='feedback' data-testid="feedback-error">
+          <p>Something went wrong. Please try again later</p>
+          <div className="feeback__ftr">
+            <button onClick={onClose} type="button" className="feeback__ftr__submitBtn" data-testid="close-error-button">
+              Close
+            </button>
+          </div>
         </div>
-        
-        </div>} 
-        {step === 'error' && <div className='feedback'>
-         <p>Something went wrong. Please try again later</p>
-         <div className="feeback__ftr">
-          <button onClick={onClose} type="button" className="feeback__ftr__submitBtn">
-            Close
-          </button>
-        </div>
-        </div>} 
+      )}
       <style jsx>{`
         .popup {
           width: 100%;

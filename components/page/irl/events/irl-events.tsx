@@ -203,7 +203,7 @@ const IrlEvents = (props: IIrlEvents) => {
             </div>
           ) : (
             <>
-              {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length !== 0 && (
+              {eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length === 0 && (
                 <div className="root__irl__events__section">
                   <div className="root__irl__events__upcoming-only">Upcoming Events</div>
                   <div className="root__irl__event__count">
@@ -211,7 +211,7 @@ const IrlEvents = (props: IIrlEvents) => {
                   </div>
                 </div>
               )}
-              {eventType === 'past' && eventDetails?.pastEvents?.length !== 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
+              {eventDetails?.pastEvents?.length !== 0 && eventDetails?.upcomingEvents?.length === 0 && (
                 <div className="root__irl__events__section">
                   <div className="root__irl__events__past-only">Past Events</div>
                   <div className="root__irl__event__count">

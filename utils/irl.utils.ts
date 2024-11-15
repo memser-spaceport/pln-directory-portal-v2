@@ -221,7 +221,7 @@ export const transformMembers = (result: any, currentEvents:string[]) => {
     const { member, team, events } = guest || {};
     const memberTeams = member?.teamMemberRoles || [];
     const validEvents = events?.filter((event: any) => currentEvents.includes(event?.name));
-    
+
     return {
       memberUid: guest?.memberUid,
       memberName: member?.name,

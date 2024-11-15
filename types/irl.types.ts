@@ -211,6 +211,8 @@ export interface IPastEvents {
 }
 
 export interface ILocationDetails {
+  events: any;
+  allEvents: any;
   priority: number;
   uid: string;
   location: string;

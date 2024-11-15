@@ -51,6 +51,18 @@ function HuskyInputBox(props: any) {
   };
 
   useEffect(() => {
+    function handler(event: any) {
+      if (inputRef.current) {
+        inputRef.current.innerText = event.detail;
+      }
+    }
+    document.addEventListener('husky-ai-input', handler);
+    return () => {
+      document.removeEventListener('husky-ai-input', handler);
+    };
+  }, []);
+
+  useEffect(() => {
     // Handles keydown events for input submission
     const handleKeyDown = (event: KeyboardEvent) => {
       if (inputRef.current) {

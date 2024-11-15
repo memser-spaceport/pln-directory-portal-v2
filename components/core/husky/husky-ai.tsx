@@ -113,6 +113,10 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     return chatUid;
   };
 
+  const onInitialPromptClicked = (quesObj: any) => {
+    setChats([{ ...quesObj, isError: false }]);
+  }
+
   // Handles the event when a prompt is clicked
   const onPromptClicked = async (question: string) => {
     try {
@@ -193,6 +197,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
   // Edits the question and tracks the event
   const onQuestionEdit = (question: string) => {
+    console.log('onQuestionEdit', question);
     trackQuestionEdit(question);
     document.dispatchEvent(new CustomEvent('husky-ai-input', { detail: question }));
   };
@@ -285,6 +290,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               onRegenerate={onRegenerate}
               onQuestionEdit={onQuestionEdit}
               onPromptClicked={onPromptClicked}
+              onInitialPromptClicked={onInitialPromptClicked}
               isAnswerLoading={isAnswerLoading}
               chats={chats}
               blogId={blogId}
@@ -308,6 +314,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               onRegenerate={onHuskyInput}
               onQuestionEdit={onQuestionEdit}
               onPromptClicked={onPromptClicked}
+              onInitialPromptClicked={onInitialPromptClicked}
               onShareClicked={onShareClicked}
               isAnswerLoading={isAnswerLoading}
               chats={chats}

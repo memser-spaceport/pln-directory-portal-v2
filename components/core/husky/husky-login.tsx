@@ -64,7 +64,7 @@ function HuskyLogin({ onLoginBoxClose, onLoginClick }: HuskyLoginProps) {
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2;
+            z-index: 3;
           }
           .login-popup__box {
             background: white;

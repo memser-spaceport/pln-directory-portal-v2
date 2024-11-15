@@ -34,6 +34,7 @@ const CopyText = ({ textToCopy, children, onCopyCallback }: CopyTextProps) => {
           cursor: pointer;
           height: auto;
           width:auto;
+          z-index: 0;
         }
         .cn__copied {
           position: absolute;

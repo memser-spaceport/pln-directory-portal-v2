@@ -2,19 +2,17 @@
 // allowing users to submit prompts and view suggestions.
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import { useState, useRef } from 'react';
+import { getChatQuestions } from '@/services/discover.service';
+import { useState, useRef, useEffect } from 'react';
 
 interface HuskyEmptyChatProps {
   onPromptClicked: (ques: string) => Promise<void>;
+  onInitialPromptClicked: (quesObj: any) => void;
 }
 
-function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
+function HuskyEmptyChat({ onPromptClicked, onInitialPromptClicked }: HuskyEmptyChatProps) {
   // Initial prompts displayed to the user
-  const initialPrompts = [
-    { text: 'Summary of discussions from the LabWeek Field Building sessions?', icon: '/icons/send-black.svg' },
-    { text: 'Recent updates from the Filecoin ecosystem?', icon: '/icons/send-black.svg' },
-    { text: 'What initiatives or programs does Protocol Labs offer to foster innovation in decentralized technologies?', icon: '/icons/send-black.svg' },
-  ];
+  const [initialPrompts, setInitialPrompts] = useState<any[]>([]);
 
   // Function to check if the user is on a mobile device
   const isMobileDevice = () => {
@@ -39,9 +37,9 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
   };
 
   // Handles the click event for exploration prompts
-  const onExplorationPromptClicked = async (ques: string) => {
-    trackExplorationPromptSelection(ques);
-    await onPromptClicked(ques);
+  const onExplorationPromptClicked = async (quesObj: any) => {
+    trackExplorationPromptSelection(quesObj.question);
+    onInitialPromptClicked(quesObj);
   };
 
   // Handles key down events in the textarea
@@ -54,6 +52,12 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
       }
     }
   };
+
+  useEffect(() => {
+    getChatQuestions().then((res) => {
+      setInitialPrompts(res.data);
+    });
+  }, []);
 
   return (
     <>
@@ -102,9 +106,9 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
               </h4>
               <div className="hec__content__box__prompts__list">
                 {initialPrompts.map((prompt, index) => (
-                  <div className="hec__content__box__prompts__list__item" key={index} onClick={() => onExplorationPromptClicked(prompt.text)} data-testid={`prompt-${index}`}> {/* Added data-testid for each prompt */}
+                  <div className="hec__content__box__prompts__list__item" key={index} onClick={() => onExplorationPromptClicked(prompt)} data-testid={`prompt-${index}`}> {/* Added data-testid for each prompt */}
                     <img alt="Prompt Icon" src={prompt.icon} className="hec__content__box__prompts__list__item__icon" />
-                    <span className="hec__content__box__prompts__list__item__text">{prompt.text}</span>
+                    <span className="hec__content__box__prompts__list__item__text">{prompt.question}</span>
                   </div>
                 ))}
               </div>

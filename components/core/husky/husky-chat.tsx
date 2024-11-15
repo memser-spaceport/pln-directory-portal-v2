@@ -16,10 +16,11 @@ interface HuskyChatProps {
   onQuestionEdit: (ques: string) => void;
   onFeedback: (ques: string, answer: string) => Promise<void>;
   onCopyAnswer: (answer: string) => Promise<void>;
+  onInitialPromptClicked: (quesObj: any) => void;
   blogId?: string;
   isAnswerLoading: boolean;
 }
-function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onCopyAnswer, onRegenerate, onFeedback, blogId }: HuskyChatProps) {
+function HuskyChat({ mode, chats, onFollowupClicked, onInitialPromptClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onCopyAnswer, onRegenerate, onFeedback, blogId }: HuskyChatProps) {
   return (
     <>
       <div className="huskychat">
@@ -69,7 +70,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
             </div>
           ))}
         </div>}
-        {chats.length === 0 && !isAnswerLoading && <HuskyEmptyChat onPromptClicked={onPromptClicked} />}
+        {chats.length === 0 && !isAnswerLoading && <HuskyEmptyChat onInitialPromptClicked={onInitialPromptClicked} onPromptClicked={onPromptClicked} />}
       </div>
       <style jsx>
         {`

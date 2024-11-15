@@ -40,6 +40,8 @@ export const useIrlAnalytics = () => {
     IRL_LOCATION_CARD_CLICKED:'irl-location-card-button-clicked',
     IRL_SEE_OTHER_LOCATION_CARD_CLICKED: 'on-see-other-location-card-clicked',
     IRL_UPCOMING_EVENTS_BUTTON_CLICKED: 'on-upcoming-events-button-clicked',
+    IRL_ALL_EVENTS_BUTTON_CLICKED: 'on-all-events-button-clicked',
+
     IRL_PAST_EVENTS_BUTTON_CLICKED: 'on-past-events-button-clicked',
     IRL_UPCOMING_RESOURCE_POPUP_VIEWED: 'on-resource-popup-viewed',
     IRL_PAST_RESOURCE_POPUP_VIEWED: 'on-resource-popup-viewed',
@@ -363,6 +365,13 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_UPCOMING_EVENTS_BUTTON_CLICKED, {...params});
   }
 
+  function trackAllEventsButtonClicked(events: any) {
+    const params = {
+      allEvents: events,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ALL_EVENTS_BUTTON_CLICKED, {...params});
+  }
+
   function trackPastEventsButtonClicked(events: any) {
     const params = {
       pastEvents: events,
@@ -530,6 +539,7 @@ export const useIrlAnalytics = () => {
     irlAddAttendeePopupCloseClicked,
     trackLoginClicked,
     onAddGatheringClicked,
-    searchEventClicked
+    searchEventClicked,
+    trackAllEventsButtonClicked
   };
 };

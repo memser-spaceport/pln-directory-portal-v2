@@ -84,7 +84,7 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const getEventDetails = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
-    const eventType = searchParams.type === 'past' ? '' : 'upcoming';
+    const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
 
     if (tableRef.current) {
       tableRef.current.scrollTop = 0;

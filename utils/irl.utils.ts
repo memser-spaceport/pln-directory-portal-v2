@@ -263,7 +263,8 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
   const { type, sortDirection, sortBy, search, attending, attendees, topics, event } = searchParams;
   const result: any = {};
 
-  result.type = type === 'past' ? '' : 'upcoming';
+  result.type = type === 'past' ? 'past' : type === 'upcoming' ? 'upcoming' : '';
+
   result.sortDirection = sortDirection ?? '';
   result.sortBy = sortBy ?? '';
   result.search = search ?? '';

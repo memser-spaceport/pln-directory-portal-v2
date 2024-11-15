@@ -126,10 +126,13 @@ const getPageData = async (searchParams: any) => {
     }
 
     let guestDetails = events as any;
+    const selectedTypeEvents = eventType === 'past' ? eventDetails.pastEvents : eventDetails.upcomingEvents;
 
-    guestDetails.events = eventType === 'past' ? eventDetails.pastEvents : eventDetails.upcomingEvents;
+    guestDetails.events = selectedTypeEvents;
     guestDetails.currentGuest = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests?.[0] : null;
-    guestDetails.isUserGoing = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid;
+    guestDetails.isUserGoing = selectedTypeEvents?.some((event: any) => loggedInUserEvents?.some((userEvent: any) => userEvent?.uid === event?.uid));
+
+
     guestDetails.topics = topics;
     guestDetails.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, currentEvents, isLoggedIn, userInfo);
 

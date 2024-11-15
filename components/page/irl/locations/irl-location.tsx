@@ -92,8 +92,11 @@ const IrlLocation = (props: IrlLocation) => {
         currentParams.set('location', locationDetail?.location?.split(",")[0].trim());
 
         if (!searchParams?.type) {
-            if (hasUpcomingEvents) currentParams.set('type', 'upcoming');
-            else if (hasPastEvents) setPastEvent();
+            if (hasUpcomingEvents && !hasPastEvents) currentParams.set('type', 'upcoming');
+            else if (hasPastEvents && !hasUpcomingEvents) setPastEvent();
+            else if (hasUpcomingEvents && hasPastEvents) {
+                currentParams.delete('type');
+            }
         } else if (hasPastEvents && hasUpcomingEvents) {
             currentParams.delete('type');
             currentParams.delete('event');

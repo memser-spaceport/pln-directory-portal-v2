@@ -59,7 +59,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const remainingTopics = topics?.slice(topicsNeedToShow, topics?.length)?.map((topic: string) => topic);
   const atRemovedTelegram = removeAt(getTelegramUsername(telegramId));
   const analytics = useIrlAnalytics();
-  const canUserAddAttendees = canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const canUserAddAttendees = (type === 'upcoming' || type === 'past') && canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const isLoggedIn = props.isLoggedIn;
   const onLogin = props.onLogin;
 

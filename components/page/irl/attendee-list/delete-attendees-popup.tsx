@@ -182,6 +182,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
           {/* Members */}
           <div className="popup__body__members">
             {selectedGuests?.map((guest: IGuest, index: number) => {
+              const events = guest?.events?.filter((event: IIrlEvent) => eventDetails?.events?.some((g: IIrlEvent) => g?.uid === event?.uid));
               return (
                 <div className="popup__member" key={guest?.memberUid}>
                   {type === 'admin-delete' && (
@@ -209,7 +210,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
                     )}
 
                     <div className="popup__member__gatherings__list">
-                      {guest?.events?.map((event: IIrlEvent) => (
+                      {events?.map((event: IIrlEvent) => (
                         <div key={event?.uid} className="popup__gathering">
                           <div className="popup__gathering__checkbox-wrapper">
                             <>

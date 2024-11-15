@@ -51,7 +51,7 @@ const Toolbar = (props: IToolbar) => {
 
   //hooks
   const analytics = useIrlAnalytics();
-  const canUserAddAttendees = canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const canUserAddAttendees = (type === 'upcoming' || type === 'past') && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
   const onEditResponseClick = () => {
     // setIamGoingPopupProps({isOpen: true, formdata: updatedUser, mode: IAM_GOING_POPUP_MODES.EDIT});

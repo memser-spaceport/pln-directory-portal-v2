@@ -14,7 +14,9 @@ import IrlErrorPage from '@/components/core/irl-error-page';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 
 export default async function Page({ searchParams }: any) {
-  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(searchParams);
+  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(
+    searchParams
+  );
 
   if (isLocationError) {
     return <IrlErrorPage />;
@@ -102,19 +104,19 @@ const getPageData = async (searchParams: any) => {
     const eventLocationSummary = { uid, name };
 
     // Determine event type and fetch event guest data
-    const eventType = searchParams?.type === 'past' ? '' : 'upcoming';
+    const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
 
     if (searchParams?.type === 'past' && !searchParams?.event) {
       searchParams.event = pastEvents[0]?.slugURL;
     }
 
-    const currentEvents = eventType === 'upcoming' ? eventDetails.upcomingEvents : eventDetails.pastEvents;
-    const currentEventNames = currentEvents.map((item: any) => item.name); // Get current event names
+    const currentEvents = eventType === 'upcoming' ? eventDetails?.upcomingEvents : eventType === 'past' ? eventDetails?.pastEvents : eventDetails?.events;
+    const currentEventNames = currentEvents?.map((item: any) => item.name); // Get current event names
 
     // Proceed with API calls only after currentEventNames is set
     const [events, currentGuestResponse, topics, loggedInUserEvents] = await Promise.all([
-      getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken,currentEventNames),
-      getGuestsByLocation(uid, { type: eventType }, authToken,currentEventNames, 1, 1),
+      getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken, currentEventNames),
+      getGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
       getTopicsByLocation(uid, eventType),
       getGuestEvents(uid, authToken),
     ]);
@@ -125,7 +127,7 @@ const getPageData = async (searchParams: any) => {
 
     let guestDetails = events as any;
 
-    guestDetails.events = currentEvents;
+    guestDetails.events = eventType === 'past' ? eventDetails.pastEvents : eventDetails.upcomingEvents;
     guestDetails.currentGuest = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests?.[0] : null;
     guestDetails.isUserGoing = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid;
     guestDetails.topics = topics;
@@ -158,7 +160,6 @@ const getPageData = async (searchParams: any) => {
     return { isError: true };
   }
 };
-
 
 export const metadata: Metadata = {
   title: 'IRL Gatherings | Protocol Labs Directory',

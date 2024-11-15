@@ -12,48 +12,42 @@ import { useRouter } from 'next/navigation';
 import { ILocationDetails } from '@/types/irl.types';
 import Image from 'next/image';
 import { IRL_SUBMIT_FORM_LINK } from '@/utils/constants';
+import IrlAllEvents from './irl-all-events';
 
 interface IIrlEvents {
-    searchParams: any;
-    eventDetails: ILocationDetails;
-    isLoggedIn: boolean;
+  searchParams: any;
+  eventDetails: ILocationDetails;
+  isLoggedIn: boolean;
 }
 
 const IrlEvents = (props: IIrlEvents) => {
-    const searchParams = props?.searchParams;
-    const eventDetails = props?.eventDetails;
-    const isLoggedIn = props?.isLoggedIn;
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const addResRef = useRef<HTMLDialogElement>(null);
-    const analytics = useIrlAnalytics();
-    const router = useRouter();
+  const searchParams = props?.searchParams;
+  const eventDetails = props?.eventDetails;
+  const isLoggedIn = props?.isLoggedIn;
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const addResRef = useRef<HTMLDialogElement>(null);
+  const analytics = useIrlAnalytics();
+  const router = useRouter();
 
-    const isEventAvailable = searchParams?.type === 'past' &&
-        eventDetails?.pastEvents?.some(event => event.slugURL === searchParams?.event);
+  const isEventAvailable = searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event);
 
-    const searchType = searchParams?.type;
-    function assignIsUpcoming(searchType: string, eventDetails: ILocationDetails) {
-      if (searchType) {
-          return searchType === 'upcoming';
+  const searchType = searchParams?.type;
+  function getEventType(searchType: string, eventDetails: ILocationDetails) {
+    if (searchType) {
+      if (searchType === 'upcoming') {
+        return 'upcoming';
+      } else if (searchType === 'past') {
+        return 'past';
       }
-      const hasUpcomingEvents = eventDetails?.upcomingEvents?.length > 0;
-      const hasPastEvents = eventDetails?.pastEvents?.length > 0;
-  
-      if (hasUpcomingEvents) {
-          return true;
-      } 
-      if (hasPastEvents) {
-          return false;
-      }
-      
-      return true; 
     }
-  
-    let isUpcoming = assignIsUpcoming(searchType, eventDetails);
-    const handleUpcomingGathering = () => {
-        isUpcoming = true;
-        const currentParams = new URLSearchParams(searchParams);
-        const allowedParams = ['type', 'location']; 
+    return 'all';
+  }
+
+  let eventType = getEventType(searchType, eventDetails);
+
+  const handleUpcomingGathering = () => {
+    const currentParams = new URLSearchParams(searchParams);
+    const allowedParams = ['type', 'location'];
 
     // Remove parameters not in the allowed list
     for (const [key, value] of Object.entries(searchParams)) {
@@ -61,312 +55,309 @@ const IrlEvents = (props: IIrlEvents) => {
         currentParams.delete(key);
       }
     }
-        currentParams.set('type', 'upcoming');
-        currentParams.delete('event');
-        router.push(`${window.location.pathname}?${currentParams.toString()}`);
-        // updateQueryParams('type', 'upcoming', searchParams);
-        if (searchParams?.type === 'past') {
-            triggerLoader(true);
-            analytics.trackUpcomingEventsButtonClicked(eventDetails.upcomingEvents);
-        }
-    };
+    currentParams.set('type', 'upcoming');
+    currentParams.delete('event');
+    router.push(`${window.location.pathname}?${currentParams.toString()}`);
+    // updateQueryParams('type', 'upcoming', searchParams);
+    if (searchParams?.type !== 'upcoming') {
+      triggerLoader(true);
+      analytics.trackUpcomingEventsButtonClicked(eventDetails.upcomingEvents);
+    }
+  };
 
-    const handlePastGathering = (e: { stopPropagation: () => void; }) => {
-        e.stopPropagation();
-        isUpcoming = false;
+  const handleAllGathering = () => {
+    const currentParams = new URLSearchParams(searchParams);
+    const allowedParams = ['type', 'location'];
 
-        const currentParams = new URLSearchParams(searchParams);
-        const allowedParams = ['event', 'type', 'location']; 
+    // Remove parameters not in the allowed list
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (!allowedParams.includes(key)) {
+        currentParams.delete(key);
+      }
+    }
+    currentParams.delete('type');
+    currentParams.delete('event');
+    router.push(`${window.location.pathname}?${currentParams.toString()}`);
+    // updateQueryParams('type', 'upcoming', searchParams);
+    if (searchParams?.type) {
+      triggerLoader(true);
+      analytics.trackAllEventsButtonClicked(eventDetails.events);
+    }
+  };
 
-        // Remove parameters not in the allowed list
-        for (const [key, value] of Object.entries(searchParams)) {
-          if (!allowedParams.includes(key)) {
-            currentParams.delete(key);
-          }
-        }
-        // Add or update the new search parameters
-        currentParams.set('type', 'past');
-        if (eventDetails?.pastEvents?.length > 0) {
-            currentParams.set('event', eventDetails?.pastEvents[0]?.slugURL);
-        }
+  const handlePastGathering = (e: { stopPropagation: () => void }) => {
+    e.stopPropagation();
+    const currentParams = new URLSearchParams(searchParams);
+    const allowedParams = ['event', 'type', 'location'];
 
-        router.push(`${window.location.pathname}?${currentParams.toString()}`);
-        if (searchParams?.type !== 'past') {
-            triggerLoader(true);
-        }
-        analytics.trackPastEventsButtonClicked(eventDetails.pastEvents);
-    };
-
-    const onCloseModal = () => {
-        if (dialogRef.current) {
-            dialogRef.current.close();
-        }
-
-        if (addResRef.current) {
-            addResRef.current.close();
-        }
-    };
-
-    const handleAddResClick = () => {
-        if (addResRef.current) {
-            addResRef.current.showModal();
-        }
-        analytics.trackAdditionalResourceSeeMoreButtonClicked(eventDetails.resources);
-    };
-
-    function getFormattedDate(events: any) {
-        const startDateList = events?.map((gathering: any) => gathering.startDate);
-        const endDateList = events?.map((gathering: any) => gathering.endDate);
-
-        let leastStartDate = startDateList[0];
-        let highestEndDate = endDateList[0];
-
-        startDateList?.map((startDate: string) => {
-            const date = new Date(startDate);
-            if (date < new Date(leastStartDate)) {
-                leastStartDate = startDate;
-            }
-        });
-
-        endDateList?.map((endDate: string) => {
-            const date = new Date(endDate);
-            if (date > new Date(highestEndDate)) {
-                highestEndDate = endDate;
-            }
-        });
-
-        const result = getFormattedDateString(leastStartDate, highestEndDate);
-        return `${result}`;
+    // Remove parameters not in the allowed list
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (!allowedParams.includes(key)) {
+        currentParams.delete(key);
+      }
+    }
+    // Add or update the new search parameters
+    currentParams.set('type', 'past');
+    if (eventDetails?.pastEvents?.length > 0) {
+      currentParams.set('event', eventDetails?.pastEvents[0]?.slugURL);
     }
 
-    function handleJoinPLNetworks() {
-        analytics.onJoinPLNetworkClicked(eventDetails);
+    router.push(`${window.location.pathname}?${currentParams.toString()}`);
+    if (searchParams?.type !== 'past') {
+      triggerLoader(true);
+    }
+    analytics.trackPastEventsButtonClicked(eventDetails.pastEvents);
+  };
+
+  const onCloseModal = () => {
+    if (dialogRef.current) {
+      dialogRef.current.close();
     }
 
-    function handleAddGathering() {
-        analytics.onAddGatheringClicked(IRL_SUBMIT_FORM_LINK);
+    if (addResRef.current) {
+      addResRef.current.close();
     }
+  };
 
-    function handleAdditionalResourceClicked(resource: any) {
-        analytics.trackAdditionalResourcesClicked(resource);
+  const handleAddResClick = () => {
+    if (addResRef.current) {
+      addResRef.current.showModal();
     }
+    analytics.trackAdditionalResourceSeeMoreButtonClicked(eventDetails.resources);
+  };
 
-    function handleDataNotFound() {
-        const currentParams = new URLSearchParams(searchParams);
-        currentParams.set('location', searchParams?.location ? searchParams?.location : eventDetails?.location?.split(',')[0].trim());
-        if ((eventDetails.upcomingEvents.length > 0 && eventDetails.pastEvents.length > 0)
-            || (eventDetails.upcomingEvents.length !== 0 && eventDetails.pastEvents.length === 0)) {
-            currentParams.set('type', 'upcoming');
-            currentParams.delete('event');
-        } else if (eventDetails.upcomingEvents.length === 0 && eventDetails.pastEvents.length !== 0) {
-            currentParams.set('type', 'past');
-            currentParams.set('event', eventDetails?.pastEvents[0]?.slugURL);
-        }
-        router.push(`${window.location.pathname}?${currentParams.toString()}`);
-        triggerLoader(true);
+  function getFormattedDate(events: any) {
+    const startDateList = events?.map((gathering: any) => gathering.startDate);
+    const endDateList = events?.map((gathering: any) => gathering.endDate);
+
+    let leastStartDate = startDateList[0];
+    let highestEndDate = endDateList[0];
+
+    startDateList?.map((startDate: string) => {
+      const date = new Date(startDate);
+      if (date < new Date(leastStartDate)) {
+        leastStartDate = startDate;
+      }
+    });
+
+    endDateList?.map((endDate: string) => {
+      const date = new Date(endDate);
+      if (date > new Date(highestEndDate)) {
+        highestEndDate = endDate;
+      }
+    });
+
+    const result = getFormattedDateString(leastStartDate, highestEndDate);
+    return `${result}`;
+  }
+
+  function handleJoinPLNetworks() {
+    analytics.onJoinPLNetworkClicked(eventDetails);
+  }
+
+  function handleAddGathering() {
+    analytics.onAddGatheringClicked(IRL_SUBMIT_FORM_LINK);
+  }
+
+  function handleAdditionalResourceClicked(resource: any) {
+    analytics.trackAdditionalResourcesClicked(resource);
+  }
+
+  function handleDataNotFound() {
+    const currentParams = new URLSearchParams(searchParams);
+    currentParams.set('location', searchParams?.location ? searchParams?.location : eventDetails?.location?.split(',')[0].trim());
+    if ((eventDetails.upcomingEvents.length > 0 && eventDetails.pastEvents.length > 0) || (eventDetails.upcomingEvents.length !== 0 && eventDetails.pastEvents.length === 0)) {
+      currentParams.set('type', 'upcoming');
+      currentParams.delete('event');
+    } else if (eventDetails.upcomingEvents.length === 0 && eventDetails.pastEvents.length !== 0) {
+      currentParams.set('type', 'past');
+      currentParams.set('event', eventDetails?.pastEvents[0]?.slugURL);
     }
+    router.push(`${window.location.pathname}?${currentParams.toString()}`);
+    triggerLoader(true);
+  }
 
-    return (
-        <>
-            <div className="root">
-                <div className="root__irl">
-                    {eventDetails.upcomingEvents.length !== 0 && eventDetails.pastEvents.length !== 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) ?
-                        <div className={`root__irl__events`}>
-                            <button
-                                className={`root__irl__events__upcoming ${isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
-                                onClick={handleUpcomingGathering}>
-                                Upcoming
-                                <span
-                                    className={`root__irl__events__count ${isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
-                                >
-                                    {eventDetails?.upcomingEvents?.length}
-                                </span>
-                            </button>
-                            <button
-                                className={`root__irl__events__past ${!isUpcoming ? 'root__irl__events__active' : 'root__irl__events__inactive'}`}
-                                onClick={handlePastGathering}>
-                                Past
-                                <span
-                                    className={`root__irl__events__count ${!isUpcoming ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}
-                                >
-                                    {eventDetails?.pastEvents?.length}
-                                </span>
-                            </button>
-                        </div>
-                        :
-                        <>
-                            {isUpcoming && eventDetails?.upcomingEvents?.length !== 0 && 
-                                <div className="root__irl__events__section">
-                                    <div className="root__irl__events__upcoming-only">
-                                        Upcoming Events
-                                    </div>
-                                    <div className="root__irl__event__count">
-                                        <div className="root__irl__events__upcoming-only--active">
-                                            {eventDetails?.upcomingEvents?.length}
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                             {!isUpcoming && eventDetails?.pastEvents?.length !== 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) &&
-                                <div className="root__irl__events__section">
-                                    <div className="root__irl__events__past-only">
-                                        Past Events
-                                    </div>
-                                    <div className="root__irl__event__count">
-                                        <div className="root__irl__events__past-only--active">
-                                            {eventDetails?.pastEvents?.length}
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </>
-                    }
+  return (
+    <>
+      <div className="root">
+        <div className="root__irl">
+          {eventDetails.upcomingEvents.length !== 0 && eventDetails.pastEvents.length !== 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) ? (
+            <div className={`root__irl__events`}>
+              <button className={`root__irl__events__all ${eventType === 'all' ? 'root__irl__events__active' : 'root__irl__events__inactive'}`} onClick={handleAllGathering}>
+                All
+                <span className={`root__irl__events__count ${eventType === 'all' ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}>{eventDetails?.events?.length}</span>
+              </button>
 
-                    {isUpcoming && eventDetails?.upcomingEvents?.length > 0 && (
-                        <div className="root__irl__eventWrapper">
-                            <div className="root__irl__eventWrapper__icon">
-                                <img src="/images/irl/calendar.svg" alt="calendar" />
-                            </div>
-                            <div>
-                                <span className="root__irl__eventWrapper__mobileTile">Events from</span>
-                                <span className="root__irl__eventWrapper__desktopTile">Upcoming events from</span>
-                                {getFormattedDate(eventDetails?.upcomingEvents)}
-                            </div>
-                        </div>
-                    )}
-                </div>
-                <div className="mob">
-                    {((searchParams?.type === 'past' && eventDetails?.upcomingEvents?.length > 0) ||
-                        (searchParams?.type === 'upcoming' && eventDetails?.pastEvents?.length > 0)) &&
-                        !(eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length !== 0)
-
-                        ?
-                        <div className="root__irl__table__no-data">
-                            <div><img src="/icons/no-calender.svg" alt="calendar" /></div>
-                            <div>No results found for the applied input
-                                {' '}<span
-                                    className="root__irl__table__no-data__errorMsg"
-                                    onClick={handleDataNotFound}
-                                >
-                                    Reset to default
-                                </span>
-                            </div>
-                        </div>
-                        :
-                        <>
-                            {isUpcoming && eventDetails?.upcomingEvents?.length > 0 &&
-                                <IrlUpcomingEvents
-                                    eventDetails={eventDetails}
-                                    isLoggedIn={isLoggedIn}
-                                    isUpcoming={isUpcoming}
-                                    searchParams={searchParams}
-                                    handleDataNotFound={() => handleDataNotFound()}
-                                />
-                            }
-
-                            {!isUpcoming && eventDetails?.pastEvents?.length > 0 &&
-                                <IrlPastEvents
-                                    eventDetails={eventDetails}
-                                    isLoggedIn={isLoggedIn}
-                                    isUpcoming={isUpcoming}
-                                    searchParams={searchParams}
-                                    handleDataNotFound={() => handleDataNotFound()}
-
-                                />
-                            }
-
-                            {eventDetails?.resources?.length > 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) &&
-                                <div className="root__irl__addRes">
-                                    <div className="root__irl__addRes__cnt">
-                                        <div className="root__irl__addRes__cnt__icon">📋</div>
-                                        <div>Additional Resources</div>
-                                    </div>
-
-                                    <div className="root__irl__addRes__cntr">
-                                        <div className="root__irl__addRes__cntr__resource">
-                                            {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
-                                                <div key={index} className="root__irl__addRes__cntr__resCnt">
-                                                    <div style={{ display: "flex" }} onClick={() => handleAdditionalResourceClicked(resource)}>
-                                                        <img
-                                                            src="/icons/hyper-link.svg"
-                                                            alt="icon" />
-                                                    </div>
-                                                    <a href={resource?.link} target='_blank'>
-                                                        {resource?.type}
-                                                    </a>
-                                                    <div>
-                                                        <img
-                                                            src="/icons/arrow-blue.svg"
-                                                            alt="arrow icon" />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {eventDetails?.resources?.length > 3 && (
-                                            <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                                                <div>+{eventDetails?.resources?.length - 3}</div>
-                                                <div>more</div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            }
-                        </>
-                    }
-
-                    {!isLoggedIn &&
-                        <div className="root__irl__addRes__loggedOut">
-                            <div className="root__irl__addRes__cnt__loggedOut">
-                                <div>
-                                    <img src="/icons/info-orange.svg" alt="info" />
-                                </div>
-                                <div>Attending an event but aren&apos;t part of the network yet?</div>
-                                <button onClick={handleJoinPLNetworks}>
-                                    <a href='https://airtable.com/appHT5ErKdHcsFznj/shryt1Y1xDKZTemJS' target='_blank'>Join</a>
-                                </button>
-                            </div>
-                        </div>
-                    }
-                    <Modal modalRef={addResRef} onClose={onCloseModal}>
-                        <div className="root__irl__addRes__popup">
-                            <div className="root__irl__modalHeader">
-                                <div className="root__irl__modalHeader__title">Additional Resources</div>
-                                <div className="root__irl__modalHeader__count">({eventDetails?.resources?.length})</div>
-                            </div>
-                            <div className="root__irl__popupCntr">
-                                {eventDetails?.resources?.map((resource: any, index: number) => (
-                                    <div key={index} className="root__irl__popupCnt">
-                                        <div>
-                                            <img src="/icons/hyper-link.svg" alt="icon" />
-                                        </div>
-                                        <a href={resource?.link} target="_blank">
-                                            {resource?.name}
-                                        </a>
-                                        <div>
-                                            <img src="/icons/arrow-blue.svg" alt="arrow icon" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </Modal>
-                </div>
+              <button className={`root__irl__events__upcoming ${eventType === 'upcoming' ? 'root__irl__events__active' : 'root__irl__events__inactive'}`} onClick={handleUpcomingGathering}>
+                Upcoming
+                <span className={`root__irl__events__count ${eventType === 'upcoming' ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}>
+                  {eventDetails?.upcomingEvents?.length}
+                </span>
+              </button>
+              <button className={`root__irl__events__past ${eventType === 'past' ? 'root__irl__events__active' : 'root__irl__events__inactive'}`} onClick={handlePastGathering}>
+                Past
+                <span className={`root__irl__events__count ${eventType === 'past' ? 'root__irl__events__active__count' : 'root__irl__events__inactive__count'}`}>
+                  {eventDetails?.pastEvents?.length}
+                </span>
+              </button>
             </div>
-            <div className="add-gathering">
-                <div className="add-gathering__icon">
-                    <Image src="/icons/irl/add-gathering.svg" alt="add-gathering" width={19} height={19} />
+          ) : (
+            <>
+              {eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length === 0 && (
+                <div className="root__irl__events__section">
+                  <div className="root__irl__events__upcoming-only">Upcoming Events</div>
+                  <div className="root__irl__event__count">
+                    <div className="root__irl__events__upcoming-only--active">{eventDetails?.upcomingEvents?.length}</div>
+                  </div>
                 </div>
-                <div className="add-gathering__content">
-                    <div className="add-gathering__txt">Don&apos;t see the event you are interested in?</div>
-                    <div className="add-gathering__click">
-                        <a href={IRL_SUBMIT_FORM_LINK} target="_blank" onClick={handleAddGathering}>
-                            Submit an Event
-                        </a>
+              )}
+              {eventDetails?.pastEvents?.length !== 0 && eventDetails?.upcomingEvents?.length === 0 && (
+                <div className="root__irl__events__section">
+                  <div className="root__irl__events__past-only">Past Events</div>
+                  <div className="root__irl__event__count">
+                    <div className="root__irl__events__past-only--active">{eventDetails?.pastEvents?.length}</div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length > 0 && (
+            <div className="root__irl__eventWrapper">
+              <div className="root__irl__eventWrapper__icon">
+                <img src="/images/irl/calendar.svg" alt="calendar" />
+              </div>
+              <div>
+                <span className="root__irl__eventWrapper__mobileTile">Events from</span>
+                <span className="root__irl__eventWrapper__desktopTile">Upcoming events from</span>
+                {getFormattedDate(eventDetails?.upcomingEvents)}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="mob">
+          {((searchParams?.type === 'past' && eventDetails?.upcomingEvents?.length > 0) || (searchParams?.type === 'upcoming' && eventDetails?.pastEvents?.length > 0)) &&
+          !(eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length !== 0) ? (
+            <div className="root__irl__table__no-data">
+              <div>
+                <img src="/icons/no-calender.svg" alt="calendar" />
+              </div>
+              <div>
+                No results found for the applied input{' '}
+                <span className="root__irl__table__no-data__errorMsg" onClick={handleDataNotFound}>
+                  Reset to default
+                </span>
+              </div>
+            </div>
+          ) : (
+            <>
+              {eventType === 'all' && eventDetails?.events?.length > 0 && (
+                <IrlAllEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={false} searchParams={searchParams} handleDataNotFound={() => handleDataNotFound()} />
+              )}
+              {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length > 0 && (
+                <IrlUpcomingEvents
+                  eventDetails={eventDetails}
+                  isLoggedIn={isLoggedIn}
+                  isUpcoming={eventType === 'upcoming'}
+                  searchParams={searchParams}
+                  handleDataNotFound={() => handleDataNotFound()}
+                />
+              )}
+
+              {eventType === 'past' && eventDetails?.pastEvents?.length > 0 && (
+                <IrlPastEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={false} searchParams={searchParams} handleDataNotFound={() => handleDataNotFound()} />
+              )}
+
+              {eventDetails?.resources?.length > 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
+                <div className="root__irl__addRes">
+                  <div className="root__irl__addRes__cnt">
+                    <div className="root__irl__addRes__cnt__icon">📋</div>
+                    <div>Additional Resources</div>
+                  </div>
+
+                  <div className="root__irl__addRes__cntr">
+                    <div className="root__irl__addRes__cntr__resource">
+                      {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
+                        <div key={index} className="root__irl__addRes__cntr__resCnt">
+                          <div style={{ display: 'flex' }} onClick={() => handleAdditionalResourceClicked(resource)}>
+                            <img src="/icons/hyper-link.svg" alt="icon" />
+                          </div>
+                          <a href={resource?.link} target="_blank">
+                            {resource?.type}
+                          </a>
+                          <div>
+                            <img src="/icons/arrow-blue.svg" alt="arrow icon" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
+
+                    {eventDetails?.resources?.length > 3 && (
+                      <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
+                        <div>+{eventDetails?.resources?.length - 3}</div>
+                        <div>more</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
+              )}
+            </>
+          )}
+
+          {!isLoggedIn && (
+            <div className="root__irl__addRes__loggedOut">
+              <div className="root__irl__addRes__cnt__loggedOut">
+                <div>
+                  <img src="/icons/info-orange.svg" alt="info" />
+                </div>
+                <div>Attending an event but aren&apos;t part of the network yet?</div>
+                <button onClick={handleJoinPLNetworks}>
+                  <a href="https://airtable.com/appHT5ErKdHcsFznj/shryt1Y1xDKZTemJS" target="_blank">
+                    Join
+                  </a>
+                </button>
+              </div>
             </div>
-            <style jsx>{`
+          )}
+          <Modal modalRef={addResRef} onClose={onCloseModal}>
+            <div className="root__irl__addRes__popup">
+              <div className="root__irl__modalHeader">
+                <div className="root__irl__modalHeader__title">Additional Resources</div>
+                <div className="root__irl__modalHeader__count">({eventDetails?.resources?.length})</div>
+              </div>
+              <div className="root__irl__popupCntr">
+                {eventDetails?.resources?.map((resource: any, index: number) => (
+                  <div key={index} className="root__irl__popupCnt">
+                    <div>
+                      <img src="/icons/hyper-link.svg" alt="icon" />
+                    </div>
+                    <a href={resource?.link} target="_blank">
+                      {resource?.name}
+                    </a>
+                    <div>
+                      <img src="/icons/arrow-blue.svg" alt="arrow icon" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Modal>
+        </div>
+      </div>
+      <div className="add-gathering">
+        <div className="add-gathering__icon">
+          <Image src="/icons/irl/add-gathering.svg" alt="add-gathering" width={19} height={19} />
+        </div>
+        <div className="add-gathering__content">
+          <div className="add-gathering__txt">Don&apos;t see the event you are interested in?</div>
+          <div className="add-gathering__click">
+            <a href={IRL_SUBMIT_FORM_LINK} target="_blank" onClick={handleAddGathering}>
+              Submit an Event
+            </a>
+          </div>
+        </div>
+      </div>
+      <style jsx>{`
         .root {
           color: #0f172a;
           display: flex;
@@ -388,8 +379,8 @@ const IrlEvents = (props: IIrlEvents) => {
           align-items: center;
         }
 
-        .add-gathering__icon{
-            display: flex;
+        .add-gathering__icon {
+          display: flex;
         }
 
         .add-gathering__txt {
@@ -434,14 +425,13 @@ const IrlEvents = (props: IIrlEvents) => {
 
         .root__irl__events button {
           height: 40px;
-          padding: 6px 12px 6px 12px;
+          padding: 10px 18px;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
           text-align: center;
           border-radius: 8px;
           border: none;
-          width: 155px;
         }
 
         .root__irl__events__active {
@@ -455,29 +445,36 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         .root__irl__events__active {
-            background-color: #156FF7;
-            color: #fff;
+          background-color: #156ff7;
+          color: #fff;
         }
         .root__irl__events__inactive {
-            background-color: #fff;
-            color: #0F172A;
+          background-color: #fff;
+          color: #0f172a;
         }
         .root__irl__events__section {
-            display: flex;
-            flex-direction: row;
-            gap: 8px;
+          display: flex;
+          flex-direction: row;
+          gap: 8px;
         }
-        
+
         .root__irl__events__count {
-            margin-left: 5px;
-            font-size: 11px;
-            font-weight: 500;
-            line-height: 14px;
-            text-align: left;
+          margin-left: 5px;
+          font-size: 11px;
+          font-weight: 500;
+          line-height: 14px;
+          text-align: left;
         }
 
         .root__irl__events__upcoming {
-          width: 122px;
+          height: 40px;
+          padding: 10px 16px 10px 16px;
+          gap: 4px;
+          border-radius: 8px;
+          border: 1px;
+        }
+
+        .root__irl__events__all {
           height: 40px;
           padding: 10px 16px 10px 16px;
           gap: 4px;
@@ -722,35 +719,35 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         .root__irl__event__count {
-            display: flex;
-            align-items: center;
-        }
-            
-        .root__irl__events__upcoming-only , .root__irl__events__past-only {
-            font-size: 17px;
-            font-weight: 500;
-            line-height: 20px;
-            text-align: left;
-            color: #0F172A
+          display: flex;
+          align-items: center;
         }
 
-        .root__irl__events__upcoming-only--active, .root__irl__events__past-only--active {
-            height: 17px;
-            padding: 1px 5px 0px 5px;
-            gap: 10px;
-            border-radius: 2px ;
-            background-color: #156FF7;
-            color: #fff;
-            border: 0.5px solid transparent;
-            font-size: 13px;
-            font-weight: 500;
-            line-height: 12px;
-            text-align: left;
+        .root__irl__events__upcoming-only,
+        .root__irl__events__past-only {
+          font-size: 17px;
+          font-weight: 500;
+          line-height: 20px;
+          text-align: left;
+          color: #0f172a;
+        }
+
+        .root__irl__events__upcoming-only--active,
+        .root__irl__events__past-only--active {
+          padding: 1px 5px 0px 5px;
+          gap: 10px;
+          border-radius: 2px;
+          background-color: #156ff7;
+          color: #fff;
+          border: 0.5px solid transparent;
+          font-size: 13px;
+          font-weight: 500;
+          text-align: left;
         }
 
         .root__irl__table__no-data__errorMsg {
-            cursor: pointer;
-            color: #156FF7;
+          cursor: pointer;
+          color: #156ff7;
         }
 
         @media (min-width: 360px) {
@@ -777,7 +774,7 @@ const IrlEvents = (props: IIrlEvents) => {
             overflow-x: ${searchParams?.type === 'past' ? 'visible' : 'auto'};
             scroll-behavior: smooth;
             scrollbar-width: none;
-            margin-right: ${!isUpcoming ? '20px' : ''};
+            margin-right: ${eventType === 'past' ? '20px' : ''};
           }
 
           .root__irl__addRes__popup {
@@ -790,7 +787,7 @@ const IrlEvents = (props: IIrlEvents) => {
           }
 
           .root__irl__addRes {
-            width: ${isUpcoming ? '858px' : 'unset'};
+            width: ${eventType ? '858px' : 'unset'};
           }
 
           .root__irl {
@@ -800,7 +797,7 @@ const IrlEvents = (props: IIrlEvents) => {
           }
 
           .root__irl__addRes__loggedOut {
-            width: ${isUpcoming ? '858px' : 'unset'};
+            width: ${eventType === 'upcoming' || eventType === 'all' ? '858px' : 'unset'};
           }
 
           .root__irl__eventWrapper__mobileTile {
@@ -818,13 +815,11 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         @media (min-width: 450px) {
-          
-            .add-gathering__content{
-                flex-direction: row;
-                gap: 4px;
-              }
+          .add-gathering__content {
+            flex-direction: row;
+            gap: 4px;
+          }
         }
-        
 
         @media (min-width: 700px) {
           .root__irl {
@@ -885,15 +880,16 @@ const IrlEvents = (props: IIrlEvents) => {
             max-width: 1244px;
           }
 
-          .mob, .root__irl__table__no-data {
-              width: 1203px;
+          .mob,
+          .root__irl__table__no-data {
+            width: 1203px;
           }
           .add-gathering {
             max-width: 1244px;
           }
 
           .root__irl__addRes__cntr {
-              width: 84%;
+            width: 84%;
           }
         }
 
@@ -902,15 +898,16 @@ const IrlEvents = (props: IIrlEvents) => {
             max-width: 1678px;
           }
 
-          .mob, .root__irl__table__no-data {
-              width: 1638px;
+          .mob,
+          .root__irl__table__no-data {
+            width: 1638px;
           }
           .add-gathering {
             max-width: 1678px;
           }
 
           .root__irl__addRes__cntr {
-              width: 88%;
+            width: 88%;
           }
         }
 
@@ -919,20 +916,21 @@ const IrlEvents = (props: IIrlEvents) => {
             max-width: 2240px;
           }
 
-          .mob, .root__irl__table__no-data {
-              width: 2196px;
+          .mob,
+          .root__irl__table__no-data {
+            width: 2196px;
           }
           .add-gathering {
             max-width: 2240px;
           }
 
           .root__irl__addRes__cntr {
-              width: 91%;
+            width: 91%;
           }
         }
       `}</style>
-        </>
-    );
+    </>
+  );
 };
 
 export default IrlEvents;

@@ -107,7 +107,7 @@ const Description = (props: IDescription) => {
             )}
             {showEditor && (
               <div className="desc__header__action">
-                <button className="desc__header__action__cancel" onClick={onCancelClickHandler}>
+                <button className="desc__header__action__cancel" onClick={onCancelClickHandler} data-testid="description-editor-cancel">
                   <span className="desc__header__action__cancel__txt">Cancel</span>
                 </button>
                 <button className="desc__header__action__save" onClick={onSaveClickHandler}>

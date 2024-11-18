@@ -164,7 +164,7 @@ const TextEditor = (props: ITextEditorProps) => {
           {maxLen - textOnly.length}/{maxLen}
         </div>
       </div>
-      <input type="hidden" name='rich-text-editor' value={text}/>
+      <input type="hidden" name='rich-text-editor' value={text} title='rich-text-editor'/>
       <style jsx>{`
         .editor__save-changes {
           padding: 10px 24px;

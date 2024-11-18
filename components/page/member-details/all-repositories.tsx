@@ -6,6 +6,28 @@ interface IAllRepos {
   userInfo: any;
   member: any;
 }
+/**
+ * The `AllRepositories` component displays a list of repositories with a search functionality.
+ * It allows users to filter repositories by name and displays the total count of repositories.
+ *
+ * @component
+ * @param {IAllRepos} props - The properties object.
+ * @param {Array} props.allRepos - The list of all repositories.
+ * @param {Object} props.userInfo - The user information object.
+ * @param {Object} props.member - The member information object.
+ *
+ * @returns {JSX.Element} The rendered component.
+ *
+ * @example
+ * <AllRepositories allRepos={repositories} userInfo={user} member={member} />
+ *
+ * @remarks
+ * This component uses the `useState` and `useEffect` hooks from React to manage state and side effects.
+ * It listens for a custom event `close-member-repos-modal` to reset the search term and repository list.
+ *
+ * @function
+ * @name AllRepositories
+ */
 const AllRepositories = (props: IAllRepos) => {
   const repos = props?.allRepos ?? [];
 

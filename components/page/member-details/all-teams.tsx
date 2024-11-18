@@ -10,6 +10,36 @@ interface IAllTeams {
   member: any;
 }
 
+/**
+ * The `AllTeams` component displays a list of teams with a search functionality.
+ * It allows users to filter teams by name and displays the filtered results.
+ * 
+ * @param {IAllTeams} props - The properties object.
+ * @param {Array} props.teams - The list of teams.
+ * @param {Array} props.sortedTeams - The sorted list of teams.
+ * @param {boolean} props.isLoggedIn - Indicates if the user is logged in.
+ * @param {Object} props.userInfo - Information about the user.
+ * @param {Object} props.member - Information about the member.
+ * 
+ * @returns {JSX.Element} The rendered component.
+ * 
+ * @component
+ * 
+ * @example
+ * const teams = [{ id: 1, name: 'Team A' }, { id: 2, name: 'Team B' }];
+ * const sortedTeams = [{ id: 2, name: 'Team B' }, { id: 1, name: 'Team A' }];
+ * const isLoggedIn = true;
+ * const userInfo = { name: 'John Doe' };
+ * const member = { id: 1, name: 'John Doe' };
+ * 
+ * <AllTeams 
+ *   teams={teams} 
+ *   sortedTeams={sortedTeams} 
+ *   isLoggedIn={isLoggedIn} 
+ *   userInfo={userInfo} 
+ *   member={member} 
+ * />
+ */
 const AllTeams = (props: IAllTeams) => {
   const teams = props?.teams ?? [];
   const sortedTeams = props?.sortedTeams;

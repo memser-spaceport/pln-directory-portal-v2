@@ -10,6 +10,22 @@ interface IContactDetails {
   userInfo: IUserInfo;
 }
 
+/**
+ * The `ContactDetails` component displays a list of social media and contact links for a member.
+ * It accepts a `props` object that contains member details and user information.
+ *
+ * @param {IContactDetails} props - The properties object containing member and user information.
+ * @param {Object} props.member - The member object containing social media handles and contact details.
+ * @param {string} [props.member.githubHandle] - The GitHub handle of the member.
+ * @param {string} [props.member.discordHandle] - The Discord handle of the member.
+ * @param {string} [props.member.telegramHandle] - The Telegram handle of the member.
+ * @param {string} [props.member.twitter] - The Twitter handle of the member.
+ * @param {string} [props.member.linkedinHandle] - The LinkedIn handle of the member.
+ * @param {string} [props.member.email] - The email address of the member.
+ * @param {Object} props.userInfo - The user information object.
+ *
+ * @returns {JSX.Element} The rendered component displaying the contact details.
+ */
 const ContactDetails = (props: IContactDetails) => {
   const member = props?.member;
 

@@ -9,6 +9,24 @@ import { useAuthAnalytics } from '@/analytics/auth.analytics';
 interface IMemberProfileLoginStrip {
   member: IMember;
 }
+/**
+ * MemberProfileLoginStrip component displays a login prompt for users viewing a limited profile.
+ * It shows a message indicating that the user is viewing a limited profile and provides a login option.
+ *
+ * @component
+ * @param {IMemberProfileLoginStrip} props - The properties object.
+ * @param {Object} props.member - The member object containing profile details.
+ * @param {string} props.member.name - The name of the member.
+ *
+ * @returns {JSX.Element} The rendered component.
+ *
+ * @example
+ * <MemberProfileLoginStrip member={{ name: 'John Doe' }} />
+ *
+ * @remarks
+ * This component uses the `useRouter` hook from Next.js for navigation and `useAuthAnalytics` for tracking login button clicks.
+ * It also uses the `Cookies` library to check for user information and `toast` for displaying messages.
+ */
 const MemberProfileLoginStrip = (props: IMemberProfileLoginStrip) => {
   const member = props?.member;
   const router = useRouter();

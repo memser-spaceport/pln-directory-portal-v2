@@ -65,7 +65,7 @@ describe('MemberProfileLoginStrip', () => {
             showGithubHandle: true,
             showGithubProjects: true,
         },
-    };;
+    };
     
     const mockRouter = { push: jest.fn(), refresh: jest.fn() };
     const mockAuthAnalytics = { onLoginBtnClicked: jest.fn() };

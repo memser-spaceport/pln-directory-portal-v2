@@ -9,6 +9,23 @@ interface IMemberRepoCard {
   memebr: IMember;
 }
 
+/**
+ * MemberDetailsRepoCard component displays a repository card with details about a member's repository.
+ * It includes the repository name, description, and a link to the repository.
+ * 
+ * @component
+ * @param {IMemberRepoCard} props - The properties object.
+ * @param {Object} props.repo - The repository information.
+ * @param {string} props.repo.name - The name of the repository.
+ * @param {string} props.repo.description - The description of the repository.
+ * @param {string} props.repo.url - The URL of the repository.
+ * @param {Object} props.userInfo - The user information.
+ * @param {Object} props.memebr - The member information (note: there is a typo in the prop name, it should be `member`).
+ * @param {string} props.memebr.name - The name of the member.
+ * @param {string} props.memebr.id - The ID of the member.
+ * 
+ * @returns {JSX.Element} The rendered component.
+ */
 const MemberDetailsRepoCard = (props: IMemberRepoCard) => {
   const repo = props?.repo;
   const userInfo = props?.userInfo;

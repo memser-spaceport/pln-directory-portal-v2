@@ -25,7 +25,8 @@ const nextConfig = {
     AUTH_API_URL: process.env.AUTH_API_URL,
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
     HUSKY_API_URL: process.env.HUSKY_API_URL,
-    TEXT_EDITOR_API_KEY: process.env.TEXT_EDITOR_API_KEY
+    TEXT_EDITOR_API_KEY: process.env.TEXT_EDITOR_API_KEY,
+    REVALIDATE_TOKEN: process.env.REVALIDATE_TOKEN,
   },
   images: {
     remotePatterns: [

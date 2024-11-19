@@ -6,7 +6,7 @@ import { getFocusAreas } from './common.service';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 export const getAllTeams = async (authToken: string, queryParams: any, currentPage: number, limit: number) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'no-store' };
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'force-cache', next: { tags: ['teams-list'] } };
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`, requestOPtions);
   const result = await response.json();
   if (!response?.ok) {
@@ -32,7 +32,18 @@ export const getAllTeams = async (authToken: string, queryParams: any, currentPa
 
 export const getTeamsFilters = async (options: ITeamListOptions, searchParams: ITeamsSearchParams) => {
   let totalTeams = 0;
-  const [allTeams, availableValuesByFilter, focusAreaResposne] = await Promise.all([getTeamsByFilters({}), getTeamsByFilters(options), getFocusAreas('Team', searchParams)]);
+
+  const getTeams = async () => {
+    const res = await fetch(`${process.env.APPLICATION_BASE_URL}/teams/api`, {
+      cache: 'force-cache',
+      next: {
+        tags: ['teams-filter'],
+      },
+    });
+    const data = await res.json();
+    return data;
+  };
+  const [allTeams, availableValuesByFilter, focusAreaResposne] = await Promise.all([getTeams(), getTeamsByFilters(options), getFocusAreas('Team', searchParams)]);
 
   if (allTeams?.error || availableValuesByFilter?.error || focusAreaResposne?.error) {
     return { error: { statusText: allTeams?.error?.statusText } };
@@ -132,7 +143,7 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
 
 export const getTeamsForProject = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?select=uid,name,shortDescription,logo.url&&pagination=false&&with=teamMemberRoles`, {
-    cache:'no-store',
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -205,7 +216,7 @@ export const getTeamsInfoForDp = async () => {
       return {
         id: info?.uid,
         name: info?.name,
-        imageFile: info?.logo?.url
+        imageFile: info?.logo?.url,
       };
     })
     .sort((a: any, b: any) => a?.name?.localeCompare(b?.name));
@@ -238,4 +249,4 @@ export const getMemberTeams = async (memberId: string) => {
   return result.map((item: any) => {
     return { label: item.name, value: item.uid };
   });
-}
+};

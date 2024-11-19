@@ -20,8 +20,6 @@ interface IMemberProfileLoginStrip {
  *
  * @returns {JSX.Element} The rendered component.
  *
- * @example
- * <MemberProfileLoginStrip member={{ name: 'John Doe' }} />
  *
  * @remarks
  * This component uses the `useRouter` hook from Next.js for navigation and `useAuthAnalytics` for tracking login button clicks.

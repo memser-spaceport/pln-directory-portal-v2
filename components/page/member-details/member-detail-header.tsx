@@ -17,6 +17,28 @@ interface IMemberDetailHeader {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
 }
+/**
+ * MemberDetailHeader component displays the header section of a member's detail page.
+ * It includes the member's profile picture, name, role, location, and other relevant information.
+ * It also provides options for editing the profile if the user is an admin or the owner of the profile.
+ *
+ * @param {IMemberDetailHeader} props - The properties passed to the component.
+ * @param {Object} props.member - The member object containing details about the member.
+ * @param {string} props.member.name - The name of the member.
+ * @param {string} [props.member.profile='/icons/default_profile.svg'] - The profile picture URL of the member.
+ * @param {Object} props.member.mainTeam - The main team object of the member.
+ * @param {string} props.member.mainTeam.role - The role of the member in the main team.
+ * @param {Array} props.member.teams - The list of teams the member is part of.
+ * @param {boolean} props.member.teamLead - Indicates if the member is a team lead.
+ * @param {boolean} props.member.openToWork - Indicates if the member is open to work.
+ * @param {Array} props.member.skills - The list of skills the member has.
+ * @param {Object} props.userInfo - The user information object.
+ * @param {string} props.userInfo.uid - The user ID of the logged-in user.
+ * @param {Array} props.userInfo.roles - The roles of the logged-in user.
+ * @param {boolean} props.isLoggedIn - Indicates if the user is logged in.
+ *
+ * @returns {JSX.Element} The rendered MemberDetailHeader component.
+ */
 const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const member = props?.member;
   const name = member?.name ?? '';

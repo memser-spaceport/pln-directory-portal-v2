@@ -16,15 +16,3 @@ export const getFocusAreas = async (type: string, queryParams: any) => {
     }
     return await { data: await response.json() };
 };
-
-export const getRecentBookedOfficeHours = async (authToken: string) => {
-
-    return {
-        data: [
-            {
-                name: 'Vellaiyan'
-            }
-        ]
-    }
-
-}

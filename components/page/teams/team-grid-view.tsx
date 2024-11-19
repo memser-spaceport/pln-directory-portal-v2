@@ -1,10 +1,6 @@
 'use client';
 
-import { ITag, ITeam } from '@/types/teams.types';
-import { VIEW_TYPE_OPTIONS } from '@/utils/constants';
-import { Fragment } from 'react';
-import { Tooltip } from '../../core/tooltip/tooltip';
-import { Tag } from '../../ui/tag';
+import { ITeam } from '@/types/teams.types';
 import TeamsTagsList from './teams-tags-list';
 
 interface ITeamGridView {

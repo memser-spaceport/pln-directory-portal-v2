@@ -1,19 +1,17 @@
-import { getAllTeams, getTeamsFilters } from '@/services/teams.service';
-import { IUserInfo } from '@/types/shared.types';
+import { getTeamsFilters } from '@/services/teams.service';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
 import { calculateTotalPages } from '@/utils/common.utils';
-import { ITEMS_PER_PAGE, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
 import { Metadata } from 'next';
 import EmptyResult from '../../components/core/empty-result';
 import Error from '../../components/core/error';
-import { PaginationBox } from '../../components/core/pagination-box';
 import FilterWrapper from '../../components/page/teams/filter-wrapper';
-import TeamsList from '../../components/page/teams/team-list';
 import TeamsToolbar from '../../components/page/teams/teams-toolbar';
 import styles from './page.module.css';
 import TeamListWrapper from '@/components/page/teams/teams-list-wrapper';
+import { GET } from './api/teams/route';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -62,8 +60,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
 
     currentPage = searchParams?.page ? Number(searchParams?.page) : 1;
-    const [teamsResponse, teamFiltersResponse] = await Promise.all([getAllTeams(authToken, listOptions, 0, 0), getTeamsFilters(optionsFromQuery, searchParams)]);
-
+    const [teamsResponse, teamFiltersResponse] = await Promise.all([GET(authToken, listOptions, 0, 0), getTeamsFilters(optionsFromQuery, searchParams)]);
     if (teamsResponse?.error || teamFiltersResponse?.error) {
       isError = true;
       return { isError, filtersValues, totalTeams, currentPage };

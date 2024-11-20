@@ -19,6 +19,23 @@ interface IMemberTeamCard {
   isPopupOpen?: boolean;
 }
 
+/**
+ * MemberDetailsTeamCard component displays the details of a team member including their profile picture, name, role, and tags.
+ * It also handles the click event to track analytics when the team card is clicked.
+ *
+ * @param {IMemberTeamCard} props - The properties object.
+ * @param {Object} props.team - The team object containing team details.
+ * @param {boolean} props.isLoggedIn - Indicates if the user is logged in.
+ * @param {string} props.role - The role of the team member.
+ * @param {boolean} props.isMainTeam - Indicates if this is the main team.
+ * @param {Array} props.tags - The tags associated with the team member.
+ * @param {string} props.url - The URL to navigate to when the team card is clicked.
+ * @param {Object} props.userInfo - The user information for analytics.
+ * @param {Object} props.member - The member information for analytics.
+ * @param {boolean} props.isPopupOpen - Indicates if the popup is open.
+ *
+ * @returns {JSX.Element} The rendered component.
+ */
 const MemberDetailsTeamCard = (props: IMemberTeamCard) => {
   const team = props?.team;
   const isLoggedIn = props?.isLoggedIn;

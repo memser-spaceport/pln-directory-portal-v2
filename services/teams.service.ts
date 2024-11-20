@@ -5,6 +5,103 @@ import { getTagsFromValues, parseTeamsFilters } from '@/utils/team.utils';
 import { getFocusAreas } from './common.service';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
+
+const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`
+
+export const getTeamList = async (queryParams: any, currentPage: number, limit: number) => {
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['teams-list'], revalidate: 3600 * 24 } };
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`, requestOPtions);
+  const result = await response.json();
+  if (!response?.ok) {
+    return { error: { statusText: response?.statusText } };
+  }
+  const formattedData = result?.map((team: ITeamResponse) => {
+    return {
+      id: team?.uid,
+      name: team?.name,
+      logo: team?.logo?.url,
+      shortDescription: team?.shortDescription,
+      industryTags: team?.industryTags || [],
+    };
+  });
+  return { data: { formattedData } };
+};
+
+export const getTeamListFilters = async () => {
+  const res = await fetch(`${process.env.APPLICATION_BASE_URL}/teams/api`, {
+    cache: 'force-cache',
+    next: {
+      tags: ['teams-filter'],
+      revalidate: 3600 * 24
+    },
+  });
+  if(!res.ok) {
+    console.log('Error in fetching team filters');
+    return { error: { statusText: res.statusText } };
+  }
+  const data = await res.json();
+  return data;
+};
+
+export const getTeamListFiltersForOptions = async (options: any) => {
+  const res = await fetch(`${process.env.APPLICATION_BASE_URL}/teams/api?${new URLSearchParams(options)}`, {
+    cache: 'force-cache',
+    next: {
+      tags: ['teams-filter-available'],
+      revalidate: 3600 * 24
+    },
+  });
+  if(!res.ok) {
+    console.log('Error in fetching team filters');
+    return { error: { statusText: res.statusText } };
+
+  }
+  const data = await res.json();
+  return data;
+};
+
+export const getFocusAreasForTeams = async (queryParams: any) => {
+  const includeFriends = queryParams?.includeFriends ?? 'false';
+  const officeHoursFilter = queryParams?.officeHoursOnly ?? false;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/focus-areas?type=Team&plnFriend=${includeFriends}&officeHours=${officeHoursFilter}&${new URLSearchParams(queryParams)}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    cache: 'force-cache',
+    next: { tags: ['focus-areas'], revalidate: 3600 * 24 },
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!response?.ok) {
+    return { error: { statusText: response?.statusText } };
+  }
+  return await { data: await response.json() };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const getAllTeams = async (authToken: string, queryParams: any, currentPage: number, limit: number) => {
   const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'force-cache', next: { tags: ['teams-list'] } };
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`, requestOPtions);
@@ -33,17 +130,7 @@ export const getAllTeams = async (authToken: string, queryParams: any, currentPa
 export const getTeamsFilters = async (options: ITeamListOptions, searchParams: ITeamsSearchParams) => {
   let totalTeams = 0;
 
-  const getTeams = async () => {
-    const res = await fetch(`${process.env.APPLICATION_BASE_URL}/teams/api`, {
-      cache: 'force-cache',
-      next: {
-        tags: ['teams-filter'],
-      },
-    });
-    const data = await res.json();
-    return data;
-  };
-  const [allTeams, availableValuesByFilter, focusAreaResposne] = await Promise.all([getTeams(), getTeamsByFilters(options), getFocusAreas('Team', searchParams)]);
+  const [allTeams, availableValuesByFilter, focusAreaResposne] = await Promise.all([getTeamList({}, 0, 0), getTeamsByFilters(options), getFocusAreas('Team', searchParams)]);
 
   if (allTeams?.error || availableValuesByFilter?.error || focusAreaResposne?.error) {
     return { error: { statusText: allTeams?.error?.statusText } };

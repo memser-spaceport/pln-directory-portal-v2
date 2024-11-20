@@ -1,9 +1,9 @@
-import { getAllTeams, getTeamsFilters } from '@/services/teams.service';
+import { getAllTeams, getFocusAreasForTeams, getTeamList, getTeamListFilters, getTeamListFiltersForOptions, getTeamsFilters } from '@/services/teams.service';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
 import { calculateTotalPages } from '@/utils/common.utils';
-import { ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { ITEMS_PER_PAGE, SOCIAL_IMAGE_URL, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
+import { getTagsFromValues, getTeamsListOptions, getTeamsOptionsFromQuery, parseTeamsFilters } from '@/utils/team.utils';
 import { Metadata } from 'next';
 import EmptyResult from '../../components/core/empty-result';
 import Error from '../../components/core/error';
@@ -15,9 +15,7 @@ import TeamListWrapper from '@/components/page/teams/teams-list-wrapper';
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
 
-  const { teams, filtersValues, isError, totalTeams, currentPage } = await getPageData(searchParams);
-
-  const totalPages = calculateTotalPages(totalTeams, ITEMS_PER_PAGE);
+  const { teams, filtersValues, isError, totalTeams } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
@@ -57,19 +55,53 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     const { authToken } = getCookiesFromHeaders();
     const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
-
     currentPage = searchParams?.page ? Number(searchParams?.page) : 1;
-    const [teamsResponse, teamFiltersResponse] = await Promise.all([getAllTeams(authToken, listOptions, 1, 50), getTeamsFilters(optionsFromQuery, searchParams)]);
-    if (teamsResponse?.error || teamFiltersResponse?.error) {
-      isError = true;
-      return { isError, filtersValues, totalTeams, currentPage };
-    }
 
-    teams = teamsResponse.data?.formattedData;
-    filtersValues = teamFiltersResponse?.data?.formattedFilters;
-    totalTeams = teamFiltersResponse?.data?.totalTeams;
-    return { teams, filtersValues, totalTeams, currentPage };
+
+    const [teamListRsp, teamListFiltersRsp, teamListFitersForOpsRsp, focusAreaRsp] = await Promise.all([
+      getTeamList(listOptions, 1, 50),
+      getTeamListFilters(),
+      getTeamListFiltersForOptions(searchParams),
+      getFocusAreasForTeams(searchParams),
+    ]);
+
+    console.log('teamListRsp', teamListFiltersRsp);
+
+
+    totalTeams = teamListFitersForOpsRsp?.data?.formattedData?.length;
+
+    const formattedValuesByFilter = parseTeamsFilters(teamListFiltersRsp?.data?.formattedData);
+    const formattedAvailableValuesByFilter = parseTeamsFilters(teamListFitersForOpsRsp?.data?.formattedData);
+
+    const focusAreaQuery = searchParams?.focusAreas;
+    const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR);
+    const selectedFocusAreas = focusAreaFilters?.length > 0 ? focusAreaRsp?.data?.filter((focusArea: any) => focusAreaFilters.includes(focusArea.title)) : [];
+
+    const formattedFilters = {
+      tags: getTagsFromValues(formattedValuesByFilter?.tags, formattedAvailableValuesByFilter?.tags, searchParams?.tags),
+      membershipSources: getTagsFromValues(formattedValuesByFilter?.membershipSources, formattedAvailableValuesByFilter?.membershipSources, searchParams?.membershipSources),
+      fundingStage: getTagsFromValues(formattedValuesByFilter?.fundingStage, formattedAvailableValuesByFilter?.fundingStage, searchParams?.fundingStage),
+      technology: getTagsFromValues(formattedValuesByFilter?.technology, formattedAvailableValuesByFilter?.technology, searchParams?.technology),
+      focusAreas: {
+        rawData: focusAreaRsp?.data,
+        selectedFocusAreas,
+      },
+    };
+
+    console.log('formattedFilters', formattedFilters);
+    
+
+    // if (teamListRsp?.error || teamFiltersResponse?.error) {
+    //   isError = true;
+    //   return { isError, filtersValues, totalTeams, currentPage };
+    // }
+
+    teams = teamListRsp.data?.formattedData;
+    filtersValues = formattedFilters;
+    totalTeams = totalTeams;
+    return JSON.parse(JSON.stringify({ isError, filtersValues, totalTeams, currentPage, teams }));
   } catch (error: unknown) {
+    console.error('Error in getPageData', error);
     isError = true;
     return { isError, filtersValues, totalTeams, currentPage };
   }

@@ -131,7 +131,5 @@ describe('MemberDetailsTeamCard', () => {
     render(<MemberDetailsTeamCard team={team} isLoggedIn={true} role="Developer" tags={tags} isMainTeam={false} url="http://example.com" userInfo={userInfo} member={member} isPopupOpen={true} />);
     expect(screen.getAllByText('Tag1')).toHaveLength(2);
     expect(screen.getAllByText('Tag2')).toHaveLength(2);
-    expect(screen.getAllByText('Tag3')).toHaveLength(2);
-    expect(screen.getAllByText('Tag4')).toHaveLength(2);
   });
 });

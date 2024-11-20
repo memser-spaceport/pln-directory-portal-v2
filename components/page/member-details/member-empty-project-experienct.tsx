@@ -7,6 +7,23 @@ interface IMemberEmptyProjectExperience {
   member: any;
   profileType: string;
 }
+/**
+ * MemberEmptyProjectExperience component displays a message to the user
+ * indicating that no project experience or contribution details have been added.
+ * 
+ * @param {IMemberEmptyProjectExperience} props - The properties object.
+ * @param {Object} props.userInfo - The information about the current user.
+ * @param {Array<string>} [props.userInfo.roles] - The roles assigned to the current user.
+ * @param {Object} props.member - The information about the member whose details are being viewed.
+ * 
+ * @returns {JSX.Element} The rendered component.
+ * 
+ * The component checks if the current user is the owner of the profile or an admin.
+ * If the user is either the owner or an admin, it displays a link to add project experience and contribution details.
+ * If the user is neither the owner nor an admin, it displays a message indicating that no project has been added yet.
+ * 
+ * The component also includes some basic styling for the displayed messages.
+ */
 const MemberEmptyProjectExperience = (props: IMemberEmptyProjectExperience) => {
   const userInfo = props?.userInfo;
   const member = props?.member;

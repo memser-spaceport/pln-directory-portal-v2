@@ -9,6 +9,17 @@ import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 
+/**
+ * MemberOfficeHours component displays the office hours of a member and provides options to schedule a meeting or learn more.
+ * 
+ * @param {object} props - The properties object.
+ * @param {object} props.member - The member object containing details about the member.
+ * @param {boolean} props.isLoggedIn - Indicates if the user is logged in.
+ * @param {object} props.userInfo - The user information object.
+ * 
+ * @returns {JSX.Element} The rendered component.
+ * 
+ */
 const MemberOfficeHours = (props: any) => {
   const member = props?.member;
   const officeHours = member?.officeHours;

@@ -18,6 +18,24 @@ interface IMemberProjectExperience {
   userInfo: any;
 }
 
+/**
+ * Component to display a member's project contributions.
+ * 
+ * @param {IMemberProjectExperience} props - The properties for the component.
+ * @param {Object} props.member - The member whose project contributions are being displayed.
+ * @param {Object} props.userInfo - The user information of the currently logged-in user.
+ * 
+ * @returns {JSX.Element} The rendered component.
+ * 
+ * 
+ * @remarks
+ * This component displays the project contributions of a member, allowing the user to see both present and past contributions.
+ * It also provides options for the owner or an admin to add or edit contributions, and to see all contributions if there are more than three.
+ * 
+ * @function
+ * @name MemberProjectContribution
+ * 
+ */
 const MemberProjectContribution = (props: IMemberProjectExperience) => {
   const member = props?.member;
   const userInfo = props?.userInfo;

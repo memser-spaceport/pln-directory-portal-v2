@@ -109,7 +109,6 @@ describe('MemberProjectContribution', () => {
     const { container } = render(<MemberProjectContribution member={memberWithMoreContributions} userInfo={userInfo} />);
     fireEvent.click(screen.getByText('See all'));
     expect(mockAnalytics.onSeeAllProjectContributionsClicked).toHaveBeenCalled();
-    console.log(container.innerHTML);
     const clsbtn = container.querySelector('img[src="/icons/close.svg"]');
     clsbtn && fireEvent.click(clsbtn);
     expect(dispatchEventSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'close-member-projects-modal' }));

@@ -57,7 +57,7 @@ export interface IMember {
   mainTeam: IMemberTeam | null;
   openToWork: boolean;
   linkedinHandle?: string | null;
-  repositories?: [];
+  repositories?: any;
   preferences: IMemberPreferences;
   bio?: string;
 }

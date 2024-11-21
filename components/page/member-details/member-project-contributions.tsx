@@ -4,6 +4,28 @@ import MemberProjectExperienceCard from './member-project-experience-card';
 interface IAllProjectExperience {
   contributions: any;
 }
+/**
+ * MemberProjectContributions component displays a list of project contributions for a member.
+ * It includes a search bar to filter contributions by project name.
+ *
+ * @param {IAllProjectExperience} props - The props object containing all project experience data.
+ * @returns {JSX.Element} The rendered component.
+ *
+ * @component
+ * @example
+ * const contributions = [
+ *   { project: { name: 'Project A' }, ... },
+ *   { project: { name: 'Project B' }, ... }
+ * ];
+ * return <MemberProjectContributions contributions={contributions} />;
+ *
+ * @remarks
+ * - The component listens for a custom event 'close-member-projects-modal' to reset the contributions list and search term.
+ * - The search functionality filters contributions based on the project name.
+ *
+ * @internal
+ * This component is intended for internal use within the project and may not be suitable for external use.
+ */
 const MemberProjectContributions = (props: IAllProjectExperience) => {
   const contributions = props?.contributions ?? [];
   const [allContributions, setAllContributions] = useState(contributions);

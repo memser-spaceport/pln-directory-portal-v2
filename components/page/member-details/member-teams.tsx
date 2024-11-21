@@ -17,6 +17,18 @@ interface IMemberTeams {
   teams: ITeam[];
 }
 
+/**
+ * MemberTeams component displays a list of teams associated with a member.
+ * It shows a maximum of three teams initially and provides an option to see all teams in a modal.
+ *
+ * @param {IMemberTeams} props - The properties object.
+ * @param {Object} props.member - The member object containing team information.
+ * @param {Array} props.teams - The array of teams associated with the member.
+ * @param {boolean} props.isLoggedIn - Indicates if the user is logged in.
+ * @param {Object} props.userInfo - The user information object.
+ *
+ * @returns {JSX.Element} The rendered MemberTeams component.
+ */
 const MemberTeams = (props: IMemberTeams) => {
   const member = props?.member;
   const teams = props?.teams ?? [];

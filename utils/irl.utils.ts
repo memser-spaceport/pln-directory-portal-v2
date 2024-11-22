@@ -214,9 +214,9 @@ export function sortPastEvents(events: any[]) {
   return events; // Return the sorted array if needed
 }
 
-export const transformMembers = (result: any, currentEvents:string[]) => {
+export const transformMembers = (result: any, currentEvents: string[]) => {
   if (!Array.isArray(result)) return []; // Return empty array if result is not iterable
-  
+
   return result.map((guest: any) => {
     const { member, team, events } = guest || {};
     const memberTeams = member?.teamMemberRoles || [];
@@ -257,7 +257,6 @@ export const transformMembers = (result: any, currentEvents:string[]) => {
     };
   });
 };
-
 
 export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
   const { type, sortDirection, sortBy, search, attending, attendees, topics, event } = searchParams;
@@ -342,7 +341,7 @@ export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents:
     }
   });
 
-  const filteredEvents = Array.from(uniqueEventsMap.values())?.filter(event => event._count && event._count.eventGuests > 0);
+  const filteredEvents = Array.from(uniqueEventsMap.values())?.filter((event) => event._count && event._count.eventGuests > 0);
 
   // Convert the map values to an array for the final unique events list
   return filteredEvents;
@@ -384,3 +383,14 @@ export const transformGuestDetail = (result: any) => {
     count: detail?.count,
   };
 };
+
+export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, pastEvents: any) {
+  if (!searchType) {
+    return false;
+  } else if (searchType === 'upcoming' || (upcomingEvents && upcomingEvents.length > 0 && pastEvents && pastEvents.length === 0)) {
+    return true;
+  } else if (searchType === 'past' || (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0)) {
+    return true;
+  }
+  return false;
+}

@@ -19,6 +19,7 @@ interface IGuestList {
   isLoggedIn: boolean;
   onLogin: () => void;
   searchParams: any;
+  isAdminInAllEvents: any;
 }
 
 const GuestList = (props: IGuestList) => {
@@ -32,6 +33,7 @@ const GuestList = (props: IGuestList) => {
   const isLoggedIn = props.isLoggedIn;
   const onLogin = props.onLogin;
   const searchParams = props?.searchParams;
+  const isAdminInAllEvents = props?.isAdminInAllEvents;
 
   const analytics = useIrlAnalytics();
   const router = useRouter();
@@ -92,6 +94,7 @@ const GuestList = (props: IGuestList) => {
                   onchangeSelectionStatus={onchangeSelectionStatus}
                   isLoggedIn={isLoggedIn}
                   onLogin={onLogin}
+                  isAdminInAllEvents={isAdminInAllEvents}
                 />
               </div>
             );

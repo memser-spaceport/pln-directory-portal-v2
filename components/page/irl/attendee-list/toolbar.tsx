@@ -17,6 +17,7 @@ interface IToolbar {
   isLoggedIn: boolean;
   eventDetails: IGuestDetails;
   location: IAnalyticsGuestLocation;
+  isAdminInAllEvents: any;
 }
 
 const Toolbar = (props: IToolbar) => {
@@ -30,6 +31,7 @@ const Toolbar = (props: IToolbar) => {
   const eventDetails = props?.eventDetails;
   const updatedUser = eventDetails?.currentGuest ?? null;
   const isUserGoing = eventDetails?.isUserGoing;
+  const isAdminInAllEvents = props?.isAdminInAllEvents;
 
   //states
   // const [searchTerm, setSearchTerm] = useState('');
@@ -51,7 +53,7 @@ const Toolbar = (props: IToolbar) => {
 
   //hooks
   const analytics = useIrlAnalytics();
-  const canUserAddAttendees = (type === 'upcoming' || type === 'past') && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
   const onEditResponseClick = () => {
     // setIamGoingPopupProps({isOpen: true, formdata: updatedUser, mode: IAM_GOING_POPUP_MODES.EDIT});
@@ -60,7 +62,7 @@ const Toolbar = (props: IToolbar) => {
 
   // Open Attendee Details Popup to add guest
   const onIAmGoingClick = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: {member: userInfo}, mode: IAM_GOING_POPUP_MODES.ADD} }));
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: { member: userInfo }, mode: IAM_GOING_POPUP_MODES.ADD } }));
     analytics.trackImGoingBtnClick(location);
   };
 
@@ -90,11 +92,11 @@ const Toolbar = (props: IToolbar) => {
     }
     router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
     analytics.trackGuestListSearch(location, value);
-  }, 300); 
+  }, 300);
 
   const getValue = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event?.target?.value;
-    updateQueryParams(searchValue?.trim())
+    updateQueryParams(searchValue?.trim());
   };
 
   const onLoginClick = () => {
@@ -151,13 +153,11 @@ const Toolbar = (props: IToolbar) => {
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
   };
 
-  
   useEffect(() => {
     if (searchRef.current) {
       searchRef.current.value = search ?? '';
     }
   }, [router, searchParams]);
-
 
   return (
     <>
@@ -213,9 +213,9 @@ const Toolbar = (props: IToolbar) => {
             </div>
           )}
         </div>
-          <div className="toolbar__search">
-            <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
-          </div>
+        <div className="toolbar__search">
+          <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
+        </div>
       </div>
 
       <style jsx>

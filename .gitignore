@@ -37,4 +37,5 @@ yarn-error.log*
 next-env.d.ts
 
 #husky files
-./helper/secret-check.js
+#husky files
+helper/secret-check.js

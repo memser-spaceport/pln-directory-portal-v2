@@ -1,0 +1,3 @@
+#!/bin/bash
+#!/bin/sh
+npx node ./helper/secret-check.js $(git diff --name-only HEAD origin/$(git rev-parse --abbrev-ref HEAD))

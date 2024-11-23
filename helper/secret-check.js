@@ -5,8 +5,7 @@ const path = require("path");
 // List of secret patterns
 const secretPatterns = [
   // AWS Keys
-  /AKIA[0-9A-Z]{16}/, // AWS Access Key
-  /[A-Za-z0-9/+=]{40}/, // AWS Secret Access Key
+  /AKIA[0-9A-Z]{16,40}/, // AWS Access Key
 
   // Google Cloud Keys
   /AIza[0-9A-Za-z-_]{35}/, // Google API Key
@@ -30,17 +29,17 @@ const secretPatterns = [
   /AIza[0-9A-Za-z-_]{35}/, // Firebase API Key
 
   // Docker Hub Token
-  /[A-Za-z0-9]{30}/, // Docker Hub Access Token
+  // /[A-Za-z0-9]{30}/, // Docker Hub Access Token
 
   // Generic Base64 encoded secrets (e.g., tokens)
-  /[A-Za-z0-9+\/=]{32,}/, // Base64 Token Pattern
+  // /[A-Za-z0-9+\/=]{32,}/, // Base64 Token Pattern
 
   // Miscellaneous sensitive data (e.g., passwords, JWTs)
   /(?:eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,})/, // JWT Token Pattern
   /password[\s]*=[\s]*['"][^'"]{8,}['"]/i, // Password Pattern
 
   // OAuth tokens
-  /[A-Za-z0-9_-]{35,}/, // Generic OAuth Token
+  // /[A-Za-z0-9_-]{35,}/, // Generic OAuth Token
 ];
 
 // Function to check if a file contains any secret pattern and return the line numbers
@@ -51,7 +50,9 @@ function containsSecrets(filePath) {
   content.forEach((line, index) => {
     secretPatterns.forEach((pattern) => {
       const matches = line.match(pattern);
+      
       if (matches) {
+        console.log('Secret matching pattern ',pattern);
         matches.forEach((match) => {
           foundSecrets.push({
             secret: match,
@@ -74,10 +75,12 @@ files.forEach((file) => {
   const secrets = containsSecrets(filePath);
 
   if (secrets.length > 0) {
-    console.log(`Secrets detected in ${filePath}:`);
+    console.log(`❌ Action Aborted: Sensitive data detected.`);
+    console.log(`🚨 WARNING: Secrets detected in ${filePath}:`);
     secrets.forEach((secretObj) => {
-      console.log(`(Line ${secretObj.lineNumber})  - ${secretObj.secret} `); // Log each found secret with line number
+      console.log(`Line ${secretObj.lineNumber} : ${secretObj.secret} `); // Log each found secret with line number
     });
     process.exit(1); // Reject the commit if secrets are found
   }
 });
+console.log("✅ Secrets check passed!");

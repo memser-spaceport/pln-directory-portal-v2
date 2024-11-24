@@ -1,0 +1,18 @@
+name: Auto-Populate PR Title from Commit Message
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  update-title:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get commit message for PR title
+        run: |
+          COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.event.pull_request.head.sha }})
+          PR_TITLE="Change: $COMMIT_MESSAGE"
+          curl -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"title": "'"$PR_TITLE"'"}' \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}"

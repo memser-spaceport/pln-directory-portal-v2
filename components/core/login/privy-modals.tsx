@@ -324,10 +324,7 @@ function PrivyModals() {
       linkEmail();
       setLinkAccountKey('');
     } 
-    // else if (linkAccountKey === 'updateEmail') {
-    //   updateEmail();
-    //   setLinkAccountKey('');
-    // }
+    
   }, [linkAccountKey]);
 
   return (

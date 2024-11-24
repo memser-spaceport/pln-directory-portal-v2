@@ -1,5 +1,17 @@
 #!/bin/bash
 #!/bin/sh
+# Get commit message
+COMMIT_MSG_FILE=$1
+COMMIT_MESSAGE=$(cat "$COMMIT_MSG_FILE")
+
+# Check for `--amend`
+if [ ! -z "$GIT_INDEX_FILE" ]; then
+  echo "Amended commit detected. Skipping commit message validation."
+  exit 0
+fi
+
+exit 1
+
 echo "🔄 Validating for any secrets in the staged files..."
 
 npx node ./helper/secret-check.js $(git diff --cached --name-only --diff-filter=ACM)

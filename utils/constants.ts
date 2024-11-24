@@ -30,7 +30,6 @@ export const NAV_OPTIONS = [
     unSelectedLogo: '/icons/nav-calendar.svg',
   },
 ];
-//test
 export const EVENTS = {
   TRIGGER_LOADER: 'TRIGGER_LOADER',
   TRIGGER_MOBILE_NAV: 'TRIGGER_MOBILE_NAV',

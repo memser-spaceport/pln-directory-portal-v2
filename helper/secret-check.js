@@ -76,7 +76,7 @@ files.forEach((file) => {
 
   if (secrets.length > 0) {
     console.log(`❌ Action Aborted: Sensitive data detected.`);
-    console.log(`🚨 WARNING: Secrets detected in ${filePath}:`);
+    console.log(`🚨⚠️ WARNING: Secrets detected in ${filePath}:`);
     secrets.forEach((secretObj) => {
       console.log(`Line ${secretObj.lineNumber} : ${secretObj.secret} `); // Log each found secret with line number
     });

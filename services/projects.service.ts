@@ -132,14 +132,14 @@ const getFormattedProject = (project: any) => {
 export const getAllProjects = async (queryParams: any, currentPage: number, limit = 0) => {
     const requestOptions: RequestInit = { method: "GET", cache: "no-store" };
     const response = await fetch(
-        `${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&${new URLSearchParams(queryParams)}`,
+        `${process.env.DIRECTORY_API_URL}/v1/projects?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`,
         requestOptions
     );
     const result = await response.json();
     if (!response?.ok) {
         return { error: { statusText: response?.statusText } };
     }
-    const formattedData = result?.map((project: any) => {
+    const formattedData = result?.projects?.map((project: any) => {
         return {
             id: project?.uid,
             name: project?.name,
@@ -150,7 +150,7 @@ export const getAllProjects = async (queryParams: any, currentPage: number, limi
             tagline: project?.tagline,
         };
     });
-    return { data: { formattedData, totalProjects: result?.length } };
+    return { data: { formattedData, totalProjects: result?.count } };
 };
 
 

@@ -245,7 +245,7 @@ export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedI
 export const getMemberInfoFormValues = async () => {
   const [teamsInfo, projectsInfo, skillsInfo] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false`, { method: 'GET' }),
-    fetch(`${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false`, { method: 'GET' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&select=name,uid,logo.url`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/skills?pagination=false`, { method: 'GET' }),
   ]);
   if (!teamsInfo.ok || !projectsInfo.ok || !skillsInfo.ok) {
@@ -273,8 +273,8 @@ export const getMemberInfoFormValues = async () => {
         };
       })
       .sort((a: any, b: any) => a.name - b.name),
-    projects: projectsData
-      .map((d: any) => {
+    projects: projectsData?.projects
+      ?.map((d: any) => {
         return {
           projectUid: d.uid,
           projectName: d.name,

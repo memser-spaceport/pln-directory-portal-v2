@@ -1,16 +1,17 @@
-import { getAllTeams, getFocusAreasForTeams, getTeamList, getTeamListFilters, getTeamListFiltersForOptions, getTeamsFilters } from '@/services/teams.service';
-import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
-import { calculateTotalPages } from '@/utils/common.utils';
-import { ITEMS_PER_PAGE, SOCIAL_IMAGE_URL, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getTagsFromValues, getTeamsListOptions, getTeamsOptionsFromQuery, parseTeamsFilters } from '@/utils/team.utils';
 import { Metadata } from 'next';
+
+import { getTeamList, getTeamListFilters } from '@/services/teams.service';
+import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { getTeamsListOptions, getTeamsOptionsFromQuery, processFilters } from '@/utils/team.utils';
 import EmptyResult from '../../components/core/empty-result';
 import Error from '../../components/core/error';
 import FilterWrapper from '../../components/page/teams/filter-wrapper';
 import TeamsToolbar from '../../components/page/teams/teams-toolbar';
 import styles from './page.module.css';
-import TeamListWrapper from '@/components/page/teams/teams-list-wrapper';
+import TeamList from '@/components/page/teams/team-list';
+import { getFocusAreas } from '@/services/common.service';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -34,7 +35,7 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
             <TeamsToolbar totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />
           </div>
           <div className={styles.team__right__teamslist}>
-            {teams?.length >= 0 && <TeamListWrapper teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />}
+            {teams?.length >= 0 && <TeamList teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />}
             {teams?.length === 0 && <EmptyResult />}
           </div>
         </div>
@@ -50,60 +51,30 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
   let isError = false;
   let filtersValues;
   let totalTeams = 0;
-  let currentPage = 1;
   try {
-    const { authToken } = getCookiesFromHeaders();
     const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
-    currentPage = searchParams?.page ? Number(searchParams?.page) : 1;
 
-
-    const [teamListRsp, teamListFiltersRsp, teamListFitersForOpsRsp, focusAreaRsp] = await Promise.all([
-      getTeamList(listOptions, 1, 50),
-      getTeamListFilters(),
-      getTeamListFiltersForOptions(searchParams),
-      getFocusAreasForTeams(searchParams),
+    const [teamListResponse, teamListFiltersResponse, teamListFiltersForOptionsResponse, focusAreaResponse] = await Promise.all([
+      getTeamList(listOptions),
+      getTeamListFilters({}),
+      getTeamListFilters(listOptions),
+      getFocusAreas("Team",searchParams),
     ]);
 
-    console.log('teamListRsp', teamListFiltersRsp);
+    if (teamListResponse?.isError || teamListFiltersResponse?.isError || teamListFiltersForOptionsResponse?.isError || focusAreaResponse?.error) {
+      isError = true;
+      return { isError };
+    }
 
-
-    totalTeams = teamListFitersForOpsRsp?.data?.formattedData?.length;
-
-    const formattedValuesByFilter = parseTeamsFilters(teamListFiltersRsp?.data?.formattedData);
-    const formattedAvailableValuesByFilter = parseTeamsFilters(teamListFitersForOpsRsp?.data?.formattedData);
-
-    const focusAreaQuery = searchParams?.focusAreas;
-    const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR);
-    const selectedFocusAreas = focusAreaFilters?.length > 0 ? focusAreaRsp?.data?.filter((focusArea: any) => focusAreaFilters.includes(focusArea.title)) : [];
-
-    const formattedFilters = {
-      tags: getTagsFromValues(formattedValuesByFilter?.tags, formattedAvailableValuesByFilter?.tags, searchParams?.tags),
-      membershipSources: getTagsFromValues(formattedValuesByFilter?.membershipSources, formattedAvailableValuesByFilter?.membershipSources, searchParams?.membershipSources),
-      fundingStage: getTagsFromValues(formattedValuesByFilter?.fundingStage, formattedAvailableValuesByFilter?.fundingStage, searchParams?.fundingStage),
-      technology: getTagsFromValues(formattedValuesByFilter?.technology, formattedAvailableValuesByFilter?.technology, searchParams?.technology),
-      focusAreas: {
-        rawData: focusAreaRsp?.data,
-        selectedFocusAreas,
-      },
-    };
-
-    console.log('formattedFilters', formattedFilters);
-    
-
-    // if (teamListRsp?.error || teamFiltersResponse?.error) {
-    //   isError = true;
-    //   return { isError, filtersValues, totalTeams, currentPage };
-    // }
-
-    teams = teamListRsp.data?.formattedData;
-    filtersValues = formattedFilters;
-    totalTeams = totalTeams;
-    return JSON.parse(JSON.stringify({ isError, filtersValues, totalTeams, currentPage, teams }));
+    teams = teamListResponse.data;
+    totalTeams = teamListResponse?.totalItems;
+    filtersValues = processFilters(searchParams, teamListFiltersResponse?.data, teamListFiltersForOptionsResponse?.data, focusAreaResponse?.data);
+    return JSON.parse(JSON.stringify({ isError, filtersValues, totalTeams, teams }));
   } catch (error: unknown) {
-    console.error('Error in getPageData', error);
     isError = true;
-    return { isError, filtersValues, totalTeams, currentPage };
+    console.error('Error in gettting teams page data', error);
+    return { isError };
   }
 };
 

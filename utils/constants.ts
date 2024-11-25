@@ -30,7 +30,7 @@ export const NAV_OPTIONS = [
     unSelectedLogo: '/icons/nav-calendar.svg',
   },
 ];
-const TEST_KEY = "AIzaSyD4o6sX_vP7ZxUM5XsI-Q0Z12345ABCDE"
+const TEST_KEY = "AIzaSyD4o6sX_vP7ZxUM5XsI-Q0Z12545ABCDE"
 export const EVENTS = {
   TRIGGER_LOADER: 'TRIGGER_LOADER',
   TRIGGER_MOBILE_NAV: 'TRIGGER_MOBILE_NAV',

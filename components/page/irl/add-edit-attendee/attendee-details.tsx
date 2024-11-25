@@ -3,7 +3,7 @@ import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import SingleSelectWithImage from '@/components/form/single-select-with-image';
 import { getMember, getMembersForAttendeeForm, getMembersForProjectForm } from '@/services/members.service';
 import { getMemberPreferences } from '@/services/preferences.service';
-import { IIrlAttendeeFormErrors, IIrlLocation } from '@/types/irl.types';
+import { IIrlAttendeeFormErrors, IIrlEvent, IIrlLocation } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue, getUserInfoFromLocal, triggerLoader } from '@/utils/common.utils';
 import { EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
@@ -21,6 +21,7 @@ interface IAttendeeForm {
   setFormInitialValues: SetStateAction<any>;
   location: IIrlLocation;
   eventType: string;
+  gatherings: IIrlEvent[];
 }
 
 const AttendeeDetails = (props: IAttendeeForm) => {
@@ -32,6 +33,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const setFormInitialValues = props?.setFormInitialValues;
   const location = props?.location;
   const eventType = props?.eventType ?? '';
+  const gatherings = props?.gatherings ?? [];
 
   const [initialContributors, setInitialContributors] = useState([]);
   const [initialTeams, setInitialTeams] = useState(initialValues?.teams ?? []);
@@ -86,9 +88,9 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       const fetchGuestDetails = async () => {
         try {
           let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, eventType);
-  
+          const gatheringsToShow = result?.filter((gathering:any) => (gatherings?.some((guest: any) => guest?.slugURL === gathering.event?.slugURL)));
           if (result.length>0) {
-            const formData = transformGuestDetail(result);
+            const formData = transformGuestDetail(gatheringsToShow);
 
             updateMemberDetails(false);
             setSelectedTeam({name: formData?.teamName,

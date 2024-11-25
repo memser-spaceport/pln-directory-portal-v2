@@ -343,7 +343,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
           <AttendeeFormErrors errors={errors} />
           <div>
-            <AttendeeDetails setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {eventType}/>
+            <AttendeeDetails gatherings={gatherings} setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {eventType}/>
           </div>
           <div>
             <Gatherings

@@ -115,6 +115,7 @@ const getPageData = async (searchParams: any) => {
     if (!eventType) {
       if (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) {
         searchParams.event = pastEvents[0]?.slugURL;
+        searchParams.type = 'past';
       }
     } else {
       if (eventType === 'past' && !searchParams?.event) {
@@ -135,7 +136,7 @@ const getPageData = async (searchParams: any) => {
     }
 
     let guestDetails = events as any;
-    const selectedTypeEvents = eventType === 'past' ? eventDetails.pastEvents : eventDetails.upcomingEvents;
+    const selectedTypeEvents = (eventType === 'past' || eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) ? eventDetails.pastEvents : eventDetails.upcomingEvents;
 
     guestDetails.events = selectedTypeEvents;
     guestDetails.currentGuest = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests?.[0] : null;

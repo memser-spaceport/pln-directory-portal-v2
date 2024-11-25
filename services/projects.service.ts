@@ -130,7 +130,7 @@ const getFormattedProject = (project: any) => {
 }
 
 export const getAllProjects = async (queryParams: any, currentPage: number, limit = 0) => {
-    const requestOptions: RequestInit = { method: "GET", cache: "no-store" };
+    const requestOptions: RequestInit = { method: "GET",  cache: 'force-cache', next: { tags: ['project-list']}};
     const response = await fetch(
         `${process.env.DIRECTORY_API_URL}/v1/projects?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`,
         requestOptions

@@ -21,8 +21,8 @@ const checkFileForSecrets = (filePath) => {
 
 const main = () => {
   const dir = process.cwd();
-  const files = fs.readdirSync(dir).filter((file) => file.endsWith('.js'));
-
+  const files = fs.readdirSync(dir).filter((file) => file.endsWith('.ts'));
+console.log(files);
   files.forEach((file) => {
     const filePath = path.join(dir, file);
     const secrets = checkFileForSecrets(filePath);

@@ -385,9 +385,7 @@ export const transformGuestDetail = (result: any) => {
 };
 
 export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, pastEvents: any) {
-  if (!searchType) {
-    return false;
-  } else if (searchType === 'upcoming' || (upcomingEvents && upcomingEvents.length > 0 && pastEvents && pastEvents.length === 0)) {
+  if (searchType === 'upcoming' || (upcomingEvents && upcomingEvents.length > 0 && pastEvents && pastEvents.length === 0)) {
     return true;
   } else if (searchType === 'past' || (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0)) {
     return true;

@@ -1,12 +1,6 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const isAmended = process.env.GIT_INDEX_FILE !== undefined;
-
-if (isAmended) {
-  console.log('Skipping validation for amended commit.');
-  process.exit(0);
-}
 
 // File containing the commit message
 const commitMsgFile = process.argv[2];

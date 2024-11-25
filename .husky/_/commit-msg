@@ -1,9 +1,8 @@
 #!/usr/bin/env sh
-# # Check for `--amend`
-# if [ ! -z "$GIT_INDEX_FILE" ]; then
-#   echo "Amended commit detected. Skipping commit message validation."
-#   exit 0
-# fi
+if git diff --cached HEAD --quiet; then
+  echo "Skipping validation for amended commit."
+  exit 0
+fi
 
 echo "🔄 Validating commit message"
 node helper/validate-commit-message.js "$1"

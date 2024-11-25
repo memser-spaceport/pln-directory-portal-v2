@@ -30,7 +30,7 @@ export const NAV_OPTIONS = [
     unSelectedLogo: '/icons/nav-calendar.svg',
   },
 ];
-const TEST_KEY = "AKIAIOSFDSNN7EXAMPLE"
+const TEST_KEY = "AKIAIOSFDFNN7EXAMPLE"
 export const EVENTS = {
   TRIGGER_LOADER: 'TRIGGER_LOADER',
   TRIGGER_MOBILE_NAV: 'TRIGGER_MOBILE_NAV',

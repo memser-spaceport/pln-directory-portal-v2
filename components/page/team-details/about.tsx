@@ -15,6 +15,19 @@ interface IAbout {
   userInfo: IUserInfo | undefined;
   hasTeamEditAccess: boolean;
 }
+/**
+ * The `About` component displays and manages the "About" section of a team.
+ * It allows users to view, edit, and save the team's description.
+ *
+ * @param {IAbout} props - The properties passed to the component.
+ * @param {string} props.about - The initial content of the "About" section.
+ * @param {boolean} props.hasTeamEditAccess - Flag indicating if the user has edit access.
+ * @param {object} props.userInfo - Information about the current user.
+ * @param {object} props.team - Information about the team.
+ *
+ * @returns {JSX.Element} The rendered "About" component.
+ *
+ */
 const About = (props: IAbout) => {
   const contentLength = 347;
   const [aboutContent, setAboutContent] = useState(props?.about);

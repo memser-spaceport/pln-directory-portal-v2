@@ -257,7 +257,7 @@ export const getMemberInfoFormValues = async () => {
   const skillsData = await skillsInfo.json();
   return {
     teams: teamsData
-      .map((d: any) => {
+      ?.teams?.map((d: any) => {
         return {
           teamUid: d.uid,
           teamTitle: d.name,

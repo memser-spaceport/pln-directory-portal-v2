@@ -11,6 +11,7 @@ import EmptyResult from '@/components/core/empty-result';
 import MemberListWrapper from '@/components/page/members/member-list-wrapper';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import MemberInfiniteList from '@/components/page/members/member-infinite-list';
 
 async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -32,10 +33,10 @@ async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
       <div className={styles.members__right}>
         <div className={styles.members__right__content}>
           <div className={styles.members__right__toolbar}>
-            <MembersToolbar searchParams={searchParams} totalTeams={members.length} userInfo={parsedUserDetails} />
+            <MembersToolbar searchParams={searchParams} totalTeams={totalMembers} userInfo={parsedUserDetails} />
           </div>
           <div className={styles.members__right__membersList} style={{ flex: 1 }}>
-            {members?.length > 0 && <MemberListWrapper isUserLoggedIn={isLoggedIn} members={members} totalMembers={totalMembers} userInfo={parsedUserDetails} searchParams={searchParams} />}
+            {members?.length > 0 && <MemberInfiniteList isUserLoggedIn={isLoggedIn} members={members} totalItems={totalMembers} userInfo={parsedUserDetails} searchParams={searchParams} />}
             {members?.length === 0 && <EmptyResult />}
           </div>
         </div>
@@ -52,14 +53,14 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
 
   try {
     const { isLoggedIn, authToken } = getCookiesFromHeaders();
-    const optionsFromQuery = getMembersOptionsFromQuery(searchParams as IMembersSearchParams);
-    const listOptions = getMembersListOptions(optionsFromQuery);
+    const filtersFromQueryParams = getMembersOptionsFromQuery(searchParams as IMembersSearchParams);
+    const memberFilterQuery = getMembersListOptions(filtersFromQueryParams);
 
     const [rawFilterValues, availableFilters, memberList, memberRoles] = await Promise.all([
       getFilterValuesForQuery(null, authToken),
-      getFilterValuesForQuery(optionsFromQuery, authToken),
-      getMemberListForQuery(listOptions, 0, 0, authToken),
-      getMemberRoles(optionsFromQuery)
+      getFilterValuesForQuery(filtersFromQueryParams, authToken),
+      getMemberListForQuery(memberFilterQuery, 1, 6, authToken),
+      getMemberRoles(filtersFromQueryParams)
     ]);
 
     if(memberList?.isError || rawFilterValues?.isError || availableFilters?.isError || memberRoles?.isError){
@@ -74,8 +75,7 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
     return { isError, members, filters, totalMembers, isLoggedIn };
   } catch (error) {
     console.error(error);
-    isError = true;
-    return { isError, members, filters };
+    return { isError: true };
   }
 };
 

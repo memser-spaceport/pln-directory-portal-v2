@@ -1,7 +1,7 @@
 import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
-import { getRoleTagsFromValues, getTagsFromValues, hidePreferences, parseMemberDetails, getUniqueFilters } from '@/utils/member.utils';
+import { hidePreferences, parseMemberDetails, getUniqueFilters } from '@/utils/member.utils';
 
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
@@ -55,7 +55,7 @@ export const getMemberListForQuery = async (options: IMemberListOptions, current
     }
   })
   return {
-    total: result?.total,
+    total: result?.count,
     items: formattedMembers,
   };
 }

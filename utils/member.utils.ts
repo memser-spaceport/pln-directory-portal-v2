@@ -27,10 +27,12 @@ export const getFormattedFilters = (searchParams: IMembersSearchParams, rawFilte
    Object.keys(formattedFilters).forEach((key: string) => {
      const values = formattedFilters[key];
      formattedFilters[key] = values.map((value: string) => {
+      const isAvailable = formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value);
+      const isRestricted = !isLoggedIn && restricedKeys.includes(key);
       return {
         value: value,
         selected:  searchParams[key as keyof IMembersSearchParams] ? searchParams[key as keyof IMembersSearchParams]?.split('|')?.includes(value) : false,
-        disabled: isLoggedIn ? formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value) ? false : true : restricedKeys.includes(key)
+        disabled:  !isAvailable ? true: isRestricted  //isLoggedIn ? formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value) ? false : true : restricedKeys.includes(key)
       }
      })
    })
@@ -209,7 +211,7 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
 export function getMembersListOptions(options: IMemberListOptions) {
   return {
     ...options,
-    pagination: false,
+    pagination: true,
     select:
       'uid,name,openToWork,isRecent,image.url,location.metroArea,location.country,location.region,location.city,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
   };

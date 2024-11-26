@@ -345,7 +345,10 @@ const TeamsToolbar = (props: IToolbar) => {
             width: 84px;
             background-color: #fff;
             color: black;
-           
+          }
+
+          .toolbar__left__search-container__searchfrm__input:focus {
+            outline: none;
           }
 
           .toolbar__left__search-container__searchfrm__optns__sbtn {

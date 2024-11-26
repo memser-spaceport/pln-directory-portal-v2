@@ -214,9 +214,9 @@ export function sortPastEvents(events: any[]) {
   return events; // Return the sorted array if needed
 }
 
-export const transformMembers = (result: any, currentEvents:string[]) => {
+export const transformMembers = (result: any, currentEvents: string[]) => {
   if (!Array.isArray(result)) return []; // Return empty array if result is not iterable
-  
+
   return result.map((guest: any) => {
     const { member, team, events } = guest || {};
     const memberTeams = member?.teamMemberRoles || [];
@@ -257,7 +257,6 @@ export const transformMembers = (result: any, currentEvents:string[]) => {
     };
   });
 };
-
 
 export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
   const { type, sortDirection, sortBy, search, attending, attendees, topics, event } = searchParams;
@@ -342,14 +341,15 @@ export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents:
     }
   });
 
-  const filteredEvents = Array.from(uniqueEventsMap.values())?.filter(event => event._count && event._count.eventGuests > 0);
+  const filteredEvents = Array.from(uniqueEventsMap.values())?.filter((event) => event._count && event._count.eventGuests > 0);
 
   // Convert the map values to an array for the final unique events list
   return filteredEvents;
 };
 
-export const transformGuestDetail = (result: any) => {
+export const transformGuestDetail = (result: any, gatherings:any) => {
   const detail = result[0] || {};
+  const gatheringsToShow = result?.filter((gathering:any) => (gatherings?.some((guest: any) => guest?.slugURL === gathering.event?.slugURL)));
   return {
     memberUid: detail?.memberUid,
     memberName: detail?.member?.name,
@@ -363,7 +363,7 @@ export const transformGuestDetail = (result: any) => {
       logo: tm?.team?.logo?.url ?? '',
     })),
     eventNames: result?.map((item: any) => item?.event?.name),
-    events: result.map((item: any) => ({
+    events: gatheringsToShow?.map((item: any) => ({
       uid: item?.event?.uid,
       name: item?.event?.name,
       startDate: item?.event?.startDate,
@@ -384,3 +384,12 @@ export const transformGuestDetail = (result: any) => {
     count: detail?.count,
   };
 };
+
+export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, pastEvents: any) {
+  if (searchType === 'upcoming' || (upcomingEvents && upcomingEvents.length > 0 && pastEvents && pastEvents.length === 0)) {
+    return true;
+  } else if (searchType === 'past' || (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0)) {
+    return true;
+  }
+  return false;
+}

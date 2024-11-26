@@ -18,7 +18,7 @@ import AttendeeTableHeader from './attendee-table-header';
 import { IUserInfo } from '@/types/shared.types';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.types';
 import usePagination from '@/hooks/irl/use-pagination';
-import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
+import { checkAdminInAllEvents, getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import TableLoader from '@/components/core/table-loader';
 
 interface IAttendeeList {
@@ -30,6 +30,7 @@ interface IAttendeeList {
   isUserGoing: boolean;
   searchParams: any;
   currentEventNames: string[];
+  locationEvents: any;
 }
 
 const AttendeeList = (props: IAttendeeList) => {
@@ -40,6 +41,8 @@ const AttendeeList = (props: IAttendeeList) => {
   const location = props.location;
   const searchParams = props?.searchParams;
   const currentEventNames = props?.currentEventNames;
+  const locationEvents = props?.locationEvents;
+  const isAdminInAllEvents = checkAdminInAllEvents(searchParams?.type, locationEvents?.upcomingEvents, locationEvents?.pastEvents);
 
   const defaultTopics = IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
@@ -92,8 +95,8 @@ const AttendeeList = (props: IAttendeeList) => {
     setPagination({ page: 1, limit: 10 });
 
     const [eventInfo, currentGuestResponse, topics, loggedInUserEvents]: any = await Promise.all([
-      await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken,currentEventNames),
-      await getGuestsByLocation(location?.uid, { type: eventType }, authToken,currentEventNames, 1, 1),
+      await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken, currentEventNames),
+      await getGuestsByLocation(location?.uid, { type: eventType }, authToken, currentEventNames, 1, 1),
       await getTopicsByLocation(location?.uid, eventType),
       await getGuestEvents(location?.uid, authToken),
     ]);
@@ -150,8 +153,8 @@ const AttendeeList = (props: IAttendeeList) => {
       setIsAttendeeLoading(true);
       const getEventDetails = async () => {
         const authToken = getParsedValue(Cookies.get('authToken'));
-        const eventInfo: any = await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken,currentEventNames, currentPage, limit);
-        if (eventInfo.totalGuests>0){
+        const eventInfo: any = await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken, currentEventNames, currentPage, limit);
+        if (eventInfo.totalGuests > 0) {
           setUpdatedEventDetails((prev) => ({ ...prev, guests: [...prev.guests, ...eventInfo.guests], totalGuests: eventInfo.totalGuests }));
         }
         setIsAttendeeLoading(false);
@@ -193,7 +196,7 @@ const AttendeeList = (props: IAttendeeList) => {
       )}
       <div className="attendeeList">
         <div className="attendeeList__toolbar">
-          <Toolbar location={location} onLogin={onLogin} filteredListLength={updatedEventDetails.totalGuests} eventDetails={updatedEventDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} />
+          <Toolbar locationEvents={locationEvents} isAdminInAllEvents={isAdminInAllEvents} location={location} onLogin={onLogin} filteredListLength={updatedEventDetails.totalGuests} eventDetails={updatedEventDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} />
         </div>
         <div className="attendeeList__table">
           {/* {eventDetails?.guests?.length > 0 && ( */}
@@ -211,6 +214,7 @@ const AttendeeList = (props: IAttendeeList) => {
                 isLoggedIn={isLoggedIn}
                 onLogin={onLogin}
                 searchParams={searchParams}
+                isAdminInAllEvents={isAdminInAllEvents}
               />
               {isAttendeeLoading && <TableLoader />}
               <div ref={observerRef} className="scroll-observer"></div>
@@ -223,7 +227,7 @@ const AttendeeList = (props: IAttendeeList) => {
       {/* FLOATING BAR */}
       {showFloaingBar && (
         <div className="irl__floating-bar">
-          <FloatingBar location={location} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} searchParams={searchParams}/>
+          <FloatingBar location={location} eventDetails={updatedEventDetails} selectedGuests={selectedGuests} onClose={onCloseFloatingBar} searchParams={searchParams} />
         </div>
       )}
 

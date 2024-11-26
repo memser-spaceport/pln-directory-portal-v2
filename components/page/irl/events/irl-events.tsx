@@ -39,8 +39,13 @@ const IrlEvents = (props: IIrlEvents) => {
       } else if (searchType === 'past') {
         return 'past';
       }
+    } else if(eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length > 0) {
+      return 'all';
+    } else if(eventDetails?.upcomingEvents?.length > 0) {
+      return 'upcoming';
+    } else if(eventDetails?.pastEvents?.length > 0) {
+      return 'past';
     }
-    return 'all';
   }
 
   let eventType = getEventType(searchType, eventDetails);

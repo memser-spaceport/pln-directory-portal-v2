@@ -5,6 +5,45 @@ import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } f
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { validateLocation } from '@/services/location.service';
 
+
+export const getFormattedFilters = (searchParams: IMembersSearchParams, rawFilters: any, availableFilters: any, isLoggedIn: boolean) => {
+  const restricedKeys = ['region', 'country', 'metroArea'];
+  const formattedFilters: any = {
+    memberRoles: [],
+    skills: rawFilters.skills,
+    region: rawFilters.regions,
+    country: rawFilters.countries,
+    metroArea: rawFilters.cities,
+  };
+
+  const formattedAvailableFilters = {
+    skills: availableFilters.skills,
+    region: availableFilters.regions,
+    country: availableFilters.countries,
+    metroArea: availableFilters.cities,
+    memberRoles: []
+  }
+
+   Object.keys(formattedFilters).forEach((key: string) => {
+     const values = formattedFilters[key];
+     formattedFilters[key] = values.map((value: string) => {
+      return {
+        value: value,
+        selected:  searchParams[key as keyof IMembersSearchParams] ? searchParams[key as keyof IMembersSearchParams]?.split('|')?.includes(value) : false,
+        disabled: isLoggedIn ? formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value) ? false : true : restricedKeys.includes(key)
+      }
+     })
+   })
+
+   formattedFilters.isIncludeFriends = searchParams['includeFriends'] === 'true' || false;
+   formattedFilters.isRecent = searchParams['isRecent'] === 'true' || false;
+   formattedFilters.isOpenToWork = searchParams['openToWork'] === 'true' || false;
+   formattedFilters.isOfficeHoursOnly = searchParams['officeHoursOnly'] === 'true' || false;
+  
+
+   return formattedFilters;
+}
+
 export const parseMemberDetails = (members: IMemberResponse[], teamId: string, isLoggedIn: boolean) => {
   return members?.map((member: IMemberResponse): IMember => {
     let parsedMember = { ...member };
@@ -172,7 +211,7 @@ export function getMembersListOptions(options: IMemberListOptions) {
     ...options,
     pagination: false,
     select:
-      'uid,name,openToWork,isRecent,image.url,location.metroArea,location.country,location.region,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
+      'uid,name,openToWork,isRecent,image.url,location.metroArea,location.country,location.region,location.city,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
   };
 }
 

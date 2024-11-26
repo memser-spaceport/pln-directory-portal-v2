@@ -24,6 +24,7 @@ interface IGuestTableRow {
   selectedGuests: string[];
   isLoggedIn: boolean;
   onLogin: () => void;
+  isAdminInAllEvents:any;
 }
 
 const GuestTableRow = (props: IGuestTableRow) => {
@@ -32,6 +33,8 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const showTelegram = props?.showTelegram;
   const onchangeSelectionStatus = props?.onchangeSelectionStatus;
   const selectedGuests = props?.selectedGuests;
+  const isAdminInAllEvents= props?.isAdminInAllEvents;
+
 
   const guestUid = guest?.memberUid;
   const guestName = guest?.memberName ?? '';
@@ -59,7 +62,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const remainingTopics = topics?.slice(topicsNeedToShow, topics?.length)?.map((topic: string) => topic);
   const atRemovedTelegram = removeAt(getTelegramUsername(telegramId));
   const analytics = useIrlAnalytics();
-  const canUserAddAttendees = (type === 'upcoming' || type === 'past') && canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const isLoggedIn = props.isLoggedIn;
   const onLogin = props.onLogin;
 

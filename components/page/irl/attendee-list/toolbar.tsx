@@ -17,6 +17,8 @@ interface IToolbar {
   isLoggedIn: boolean;
   eventDetails: IGuestDetails;
   location: IAnalyticsGuestLocation;
+  isAdminInAllEvents: any;
+  locationEvents: any;
 }
 
 const Toolbar = (props: IToolbar) => {
@@ -30,6 +32,10 @@ const Toolbar = (props: IToolbar) => {
   const eventDetails = props?.eventDetails;
   const updatedUser = eventDetails?.currentGuest ?? null;
   const isUserGoing = eventDetails?.isUserGoing;
+  const isAdminInAllEvents = props?.isAdminInAllEvents;
+  const locationEvents = props?.locationEvents;
+  const pastEvents = locationEvents?.pastEvents;
+  const upcomingEvents = locationEvents?.upcomingEvents;
 
   //states
   // const [searchTerm, setSearchTerm] = useState('');
@@ -39,8 +45,9 @@ const Toolbar = (props: IToolbar) => {
   const type = searchParams.get('type');
   const search = searchParams.get('search');
   const editResponseRef = useRef<HTMLButtonElement>(null);
-
   const router = useRouter();
+
+  const inPastEvents = type ? type === 'past' : (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0);
 
   useClickedOutside({
     ref: editResponseRef,
@@ -51,7 +58,7 @@ const Toolbar = (props: IToolbar) => {
 
   //hooks
   const analytics = useIrlAnalytics();
-  const canUserAddAttendees = (type === 'upcoming' || type === 'past') && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
 
   const onEditResponseClick = () => {
     // setIamGoingPopupProps({isOpen: true, formdata: updatedUser, mode: IAM_GOING_POPUP_MODES.EDIT});
@@ -60,7 +67,7 @@ const Toolbar = (props: IToolbar) => {
 
   // Open Attendee Details Popup to add guest
   const onIAmGoingClick = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: {member: userInfo}, mode: IAM_GOING_POPUP_MODES.ADD} }));
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: { member: userInfo }, mode: IAM_GOING_POPUP_MODES.ADD } }));
     analytics.trackImGoingBtnClick(location);
   };
 
@@ -90,11 +97,11 @@ const Toolbar = (props: IToolbar) => {
     }
     router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
     analytics.trackGuestListSearch(location, value);
-  }, 300); 
+  }, 300);
 
   const getValue = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event?.target?.value;
-    updateQueryParams(searchValue?.trim())
+    updateQueryParams(searchValue?.trim());
   };
 
   const onLoginClick = () => {
@@ -146,18 +153,14 @@ const Toolbar = (props: IToolbar) => {
       officeHours: updatedUser?.officeHours ?? '',
     };
 
-    console.log('formData', formData);
-
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
   };
 
-  
   useEffect(() => {
     if (searchRef.current) {
       searchRef.current.value = search ?? '';
     }
   }, [router, searchParams]);
-
 
   return (
     <>
@@ -177,7 +180,7 @@ const Toolbar = (props: IToolbar) => {
             </div>
           )}
 
-          {!isUserGoing && isUserLoggedIn && type !== 'past' && (
+          {!isUserGoing && isUserLoggedIn && !inPastEvents && (
             <button onClick={onIAmGoingClick} className="mb-btn toolbar__actionCn__imGoingBtn">
               I&apos;m Going
             </button>
@@ -194,7 +197,7 @@ const Toolbar = (props: IToolbar) => {
             </>
           )}
 
-          {isUserGoing && isUserLoggedIn && type !== 'past' && (
+          {isUserGoing && isUserLoggedIn && !inPastEvents && (
             <div className="toolbar__actionCn__edit__wrpr">
               <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
                 Edit Response
@@ -213,9 +216,9 @@ const Toolbar = (props: IToolbar) => {
             </div>
           )}
         </div>
-          <div className="toolbar__search">
-            <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
-          </div>
+        <div className="toolbar__search">
+          <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
+        </div>
       </div>
 
       <style jsx>

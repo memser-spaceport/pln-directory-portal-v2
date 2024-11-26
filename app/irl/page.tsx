@@ -50,6 +50,7 @@ export default async function Page({ searchParams }: any) {
             isUserGoing={isUserGoing as boolean}
             searchParams={searchParams}
             currentEventNames={currentEventNames}
+            locationEvents={eventDetails}
           />
         </section>
       </div>
@@ -84,10 +85,12 @@ const getPageData = async (searchParams: any) => {
     const eventDetails = searchParams?.location ? locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location) : locationDetails[0];
     const { uid, location: name, pastEvents } = eventDetails;
 
+    //check correct event type
     if (searchParams?.type) {
       isEventActive = ['upcoming', 'past'].includes(searchParams?.type);
     }
 
+    //check correct event slug
     if (searchParams?.event) {
       const eventResult = locationDetails.flatMap((item: { pastEvents: any[]; upcomingEvents: any[] }) => [
         ...item.pastEvents.map((event) => ({ ...event })),
@@ -105,13 +108,20 @@ const getPageData = async (searchParams: any) => {
 
     // Determine event type and fetch event guest data
     const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
-
-    if (searchParams?.type === 'past' && !searchParams?.event) {
-      searchParams.event = pastEvents[0]?.slugURL;
-    }
-
     const currentEvents = eventType === 'upcoming' ? eventDetails?.upcomingEvents : eventType === 'past' ? eventDetails?.pastEvents : eventDetails?.events;
     const currentEventNames = currentEvents?.map((item: any) => item.name); // Get current event names
+
+    // Set default event if location has only past events
+    if (!eventType) {
+      if (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) {
+        searchParams.event = pastEvents[0]?.slugURL;
+        searchParams.type = 'past';
+      }
+    } else {
+      if (eventType === 'past' && !searchParams?.event) {
+        searchParams.event = pastEvents[0]?.slugURL;
+      }
+    }
 
     // Proceed with API calls only after currentEventNames is set
     const [events, currentGuestResponse, topics, loggedInUserEvents] = await Promise.all([
@@ -126,13 +136,11 @@ const getPageData = async (searchParams: any) => {
     }
 
     let guestDetails = events as any;
-    const selectedTypeEvents = eventType === 'past' ? eventDetails.pastEvents : eventDetails.upcomingEvents;
+    const selectedTypeEvents = (eventType === 'past' || eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) ? eventDetails.pastEvents : eventDetails.upcomingEvents;
 
     guestDetails.events = selectedTypeEvents;
     guestDetails.currentGuest = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests?.[0] : null;
     guestDetails.isUserGoing = selectedTypeEvents?.some((event: any) => loggedInUserEvents?.some((userEvent: any) => userEvent?.uid === event?.uid));
-
-
     guestDetails.topics = topics;
     guestDetails.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, currentEvents, isLoggedIn, userInfo);
 

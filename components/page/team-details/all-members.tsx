@@ -11,6 +11,22 @@ interface IAllMembers {
   teamId: string;
   onCardClick : any;
 }
+/**
+ * The `AllMembers` component displays a list of team members with a search functionality.
+ * 
+ * @component
+ * @param {IAllMembers} props - The properties object.
+ * @param {IMember[]} props.members - The list of members to display.
+ * @param {string} props.teamId - The ID of the team to filter members by.
+ * @param {function} props.onCardClick - The callback function to handle card click events.
+ * 
+ * @returns {JSX.Element} The rendered component.
+ 
+ * 
+ * @remarks
+ * This component includes a search bar to filter members by name. It also listens for the `TEAM_DETAIL_ALL_MEMBERS_CLOSE` event to reset the member list and search value.
+ * 
+ */
 const AllMembers = (props: IAllMembers) => {
   const members = props?.members ?? [];
   const teamId = props?.teamId;

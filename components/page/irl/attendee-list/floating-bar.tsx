@@ -48,8 +48,8 @@ const FloatingBar = (props: IFloatingBar) => {
   const onEditGuest = async () => {
     if (selectedGuest?.memberUid) {
       let guestDetails = await getGuestDetail(selectedGuest?.memberUid, location.uid, authToken, eventType);
-      guestDetails = transformGuestDetail(guestDetails);
-
+      guestDetails = transformGuestDetail(guestDetails, []);
+      
       const formData = {
         team: {
           name: guestDetails?.teamName,

@@ -347,8 +347,9 @@ export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents:
   return filteredEvents;
 };
 
-export const transformGuestDetail = (result: any) => {
+export const transformGuestDetail = (result: any, gatherings:any) => {
   const detail = result[0] || {};
+  const gatheringsToShow = result?.filter((gathering:any) => (gatherings?.some((guest: any) => guest?.slugURL === gathering.event?.slugURL)));
   return {
     memberUid: detail?.memberUid,
     memberName: detail?.member?.name,
@@ -362,7 +363,7 @@ export const transformGuestDetail = (result: any) => {
       logo: tm?.team?.logo?.url ?? '',
     })),
     eventNames: result?.map((item: any) => item?.event?.name),
-    events: result.map((item: any) => ({
+    events: gatheringsToShow?.map((item: any) => ({
       uid: item?.event?.uid,
       name: item?.event?.name,
       startDate: item?.event?.startDate,

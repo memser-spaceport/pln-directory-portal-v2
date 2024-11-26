@@ -88,9 +88,8 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       const fetchGuestDetails = async () => {
         try {
           let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, eventType);
-          const gatheringsToShow = result?.filter((gathering:any) => (gatherings?.some((guest: any) => guest?.slugURL === gathering.event?.slugURL)));
           if (result.length>0) {
-            const formData = transformGuestDetail(gatheringsToShow);
+            const formData = transformGuestDetail(result, gatherings);
 
             updateMemberDetails(false);
             setSelectedTeam({name: formData?.teamName,

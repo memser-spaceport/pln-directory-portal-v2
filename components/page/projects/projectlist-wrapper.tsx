@@ -11,9 +11,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import usePagination from '@/hooks/irl/use-pagination';
 import { getProjectSelectOptions, getProjectsFiltersFromQuery } from '@/utils/projects.utils';
-import { getAllProjects, getProject } from '@/services/projects.service';
 import ProjectAddCard from './project-add-card';
 import TableLoader from '@/components/core/table-loader';
+import { getAllProjects } from '@/app/actions/projects.actions';
 
 const ProjectlistWrapper = (props: any) => {
   const searchParams = props?.searchParams;

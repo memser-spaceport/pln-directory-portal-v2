@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-import { getTeamList, getTeamListFilters } from '@/services/teams.service';
+import {getTeamListFilters } from '@/services/teams.service';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -12,6 +12,7 @@ import TeamsToolbar from '../../components/page/teams/teams-toolbar';
 import styles from './page.module.css';
 import TeamList from '@/components/page/teams/team-list';
 import { getFocusAreas } from '@/services/common.service';
+import { getTeamList } from '../actions/teams.actions';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();

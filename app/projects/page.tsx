@@ -1,5 +1,4 @@
 import styles from './page.module.css';
-import { getAllProjects } from '@/services/projects.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getProjectSelectOptions, getProjectsFiltersFromQuery } from '@/utils/projects.utils';
 import ProjectsToolbar from '@/components/page/projects/project-toolbar';
@@ -11,6 +10,7 @@ import { getFocusAreas } from '@/services/common.service';
 import { URL_QUERY_VALUE_SEPARATOR, SOCIAL_IMAGE_URL, ITEMS_PER_PAGE } from '@/utils/constants';
 import { Metadata } from 'next';
 import { getTeam, searchTeamsByName } from '@/services/teams.service';
+import { getAllProjects } from '../actions/projects.actions';
 
 export default async function Page({ searchParams }: any) {
   const { projects, initialTeams, selectedTeam, isError, totalProjects, userInfo, focusAreas, isLoggedIn } = await getPageData(searchParams);

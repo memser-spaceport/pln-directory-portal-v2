@@ -7,11 +7,11 @@ import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/uti
 import TeamGridView from './team-grid-view';
 import Link from 'next/link';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { getTeamList } from '@/services/teams.service';
 import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
 import usePagination from '@/hooks/irl/use-pagination';
 import TeamListView from './team-list-view';
 import TableLoader from '@/components/core/table-loader';
+import { getTeamList } from '@/app/actions/teams.actions';
 
 interface ITeamList {
   totalTeams: number;

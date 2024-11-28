@@ -16,7 +16,7 @@ export const getProjectsFiltersFromQuery = (queryParams: any) => {
 };
 
 export function getProjectSelectOptions(options: any) {
-  return { ...options, pagination: false };
+  return { ...options, pagination: true};
 }
 
 export const SORT_OPTIONS = {

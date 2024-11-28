@@ -1,26 +1,23 @@
-import { getAllTeams, getTeamsFilters } from '@/services/teams.service';
-import { IUserInfo } from '@/types/shared.types';
-import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
-import { calculateTotalPages } from '@/utils/common.utils';
-import { ITEMS_PER_PAGE, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
-import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
 import { Metadata } from 'next';
+
+import {getTeamListFilters } from '@/services/teams.service';
+import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { getTeamsListOptions, getTeamsOptionsFromQuery, processFilters } from '@/utils/team.utils';
 import EmptyResult from '../../components/core/empty-result';
 import Error from '../../components/core/error';
-import { PaginationBox } from '../../components/core/pagination-box';
 import FilterWrapper from '../../components/page/teams/filter-wrapper';
-import TeamsList from '../../components/page/teams/team-list';
 import TeamsToolbar from '../../components/page/teams/teams-toolbar';
 import styles from './page.module.css';
-import TeamListWrapper from '@/components/page/teams/teams-list-wrapper';
+import TeamList from '@/components/page/teams/team-list';
+import { getFocusAreas } from '@/services/common.service';
+import { getTeamList } from '../actions/teams.actions';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
 
-  const { teams, filtersValues, isError, totalTeams, currentPage } = await getPageData(searchParams);
-
-  const totalPages = calculateTotalPages(totalTeams, ITEMS_PER_PAGE);
+  const { teams, filtersValues, isError, totalTeams } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
@@ -39,7 +36,7 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
             <TeamsToolbar totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />
           </div>
           <div className={styles.team__right__teamslist}>
-            {teams?.length >= 0 && <TeamListWrapper teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />}
+            {teams?.length >= 0 && <TeamList teams={teams} totalTeams={totalTeams} searchParams={searchParams} userInfo={userInfo} />}
             {teams?.length === 0 && <EmptyResult />}
           </div>
         </div>
@@ -55,27 +52,30 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
   let isError = false;
   let filtersValues;
   let totalTeams = 0;
-  let currentPage = 1;
   try {
-    const { authToken } = getCookiesFromHeaders();
     const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
 
-    currentPage = searchParams?.page ? Number(searchParams?.page) : 1;
-    const [teamsResponse, teamFiltersResponse] = await Promise.all([getAllTeams(authToken, listOptions, 0, 0), getTeamsFilters(optionsFromQuery, searchParams)]);
+    const [teamListResponse, teamListFiltersResponse, teamListFiltersForOptionsResponse, focusAreaResponse] = await Promise.all([
+      getTeamList(listOptions),
+      getTeamListFilters({}),
+      getTeamListFilters(listOptions),
+      getFocusAreas("Team",searchParams),
+    ]);
 
-    if (teamsResponse?.error || teamFiltersResponse?.error) {
+    if (teamListResponse?.isError || teamListFiltersResponse?.isError || teamListFiltersForOptionsResponse?.isError || focusAreaResponse?.error) {
       isError = true;
-      return { isError, filtersValues, totalTeams, currentPage };
+      return { isError };
     }
 
-    teams = teamsResponse.data?.formattedData;
-    filtersValues = teamFiltersResponse?.data?.formattedFilters;
-    totalTeams = teamFiltersResponse?.data?.totalTeams;
-    return { teams, filtersValues, totalTeams, currentPage };
+    teams = teamListResponse.data;
+    totalTeams = teamListResponse?.totalItems;
+    filtersValues = processFilters(searchParams, teamListFiltersResponse?.data, teamListFiltersForOptionsResponse?.data, focusAreaResponse?.data);
+    return JSON.parse(JSON.stringify({ isError, filtersValues, totalTeams, teams }));
   } catch (error: unknown) {
     isError = true;
-    return { isError, filtersValues, totalTeams, currentPage };
+    console.error('Error in gettting teams page data', error);
+    return { isError };
   }
 };
 

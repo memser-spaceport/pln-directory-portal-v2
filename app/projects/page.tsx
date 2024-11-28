@@ -1,5 +1,4 @@
 import styles from './page.module.css';
-import { getAllProjects } from '@/services/projects.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getProjectSelectOptions, getProjectsFiltersFromQuery } from '@/utils/projects.utils';
 import ProjectsToolbar from '@/components/page/projects/project-toolbar';
@@ -8,9 +7,10 @@ import EmptyResult from '@/components/core/empty-result';
 import ProjectlistWrapper from '@/components/page/projects/projectlist-wrapper';
 import FilterWrapper from '@/components/page/projects/filter-wrapper';
 import { getFocusAreas } from '@/services/common.service';
-import { URL_QUERY_VALUE_SEPARATOR, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { URL_QUERY_VALUE_SEPARATOR, SOCIAL_IMAGE_URL, ITEMS_PER_PAGE } from '@/utils/constants';
 import { Metadata } from 'next';
 import { getTeam, searchTeamsByName } from '@/services/teams.service';
+import { getAllProjects } from '../actions/projects.actions';
 
 export default async function Page({ searchParams }: any) {
   const { projects, initialTeams, selectedTeam, isError, totalProjects, userInfo, focusAreas, isLoggedIn } = await getPageData(searchParams);
@@ -47,7 +47,9 @@ const getPageData = async (searchParams: any) => {
     const { userInfo, isLoggedIn } = getCookiesFromHeaders();
     const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
     const selectOpitons = getProjectSelectOptions(filterFromQuery);
-    const [projectsResponse, focusAreasResponse] = await Promise.all([getAllProjects(selectOpitons, 0, 0), getFocusAreas('Project', searchParams)]);
+    const [projectsResponse, focusAreasResponse] = await Promise.all([getAllProjects({...selectOpitons, isDeleted: false,
+      select: "uid,name,tagline,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url"
+    }, 1, ITEMS_PER_PAGE), getFocusAreas('Project', searchParams)]);
     if (projectsResponse?.error || focusAreasResponse?.error) {
       isError = true;
       return { isError };

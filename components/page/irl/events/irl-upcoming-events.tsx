@@ -30,34 +30,6 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams,
   const analytics = useIrlAnalytics();
   const router = useRouter();
 
-  // function getEventsToShow() {
-  //   if (eventDetails) {
-  //       // Determine events to show based on upcoming or past
-  //       const events = isUpcoming ? eventDetails.upcomingEvents : [];
-
-  //     if (events && events.length > 0) {      
-  //       // Sort events based on startDate first, then by duration (endDate - startDate)
-  //       const sortedEvents = events.sort((a: any, b: any) => {
-  //         // First, compare by start date (earlier start first)
-  //         const startDateComparison = new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
-  
-  //         if (startDateComparison !== 0) {
-  //           return startDateComparison;
-  //         }
-  
-  //         // If start dates are equal, compare by duration (longer duration first)
-  //         const durationA = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
-  //         const durationB = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
-  
-  //         return durationB - durationA;
-  //       });
-  
-  //       // Set eventsToShow based on the sorted events
-  //       return sortedEvents;
-  //     }
-  //   }
-  // }
-
   const toggleDescription = () => {
     setItemsToShow(isExpanded ? 4 : itemsToShow + 4);
     if (itemsToShow >= eventsToShow?.length - 4) {

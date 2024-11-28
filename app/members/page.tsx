@@ -2,16 +2,16 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import styles from './page.module.css';
 import { IMember, IMembersSearchParams } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getFormattedFilters, getMembersListOptions, getMembersOptionsFromQuery, getRoleTagsFromValues, parseMemberFilters } from '@/utils/member.utils';
-import { getFilterValuesForQuery, getMemberListForQuery, getMemberRoles, getMembersFilters } from '@/services/members.service';
+import { getFormattedFilters, getMembersListOptions, getMembersOptionsFromQuery, getRoleTagsFromValues } from '@/utils/member.utils';
+import { getFilterValuesForQuery, getMemberRoles, } from '@/services/members.service';
 import Error from '@/components/core/error';
 import MembersToolbar from '@/components/page/members/members-toolbar';
 import FilterWrapper from '@/components/page/members/filter-wrapper';
 import EmptyResult from '@/components/core/empty-result';
-import MemberListWrapper from '@/components/page/members/member-list-wrapper';
 import { Metadata } from 'next';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import MemberInfiniteList from '@/components/page/members/member-infinite-list';
+import { getMemberListForQuery } from '../actions/members.actions';
 
 async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -59,7 +59,7 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
     const [rawFilterValues, availableFilters, memberList, memberRoles] = await Promise.all([
       getFilterValuesForQuery(null, authToken),
       getFilterValuesForQuery(filtersFromQueryParams, authToken),
-      getMemberListForQuery(memberFilterQuery, 1, 6, authToken),
+      getMemberListForQuery(memberFilterQuery, 1, ITEMS_PER_PAGE, authToken),
       getMemberRoles(filtersFromQueryParams)
     ]);
 

@@ -15,13 +15,6 @@ export const getAllLocations = async () => {
   }
 
   const result = await response.json();
-  result.sort((a: { priority: number }, b: { priority: number }) => a.priority - b.priority);
-
-  result.forEach((item: { pastEvents: any[] }) => {
-    if (Array.isArray(item.pastEvents)) {
-      item.pastEvents = sortPastEvents(item.pastEvents);
-    }
-  });
 
   const filteredResult = result.filter(
     (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[]; }) =>

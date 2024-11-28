@@ -43,7 +43,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
 
   const [searchText, setSearchText] = useState('');
 
-  // Sort pastEvents in descending order by end date if it's not upcoming
   const eventsToShow = events;
 
   // Determine the selected event based on searchParams

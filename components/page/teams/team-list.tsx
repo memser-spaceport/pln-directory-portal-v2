@@ -1,7 +1,7 @@
 'use client';
 
 import { ITeam, ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
-import { PAGE_ROUTES, TOAST_MESSAGES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import { ITEMS_PER_PAGE, PAGE_ROUTES, TOAST_MESSAGES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import { useEffect, useRef, useState } from 'react';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import TeamGridView from './team-grid-view';
@@ -43,7 +43,7 @@ const TeamList = (props: any) => {
       setIsLoading(true);
       const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
       const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
-      const teamsRes = await getTeamList(listOptions, currentPage, 50);
+      const teamsRes = await getTeamList(listOptions, currentPage);
       if (teamsRes.isError) {
         setIsLoading(false);
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
@@ -77,7 +77,7 @@ const TeamList = (props: any) => {
 
   // Sync team list
   useEffect(() => {
-    setPagination({ page: 1, limit: 50 });
+    setPagination({ page: 1, limit: ITEMS_PER_PAGE });
     setTeamList({ teams: allTeams, totalTeams: totalTeams });
   }, [allTeams]);
 

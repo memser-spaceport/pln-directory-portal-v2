@@ -1,7 +1,6 @@
 'use client';
 
-import { PAGE_ROUTES, TOAST_MESSAGES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
-import MembersList from './members-list';
+import { ITEMS_PER_PAGE, PAGE_ROUTES, TOAST_MESSAGES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import MemberGridView from './member-grid-view';
 import MemberListView from './member-list-view';
 import { IMember, IMemberListOptions } from '@/types/members.types';
@@ -10,10 +9,10 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import Link from 'next/link';
 import usePagination from '@/hooks/irl/use-pagination';
 import { useEffect, useRef, useState } from 'react';
-import { getMemberListForQuery } from '@/services/members.service';
 import { getMembersListOptions, getMembersOptionsFromQuery } from '@/utils/member.utils';
 import cookies from 'js-cookie';
 import TableLoader from '@/components/core/table-loader';
+import { getMemberListForQuery } from '@/app/actions/members.actions';
 
 const MemberInfiniteList = (props: any) => {
   const members = props?.members ?? [];
@@ -47,7 +46,7 @@ const MemberInfiniteList = (props: any) => {
       const authToken = cookies.get('authToken');
       const optionsFromQuery = getMembersOptionsFromQuery(searchParams);
       const listOptions: IMemberListOptions = getMembersListOptions(optionsFromQuery);
-      const teamsRes = await getMemberListForQuery(listOptions, currentPage, 6, authToken);
+      const teamsRes = await getMemberListForQuery(listOptions, currentPage, ITEMS_PER_PAGE, authToken);
       if (teamsRes.isError) {
         setIsLoading(false);
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
@@ -75,7 +74,7 @@ const MemberInfiniteList = (props: any) => {
 
     // Sync team list
     useEffect(() => {
-    setPagination({ page: 1, limit: 6 });
+    setPagination({ page: 1, limit: ITEMS_PER_PAGE});
     setUserList({ users: members, totalItems: totalItems });
   }, [members]);
 

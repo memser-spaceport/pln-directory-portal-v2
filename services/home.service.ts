@@ -13,10 +13,10 @@ export const getFeaturedData = async () => {
 
   const result = await response.json();
 
-  const formattedMembers = getformattedMembers(result?.members || []);
-  const formattedTeams = getFormattedTeams(result?.teams || []);
+  const formattedMembers = getformattedMembers(result?.members?.members || []);
+  const formattedTeams = getFormattedTeams(result?.teams?.teams || []);
   const formattedEvents = getFormattedEvents(result?.events || []);
-  const formattedProjects = getFormattedProjects(result.projects || []);
+  const formattedProjects = getFormattedProjects(result.projects?.projects || []);
 
   const maxLength = Math.max(formattedMembers.length, formattedTeams.length, formattedEvents.length, formattedProjects.length);
 

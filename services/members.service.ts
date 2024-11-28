@@ -1,7 +1,65 @@
 import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
-import { getRoleTagsFromValues, getTagsFromValues, hidePreferences, parseMemberDetails, getUniqueFilters } from '@/utils/member.utils';
+import { hidePreferences, parseMemberDetails, getUniqueFilters } from '@/utils/member.utils';
+
+
+export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/filters${options? '?': ''}${options ? new URLSearchParams(options as any) : ''}`, {
+    cache: 'force-cache',
+    method: 'GET',
+    next: { tags: ['members-filters'] },
+    headers: getHeader(authToken?? ''),
+  });
+  
+  if(!response.ok){
+    return  { isError: true, error: { status: response.status, statusText: response.statusText } };
+  }
+  const result = await response.json();
+  return result;
+}
+
+export const getMemberListForQuery = async (options: IMemberListOptions, currentPage: number, limit: number, authToken?: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}${options ? '&' + new URLSearchParams(options as any) : ''}`, {
+    cache: 'force-cache',
+    method: 'GET',
+    next: { tags: ['members-list'] },
+    headers: getHeader(authToken?? ''),
+  });
+
+  if(!response.ok){
+    return { isError: true, error: { status: response.status, statusText: response.statusText } };
+  }
+  const result = await response.json();
+  const formattedMembers: any = result?.members?.map((member: any) => {
+    const teams = member?.teamMemberRoles?.map((teamMemberRole: any) => ({
+      id: teamMemberRole.team?.uid || '',
+      name: teamMemberRole.team?.name || '',
+      role: teamMemberRole.role || 'Contributor',
+      teamLead: !!teamMemberRole.teamLead,
+      mainTeam: !!teamMemberRole.mainTeam,
+    })) || [];
+    const mainTeam = teams.find((team: any) => team.mainTeam);
+    const teamLead = teams.some((team: any) => team.teamLead);
+    return {
+      id: member.uid,
+      name: member.name,
+      profile: member.image?.url || null,
+      officeHours: member.officeHours || null,
+      skills: member.skills || [],
+      teams,
+      location: member?.location,
+      mainTeam,
+      teamLead,
+      openToWork: member.openToWork || false,
+    }
+  })
+  return {
+    total: result?.count,
+    items: formattedMembers,
+  };
+}
+
 
 export const getMembers = async (options: IMemberListOptions, teamId: string, currentPage: number, limit: number, isLoggedIn: boolean) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}&${new URLSearchParams(options as any)}`, {
@@ -14,7 +72,7 @@ export const getMembers = async (options: IMemberListOptions, teamId: string, cu
     return { error: { status: response?.status, statusText: response?.statusText } };
   }
   const result = await response?.json();
-  const formattedData: any = parseMemberDetails(result, teamId, isLoggedIn);
+  const formattedData: any = parseMemberDetails(result.members, teamId, isLoggedIn);
   return { data: { formattedData, status: response?.status } };
 };
 
@@ -161,10 +219,15 @@ export const findRoleByName = async (params: any) => {
 
 export const getMemberRoles = async (options: IMemberListOptions) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(options as any)}`, {
-    cache: 'no-store',
+    cache: 'force-cache',
     method: 'GET',
     headers: getHeader(''),
+    next: { tags: ['members-roles'] },
   });
+
+  if(!response.ok){
+    return { isError: true, error: { status: response.status, statusText: response.statusText } };
+  }
 
   return await response.json();
 };
@@ -314,7 +377,7 @@ export const getMembersInfoForDp = async () => {
     return { error: { status: response?.status, statusText: response?.statusText } };
   }
   const result = await response?.json();
-  const formattedData: any = result
+  const formattedData: any = result?.members
     .map((info: any) => {
       return {
         id: info.uid,

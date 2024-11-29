@@ -1,0 +1,72 @@
+import React from 'react';
+import Image from 'next/image';
+import { getColorObject } from '@/utils/sign-up.utils';
+
+const SuggestionItem = ({ suggestion, onSelect }:any) => {
+  
+  const clrObj = getColorObject(suggestion.group);
+
+  return (
+    <>
+      <div className="suggestion-item" onClick={() => onSelect(suggestion)}>
+        <div className="suggestion-item__team">
+          <div className="suggestion-item__img">
+            <Image src={suggestion.logoURL} alt={suggestion.name} width={22} height={22} className="suggestion-item__img__item" />
+          </div>
+          <div className="suggestion-item__name">{suggestion.name}</div>
+        </div>
+        <span style={{ color: `${clrObj.color}`, background: `${clrObj.bgColor}` }} className="suggestion-item__group">
+          {suggestion.group}
+        </span>
+      </div>
+      <style jsx>{`
+        .suggestion-item {
+          padding: 8px;
+          cursor: pointer;
+          border-radius: 4px;
+          display: flex;
+          gap: 4px;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .suggestion-item__team {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .suggestion-item:hover {
+          background-color: #f1f5f9;
+        }
+
+        .suggestion-item__img {
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+          height: 24px;
+          width: 24px;
+          overflow: hidden;
+        }
+
+        .suggestion-item__name {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 20px;
+        }
+
+        .suggestion-item__group {
+          display: flex;
+          flex-direction: row;
+          align-items: flex-end;
+          padding: 0px 4px;
+          border-radius: 4px;
+          font-size: 13px;
+          font-weight: 600;
+          line-height: 20px;
+        }
+      `}</style>
+    </>
+  );
+};
+
+export default SuggestionItem;

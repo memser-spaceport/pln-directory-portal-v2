@@ -37,6 +37,8 @@ export const EVENTS = {
   TRIGGER_REGISTER_LOADER: 'trigger-register-loader',
   OPEN_TEAM_REGISTER_DIALOG: 'open-team-register-dialog',
   OPEN_MEMBER_REGISTER_DIALOG: 'open-member-register-dialog',
+  OPEN_JOIN_MEMBER_DIALOG: 'open-join-member-dialog',
+  TRIGGER_JOIN_LOADER: 'trigger-join-loader',
   SHOW_FILTER: 'SHOW_FILTER',
   SHOW_MEMBERS_FILTER: 'show-members-filter',
   TEAM_DETAIL_ALL_PROJECTS_CLOSE: 'team-detail-all-projects-close',

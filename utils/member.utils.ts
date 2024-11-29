@@ -488,6 +488,7 @@ export const getInitialMemberFormValues = (selectedMember: any) => {
       city: selectedMember?.location?.city ?? '',
       region: selectedMember?.location?.region ?? '',
       country: selectedMember?.location?.country ?? '',
+      bio: selectedMember?.bio ?? '',
     },
     socialInfo: {
       linkedinHandler: selectedMember?.linkedinHandler ?? '',

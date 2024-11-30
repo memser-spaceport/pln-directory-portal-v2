@@ -1,37 +1,43 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import JoinMemberFormLoader from './sign-up-loader';
-import TextField from '@/components/form/text-field';
-import CustomCheckbox from '@/components/form/custom-checkbox';
 import JoinMemberActions from './sign-up-actions';
 import SignUpInputs from './sign-up-inputs';
-import { formatFormDataToApi } from '@/services/sign-up.service';
+import { signUpFormAction } from '@/app/actions/sign-up.actions';
+import { triggerLoader } from '@/utils/common.utils';
 
 const SignUpForm = ({skillsInfo}:any) => {
+
+  const [errors, setErrors] = useState({});
   
   const formRef = useRef(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (formRef.current) {
-      const formData = new FormData(formRef.current);
-      const data = Object.fromEntries(formData);
-      
-      const formattedObj = formatFormDataToApi(data);
-      if(document?.referrer){
-        formattedObj['signUpSource'] = document?.referrer;
-      }
-      console.log('formattedObj', formattedObj);
+    const formData = new FormData(e.target as HTMLFormElement);
 
+    try {
+      if (document?.referrer) {
+        formData.append('signUpSource', document?.referrer);
+      }
+      triggerLoader(true);
+      const result = await signUpFormAction(formData);
+      if(result?.success){
+        alert('Form submitted successfully!');
+      }else{
+        setErrors(result?.errors);
+      }
+    } catch (error) {
+      console.log(error);
+    }finally{
+      triggerLoader(false);
     }
   };
 
   return (
     <>
-      <JoinMemberFormLoader />
       <form onSubmit={handleSubmit} ref={formRef} noValidate className="signup__form__cn">
         <div className="signup__form__cn__inputs">
-          <SignUpInputs skillsInfo={skillsInfo}/>
+          <SignUpInputs skillsInfo={skillsInfo} errors={errors}/>
         </div>
         <div className="signup__form__cn__actions">
           <JoinMemberActions />

@@ -1,10 +1,15 @@
+import { useRouter } from 'next/navigation';
+
 const JoinMemberActions = () => {
+  const router = useRouter();
   return (
     <>
       <div className="cn">
-        <button onClick={() => alert('Join action triggered')} className="cn__cancel">Cancel</button>
+        <button type="button" onClick={() => {
+          router.push('/');
+        }} className="cn__cancel">Cancel</button>
         <button type="submit" className="cn__submit">
-          Submit
+          Sign Up
         </button>
       </div>
       <style jsx>{`

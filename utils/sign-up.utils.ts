@@ -1,11 +1,11 @@
 export const getColorObject = (groupName: string) => {
   switch (groupName) {
-    case 'TEAM':
+    case 'Team':
       return {
         color: '#156FF7',
         bgColor: '#156FF71A',
       };
-    case 'PROJECT':
+    case 'Project':
       return {
         color: '#C050E6',
         bgColor: '#C050E61A',

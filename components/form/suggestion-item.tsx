@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { getColorObject } from '@/utils/sign-up.utils';
+import { GROUP_TYPES } from '@/utils/constants';
 
 const SuggestionItem = ({ suggestion, onSelect }:any) => {
   
@@ -11,7 +12,13 @@ const SuggestionItem = ({ suggestion, onSelect }:any) => {
       <div className="suggestion-item" onClick={() => onSelect(suggestion)}>
         <div className="suggestion-item__team">
           <div className="suggestion-item__img">
-            <Image src={suggestion.logoURL} alt={suggestion.name} width={22} height={22} className="suggestion-item__img__item" />
+            <Image
+              src={suggestion.logoURL ? suggestion.logoURL : suggestion.group === GROUP_TYPES.TEAM ? '/icons/teams.svg' : '/icons/default-project.svg'}
+              alt={suggestion.name}
+              width={22}
+              height={22}
+              className="suggestion-item__img__item"
+            />
           </div>
           <div className="suggestion-item__name">{suggestion.name}</div>
         </div>

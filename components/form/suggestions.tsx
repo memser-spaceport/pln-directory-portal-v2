@@ -3,6 +3,7 @@ import Image from 'next/image';
 import SuggestionDropdown from './suggestion-dropdown';
 import { getColorObject } from '@/utils/sign-up.utils';
 import { formatSuggestions, getSuggestions } from '@/services/sign-up.service';
+import { GROUP_TYPES } from '@/utils/constants';
 
 interface Suggestion {
   uid: string;
@@ -29,6 +30,7 @@ interface CategorizedSuggestionsProps {
 
 const Suggestions = ({ suggestions, placeHolder = 'Search', title, id }: CategorizedSuggestionsProps) => {
   const [inputValue, setInputValue] = useState('');
+  const [searchInputValue, setSearchInputValue] = useState('');
   const [isAddMode, setAddMode] = useState(false);
   const [placeHolderText, setPlaceholderText] = useState(placeHolder);
   const [filteredSuggestions, setFilteredSuggestions] = useState<Suggestion[]>([]);
@@ -38,12 +40,12 @@ const Suggestions = ({ suggestions, placeHolder = 'Search', title, id }: Categor
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setInputValue(value);
-   if (value.length > 2) {
+    setSearchInputValue(value);
+    if (value.length > 2) {
       const getSuggestion = await getSuggestions(value);
       setFilteredSuggestions(formatSuggestions(getSuggestion));
       setDropdownStatus(true);
-    } else if (value === '') {
+    } else {
       setDropdownStatus(false);
       setFilteredSuggestions([]);
     }
@@ -56,6 +58,7 @@ const Suggestions = ({ suggestions, placeHolder = 'Search', title, id }: Categor
 
   const onCloseClick = () => {
     setInputValue('');
+    setSearchInputValue('');
     setSelectedSuggestion(null);
     setAddMode(false);
     setPlaceholderText(placeHolder);
@@ -70,12 +73,10 @@ const Suggestions = ({ suggestions, placeHolder = 'Search', title, id }: Categor
 
   const onSuggestionSelect = (suggestion: any) => {
     setDropdownStatus(false);
+    setSearchInputValue('');
     setSelectedSuggestion(suggestion);
   };
 
-  useEffect(() => {
-    filteredSuggestions.length && !isAddMode ? setDropdownStatus(true) : setDropdownStatus(false);
-  }, [filteredSuggestions]);
 
   return (
     <>
@@ -91,7 +92,7 @@ const Suggestions = ({ suggestions, placeHolder = 'Search', title, id }: Categor
           {selectedSuggestion && (
             <div className="cs__input__selected">
               <div className="cs__input__selected__item">
-                <Image loading="lazy" src={selectedSuggestion.logoURL} alt={selectedSuggestion.name} width={20} height={20} />
+                <Image loading="lazy" src={selectedSuggestion.logoURL ? selectedSuggestion.logoURL : selectedSuggestion.group === GROUP_TYPES.TEAM ? '/icons/teams.svg' : '/icons/default-project.svg'} alt={selectedSuggestion.name} width={20} height={20} />
                 <div>{selectedSuggestion.name}</div>
                 <span style={{ color: `${clrObj.color}`, background: `${clrObj.bgColor}` }} className="cs__input__selected__group">
                   {selectedSuggestion.group}
@@ -113,7 +114,7 @@ const Suggestions = ({ suggestions, placeHolder = 'Search', title, id }: Categor
               </div>
             </>
           )}
-          {!isAddMode && !selectedSuggestion && <input type="text" value={inputValue} onChange={handleInputChange} className="cs__input__field" placeholder={placeHolderText} name="search" />}
+          {!isAddMode && !selectedSuggestion && <input type="text" value={searchInputValue} onChange={handleInputChange} className="cs__input__field" placeholder={placeHolderText} name="search" />}
         </div>
         {/* Dropdown to show suggestions */}
         {enableDropdown && <SuggestionDropdown suggestions={filteredSuggestions} addSuggestion={suggestions.addSuggestion} enableAddMode={enableAddMode} onSelect={onSuggestionSelect} />}

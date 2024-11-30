@@ -7,7 +7,7 @@ import { getSkillsData } from '@/services/sign-up.service';
 import { triggerLoader } from '@/utils/common.utils';
 import React, { useRef, useState } from 'react';
 
-const SignUpInputs = ({skillsInfo}:any) => {
+const SignUpInputs = ({ skillsInfo, errors }: any) => {
   const [savedImage, setSavedImage] = useState<string>('');
   const [profileImage, setProfileImage] = useState<string>('');
   const [skillsOptions, setSkillsOptions] = useState(skillsInfo);
@@ -61,43 +61,63 @@ const SignUpInputs = ({skillsInfo}:any) => {
 
   return (
     <>
-      <div className="ip__cn">
+      <div className="signup">
         <div>
-        <div className="ip__cn__user">
-          <label htmlFor="member-image-upload" className="ip__cn__user__profile" data-testid="profile-image-upload">
-            {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
-            {!profileImage && !savedImage && <span className="ip__cn__user__profile__text">Add Image</span>}
-            {(profileImage || savedImage) && <img className="memberinfo__form__user__profile__preview" src={formImage} data-testid="profile-image-preview" alt="user profile" width="95" height="95" />}
-            {(profileImage || savedImage) && (
-              <span className="memberinfo__form__user__profile__actions">
-                <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
-              </span>
-            )}
-          </label>
-          <input type="text" readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
-          <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
-          <div className="ip__cn__form__item">
-            <TextField
-              pattern="^[a-zA-Z\s]*$"
-              maxLength={64}
-              isMandatory={true}
-              id="register-member-name"
-              label="Name*"
-              defaultValue={''}
-              name="name"
-              type="text"
-              placeholder="Enter your full name"
-              data-testid="member-name-input"
-            />
+          <div className="signup__user">
+            <div className="signup__user__cn">
+              <label htmlFor="member-image-upload" className="signup__user__cn__profile">
+                {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
+                {!profileImage && !savedImage && <span className="signup__user__cn__profile__text">Add Image</span>}
+                {(profileImage || savedImage) && <img className="signup__user__cn__profile__preview" src={formImage} alt="member profile" width="95" height="95" />}
+                {(profileImage || savedImage) && (
+                  <span className="signup__user__cn__profile__actions">
+                    <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
+                    <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                  </span>
+                )}
+              </label>
+              {errors?.profile && <div className="signup__form__error">{errors.profile}</div>}
+              <input readOnly id="member-info-basic-image" value={formImage} hidden name="imageFile" />
+              <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" ref={uploadImageRef} name="memberProfile" hidden type="file" accept="image/png, image/jpeg" />
+            </div>
+            {/* <label htmlFor="member-image-upload" className="ip__cn__user__profile" data-testid="profile-image-upload">
+              {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
+              {!profileImage && !savedImage && <span className="ip__cn__user__profile__text">Add Image</span>}
+              {(profileImage || savedImage) && (
+                <img className="memberinfo__form__user__profile__preview" src={formImage} data-testid="profile-image-preview" alt="user profile" width="95" height="95" />
+              )}
+              {(profileImage || savedImage) && (
+                <span className="memberinfo__form__user__profile__actions">
+                  <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
+                  <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                </span>
+              )}
+            </label>
+            <input type="text" readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
+            <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" /> */}
+            <div className="signup__form__item">
+              <TextField
+                pattern="^[a-zA-Z\s]*$"
+                maxLength={64}
+                isMandatory={true}
+                id="register-member-name"
+                label="Name*"
+                defaultValue={''}
+                name="name"
+                type="text"
+                placeholder="Enter your full name"
+                data-testid="member-name-input"
+              />
+              {errors?.name && <div className="signup__form__error">{errors.name}</div>}
+            </div>
           </div>
+          <p className="info">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a squared image in PNG or JPEG format only</span>
+          </p>
         </div>
-        <p className="info">
-          <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a squared image in PNG or JPEG format only</span>
-        </p>
-        </div>
-        <div className="ip__cn__form__item">
+        <div className="signup__form__item">
           <TextField defaultValue={''} isMandatory={true} id="signup-email" label="Email*" name="email" type="email" placeholder="Enter your email address" data-testid="member-email-input" />
+          {errors?.email && <div className="signup__form__error">{errors.email}</div>}
         </div>
         <div>
           <Suggestions
@@ -138,34 +158,34 @@ const SignUpInputs = ({skillsInfo}:any) => {
             </div>
           ))}
         </div>
-        <div className="ip__cn__consent">
+        <div className="signup__consent">
           <CustomCheckbox name="consent" value={'true'} initialValue={false} disabled={false} onSelect={() => {}} />
           <span>I consent to the collection, use, and sharing of my data as per PL policy.</span>
         </div>
-        <div className="ip__cn__consent">
+        <div className="signup__consent">
           <CustomCheckbox name="subscribe" value={'true'} initialValue={false} disabled={false} onSelect={() => {}} />
           <span>Subscribe to PL Newsletter</span>
         </div>
       </div>
       <style jsx>{`
-        .ip__cn {
+        .signup {
           display: flex;
           flex-direction: column;
           gap: 12px;
         }
-        .ip__cn__user {
+        .signup__user {
           display: flex;
           flex-direction: row;
           width: 100%;
           gap: 20px;
         }
 
-        .ip__cn__form__item {
+        .signup__form__item {
           margin: 10px 0;
           flex: 1;
         }
 
-        .ip__cn__user__profile {
+        .signup__user__profile {
           width: 100px;
           height: 100px;
           border: 3px solid #cbd5e1;
@@ -181,7 +201,7 @@ const SignUpInputs = ({skillsInfo}:any) => {
           position: relative;
         }
 
-        .ip__cn__user__profile__text {
+        .signup__user__profile__text {
           font-size: 12px;
           color: #156ff7;
           font-weight: 500;
@@ -202,7 +222,7 @@ const SignUpInputs = ({skillsInfo}:any) => {
           opacity: 0.4;
         }
 
-        .ip__cn__consent {
+        .signup__consent {
           display: flex;
           gap: 8px;
           align-items: center;
@@ -210,6 +230,66 @@ const SignUpInputs = ({skillsInfo}:any) => {
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
+        }
+
+        .signup__form__error {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 20px;
+          color: red;
+        }
+
+        .signup__user__cn{
+          max-width: 100px;
+        }
+
+        .signup__user__cn__profile {
+          width: 100px;
+          height: 100px;
+          border: 3px solid #cbd5e1;
+          background: #f1f5f9;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50px;
+          color: #156ff7;
+          font-size: 12px;
+        }
+
+        .signup__user__cn__profile {
+          width: 100px;
+          height: 100px;
+          border: 3px solid #cbd5e1;
+          background: #f1f5f9;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          color: #156ff7;
+          font-size: 12px;
+          cursor: pointer;
+          position: relative;
+        }
+        .signup__user__cn__profile__actions {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          border-radius: 50%;
+          background: rgb(0, 0, 0, 0.4);
+        }
+        .signup__user__cn__profile__preview {
+          border-radius: 50%;
+          object-fit: cover;
+          object-position: top;
         }
       `}</style>
     </>

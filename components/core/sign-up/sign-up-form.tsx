@@ -1,20 +1,22 @@
 'use client';
 import { useRef, useState } from 'react';
-import JoinMemberActions from './sign-up-actions';
+import SignUpActions from './sign-up-actions';
 import SignUpInputs from './sign-up-inputs';
-import { signUpFormAction } from '@/app/actions/sign-up.actions';
 import { triggerLoader } from '@/utils/common.utils';
 import { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from 'react-toastify';
+import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 
-const SignUpForm = ({ skillsInfo }: any) => {
+const SignUpForm = ({ skillsInfo,setSuccessFlag }: any) => {
   const [errors, setErrors] = useState({});
 
   const formRef = useRef(null);
+  const analytics = useSignUpAnalytics();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    analytics.recordSignUpSave('submit-clicked',);
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
+     const formData = new FormData(e.target as HTMLFormElement);
 
     try {
       
@@ -23,19 +25,25 @@ const SignUpForm = ({ skillsInfo }: any) => {
       if (reCAPTCHAToken.error || !reCAPTCHAToken.token) {
         // analytics.onGetUpdatesSubmitError(email, "Captcha validation failed");
         toast.error('Google reCAPTCHA validation failed. Please try again.');
-        triggerLoader(true);
+        analytics.recordSignUpSave('submit-clicked-captcha-failed',Object.fromEntries(formData.entries()));
+        triggerLoader(false);
         return;
       }
       if (document?.referrer) {
         formData.append('signUpSource', document?.referrer);
         formData.append('recaptchaToken', reCAPTCHAToken.token);
       }
-      const result = await signUpFormAction(formData);
-      if (result?.success) {
-        alert('Form submitted successfully!');
-      } else {
-        setErrors(result?.errors);
-      }
+
+      setSuccessFlag(true);
+      analytics.recordSignUpSave('submit-clicked',Object.fromEntries(formData.entries()));
+      // const result = await signUpFormAction(formData);
+      // if (result?.success) {
+        // analytics.recordSignUpSave('submit-clicked-success',Object.fromEntries(formData.entries()));
+      //   alert('Form submitted successfully!');
+      // } else {
+        // analytics.recordSignUpSave('submit-clicked-fail',result?.errors);
+      //   setErrors(result?.errors);
+      // }
     } catch (error) {
       console.log(error);
     } finally {
@@ -50,7 +58,7 @@ const SignUpForm = ({ skillsInfo }: any) => {
           <SignUpInputs skillsInfo={skillsInfo} errors={errors} />
         </div>
         <div className="signup__form__cn__actions">
-          <JoinMemberActions />
+          <SignUpActions />
         </div>
       </form>
       <style jsx>{`

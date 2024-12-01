@@ -6,6 +6,8 @@ import TextField from '@/components/form/text-field';
 import { getSkillsData } from '@/services/sign-up.service';
 import { triggerLoader } from '@/utils/common.utils';
 import React, { useRef, useState } from 'react';
+import { SIGN_UP } from '@/utils/constants';
+import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 
 const SignUpInputs = ({ skillsInfo, errors }: any) => {
   const [savedImage, setSavedImage] = useState<string>('');
@@ -16,6 +18,8 @@ const SignUpInputs = ({ skillsInfo, errors }: any) => {
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
 
   const [selectedSkills, setSelectedSkills] = useState<any>([]);
+
+  const analytics = useSignUpAnalytics();
 
   const onAddSkill = (newSelectedOption: any) => {
     setSelectedSkills((v: any[]) => {
@@ -59,6 +63,10 @@ const SignUpInputs = ({ skillsInfo, errors }: any) => {
     }
   };
 
+  const onPolicyClick = () => {
+    analytics.recordURLClick(SIGN_UP.POLICY_URL);
+  };
+
   return (
     <>
       <div className="signup">
@@ -80,21 +88,6 @@ const SignUpInputs = ({ skillsInfo, errors }: any) => {
               <input readOnly id="member-info-basic-image" value={formImage} hidden name="imageFile" />
               <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" ref={uploadImageRef} name="memberProfile" hidden type="file" accept="image/png, image/jpeg" />
             </div>
-            {/* <label htmlFor="member-image-upload" className="ip__cn__user__profile" data-testid="profile-image-upload">
-              {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
-              {!profileImage && !savedImage && <span className="ip__cn__user__profile__text">Add Image</span>}
-              {(profileImage || savedImage) && (
-                <img className="memberinfo__form__user__profile__preview" src={formImage} data-testid="profile-image-preview" alt="user profile" width="95" height="95" />
-              )}
-              {(profileImage || savedImage) && (
-                <span className="memberinfo__form__user__profile__actions">
-                  <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                  <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
-                </span>
-              )}
-            </label>
-            <input type="text" readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
-            <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" /> */}
             <div className="signup__form__item">
               <TextField
                 pattern="^[a-zA-Z\s]*$"
@@ -135,6 +128,9 @@ const SignUpInputs = ({ skillsInfo, errors }: any) => {
             name={'search-team-and-project'}
             placeHolder="Enter a name of your team or project"
           />
+          <p className="info">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Type atleast 3 characters to see suggestions.</span>
+          </p>
         </div>
 
         <div>
@@ -160,7 +156,7 @@ const SignUpInputs = ({ skillsInfo, errors }: any) => {
         </div>
         <div className="signup__consent">
           <CustomCheckbox name="consent" value={'true'} initialValue={false} disabled={false} onSelect={() => {}} />
-          <span>I consent to the collection, use, and sharing of my data as per PL policy.</span>
+          <span>I consent to the collection, use, and sharing of my data as per <a target='_blank' href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>PL policy</a>.</span>
         </div>
         <div className="signup__consent">
           <CustomCheckbox name="subscribe" value={'true'} initialValue={false} disabled={false} onSelect={() => {}} />
@@ -179,6 +175,10 @@ const SignUpInputs = ({ skillsInfo, errors }: any) => {
           width: 100%;
           gap: 20px;
         }
+          a {
+  color: blue;
+  text-decoration: underline;
+}
 
         .signup__form__item {
           margin: 10px 0;

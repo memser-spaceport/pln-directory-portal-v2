@@ -1,11 +1,14 @@
+import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import { useRouter } from 'next/navigation';
 
-const JoinMemberActions = () => {
+const SignUpActions = () => {
   const router = useRouter();
+  const analytics = useSignUpAnalytics();
   return (
     <>
       <div className="cn">
         <button type="button" onClick={() => {
+          analytics.recordSignUpCancel();
           router.push('/');
         }} className="cn__cancel">Cancel</button>
         <button type="submit" className="cn__submit">
@@ -45,4 +48,4 @@ const JoinMemberActions = () => {
   );
 };
 
-export default JoinMemberActions;
+export default SignUpActions;

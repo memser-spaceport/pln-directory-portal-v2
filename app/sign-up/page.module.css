@@ -18,15 +18,6 @@
 	margin-top: 0px;
 }
 
-.signup__cn__header {
-	height: 110px;
-	width: 100%;
-}
-
-.signup__cn__form{
-	display: flex;
-	background-color: white;
-}
 
 .signup__cn__content {
 	height: 100%;

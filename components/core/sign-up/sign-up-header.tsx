@@ -21,6 +21,9 @@ const SignUpHeader = () => {
           gap: 8px;
         //   background-color: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 100%);
         }
+        @media (min-width: 768px) {
+        background-image: url('/images/join/header-bg.png');
+      }
         .container__title {
           font-size: 24px;
           font-weight: 700;

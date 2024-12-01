@@ -4,6 +4,7 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata } from 'next';
 import styles from './page.module.css';
 import { getSkillsData } from '@/services/sign-up.service';
+import SignUp from '@/components/core/sign-up/sign-up';
 
 const getPageData = async () => {
   const memberInfo = await getSkillsData();
@@ -24,12 +25,7 @@ export default async function Page() {
     <>
       <div className={styles.signup}>
         <div className={styles.signup__cn}>
-          <div className={styles.signup__cn__header}>
-            <SignUpHeader />
-          </div>
-          <div className={styles.signup__cn__form}>
-            <SignUpForm skillsInfo={skillsInfo}/>
-          </div>
+          <SignUp skillsInfo={skillsInfo}/>
         </div>
       </div>
     </>

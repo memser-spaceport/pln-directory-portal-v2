@@ -144,6 +144,13 @@ export const JOIN_NETWORK_ANALYTICS_EVENTS = {
   TEAM_JOIN_NETWORK_SAVE: 'member-join-network-save',
 };
 
+export const SIGN_UP_ANALYTICS_EVENTS = {
+  SIGN_UP_FORM_SUBMIT: 'sign-up-form-submit',
+  SIGN_UP_FORM_CANCEL: 'sign-up-form-cancel',
+  SIGN_UP_POLICY_URL_CLICK: 'sign-up-policy-url-click',
+  SIGN_UP_HOME_CLICK_AFTER_SUCCESS: 'sign-up-home-click-after-success',
+};
+
 export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_DETAIL_DELETE_SUCCESS: 'project-detail-delete-success',
   PROJECT_DETAIL_DELETE_FAILED: 'project-detail-delete-failed',
@@ -927,4 +934,8 @@ export const IRL_DEFAULT_TOPICS="AI,Apps,AR/VR,Argentina,Automation,AVS,BCI,Capi
 export const GROUP_TYPES = {
   TEAM: 'Team',
   PROJECT: 'Project',
+}
+
+export const SIGN_UP = {
+  POLICY_URL: 'https://protocol.ai/privacy-policy/',
 }

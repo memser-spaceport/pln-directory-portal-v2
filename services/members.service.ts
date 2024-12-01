@@ -193,12 +193,12 @@ export const getMemberRoles = async (options: IMemberListOptions) => {
 export const getMembersForProjectForm = async (teamId = null) => {
   let response;
   if (teamId) {
-    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc`, {
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,isVerified,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc&isVerified=all`, {
       method: 'GET',
       cache: 'no-store',
     });
   } else {
-    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc`, {
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,isVerified,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc&isVerified=all`, {
       method: 'GET',
       cache: 'no-store'
     });
@@ -208,7 +208,7 @@ export const getMembersForProjectForm = async (teamId = null) => {
     return { isError: true, message: response.statusText }
   }
   const result = await response.json();
-  const formattedData = result?.map((member: any) => {
+  const formattedData = result?.members?.map((member: any) => {
     const mainTeam = member?.teamMemberRoles?.find((team: any) => team?.mainTeam) || null;
     const teamLead = member?.teamMemberRoles?.some((team: any) => team?.teamLead);
     const teams = member?.teamMemberRoles?.map((teamMemberRole: any) => ({
@@ -225,6 +225,7 @@ export const getMembersForProjectForm = async (teamId = null) => {
       teamLead,
       teams,
       preferences: member?.preferences,
+      isVerified: member.isVerified,
     }
   });
 

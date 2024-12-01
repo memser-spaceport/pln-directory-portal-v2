@@ -84,6 +84,13 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
         return false;
       }
+      result.data.forEach((user: any) => {
+        user.teamMemberRoles.forEach((role:any) => {
+          if (role.role === null) {
+            role.role = "Contributor";
+          }
+        });
+      });
       setInitialContributors(result.data);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
 

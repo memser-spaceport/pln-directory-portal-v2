@@ -142,6 +142,13 @@ export const JOIN_NETWORK_ANALYTICS_EVENTS = {
   TEAM_JOIN_NETWORK_SAVE: 'member-join-network-save',
 };
 
+export const SIGN_UP_ANALYTICS_EVENTS = {
+  SIGN_UP_FORM_SUBMIT: 'sign-up-form-submit',
+  SIGN_UP_FORM_CANCEL: 'sign-up-form-cancel',
+  SIGN_UP_POLICY_URL_CLICK: 'sign-up-policy-url-click',
+  SIGN_UP_HOME_CLICK_AFTER_SUCCESS: 'sign-up-home-click-after-success',
+};
+
 export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_DETAIL_DELETE_SUCCESS: 'project-detail-delete-success',
   PROJECT_DETAIL_DELETE_FAILED: 'project-detail-delete-failed',
@@ -921,3 +928,12 @@ export const IRL_SUBMIT_FORM_LINK = "https://eventsmanagement.labweek.io/"
 
 export const LOGIN_BANNER_URL="https://plabs-assets.s3.us-west-1.amazonaws.com/images/login-banner.png"
 export const IRL_DEFAULT_TOPICS="AI,Apps,AR/VR,Argentina,Automation,AVS,BCI,Capital Allocation,Collaboration,Compliance,Compute,Cryptography,Culture,Decentralized IP,Decentralized Compute,Decentralized AI,DeFi,DePin,DeSci,Dev Tooling,Distributed Systems,Encryption,Events,Extended Reality,Filecoin,Funding Mechanism,Fundraising,Governance,Growth,GTM,Hackathon,Hard Tech,Human Organization,Human AI-Cooperation,Incentives,InfoSec,Interoperability,IoT,Longevity & Biotech,Marketing,Networks,Neurotech,OpSec,Partnerships,Privacy,Product Market Fit,Products,Public Goods,Real World Crypto,Retrieval,RWA,Scaling,Security,SLA's,Startups,Storage,Sustainability,Tokenomics,UI/UX,Wallet,Web3,ZK Proofs"
+
+export const GROUP_TYPES = {
+  TEAM: 'Team',
+  PROJECT: 'Project',
+}
+
+export const SIGN_UP = {
+  POLICY_URL: 'https://protocol.ai/privacy-policy/',
+}

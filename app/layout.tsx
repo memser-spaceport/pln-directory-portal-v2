@@ -12,15 +12,15 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import HuskySidePanel from '@/components/core/husky/husky-sidepanel';
 
 // dynamic components:
-const Loader = dynamic(() => import('../components/core/loader'), {ssr: false});
-const AuthBox = dynamic(() => import('@/components/core/login/auth-box'), {ssr: false});
-const Toaster = dynamic(() => import('../components/core/toaster'), {ssr: false});
-const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'), {ssr: false});
-const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'), {ssr: false})
-const TeamRegisterDialog = dynamic(()=>import('@/components/page/team-form-info/team-register-dialog'), {ssr: false})
-const CookieChecker = dynamic(() => import('@/components/core/login/cookie-checker'), {ssr: false})
-const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then(d => d.PostHogPageview), {ssr: false})
-const RatingContainer = dynamic(() => import('@/components/core/office-hours-rating/rating-container'), {ssr: false});
+const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
+const AuthBox = dynamic(() => import('@/components/core/login/auth-box'), { ssr: false });
+const Toaster = dynamic(() => import('../components/core/toaster'), { ssr: false });
+const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'), { ssr: false });
+const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'), { ssr: false });
+const TeamRegisterDialog = dynamic(() => import('@/components/page/team-form-info/team-register-dialog'), { ssr: false });
+const CookieChecker = dynamic(() => import('@/components/core/login/cookie-checker'), { ssr: false });
+const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then((d) => d.PostHogPageview), { ssr: false });
+const RatingContainer = dynamic(() => import('@/components/core/office-hours-rating/rating-container'), { ssr: false });
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -50,6 +50,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html>
+      <head>
+        {/* importing google reCaptcha v3 */}
+        <script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} async defer></script>
+      </head>
       <body className={`${inter.className} layout`}>
         <Suspense>
           <PostHogPageview />

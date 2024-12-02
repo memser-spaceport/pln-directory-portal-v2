@@ -1,5 +1,6 @@
 'use server';
 
+import validateCaptcha from '@/services/google-recaptcha.service';
 import { createParticipantRequest } from '@/services/participants-request.service';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/services/sign-up.service';
@@ -22,27 +23,41 @@ import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/
  *
  * @throws {Error} If an error occurs during the form submission process.
  */
-export async function signUpFormAction(data: any) {
+export async function signUpFormAction(data: any, recaptchaToken: string) {
   try {
     const formData = Object.fromEntries(data.entries());
 
     const formattedObj = formatFormDataToApi(formData);
-    let errors = validateSignUpForm(formattedObj);
+
+    if (recaptchaToken) {
+      const isCaptchaVerified = await validateCaptcha(recaptchaToken);
+
+      if (isCaptchaVerified && !isCaptchaVerified.success) {
+        console.error(`Captcha verification failed while adding subscriber for user: ${formattedObj.email}`);
+        return { success: false, message: 'Captcha verification failed.' };
+      }
+    } else {
+      return { success: false, message: 'Captcha token not found.' };
+    }
+
+    let errors: any = validateSignUpForm(formattedObj);
 
     if (Object.entries(errors).length) {
       // Returns the validation errors if any
       return { success: false, errors: errors };
     } else {
       const isEmailValid = await checkEmailDuplicate(formattedObj.email);
-      
+
       if (Object.entries(isEmailValid).length) {
+
         // Returns the email validation errors if any
         return { success: false, errors: isEmailValid };
+
       } else {
-        
         if (formattedObj.memberProfile && formattedObj.memberProfile.size > 0) {
           try {
-            // Uploads the member profile image into s3 and attaches the imageUid and imageUrl 
+
+            // Uploads the member profile image into s3 and attaches the imageUid and imageUrl
             const imgResponse = await saveRegistrationImage(formattedObj.memberProfile);
             const image = imgResponse?.image;
             formattedObj.imageUid = image.uid;
@@ -50,7 +65,7 @@ export async function signUpFormAction(data: any) {
             delete formattedObj.memberProfile;
           } catch (er) {
             // Returns an error message if the image upload fails
-            return { success: false, message: 'Image upload failed!' };
+            return { success: false, message: 'Image upload failed.Please retry again later!' };
           }
         }
         formattedObj.memberProfile && delete formattedObj.memberProfile;
@@ -75,7 +90,7 @@ export async function signUpFormAction(data: any) {
         }
       }
     }
-  } catch (error:any) {
+  } catch (error: any) {
     return { success: false, message: error.message };
   }
 }

@@ -21,9 +21,9 @@ const SignUpHeader = () => {
           display: flex;
           flex-direction: column;
           justify-content: flex-start;
-          padding: 24px;
+          padding: 12px;
           color: #ffffff;
-          background-image: url('/images/join/header-bg.png');
+          background-image: url('/images/join/header-bg-mbl.svg');
           background-size: cover;
           background-position: right;
           height: 100%;
@@ -31,8 +31,9 @@ const SignUpHeader = () => {
           gap: 8px;
           //   background-color: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 100%);
         }
-        @media (min-width: 768px) {
+        @media (min-width: 425px) {
           .sign-up-header {
+          padding: 24px;
             background-image: url('/images/join/header-bg.png');
           }
         }

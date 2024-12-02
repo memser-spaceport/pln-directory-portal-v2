@@ -1,3 +1,4 @@
+import { SIGN_UP } from '../utils/constants';
 
 declare global {
   interface Window {
@@ -15,22 +16,18 @@ declare global {
  * @throws {Error} - Throws an error if the required environment variables are missing.
  */
 export default async function validateCaptcha(recaptchaToken: string) {
-  const verificationUrl = process.env.GOOGLE_RECAPTCHA_VERIFICATION_URL;
-  const secret = process.env.GOOGLE_RECAPTCHA_SECRET;
+  let verificationUrl = SIGN_UP.CAPTCHA_URL;
+  const secret = process.env.GOOGLE_SECRET_KEY;
 
   if (!verificationUrl || !secret) {
-    throw new Error("Missing environment variables for reCAPTCHA.");
+    throw new Error('Missing environment variables for reCAPTCHA.');
   }
 
-  const recaptchaResponse = await fetch(verificationUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `secret=${secret}&response=${recaptchaToken}`,
-  });
+  verificationUrl = verificationUrl + `?secret=${secret}&response=${recaptchaToken}`;
 
-  const response = await recaptchaResponse.json();
+  const verificationResponse = await fetch(verificationUrl, { method: 'POST' });
+
+  const response = await verificationResponse.json();
   return response;
 }
 
@@ -44,13 +41,13 @@ export default async function validateCaptcha(recaptchaToken: string) {
  */
 export const getRecaptchaToken = async () => {
   try {
-    const siteKey = process.env.GOOGLE_RECAPTCHA_KEY;
+    const siteKey = process.env.GOOGLE_SITE_KEY;
 
-    if (typeof window !== "undefined" && siteKey) {
-      const token = await window?.grecaptcha?.execute(siteKey, { action: "submit" });
+    if (typeof window !== 'undefined' && siteKey) {
+      const token = await window?.grecaptcha?.execute(siteKey, { action: 'submit' });
       return { token };
     } else {
-      throw new Error("reCAPTCHA is not available or missing site key.");
+      throw new Error('reCAPTCHA is not available or missing site key.');
     }
   } catch (error) {
     return { error };

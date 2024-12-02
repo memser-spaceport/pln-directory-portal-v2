@@ -53,7 +53,6 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
         triggerLoader(false);
         return;
       }
-      formData.append('recaptchaToken', reCAPTCHAToken.token);
 
       // Adding sign-up source to form data
       if (document?.referrer) {
@@ -63,14 +62,22 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
       analytics.recordSignUpSave('submit-clicked', Object.fromEntries(formData.entries()));
 
       // Submitting form data (Implemented actions to evaluate and submit the request)
-      const result = await signUpFormAction(formData);
-
+      const result = await signUpFormAction(formData,reCAPTCHAToken.token);
+      
       if (result?.success) {
         analytics.recordSignUpSave('submit-clicked-success', Object.fromEntries(formData.entries()));
         setSuccessFlag(true);
       } else {
-        analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
-        setErrors(result?.errors);
+        if(result?.errors){
+          analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
+          setErrors(result?.errors);
+        }else{
+          if(result?.message){
+            toast.error(result?.message);
+          }else{
+            toast.error('Something went wrong. Please try again.');
+          }
+        }
       }
     } catch (error) {
       analytics.recordSignUpSave('submit-clicked-fail', error);

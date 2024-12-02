@@ -41,10 +41,10 @@ export const formatFormDataToApi = (formData: any) => {
   result['name'] = formData['name'];
   result['email'] = formData['email'];
   if (formData['consent']) {
-    result['isUserConsent'] = formData['consent'];
+    result['isUserConsent'] = formData['consent'] == 'true';
   }
   if (formData['subscribe']) {
-    result['isSubscribedToNewsletter'] = formData['subscribe'];
+    result['isSubscribedToNewsletter'] = formData['subscribe'] == 'true';
   }
   if (formData['selected-team-or-project']) {
     try {
@@ -114,10 +114,17 @@ export const formatSuggestions = (suggestions: any) => {
 };
 
 export const getSuggestions = async (searchTerm: string) => {
-  //   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/skills?search=${searchTerm}&pagination=false`, { method: 'GET' });
-  //   if (!response.ok) {
-  //     return [];
-  //   }
-  //   const data = await response.json();
-  return [];
+    // const response = await fetch( { method: 'GET' });
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/entities?include=projects,teams&name=${searchTerm}`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      return [];
+    }
+    const data = await response.json();
+  return data;
 };

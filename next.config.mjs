@@ -27,6 +27,8 @@ const nextConfig = {
     HUSKY_API_URL: process.env.HUSKY_API_URL,
     TEXT_EDITOR_API_KEY: process.env.TEXT_EDITOR_API_KEY,
     REVALIDATE_TOKEN: process.env.REVALIDATE_TOKEN,
+    GOOGLE_SITE_KEY: process.env.GOOGLE_SITE_KEY,
+    GOOGLE_SECRET_KEY: process.env.GOOGLE_SECRET_KEY,
   },
   images: {
     remotePatterns: [

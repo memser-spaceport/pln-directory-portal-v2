@@ -218,7 +218,6 @@ const SignUpInputs = ({ skillsInfo, errors }: any) => {
         }
         a {
           color: blue;
-          text-decoration: underline;
         }
 
         .signup__form__item {

@@ -4,6 +4,7 @@ import SuggestionDropdown from './suggestion-dropdown';
 import { getColorObject } from '@/utils/sign-up.utils';
 import { formatSuggestions, getSuggestions } from '@/services/sign-up.service';
 import { GROUP_TYPES } from '@/utils/constants';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Suggestion {
   uid: string;
@@ -44,6 +45,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
   const [filteredSuggestions, setFilteredSuggestions] = useState<Suggestion[]>([]);
   const [enableDropdown, setDropdownStatus] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const debouncedSearchText = useDebounce(searchInputValue, 300);
 
   const clrObj = getColorObject(selectedSuggestion?.group || '');
 
@@ -60,14 +62,6 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchInputValue(value);
-    if (value.length > 2) {
-      const getSuggestion = await getSuggestions(value);
-      setFilteredSuggestions(formatSuggestions(getSuggestion));
-      setDropdownStatus(true);
-    } else {
-      setDropdownStatus(false);
-      setFilteredSuggestions([]);
-    }
   };
 
   /**
@@ -122,21 +116,36 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
     setSelectedSuggestion(suggestion);
   };
 
+  const searchTextChange = async (value: string) => {
+    if (value.length > 2) {
+      const getSuggestion = await getSuggestions(value);
+      setFilteredSuggestions(formatSuggestions(getSuggestion));
+      setDropdownStatus(true);
+    } else {
+      setDropdownStatus(false);
+      setFilteredSuggestions([]);
+    }
+  }
+
+  useEffect(() => {
+    searchTextChange(debouncedSearchText);
+  }, [debouncedSearchText]);
+
   return (
     <>
-      <div className="cs">
+      <div className="suggestions">
         {/* label for the component which is optional */}
         {title && (
-          <label htmlFor={id} className={`cs__label`}>
+          <label htmlFor={id} className={`suggestions__label`}>
             {title}
           </label>
         )}
 
         {/* to display the selected suggestion */}
-        <div className="cs__input">
+        <div className="suggestions__input">
           {selectedSuggestion && (
-            <div className="cs__input__selected">
-              <div className="cs__input__selected__item">
+            <div className="suggestions__input__selected">
+              <div className="suggestions__input__selected__item">
                 <Image
                   loading="lazy"
                   src={selectedSuggestion.logoURL ? selectedSuggestion.logoURL : selectedSuggestion.group === GROUP_TYPES.TEAM ? '/icons/teams.svg' : '/icons/default-project.svg'}
@@ -145,11 +154,11 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
                   height={20}
                 />
                 <div>{selectedSuggestion.name}</div>
-                <span style={{ color: `${clrObj.color}`, background: `${clrObj.bgColor}` }} className="cs__input__selected__group">
+                <span style={{ color: `${clrObj.color}`, background: `${clrObj.bgColor}` }} className="suggestions__input__selected__group">
                   {selectedSuggestion.group}
                 </span>
               </div>
-              <div className="cs__input__close" onClick={onCloseClick}>
+              <div className="suggestions__input__close" onClick={onCloseClick}>
                 <Image loading="lazy" src="/icons/close.svg" alt="add" width={16} height={16} />
               </div>
             </div>
@@ -161,15 +170,15 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
               <div>
                 <Image loading="lazy" src={addNew?.iconURL ?? '/icons/sign-up/share-with-bg.svg'} alt="add" width={20} height={20} />
               </div>
-              <input type="text" value={inputValue} onChange={handleAddInputChange} className="cs__input__field" placeholder={placeHolderText} name="add" />
-              <div className="cs__input__close" onClick={onCloseClick}>
+              <input type="text" value={inputValue} onChange={handleAddInputChange} className="suggestions__input__field" placeholder={placeHolderText} name="add" />
+              <div className="suggestions__input__close" onClick={onCloseClick}>
                 <Image loading="lazy" src="/icons/close.svg" alt="add" width={16} height={16} />
               </div>
             </>
           )}
 
           {/* search text input */}
-          {!isAddMode && !selectedSuggestion && <input type="text" value={searchInputValue} onChange={handleInputChange} className="cs__input__field" placeholder={placeHolderText} name="search" />}
+          {!isAddMode && !selectedSuggestion && <input type="text" value={searchInputValue} onChange={handleInputChange} className="suggestions__input__field" placeholder={placeHolderText} name="search" />}
         </div>
 
         {/* dropdown to show suggestions */}
@@ -180,19 +189,19 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
       </div>
       <style jsx>
         {`
-          .cs {
+          .suggestions {
             display: flex;
             flex-direction: column;
             width: 100%;
           }
 
-          .cs__label {
+          .suggestions__label {
             font-weight: 600;
             font-size: 14px;
             margin-bottom: 12px;
           }
 
-          .cs__input {
+          .suggestions__input {
             width: 100%;
             // padding: 8px 12px;
             border: 1px solid lightgrey;
@@ -205,7 +214,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
             padding: 0px ${isAddMode ? '8' : '0'}px;
           }
 
-          .cs__input__field {
+          .suggestions__input__field {
             width: 100%;
             padding: 8px 12px;
             min-height: 40px;
@@ -215,18 +224,18 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
             outline: none;
           }
 
-          .cs__input__close {
+          .suggestions__input__close {
             cursor: pointer;
             display: flex;
           }
 
-          .cs__dropdown {
+          .suggestions__dropdown {
             position: relative;
             width: 100%;
             padding-top: 8px;
           }
 
-          .cs__add {
+          .suggestions__add {
             display: flex;
             border-top: 1px solid #cbd5e1;
             justify-content: space-between;
@@ -236,12 +245,12 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
             padding-bottom: 0px;
           }
 
-          .cs__add__action {
+          .suggestions__add__action {
             display: flex;
             gap: 4px;
           }
 
-          .cs__dropdown__suggestion {
+          .suggestions__dropdown__suggestion {
             position: absolute;
             width: 100%;
             border: 1px solid #cbd5e1;
@@ -250,7 +259,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
             background-color: white;
           }
 
-          .cs__dropdown__suggestion__group__title {
+          .suggestions__dropdown__suggestion__group__title {
             font-size: 13px;
             font-weight: 600;
             line-height: 20px;
@@ -258,8 +267,8 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
             border-radius: 4px;
           }
 
-          .cs__input:focus-visible,
-          .cs__input:focus {
+          .suggestions__input:focus-visible,
+          .suggestions__input:focus {
             outline: none;
           }
 
@@ -273,7 +282,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
             width: 0;
           }
 
-          .cs__add__action__btn {
+          .suggestions__add__action__btn {
             background: white;
             color: #156ff7;
             font-size: 14px;
@@ -284,26 +293,26 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
             gap: 4px;
           }
 
-          .cs__add__action__btn__img {
+          .suggestions__add__action__btn__img {
             display: flex;
             align-items: center;
             justify-content: center;
           }
 
-          .cs__input__selected {
+          .suggestions__input__selected {
             display: flex;
             align-items: center;
             width: 100%;
             justify-content: space-between;
             padding-right: 8px;
           }
-          .cs__input__selected__item {
+          .suggestions__input__selected__item {
             padding: 0px 8px;
             display: flex;
             gap: 8px;
           }
 
-          .cs__input__selected__group {
+          .suggestions__input__selected__group {
             display: flex;
             flex-direction: row;
             align-items: flex-end;

@@ -145,6 +145,7 @@ export const getQuery = (searchParams: any) => {
     fundingStage: searchParams?.fundingStage ?? '',
     technology: searchParams?.technology ?? '',
     includeFriends: searchParams?.includeFriends ?? '',
+    includeUnVerified: searchParams?.includeUnVerified ?? '',
     isRecent: searchParams?.isRecent ?? '',
     openToWork: searchParams?.openToWork ?? '',
     officeHoursOnly: searchParams?.officeHoursOnly ?? '',

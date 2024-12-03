@@ -31,15 +31,6 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
   const [teamsinfo, setTeamsInfo] = useState<TeamAndRoleOptions[]>(initialValues?.teamsAndRoles ?? []);
   const [selectedSkills, setSelectedSkills] = useState<SkillsOptions[]>(initialValues?.skills ?? []);
 
-  const getTeamRoleDefaultValue = (teamUid: string) => {
-    const teamIndex = initialValues.teamsAndRoles.findIndex((v: any) => v.teamUid === teamUid);
-    if (teamIndex < 0) {
-      return '';
-    }
-
-    return initialValues.teamsAndRoles[teamIndex].role;
-  };
-
   const onAddTeam = () => {
     setTeamsInfo((v) => {
       const nv = structuredClone(v);
@@ -120,12 +111,15 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
             <li key={`member-error-${index}`}>{error}</li>
           ))}
         </ul>
+        <div className='msf__teamOrProject'>
+        <TextField type="text" id="register-member-teamOrProjectURL" defaultValue={initialValues.teamOrProjectURL} name="teamOrProjectURL" label="Team or Project URL" placeholder="eg.,https://linkedin.com/in/jbenetcs" />
+        </div>
         {/**************  TEAMS & ROLES UI  *****************/}
         <div className="msf__tr">
-          <div className="msf__tr__head">
+          {teamsinfo.length > 0 && <div className="msf__tr__head">
             <p className="msf__tr__head__item">Team*</p>
-            <p className="msf__tr__head__item">Role*</p>
-          </div>
+            <p className="msf__tr__head__item">Role</p>
+          </div>}
           <div className="msf__tr__content">
             {teamsinfo.map((teaminfo, index) => (
               <div key={`teams-role-${teaminfo.teamUid}`} className="msf__tr__content__cn">
@@ -149,7 +143,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
                 <div className="msf__tr__content__cn__role">
                   <TextField
                     id="register-member-role"
-                    isMandatory={true}
+                    // isMandatory={true}
                     defaultValue={teaminfo.role}
                     name={`teamInfo${index}-role`}
                     placeholder="Enter your title/role"
@@ -158,11 +152,9 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
                   />
                 </div>
                 <div className="msf__tr__content__cn__delete">
-                  {index !== 0 && (
                     <div className="msf__tr__content__cn__delete__btn" onClick={() => onDeleteTeam(index)}>
                       <Image src="/icons/close.svg" alt="delete team role" width="18" height="18" />
                     </div>
-                  )}
                 </div>
               </div>
             ))}
@@ -190,9 +182,9 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
             onRemove={onRemoveSkill}
             uniqueKey="id"
             displayKey="name"
-            label="Professional skills*"
+            label="Professional skills"
             placeholder="Select applicable skills"
-            isMandatory={true}
+            // isMandatory={true}
             closeImgUrl="/icons/close.svg"
             arrowImgUrl="/icons/arrow-down.svg"
           />
@@ -248,6 +240,9 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
             color: red;
             font-size: 12px;
             padding: 8px 16px 16px 16px;
+          }
+          .msf__tr {
+             margin: 16px 0 0 0;
           }
           .msf__tr__head {
             display: flex;

@@ -34,6 +34,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+
   const [allErrors, setAllErrors] = useState<any[]>([]);
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
@@ -275,7 +276,6 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
     const imgEle: any = document.getElementById('member-info-basic-image');
     delete formValues.memberProfile;
     formValues.imageFile = imgEle?.value
-
     const isBothSame = compareObjsIfSame(apiObjs, formValues);
     return isBothSame;
   };

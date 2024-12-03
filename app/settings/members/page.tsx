@@ -19,7 +19,7 @@ const getPageData = async (selectedMemberId: string, authToken: string) => {
     return { isError: true };
   }
 
-  const members = dpResult.data ?? [];
+  const members = dpResult?.data ?? [];
   const [memberResult, preferenceResult] = await Promise.all([getMemberInfo(selectedMemberId ?? members[0].id), getMemberPreferences(selectedMemberId ?? members[0].id, authToken)]);
   if (memberResult.isError || preferenceResult.isError) {
     return {
@@ -53,7 +53,7 @@ export default async function ManageMembers(props: any) {
     redirect(PAGE_ROUTES.HOME);
   }
   const { members, isError, selectedMember, preferences } = await getPageData(selectedMemberId, authToken);
-  const formattedMembers = [...members].filter(v => v.id !== userInfo.uid)
+  const formattedMembers = [...members]?.filter(v => v.id !== userInfo.uid)
   if (isError) {
     return 'Error';
   }

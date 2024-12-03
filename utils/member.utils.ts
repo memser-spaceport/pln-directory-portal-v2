@@ -184,7 +184,7 @@ export const dateDifference = (date1: any, date2: any) => {
 };
 
 export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): IMemberListOptions {
-  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent } = queryParams;
+  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent, includeUnVerified } = queryParams;
 
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase();
@@ -204,6 +204,7 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
     ...(isRecent ? { isRecent: true } : {}),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(memberRoles ? { memberRoles: stringifyQueryValues(memberRoles) } : {}),
+    ...(includeUnVerified ? { isVerified: 'all' } : {}),
     orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
   };
 }
@@ -213,7 +214,7 @@ export function getMembersListOptions(options: IMemberListOptions) {
     ...options,
     pagination: true,
     select:
-      'uid,name,openToWork,isRecent,image.url,location.metroArea,location.country,location.region,location.city,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
+      'uid,name,openToWork,isRecent,isVerified,image.url,location.metroArea,location.country,location.region,location.city,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
   };
 }
 

@@ -35,6 +35,7 @@ export const getMemberListForQuery = async (options: IMemberListOptions, current
         location: member?.location,
         mainTeam,
         teamLead,
+        isVerified: member.isVerified || false,
         openToWork: member.openToWork || false,
       }
     })

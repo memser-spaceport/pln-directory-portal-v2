@@ -327,8 +327,8 @@ export const updateUserDirectoryEmail = async (payload: any, uid: string, header
   return output;
 }
 
-export const getMembersInfoForDp = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&isVerified=all&select=uid,name,image`, {
+export const getMembersInfoForDp = async (isVerifiedFlag: string = 'all') => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&isVerified=${isVerifiedFlag}&select=uid,name,image`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),

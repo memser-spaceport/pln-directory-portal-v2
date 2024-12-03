@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 import LoginBtn from './login-btn';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import SignUpBtn from './sign-up';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
@@ -136,7 +137,8 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
               {!isLoggedIn && (
                 <div className="md__container__bdy__footer__lgnop">
                   <LoginBtn />
-                  <JoinNetwork />
+                  {/* <JoinNetwork /> */}
+                  <SignUpBtn />
                 </div>
               )}
 

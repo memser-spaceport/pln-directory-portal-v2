@@ -24,6 +24,10 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_LOGIN_BTN_CLICKED);
   };
 
+  const onSignUpBtnClicked = () => {
+    captureEvent(AUTH_ANALYTICS.AUTH_SIGN_UP_BTN_CLICKED);
+  }
+
   const onProceedToLogin = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_PROCEED_TO_LOGIN_CLICKED);
   };
@@ -100,6 +104,7 @@ export const useAuthAnalytics = () => {
     onUpdateEmailClicked,
     onUpdateEmailSuccess,
     onUpdateEmailFailure,
-    onUpdateSameEmailProvided
+    onUpdateSameEmailProvided,
+    onSignUpBtnClicked
   };
 };

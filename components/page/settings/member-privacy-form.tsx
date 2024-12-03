@@ -91,7 +91,7 @@ function MemberPrivacyForm(props: any) {
       payload.showTwitter = formValues.twitter === 'on' ? true : false;
       payload.showLinkedin = formValues.linkedin === 'on' ? true : false;
       payload.showTelegram = formValues.telegram === 'on' ? true : false;
-      payload.isSubscribedToNewsletter = formValues.newsLetter === 'on' ? true : false;
+      const isSubscribedToNewsletter = formValues.newsLetter === 'on' ? true : false;
 
       payload.showGithubHandle = formValues.github === 'on' ? true : false;
       payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
@@ -115,8 +115,20 @@ function MemberPrivacyForm(props: any) {
           Authorization: `Bearer ${JSON.parse(authToken)}`,
         },
       });
+
+      const memberUpdateResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          isSubscribedToNewsletter: isSubscribedToNewsletter
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${JSON.parse(authToken)}`,
+        },
+      })
+
       triggerLoader(false);
-      if (apiResult.ok) {
+      if (apiResult.ok || memberUpdateResult.ok) {
         /*  if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */

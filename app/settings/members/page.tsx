@@ -53,6 +53,9 @@ export default async function ManageMembers(props: any) {
     redirect(PAGE_ROUTES.HOME);
   }
   const { members, isError, selectedMember, preferences } = await getPageData(selectedMemberId, authToken);
+  if( preferences.memberPreferences) {
+    preferences.memberPreferences.newsLetter = selectedMember?.isSubscribedToNewsletter;
+  }
   const formattedMembers = [...members]?.filter(v => v.id !== userInfo.uid)
   if (isError) {
     return 'Error';

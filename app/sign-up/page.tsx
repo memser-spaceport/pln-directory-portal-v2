@@ -2,7 +2,7 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata } from 'next';
 import styles from './page.module.css';
 import { getSkillsData } from '@/services/sign-up.service';
-import SignUp from '@/components/core/sign-up/sign-up';
+import SignUp from '@/components/page/sign-up/sign-up';
 
 const getPageData = async () => {
   const memberInfo = await getSkillsData();

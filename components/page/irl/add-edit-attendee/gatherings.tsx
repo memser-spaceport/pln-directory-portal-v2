@@ -18,6 +18,7 @@ interface IGatherings {
   guests: any;
   setErrors: SetStateAction<any>;
   loggedInUserInfo: IUserInfo | null;
+  isVerifiedMember: any;
 }
 
 const Gatherings = (props: IGatherings) => {
@@ -28,6 +29,7 @@ const Gatherings = (props: IGatherings) => {
   const errors = props?.errors;
   const initialValues = props?.initialValues;
   const guests = props?.guests;
+  const isVerifiedMember = props?.isVerifiedMember;
 
   const isAdmin = Array.isArray(loggedInUserInfo?.roles) && loggedInUserInfo?.roles.includes(ADMIN_ROLE);
 
@@ -109,7 +111,7 @@ const Gatherings = (props: IGatherings) => {
 
         {selectedGatherings.length > 0 && (
           <div>
-            <ParticipationDetails errors={errors} selectedGatherings={selectedGatherings} setSelectedGatherings={setSelectedGatherings} />
+            <ParticipationDetails isVerifiedMember={isVerifiedMember} errors={errors} selectedGatherings={selectedGatherings} setSelectedGatherings={setSelectedGatherings} />
           </div>
         )}
       </div>

@@ -8,11 +8,13 @@ interface IParticipationDetails {
   selectedGatherings: IIrlGathering[];
   setSelectedGatherings: SetStateAction<any>;
   errors: IIrlAttendeeFormErrors;
+  isVerifiedMember:boolean;
 }
 
 const ParticipationDetails = (props: IParticipationDetails) => {
   const selectedGatherings = props?.selectedGatherings ?? [];
   const setSelectedGatherings = props?.setSelectedGatherings;
+  const isVerifiedMember = props?.isVerifiedMember;
   const errors = props?.errors;
   const [participationErrors, setParticipationErrors] = useState<string[]>([]);
 
@@ -235,7 +237,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                           name={`isHost-${selectedGathering.uid}`}
                           value={'true'}
                           initialValue={isHostSubEvents}
-                          disabled={false}
+                          disabled={isVerifiedMember === false}
                           onSelect={() => onHostSelectHandler(selectedGathering)}
                         />
                         <span className="ptndtls__cnt__pptdtls__pptdtl__lft__hst__txt">HOST</span>
@@ -246,7 +248,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                           name={`isSpeaker-${selectedGathering.uid}`}
                           value={'true'}
                           initialValue={isSpeakerSubEvents}
-                          disabled={false}
+                          disabled={isVerifiedMember === false}
                           onSelect={() => onSpeakerSelectHandler(selectedGathering)}
                         />
                         <span className="ptndtls__cnt__pptdtls__pptdtl__lft__spkr__txt">SPEAKER</span>

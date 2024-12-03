@@ -277,7 +277,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
         {/* consent input */}
         <div className="signup__checkbox">
-          <CustomCheckbox name="consent" value={'true'} initialValue={false} disabled={false} onSelect={() => {}} />
+          <CustomCheckbox name="consent" value={'true'} initialValue={false} onSelect={() => {}} />
           <span>
             I consent to the collection, use, and sharing of my data as per{' '}
             <a target="_blank" href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>
@@ -289,7 +289,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
         {/* subscription input */}
         <div className="signup__checkbox">
-          <CustomCheckbox name="subscribe" value={'true'} initialValue={false} disabled={false} onSelect={() => {}} />
+          <CustomCheckbox name="subscribe" value={'true'} initialValue={false} onSelect={() => {}} />
           <span>Subscribe to PL Newsletter</span>
         </div>
       </div>

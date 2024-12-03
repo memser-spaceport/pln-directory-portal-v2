@@ -94,6 +94,11 @@ export default function Navbar(props: Readonly<INavbar>) {
     setIsNotification(!isNotification);
   };
 
+  const handleSubmitTeam = () => {
+    analytics.onSubmitATeamBtnClicked();
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
+  }
+
   return (
     <>
       <div className="nb">
@@ -115,17 +120,19 @@ export default function Navbar(props: Readonly<INavbar>) {
         </div>
         <div className="nb__right">
           {isLoggedIn && (
-            <div className="nb__right__ntc">
-              <button ref={notificationRef} className={`nb__right__ntc__btn ${notifications?.length > 0 ? 'shake' : ''}`} onClick={onNotificationClickHandler}>
-                <img alt="notification" src="/icons/bell.svg" />
-              </button>
-              {notifications?.length > 0 && <div className="nb__right__ntc__new">{notifications?.length}</div>}
-              {isNotification && (
-                <div className="nb__right__ntc__allntn">
-                  <AllNotifications userInfo={userInfo} allNotifications={notifications} />
-                </div>
-              )}
-            </div>
+            <>
+              <div className='nb__right__team' onClick={handleSubmitTeam}>Submit a Team</div>
+              <div className="nb__right__ntc">
+                <button ref={notificationRef} className={`nb__right__ntc__btn ${notifications?.length > 0 ? 'shake' : ''}`} onClick={onNotificationClickHandler}>
+                  <img alt="notification" src="/icons/bell.svg" />
+                </button>
+                {notifications?.length > 0 && <div className="nb__right__ntc__new">{notifications?.length}</div>}
+                {isNotification && (
+                  <div className="nb__right__ntc__allntn">
+                    <AllNotifications userInfo={userInfo} allNotifications={notifications} />
+                  </div>
+                )}
+              </div></>
           )}
           <div className="nb__right__helpc" ref={helpMenuRef}>
             <button onClick={onHelpClickHandler} className="nb__right__helpc__btn">
@@ -196,6 +203,18 @@ export default function Navbar(props: Readonly<INavbar>) {
             cursor: pointer;
           }
 
+          .nb__right__team {
+            display:flex;
+            color: #475569;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 24px;
+            text-align: right;
+          }
+
           .nb__left__web-optns__optn:focus {
             border-radius: 0.5rem;
             outline-style: solid;
@@ -226,7 +245,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           .nb__right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
           }
 
           .nb__right__helpc {

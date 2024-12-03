@@ -21,7 +21,7 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
         linkedin: rawPreferences?.linkedin ?? false,
         twitter: rawPreferences?.twitter ?? false,
         githubProjects: rawPreferences?.github ?? false,
-        newsLetter: rawPreferences?.subscription ?? false
+        newsLetter: true
     }
     const memberPreferences = {
         email: rawPreferences?.showEmail,

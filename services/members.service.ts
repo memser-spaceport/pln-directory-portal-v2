@@ -131,6 +131,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     repositories: [],
     teamAndRoles: teamAndRoles,
     preferences: result.preferences ?? null,
+    isSubscribedToNewsletter: result?.isSubscribedToNewsletter ?? false
   };
 
   if (isLoggedIn) {
@@ -298,7 +299,7 @@ export const getMemberInfo = async (memberUid: string) => {
       startDate: pc?.startDate,
       endDate: pc?.endDate,
       description: pc?.description ?? '',
-      currentProject: pc?.currentProject ?? false
+      currentProject: pc?.currentProject ?? false,
     }
   })
 

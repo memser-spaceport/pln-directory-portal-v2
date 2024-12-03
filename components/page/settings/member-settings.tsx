@@ -275,7 +275,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
     const apiObjs = apiObjsToMemberObj(initialValues);
     const imgEle: any = document.getElementById('member-info-basic-image');
     delete formValues.memberProfile;
-    formValues.imageFile = imgEle?.value
+    formValues.imageFile = imgEle?.value;
     const isBothSame = compareObjsIfSame(apiObjs, formValues);
     return isBothSame;
   };

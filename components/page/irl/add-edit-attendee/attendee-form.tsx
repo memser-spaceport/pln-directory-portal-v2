@@ -55,6 +55,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
 
   const [formInitialValues, setFormInitialValues] = useState<any>(props?.formData);
   const isAllowedToManageGuests = canUserPerformEditAction(userInfo?.roles ?? [], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const [isVerifiedMember, setIsVerifiedMember] = useState();
 
   const [errors, setErrors] = useState<IIrlAttendeeFormErrors>({
     gatheringErrors: [],
@@ -343,7 +344,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
           <AttendeeFormErrors errors={errors} />
           <div>
-            <AttendeeDetails gatherings={gatherings} setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {eventType}/>
+            <AttendeeDetails setIsVerifiedMember={setIsVerifiedMember} gatherings={gatherings} setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {eventType}/>
           </div>
           <div>
             <Gatherings
@@ -355,6 +356,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               gatherings={gatherings}
               userInfo={userInfo}
               guests={allGuests}
+              isVerifiedMember={isVerifiedMember}
             />
           </div>
           <div>

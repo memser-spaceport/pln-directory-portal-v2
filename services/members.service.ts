@@ -131,7 +131,8 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     repositories: [],
     teamAndRoles: teamAndRoles,
     preferences: result.preferences ?? null,
-    isSubscribedToNewsletter: result?.isSubscribedToNewsletter ?? false
+    isSubscribedToNewsletter: result?.isSubscribedToNewsletter ?? false,
+    isVerified: result?.isVerified
   };
 
   if (isLoggedIn) {
@@ -234,7 +235,7 @@ export const getMembersForProjectForm = async (teamId = null) => {
 };
 
 export const getMembersForAttendeeForm = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url&pagination=false&orderBy=name,asc`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,isVerified&pagination=false&orderBy=name,asc&isVerified=all`, {
     method: 'GET',
     cache: 'no-store'
   });
@@ -243,7 +244,7 @@ export const getMembersForAttendeeForm = async () => {
     return { isError: true, message: response.statusText }
   }
   const result = await response.json();
-  const formattedData = result?.map((member: any) => {
+  const formattedData = result?.members?.map((member: any) => {
     const mainTeam = member?.teamMemberRoles?.find((team: any) => team?.mainTeam) || null;
     const teamLead = member?.teamMemberRoles?.some((team: any) => team?.teamLead);
     const teams = member?.teamMemberRoles?.map((teamMemberRole: any) => ({
@@ -260,6 +261,7 @@ export const getMembersForAttendeeForm = async () => {
       teamLead,
       teams,
       preferences: member?.preferences,
+      isVerified: member?.isVerified
     }
   });
   return { data: formattedData };

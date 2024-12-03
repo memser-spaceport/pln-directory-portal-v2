@@ -397,6 +397,7 @@ export function apiObjsToMemberObj(obj: any) {
         uid: sk.id,
       };
     }),
+    teamOrProjectURL:obj?.skillsInfo?.teamOrProjectURL,
     teamAndRoles: obj.skillsInfo.teamsAndRoles,
     openToWork: obj?.skillsInfo?.openToWork ?? false
   };
@@ -484,13 +485,15 @@ export function formInputsToMemberObj(obj: any) {
   } else {
     result['plnStartDate'] = null;
   }
+
   return result;
 }
 
 export const memberRegistrationDefaults = {
   skillsInfo: {
-    teamsAndRoles: [{ teamTitle: '', role: '', teamUid: '' }],
+    teamsAndRoles: [],
     skills: [],
+    teamOrProjectURL:''
   },
   contributionInfo: [],
   basicInfo: {
@@ -519,6 +522,7 @@ export const getInitialMemberFormValues = (selectedMember: any) => {
       teamsAndRoles: selectedMember.teamMemberRoles ?? [],
       skills: selectedMember.skills ?? [],
       openToWork: selectedMember?.openToWork ?? false,
+      teamOrProjectURL: selectedMember?.teamOrProjectURL ?? ''
     },
     contributionInfo: selectedMember?.projectContributions ?? [],
     basicInfo: {

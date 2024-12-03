@@ -24,17 +24,9 @@ const skill = z.object({
 
 const teamsAndRoles = z.object({
   teamUid: z
-    .string({ errorMap: () => ({ message: 'Please provide valid values for team(s)/role(s)' }) })
-    .trim()
-    .min(1),
+    .string(),
   teamTitle: z
-    .string({ errorMap: () => ({ message: 'Please provide valid values for team(s)/role(s)' }) })
-    .trim()
-    .min(1),
-  role: z
-    .string({ errorMap: () => ({ message: 'Please provide valid values for team(s)/role(s)' }) })
-    .trim()
-    .min(1),
+    .string({ errorMap: () => ({ message: 'Please provide valid values for team(s)/role(s)' })}).min(1)
 });
 
 const projectInfo = z.object({
@@ -49,6 +41,16 @@ export const projectContributionSchema = z.object({
 });
 
 export const TeamAndSkillsInfoSchema = z.object({
-  teamAndRoles: z.array(teamsAndRoles).nonempty({ message: 'Please provide valid values for team(s)/role(s)' }),
-  skills: z.array(skill).nonempty({ message: 'Please provide valid skills' }),
+  teamAndRoles: z.preprocess(
+    (value) => {
+      if (Array.isArray(value) && value.length === 0) {
+        return undefined; // Explicitly return undefined for empty arrays
+      }
+      return value;
+    },
+    z.union([
+      z.array(teamsAndRoles).min(1, { message: 'Please provide valid values for team(s)/role(s)' }),
+      z.undefined(),
+    ])
+  ),
 });

@@ -10,7 +10,7 @@ import React, { Fragment, memo } from 'react';
  * @param {number} props.noOfTagsToShow - Number of tags to display initially
  * @returns {JSX.Element} A list of tags with tooltips
  */
-const TeamsTagsList = memo((props: any) => {
+const TeamsTagsList = (props: any) => {
   const tags = props?.tags ?? [];
   const noOfTagsToShow = props?.noOfTagsToShow ?? 2;
 
@@ -66,6 +66,6 @@ const TeamsTagsList = memo((props: any) => {
       `}</style>
     </React.Fragment>
   );
-});
+}
 
 export default TeamsTagsList;

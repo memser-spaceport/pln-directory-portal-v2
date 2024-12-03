@@ -326,7 +326,7 @@ export const updateUserDirectoryEmail = async (payload: any, uid: string, header
 }
 
 export const getMembersInfoForDp = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&select=uid,name,image`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&isVerified=all&select=uid,name,image`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),
@@ -336,7 +336,7 @@ export const getMembersInfoForDp = async () => {
   }
   const result = await response?.json();
   const formattedData: any = result?.members
-    .map((info: any) => {
+    ?.map((info: any) => {
       return {
         id: info.uid,
         name: info.name,

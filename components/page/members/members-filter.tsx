@@ -209,7 +209,7 @@ const MembersFilter = (props: IMembersFilter) => {
             </div>
             {/* Unverified Members filter */}
             <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Show Unverified Members</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Include Unverified Members</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"

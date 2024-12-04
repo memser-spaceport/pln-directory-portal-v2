@@ -293,7 +293,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
         {/* subscription input */}
         <div className="signup__checkbox">
-          <CustomCheckbox name="subscribe" value={'true'} initialValue={false} onSelect={() => {}} />
+          <CustomCheckbox name="subscribe" value={'true'} initialValue={true} onSelect={() => {}} />
           <span>Subscribe to PL Newsletter</span>
         </div>
       </div>

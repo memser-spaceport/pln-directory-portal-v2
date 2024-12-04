@@ -199,12 +199,12 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
       : {}),
     ...(country ? { 'location.country__with': stringifyQueryValues(country) } : {}),
     ...(metroArea ? { 'location.city__with': stringifyQueryValues(metroArea) } : {}),
-    ...(includeFriends ? {} : { plnFriend: false }),
+    ...(includeFriends ? {isVerified: 'all'} : { plnFriend: false, isVerified: 'true' }),
     ...(openToWork ? { openToWork: true } : {}),
     ...(isRecent ? { isRecent: true } : {}),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(memberRoles ? { memberRoles: stringifyQueryValues(memberRoles) } : {}),
-    ...(includeUnVerified ? { isVerified: 'all' } : {}),
+   /*  ...(includeUnVerified ? { isVerified: 'all' } : {}), */
     orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
   };
 }

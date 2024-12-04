@@ -315,9 +315,9 @@ const IrlEvents = (props: IIrlEvents) => {
                 <div>
                   <img src="/icons/info-orange.svg" alt="info" />
                 </div>
-                <div>Attending an event but aren&apos;t part of the network yet?</div>
+                <div>Attending an event but don&apos;t have access?</div>
                 <a href="/sign-up" target="_blank" onClick={handleJoinPLNetworks}>
-                  Join
+                  Sign up
                 </a>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import SuggestionItem from './suggestion-item';
 import Image from 'next/image';
 
@@ -20,8 +20,8 @@ interface SuggestionDropdownProps {
   };
   onSelect: (suggestion: any) => void;
   enableAddMode: () => void;
+  setDropdownStatus: (status: boolean) => void;
 }
-
 
 /**
  * SuggestionDropdown component renders a dropdown list of suggestions.
@@ -44,29 +44,46 @@ interface SuggestionDropdownProps {
  *   enableAddMode={handleEnableAddMode}
  * />
  */
-const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({ suggestions, addNew, onSelect, enableAddMode }) => {
+const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({ suggestions, addNew, onSelect, enableAddMode,setDropdownStatus }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // Close options when clicking outside the component
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setDropdownStatus(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   return (
     <>
       <div className="suggestion__dropdown">
-        <div className="suggestion__dropdown__suggestion">
+        <div className="suggestion__dropdown__suggestion"  ref={containerRef}>
           {/* list of suggestions */}
-          {suggestions.length > 0 &&
-            suggestions.map((suggestion, index) => {
-              return (
-                <div key={index} className="suggestion__dropdown__suggestion__group">
-                  <div className="suggestion-item">
-                    <SuggestionItem suggestion={suggestion} onSelect={onSelect} />
+          <div className="suggestion__dropdown__suggestion__list">
+            {suggestions.length > 0 &&
+              suggestions.map((suggestion, index) => {
+                return (
+                  <div key={index} className="suggestion__dropdown__suggestion__group">
+                    <div className="suggestion-item">
+                      <SuggestionItem suggestion={suggestion} onSelect={onSelect} />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-          {/* when no suggestion available */}
-          {suggestions.length === 0 && (
-            <div className="suggestion__dropdown__suggestion__group__not-found">
-              <div className="suggestion__dropdown__suggestion__group__not-found__txt">No suggestions found</div>
-            </div>
-          )}
+            {/* when no suggestion available */}
+            {suggestions.length === 0 && (
+              <div className="suggestion__dropdown__suggestion__group__not-found">
+                <div className="suggestion__dropdown__suggestion__group__not-found__txt">No suggestions found</div>
+              </div>
+            )}
+          </div>
 
           {/* add new suggestion */}
           {addNew?.enable && (
@@ -88,7 +105,7 @@ const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({ suggestions, ad
         .suggestion__dropdown {
           position: relative;
           width: 100%;
-          padding-top: 8px;
+          padding-top: 6px;
         }
 
         .suggestion__add {
@@ -148,6 +165,12 @@ const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({ suggestions, ad
         .suggestion__dropdown__suggestion__group__not-found {
           display: flex;
           padding: 8px;
+        }
+
+        .suggestion__dropdown__suggestion__list {
+          max-height: 165px;
+          overflow-y: scroll;
+          scrollbar-width: thin;
         }
       `}</style>
     </>

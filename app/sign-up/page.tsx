@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import styles from './page.module.css';
 import { getSkillsData } from '@/services/sign-up.service';
 import SignUp from '@/components/page/sign-up/sign-up';
+import Script from 'next/script';
 
 const getPageData = async () => {
   const memberInfo = await getSkillsData();
@@ -21,6 +22,7 @@ export default async function Page() {
   const { skillsInfo } = await getPageData();
   return (
     <>
+    <Script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} strategy="lazyOnload"></Script>
       <div className={styles.signup}>
         <div className={styles.signup__cn}>
           <SignUp skillsInfo={skillsInfo} />

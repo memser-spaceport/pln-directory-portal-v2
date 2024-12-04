@@ -8,17 +8,13 @@ const SignUpBtn = () => {
 
   const onLoginClickHandler = () => {
     authAnalytics.onLoginBtnClicked();
+    window.location.href = '/sign-up';
   };
   return (
     <>
-      <Link
-        href="/sign-up"
-        onClick={onLoginClickHandler}
-      >
-        <button className="SignUpBtn">
-          Sign Up
-        </button>
-      </Link>
+      <div onClick={onLoginClickHandler}>
+        <button className="SignUpBtn">Sign Up</button>
+      </div>
       <style jsx>{`
         .SignUpBtn {
           background: transparent;
@@ -29,7 +25,7 @@ const SignUpBtn = () => {
         }
 
         .SignUpBtn:hover {
-          // box-shadow: 0 4px 4px 0 rgba(15, 23, 42, 0.04), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 0 0 2px rgba(21, 111, 247, 0.25); 
+          // box-shadow: 0 4px 4px 0 rgba(15, 23, 42, 0.04), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 0 0 2px rgba(21, 111, 247, 0.25);
           color: #000000;
           // background: linear-gradient(71.47deg, #1a61ff 8.43%, #2cc3ae 87.45%);
         }

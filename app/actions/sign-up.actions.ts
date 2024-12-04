@@ -4,6 +4,7 @@ import validateCaptcha from '@/services/google-recaptcha.service';
 import { createParticipantRequest } from '@/services/participants-request.service';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/services/sign-up.service';
+import { cookies } from 'next/headers';
 
 /**
  * Handles the sign-up form submission action.
@@ -26,8 +27,11 @@ import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/
 export async function signUpFormAction(data: any, recaptchaToken: string) {
   try {
     const formData = Object.fromEntries(data.entries());
-
-    const formattedObj = formatFormDataToApi(formData);
+    const campaign = cookies().get('utm_campaign');
+    const source = cookies().get('utm_source')?.value ?? '';
+    const medium = cookies().get('utm_medium');
+    let formattedObj;
+    formattedObj = formatFormDataToApi(formData,source);
 
     if (recaptchaToken) {
       const isCaptchaVerified = await validateCaptcha(recaptchaToken);

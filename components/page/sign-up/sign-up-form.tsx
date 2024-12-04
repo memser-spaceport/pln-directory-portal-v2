@@ -45,6 +45,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
   const [profileImage, setProfileImage] = useState<string>('');
   const [skillsOptions, setSkillsOptions] = useState(skillsInfo);
   const [selectedSkills, setSelectedSkills] = useState<any>([]);
+  const [consent,setConsent] = useState(true);
 
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
@@ -197,7 +198,6 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
                   </span>
                 )}
               </label>
-              {errors?.profile && <div className="signup__form__error">{errors.profile}</div>}
               <input readOnly id="member-info-basic-image" value={formImage} hidden name="imageFile" />
               <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" ref={uploadImageRef} name="memberProfile" hidden type="file" accept="image/png, image/jpeg" />
             </div>
@@ -221,6 +221,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
           </div>
 
           {/* Image validation error */}
+          {errors?.profile && <div className="signup__form__error">{errors.profile}</div>}
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a squared image in PNG or JPEG format only</span>
           </p>
@@ -277,7 +278,9 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
         {/* consent input */}
         <div className="signup__checkbox">
-          <CustomCheckbox name="consent" value={'true'} initialValue={false} onSelect={() => {}} />
+          <CustomCheckbox name="consent" value={'true'} initialValue={true} disabled={false} onSelect={() => {
+            setConsent(!consent);
+          }} />
           <span>
             I consent to the collection, use, and sharing of my data as per{' '}
             <a target="_blank" href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>
@@ -285,6 +288,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
             </a>
             .
           </span>
+
         </div>
 
         {/* subscription input */}
@@ -299,7 +303,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
             <button type="button" onClick={handleCancel} className="sign-up-actions__cn__cancel">
               Cancel
             </button>
-            <button type="submit" className="sign-up-actions__cn__submit">
+            <button type="submit" className="sign-up-actions__cn__submit" disabled={!consent}>
               Sign Up
             </button>
           </div>
@@ -377,6 +381,10 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
           font-size: 12px;
           cursor: pointer;
           position: relative;
+        }
+
+        .sign-up-actions__cn__submit:disabled {
+          background: #cbd5e1;
         }
 
         .signup__user__profile__text {

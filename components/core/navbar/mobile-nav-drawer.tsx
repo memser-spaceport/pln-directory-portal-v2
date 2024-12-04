@@ -310,7 +310,8 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
           .md__container__bdy__footer__lgnop {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            // justify-content: space-between;
+            gap: 20px;
             width: 100%;
           }
 

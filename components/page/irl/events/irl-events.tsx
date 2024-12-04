@@ -588,7 +588,7 @@ const IrlEvents = (props: IIrlEvents) => {
 
         .root__irl__addRes__cnt__loggedOut a {
           background-color: #fff;
-          width: 45px;
+          width: 70px;
           height: 30px;
           border-radius: 8px;
           display:grid;

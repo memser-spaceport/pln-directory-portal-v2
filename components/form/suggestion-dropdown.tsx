@@ -154,6 +154,8 @@ const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({ suggestions, ad
           display: flex;
           align-items: flex-end;
           gap: 4px;
+          position: relative;
+          top: 1px;
         }
 
         .suggestion__add__action__btn__img {

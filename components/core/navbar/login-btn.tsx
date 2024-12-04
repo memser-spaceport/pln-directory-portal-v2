@@ -17,7 +17,11 @@ const LoginBtn = () => {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      if(window.location.pathname === '/sign-up'){
+        router.push(`/#login`);
+      } else {
+        router.push(`${window.location.pathname}${window.location.search}#login`);
+      }
     }
   };
   return (

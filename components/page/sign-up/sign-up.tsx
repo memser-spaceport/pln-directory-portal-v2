@@ -53,7 +53,7 @@ const SignUp = ({ skillsInfo }: any) => {
         <>
           <div className="signup__cn__header">
             <header className="sign-up-header">
-              <div className="sign-up-header__title">Join the Protocol Labs</div>
+              <div className="sign-up-header__title">PL Directory Sign up</div>
               <p className="sign-up-header__subtitle">Tell us about yourself</p>
             </header>
           </div>

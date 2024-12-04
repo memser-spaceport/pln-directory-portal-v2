@@ -36,3 +36,8 @@ export const getColorObject = (groupName: string) => {
       };
   }
 };
+
+export const validateName = (input:string) => {
+  const nameRegex =  /^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/;
+  return nameRegex.test(input);
+};

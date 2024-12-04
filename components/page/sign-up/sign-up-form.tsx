@@ -83,6 +83,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
       if (result?.success) {
         analytics.recordSignUpSave('submit-clicked-success', Object.fromEntries(formData.entries()));
         setSuccessFlag(true);
+        window.scrollTo(0, 0);
       } else {
         if (result?.errors) {
           analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
@@ -182,121 +183,145 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
     <>
       <form onSubmit={handleSubmit} ref={formRef} noValidate className="signup__form__cn">
         <div className="signup__form__cn__inputs">
-        <div className="signup">
-        <div>
-          <div className="signup__user">
-            {/* Member profile image upload */}
-            <div className="signup__user__cn">
-              <label htmlFor="member-image-upload" className="signup__user__cn__profile">
-                {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
-                {!profileImage && !savedImage && <span className="signup__user__cn__profile__text">Add Image</span>}
-                {(profileImage || savedImage) && <img className="signup__user__cn__profile__preview" src={formImage} alt="member profile" width="95" height="95" />}
-                {(profileImage || savedImage) && (
-                  <span className="signup__user__cn__profile__actions">
-                    <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                    <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
-                  </span>
-                )}
-              </label>
-              <input readOnly id="member-info-basic-image" value={formImage} hidden name="imageFile" />
-              <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" ref={uploadImageRef} name="memberProfile" hidden type="file" accept="image/png, image/jpeg" />
+          <div className="signup">
+            <div>
+              <div className="signup__user">
+                {/* Member profile image upload */}
+                <div className="signup__user__cn">
+                  <label htmlFor="member-image-upload" className="signup__user__cn__profile">
+                    {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
+                    {!profileImage && !savedImage && <span className="signup__user__cn__profile__text">Add Image</span>}
+                    {(profileImage || savedImage) && <img className="signup__user__cn__profile__preview" src={formImage} alt="member profile" width="95" height="95" />}
+                    {(profileImage || savedImage) && (
+                      <span className="signup__user__cn__profile__actions">
+                        <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
+                        <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
+                      </span>
+                    )}
+                  </label>
+                  <input readOnly id="member-info-basic-image" value={formImage} hidden name="imageFile" />
+                  <input
+                    data-testid="member-image-upload"
+                    onChange={onImageUpload}
+                    id="member-image-upload"
+                    ref={uploadImageRef}
+                    name="memberProfile"
+                    hidden
+                    type="file"
+                    accept="image/png, image/jpeg"
+                  />
+                </div>
+
+                {/* Member name */}
+                <div className="signup__form__item">
+                  <TextField
+                    pattern="^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$"
+                    maxLength={64}
+                    isMandatory={true}
+                    id="register-member-name"
+                    label="Name*"
+                    defaultValue={''}
+                    name="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    data-testid="member-name-input"
+                  />
+                  {errors?.name && <div className="signup__form__error">{errors.name}</div>}
+                </div>
+              </div>
+
+              {/* Image validation error */}
+              {errors?.profile && <div className="signup__form__error">{errors.profile}</div>}
+              <p className="info">
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a squared image in PNG or JPEG format only</span>
+              </p>
             </div>
 
-            {/* Member name */}
+            {/* Member Email */}
             <div className="signup__form__item">
-              <TextField
-                pattern="^[a-zA-Z\s]*$"
-                maxLength={64}
-                isMandatory={true}
-                id="register-member-name"
-                label="Name*"
-                defaultValue={''}
-                name="name"
-                type="text"
-                placeholder="Enter your full name"
-                data-testid="member-name-input"
+              <TextField defaultValue={''} isMandatory={true} id="signup-email" label="Email*" name="email" type="email" placeholder="Enter your email address" data-testid="member-email-input" />
+              {errors?.email && <div className="signup__form__error">{errors.email}</div>}
+            </div>
+
+            {/* Search team or project associated with member */}
+            <div>
+              <SearchWithSuggestions
+                addNew={{
+                  enable: true,
+                  title: 'Not able to find your project or team?',
+                  actionString: 'Share URL instead',
+                  iconURL: '/icons/sign-up/share.svg',
+                  placeHolderText: 'Enter or paste URL here',
+                }}
+                title={'Select a Team or a Project you are associated with'}
+                id={'search-team-and-project'}
+                name={'search-team-and-project'}
+                placeHolder="Enter a name of your team or project"
               />
-              {errors?.name && <div className="signup__form__error">{errors.name}</div>}
+              <p className="info">
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Type atleast 3 characters to see suggestions.</span>
+              </p>
+            </div>
+
+            {/* Member skills */}
+            <div>
+              <MultiSelect
+                options={skillsOptions}
+                selectedOptions={selectedSkills}
+                onAdd={onAddSkill}
+                onRemove={onRemoveSkill}
+                uniqueKey="id"
+                displayKey="name"
+                label="Professional skills"
+                placeholder="Select applicable skills"
+                isMandatory={false}
+                closeImgUrl="/icons/close.svg"
+                arrowImgUrl="/icons/arrow-down.svg"
+              />
+              {selectedSkills.map((skillInfo: any, index: number) => (
+                <div key={`member-skills-${index}`}>
+                  <HiddenField value={skillInfo.name} defaultValue={skillInfo.name} name={`skillsInfo${index}-title`} />
+                  <HiddenField value={skillInfo.id} defaultValue={skillInfo.id} name={`skillsInfo${index}-uid`} />
+                </div>
+              ))}
+            </div>
+
+            {/* consent input */}
+            <div className="signup__checkbox__cn">
+              <div className='signup__checkbox'>
+              <CustomCheckbox
+                name="consent"
+                value={'true'}
+                initialValue={true}
+                disabled={false}
+                onSelect={() => {
+                  setConsent(!consent);
+                }}
+              />
+              <span>
+                I agree to Protocol Labs'{' '}
+                <a target="_blank" href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>
+                  Terms of Service and Privacy Policy
+                </a>
+                .
+              </span>
+              </div>
+              <p className="info">
+              <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+              <span className="info__text">
+                You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified network
+                members and will not be available to any individuals or entities outside the network.
+              </span>
+            </p>
+            </div>
+            
+
+            {/* subscription input */}
+            <div className="signup__checkbox">
+              <CustomCheckbox name="subscribe" value={'true'} initialValue={true} onSelect={() => {}} />
+              <span>Subscribe to PL Newsletter</span>
             </div>
           </div>
-
-          {/* Image validation error */}
-          {errors?.profile && <div className="signup__form__error">{errors.profile}</div>}
-          <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a squared image in PNG or JPEG format only</span>
-          </p>
-        </div>
-
-        {/* Member Email */}
-        <div className="signup__form__item">
-          <TextField defaultValue={''} isMandatory={true} id="signup-email" label="Email*" name="email" type="email" placeholder="Enter your email address" data-testid="member-email-input" />
-          {errors?.email && <div className="signup__form__error">{errors.email}</div>}
-        </div>
-
-        {/* Search team or project associated with member */}
-        <div>
-          <SearchWithSuggestions
-            addNew={{
-              enable: true,
-              title: 'Not able to find your project or team?',
-              actionString: 'Share URL instead',
-              iconURL: '/icons/sign-up/share.svg',
-              placeHolderText: 'Enter or paste URL here',
-            }}
-            title={'Select a Team or a Project you are associated with'}
-            id={'search-team-and-project'}
-            name={'search-team-and-project'}
-            placeHolder="Enter a name of your team or project"
-          />
-          <p className="info">
-            <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Type atleast 3 characters to see suggestions.</span>
-          </p>
-        </div>
-
-        {/* Member skills */}
-        <div>
-          <MultiSelect
-            options={skillsOptions}
-            selectedOptions={selectedSkills}
-            onAdd={onAddSkill}
-            onRemove={onRemoveSkill}
-            uniqueKey="id"
-            displayKey="name"
-            label="Professional skills"
-            placeholder="Select applicable skills"
-            isMandatory={false}
-            closeImgUrl="/icons/close.svg"
-            arrowImgUrl="/icons/arrow-down.svg"
-          />
-          {selectedSkills.map((skillInfo: any, index: number) => (
-            <div key={`member-skills-${index}`}>
-              <HiddenField value={skillInfo.name} defaultValue={skillInfo.name} name={`skillsInfo${index}-title`} />
-              <HiddenField value={skillInfo.id} defaultValue={skillInfo.id} name={`skillsInfo${index}-uid`} />
-            </div>
-          ))}
-        </div>
-
-        {/* consent input */}
-        <div className="signup__checkbox">
-          <CustomCheckbox name="consent" value={'true'} initialValue={true} disabled={false} onSelect={() => {
-            setConsent(!consent);
-          }} />
-          <span>
-            I consent to the collection, use, and sharing of my data as per{' '}
-            <a target="_blank" href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>
-              PL policy
-            </a>
-            .
-          </span>
-
-        </div>
-
-        {/* subscription input */}
-        <div className="signup__checkbox">
-          <CustomCheckbox name="subscribe" value={'true'} initialValue={true} onSelect={() => {}} />
-          <span>Subscribe to PL Newsletter</span>
-        </div>
-      </div>
         </div>
         <div className="signup__form__cn__actions">
           <div className="sign-up-actions__cn">
@@ -477,6 +502,12 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
           object-fit: cover;
           object-position: top;
         }
+
+        .signup__checkbox_cn{
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          flex-direction: row;       }
       `}</style>
     </>
   );

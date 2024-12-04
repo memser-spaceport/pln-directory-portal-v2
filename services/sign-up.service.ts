@@ -1,6 +1,7 @@
 import { GROUP_TYPES } from "@/utils/constants";
 // import { validateEmail } from '../utils/common.utils';
 import { validatePariticipantsEmail } from "./participants-request.service";
+import { validateName } from "@/utils/sign-up.utils";
 
 export const getSkillsData = async () => {
   const [skillsInfo] = await Promise.all([fetch(`${process.env.DIRECTORY_API_URL}/v1/skills?pagination=false`, { method: 'GET' })]);
@@ -60,9 +61,19 @@ export const formatFormDataToApi = (formData: any,cookiesValue?:any) => {
   }
   result['memberProfile'] = formData['memberProfile'];
   result['imageFile'] = formData['memberProfile'];
-  if(cookiesValue){
-    result['signUpSource'] = cookiesValue;
+
+  const { signUpCampaign, signUpMedium, signUpSource } = cookiesValue;
+
+  if(signUpSource){
+    result['signUpSource'] = signUpSource;
   }
+  if(signUpMedium){
+    result['signUpMedium'] = signUpMedium;
+  }
+  if(signUpCampaign){
+    result['signUpCampaign'] = signUpCampaign;
+  }
+  console.log(result);
   
   return result;
 };
@@ -85,6 +96,11 @@ export const validateSignUpForm = (formData: any) => {
   if (!formData['name']) {
     errors['name'] = 'Please enter your name.';
   }
+
+  if(formData['name'] && !validateName(formData['name'])){
+    errors['name'] = 'Please enter a valid name';
+  }
+
   if (!formData['email']) {
     errors['email'] = 'Please enter your email.';
   }

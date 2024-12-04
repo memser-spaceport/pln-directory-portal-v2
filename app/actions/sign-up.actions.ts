@@ -27,11 +27,16 @@ import { cookies } from 'next/headers';
 export async function signUpFormAction(data: any, recaptchaToken: string) {
   try {
     const formData = Object.fromEntries(data.entries());
-    const campaign = cookies().get('utm_campaign');
+    const campaign = cookies().get('utm_campaign')?.value ?? '';
     const source = cookies().get('utm_source')?.value ?? '';
-    const medium = cookies().get('utm_medium');
+    const medium = cookies().get('utm_medium')?.value ?? '';
+    const cookiesValue = {
+      signUpMedium: medium,
+      signUpCampaign: campaign,
+      signUpSource: source,
+    };
     let formattedObj;
-    formattedObj = formatFormDataToApi(formData,source);
+    formattedObj = formatFormDataToApi(formData,cookiesValue);
 
     if (recaptchaToken) {
       const isCaptchaVerified = await validateCaptcha(recaptchaToken);

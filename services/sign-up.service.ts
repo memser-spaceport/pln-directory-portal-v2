@@ -20,7 +20,7 @@ export const getSkillsData = async () => {
   };
 };
 
-export const formatFormDataToApi = (formData: any) => {
+export const formatFormDataToApi = (formData: any,cookiesValue?:any) => {
   const result: any = {};
   const skills: any = [];
 
@@ -38,7 +38,7 @@ export const formatFormDataToApi = (formData: any) => {
       result['skills'] = skills;
     }
   }
-  result['name'] = formData['name'];
+  result['name'] = formData['name'].trim();
   result['email'] = formData['email'];
   if (formData['consent']) {
     result['isUserConsent'] = formData['consent'] == 'true';
@@ -60,6 +60,10 @@ export const formatFormDataToApi = (formData: any) => {
   }
   result['memberProfile'] = formData['memberProfile'];
   result['imageFile'] = formData['memberProfile'];
+  if(cookiesValue){
+    result['signUpSource'] = cookiesValue;
+  }
+  
   return result;
 };
 
@@ -87,6 +91,10 @@ export const validateSignUpForm = (formData: any) => {
   if (formData['email'] && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData['email'])) {
     errors['email'] = 'Please enter a valid email';
   }
+  if(!formData['isUserConsent']){
+    errors['consent'] = 'Please consent to the terms and conditions';
+  }
+  
   const imageFile = formData?.memberProfile;
   if (imageFile && imageFile.name && imageFile.size > 0) {
     if (!['image/jpeg', 'image/png'].includes(imageFile.type)) {

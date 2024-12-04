@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import SuggestionDropdown from './suggestion-dropdown';
 import { getColorObject } from '@/utils/sign-up.utils';
@@ -48,6 +48,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
   const debouncedSearchText = useDebounce(searchInputValue, 300);
 
   const clrObj = getColorObject(selectedSuggestion?.group || '');
+
 
   /**
    * Handles the input change event for the search input field.
@@ -111,9 +112,9 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
    * @returns {void}
    */
   const onSuggestionSelect = (suggestion: Suggestion) => {
+    setSelectedSuggestion(suggestion);
     setDropdownStatus(false);
     setSearchInputValue('');
-    setSelectedSuggestion(suggestion);
   };
 
   const searchTextChange = async (value: string) => {
@@ -148,7 +149,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
               <div className="suggestions__input__selected__item">
                 <Image
                   loading="lazy"
-                  src={selectedSuggestion.logoURL ? selectedSuggestion.logoURL : selectedSuggestion.group === GROUP_TYPES.TEAM ? '/icons/teams.svg' : '/icons/default-project.svg'}
+                  src={selectedSuggestion.logoURL ? selectedSuggestion.logoURL : selectedSuggestion.group === GROUP_TYPES.TEAM ? '/icons/team-default-profile.svg' : '/icons/default-project.svg'}
                   alt={selectedSuggestion.name}
                   width={20}
                   height={20}
@@ -178,11 +179,26 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
           )}
 
           {/* search text input */}
-          {!isAddMode && !selectedSuggestion && <input type="text" value={searchInputValue} onChange={handleInputChange} className="suggestions__input__field" placeholder={placeHolderText} name="search" />}
+            {!isAddMode && !selectedSuggestion && (
+            <input
+              type="text"
+              tabIndex={0}
+              value={searchInputValue}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+              }
+              }}
+              className="suggestions__input__field"
+              placeholder={placeHolderText}
+              name="search"
+            />
+            )}
         </div>
 
         {/* dropdown to show suggestions */}
-        {enableDropdown && <SuggestionDropdown suggestions={filteredSuggestions} addNew={addNew} enableAddMode={enableAddMode} onSelect={onSuggestionSelect} />}
+        {enableDropdown && <SuggestionDropdown suggestions={filteredSuggestions} addNew={addNew} enableAddMode={enableAddMode} onSelect={onSuggestionSelect} setDropdownStatus={setDropdownStatus}/>}
 
         {/* hidden form field */}
         <input type="hidden" value={selectedSuggestion ? JSON.stringify(selectedSuggestion) : inputValue} name={'selected-team-or-project'} />

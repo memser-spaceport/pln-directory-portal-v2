@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SignUpForm from './sign-up-form';
 import SignUpSuccess from './sign-up-success';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Cookies from 'js-cookie';
 
 /**
  * SignUp component renders the sign-up form and success message.
@@ -19,6 +21,31 @@ import SignUpSuccess from './sign-up-success';
  */
 const SignUp = ({ skillsInfo }: any) => {
   const [isSuccess, setSuccessFlag] = useState(false);
+  const router = useRouter();
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const utmCampaign = searchParams.get('utm_campaign');
+    const utmSource = searchParams.get('utm_source');
+    const utmMedium = searchParams.get('utm_medium');
+    
+    if (utmMedium && Cookies.get('utm_medium') !== utmMedium) {
+      Cookies.set('utm_medium', utmMedium, { expires: 7 });
+    }
+
+    if (utmCampaign && Cookies.get('utm_campaign') !== utmCampaign) {
+      Cookies.set('utm_campaign', utmCampaign, { expires: 7 });
+    }
+
+    if (utmSource && Cookies.get('utm_source') !== utmSource) {
+      Cookies.set('utm_source', utmSource, { expires: 7 });
+    }
+
+    if(Cookies.get('authToken')){
+      router.push('/');
+    }
+  }, []);
 
   return (
     <>

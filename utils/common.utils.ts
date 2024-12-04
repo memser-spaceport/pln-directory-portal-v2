@@ -11,6 +11,11 @@ export function compareObjsIfSame(obj1: any, obj2: any) {
     return true; // Handles identical values and reference equality for objects and arrays
   }
 
+   // Treat "" and null as equivalent
+   if ((obj1 === "" && obj2 === null) || (obj1 === null && obj2 === "")) {
+    return true;
+  }
+
   if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
     return false; // Handles primitive types and null
   }

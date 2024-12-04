@@ -33,7 +33,7 @@ export default async function Page() {
 }
 
 export const metadata: Metadata = {
-  title: 'Sign Up | Protocol Labs Directory',
+  title: 'Sign up | Protocol Labs Directory',
   description:
     'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
   openGraph: {

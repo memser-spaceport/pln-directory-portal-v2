@@ -27,7 +27,7 @@ const LoginBtn = () => {
   return (
     <>
       <button className="loginBtn" onClick={onLoginClickHandler}>
-        Login to the Network
+        Login
       </button>
       <style jsx>{`
         .loginBtn {

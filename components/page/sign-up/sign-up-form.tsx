@@ -329,7 +329,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
               Cancel
             </button>
             <button type="submit" className="sign-up-actions__cn__submit" disabled={!consent}>
-              Sign Up
+              Sign up
             </button>
           </div>
         </div>

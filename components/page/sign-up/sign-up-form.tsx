@@ -299,7 +299,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
                 }}
               />
               <span>
-                I agree to Protocol Labs'{' '}
+                I agree to Protocol Labs&apos;{' '}
                 <a target="_blank" href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>
                   Terms of Service and Privacy Policy
                 </a>

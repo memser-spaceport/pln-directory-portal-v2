@@ -176,7 +176,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
           const teams = memberData?.teams?.map((team: any) => {
             return { ...team, uid: team.id };
           });
-          const mainTeam = teams.find((team: any) => team.mainTeam);
+          const mainTeam = teams.find((team: any) => team.mainTeam) ?? { name: '', logo: '', uid: '' };
           setInitialTeams(teams);
           setSelectedTeam(mainTeam);
         }

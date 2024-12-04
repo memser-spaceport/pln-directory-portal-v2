@@ -39,11 +39,11 @@ const IrlEvents = (props: IIrlEvents) => {
       } else if (searchType === 'past') {
         return 'past';
       }
-    } else if(eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length > 0) {
+    } else if (eventDetails?.upcomingEvents?.length > 0 && eventDetails?.pastEvents?.length > 0) {
       return 'all';
-    } else if(eventDetails?.upcomingEvents?.length > 0) {
+    } else if (eventDetails?.upcomingEvents?.length > 0) {
       return 'upcoming';
-    } else if(eventDetails?.pastEvents?.length > 0) {
+    } else if (eventDetails?.pastEvents?.length > 0) {
       return 'past';
     }
   }
@@ -316,11 +316,9 @@ const IrlEvents = (props: IIrlEvents) => {
                   <img src="/icons/info-orange.svg" alt="info" />
                 </div>
                 <div>Attending an event but aren&apos;t part of the network yet?</div>
-                <button onClick={handleJoinPLNetworks}>
-                  <a href="https://airtable.com/appHT5ErKdHcsFznj/shryt1Y1xDKZTemJS" target="_blank">
-                    Join
-                  </a>
-                </button>
+                <a href="/sign-up" target="_blank" onClick={handleJoinPLNetworks}>
+                  Join
+                </a>
               </div>
             </div>
           )}
@@ -588,13 +586,13 @@ const IrlEvents = (props: IIrlEvents) => {
           align-items: center;
         }
 
-        .root__irl__addRes__cnt__loggedOut button {
+        .root__irl__addRes__cnt__loggedOut a {
           background-color: #fff;
-          padding: 4px;
           width: 45px;
           height: 30px;
-          padding: 6px 10px 6px 10px;
           border-radius: 8px;
+          display:grid;
+          place-items:center;
         }
 
         .root__irl__addRes__cnt {

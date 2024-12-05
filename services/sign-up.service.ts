@@ -59,8 +59,8 @@ export const formatFormDataToApi = (formData: any,cookiesValue?:any) => {
       result['teamOrProjectURL'] = formData['selected-team-or-project'];
     }
   }
-  // result['memberProfile'] = formData['memberProfile'];
-  // result['imageFile'] = formData['memberProfile'];
+  result['memberProfile'] = formData['memberProfile'];
+  result['imageFile'] = formData['memberProfile'];
 
   const { signUpCampaign, signUpMedium, signUpSource } = cookiesValue;
 
@@ -73,7 +73,6 @@ export const formatFormDataToApi = (formData: any,cookiesValue?:any) => {
   if(signUpCampaign){
     result['signUpCampaign'] = signUpCampaign;
   }
-  console.log(result);
   
   return result;
 };

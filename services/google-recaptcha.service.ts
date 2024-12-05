@@ -1,4 +1,4 @@
-import { SIGN_UP } from '../utils/constants';
+import { SIGN_UP } from "@/utils/constants";
 
 declare global {
   interface Window {
@@ -16,7 +16,7 @@ declare global {
  * @throws {Error} - Throws an error if the required environment variables are missing.
  */
 export default async function validateCaptcha(recaptchaToken: string) {
-  let verificationUrl = SIGN_UP.CAPTCHA_URL;
+  let verificationUrl = SIGN_UP.CAPTCHA_URL || 'https://www.google.com/recaptcha/api/siteverify';
   const secret = process.env.GOOGLE_SECRET_KEY;
 
   if (!verificationUrl || !secret) {

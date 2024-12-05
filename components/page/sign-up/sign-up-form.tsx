@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
-import { getRecaptchaToken } from '@/services/google-recaptcha.service';
+import validateCaptcha, { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from 'react-toastify';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import { signUpFormAction } from '@/app/actions/sign-up.actions';
@@ -13,7 +13,9 @@ import SearchWithSuggestions from '@/components/form/suggestions';
 import MultiSelect from '@/components/form/multi-select';
 import HiddenField from '@/components/form/hidden-field';
 import CustomCheckbox from '@/components/form/custom-checkbox';
+import Cookies from 'js-cookie';
 import { saveRegistrationImage } from '@/services/registration.service';
+import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/services/sign-up.service';
 
 /**
  * SignUpForm component handles the user sign-up process.
@@ -78,45 +80,63 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
       analytics.recordSignUpSave('submit-clicked', Object.fromEntries(formData.entries()));
 
-      const formattedObj = Object.fromEntries(formData.entries());
-      console.log(formattedObj);
+      // const formDataObj = Object.fromEntries(formData.entries());
+      const campaign = Cookies.get('utm_campaign') ?? '';
+      const source = Cookies.get('utm_source') ?? '';
+      const medium = Cookies.get('utm_medium') ?? '';
+      const cookiesValue = {
+        signUpMedium: medium,
+        signUpCampaign: campaign,
+        signUpSource: source,
+      };
 
-      if (formattedObj.memberProfile && formattedObj.memberProfile?.size > 0) {
-        try {
-          // Uploads the member profile image into s3 and attaches the imageUid and imageUrl
-          const imgResponse = await saveRegistrationImage(formattedObj.memberProfile);
-          const image = imgResponse?.image;
-          formattedObj.imageUid = image.uid;
-          formattedObj.imageUrl = image.url;
-          delete formattedObj.memberProfile;
-        } catch (er) {
-          console.log('Image upload failed.Please retry again later!');
-          toast.error('Image upload failed.Please retry again later!');
-          // Returns an error message if the image upload fails
-          return { success: false, message: 'Image upload failed.Please retry again later!' };
-        }
-      }
-      formData.delete('memberProfile');
-      formData.delete('imageFile');
+      let formattedObj;
+      formattedObj = formatFormDataToApi(Object.fromEntries(formData.entries()), cookiesValue);
 
-      // Submitting form data (Implemented actions to evaluate and submit the request)
-      const result = await signUpFormAction(formData, reCAPTCHAToken.token);
+      let errors: any = validateSignUpForm(formattedObj);
 
-      if (result?.success) {
-        analytics.recordSignUpSave('submit-clicked-success', Object.fromEntries(formData.entries()));
-        setSuccessFlag(true);
-        window.scrollTo(0, 0);
+      if (Object.entries(errors).length) {
+        setErrors(errors);
       } else {
-        if (result?.errors) {
-          analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
-          setErrors(result?.errors);
+        const isEmailValid = await checkEmailDuplicate(formattedObj.email);
+        if (Object.entries(isEmailValid).length) {
+          setErrors(errors);
         } else {
-          console.log(result);
+          if (formattedObj.memberProfile && formattedObj.memberProfile.size > 0) {
+            try {
+              // Uploads the member profile image into s3 and attaches the imageUid and imageUrl
+              const imgResponse = await saveRegistrationImage(formattedObj.memberProfile);
+              const image = imgResponse?.image;
+              formattedObj.imageUid = image.uid;
+              formattedObj.imageUrl = image.url;
+              delete formattedObj.memberProfile;
+            } catch (er) {
+              // Returns an error message if the image upload fails
+              toast.error('Image upload failed.Please retry again later!');
+            }
+          }
+          formattedObj.memberProfile && delete formattedObj.memberProfile;
+          formattedObj.imageFile && delete formattedObj.imageFile;
 
-          if (result?.message) {
-            toast.error(result?.message);
+          // Submitting form data (Implemented actions to evaluate and submit the request)
+          // const result = await signUpFormAction(formData, reCAPTCHAToken.token);
+          const result = await signUpFormAction(formattedObj, reCAPTCHAToken.token);
+
+          if (result?.success) {
+            analytics.recordSignUpSave('submit-clicked-success', Object.fromEntries(formData.entries()));
+            setSuccessFlag(true);
+            window.scrollTo(0, 0);
           } else {
-            toast.error('Something went wrong. Please try again.');
+            // if (result?.errors) {
+            //   analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
+            //   setErrors(result?.errors);
+            // } else {
+              if (result?.message) {
+                toast.error(result?.message);
+              } else {
+                toast.error('Something went wrong. Please try again.');
+              }
+            // }
           }
         }
       }

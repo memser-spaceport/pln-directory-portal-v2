@@ -147,7 +147,7 @@ export default function Navbar(props: Readonly<INavbar>) {
                 {HELPER_MENU_OPTIONS.map((helperMenu, index) => {
                   if (helperMenu.type === 'button' && helperMenu.name === 'Submit a Team' && isLoggedIn) {
                     return (
-                      <li role="button" onClick={handleSubmitTeam} className="nb__right__helpc__opts__optn">
+                      <li key={`${helperMenu} + ${index}`} role="button" onClick={handleSubmitTeam} className="nb__right__helpc__opts__optn">
                         <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
                         <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
                       </li>

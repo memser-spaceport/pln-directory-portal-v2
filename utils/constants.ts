@@ -63,6 +63,12 @@ export const EVENTS = {
 
 export const HELPER_MENU_OPTIONS = [
   {
+    icon: '/icons/submitteam.svg',
+    name: 'Submit a Team',
+    type: 'button',
+    isExternal: false,
+  },
+  {
     icon: '/icons/message.svg',
     name: 'ProtoSphere',
     type: '_blank',
@@ -82,7 +88,7 @@ export const HELPER_MENU_OPTIONS = [
     url: '/changelog',
     type: '',
     isExternal: false,
-  },
+  }
 ];
 
 export const JOIN_NETWORK_MENUS = [
@@ -102,6 +108,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   GO_TO_TOP_BTN_CLICKED: 'go-to-top-btn-clicked',
   NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked',
   NAVBAR_APP_LOGO_CLICKED: 'navbar_app_logo_clicked',
+  SUBMIT_A_TEAM_BTN_CLICKED: 'submit_a_team_btn_clicked',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -140,6 +147,13 @@ export const JOIN_NETWORK_ANALYTICS_EVENTS = {
   TEAM_JOIN_NETWORK_NEXT_CLICK: 'team-join-network-form-steps',
   TEAM_JOIN_NETWORK_BACK_CLICK: 'team-join-network-back-click',
   TEAM_JOIN_NETWORK_SAVE: 'member-join-network-save',
+};
+
+export const SIGN_UP_ANALYTICS_EVENTS = {
+  SIGN_UP_FORM_SUBMIT: 'sign-up-form-submit',
+  SIGN_UP_FORM_CANCEL: 'sign-up-form-cancel',
+  SIGN_UP_POLICY_URL_CLICK: 'sign-up-policy-url-click',
+  SIGN_UP_HOME_CLICK_AFTER_SUCCESS: 'sign-up-home-click-after-success',
 };
 
 export const PROJECT_ANALYTICS_EVENTS = {
@@ -223,6 +237,7 @@ export const AUTH_ANALYTICS = {
   AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS: 'AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS',
   AUTH_SETTINGS_EMAIL_UPDATE_FAILED: 'AUTH_SETTINGS_EMAIL_UPDATE_FAILED',
   AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD: 'AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD',
+  AUTH_SIGN_UP_BTN_CLICKED: 'AUTH_SIGN_UP_BTN_CLICKED',
 };
 
 export const TEAMS_ANALYTICS_EVENTS = {
@@ -371,7 +386,7 @@ export const FOCUS_AREAS_FILTER_KEYS = {
   teams: 'teamAncestorFocusAreas',
 };
 
-export const ITEMS_PER_PAGE = 300;
+export const ITEMS_PER_PAGE = 25;
 
 export const ENROLLMENT_TYPE = {
   MEMBER: 'MEMBER',
@@ -921,3 +936,13 @@ export const IRL_SUBMIT_FORM_LINK = "https://eventsmanagement.labweek.io/"
 
 export const LOGIN_BANNER_URL="https://plabs-assets.s3.us-west-1.amazonaws.com/images/login-banner.png"
 export const IRL_DEFAULT_TOPICS="AI,Apps,AR/VR,Argentina,Automation,AVS,BCI,Capital Allocation,Collaboration,Compliance,Compute,Cryptography,Culture,Decentralized IP,Decentralized Compute,Decentralized AI,DeFi,DePin,DeSci,Dev Tooling,Distributed Systems,Encryption,Events,Extended Reality,Filecoin,Funding Mechanism,Fundraising,Governance,Growth,GTM,Hackathon,Hard Tech,Human Organization,Human AI-Cooperation,Incentives,InfoSec,Interoperability,IoT,Longevity & Biotech,Marketing,Networks,Neurotech,OpSec,Partnerships,Privacy,Product Market Fit,Products,Public Goods,Real World Crypto,Retrieval,RWA,Scaling,Security,SLA's,Startups,Storage,Sustainability,Tokenomics,UI/UX,Wallet,Web3,ZK Proofs"
+
+export const GROUP_TYPES = {
+  TEAM: 'Team',
+  PROJECT: 'Project',
+}
+
+export const SIGN_UP = {
+  POLICY_URL: 'https://protocol.ai/legal/',
+  CAPTCHA_URL: 'https://www.google.com/recaptcha/api/siteverify'
+}

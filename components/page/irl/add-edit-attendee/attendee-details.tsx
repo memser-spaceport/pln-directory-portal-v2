@@ -22,6 +22,7 @@ interface IAttendeeForm {
   location: IIrlLocation;
   eventType: string;
   gatherings: IIrlEvent[];
+  setIsVerifiedMember: any;
 }
 
 const AttendeeDetails = (props: IAttendeeForm) => {
@@ -34,6 +35,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const location = props?.location;
   const eventType = props?.eventType ?? '';
   const gatherings = props?.gatherings ?? [];
+  const setIsVerifiedMember = props?.setIsVerifiedMember;
 
   const [initialContributors, setInitialContributors] = useState([]);
   const [initialTeams, setInitialTeams] = useState(initialValues?.teams ?? []);
@@ -43,7 +45,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
 
   const [selectedTeam, setSelectedTeam] = useState(initialValues?.team ?? { name: '', logo: '', uid: '' });
   const [selectedMember, setSelectedMember] = useState<IUserInfo>(member || { name: '', uid: '' });
-
+  
   const handleTeamChange = (option: any) => {
     setSelectedTeam(option);
   };
@@ -165,14 +167,16 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       }
       let showTelegram = memberPreferencesResponse?.memberPreferences?.telegram ?? true;
       if (!memberResult.error) {
-        document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: memberResult?.data?.formattedData?.telegramHandle, showTelegram } }));
-        document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: memberResult?.data?.formattedData?.officeHours } }));
+        const memberData = memberResult?.data?.formattedData;
+        setIsVerifiedMember(memberData?.isVerified)
+        document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: memberData?.telegramHandle, showTelegram } }));
+        document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: memberData?.officeHours } }));
         if (updateAll) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-          const teams = memberResult?.data?.formattedData?.teams?.map((team: any) => {
+          const teams = memberData?.teams?.map((team: any) => {
             return { ...team, uid: team.id };
           });
-          const mainTeam = teams.find((team: any) => team.mainTeam);
+          const mainTeam = teams.find((team: any) => team.mainTeam) ?? { name: '', logo: '', uid: '' };
           setInitialTeams(teams);
           setSelectedTeam(mainTeam);
         }

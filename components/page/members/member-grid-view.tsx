@@ -35,7 +35,7 @@ const MemberGridView = (props: IMemberGridView) => {
         <div className="member-grid__profile-container">
           <div className="member-grid__profile-container__outer-section">
             <div className={`${isBorder ? 'gradiant-border-rounded' : ''} member-grid__profile-container__outer-section__inner-circle`}>
-              <img className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
+              <img  className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
               {isTeamLead && (
                 <Tooltip
                   asChild
@@ -78,7 +78,7 @@ const MemberGridView = (props: IMemberGridView) => {
                   />
                 )}
               </div>
-              <p className="member-grid__details__member-details__role">{role}</p>
+              <p className="member-grid__details__member-details__role">{role}</p>      
             </div>
             {isUserLoggedIn && (
               <>
@@ -221,6 +221,10 @@ const MemberGridView = (props: IMemberGridView) => {
 
           .member-grid__details__member-details__name-container {
             height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
           }
 
           .member-grid__details__name {

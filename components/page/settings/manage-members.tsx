@@ -28,11 +28,13 @@ interface ManageMembersSettingsProps {
   viewType: 'profile' | 'privacy';
   preferences: any;
   userInfo: IUserInfo;
+  isVerifiedFlag: string;
 }
 
-function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile', userInfo }: ManageMembersSettingsProps) {
+function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile', userInfo, isVerifiedFlag }: ManageMembersSettingsProps) {
   const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
   const profileTypeOptions = [{ name: 'profile' }, { name: 'privacy' }];
+  const membersVerificationOptions = [{ name: 'Verified', value: 'true' }, { name: 'Un-Verified', value: 'false' }];
   const selectedProfileType = { name: viewType };
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -73,9 +75,13 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     }
 
     triggerLoader(true);
-    window.location.href = `/settings/members?id=${uid}&viewType=${selectedProfileType.name}`;
+    window.location.href = `/settings/members?id=${uid}&viewType=${selectedProfileType.name}&isVerified=${isVerifiedFlag}`;
     analytics.recordManageMembersMemberChange(member, getAnalyticsUserInfo(userInfo));
   };
+
+  const onVerifiedFlagChange = (item: any) => {
+    window.location.href = `/settings/members?viewType=${selectedProfileType.name}&isVerified=${item.value}`;
+  }
 
   const onResetForm = async (e?: any) => {
     const isSame = onFormChange();
@@ -183,7 +189,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
         toast.success('Member updated successfully');
         analytics.recordManageMemberSave('save-success', getAnalyticsUserInfo(userInfo), payload);
-        window.location.href = `/settings/members?id=${selectedMember.uid}`;
+        window.location.href = `/settings/members?id=${selectedMember.uid}&isVerified=${isVerifiedFlag}`;
       }
     } catch (e) {
       triggerLoader(false);
@@ -305,9 +311,9 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         return false;
       }
 
-      router.push(`/settings/members?id=${selectedMember.uid}&viewType=${item.name}`);
+      router.push(`/settings/members?id=${selectedMember.uid}&viewType=${item.name}&isVerified=${isVerifiedFlag}`);
     },
-    [viewType, selectedMember]
+    [viewType, selectedMember, isVerifiedFlag]
   );
 
   useEffect(() => {
@@ -354,6 +360,17 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       <div className="ms">
         <div className="ms__head">
           <div className="ms__member-selection">
+            <div className="ms__member-selection__dp">
+              <SingleSelect
+                arrowImgUrl="/icons/arrow-down.svg"
+                uniqueKey="name"
+                onItemSelect={(item: any) => onVerifiedFlagChange(item)}
+                displayKey="name"
+                options={membersVerificationOptions}
+                selectedOption={membersVerificationOptions.find(v => v.value === isVerifiedFlag)}
+                id="manage-teams-settings-verified"
+              />
+            </div>
             <div className="ms__member-selection__dp">
               <SearchableSingleSelect
                 arrowImgUrl="/icons/arrow-down.svg"

@@ -1,7 +1,23 @@
 import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
-import { getRoleTagsFromValues, getTagsFromValues, hidePreferences, parseMemberDetails, getUniqueFilters } from '@/utils/member.utils';
+import { hidePreferences, parseMemberDetails, getUniqueFilters } from '@/utils/member.utils';
+
+
+export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/filters${options? '?': ''}${options ? new URLSearchParams(options as any) : ''}`, {
+    cache: 'force-cache',
+    method: 'GET',
+    next: { tags: ['member-filters'] },
+    headers: getHeader(authToken?? ''),
+  });
+  
+  if(!response.ok){
+    return  { isError: true, error: { status: response.status, statusText: response.statusText } };
+  }
+  const result = await response.json();
+  return result;
+}
 
 export const getMembers = async (options: IMemberListOptions, teamId: string, currentPage: number, limit: number, isLoggedIn: boolean) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}&${new URLSearchParams(options as any)}`, {
@@ -14,7 +30,7 @@ export const getMembers = async (options: IMemberListOptions, teamId: string, cu
     return { error: { status: response?.status, statusText: response?.statusText } };
   }
   const result = await response?.json();
-  const formattedData: any = parseMemberDetails(result, teamId, isLoggedIn);
+  const formattedData: any = parseMemberDetails(result.members, teamId, isLoggedIn);
   return { data: { formattedData, status: response?.status } };
 };
 
@@ -115,6 +131,8 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     repositories: [],
     teamAndRoles: teamAndRoles,
     preferences: result.preferences ?? null,
+    isSubscribedToNewsletter: result?.isSubscribedToNewsletter ?? false,
+    isVerified: result?.isVerified
   };
 
   if (isLoggedIn) {
@@ -161,10 +179,15 @@ export const findRoleByName = async (params: any) => {
 
 export const getMemberRoles = async (options: IMemberListOptions) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(options as any)}`, {
-    cache: 'no-store',
+    cache: 'force-cache',
     method: 'GET',
     headers: getHeader(''),
+    next: { tags: ['members-roles'] },
   });
+
+  if(!response.ok){
+    return { isError: true, error: { status: response.status, statusText: response.statusText } };
+  }
 
   return await response.json();
 };
@@ -172,12 +195,12 @@ export const getMemberRoles = async (options: IMemberListOptions) => {
 export const getMembersForProjectForm = async (teamId = null) => {
   let response;
   if (teamId) {
-    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc`, {
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,isVerified,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc&isVerified=all`, {
       method: 'GET',
       cache: 'no-store',
     });
   } else {
-    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc`, {
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,isVerified,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc&isVerified=all`, {
       method: 'GET',
       cache: 'no-store'
     });
@@ -187,7 +210,7 @@ export const getMembersForProjectForm = async (teamId = null) => {
     return { isError: true, message: response.statusText }
   }
   const result = await response.json();
-  const formattedData = result?.map((member: any) => {
+  const formattedData = result?.members?.map((member: any) => {
     const mainTeam = member?.teamMemberRoles?.find((team: any) => team?.mainTeam) || null;
     const teamLead = member?.teamMemberRoles?.some((team: any) => team?.teamLead);
     const teams = member?.teamMemberRoles?.map((teamMemberRole: any) => ({
@@ -204,6 +227,7 @@ export const getMembersForProjectForm = async (teamId = null) => {
       teamLead,
       teams,
       preferences: member?.preferences,
+      isVerified: member.isVerified,
     }
   });
 
@@ -211,7 +235,7 @@ export const getMembersForProjectForm = async (teamId = null) => {
 };
 
 export const getMembersForAttendeeForm = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url&pagination=false&orderBy=name,asc`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,isVerified&pagination=false&orderBy=name,asc&isVerified=all`, {
     method: 'GET',
     cache: 'no-store'
   });
@@ -220,7 +244,7 @@ export const getMembersForAttendeeForm = async () => {
     return { isError: true, message: response.statusText }
   }
   const result = await response.json();
-  const formattedData = result?.map((member: any) => {
+  const formattedData = result?.members?.map((member: any) => {
     const mainTeam = member?.teamMemberRoles?.find((team: any) => team?.mainTeam) || null;
     const teamLead = member?.teamMemberRoles?.some((team: any) => team?.teamLead);
     const teams = member?.teamMemberRoles?.map((teamMemberRole: any) => ({
@@ -237,6 +261,7 @@ export const getMembersForAttendeeForm = async () => {
       teamLead,
       teams,
       preferences: member?.preferences,
+      isVerified: member?.isVerified
     }
   });
   return { data: formattedData };
@@ -276,7 +301,7 @@ export const getMemberInfo = async (memberUid: string) => {
       startDate: pc?.startDate,
       endDate: pc?.endDate,
       description: pc?.description ?? '',
-      currentProject: pc?.currentProject ?? false
+      currentProject: pc?.currentProject ?? false,
     }
   })
 
@@ -304,8 +329,8 @@ export const updateUserDirectoryEmail = async (payload: any, uid: string, header
   return output;
 }
 
-export const getMembersInfoForDp = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&select=uid,name,image`, {
+export const getMembersInfoForDp = async (isVerifiedFlag: string = 'all') => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&isVerified=${isVerifiedFlag}&select=uid,name,image`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),
@@ -314,8 +339,8 @@ export const getMembersInfoForDp = async () => {
     return { error: { status: response?.status, statusText: response?.statusText } };
   }
   const result = await response?.json();
-  const formattedData: any = result
-    .map((info: any) => {
+  const formattedData: any = result?.members
+    ?.map((info: any) => {
       return {
         id: info.uid,
         name: info.name,

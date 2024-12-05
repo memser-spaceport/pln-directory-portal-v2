@@ -1,0 +1,86 @@
+.signup {
+	width: 100%;
+	/* height: calc(100vh - 80px); */
+	margin: auto;
+	position: relative;
+}
+
+.signup__cn {
+	/* border-radius: 8px; */
+	border: none;
+	position: relative;
+	display: flex;
+	height: 100%;
+	max-width: 656px;
+	flex-direction: column;
+	overflow: hidden;
+	margin: auto;
+	margin-top: 0px;
+}
+
+@media (min-width: 426px) {
+	.signup__cn {
+		border-radius: 8px;
+	}
+}
+
+.signup__cn__content {
+	height: 100%;
+	flex: 1;
+	overflow: hidden;
+}
+
+@media (min-width: 768px) {
+	.signup__cn {
+		margin-top: 40px;
+	}
+}
+
+@media (min-width: 1024px) {
+
+	.signup__close {
+		display: block;
+		cursor: pointer;
+		position: absolute;
+		top: 16px;
+		right: 16px;
+	}
+
+	.signup__cn__desktop {
+		display: block;
+		width: 300px;
+		height: 100%;
+	}
+
+	.signup__cn__content {
+		overflow-y: auto;
+	}
+
+	.signup__cn__desktop__info {
+		padding: 24px 22px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.signup__cn__desktop__info__title {
+		font-weight: 700;
+		font-size: 24px;
+		color: white;
+		line-height: 24px;
+	}
+
+	.signup__cn__desktop__info__desc {
+		font-size: 14px;
+		font-weight: 400;
+		color: white;
+		opacity: 0.8;
+	}
+
+	.signup__cn__desktop__info__sep {
+		height: 1px;
+		width: 100%;
+		background: white;
+		opacity: 0.2;
+	}
+}

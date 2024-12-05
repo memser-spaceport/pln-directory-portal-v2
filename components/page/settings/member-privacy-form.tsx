@@ -31,6 +31,7 @@ function MemberPrivacyForm(props: any) {
       ],
     },
     { title: 'Profile', items: [{ name: 'githubProjects', title: 'Show my GitHub Projects', info: 'Control visibility of your GitHub projects' }] },
+    { title: 'Newsletter', items: [{ name: 'newsLetter', title: 'Subscribe to PL Newsletter', info: 'Get new letter straight to your inbox' }] },
   ];
 
   const onFormChange = () => {
@@ -84,15 +85,21 @@ function MemberPrivacyForm(props: any) {
       let payload = {
         ...settings,
       };
-      delete payload.githubHandle;
       payload.showGithub = formValues.github === 'on' ? true : false;
       payload.showEmail = formValues.email === 'on' ? true : false;
       payload.showDiscord = formValues.discord === 'on' ? true : false;
       payload.showTwitter = formValues.twitter === 'on' ? true : false;
       payload.showLinkedin = formValues.linkedin === 'on' ? true : false;
       payload.showTelegram = formValues.telegram === 'on' ? true : false;
+      const isSubscribedToNewsletter = formValues.newsLetter === 'on' ? true : false;
+
       payload.showGithubHandle = formValues.github === 'on' ? true : false;
       payload.showGithubProjects = formValues.githubProjects === 'on' ? true : false;
+
+      // delete unused fields
+      delete payload.githubHandle;
+      delete payload.newsLetter;
+     
 
       const authToken: any = Cookies.get('authToken');
       if (!authToken) {
@@ -108,8 +115,20 @@ function MemberPrivacyForm(props: any) {
           Authorization: `Bearer ${JSON.parse(authToken)}`,
         },
       });
+
+      const memberUpdateResult = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          isSubscribedToNewsletter: isSubscribedToNewsletter
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${JSON.parse(authToken)}`,
+        },
+      })
+
       triggerLoader(false);
-      if (apiResult.ok) {
+      if (apiResult.ok || memberUpdateResult.ok) {
         /*  if (actionRef.current) {
             actionRef.current.style.visibility = 'hidden';
           } */

@@ -18,6 +18,7 @@ function MemberPrivacyReadOnly(props: any) {
       ],
     },
     { title: 'Profile', items: [{ name: 'githubProjects', title: 'Show my GitHub Projects', info: 'Control visibility of your GitHub projects' }] },
+    { title: 'Newsletter', items: [{ name: 'newsLetter', title: 'Subscribe to PL Newsletter', info: 'Get new letter straight to your inbox' }] },
   ];
 
   

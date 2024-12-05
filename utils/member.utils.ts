@@ -5,6 +5,47 @@ import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } f
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { validateLocation } from '@/services/location.service';
 
+
+export const getFormattedFilters = (searchParams: IMembersSearchParams, rawFilters: any, availableFilters: any, isLoggedIn: boolean) => {
+  const restricedKeys = ['region', 'country', 'metroArea'];
+  const formattedFilters: any = {
+    memberRoles: [],
+    skills: rawFilters.skills,
+    region: rawFilters.regions,
+    country: rawFilters.countries,
+    metroArea: rawFilters.cities,
+  };
+
+  const formattedAvailableFilters = {
+    skills: availableFilters.skills,
+    region: availableFilters.regions,
+    country: availableFilters.countries,
+    metroArea: availableFilters.cities,
+    memberRoles: []
+  }
+
+   Object.keys(formattedFilters).forEach((key: string) => {
+     const values = formattedFilters[key];
+     formattedFilters[key] = values.map((value: string) => {
+      const isAvailable = formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value);
+      const isRestricted = !isLoggedIn && restricedKeys.includes(key);
+      return {
+        value: value,
+        selected:  searchParams[key as keyof IMembersSearchParams] ? searchParams[key as keyof IMembersSearchParams]?.split('|')?.includes(value) : false,
+        disabled:  !isAvailable ? true: isRestricted  //isLoggedIn ? formattedAvailableFilters[key as keyof typeof formattedAvailableFilters].includes(value) ? false : true : restricedKeys.includes(key)
+      }
+     })
+   })
+
+   formattedFilters.isIncludeFriends = searchParams['includeFriends'] === 'true' || false;
+   formattedFilters.isRecent = searchParams['isRecent'] === 'true' || false;
+   formattedFilters.isOpenToWork = searchParams['openToWork'] === 'true' || false;
+   formattedFilters.isOfficeHoursOnly = searchParams['officeHoursOnly'] === 'true' || false;
+  
+
+   return formattedFilters;
+}
+
 export const parseMemberDetails = (members: IMemberResponse[], teamId: string, isLoggedIn: boolean) => {
   return members?.map((member: IMemberResponse): IMember => {
     let parsedMember = { ...member };
@@ -143,7 +184,7 @@ export const dateDifference = (date1: any, date2: any) => {
 };
 
 export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): IMemberListOptions {
-  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent } = queryParams;
+  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent, includeUnVerified } = queryParams;
 
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase();
@@ -158,11 +199,12 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
       : {}),
     ...(country ? { 'location.country__with': stringifyQueryValues(country) } : {}),
     ...(metroArea ? { 'location.city__with': stringifyQueryValues(metroArea) } : {}),
-    ...(includeFriends ? {} : { plnFriend: false }),
+    ...(includeFriends ? {isVerified: 'all'} : { plnFriend: false, isVerified: 'true' }),
     ...(openToWork ? { openToWork: true } : {}),
     ...(isRecent ? { isRecent: true } : {}),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(memberRoles ? { memberRoles: stringifyQueryValues(memberRoles) } : {}),
+   /*  ...(includeUnVerified ? { isVerified: 'all' } : {}), */
     orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
   };
 }
@@ -170,9 +212,9 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
 export function getMembersListOptions(options: IMemberListOptions) {
   return {
     ...options,
-    pagination: false,
+    pagination: true,
     select:
-      'uid,name,openToWork,isRecent,image.url,location.metroArea,location.country,location.region,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
+      'uid,name,openToWork,isRecent,isVerified,image.url,location.metroArea,location.country,location.region,location.city,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
   };
 }
 
@@ -245,7 +287,7 @@ export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedI
 export const getMemberInfoFormValues = async () => {
   const [teamsInfo, projectsInfo, skillsInfo] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false`, { method: 'GET' }),
-    fetch(`${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false`, { method: 'GET' }),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&select=name,uid,logo.url`, { method: 'GET' }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/skills?pagination=false`, { method: 'GET' }),
   ]);
   if (!teamsInfo.ok || !projectsInfo.ok || !skillsInfo.ok) {
@@ -257,7 +299,7 @@ export const getMemberInfoFormValues = async () => {
   const skillsData = await skillsInfo.json();
   return {
     teams: teamsData
-      .map((d: any) => {
+      ?.teams?.map((d: any) => {
         return {
           teamUid: d.uid,
           teamTitle: d.name,
@@ -273,8 +315,8 @@ export const getMemberInfoFormValues = async () => {
         };
       })
       .sort((a: any, b: any) => a.name - b.name),
-    projects: projectsData
-      .map((d: any) => {
+    projects: projectsData?.projects
+      ?.map((d: any) => {
         return {
           projectUid: d.uid,
           projectName: d.name,
@@ -356,6 +398,7 @@ export function apiObjsToMemberObj(obj: any) {
         uid: sk.id,
       };
     }),
+    teamOrProjectURL:obj?.skillsInfo?.teamOrProjectURL,
     teamAndRoles: obj.skillsInfo.teamsAndRoles,
     openToWork: obj?.skillsInfo?.openToWork ?? false
   };
@@ -443,13 +486,15 @@ export function formInputsToMemberObj(obj: any) {
   } else {
     result['plnStartDate'] = null;
   }
+
   return result;
 }
 
 export const memberRegistrationDefaults = {
   skillsInfo: {
-    teamsAndRoles: [{ teamTitle: '', role: '', teamUid: '' }],
+    teamsAndRoles: [],
     skills: [],
+    teamOrProjectURL:''
   },
   contributionInfo: [],
   basicInfo: {
@@ -478,6 +523,7 @@ export const getInitialMemberFormValues = (selectedMember: any) => {
       teamsAndRoles: selectedMember.teamMemberRoles ?? [],
       skills: selectedMember.skills ?? [],
       openToWork: selectedMember?.openToWork ?? false,
+      teamOrProjectURL: selectedMember?.teamOrProjectURL ?? ''
     },
     contributionInfo: selectedMember?.projectContributions ?? [],
     basicInfo: {

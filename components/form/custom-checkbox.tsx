@@ -4,7 +4,7 @@ import HiddenField from './hidden-field';
 interface ICustomCheckbox {
   name: string;
   value: string;
-  disabled: boolean;
+  disabled?: boolean;
   onSelect: any;
   initialValue: any
 }
@@ -27,8 +27,8 @@ const CustomCheckbox = (props: ICustomCheckbox) => {
 
   return (
     <>
-      <button type="button" className={`chbox ${ischecked ? 'checked' : ''} ${disabled ? 'disable' : ''}`} onClick={onisCheckedClicked}>
-        {(ischecked || disabled) && <img src="/icons/right-white.svg" alt="checkbox" />}
+      <button type="button" disabled={disabled} className={`chbox ${ischecked ? (disabled ? 'checked--disable' : 'checked') : (disabled ? 'unchecked--disable' : 'unchecked')}`}  onClick={onisCheckedClicked}>
+        {ischecked && <img src="/icons/right-white.svg" alt="checkbox" />}
         {(ischecked || disabled) && <HiddenField name={name} value={value} defaultValue={value} />}
       </button>
 
@@ -47,19 +47,30 @@ const CustomCheckbox = (props: ICustomCheckbox) => {
             background: inherit;
           }
 
-          .checked {
-            background-color: #156ff7;
-          }
-
           .chbox__btn {
             height: 100%;
             width: 100%;
           }
 
-          .disable {
-            background-color: #64748b;
+          .checked--disable {
+            background-color: #64748b !important;
             pointer-events: none;
           }
+
+          .unchecked--disable {
+            background-color: #cbd5e1 !important;
+            cursor: not-allowed;
+          }
+
+          .unchecked {
+            background-color: transparent;
+          }
+
+          .checked {
+            background-color: #156ff7;
+          }
+
+
         `}
       </style>
     </>

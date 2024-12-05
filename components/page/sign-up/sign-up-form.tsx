@@ -269,7 +269,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
                 {/* Member name */}
                 <div className="signup__form__item">
                   <TextField
-                    pattern="^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$"
+                    pattern="^[a-zA-Z\s]*$"
                     maxLength={64}
                     isMandatory={true}
                     id="register-member-name"

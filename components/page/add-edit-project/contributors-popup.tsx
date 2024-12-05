@@ -206,10 +206,10 @@ export default function ContributorsPopup(props: any) {
                     <div className="cpt__cnt__cptr__dtls">
                       <div className='cpt__cnt__cptr__dtls__cnt'>
                         <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
-                        { contributor?.isVerified && <div className='cpt__cnt__dtls--isVerified'>
+                        {/* { contributor?.isVerified && <div className='cpt__cnt__dtls--isVerified'>
                           <img alt="profile" className="" src="/icons/verified-check.svg" height={20} width={20} />
                         </div>
-                        }
+                        } */}
                       </div>
                       <div className="cpt__cnt__cptr__roles">
                         <div>{contributor.teamMemberRoles?.[0]?.role}</div>

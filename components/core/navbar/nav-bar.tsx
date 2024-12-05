@@ -68,9 +68,9 @@ export default function Navbar(props: Readonly<INavbar>) {
     analytics.onNavDrawerBtnClicked(isMobileDrawerOpen);
   };
 
-  const onNavbarApplogoClicked = ()=> {
-    analytics.onAppLogoClicked()
-  }
+  const onNavbarApplogoClicked = () => {
+    analytics.onAppLogoClicked();
+  };
 
   useEffect(() => {
     async function getAllNotifications(status: boolean) {
@@ -83,7 +83,7 @@ export default function Navbar(props: Readonly<INavbar>) {
 
     document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
     getAllNotifications(true);
-    
+
     return function () {
       document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
     };
@@ -97,7 +97,8 @@ export default function Navbar(props: Readonly<INavbar>) {
   const handleSubmitTeam = () => {
     analytics.onSubmitATeamBtnClicked();
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
-  }
+    setIsHelperMenuOpen(false);
+  };
 
   return (
     <>
@@ -121,7 +122,9 @@ export default function Navbar(props: Readonly<INavbar>) {
         <div className="nb__right">
           {isLoggedIn && (
             <>
-              <div className='nb__right__team' onClick={handleSubmitTeam}>Submit a Team</div>
+              {/* <div className="nb__right__team" onClick={handleSubmitTeam}>
+                Submit a Team
+              </div> */}
               <div className="nb__right__ntc">
                 <button ref={notificationRef} className={`nb__right__ntc__btn ${notifications?.length > 0 ? 'shake' : ''}`} onClick={onNotificationClickHandler}>
                   <img alt="notification" src="/icons/bell.svg" />
@@ -132,7 +135,8 @@ export default function Navbar(props: Readonly<INavbar>) {
                     <AllNotifications userInfo={userInfo} allNotifications={notifications} />
                   </div>
                 )}
-              </div></>
+              </div>
+            </>
           )}
           <div className="nb__right__helpc" ref={helpMenuRef}>
             <button onClick={onHelpClickHandler} className="nb__right__helpc__btn">
@@ -140,14 +144,25 @@ export default function Navbar(props: Readonly<INavbar>) {
             </button>
             {isHelperMenuOpen && (
               <div className="nb__right__helpc__opts">
-                {HELPER_MENU_OPTIONS.map((helperMenu, index) => (
-                  <Link target={helperMenu.type} href={helperMenu.url ?? ''} key={`${helperMenu} + ${index}`} onClick={() => onHelpItemClickHandler(helperMenu.name)}>
-                    <li className="nb__right__helpc__opts__optn">
-                      <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
-                      <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
-                    </li>
-                  </Link>
-                ))}
+                {HELPER_MENU_OPTIONS.map((helperMenu, index) => {
+                  if (helperMenu.type === 'button' && helperMenu.name === 'Submit a Team' && isLoggedIn) {
+                    return (
+                      <li role="button" onClick={handleSubmitTeam} className="nb__right__helpc__opts__optn">
+                        <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
+                        <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
+                      </li>
+                    );
+                  } else if (helperMenu.type !== 'button') {
+                    return (
+                      <Link target={helperMenu.type} href={helperMenu.url ?? ''} key={`${helperMenu} + ${index}`} onClick={() => onHelpItemClickHandler(helperMenu.name)}>
+                        <li className="nb__right__helpc__opts__optn">
+                          <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
+                          <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
+                        </li>
+                      </Link>
+                    );
+                  }
+                })}
               </div>
             )}
           </div>
@@ -180,7 +195,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             justify-content: space-between;
             box-shadow: 0px 1px 4px 0px #e2e8f0;
             padding: 0 16px 0px 22px;
-            gap:10px;
+            gap: 10px;
           }
 
           button {
@@ -204,7 +219,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           }
 
           .nb__right__team {
-            display:flex;
+            display: flex;
             color: #475569;
             align-items: center;
             gap: 8px;
@@ -274,6 +289,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             gap: 4px;
             box-shadow: 0px 2px 6px 0px #0f172a29;
             border-radius: 8px;
+            width: 170px;
           }
 
           .nb__right__helpc__opts__optn:hover {
@@ -312,6 +328,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             gap: 4px;
             align-items: center;
             padding: 8px;
+            cursor: pointer;
           }
 
           .nb__right__drawerandprofile {

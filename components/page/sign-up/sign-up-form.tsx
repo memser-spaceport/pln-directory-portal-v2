@@ -89,6 +89,8 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
           analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
           setErrors(result?.errors);
         } else {
+          console.log(result);
+          
           if (result?.message) {
             toast.error(result?.message);
           } else {

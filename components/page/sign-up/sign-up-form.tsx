@@ -150,6 +150,16 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if(file.size >= 4 * 1024 * 1024){
+        setErrors({ profile: 'File size should be less than 4MB.' });
+        return;
+      }else{
+        if(errors?.profile){
+          const temperrors = {...errors};
+          delete temperrors.profile;
+          setErrors({...temperrors});
+        }
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
@@ -235,7 +245,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
               {/* Image validation error */}
               {errors?.profile && <div className="signup__form__error">{errors.profile}</div>}
               <p className="info">
-                <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a squared image in PNG or JPEG format only</span>
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB.</span>
               </p>
             </div>
 

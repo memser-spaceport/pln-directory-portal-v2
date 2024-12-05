@@ -35,7 +35,6 @@ export async function signUpFormAction(data: any, recaptchaToken: string) {
       signUpCampaign: campaign,
       signUpSource: source,
     };
-    console.log(formData);
     
     let formattedObj;
     formattedObj = formatFormDataToApi(formData,cookiesValue);

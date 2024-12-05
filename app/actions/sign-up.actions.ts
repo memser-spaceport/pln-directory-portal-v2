@@ -27,6 +27,8 @@ import { cookies } from 'next/headers';
 export async function signUpFormAction(data: any, recaptchaToken: string) {
   try {
     const formData = Object.fromEntries(data.entries());
+    console.log(formData);
+    
     const campaign = cookies().get('utm_campaign')?.value ?? '';
     const source = cookies().get('utm_source')?.value ?? '';
     const medium = cookies().get('utm_medium')?.value ?? '';
@@ -64,22 +66,22 @@ export async function signUpFormAction(data: any, recaptchaToken: string) {
         return { success: false, errors: isEmailValid };
 
       } else {
-        if (formattedObj.memberProfile && formattedObj.memberProfile.size > 0) {
-          try {
+        // if (formattedObj.memberProfile && formattedObj.memberProfile.size > 0) {
+        //   try {
 
-            // Uploads the member profile image into s3 and attaches the imageUid and imageUrl
-            const imgResponse = await saveRegistrationImage(formattedObj.memberProfile);
-            const image = imgResponse?.image;
-            formattedObj.imageUid = image.uid;
-            formattedObj.imageUrl = image.url;
-            delete formattedObj.memberProfile;
-          } catch (er) {
-            // Returns an error message if the image upload fails
-            return { success: false, message: 'Image upload failed.Please retry again later!' };
-          }
-        }
-        formattedObj.memberProfile && delete formattedObj.memberProfile;
-        formattedObj.imageFile && delete formattedObj.imageFile;
+        //     // Uploads the member profile image into s3 and attaches the imageUid and imageUrl
+        //     const imgResponse = await saveRegistrationImage(formattedObj.memberProfile);
+        //     const image = imgResponse?.image;
+        //     formattedObj.imageUid = image.uid;
+        //     formattedObj.imageUrl = image.url;
+        //     delete formattedObj.memberProfile;
+        //   } catch (er) {
+        //     // Returns an error message if the image upload fails
+        //     return { success: false, message: 'Image upload failed.Please retry again later!' };
+        //   }
+        // }
+        // formattedObj.memberProfile && delete formattedObj.memberProfile;
+        // formattedObj.imageFile && delete formattedObj.imageFile;
 
         // Create registration request
         const bodyData = {
@@ -89,6 +91,9 @@ export async function signUpFormAction(data: any, recaptchaToken: string) {
           uniqueIdentifier: formattedObj.email,
           newData: { ...formattedObj, openToWork: false },
         };
+
+        console.log(bodyData);
+        
 
         const formResult = await createParticipantRequest(bodyData);
 

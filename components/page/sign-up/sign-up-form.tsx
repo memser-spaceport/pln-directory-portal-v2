@@ -13,6 +13,7 @@ import SearchWithSuggestions from '@/components/form/suggestions';
 import MultiSelect from '@/components/form/multi-select';
 import HiddenField from '@/components/form/hidden-field';
 import CustomCheckbox from '@/components/form/custom-checkbox';
+import { saveRegistrationImage } from '@/services/registration.service';
 
 /**
  * SignUpForm component handles the user sign-up process.
@@ -38,14 +39,14 @@ import CustomCheckbox from '@/components/form/custom-checkbox';
 const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
   const [errors, setErrors] = useState<any>({});
 
-  const formRef = useRef(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const analytics = useSignUpAnalytics();
 
   const [savedImage, setSavedImage] = useState<string>('');
   const [profileImage, setProfileImage] = useState<string>('');
   const [skillsOptions, setSkillsOptions] = useState(skillsInfo);
   const [selectedSkills, setSelectedSkills] = useState<any>([]);
-  const [consent,setConsent] = useState(true);
+  const [consent, setConsent] = useState(true);
 
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
@@ -77,6 +78,27 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
       analytics.recordSignUpSave('submit-clicked', Object.fromEntries(formData.entries()));
 
+      const formattedObj = Object.fromEntries(formData.entries());
+      console.log(formattedObj);
+
+      if (formattedObj.memberProfile && formattedObj.memberProfile?.size > 0) {
+        try {
+          // Uploads the member profile image into s3 and attaches the imageUid and imageUrl
+          const imgResponse = await saveRegistrationImage(formattedObj.memberProfile);
+          const image = imgResponse?.image;
+          formattedObj.imageUid = image.uid;
+          formattedObj.imageUrl = image.url;
+          delete formattedObj.memberProfile;
+        } catch (er) {
+          console.log('Image upload failed.Please retry again later!');
+          toast.error('Image upload failed.Please retry again later!');
+          // Returns an error message if the image upload fails
+          return { success: false, message: 'Image upload failed.Please retry again later!' };
+        }
+      }
+      formData.delete('memberProfile');
+      formData.delete('imageFile');
+
       // Submitting form data (Implemented actions to evaluate and submit the request)
       const result = await signUpFormAction(formData, reCAPTCHAToken.token);
 
@@ -90,7 +112,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
           setErrors(result?.errors);
         } else {
           console.log(result);
-          
+
           if (result?.message) {
             toast.error(result?.message);
           } else {
@@ -150,14 +172,14 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if(file.size >= 4 * 1024 * 1024){
+      if (file.size >= 4 * 1024 * 1024) {
         setErrors({ profile: 'File size should be less than 4MB.' });
         return;
-      }else{
-        if(errors?.profile){
-          const temperrors = {...errors};
+      } else {
+        if (errors?.profile) {
+          const temperrors = { ...errors };
           delete temperrors.profile;
-          setErrors({...temperrors});
+          setErrors({ ...temperrors });
         }
       }
       const reader = new FileReader();
@@ -300,33 +322,32 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
             {/* consent input */}
             <div className="signup__checkbox__cn">
-              <div className='signup__checkbox'>
-              <CustomCheckbox
-                name="consent"
-                value={'true'}
-                initialValue={true}
-                disabled={false}
-                onSelect={() => {
-                  setConsent(!consent);
-                }}
-              />
-              <span>
-                I agree to Protocol Labs&apos;{' '}
-                <a target="_blank" href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>
-                  Terms of Service and Privacy Policy
-                </a>
-                .
-              </span>
+              <div className="signup__checkbox">
+                <CustomCheckbox
+                  name="consent"
+                  value={'true'}
+                  initialValue={true}
+                  disabled={false}
+                  onSelect={() => {
+                    setConsent(!consent);
+                  }}
+                />
+                <span>
+                  I agree to Protocol Labs&apos;{' '}
+                  <a target="_blank" href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>
+                    Terms of Service and Privacy Policy
+                  </a>
+                  .
+                </span>
               </div>
               <p className="info">
-              <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-              <span className="info__text">
-                You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified network
-                members and will not be available to any individuals or entities outside the network.
-              </span>
-            </p>
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+                <span className="info__text">
+                  You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified
+                  network members and will not be available to any individuals or entities outside the network.
+                </span>
+              </p>
             </div>
-            
 
             {/* subscription input */}
             <div className="signup__checkbox">
@@ -515,11 +536,12 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
           object-position: top;
         }
 
-        .signup__checkbox_cn{
+        .signup__checkbox_cn {
           display: flex;
           gap: 8px;
           align-items: center;
-          flex-direction: row;       }
+          flex-direction: row;
+        }
       `}</style>
     </>
   );

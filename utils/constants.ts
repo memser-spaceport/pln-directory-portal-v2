@@ -63,6 +63,12 @@ export const EVENTS = {
 
 export const HELPER_MENU_OPTIONS = [
   {
+    icon: '/icons/submitteam.svg',
+    name: 'Submit a Team',
+    type: 'button',
+    isExternal: false,
+  },
+  {
     icon: '/icons/message.svg',
     name: 'ProtoSphere',
     type: '_blank',
@@ -82,7 +88,7 @@ export const HELPER_MENU_OPTIONS = [
     url: '/changelog',
     type: '',
     isExternal: false,
-  },
+  }
 ];
 
 export const JOIN_NETWORK_MENUS = [

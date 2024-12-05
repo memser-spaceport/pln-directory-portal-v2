@@ -100,6 +100,7 @@ export async function signUpFormAction(data: any, recaptchaToken: string) {
       }
     }
   } catch (error: any) {
+    console.log(error);
     return { success: false, message: error.message };
   }
 }

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
-import { getRecaptchaToken } from '@/services/google-recaptcha.service';
+import validateCaptcha, { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from 'react-toastify';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import { signUpFormAction } from '@/app/actions/sign-up.actions';
@@ -13,6 +13,9 @@ import SearchWithSuggestions from '@/components/form/suggestions';
 import MultiSelect from '@/components/form/multi-select';
 import HiddenField from '@/components/form/hidden-field';
 import CustomCheckbox from '@/components/form/custom-checkbox';
+import Cookies from 'js-cookie';
+import { saveRegistrationImage } from '@/services/registration.service';
+import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/services/sign-up.service';
 
 /**
  * SignUpForm component handles the user sign-up process.
@@ -38,14 +41,14 @@ import CustomCheckbox from '@/components/form/custom-checkbox';
 const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
   const [errors, setErrors] = useState<any>({});
 
-  const formRef = useRef(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const analytics = useSignUpAnalytics();
 
   const [savedImage, setSavedImage] = useState<string>('');
   const [profileImage, setProfileImage] = useState<string>('');
   const [skillsOptions, setSkillsOptions] = useState(skillsInfo);
   const [selectedSkills, setSelectedSkills] = useState<any>([]);
-  const [consent,setConsent] = useState(true);
+  const [consent, setConsent] = useState(true);
 
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
@@ -77,24 +80,63 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
       analytics.recordSignUpSave('submit-clicked', Object.fromEntries(formData.entries()));
 
-      // Submitting form data (Implemented actions to evaluate and submit the request)
-      const result = await signUpFormAction(formData, reCAPTCHAToken.token);
+      // const formDataObj = Object.fromEntries(formData.entries());
+      const campaign = Cookies.get('utm_campaign') ?? '';
+      const source = Cookies.get('utm_source') ?? '';
+      const medium = Cookies.get('utm_medium') ?? '';
+      const cookiesValue = {
+        signUpMedium: medium,
+        signUpCampaign: campaign,
+        signUpSource: source,
+      };
 
-      if (result?.success) {
-        analytics.recordSignUpSave('submit-clicked-success', Object.fromEntries(formData.entries()));
-        setSuccessFlag(true);
-        window.scrollTo(0, 0);
+      let formattedObj;
+      formattedObj = formatFormDataToApi(Object.fromEntries(formData.entries()), cookiesValue);
+
+      let errors: any = validateSignUpForm(formattedObj);
+
+      if (Object.entries(errors).length) {
+        setErrors(errors);
       } else {
-        if (result?.errors) {
-          analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
-          setErrors(result?.errors);
+        const isEmailValid = await checkEmailDuplicate(formattedObj.email);
+        if (Object.entries(isEmailValid).length) {
+          setErrors(errors);
         } else {
-          console.log(result);
-          
-          if (result?.message) {
-            toast.error(result?.message);
+          if (formattedObj.memberProfile && formattedObj.memberProfile.size > 0) {
+            try {
+              // Uploads the member profile image into s3 and attaches the imageUid and imageUrl
+              const imgResponse = await saveRegistrationImage(formattedObj.memberProfile);
+              const image = imgResponse?.image;
+              formattedObj.imageUid = image.uid;
+              formattedObj.imageUrl = image.url;
+              delete formattedObj.memberProfile;
+            } catch (er) {
+              // Returns an error message if the image upload fails
+              toast.error('Image upload failed.Please retry again later!');
+            }
+          }
+          formattedObj.memberProfile && delete formattedObj.memberProfile;
+          formattedObj.imageFile && delete formattedObj.imageFile;
+
+          // Submitting form data (Implemented actions to evaluate and submit the request)
+          // const result = await signUpFormAction(formData, reCAPTCHAToken.token);
+          const result = await signUpFormAction(formattedObj, reCAPTCHAToken.token);
+
+          if (result?.success) {
+            analytics.recordSignUpSave('submit-clicked-success', Object.fromEntries(formData.entries()));
+            setSuccessFlag(true);
+            window.scrollTo(0, 0);
           } else {
-            toast.error('Something went wrong. Please try again.');
+            // if (result?.errors) {
+            //   analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
+            //   setErrors(result?.errors);
+            // } else {
+              if (result?.message) {
+                toast.error(result?.message);
+              } else {
+                toast.error('Something went wrong. Please try again.');
+              }
+            // }
           }
         }
       }
@@ -150,14 +192,14 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if(file.size >= 4 * 1024 * 1024){
+      if (file.size >= 4 * 1024 * 1024) {
         setErrors({ profile: 'File size should be less than 4MB.' });
         return;
-      }else{
-        if(errors?.profile){
-          const temperrors = {...errors};
+      } else {
+        if (errors?.profile) {
+          const temperrors = { ...errors };
           delete temperrors.profile;
-          setErrors({...temperrors});
+          setErrors({ ...temperrors });
         }
       }
       const reader = new FileReader();
@@ -300,33 +342,32 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
             {/* consent input */}
             <div className="signup__checkbox__cn">
-              <div className='signup__checkbox'>
-              <CustomCheckbox
-                name="consent"
-                value={'true'}
-                initialValue={true}
-                disabled={false}
-                onSelect={() => {
-                  setConsent(!consent);
-                }}
-              />
-              <span>
-                I agree to Protocol Labs&apos;{' '}
-                <a target="_blank" href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>
-                  Terms of Service and Privacy Policy
-                </a>
-                .
-              </span>
+              <div className="signup__checkbox">
+                <CustomCheckbox
+                  name="consent"
+                  value={'true'}
+                  initialValue={true}
+                  disabled={false}
+                  onSelect={() => {
+                    setConsent(!consent);
+                  }}
+                />
+                <span>
+                  I agree to Protocol Labs&apos;{' '}
+                  <a target="_blank" href={SIGN_UP.POLICY_URL} onClick={onPolicyClick}>
+                    Terms of Service and Privacy Policy
+                  </a>
+                  .
+                </span>
               </div>
               <p className="info">
-              <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-              <span className="info__text">
-                You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified network
-                members and will not be available to any individuals or entities outside the network.
-              </span>
-            </p>
+                <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+                <span className="info__text">
+                  You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified
+                  network members and will not be available to any individuals or entities outside the network.
+                </span>
+              </p>
             </div>
-            
 
             {/* subscription input */}
             <div className="signup__checkbox">
@@ -515,11 +556,12 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
           object-position: top;
         }
 
-        .signup__checkbox_cn{
+        .signup__checkbox_cn {
           display: flex;
           gap: 8px;
           align-items: center;
-          flex-direction: row;       }
+          flex-direction: row;
+        }
       `}</style>
     </>
   );

@@ -73,7 +73,6 @@ export const formatFormDataToApi = (formData: any,cookiesValue?:any) => {
   if(signUpCampaign){
     result['signUpCampaign'] = signUpCampaign;
   }
-  console.log(result);
   
   return result;
 };

@@ -21,37 +21,22 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
   };
 }
 
-export const parseTeamsFilters = (teams: ITeamResponse[]) => {
-  const filtersValues = teams?.reduce(
-    (values: { tags: string[], membershipSources: string[], fundingStage: string[], technology: string[] }, team: ITeamResponse) => {
-      const tags = getUniqueFilterValues(
-        values.tags,
-        team.industryTags?.map((tag: ITag) => tag.title)
-      );
-      const membershipSources = getUniqueFilterValues(
-        values.membershipSources,
-        team.membershipSources?.map((source: ITag) => source.title)
-      );
-      const fundingStage = getUniqueFilterValues(values?.fundingStage, team?.fundingStage && [team?.fundingStage?.title]);
-      const technology = getUniqueFilterValues(
-        values.technology,
-        team.technologies?.map((technology: { title: string }) => technology.title)
-      );
+export function processFilters(searchParams: ITeamsSearchParams, formattedValuesByFilter: any, formattedAvailableValuesByFilter: any, focusAreaData: any) {
+  const focusAreaQuery = searchParams?.focusAreas;
+  const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR) || [];
+  const selectedFocusAreas = focusAreaFilters.length > 0 ? focusAreaData?.filter((focusArea: any) => focusAreaFilters.includes(focusArea.title)) : [];
 
-      return { tags, membershipSources, fundingStage, technology };
+  return {
+    tags: getTagsFromValues(formattedValuesByFilter?.tags, formattedAvailableValuesByFilter?.tags, searchParams?.tags),
+    membershipSources: getTagsFromValues(formattedValuesByFilter?.membershipSources, formattedAvailableValuesByFilter?.membershipSources, searchParams?.membershipSources),
+    fundingStage: getTagsFromValues(formattedValuesByFilter?.fundingStage, formattedAvailableValuesByFilter?.fundingStage, searchParams?.fundingStage),
+    technology: getTagsFromValues(formattedValuesByFilter?.technology, formattedAvailableValuesByFilter?.technology, searchParams?.technology),
+    focusAreas: {
+      rawData: focusAreaData,
+      selectedFocusAreas,
     },
-    {
-      tags: [],
-      membershipSources: [],
-      fundingStage: [],
-      technology: [],
-    }
-  );
-
-  Object.values(filtersValues).forEach((value) => value.sort());
-  return filtersValues;
-};
-
+  };
+}
 
 export function getTagsFromValues(allValues: string[], availableValues: string[], queryValues: string | string[] = []) {
   const queryValuesArr = Array.isArray(queryValues) ? queryValues : queryValues.split(URL_QUERY_VALUE_SEPARATOR);
@@ -65,7 +50,7 @@ export function getTagsFromValues(allValues: string[], availableValues: string[]
 
 
 export function getTeamsListOptions(options: ITeamListOptions) {
-  return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title", pagination: false };
+  return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title", pagination: true };
 }
 
 export function transformTeamApiToFormObj(obj: any){

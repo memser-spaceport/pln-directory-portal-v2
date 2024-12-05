@@ -1,4 +1,4 @@
-import { getHeader, getSortFromQuery, stringifyQueryValues } from "@/utils/common.utils"
+import { getHeader} from "@/utils/common.utils"
 
 
 export const getProject = async (id: string, options: any) => {
@@ -129,29 +129,7 @@ const getFormattedProject = (project: any) => {
     }
 }
 
-export const getAllProjects = async (queryParams: any, currentPage: number, limit = 0) => {
-    const requestOptions: RequestInit = { method: "GET", cache: "no-store" };
-    const response = await fetch(
-        `${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&${new URLSearchParams(queryParams)}`,
-        requestOptions
-    );
-    const result = await response.json();
-    if (!response?.ok) {
-        return { error: { statusText: response?.statusText } };
-    }
-    const formattedData = result?.map((project: any) => {
-        return {
-            id: project?.uid,
-            name: project?.name,
-            logo: project?.logo?.url,
-            description: project?.description,
-            maintainingTeam: project?.maintainingTeam,
-            lookingForFunding: project?.lookingForFunding,
-            tagline: project?.tagline,
-        };
-    });
-    return { data: { formattedData, totalProjects: result?.length } };
-};
+
 
 
 

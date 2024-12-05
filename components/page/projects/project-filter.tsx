@@ -152,6 +152,7 @@ const ProjectFilter = (props: any) => {
   const onClear = () => {
     setSearchText('');
     updateQueryParams("team", "", searchParams);
+    findTeamsByName('');
   }
 
   useEffect(() => {
@@ -219,6 +220,7 @@ const ProjectFilter = (props: any) => {
               onInputBlur={onAutocompleteBlur}
               paneRef={projectPaneRef}
               onClear={onClear}
+              isClear={(searchText || selectedTeam?.logo) ? true : false}
             />
           </div>
         </div>

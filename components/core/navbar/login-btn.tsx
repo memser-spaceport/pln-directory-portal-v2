@@ -17,7 +17,11 @@ const LoginBtn = () => {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      if(window.location.pathname === '/sign-up'){
+        router.push(`/#login`);
+      } else {
+        router.push(`${window.location.pathname}${window.location.search}#login`);
+      }
     }
   };
   return (
@@ -29,7 +33,7 @@ const LoginBtn = () => {
         .loginBtn {
           background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
           box-shadow: 0px 1px 1px 0px #07080829;
-          padding: 8px 24px;
+          padding: 8px 12px;
           color: #ffffff;
           font-size: 14px;
           line-height: 24px;

@@ -201,10 +201,16 @@ export default function ContributorsPopup(props: any) {
                     <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
                     <div className="cpt__cnt__cptr__pflctr">
                       <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} height={40} width={40} />
-                      {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={16} width={16} />}
+                      {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />}
                     </div>
                     <div className="cpt__cnt__cptr__dtls">
-                      <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
+                      <div className='cpt__cnt__cptr__dtls__cnt'>
+                        <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
+                        {/* { contributor?.isVerified && <div className='cpt__cnt__dtls--isVerified'>
+                          <img alt="profile" className="" src="/icons/verified-check.svg" height={20} width={20} />
+                        </div>
+                        } */}
+                      </div>
                       <div className="cpt__cnt__cptr__roles">
                         <div>{contributor.teamMemberRoles?.[0]?.role}</div>
                         <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles?.[0]?.role?.length - 1}</div>
@@ -267,6 +273,16 @@ export default function ContributorsPopup(props: any) {
 
           .cpc__header__titlSec__ttl__bkbtn {
             margin-top: 2px;
+          }
+
+          .cpt__cnt__dtls--isVerified {
+            display: flex;
+          }
+
+          .cpt__cnt__cptr__dtls__cnt {
+            display: flex;
+            flex-direction: row;
+            gap: 2px;
           }
 
           .cpt__cnt__cptr__pflctr {

@@ -9,9 +9,12 @@ import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { getMember } from '@/services/members.service';
 
-const getPageData = async (userInfo: any, authToken: string) => {
-  return await getMemberPreferences(userInfo.uid, authToken);
+const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean) => {
+  const [memberResponse, preferences] = await Promise.all([getMember(userInfo?.uid, {}, isLoggedIn, userInfo), getMemberPreferences(userInfo.uid, authToken)]);
+
+  return { memberDetails: memberResponse, preferences };
 };
 
 async function PrivacyPage() {
@@ -25,7 +28,10 @@ async function PrivacyPage() {
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
-  const preferences = await getPageData(userInfo, authToken);
+  const {memberDetails, preferences } = await getPageData(userInfo, authToken, isLoggedIn);
+  if( preferences.memberPreferences) {
+    preferences.memberPreferences.newsLetter = memberDetails?.data?.formattedData?.isSubscribedToNewsletter;
+  }
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
     { text: 'Members', url: '/members' },

@@ -20,7 +20,8 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
         discord: rawPreferences?.discord ?? false,
         linkedin: rawPreferences?.linkedin ?? false,
         twitter: rawPreferences?.twitter ?? false,
-        githubProjects: rawPreferences?.github ?? false
+        githubProjects: rawPreferences?.github ?? false,
+        newsLetter: true
     }
     const memberPreferences = {
         email: rawPreferences?.showEmail,
@@ -30,6 +31,7 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
         discord: rawPreferences?.showDiscord,
         linkedin: rawPreferences?.showLinkedin,
         twitter: rawPreferences?.showTwitter,
+        newsLetter: rawPreferences?.isSubscribedToNewsletter ?? false
     }
 
     return {

@@ -5,12 +5,10 @@ import { useRef } from 'react';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createStateUid } from '@/services/auth.service';
-import { LOGIN_BANNER_URL } from '@/utils/constants';
 
 const AuthInfo = () => {
   // Reference to the dialog element
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const loginBanner = LOGIN_BANNER_URL;
   const router = useRouter();
   const { logout } = usePrivyWrapper();
   const analytics = useAuthAnalytics();
@@ -62,14 +60,6 @@ const AuthInfo = () => {
         <dialog open className="authinfo__dialog" ref={dialogRef}>
           <div className="authinfo__dialog__box">
             <div className="authinfo__dialog__box__info">
-              <img
-                className="authinfo__dialog__box__info__whatsnew"
-                src="/images/login/auth-whatsnew.svg"
-                alt="whats new"
-                width={140}
-                height={32}
-              />
-              <h2 className="authinfo__dialog__box__info__title">New Authentication Method</h2>
               <p className="authinfo__dialog__box__info__text">
                 We&apos;ve updated our authentication experience. You will need to login with your Directory profile
                 email or link it to a login method of your choice. If you don&apos;t remember which email is tied to
@@ -92,7 +82,7 @@ const AuthInfo = () => {
             <button onClick={onClose}>
               <img width={20} height={20} src="/icons/close.svg" className="authinfo__dialog__box__close" alt="close" />
             </button>
-            <img src={loginBanner} className="authinfo__dialog__box__img" alt="login banner" />
+            <img src="/images/login/login-banner.jpg" className="authinfo__dialog__box__img" alt="login banner" />
           </div>
           <div className="authinfo__dialog__actions">
             <button onClick={onClose} className="authinfo__dialog__actions__cancel">
@@ -147,13 +137,6 @@ const AuthInfo = () => {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-          }
-          .authinfo__dialog__box__info__title {
-            font-size: 20px;
-            font-weight: 700;
-            line-height: 32px;
-            margin-top: 12px;
-            text-align: center;
           }
           .authinfo__dialog__box__img {
             width: 100%;

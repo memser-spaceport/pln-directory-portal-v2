@@ -100,6 +100,10 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_APP_LOGO_CLICKED);
   }
 
+  function onSubmitATeamBtnClicked() {
+    captureEvent(COMMON_ANALYTICS_EVENTS.SUBMIT_A_TEAM_BTN_CLICKED);
+  }
+  
   return {
     onNavItemClicked,
     onNavGetHelpItemClicked,
@@ -111,6 +115,7 @@ export const useCommonAnalytics = () => {
     onSessionExpiredLoginClicked,
     goToTopBtnClicked,
     onNotificationMenuClickHandler,
-    onAppLogoClicked
+    onAppLogoClicked,
+    onSubmitATeamBtnClicked,
   };
 };

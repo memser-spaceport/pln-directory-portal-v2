@@ -63,27 +63,32 @@ const MemberTeams = (props: IMemberTeams) => {
             </button>
           )}
         </div>
-        <div className="member-teams__teams-container">
-          {itemsToShow?.map((team: any, index: number) => {
-            const teamDetails = teams.find((memberTeam) => memberTeam.id === team.id);
-            return (
-              <Fragment key={`${team}+${index}`}>
-                <div className={`memberteam ${itemsToShow.length - 1 !== index ? 'memberteam__border-set' : ''}`}>
-                  <MemberDetailsTeamCard
-                    member={member}
-                    userInfo={userInfo}
-                    url={`${PAGE_ROUTES?.TEAMS}/${team?.id}`}
-                    team={teamDetails}
-                    tags={teamDetails?.industryTags}
-                    role={team?.role}
-                    isLoggedIn={isLoggedIn}
-                    isMainTeam={team.mainTeam && sortedTeams.length > 1}
-                  />
-                </div>
-              </Fragment>
-            );
-          })}
-        </div>
+
+        {itemsToShow.length > 0 ? (
+          <div className="member-teams__teams-container">
+            {itemsToShow?.map((team: any, index: number) => {
+              const teamDetails = teams.find((memberTeam) => memberTeam.id === team.id);
+              return (
+                <Fragment key={`${team}+${index}`}>
+                  <div className={`memberteam ${itemsToShow.length - 1 !== index ? 'memberteam__border-set' : ''}`}>
+                    <MemberDetailsTeamCard
+                      member={member}
+                      userInfo={userInfo}
+                      url={`${PAGE_ROUTES?.TEAMS}/${team?.id}`}
+                      team={teamDetails}
+                      tags={teamDetails?.industryTags}
+                      role={team?.role}
+                      isLoggedIn={isLoggedIn}
+                      isMainTeam={team.mainTeam && sortedTeams.length > 1}
+                    />
+                  </div>
+                </Fragment>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="member-teams__no-teams">Team(s) are yet to be linked</div>
+        )}
       </div>
 
       <div className="all-member-container">
@@ -113,6 +118,16 @@ const MemberTeams = (props: IMemberTeams) => {
             border-radius: 12px;
             box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
             border: 1px solid #e2e8f0;
+          }
+
+          .member-teams__no-teams {
+            background-color: rgb(249 250 251);
+            border-radius: 12px;
+            font-size: 12px;
+            padding: 12px;
+            display: flex;
+            gap: 8px;
+            color: #000;
           }
 
           .memberteam {

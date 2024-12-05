@@ -11,6 +11,7 @@ export type IMemberListOptions = IListOptions & {
   plnFriend?: boolean;
   openToWork?: boolean;
   isRecent?: boolean;
+  includeUnVerified?: string;
 };
 
 export interface IMemberResponse {
@@ -60,6 +61,7 @@ export interface IMember {
   repositories?: [];
   preferences: IMemberPreferences;
   bio?: string;
+  isVerified?: boolean;
 }
 
 export interface ILoggedoutMember {}
@@ -125,6 +127,7 @@ export interface IMembersSearchParams {
   officeHoursOnly: string;
   memberRoles: string;
   isRecent: string;
+  includeUnVerified: string;
 }
 
 export interface IMemberDetailParams {

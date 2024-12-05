@@ -1,18 +1,41 @@
 import { ITeamMemberRole } from '@/types/members.types';
-import { ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
+import { ITeamResponse } from '@/types/teams.types';
 import { getHeader } from '@/utils/common.utils';
-import { getTagsFromValues, parseTeamsFilters } from '@/utils/team.utils';
-import { getFocusAreas } from './common.service';
-import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+
+const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
+
+
+// get all teams filters
+export const getTeamListFilters = async (options: any) => {
+  const queries = { ...options, pagination: false, select: 'industryTags.title,membershipSources.title,fundingStage.title,technologies.title' } as any;
+
+  const requestOptions: RequestInit = {
+    method: 'GET',
+    headers: getHeader(''),
+    cache: 'force-cache',
+    next: {
+      tags: ['team-filters'],
+    },
+  };
+
+  const response = await fetch(`${teamsAPI}/filters?${new URLSearchParams(queries)}`, requestOptions);
+  const result = await response.json();
+  if (!response?.ok) {
+    return { isError: true };
+  }
+  const formattedData = { tags: result?.industryTags || [], fundingStage: result?.fundingStages || [], membershipSources: result?.membershipSources || [], technology: result?.technologies || [] };
+
+  return { data: formattedData };
+};
 
 export const getAllTeams = async (authToken: string, queryParams: any, currentPage: number, limit: number) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'no-store' };
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`, requestOPtions);
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'no-cache' };
+  const response = await fetch(`${teamsAPI}?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`, requestOPtions);
   const result = await response.json();
   if (!response?.ok) {
     return { error: { statusText: response?.statusText } };
   }
-  const formattedData = result?.map((team: ITeamResponse) => {
+  const formattedData = result?.teams?.map((team: ITeamResponse) => {
     const memberIds = team?.teamMemberRoles?.length ? [...new Set(team?.teamMemberRoles.map((teamMemberRole: ITeamMemberRole) => teamMemberRole.member?.uid || ''))] : [];
     return {
       id: team?.uid,
@@ -27,46 +50,13 @@ export const getAllTeams = async (authToken: string, queryParams: any, currentPa
       memberIds,
     };
   });
-  return { data: { formattedData } };
-};
-
-export const getTeamsFilters = async (options: ITeamListOptions, searchParams: ITeamsSearchParams) => {
-  let totalTeams = 0;
-  const [allTeams, availableValuesByFilter, focusAreaResposne] = await Promise.all([getTeamsByFilters({}), getTeamsByFilters(options), getFocusAreas('Team', searchParams)]);
-
-  if (allTeams?.error || availableValuesByFilter?.error || focusAreaResposne?.error) {
-    return { error: { statusText: allTeams?.error?.statusText } };
-  }
-  totalTeams = availableValuesByFilter?.data?.formattedData?.length;
-
-  const formattedValuesByFilter = parseTeamsFilters(allTeams?.data?.formattedData);
-  const formattedAvailableValuesByFilter = parseTeamsFilters(availableValuesByFilter?.data?.formattedData);
-
-  const focusAreaQuery = searchParams?.focusAreas;
-  const focusAreaFilters = focusAreaQuery?.split(URL_QUERY_VALUE_SEPARATOR);
-  const selectedFocusAreas = focusAreaFilters?.length > 0 ? focusAreaResposne?.data?.filter((focusArea: any) => focusAreaFilters.includes(focusArea.title)) : [];
-
-  const formattedFilters = {
-    tags: getTagsFromValues(formattedValuesByFilter?.tags, formattedAvailableValuesByFilter?.tags, searchParams?.tags),
-    membershipSources: getTagsFromValues(formattedValuesByFilter?.membershipSources, formattedAvailableValuesByFilter?.membershipSources, searchParams?.membershipSources),
-    fundingStage: getTagsFromValues(formattedValuesByFilter?.fundingStage, formattedAvailableValuesByFilter?.fundingStage, searchParams?.fundingStage),
-    technology: getTagsFromValues(formattedValuesByFilter?.technology, formattedAvailableValuesByFilter?.technology, searchParams?.technology),
-    focusAreas: {
-      rawData: focusAreaResposne?.data,
-      selectedFocusAreas,
-    },
-  };
-  return { data: { formattedFilters, totalTeams } };
-};
-
-const getTeamsByFilters = async (options: ITeamListOptions) => {
-  return await getAllTeams('', { ...options, pagination: false, select: 'industryTags.title,membershipSources.title,fundingStage.title,technologies.title' }, 0, 0);
+  return { data: { formattedData, totalItems: result?.count } };
 };
 
 export const getTeamUIDByAirtableId = async (id: string) => {
   const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'no-store' };
   const query = { airtableRecId: id, select: 'uid' };
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?${new URLSearchParams(query)}`, requestOPtions);
+  const response = await fetch(`${teamsAPI}?${new URLSearchParams(query)}`, requestOPtions);
   const result = await response?.json();
   if (!response?.ok) {
     return { error: { statusText: response?.statusText } };
@@ -75,7 +65,7 @@ export const getTeamUIDByAirtableId = async (id: string) => {
 };
 
 export const updateTeam = async (payload: any, authToken: string, teamUid: string) => {
-  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${teamUid}`, {
+  const result = await fetch(`${teamsAPI}/${teamUid}`, {
     cache: 'no-store',
     method: 'PUT',
     body: JSON.stringify(payload),
@@ -101,7 +91,7 @@ export const updateTeam = async (payload: any, authToken: string, teamUid: strin
 
 export const getTeam = async (id: string, options: string | string[][] | Record<string, string> | URLSearchParams | undefined) => {
   const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'no-store' };
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${id}?${new URLSearchParams(options)}`, requestOPtions);
+  const response = await fetch(`${teamsAPI}/${id}?${new URLSearchParams(options)}`, requestOPtions);
   const result = await response?.json();
   if (!response?.ok) {
     return { error: { statusText: response?.statusText } };
@@ -131,8 +121,8 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
 };
 
 export const getTeamsForProject = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?select=uid,name,shortDescription,logo.url&&pagination=false&&with=teamMemberRoles`, {
-    cache:'no-store',
+  const response = await fetch(`${teamsAPI}?select=uid,name,shortDescription,logo.url&&pagination=false&&with=teamMemberRoles`, {
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -141,7 +131,7 @@ export const getTeamsForProject = async () => {
 
   const result = await response.json();
 
-  const formattedData = result?.map((team: any) => {
+  const formattedData = result?.teams?.map((team: any) => {
     return {
       uid: team.uid,
       name: team.name,
@@ -153,7 +143,7 @@ export const getTeamsForProject = async () => {
 };
 
 export const getTeamInfo = async (teamUid: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${teamUid}`, {
+  const response = await fetch(`${teamsAPI}/${teamUid}`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),
@@ -191,7 +181,7 @@ export const getTeamInfo = async (teamUid: string) => {
 };
 
 export const getTeamsInfoForDp = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false&select=uid,name,logo.url`, {
+  const response = await fetch(`${teamsAPI}?pagination=false&select=uid,name,logo.url`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(''),
@@ -200,42 +190,28 @@ export const getTeamsInfoForDp = async () => {
     return { error: { status: response?.status, statusText: response?.statusText } };
   }
   const result = await response?.json();
-  const formattedData: any = result
-    .map((info: any) => {
+  const formattedData: any = result?.teams
+    ?.map((info: any) => {
       return {
         id: info?.uid,
         name: info?.name,
-        imageFile: info?.logo?.url
+        imageFile: info?.logo?.url,
       };
     })
     .sort((a: any, b: any) => a?.name?.localeCompare(b?.name));
   return { data: formattedData };
 };
+
 export const searchTeamsByName = async (searchTerm: string) => {
   const requestOptions = { method: 'GET', headers: getHeader('') };
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?name__icontains=${searchTerm}&select=uid,name,logo.url`, requestOptions);
+  const response = await fetch(`${teamsAPI}?name__icontains=${searchTerm}&select=uid,name,logo.url`, requestOptions);
   if (!response?.ok) {
     return {
       error: { status: response?.status, statusText: response?.statusText },
     };
   }
   const result = await response?.json();
-  return result.map((item: any) => {
+  return result?.teams?.map((item: any) => {
     return { label: item.name, value: item.uid, logo: item.logo?.url };
   });
 };
-
-export const getMemberTeams = async (memberId: string) => {
-  const requestOptions = { method: 'GET', headers: getHeader('') };
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?memberId=${memberId}`, requestOptions);
-  if (!response?.ok) {
-    return {
-      error: { status: response?.status, statusText: response?.statusText },
-    };
-  }
-  const result = await response?.json();
-
-  return result.map((item: any) => {
-    return { label: item.name, value: item.uid };
-  });
-}

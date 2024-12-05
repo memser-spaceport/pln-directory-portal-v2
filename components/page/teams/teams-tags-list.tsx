@@ -1,7 +1,7 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { Tag } from '@/components/ui/tag';
 import { ITag } from '@/types/teams.types';
-import React, { Fragment } from 'react';
+import React, { Fragment, memo } from 'react';
 
 /**
  * TeamsTagsList Component
@@ -15,21 +15,19 @@ const TeamsTagsList = (props: any) => {
   const noOfTagsToShow = props?.noOfTagsToShow ?? 2;
 
   return (
-    <>
+    <React.Fragment>
       <div className="tagsContainer" data-testid="tags-container">
-        {tags?.map((tag: ITag, index: number) => (
-          <Fragment key={`${tag} + ${index}`}>
-            {index < noOfTagsToShow && (
-              <Tooltip
-                asChild
-                trigger={
-                  <div className="tagsContainer__tag" data-testid={`tag-${index}`}>
-                    <Tag value={tag?.title} variant="primary" tagsLength={tags?.length} />{' '}
-                  </div>
-                }
-                content={tag?.title}
-              />
-            )}
+        {tags?.slice(0, noOfTagsToShow).map((tag: ITag, index: number) => (
+          <Fragment key={tag.title}>
+            <Tooltip
+              asChild
+              trigger={
+                <div className="tagsContainer__tag" data-testid={`tag-${index}`}>
+                  <Tag value={tag?.title} variant="primary" tagsLength={tags?.length} />{' '}
+                </div>
+              }
+              content={tag?.title}
+            />
           </Fragment>
         ))}
         {tags?.length > noOfTagsToShow && (
@@ -43,7 +41,7 @@ const TeamsTagsList = (props: any) => {
             content={
               <div>
                 {tags?.slice(noOfTagsToShow, tags?.length).map((tag: ITag, index: number) => (
-                  <div key={`${tag} + ${tag} + ${index}`} className="tagsContainer__additionalTag" data-testid={`additional-tag-${index}`}>
+                  <div key={tag.title} className="tagsContainer__additionalTag" data-testid={`additional-tag-${index}`}>
                     {tag?.title}
                     {index !== tags?.slice(noOfTagsToShow, tags?.length - 1)?.length ? ',' : ''}
                   </div>
@@ -66,8 +64,8 @@ const TeamsTagsList = (props: any) => {
           }
         }
       `}</style>
-    </>
+    </React.Fragment>
   );
-};
+}
 
 export default TeamsTagsList;

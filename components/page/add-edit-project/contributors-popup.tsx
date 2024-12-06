@@ -241,9 +241,11 @@ export default function ContributorsPopup(props: any) {
                       <div className="cpt__cnt__cptr__dtls">
                         <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
                         <div className="cpt__cnt__cptr__roles">
-                          <div>{contributor.teamMemberRoles?.[0]?.role}</div>
-                          <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles?.[0]?.role?.length - 1}</div>
-                        </div>
+                        <div>{contributor.teamMemberRoles?.[0]?.role || 'Contributor'}</div>
+                        {contributor.teamMemberRoles?.length > 1 &&
+                          <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles?.length - 1}</div>
+                        }
+                    </div>
                       </div>
                     </div>
                   )}

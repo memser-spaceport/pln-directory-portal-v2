@@ -280,7 +280,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         </div>
         {/* Team */}
         <div className="gtr__team">
-          <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
+          {teamUid ? <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
             <a target="_blank" className="gtr__team__link" onClick={() => onTeamClick(teamUid, teamName)}>
               <div className="gtr__team__link__imgWrpr">
                 <img title={teamName} className="gtr__team__link__img" width={32} height={32} alt="team logo" src={teamLogo} loading="lazy" />
@@ -301,7 +301,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                 )}
               </div>
             </a>
-          </Link>
+          </Link>: ''}
         </div>
 
         {/* Connect */}

@@ -212,46 +212,50 @@ export default function ContributorsPopup(props: any) {
                         } */}
                       </div>
                       <div className="cpt__cnt__cptr__roles">
-                        <div>{contributor.teamMemberRoles?.[0]?.role}</div>
-                        <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles?.[0]?.role?.length - 1}</div>
-                      </div>
+                        <div>{contributor.teamMemberRoles?.[0]?.role || 'Contributor'}</div>
+                        {contributor.teamMemberRoles?.length > 1 &&
+                          <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles?.length - 1}</div>
+                        }
                     </div>
                   </div>
-                );
+                  </div>
+          );
               })}
-              {!filteredContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
-            </>
+          {!filteredContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
+        </>
           )}
-          {isOnlySelectedContributors && (
-            <>
-              {filteredContributors?.map((contributor: any, index: any) => {
-                const isSelected = getIsSelected(contributor);
-                const value = inputRef.current.value.toLowerCase() ?? '';
-                return (
-                  <Fragment key={`${contributor} + ${index}`}>
-                    {(contributor?.name.toLowerCase().includes(value.toLowerCase()) && isSelected) && (
-                      <div className="cpt__cnt__cptr">
-                        <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
-                        <div className="cpt__cnt__cptr__pflctr">
-                          <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} height={40} width={40} />
-                          {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={16} width={16} />}
-                        </div>
-                        <div className="cpt__cnt__cptr__dtls">
-                          <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
-                          <div className="cpt__cnt__cptr__roles">
-                            <div>{contributor.teamMemberRoles?.[0]?.role}</div>
-                            <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles?.[0]?.role?.length - 1}</div>
-                          </div>
-                        </div>
+        {isOnlySelectedContributors && (
+          <>
+            {filteredContributors?.map((contributor: any, index: any) => {
+              const isSelected = getIsSelected(contributor);
+              const value = inputRef.current.value.toLowerCase() ?? '';
+              return (
+                <Fragment key={`${contributor} + ${index}`}>
+                  {(contributor?.name.toLowerCase().includes(value.toLowerCase()) && isSelected) && (
+                    <div className="cpt__cnt__cptr">
+                      <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
+                      <div className="cpt__cnt__cptr__pflctr">
+                        <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} height={40} width={40} />
+                        {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={16} width={16} />}
                       </div>
-                    )}
-                  </Fragment>
-                );
-              })}
-              {!tempContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
-            </>
-          )}
-        </div>
+                      <div className="cpt__cnt__cptr__dtls">
+                        <div className="cpt__cnt__cptr__dtls__name">{contributor?.name}</div>
+                        <div className="cpt__cnt__cptr__roles">
+                        <div>{contributor.teamMemberRoles?.[0]?.role || 'Contributor'}</div>
+                        {contributor.teamMemberRoles?.length > 1 &&
+                          <div className="cpt__cnt__cptr__roles__count">+{contributor.teamMemberRoles?.length - 1}</div>
+                        }
+                    </div>
+                      </div>
+                    </div>
+                  )}
+                </Fragment>
+              );
+            })}
+            {!tempContributors?.length && <div className="cpc__cnt__nrf">No Contributors found.</div>}
+          </>
+        )}
+      </div>
       </div>
 
       <style jsx>

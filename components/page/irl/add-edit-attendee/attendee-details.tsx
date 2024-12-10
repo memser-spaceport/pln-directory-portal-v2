@@ -47,7 +47,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const [selectedMember, setSelectedMember] = useState<IUserInfo>(member || { name: '', uid: '' });
   
   const handleTeamChange = (option: any) => {
-    setSelectedTeam(option);
+    setSelectedTeam({...option,  uid: option.id});
   };
 
   const onResetMember = () => {

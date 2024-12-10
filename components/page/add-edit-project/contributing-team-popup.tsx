@@ -33,7 +33,7 @@ export function ContributingTeamPopup(props: any) {
     getAllTeams();
     document.addEventListener(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT, () => reset());
     document.addEventListener(EVENTS.UPDATE_SELECTED_CONTRIBUTING_TEAM, (e: any) => setTempContributingTeams([...e.detail]));
-
+   
     return(() => 
     document.removeEventListener(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT, () => {}))
   }, []);
@@ -106,6 +106,7 @@ export function ContributingTeamPopup(props: any) {
 
   const onBackClickHandler = () => {
     setTempContributingTeams([...selectedContributingTeams]);
+    setFilteredTeams(teams);
   };
 
   return (

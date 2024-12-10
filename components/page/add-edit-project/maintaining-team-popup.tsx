@@ -25,12 +25,13 @@ export function MaintainingTeamPopup(props: any) {
   const [teams, setTeams] = useState([]);
   const [filteredTeams, setFilteredTeams] = useState([]);
   const [allContributors, setAllContributors] = useState<any>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
     getAllTeams();
-    document.addEventListener(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT, () => setStep('Teams'));
-  }, []);
+    document.addEventListener(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT, () => {setStep('Teams'); reset()});
+    }, []);
 
   const getAllTeams = async () => {
     try {
@@ -48,6 +49,13 @@ export function MaintainingTeamPopup(props: any) {
     }
   };
 
+  const reset = () => {
+    setStep('Teams');
+    getAllTeams();
+    if (searchInputRef?.current) {
+      searchInputRef.current.value = '';
+    }
+  };
   const onSelectTeamHandler = async (team: any) => {
     setTempMaintainingTeam(team);
     document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
@@ -89,6 +97,10 @@ export function MaintainingTeamPopup(props: any) {
     setFilteredTeams(teams.filter((team: any) => team.name.toLowerCase().includes(name)));
   };
 
+  const onBackClickHandler = () => {
+    setFilteredTeams(teams);
+  };
+
   return (
     <>
       {step === 'Teams' && (
@@ -101,7 +113,7 @@ export function MaintainingTeamPopup(props: any) {
               </div>
               <div className="mtc__search">
                 <img height={15} width={15} src="/icons/search-gray.svg"></img>
-                <input onChange={onSearchChangeHandler} className="mtc__search__input" placeholder="Search"></input>
+                <input ref={searchInputRef} onChange={onSearchChangeHandler} className="mtc__search__input" placeholder="Search"></input>
               </div>
             </div>
 
@@ -153,7 +165,7 @@ export function MaintainingTeamPopup(props: any) {
           selectedContributors={[...selectedContributors]}
           setSelectedContributors={setSelectedContributors}
           contributors={allContributors}
-          const
+          onBackClicked={onBackClickHandler}
           from="Teams"
         />
       )}

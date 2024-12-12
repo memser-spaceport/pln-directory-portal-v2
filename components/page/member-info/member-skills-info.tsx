@@ -190,7 +190,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
           />
           <div className="msf__tr__info">
             <img src="/icons/info.svg" />
-            <p>Sharing your skills help other network members & teams connect with you.</p>
+            <p>Sharing your skills help other network people & teams connect with you.</p>
           </div>
           {selectedSkills.map((skillInfo, index) => (
             <div key={`member-skills-${index}`}>
@@ -208,7 +208,7 @@ function MemberSkillsInfo({ initialValues = {}, teamsOptions = [], skillsOptions
 
           <p className="info">
           <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="">Enabling this implies you are open to collaborate on shared ideas & projects with other members. This is one way to join forces & reach a common goal.</span>
+            <span className="">Enabling this implies you are open to collaborate on shared ideas & projects with other people. This is one way to join forces & reach a common goal.</span>
           </p>
         </div>}
       </div>

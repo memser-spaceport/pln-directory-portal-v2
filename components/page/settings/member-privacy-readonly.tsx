@@ -9,12 +9,12 @@ function MemberPrivacyReadOnly(props: any) {
     {
       title: 'Contact details',
       items: [
-        { name: 'email', title: 'Show Email', info: 'Enabling this will display your email to all logged in members' },
-        { name: 'github', title: 'Show GitHub', info: 'Enabling this will display your GitHub handle to all logged in members' },
-        { name: 'telegram', title: 'Show Telegram', info: 'Enabling this will display your Telegram handle to all logged in members' },
-        { name: 'linkedin', title: 'Show LinkedIn Profile', info: 'Enabling this will display your LinkedIn Profile link to all logged in members' },
-        { name: 'discord', title: 'Show Discord', info: 'Enabling this will display your Discord handle link to all logged in members' },
-        { name: 'twitter', title: 'Show Twitter', info: 'Enabling this will display your Twitter Handle to all logged in members' },
+        { name: 'email', title: 'Show Email', info: 'Enabling this will display your email to all logged in people' },
+        { name: 'github', title: 'Show GitHub', info: 'Enabling this will display your GitHub handle to all logged in people' },
+        { name: 'telegram', title: 'Show Telegram', info: 'Enabling this will display your Telegram handle to all logged in people' },
+        { name: 'linkedin', title: 'Show LinkedIn Profile', info: 'Enabling this will display your LinkedIn Profile link to all logged in people' },
+        { name: 'discord', title: 'Show Discord', info: 'Enabling this will display your Discord handle link to all logged in people' },
+        { name: 'twitter', title: 'Show Twitter', info: 'Enabling this will display your Twitter Handle to all logged in people' },
       ],
     },
     { title: 'Profile', items: [{ name: 'githubProjects', title: 'Show my GitHub Projects', info: 'Control visibility of your GitHub projects' }] },

@@ -6,7 +6,7 @@ import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 
 interface SettingsMenuProps {
-  activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams';
+  activeItem?: 'profile' | 'privacy' | 'manage people' | 'manage teams';
   isAdmin?:boolean
   isTeamLead?: boolean
   userInfo: IUserInfo;
@@ -22,7 +22,7 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
   const teamAdminSettings = [{ name: 'manage teams', url: '/settings/teams', icon: '/icons/team.svg', activeIcon: '/icons/teams-blue.svg' }];
 
   const appAdminSettings = [
-    { name: 'manage members', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
+    { name: 'manage people', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
   ];
 
   const onItemClicked = (url: string, name: string) => {

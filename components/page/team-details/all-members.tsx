@@ -40,7 +40,7 @@ const AllMembers = (props: IAllMembers) => {
   return (
     <>
       <div className="all-members">
-        <h2 className="all-membes__title">Members ({members?.length})</h2>
+        <h2 className="all-membes__title">People ({members?.length})</h2>
         <div className="all-members__search-bar">
             <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20}/>
           <input value={searchValue} className="all-members__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
@@ -57,7 +57,7 @@ const AllMembers = (props: IAllMembers) => {
               </Fragment>
             );
           })}
-          {allMembers.length === 0 && <div className="all-members__members__empty-result"><p>No Members found.</p></div>}
+          {allMembers.length === 0 && <div className="all-members__members__empty-result"><p>No People found.</p></div>}
         </div>
       </div>
 

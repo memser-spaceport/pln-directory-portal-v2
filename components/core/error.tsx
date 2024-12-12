@@ -27,7 +27,7 @@ const Error = () => {
               </a>
               &nbsp;or&nbsp;
               <a href={PAGE_ROUTES.MEMBERS} className="error-container__content__message__desc__link">
-                members
+                people
               </a>
               &nbsp;or&nbsp;
               <a href={PAGE_ROUTES.PROJECTS} className="error-container__content__message__desc__link">

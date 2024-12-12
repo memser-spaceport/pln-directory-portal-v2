@@ -137,7 +137,7 @@ export default function ContributorsPopup(props: any) {
                 <div className="">Select Contributors</div>
               </div>
 
-              <div className="cpc__header__titlSec__desc">Have any of these members contributed to this project?</div>
+              <div className="cpc__header__titlSec__desc">Have any of these people contributed to this project?</div>
             </div>
 
             <div className="cpc__header__titlSec__opts">

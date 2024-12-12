@@ -105,7 +105,7 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         if (errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
           toast.error('Email already exists. Please try again with different email');
         } else {
-          toast.error('Member updated failed. Something went wrong, please try again later');
+          toast.error('People update failed. Something went wrong, please try again later');
         }
         analytics.recordBioSave('save-error', getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
       } else {
@@ -113,12 +113,12 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         router.refresh();
         setClippedContent(clip(content, contentLength));
         analytics.recordBioSave('save-success', getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
-        toast.success('Member updated successfully');
+        toast.success('People updated successfully');
         // window.location.href = `/settings/members?id=${selectedMember.uid}`;
       }
     } catch (e) {
       triggerLoader(false);
-      toast.error('Member updated failed. Something went wrong, please try again later');
+      toast.error('People update failed. Something went wrong, please try again later');
       analytics.recordBioSave('save-error', getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
     }
   };

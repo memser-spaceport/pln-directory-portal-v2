@@ -34,7 +34,7 @@ function HuskyAsk(props: any) {
         <div className="huskyask__upload">
           <div className="huskyask__upload__info">
             <img className="huskyask__upload__info__icon" src="/icons/husky-add.svg" />
-            <p className="huskyask__upload__info__text">Want Husky to be able to fetch results for your teams, projects and members too?</p>
+            <p className="huskyask__upload__info__text">Want Husky to be able to fetch results for your teams, projects and people too?</p>
           </div>
           <a  href='https://airtable.com/appgb6O7eF6mBEl8t/pagkXZKMaDujXVdio/form' target='_blank' className="huskyask__upload__btn">Upload data</a>
         </div>

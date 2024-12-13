@@ -80,6 +80,7 @@ export interface ITeamsSearchParams {
     contributingProjects: any [];
     officeHours?: string | null;
     teamFocusAreas: any [];
+    eventGuests?: any;
   }
 
   export interface ITeamDetailParams {

@@ -132,7 +132,8 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     teamAndRoles: teamAndRoles,
     preferences: result.preferences ?? null,
     isSubscribedToNewsletter: result?.isSubscribedToNewsletter ?? false,
-    isVerified: result?.isVerified
+    isVerified: result?.isVerified,
+    eventGuests: result?.eventGuests ?? [],
   };
 
   if (isLoggedIn) {
@@ -305,7 +306,7 @@ export const getMemberInfo = async (memberUid: string) => {
     }
   })
 
-  const formatted = { ...result, imageUrl: result?.image?.url, moreDetails: result.moreDetails ?? '', openToWork: result.openToWork ?? false, officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills };
+  const formatted = { ...result, imageUrl: result?.image?.url, moreDetails: result.moreDetails ?? '', openToWork: result.openToWork ?? false, officeHours: result.officeHours ?? '', projectContributions: projectContributions, teamMemberRoles: teamMemberRoles, skills: skills};
 
   return { data: formatted };
 };

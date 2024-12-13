@@ -628,3 +628,35 @@ export const validateBasicForms = async (formattedData: any) => {
 
   return errors;
 };
+
+export function getFormattedDateString(startDate: string, endDate: string) {
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  try {
+    const [startDateOnly] = startDate.split('T');
+    const [endDateOnly] = endDate.split('T');
+
+    const [startYear, startMonth] = startDateOnly.split('-');
+    const [endYear, endMonth] = endDateOnly.split('-');
+
+    const startMonthName = monthNames[parseInt(startMonth, 10) - 1];
+    const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
+
+    const formattedStartYear = startYear.slice(2); 
+    const formattedEndYear = endYear.slice(2);
+
+    if (startDateOnly === endDateOnly) {
+      return `${startMonthName} ${formattedStartYear}`;
+    } else if (startMonth === endMonth && startYear === endYear) {
+      return `${startMonthName} ${formattedStartYear}`;
+    } else if (startYear === endYear) {
+      return `${startMonthName} - ${endMonthName} ${formattedStartYear}`;
+    } else {
+      return `${startMonthName} ${formattedStartYear} - ${endMonthName} ${formattedEndYear}`;
+    }
+  } catch {
+    return '';
+  }
+}
+
+

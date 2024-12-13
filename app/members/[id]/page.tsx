@@ -14,6 +14,7 @@ import { getAllTeams } from '@/services/teams.service';
 import MemberProjectContribution from '@/components/page/member-details/member-project-contribution';
 import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 import Bio from '@/components/page/member-details/bio';
+import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -50,6 +51,11 @@ const MemberDetails = async ({ params }: { params: any }) => {
         {isLoggedIn && (
           <div className={styles?.memberDetail__projectContribution}>
             <MemberProjectContribution member={member} userInfo={userInfo} />
+          </div>
+        )}
+        {member.eventGuests.length > 0 && (
+          <div className={styles?.memberDetail__irlContribution}>
+            <IrlMemberContribution member={member} userInfo={userInfo} />
           </div>
         )}
         {isLoggedIn && (

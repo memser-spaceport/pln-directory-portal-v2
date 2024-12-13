@@ -315,6 +315,20 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE, params);
   }
 
+  function onClickSeeMoreIrlContribution(user: IAnalyticsUserInfo | null){
+    const params = {
+      user,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS, params);
+  }
+
+  function onClickEventIrlContribution(user: IAnalyticsUserInfo | null){
+    const params = {
+      user,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS, params);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -349,6 +363,8 @@ export const useMemberAnalytics = () => {
     onMemberDetailsBioEditClicked,
     onMemberDetailsBioEditSaveClicked,
     onMemberDetailsBioEditCancelClicked,
-    recordBioSave
+    recordBioSave,
+    onClickSeeMoreIrlContribution,
+    onClickEventIrlContribution,
   };
 };

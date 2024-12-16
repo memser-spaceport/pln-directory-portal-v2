@@ -221,7 +221,7 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
     return {
       title: 'Protocol Labs Directory',
       description:
-        'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+        'The Protocol Labs Directory helps network people orient themselves within the network by making it easy to learn about other teams and people, including their roles, capabilities, and experiences.',
       openGraph: {
         images: [
           {

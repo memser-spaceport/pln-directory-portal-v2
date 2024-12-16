@@ -192,11 +192,11 @@ const AttendeeDetails = (props: IAttendeeForm) => {
     <>
       <div className="attenddtls">
         <div className={`attenddtls__member ${mode != IAM_GOING_POPUP_MODES.ADMINADD ? 'hide' : ''}`}>
-          <div className="attenddtls__member__ttl">Member</div>
+          <div className="attenddtls__member__ttl">People</div>
           <div className="details__cn__teams__mems">
             <SearchableSingleSelect
               id="irl-member-info"
-              placeholder="Select member"
+              placeholder="Select people"
               displayKey="name"
               options={initialContributors}
               selectedOption={selectedMember}

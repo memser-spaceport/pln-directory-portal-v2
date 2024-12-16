@@ -29,7 +29,7 @@ function AuthBox() {
         appearance: {
           theme: 'light',
           accentColor: '#676FFF',
-          landingHeader: 'PL Member Login',
+          landingHeader: 'PL People Login',
         },
         loginMethods: ['email', 'google', 'github', 'wallet'],
       }}

@@ -21,7 +21,7 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
           </div>
           <div className="featured__hdr__desc">
             <span className="featured__hdr__desc__txt">
-              Want to feature your team, project, team member or event?{' '}
+              Want to feature your team, project, team people or event?{' '}
               <a
                 aria-label="Submit a request to feature content"
                 rel="noopener noreferrer"

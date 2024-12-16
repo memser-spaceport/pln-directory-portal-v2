@@ -69,7 +69,7 @@ export default Notifications;
 export const metadata: Metadata = {
   title: 'Notifications | Protocol Labs Directory',
   description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+    'The Protocol Labs Directory helps network people orient themselves within the network by making it easy to learn about other teams and people, including their roles, capabilities, and experiences.',
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

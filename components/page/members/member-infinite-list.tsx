@@ -83,7 +83,7 @@ const MemberInfiniteList = (props: any) => {
       <div>
         <div className="members-list">
           <div className="members-list__titlesec">
-            <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
+            <h1 className="members-list__titlesec__title">People</h1> <div className="members-list__title__count">({totalItems})</div>
           </div>
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
           {[...userList?.users]?.map((member: any, index: number) => (

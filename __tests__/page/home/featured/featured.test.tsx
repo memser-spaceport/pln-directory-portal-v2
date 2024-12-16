@@ -73,7 +73,7 @@ describe('Featured Component', () => {
     });
   });
 
-  it('calls onMemberCardClicked when a member card is clicked', () => {
+  it('calls onMemberCardClicked when a people card is clicked', () => {
     render(<Featured featuredData={featuredData} isLoggedIn={true} userInfo={mockUserInfo} />);
     const memberLink = screen.getByText('John Doe');
     fireEvent.click(memberLink);

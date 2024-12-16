@@ -9,7 +9,7 @@ import { getFormattedDateString } from '@/utils/member.utils';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { ITeam } from '@/types/teams.types';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { toZonedTime } from 'date-fns-tz';
+import { format, toZonedTime } from 'date-fns-tz';
 
 interface IEvent {
   uid: string;
@@ -73,13 +73,13 @@ const TeamIrlContributions = (props: ITeamMembers) => {
 
   const handleEventClick = (details: any, role: any) => {
     analytics.onClickTeamIrlContribution(userInfo);
-    // const isActive = new Date(details?.endDate) > new Date(); 
     const isActive = checkTimeZone(details)
 
     const type = isActive ? "upcoming" : "past";
-    const location = details.location.location ?? "";
+    const location = details?.location?.location ?? "";
+    const locationName = location?.split(",")[0].trim();
     const baseUrl = window.location.origin;
-    let url = `irl?location=${location}&type=${type}`;
+    let url = `irl?location=${locationName}&type=${type}`;
 
     if (type === "past") {
       url += `&event=${details.slugURL}`;
@@ -92,11 +92,17 @@ const TeamIrlContributions = (props: ITeamMembers) => {
 
   const checkTimeZone = (details: any) => {
     const timezone = details?.location?.timezone;
-    const endDateInTargetTimezone = toZonedTime(new Date(details?.endDate), timezone);
+    const endDateInTargetTimezone = toZonedTime(details?.endDate, timezone);
     const currentDateInTargetTimezone = toZonedTime(new Date(), timezone);
 
     return endDateInTargetTimezone.getTime() > currentDateInTargetTimezone.getTime();
   }
+
+  const getFormattedDateString = (date: string, timeZone: string) => {
+    const dateInTargetTimezone = toZonedTime(date, timeZone);
+    return format(dateInTargetTimezone, 'MMM dd', { timeZone });
+  }
+
   return (
     <>
       <div className="root">
@@ -113,7 +119,7 @@ const TeamIrlContributions = (props: ITeamMembers) => {
                   {role}
                 </div>
                 <div className="root__irlCrbts__col__event">
-                  {visibleEvents.map((details: { name: any; startDate: any; endDate: any }, index: React.Key | null | undefined) => {
+                  {visibleEvents.map((details: any, index: React.Key | null | undefined) => {
                     const isActive = checkTimeZone(details); 
                     return (
                       <div
@@ -135,7 +141,7 @@ const TeamIrlContributions = (props: ITeamMembers) => {
                           }
                         />
                         <div className="root__irlCrbts__col__event__cnt__date">
-                          {getFormattedDateString(details?.startDate, details?.endDate)}
+                          {getFormattedDateString(details?.startDate, details?.location?.timeZone)}
                         </div>
                       </div>
                     );

@@ -49,7 +49,7 @@ const TeamMembers = (props: ITeamMembers) => {
     <>
       <div className="team-members">
         <div className="team-members__header">
-          <h2 className="team-members__header__title">Members ({members?.length ? members?.length : 0})</h2>
+          <h2 className="team-members__header__title">People ({members?.length ? members?.length : 0})</h2>
           {members?.length > 3 && (
             <button className="team-members__header__seeall-btn" onClick={onSeeAllClickHandler}>
               See All
@@ -71,7 +71,7 @@ const TeamMembers = (props: ITeamMembers) => {
             );
           })}
         </div>
-        {!members?.length && <p className="team-members__empty">No members added yet</p>}
+        {!members?.length && <p className="team-members__empty">No people added yet</p>}
       </div>
       
         <div className="all-member-container">

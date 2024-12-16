@@ -166,7 +166,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">If your team offers group office hours or open meetings that are open to the public, please share the link so PLN members can join and learn more.</span>
+            <span className="info__text">If your team offers group office hours or open meetings that are open to the public, please share the link so PLN people can join and learn more.</span>
           </p>
         </div>
       </div>

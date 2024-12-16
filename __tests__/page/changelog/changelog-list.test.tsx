@@ -18,12 +18,12 @@ jest.mock('@/utils/constants', () => ({
         </div>`,
     },
     {
-      title: 'Version 2.0.3 - Improved Member Search',
+      title: 'Version 2.0.3 - Improved People Search',
       tag: 'Improvements',
       date: '03, Apr 2024',
       shortContent: `<div>
           <ul style="list-style: disc; font-size: 14px;  line-height:23px;">
-          With this update, in addition to the current capability of searching by member name, this enhancement will allow the members to be searched using a team name as well. Every member of the team would be returned in the search result.
+          With this update, in addition to the current capability of searching by people name, this enhancement will allow the members to be searched using a team name as well. Every people of the team would be returned in the search result.
           </ul></div>`,
     },
   ],

@@ -175,7 +175,7 @@ const Toolbar = (props: IToolbar) => {
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
                 <img src="/icons/add.svg" width={16} height={16} alt="add" />
-                <span className="toolbar__actionCn__add__btn__txt">New Member</span>
+                <span className="toolbar__actionCn__add__btn__txt">New People</span>
               </button>
             </div>
           )}

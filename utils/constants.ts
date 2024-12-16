@@ -352,6 +352,7 @@ export const PAGE_ROUTES = {
   PROJECTS: '/projects',
   IRL: '/irl',
   NOTIFICATIONS: '/notifications',
+  ADD_TEAM: '/teams/add'
 };
 
 export const SORT_OPTIONS = {

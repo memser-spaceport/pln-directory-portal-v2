@@ -88,6 +88,6 @@ npm run test
 
 # Steps to run directory admin frontend service locally
 
-#### This app is used by admin to approve/reject/edit member and team join requests.
+#### This app is used by admin to approve/reject/edit people and team join requests.
 
 Follow the instructions [here](https://github.com/memser-spaceport/pln-directory-portal) to setup and run the directory admin frontend.

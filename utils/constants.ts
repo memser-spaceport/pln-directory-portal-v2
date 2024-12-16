@@ -12,7 +12,7 @@ export const NAV_OPTIONS = [
     unSelectedLogo: '/icons/team.svg',
   },
   {
-    name: 'Members',
+    name: 'People',
     url: '/members',
     selectedLogo: '/icons/members--selected.svg',
     unSelectedLogo: '/icons/members.svg',
@@ -92,7 +92,7 @@ export const HELPER_MENU_OPTIONS = [
 ];
 
 export const JOIN_NETWORK_MENUS = [
-  { name: 'As a Member', key: 'member', logo: '/icons/join-member.svg' },
+  { name: 'As a People', key: 'member', logo: '/icons/join-member.svg' },
   { name: 'As a Team', key: 'team', logo: '/icons/join-team.svg' },
 ];
 
@@ -352,6 +352,7 @@ export const PAGE_ROUTES = {
   PROJECTS: '/projects',
   IRL: '/irl',
   NOTIFICATIONS: '/notifications',
+  ADD_TEAM: '/teams/add'
 };
 
 export const SORT_OPTIONS = {
@@ -412,19 +413,19 @@ const DEFAULT_PRIVACY_VISIBILITY = true;
 export const PRIVACY_CONSTANTS = {
   CONTACT_DETAILS: 'Contact Details',
   SHOW_EMAIL: 'Show Email',
-  EMAIL_HELP_TXT: 'Enabling this will display your email to all logged in members ',
+  EMAIL_HELP_TXT: 'Enabling this will display your email to all logged in people ',
   SHOW_GITHUB: 'Show GitHub',
-  GH_HELP_TXT: 'Enabling this will display your GitHub handle to all logged in members',
+  GH_HELP_TXT: 'Enabling this will display your GitHub handle to all logged in people',
   SHOW_TELEGRAM: 'Show Telegram',
-  TELEGRAM_HELP_TXT: 'Enabling this will display your Telegram handle to all logged in members',
+  TELEGRAM_HELP_TXT: 'Enabling this will display your Telegram handle to all logged in people',
   SHOW_LIN_PFL: 'Show LinkedIn Profile',
-  LIN_HELP_TXT: 'Enabling this will display your LinkedIn Profile link to all logged in members',
+  LIN_HELP_TXT: 'Enabling this will display your LinkedIn Profile link to all logged in people',
   SHOW_DISCORD: 'Show Discord',
-  DISCORD_HLP_TXT: 'Enabling this will display your Discord handle link to all logged in members',
+  DISCORD_HLP_TXT: 'Enabling this will display your Discord handle link to all logged in people',
   OPEN_TO_COLLABORATE: 'Open to collborate',
-  OTC_HELP_TXT: 'Enabling this will let the members know your collaboration logged in status',
+  OTC_HELP_TXT: 'Enabling this will let the people know your collaboration logged in status',
   SHOW_TWITTER: 'Show Twitter',
-  TWITTER_HELP_TXT: 'Enabling this will display your Twitter Handle to all logged in members ',
+  TWITTER_HELP_TXT: 'Enabling this will display your Twitter Handle to all logged in people ',
   SHOW_GH_PJCTS: 'Show my GitHub Projects',
   GH_PJCTS_HELP_TXT: 'Control visibility of your GitHub projects',
   PROFILE: 'Profile',
@@ -509,7 +510,7 @@ export const ChangeLogList = [
     <li>
     <p  style="padding-bottom:8px"><b>Featured Section:</b></p>
     <p>
-    This section spotlights on the biggest movers and shakers in the network. Whether it's groundbreaking projects, high-impact teams, influential members, or exciting events, this section highlights the most impactful activities across the network.
+    This section spotlights on the biggest movers and shakers in the network. Whether it's groundbreaking projects, high-impact teams, influential people, or exciting events, this section highlights the most impactful activities across the network.
     </p>
     </li>
     </ul>
@@ -594,11 +595,11 @@ export const ChangeLogList = [
     tag: 'Improvements',
     date: '10, May 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
-    We're excited to unveil our new landing page dedicated to IRL Gatherings! Our new landing page serves as a one-stop destination for all upcoming IRL gatherings hosted within our network. Network members can easily navigate through a curated list of events, each accompanied by detailed information and RSVP options.
+    We're excited to unveil our new landing page dedicated to IRL Gatherings! Our new landing page serves as a one-stop destination for all upcoming IRL gatherings hosted within our network. Network people can easily navigate through a curated list of events, each accompanied by detailed information and RSVP options.
     </p>`,
   },
   {
-    title: 'Version 2.0.7 - Enhancements to Project module & Member Search',
+    title: 'Version 2.0.7 - Enhancements to Project module & People Search',
     tag: 'Improvements',
     date: '30, Apr 2024',
     shortContent: `<div>
@@ -612,8 +613,8 @@ export const ChangeLogList = [
       <li>Innovation Network: Projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
       </ul>
       </ul>
-      <li>We can add a member as a contributor in Project module and the contribution details would get reflected automatically in the related member details page.</li>
-      <li>In addition to the current capability of searching members by member name & team name, this enhancement will allow the members to be searched using a project name as well. Every member associated with the project as a contributor would be returned in the search result.</li>
+      <li>We can add a people as a contributor in Project module and the contribution details would get reflected automatically in the related people details page.</li>
+      <li>In addition to the current capability of searching people by people name & team name, this enhancement will allow the people to be searched using a project name as well. Every people associated with the project as a contributor would be returned in the search result.</li>
       </ul></div>`,
   },
   {
@@ -625,12 +626,12 @@ export const ChangeLogList = [
     </p>`,
   },
   {
-    title: 'Version 2.0.5 - Enhanced search on Member roles',
+    title: 'Version 2.0.5 - Enhanced search on People roles',
     tag: 'Improvements',
     date: '17, Apr 2024',
     shortContent: `<div>
       <ul style="list-style: disc; font-size: 14px; line-height:23px;">
-      This release is an further improvement on the filters based on member roles which was released as <a style="text-decoration:underline; color:#156ff7" href='#version-2.0.1'>Version 2.0.1</a> on 22, Mar 2024. This feature update enables users to type and search roles they are looking for into the Role filter's search bar.
+      This release is an further improvement on the filters based on people roles which was released as <a style="text-decoration:underline; color:#156ff7" href='#version-2.0.1'>Version 2.0.1</a> on 22, Mar 2024. This feature update enables users to type and search roles they are looking for into the Role filter's search bar.
       </ul></div>`,
   },
   {
@@ -641,16 +642,16 @@ export const ChangeLogList = [
     isBeta: true,
     shortContent: `<div>
       <ul style="list-style: disc; font-size: 14px;  line-height:23px;">
-      Exciting news! We've rolled out a feature (Beta) that brings detailed participation information to our IRL Gatherings. Network members can now view a list of attendees for upcoming conferences and events, empowering them to see who else is attending and facilitating networking opportunities. With this new feature, network members can now connect with like-minded individuals, plan meetups, and maximize their conference experience.
+      Exciting news! We've rolled out a feature (Beta) that brings detailed participation information to our IRL Gatherings. Network people can now view a list of attendees for upcoming conferences and events, empowering them to see who else is attending and facilitating networking opportunities. With this new feature, network people can now connect with like-minded individuals, plan meetups, and maximize their conference experience.
       </ul></div>`,
   },
   {
-    title: 'Version 2.0.3 - Improved Member Search',
+    title: 'Version 2.0.3 - Improved People Search',
     tag: 'Improvements',
     date: '03, Apr 2024',
     shortContent: `<div>
       <ul style="list-style: disc; font-size: 14px;  line-height:23px;">
-      With this update, in addition to the current capability of searching by member name, this enhancement will allow the members to be searched using a team name as well. Every member of the team would be returned in the search result.
+      With this update, in addition to the current capability of searching by people name, this enhancement will allow the people to be searched using a team name as well. Every people of the team would be returned in the search result.
       </ul></div>`,
   },
   {
@@ -665,18 +666,18 @@ export const ChangeLogList = [
       <li> Digital Human Rights: Building a foundation of freedom and safety in the digital age.</li>
       <li>Public Goods: Creating more efficient and equitable structures for global progress.</li>
       <li>Advanced Technologies: Ensuring responsible advancement in AI, AR, VR, BCI, and other emerging fields.</li>
-      <li>Innovation Network: Teams, members, and projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
+      <li>Innovation Network: Teams, people, and projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
       </ul> 
       </li>
       </ul></div>`,
   },
   {
-    title: 'Version 2.0.1 - Filters based on Member roles',
+    title: 'Version 2.0.1 - Filters based on People roles',
     tag: 'New Feature',
     date: '22, Mar 2024 ',
     shortContent: `<div id='version-2.0.1'>
       <ul style="list-style: disc; font-size: 14px; line-height:23px; padding-left:20px;">
-      <li>Added a new filter in Member's page to search members based on their role.</li>
+      <li>Added a new filter in People's page to search people based on their role.</li>
       <li>Roles that are currently supported in the filter are
       <ul style="list-style: lower-alpha; padding:revert; font-size: 14px;  line-height:23px;">
       <li>Founder/Co-Founder</li>
@@ -743,7 +744,7 @@ export const DIDNTHAPPENEDOPTIONS = [
     name: 'Got cancelled',
   },
   {
-    name: "Member didn't show up",
+    name: "People didn't show up",
   },
   {
     name: 'I could not make it',
@@ -929,7 +930,7 @@ export const IRL_ATTENDEE_FORM_ERRORS = {
   CHECKOUT_DATE_REQUIRED: "Departure date is required",
   CHECKIN_DATE_REQUIRED: "Arrival date is required",
   DATE_DIFFERENCE : "Departure date should be greater than or equal to the Arrival date",
-  SELECT_MEMBER: "Please select a member",
+  SELECT_MEMBER: "Please select a people",
   SELECT_GATHERING: "At least one Gathering should be selected",
 
 }

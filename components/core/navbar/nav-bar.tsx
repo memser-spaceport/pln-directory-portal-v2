@@ -4,11 +4,11 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import { getFollowUps } from '@/services/office-hours.service';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS } from '@/utils/constants';
+import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, PAGE_ROUTES } from '@/utils/constants';
 import cookies from 'js-cookie';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { SyntheticEvent, useEffect, useRef, useState } from 'react';
 import AllNotifications from './all-notifications';
 import JoinNetwork from './join-network';
@@ -29,6 +29,7 @@ export default function Navbar(props: Readonly<INavbar>) {
   const isLoggedIn = props?.isLoggedIn;
   const analytics = useCommonAnalytics();
   const authToken = props?.authToken;
+  const router = useRouter();
 
   const helpMenuRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLButtonElement>(null);
@@ -96,7 +97,8 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   const handleSubmitTeam = () => {
     analytics.onSubmitATeamBtnClicked();
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
+    // document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
+    router.push(PAGE_ROUTES.ADD_TEAM);
     setIsHelperMenuOpen(false);
   };
 

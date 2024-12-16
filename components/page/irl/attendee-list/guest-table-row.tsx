@@ -178,7 +178,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           <Link passHref legacyBehavior href={`/members/${guestUid}`}>
             <a target="_blank" className="gtr__guestName__li" onClick={() => onMemberClick(guestUid, guestName)}>
               <div className="gtr__guestName__li__imgWrpr">
-                <img title={guestName} width={32} height={32} alt="member image" src={guestLogo} loading="lazy" className="gtr__guestName__li__img" />
+                <img title={guestName} width={32} height={32} alt="people image" src={guestLogo} loading="lazy" className="gtr__guestName__li__img" />
               </div>
               <div className="gtr__guestName__li__txtWrpr">
                 <div title={guestName} className="gtr__guestName__li__txt ">

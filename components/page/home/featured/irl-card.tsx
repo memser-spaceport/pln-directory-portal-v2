@@ -10,6 +10,7 @@ export default function IrlCard(props: IIrlCard) {
   const name = props?.name;
   const description = props?.description;
   const location = props?.location;
+  const timezone = props?.timezone;
   const isInviteOnly = props?.type === 'INVITE_ONLY';
   const attendees = props?.attendees;
   const startDate = props?.startDate;
@@ -17,8 +18,7 @@ export default function IrlCard(props: IIrlCard) {
   const bannerImage = props?.bannerUrl;
 
   //variables
-  const formattedDate = formatIrlEventDate(startDate, endDate);
-  console.log('formattedDate', startDate, endDate);
+  const formattedDate = formatIrlEventDate(startDate, endDate, timezone);
   const isPastEvent = isPastDate(endDate);
   const isLongName = name?.length > 25;
 

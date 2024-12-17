@@ -23,6 +23,7 @@ interface IAttendeeForm {
   eventType: string;
   gatherings: IIrlEvent[];
   setIsVerifiedMember: any;
+  setGuestGoingEvents: any;
 }
 
 const AttendeeDetails = (props: IAttendeeForm) => {
@@ -36,6 +37,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const eventType = props?.eventType ?? '';
   const gatherings = props?.gatherings ?? [];
   const setIsVerifiedMember = props?.setIsVerifiedMember;
+  const setGuestGoingEvents = props?.setGuestGoingEvents;
 
   const [initialContributors, setInitialContributors] = useState([]);
   const [initialTeams, setInitialTeams] = useState(initialValues?.teams ?? []);
@@ -90,6 +92,16 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       const fetchGuestDetails = async () => {
         try {
           let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, eventType);
+          const userGoingEvents =  result?.map((e:any)=>({
+            uid: e?.event?.uid,
+            isHost: e?.isHost,
+            isSpeaker: e?.isSpeaker,
+            hostSubEvents: e?.additionalInfo?.hostSubEvents,
+            speakerSubEvents: e?.additionalInfo?.speakerSubEvents,
+            }))
+            
+            setGuestGoingEvents(userGoingEvents)
+
           if (result.length>0) {
             const formData = transformGuestDetail(result, gatherings);
 

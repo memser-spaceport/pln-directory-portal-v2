@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { IIrlAttendeeFormErrors, IIrlEvent, IIrlGathering, IIrlGuest, IIrlLocation, IIrlParticipationEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
-import { canUserPerformEditAction } from '@/utils/irl.utils';
+import { canUserPerformEditAction, mergeGuestEvents } from '@/utils/irl.utils';
 import { isLink } from '@/utils/third-party.helper';
 import AttendeeDetails from './attendee-details';
 import AttendeeFormErrors from './attendee-form-errors';
@@ -50,12 +50,12 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   const gatherings = getGatherings();
 
   const eventType = searchParams?.type === 'past' ? 'past' : 'upcoming';
-
   const analytics = useIrlAnalytics();
 
   const [formInitialValues, setFormInitialValues] = useState<any>(props?.formData);
   const isAllowedToManageGuests = canUserPerformEditAction(userInfo?.roles ?? [], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const [isVerifiedMember, setIsVerifiedMember] = useState();
+  const [guestGoingEvents, setGuestGoingEvents] = useState([]);
 
   const [errors, setErrors] = useState<IIrlAttendeeFormErrors>({
     gatheringErrors: [],
@@ -96,8 +96,15 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       if (!attendeeFormRef.current) {
         return;
       }
+
+      const isUpdate = allGuests?.some((guest: any) => guest.memberUid === formInitialValues?.memberUid);
       const formData = new FormData(attendeeFormRef.current);
       const formattedData = transformObject(Object.fromEntries(formData));
+
+      if(eventType === 'past' && (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate)) {
+        const finalResult = mergeGuestEvents([...guestGoingEvents], [...formattedData.events]);
+        formattedData.events = finalResult;
+      }
 
       formattedData?.events?.map((event: any) => {    
         // Process both hostSubEvents and speakerSubEvents
@@ -112,7 +119,6 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       }
 
       triggerLoader(true);
-      const isUpdate = allGuests?.some((guest: any) => guest.memberUid === formInitialValues?.memberUid);
 
       if ((mode === IAM_GOING_POPUP_MODES.ADMINADD || mode === IAM_GOING_POPUP_MODES.ADD) && !isUpdate) {
         analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
@@ -344,7 +350,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
           <AttendeeFormErrors errors={errors} />
           <div>
-            <AttendeeDetails setIsVerifiedMember={setIsVerifiedMember} gatherings={gatherings} setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {eventType}/>
+            <AttendeeDetails setGuestGoingEvents={setGuestGoingEvents} setIsVerifiedMember={setIsVerifiedMember} gatherings={gatherings} setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {eventType}/>
           </div>
           <div>
             <Gatherings

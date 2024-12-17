@@ -55,6 +55,7 @@ export const getFormattedEvents = (events: any) => {
       bannerUrl: event?.banner?.url,
       description: event?.description,
       location: event?.location?.location,
+      timezone:  event?.location?.timezone,
       startDate: event?.startDate,
       endDate: event?.endDate,
       createdAt: event?.createdAt,

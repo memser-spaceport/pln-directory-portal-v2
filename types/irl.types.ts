@@ -10,6 +10,7 @@ export interface IIrlCard {
   type: string;
   attendees: number;
   userInfo?: any;
+  timezone: string
 }
 export interface IIrlLocationCard {
   id: number;

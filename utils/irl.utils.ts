@@ -1,5 +1,7 @@
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, URL_QUERY_VALUE_SEPARATOR } from './constants';
+import { format, toZonedTime } from 'date-fns-tz';
+import { isSameDay } from 'date-fns';
 
 export const isPastDate = (date: any) => {
   const currentDate = new Date();
@@ -8,28 +10,19 @@ export const isPastDate = (date: any) => {
 };
 
 export function formatIrlEventDate(startDateStr: string | Date, endDateStr: string | Date, timeZone = 'America/Los_Angeles') {
-  const options = { month: 'short', day: 'numeric', timeZone: timeZone };
+  const startDate = toZonedTime(startDateStr, timeZone);
+  const endDate = toZonedTime(endDateStr, timeZone);
 
-  const startDate = new Date(startDateStr);
-  const endDate = new Date(endDateStr);
-
-  const startFormatter = new Intl.DateTimeFormat('en-US', options as any);
-  const startFormatted = startFormatter.format(startDate);
-
-  const endMonth = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: timeZone }).format(endDate);
-  const endDay = new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: timeZone }).format(endDate);
-  const endYear = new Intl.DateTimeFormat('en-US', { year: 'numeric', timeZone: timeZone }).format(endDate);
-
-  const startMonth = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: timeZone }).format(startDate);
-
-  let endFormatted;
-  if (startMonth === endMonth) {
-    endFormatted = endDay;
-  } else {
-    endFormatted = `${endMonth} ${endDay}`;
+  if (isSameDay(startDate, endDate)) {
+    return format(startDate, 'MMM d, yyyy', { timeZone });
   }
 
-  return `${startFormatted}-${endFormatted}, ${endYear}`;
+  // Format the start date and end date
+  const startFormatted = format(startDate, 'MMM d', { timeZone });
+  const endFormatted = format(endDate, 'd, yyyy', { timeZone });
+
+  // Combine the range into the desired format
+  return `${startFormatted}-${endFormatted}`;
 }
 
 // Common function to check user access
@@ -392,4 +385,23 @@ export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, past
     return true;
   }
   return false;
+}
+// combine guest going events and new events(if any event matches with the new events will replace the events in going events)
+export function mergeGuestEvents(userAlreadyGoingEvents: any, formattedEvents: any) {
+  // Create a Map for `formattedEvents` for quick lookup by `uid`
+  const formattedEventsMap = new Map(formattedEvents.map((event:any) => [event.uid, event]));
+
+  // Replace events in `userAlreadyGoingEvents` if there's a match in `formattedEvents`
+  const mergedEvents = userAlreadyGoingEvents.map((event:any) => {
+    return formattedEventsMap.get(event.uid) || event;
+  });
+
+  // Add non-matching events from `formattedEvents` to the result
+  const userAlreadyGoingUids = new Set(userAlreadyGoingEvents.map((event:any) => event.uid));
+  const nonOverlappingFormattedEvents = formattedEvents.filter(
+    (event:any) => !userAlreadyGoingUids.has(event.uid)
+  );
+
+  // Combine the results
+  return [...mergedEvents, ...nonOverlappingFormattedEvents];
 }

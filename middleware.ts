@@ -24,26 +24,32 @@ export const config = {
 };
 
 export async function middleware(req: NextRequest) {
+  const response = NextResponse.next();
+  response.headers.set('middlewareStartTime', Date.now().toString());
   const refreshTokenFromCookie = req?.cookies?.get('refreshToken');
   const authTokenFromCookie = req?.cookies?.get('authToken');
   const userInfo = req?.cookies?.get('userInfo');
-  const response = NextResponse.next();
+
+ 
   let isValidAuthToken = false;
 
   try {
     if (!refreshTokenFromCookie) {
+      response.headers.set('middlewareEndTime', Date.now().toString());
       return response;
     }
 
     const authToken = authTokenFromCookie?.value.replace(/"/g, '');
     if (authToken) {
+      response.headers.set('middlewareAuthStart', Date.now().toString());
       isValidAuthToken = await checkIsValidToken(authToken as string);
-
+      response.headers.set('middlewareAuthEnd', Date.now().toString());
       if (isValidAuthToken) {
         response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
         response.headers.set('authToken', authTokenFromCookie?.value as string);
         response.headers.set('userInfo', userInfo?.value as string);
         response.headers.set('isLoggedIn', 'true');
+        response.headers.set('middlewareEndTime', Date.now().toString());
         return response;
       }
     }

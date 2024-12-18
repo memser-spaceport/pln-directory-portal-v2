@@ -5,18 +5,20 @@ import Filter from './filter';
 import { useEffect, useState } from 'react';
 import { EVENTS } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface IFilterwrapper {
   filterValues: ITeamFilterSelectedItems | undefined;
   userInfo: IUserInfo;
   searchParams: ITeamsSearchParams;
+  timeAnalysis: any;
 }
 
 export default function FilterWrapper(props: IFilterwrapper) {
   const filterValues = props?.filterValues;
   const searchParams = props?.searchParams;
   const userInfo = props?.userInfo;
+  const timeAnalysis = props?.timeAnalysis;
 
   const [isMobileFilter, setIsMobileFilter] = useState(false);
   const router = useRouter();
@@ -33,6 +35,24 @@ export default function FilterWrapper(props: IFilterwrapper) {
   useEffect(() => {
     triggerLoader(false);
   }, [router, searchParams]);
+
+  const pathname = usePathname();
+
+
+  useEffect(()=>{
+    timeAnalysis[`final-render-time`]=Date.now().toString()
+    const timediff = {} as any;
+    timediff[`middleware-difference`] = timeAnalysis.middlewareEndTime - timeAnalysis.middlewareStartTime
+    timediff[`middleware-to-page-difference`] = timeAnalysis.beforeCallingApi - timeAnalysis.middlewareEndTime
+    timediff[`apicall-diference`] = timeAnalysis.afterApiCall - timeAnalysis.beforeCallingApi
+    timediff[`sever-client-render-difference`] = Date.now() - timeAnalysis[`afterFormatted`]
+    timediff[`auth-api-difference`] = timeAnalysis.middlewareAuthEnd - timeAnalysis.middlewareAuthStart
+
+
+    console.log("teams", timeAnalysis, timediff)
+
+  },[pathname, router, searchParams])
+
 
   return (
     <div className="fw">

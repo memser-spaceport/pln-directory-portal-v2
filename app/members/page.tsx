@@ -17,7 +17,7 @@ async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
   const parsedUserDetails: IUserInfo = userInfo;
 
-  const { members, isError, filters, totalMembers = 0, isLoggedIn, timeAnalysis } = await getPageData(searchParams as IMembersSearchParams);
+  const { members, isError, filters, totalMembers = 0, isLoggedIn } = await getPageData(searchParams as IMembersSearchParams);
 
   if (isError || !members) {
     return <Error />;
@@ -27,7 +27,7 @@ async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
     <section className={styles.members}>
       {/* Side-nav */}
       <aside className={styles.members__left}>
-        <FilterWrapper timeAnalysis={timeAnalysis}  searchParams={searchParams} filterValues={filters} userInfo={userInfo} isUserLoggedIn={isLoggedIn} />
+        <FilterWrapper searchParams={searchParams} filterValues={filters} userInfo={userInfo} isUserLoggedIn={isLoggedIn} />
       </aside>
       {/* Teams */}
       <div className={styles.members__right}>
@@ -46,21 +46,13 @@ async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
 }
 
 const getPageData = async (searchParams: IMembersSearchParams) => {
-  const timeAnalysis = {} as any;
   let members: IMember[] = [];
   let isError = false;
   let totalMembers = 0;
   let filters: any;
 
   try {
-    const { isLoggedIn, authToken, middlewareStartTime, middlewareEndTime, middlewareAuthStart, middlewareAuthEnd } = getCookiesFromHeaders();
-
-    timeAnalysis[`middlewareStartTime`] = middlewareStartTime;
-    timeAnalysis[`middlewareEndTime`] = middlewareEndTime;
-    timeAnalysis[`middlewareAuthStart`] = middlewareAuthStart;
-    timeAnalysis[`middlewareAuthEnd`] = middlewareAuthEnd;
-    timeAnalysis[`beforeCallingApi`] = Date.now();
-    
+    const { isLoggedIn, authToken } = getCookiesFromHeaders();
     const filtersFromQueryParams = getMembersOptionsFromQuery(searchParams as IMembersSearchParams);
     const memberFilterQuery = getMembersListOptions(filtersFromQueryParams);
 
@@ -73,18 +65,14 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
 
     if (memberList?.isError || rawFilterValues?.isError || availableFilters?.isError || memberRoles?.isError) {
       return { isError: true, error: memberList?.error || rawFilterValues?.error || availableFilters?.error || memberRoles?.error };
-    } else {
-      timeAnalysis[`afterApiCall`] = Date.now()
-    }
+    } 
 
     filters = getFormattedFilters(searchParams, rawFilterValues, availableFilters, isLoggedIn);
     filters.memberRoles = getRoleTagsFromValues(memberRoles, searchParams.memberRoles);
     members = memberList?.items;
     totalMembers = memberList?.total;
-
-    timeAnalysis[`afterFormatted`] = Date.now()
-
-    return { isError, members, filters, totalMembers, isLoggedIn, timeAnalysis };
+    
+    return { isError, members, filters, totalMembers, isLoggedIn };
   } catch (error) {
     console.error(error);
     return { isError: true };

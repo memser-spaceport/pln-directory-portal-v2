@@ -17,7 +17,7 @@ import { getTeamList } from '../actions/teams.actions';
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
 
-  const { teams, filtersValues, isError, totalTeams, timeAnalysis } = await getPageData(searchParams);
+  const { teams, filtersValues, isError, totalTeams } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
@@ -27,7 +27,7 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
     <section className={styles.team}>
       {/* Side-nav */}
       <aside className={styles.team__left}>
-        <FilterWrapper timeAnalysis={timeAnalysis} searchParams={searchParams} filterValues={filtersValues} userInfo={userInfo} />
+        <FilterWrapper searchParams={searchParams} filterValues={filtersValues} userInfo={userInfo} />
       </aside>
       {/* Teams */}
       <div className={styles.team__right}>
@@ -48,20 +48,12 @@ async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
 export default Page;
 
 const getPageData = async (searchParams: ITeamsSearchParams) => {
-  const timeAnalysis = {} as any;
   let teams = [];
   let isError = false;
   let filtersValues;
   let totalTeams = 0;
 
   try {
-    const { middlewareStartTime, middlewareEndTime, middlewareAuthStart, middlewareAuthEnd } = getCookiesFromHeaders();
-    timeAnalysis[`middlewareStartTime`] = middlewareStartTime;
-    timeAnalysis[`middlewareEndTime`] = middlewareEndTime;
-    timeAnalysis[`middlewareAuthStart`] = middlewareAuthStart;
-    timeAnalysis[`middlewareAuthEnd`] = middlewareAuthEnd;
-    timeAnalysis[`beforeCallingApi`] = Date.now();
-
     const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
 
@@ -75,17 +67,12 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     if (teamListResponse?.isError || teamListFiltersResponse?.isError || teamListFiltersForOptionsResponse?.isError || focusAreaResponse?.error) {
       isError = true;
       return { isError };
-    } else {
-      timeAnalysis[`afterApiCall`] = Date.now()
-    }
+    } 
 
     teams = teamListResponse.data;
     totalTeams = teamListResponse?.totalItems;
     filtersValues = processFilters(searchParams, teamListFiltersResponse?.data, teamListFiltersForOptionsResponse?.data, focusAreaResponse?.data);
-
-    timeAnalysis[`afterFormatted`] = Date.now()
-
-    return JSON.parse(JSON.stringify({ isError, filtersValues, totalTeams, teams, timeAnalysis }));
+    return JSON.parse(JSON.stringify({ isError, filtersValues, totalTeams, teams }));
   } catch (error: unknown) {
     isError = true;
     console.error('Error in gettting teams page data', error);

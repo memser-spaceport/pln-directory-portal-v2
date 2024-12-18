@@ -15,7 +15,7 @@
     border: none;
     margin: auto;
     position: relative;
-    width: 756px;
+    max-width: 756px;
     margin-top: 130px;
 }
 

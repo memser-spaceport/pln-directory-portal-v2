@@ -141,8 +141,6 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             {!isLoggedIn && (
               <div className="md__container__bdy__footer__lgnop">
                 <LoginBtn />
-                {/* <JoinNetwork /> */}
-                <SignUpBtn />
               </div>
             )}
 

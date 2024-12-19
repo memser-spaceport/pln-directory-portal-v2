@@ -118,7 +118,7 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
   return (
     <>
       <div className="root">
-        <div className="root__header">IRL Contributions</div>
+        <div className="root__header">IRL Contributions ({member?.length})</div>
         <div className="root__irlCrbts">
           {Object.entries(groupedData).map(([role, events]) => {
             if (events.length === 0) return null;
@@ -174,7 +174,7 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
             .map(([role, events]) => (
               <>
                 <div className="root__irl__modalHeader">
-                  <div className="root__irl__modalHeader__title">Contributions ({role})</div>
+                  <div className="root__irl__modalHeader__title">Contributions - {role} ({events.length})</div>
                 </div>
                 <div className="root__irl__popupCntr">
                   {events.map((resource: { link: any; name: any }, index: number) => (

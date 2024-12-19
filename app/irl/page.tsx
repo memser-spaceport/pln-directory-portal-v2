@@ -3,7 +3,7 @@ import AttendeeList from '@/components/page/irl/attendee-list/attendees-list';
 import IrlEvents from '@/components/page/irl/events/irl-events';
 import IrlHeader from '@/components/page/irl/irl-header';
 import IrlLocation from '@/components/page/irl/locations/irl-location';
-import { getAllLocations, getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
+import { getAllLocations, getFollowersByLocation, getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
 import { getMemberPreferences } from '@/services/preferences.service';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -14,7 +14,7 @@ import IrlErrorPage from '@/components/core/irl-error-page';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 
 export default async function Page({ searchParams }: any) {
-  const { isError, userInfo, isLoggedIn, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(
+  const { isError, userInfo, isLoggedIn, followers, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(
     searchParams
   );
 
@@ -37,7 +37,7 @@ export default async function Page({ searchParams }: any) {
         </section>
         {/* Events */}
         <section className={styles.irlGatherings__events}>
-          <IrlEvents isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} />
+          <IrlEvents  eventLocationSummary={eventLocationSummary} followers={followers ?? []} userInfo={userInfo}  isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} />
         </section>
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
@@ -66,6 +66,7 @@ const getPageData = async (searchParams: any) => {
   let isUserGoing = false;
   let isEventActive = true;
   let isEventAvailable = true;
+  let followers = [];
 
   try {
     // Fetch locations data
@@ -124,17 +125,19 @@ const getPageData = async (searchParams: any) => {
     }
 
     // Proceed with API calls only after currentEventNames is set
-    const [events, currentGuestResponse, topics, loggedInUserEvents] = await Promise.all([
+    const [events, currentGuestResponse, topics, loggedInUserEvents, followersResponse] = await Promise.all([
       getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken, currentEventNames),
       getGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
       getTopicsByLocation(uid, eventType),
       getGuestEvents(uid, authToken),
+      getFollowersByLocation(uid, authToken),
     ]);
 
-    if (events.isError) {
+    if (events.isError || followersResponse?.isError) {
       return { isError: true };
     }
 
+    followers = followersResponse?.data ?? [];
     let guestDetails = events as any;
     const selectedTypeEvents = (eventType === 'past' || eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) ? eventDetails.pastEvents : eventDetails.upcomingEvents;
 
@@ -165,6 +168,7 @@ const getPageData = async (searchParams: any) => {
       eventLocationSummary,
       locationDetails,
       currentEventNames,
+      followers
     };
   } catch (e) {
     console.error('Error fetching IRL data', e);

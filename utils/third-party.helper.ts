@@ -43,3 +43,10 @@ export const isLink = (text: string): boolean => {
     return false;
   }
 };
+
+export const getCookiesFromClient = () => {
+  const authToken = Cookies.get('authToken')?.replace(/"/g, '');
+  const refreshToken = Cookies.get('refreshToken')?.replace(/"/g, '');
+  const userInfo = getUserInfo();
+  return { authToken, refreshToken, userInfo };
+}

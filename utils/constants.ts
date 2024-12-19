@@ -951,3 +951,9 @@ export const SIGN_UP = {
   POLICY_URL: 'https://protocol.ai/legal/',
   CAPTCHA_URL: 'https://www.google.com/recaptcha/api/siteverify'
 }
+
+export const FOLLOW_ENTITY_TYPES = {
+  LOCATION: "EVENT_LOCATION",
+  EVENT: "EVENT",
+  PROJECT: "PROJECT"
+}

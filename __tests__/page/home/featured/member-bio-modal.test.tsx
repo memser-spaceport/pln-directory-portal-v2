@@ -72,7 +72,7 @@ describe('MemberBioModal', () => {
     expect(analyticsMock.onMmeberBioPopupViewProfileBtnClicked).toHaveBeenCalled();
     
     // Check that window.open was called with the correct URL
-    expect(windowOpenMock).toHaveBeenCalledWith(`/members/${mockMember.id}`);
+    expect(windowOpenMock).toHaveBeenCalledWith(`/people/${mockMember.id}`);
     
     // Clean up the mock
     windowOpenMock.mockRestore();

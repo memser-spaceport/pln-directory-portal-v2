@@ -63,6 +63,8 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
       getMemberRoles(filtersFromQueryParams),
     ]);
 
+    console.log(memberList);
+    
     if (memberList?.isError || rawFilterValues?.isError || availableFilters?.isError || memberRoles?.isError) {
       return { isError: true, error: memberList?.error || rawFilterValues?.error || availableFilters?.error || memberRoles?.error };
     } 

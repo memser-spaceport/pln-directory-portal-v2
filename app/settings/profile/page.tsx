@@ -38,8 +38,8 @@ export default async function ProfileSettings() {
 
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'People', url: '/members' },
-    { text: `${memberInfo.name}`, url: `/members/${memberInfo.uid}` },
+    { text: 'People', url: '/people' },
+    { text: `${memberInfo.name}`, url: `/people/${memberInfo.uid}` },
     { text: 'Profile', url: `/settings/profile` },
   ]
 

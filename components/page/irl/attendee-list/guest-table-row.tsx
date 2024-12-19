@@ -175,7 +175,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
               {!selectedGuests.includes(guest?.memberUid) && <button className="notHappenedCtr__bdy__optnCtr__optn__ntsltd" onClick={() => onchangeSelectionStatus(guest.memberUid)}></button>}
             </div>
           )}
-          <Link passHref legacyBehavior href={`/members/${guestUid}`}>
+          <Link passHref legacyBehavior href={`/people/${guestUid}`}>
             <a target="_blank" className="gtr__guestName__li" onClick={() => onMemberClick(guestUid, guestName)}>
               <div className="gtr__guestName__li__imgWrpr">
                 <img title={guestName} width={32} height={32} alt="people image" src={guestLogo} loading="lazy" className="gtr__guestName__li__img" />

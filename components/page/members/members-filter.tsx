@@ -65,7 +65,7 @@ const MembersFilter = (props: IMembersFilter) => {
 
   const onToggleClicked = async (param: string, id: string, event: BaseSyntheticEvent) => {
     const currentParams = new URLSearchParams(searchParams);
-    const isIncluded = currentParams.get(param) === 'true';
+    const isIncluded = currentParams.get(param) === 'true' || false;
     triggerLoader(true);
 
     if (!isIncluded) {
@@ -245,7 +245,7 @@ const MembersFilter = (props: IMembersFilter) => {
             {/* <div className="team-filter__bod"> */}
             <p className="team-filter__body__ttl">Event Contributors</p>
             <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host only</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"
@@ -258,7 +258,7 @@ const MembersFilter = (props: IMembersFilter) => {
             </div>
 
             <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Speaker only</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Speaker</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"
@@ -271,7 +271,7 @@ const MembersFilter = (props: IMembersFilter) => {
             </div>
 
             <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host and Speaker only</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host & Speaker</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"
@@ -356,8 +356,8 @@ const MembersFilter = (props: IMembersFilter) => {
           }
 
           .team-filter__body__ttl {
-            margin-bottom: 6px;
-            font-size: 16px;
+            color: #0f172a;
+            font-size: 14px;
             font-weight: 600;
             line-height: 20px;
           }

@@ -108,7 +108,7 @@ const TeamIrlContributions = (props: ITeamMembers) => {
   return (
     <>
       <div className="root">
-        <div className="root__header">IRL Contributions ({team?.length})</div>
+        <div className="root__header">Contributions ({team?.length})</div>
         <div className="root__irlCrbts">
           {Object.entries(groupedData).map(([role, events]) => {
             const visibleEvents = events?.slice(0, 5);

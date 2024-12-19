@@ -280,7 +280,8 @@ const Filter = (props: ITeamFilterWeb) => {
             flex-direction: column;
           }
           .team-filter__body__ttl {
-            font-size: 16px;
+            color: #0f172a;
+            font-size: 14px;
             font-weight: 600;
             line-height: 20px;
           }

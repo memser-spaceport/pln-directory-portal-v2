@@ -56,6 +56,12 @@ const AuthInfo = () => {
     }
   };
 
+  const handleSignUpClick = () => {
+    analytics.onSignUpBtnClicked();
+    onClose();
+    window.location.href = PAGE_ROUTES.SIGNUP;
+  };
+  
   return (
     <>
       <div className="authinfo" data-testid="authinfo-container">
@@ -68,9 +74,9 @@ const AuthInfo = () => {
               </button>
               <div className="authinfo__dialog__box__signup">
                 <span>Not registered yet?</span>
-                <Link style={{ color: '#156FF7', fontWeight: 500 }} href={PAGE_ROUTES.SIGNUP}>
+                <div style={{ color: '#156FF7', fontWeight: 500, cursor: 'pointer' }} onClick={handleSignUpClick}>
                   Click here to sign up
-                </Link>
+                </div>
               </div>
               <button onClick={onClose}>
                 <img width={20} height={20} src="/icons/close-rounded-black.svg" className="authinfo__dialog__box__close" alt="close" />

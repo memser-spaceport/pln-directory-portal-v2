@@ -8,7 +8,7 @@ import Header from '@/components/page/project-details/header';
 import Hyperlinks from '@/components/page/project-details/hyper-links';
 import KPIs from '@/components/page/project-details/kpis';
 import TeamsInvolved from '@/components/page/project-details/teams-involved';
-import { getProject } from '@/services/projects.service';
+import { getProject, getProjectOsoDetails } from '@/services/projects.service';
 import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -18,10 +18,11 @@ import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata, ResolvingMetadata } from 'next';
+import ProjectStats from '@/components/page/project-details/stats';
 
 export default async function ProjectDetails({ params }: any) {
   const projectId = params?.id;
-  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken } = await getPageData(projectId);
+  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } = await getPageData(projectId);
 
   if (isError) {
     return <Error />;
@@ -58,6 +59,10 @@ export default async function ProjectDetails({ params }: any) {
             </div>
           )}
 
+<div className={styles.project__container__details__stats}>
+          <ProjectStats stats={osoInfo} />
+          </div>
+
           <div className={styles.project__container__details__additionalDetails}>
             <AdditionalDetails project={project} userHasEditRights={hasEditAccess} authToken={authToken} user={userInfo} />
           </div>
@@ -86,6 +91,7 @@ const getPageData = async (projectId: string) => {
   let isError = false;
   const { authToken, isLoggedIn, userInfo } = getCookiesFromHeaders();
   let project = null;
+  let osoInfo = null;
   let hasEditAccess = false;
   let hasDeleteAccess = false;
   let loggedInMemberTeams = [];
@@ -124,6 +130,35 @@ const getPageData = async (projectId: string) => {
 
     project = projectResponse?.data?.formattedData;
     focusAreas = focusAreaResponse?.data?.filter((data: IFocusArea) => !data.parentUid);
+    const osoResponse = await getProjectOsoDetails(project.name);
+    console.log("osoResponse", osoResponse);
+    if (!osoResponse?.error) {
+      osoInfo = osoResponse?.data ?? {};
+    }
+
+    // osoInfo = {
+    //   activeDeveloperCount6Months: 0,
+    //   closedIssueCount6Months: 0,
+    //   commitCount6Months: 0,
+    //   contributorCount: 80,
+    //   contributorCount6Months: 10,
+    //   displayName: "MonezoXyz",
+    //   eventSource: "GITHUB",
+    //   firstCommitDate: "1970-01-01 00:00:00",
+    //   forkCount: "5",
+    //   fulltimeDeveloperAverage6Months: 0,
+    //   lastCommitDate: "1970-01-01 00:00:00",
+    //   mergedPullRequestCount6Months: 0,
+    //   newContributorCount6Months: 0,
+    //   openedIssueCount6Months: 0,
+    //   openedPullRequestCount6Months: 0,
+    //   projectId: "Xwq2x0EpJca2tVoc-eLLhJ2cTXqb-3UgFO_NwV2d0GA=",
+    //   projectName: "monezoxyz",
+    //   projectNamespace: "oso",
+    //   projectSource: "OSS_DIRECTORY",
+    //   repositoryCount: "3",
+    //   starCount: "0"
+    // }
 
     hasEditAccess = hasProjectEditAccess(userInfo, project, isLoggedIn, loggedInMemberTeams);
     hasDeleteAccess = hasProjectDeleteAccess(userInfo, project, isLoggedIn);
@@ -137,6 +172,7 @@ const getPageData = async (projectId: string) => {
       project,
       focusAreas,
       authToken,
+      osoInfo
     };
   } catch (error) {
     return {
@@ -148,6 +184,7 @@ const getPageData = async (projectId: string) => {
       project,
       focusAreas,
       authToken,
+      osoInfo
     };
   }
 };

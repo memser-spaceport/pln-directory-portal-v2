@@ -176,3 +176,14 @@ const formatToSave = (payload: any) => {
     objectToSave['focusAreas'] = [];
     return objectToSave;
 }
+
+export const getProjectOsoDetails = async (name: string) => {
+    const requestOptions: RequestInit = { method: "GET", headers: getHeader(""), cache: "no-store" };
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/oso-code-metrics-by-project-v1/${name}`, requestOptions);
+    if (!response?.ok) {
+        return { error: { statusText: response?.statusText } }
+    }
+
+    const result = await response?.json();
+    return { data:  result  }
+}

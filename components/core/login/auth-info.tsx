@@ -5,6 +5,8 @@ import { useRef } from 'react';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createStateUid } from '@/services/auth.service';
+import Link from 'next/link';
+import { PAGE_ROUTES } from '@/utils/constants';
 
 const AuthInfo = () => {
   // Reference to the dialog element
@@ -19,7 +21,7 @@ const AuthInfo = () => {
       analytics.onProceedToLogin();
       localStorage.clear();
       await logout();
-      
+
       const response = await createStateUid();
       if (!response.ok) {
         throw new Error(`Error while getting stateUid: ${response.status}`);
@@ -39,63 +41,48 @@ const AuthInfo = () => {
   // Reset Url
   const onClose = () => {
     try {
-    analytics.onAuthInfoClosed();
-    const queryString = window.location.search.substring(1);
-    const params = new URLSearchParams(queryString);
-    let queryParams = `?`;
-    params?.forEach((value, key) => {
-      if (!key.includes('privy_')) {
-        queryParams = `${queryParams}${queryParams === '?' ? '' : '&'}${key}=${value}`;
-      }
-    });
-    router.push(`${window.location.pathname}${queryParams === '?' ? '' : queryParams}`);
-  } catch (e) {
-    console.error(e);
-  }
+      analytics.onAuthInfoClosed();
+      const queryString = window.location.search.substring(1);
+      const params = new URLSearchParams(queryString);
+      let queryParams = `?`;
+      params?.forEach((value, key) => {
+        if (!key.includes('privy_')) {
+          queryParams = `${queryParams}${queryParams === '?' ? '' : '&'}${key}=${value}`;
+        }
+      });
+      router.push(`${window.location.pathname}${queryParams === '?' ? '' : queryParams}`);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
     <>
       <div className="authinfo" data-testid="authinfo-container">
         <dialog open className="authinfo__dialog" ref={dialogRef}>
-          <div className="authinfo__dialog__box">
-            <div className="authinfo__dialog__box__info">
-              <p className="authinfo__dialog__box__info__text">
-                We&apos;ve updated our authentication experience. You will need to login with your Directory profile
-                email or link it to a login method of your choice. If you don&apos;t remember which email is tied to
-                your Directory profile, please{' '}
-                <a
-                  data-testid="contact-us-link"
-                  rel="noopener noreferrer"
-                  className="link"
-                  target="_blank"
-                  href="https://www.plnetwork.io/contact?showModal=getSupport"
-                >
-                  contact us here
-                </a>{' '}
-                for assistance.
-              </p>
-              <button onClick={onLogin} className="authinfo__dialog__box__info__btn">
+            <div className="authinfo__dialog__box">
+              <img src="/images/login/login-banner.png" className="authinfo__dialog__box__img" alt="login banner" />
+              <button onClick={onLogin} className="authinfo__dialog__actions__login">
                 Proceed to Login
+                <img src="/icons/arrow-right-white.svg" alt="arrow" />
+              </button>
+              <div className="authinfo__dialog__box__signup">
+                <span>Not registered yet?</span>
+                <Link style={{ color: '#156FF7', fontWeight: 500 }} href={PAGE_ROUTES.SIGNUP}>
+                  Click here to sign up
+                </Link>
+              </div>
+              <button onClick={onClose}>
+                <img width={20} height={20} src="/icons/close-rounded-black.svg" className="authinfo__dialog__box__close" alt="close" />
               </button>
             </div>
-            <button onClick={onClose}>
-              <img width={20} height={20} src="/icons/close.svg" className="authinfo__dialog__box__close" alt="close" />
-            </button>
-            <img src="/images/login/login-banner.jpg" className="authinfo__dialog__box__img" alt="login banner" />
-          </div>
-          <div className="authinfo__dialog__actions">
-            <button onClick={onClose} className="authinfo__dialog__actions__cancel">
-              Cancel
-            </button>
-            <button onClick={onLogin} className="authinfo__dialog__actions__login">
-              Proceed to Login
-            </button>
-          </div>
         </dialog>
       </div>
 
-      <style>{`
+      <style global>{`
+          body:has(dialog[open]) {
+            overflow: auto !important;
+          }
           .authinfo {
             position: fixed;
             top: 0;
@@ -104,32 +91,34 @@ const AuthInfo = () => {
             left: 0;
             width: 100svw;
             height: 100%;
-            background: rgb(0, 0, 0, 0.6);
+            // background: rgb(0, 0, 0, 0.6);
+            display:grid;
+            place-items:center;
+            overflow: hidden;
+            transition: backdrop-filter 100ms ease;
+            backdrop-filter: blur(3px);
           }
           .authinfo__dialog {
-            width: 100%;
-            height: 100%;
+            background: white;
+            padding: 10px 5px 10px 10px;
+            max-height: 90vh;
+            width: 351px;
+            border-radius: 24px;
+            border:none;
+            position:relative;
             display: flex;
             flex-direction: column;
-            position: relative;
-            align-items: center;
-            justify-content: center;
-            background:transparent; 
-            border:none;
+            box-shadow: 0px 8px 36px rgba(55, 65, 81, 0.15);
           }
           .authinfo__dialog__box {
-            width: 90svw;
-            max-height: calc(90svh - 72px);
-            overflow-y: scroll;
-            background: white;
-            border-radius: 8px 8px 0px 0px;
-            position: relative;
-            padding: 8px;
+            height: auto;
+            padding: 0 5px 0 0;
+            overflow:auto;  
+            width: 100%;
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-          }
-          .authinfo__dialog__box__close {
-            display: none;
+            align-items: center;
           }
           .authinfo__dialog__box__info {
             padding: 24px;
@@ -140,7 +129,10 @@ const AuthInfo = () => {
           }
           .authinfo__dialog__box__img {
             width: 100%;
-            border-radius: 6px;
+            border-radius: 16px;
+            height: 280px;
+            background-color:#dbeafe;
+            object-fit:cover;
           }
           .authinfo__dialog__box__info__text {
             font-size: 12px;
@@ -149,81 +141,63 @@ const AuthInfo = () => {
             line-height: 18px;
             padding: 16px 0;
           }
-          .authinfo__dialog__actions {
-            background: white;
-            width: 90svw;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            height: 72px;
-            border-radius: 0 0 8px 8px;
-          }
-          .authinfo__dialog__actions__cancel {
-            padding: 10px 24px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 14px;
-            font-weight: 500;
-            background:#fff;
-          }
           .authinfo__dialog__actions__login {
+            margin: 20px 0 0 0;
             padding: 10px 24px;
             border-radius: 8px;
             background: #156ff7;
             color: white;
+            line-height: 20px;
             font-size: 14px;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content:center;
+            width: 216px;
+            border: 1px solid #CBD5E1;
+            height: 40px;
+            box-shadow: 0px 1px 1px 0px #0F172A14;
+            gap: 2px;
           }
-          .authinfo__dialog__box__info__btn {
-            display: none;
+          .authinfo__dialog__box__signup {
+            font-size: 14px;
+            line-height: 22px;
+            height: 42px;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            border-top: 1px solid #E2E8F0;
+            width: 291px;
+            margin: 24px 0px 20px 0px;
+            gap: 4px;
           }
-          .link {
-            color: #156ff7;
-            font-weight: 600;
+          .authinfo__dialog__box__close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: block;
+            cursor: pointer;
           }
 
-          @media (min-width: 1024px) {
-            .authinfo__dialog__actions {
-              display: none;
-            }
-            .authinfo__dialog__box {
-              flex-direction: row;
-              height: 70svh;
-              max-height: 598px;
-              width: fit-content;
-              overflow: hidden;
-              border-radius: 8px;
-            }
-            .authinfo__dialog__box__img {
-              order: 1;
-              width: fit-content;
-              height: 100%;
-            }
-            .authinfo__dialog__box__info {
-              order: 2;
-              max-width: 300px;
-              flex: 1;
-              height: 100%;
-            }
-            .authinfo__dialog__box__info__btn {
-              display: flex;
-              padding: 10px 24px;
-              border-radius: 8px;
-              font-size: 14px;
-              font-weight: 500;
-              background: #156ff7;
-              color: white;
-            }
-            .authinfo__dialog__box__close {
-              position: absolute;
-              top: 16px;
-              right: 16px;
-              display: block;
-              cursor: pointer;
+          @media (max-width: 380px) {
+           .authinfo__dialog {
+              width: calc(100% - 40px);
             }
           }
-      
+          
+          dialog[open] {
+            animation: open 0.3s forwards;
+          }
+
+          @keyframes open {
+            from {
+            opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+
       `}</style>
     </>
   );

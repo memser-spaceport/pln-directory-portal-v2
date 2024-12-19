@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo, getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo } from '@/utils/common.utils';
-import { PAGE_ROUTES } from '@/utils/constants';
 import Featured from '@/components/page/home/featured/featured';
 
 // Mocking dependencies

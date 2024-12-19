@@ -2,6 +2,7 @@ import { IPastEvents, IUpcomingEvents } from '@/types/irl.types';
 import { getHeader } from '@/utils/common.utils';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { sortPastEvents, transformMembers } from '@/utils/irl.utils';
+import { isError } from 'util';
 
 export const getAllLocations = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations`, {
@@ -161,3 +162,25 @@ export const getGuestDetail = async (guestId: string, locationId: string, authTo
 
   return await response.json();
 };
+
+
+export const getFollowersByLocation = async (locationId: string, authToken: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-subcriptions?entityUid=${locationId}&isActive=true&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(authToken),
+  });
+
+
+  if (!response.ok) {
+    return {
+      isError: true,
+    };
+  }
+
+  const result = await response.json();
+
+  return {
+    data: result,
+  }
+}

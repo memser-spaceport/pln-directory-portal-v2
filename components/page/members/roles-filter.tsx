@@ -208,7 +208,8 @@ export function RolesFilter({ memberRoles, searchParams, userInfo }: RolesFilter
 
         .rf__ttl {
           margin-bottom: 12px;
-          font-size: 16px;
+          color: #0f172a;
+          font-size: 14px;
           font-weight: 600;
           line-height: 20px;
         }

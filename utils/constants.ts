@@ -352,7 +352,8 @@ export const PAGE_ROUTES = {
   PROJECTS: '/projects',
   IRL: '/irl',
   NOTIFICATIONS: '/notifications',
-  ADD_TEAM: '/teams/add'
+  ADD_TEAM: '/teams/add',
+  SIGNUP: '/sign-up'
 };
 
 export const SORT_OPTIONS = {

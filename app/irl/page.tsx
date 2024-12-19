@@ -133,8 +133,11 @@ const getPageData = async (searchParams: any) => {
       getFollowersByLocation(uid, authToken),
     ]);
 
-    if (events.isError || followersResponse?.isError) {
+    if (events?.isError) {
       return { isError: true };
+    }
+    if(followersResponse?.isError) {
+      followers = [];
     }
 
     followers = followersResponse?.data ?? [];

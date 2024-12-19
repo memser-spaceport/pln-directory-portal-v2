@@ -33,7 +33,7 @@ const FollowSection = (props: any) => {
       triggerLoader(true);
       const { authToken } = getCookiesFromClient();
       const response = await customFetch(
-        `${process.env.DIRECTORY_API_URL}/v1/member-subcriptions`,
+        `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions`,
         {
           cache: 'no-store',
           method: 'POST',
@@ -75,7 +75,7 @@ const FollowSection = (props: any) => {
       const memberFollowUp = followProperties.followers.find((follower: any) => follower.memberUid === userInfo?.uid);
 
       const response = await customFetch(
-        `${process.env.DIRECTORY_API_URL}/v1/member-subcriptions/${memberFollowUp.uid}`,
+        `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions/${memberFollowUp.uid}`,
         {
           cache: 'no-store',
           method: 'PUT',

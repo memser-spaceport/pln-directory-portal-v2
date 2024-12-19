@@ -176,8 +176,6 @@ export default function Navbar(props: Readonly<INavbar>) {
           </div>
           {!isLoggedIn && (
             <div className="nb__right__lgandjoin">
-              {/* <JoinNetwork /> */}
-              <SignUpBtn />
               <LoginBtn />
             </div>
           )}

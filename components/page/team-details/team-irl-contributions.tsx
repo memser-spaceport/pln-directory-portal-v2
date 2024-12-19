@@ -108,7 +108,7 @@ const TeamIrlContributions = (props: ITeamMembers) => {
   return (
     <>
       <div className="root">
-        <div className="root__header">IRL Contributions</div>
+        <div className="root__header">IRL Contributions ({team?.length})</div>
         <div className="root__irlCrbts">
           {Object.entries(groupedData).map(([role, events]) => {
             const visibleEvents = events?.slice(0, 5);
@@ -163,7 +163,7 @@ const TeamIrlContributions = (props: ITeamMembers) => {
             .map(([role, events]) => (
               <>
                 <div className="root__irl__modalHeader">
-                  <div className="root__irl__modalHeader__title">{role}</div>
+                  <div className="root__irl__modalHeader__title">Contributions - {role} ({events.length})</div>
                 </div>
                 <div className="root__irl__popupCntr">
                   {events.map((resource: { link: any; name: any }, index: number) => (

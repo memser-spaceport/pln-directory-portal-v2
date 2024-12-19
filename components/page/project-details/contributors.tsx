@@ -33,7 +33,7 @@ const Contributors = (props: IContributors) => {
 
   const onContributorClick = (contributor: any) => {
     analytics.onProjectDetailContributorClicked(getAnalyticsUserInfo(user), getAnalyticsProjectInfo(project), getAnalyticsMemberInfo(contributor));
-    window.open('/members/' + contributor?.uid, '_blank');
+    window.open('/people/' + contributor?.uid, '_blank');
   };
 
   return (

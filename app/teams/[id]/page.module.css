@@ -47,6 +47,13 @@
   min-height: 100px;
 }
 
+.teamDetail__irlContributions {
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  background: #fff;
+  min-height: 20px;
+  padding: 20px;
+}
+
 @media (min-width: 1024px) {
   .teamDetail {
     align-items: center;

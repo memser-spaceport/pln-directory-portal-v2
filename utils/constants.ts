@@ -272,6 +272,8 @@ export const TEAMS_ANALYTICS_EVENTS = {
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
   TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED: 'team-officehours-login-btn-clicked',
   TEAM_DETAIL_ABOUT_SAVE: 'team-detail-about-save',
+  ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS: 'on_click_see_more_button_irl_contributions',
+  TEAM_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS: 'team-details-on-click-irl-contributions',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -312,6 +314,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_BIO_EDIT_CANCEL_CLICKED: 'member-detail-bio-edit-cancel-clicked',
   MEMBER_DETAIL_BIO_EDIT_SAVE_CLICKED: 'member-detail-bio-edit-save-clicked',
   MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE: 'member-detail-bio-edit-record-save',
+  ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS: 'on_click_see_more_button_irl_contributions',
+  MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS: 'member-details-on-click-irl-contributions',
 };
 
 export const IRL_ANALYTICS_EVENTS = {
@@ -348,6 +352,8 @@ export const PAGE_ROUTES = {
   PROJECTS: '/projects',
   IRL: '/irl',
   NOTIFICATIONS: '/notifications',
+  ADD_TEAM: '/teams/add',
+  SIGNUP: '/sign-up'
 };
 
 export const SORT_OPTIONS = {

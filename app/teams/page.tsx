@@ -52,6 +52,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
   let isError = false;
   let filtersValues;
   let totalTeams = 0;
+
   try {
     const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
@@ -66,7 +67,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     if (teamListResponse?.isError || teamListFiltersResponse?.isError || teamListFiltersForOptionsResponse?.isError || focusAreaResponse?.error) {
       isError = true;
       return { isError };
-    }
+    } 
 
     teams = teamListResponse.data;
     totalTeams = teamListResponse?.totalItems;

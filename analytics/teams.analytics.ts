@@ -256,6 +256,20 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ABOUT_SAVE, params);
       }
 
+      function onClickSeeMoreIrlContribution(user: IAnalyticsUserInfo | null){
+        const params = {
+          user,
+        };
+        captureEvent(TEAMS_ANALYTICS_EVENTS.ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS, params);
+      }
+
+      function onClickTeamIrlContribution(user: IAnalyticsUserInfo | null){
+        const params = {
+          user,
+        };
+        captureEvent(TEAMS_ANALYTICS_EVENTS. TEAM_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS, params);
+      }
+
       return {
         onOfficeHoursSelected,
         onFriendsOfProtocolSelected,
@@ -287,7 +301,9 @@ export const useTeamAnalytics = () => {
         onTeamDetailAboutEditSaveClicked,
         onTeamDetailAboutEditCancelClicked,
         onTeamDetailAboutEditClicked,
-        recordAboutSave
+        recordAboutSave,
+        onClickSeeMoreIrlContribution,
+        onClickTeamIrlContribution
       }
 
 }

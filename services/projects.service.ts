@@ -73,6 +73,7 @@ const getFormattedProject = (project: any) => {
             formattedProject['createdBy'] = project.createdBy ?? null;
             formattedProject['score'] = project.score ?? null;
             formattedProject['projectFocusAreas']= project.projectFocusAreas ?? [];
+            formattedProject['osoProjectName'] = project.osoProjectName ?? null;
 
             const tempContributors: any = [];
             project?.contributions?.map((mem: any) => {
@@ -175,4 +176,15 @@ const formatToSave = (payload: any) => {
     objectToSave['contributions'] = payload?.contributions;
     objectToSave['focusAreas'] = [];
     return objectToSave;
+}
+
+export const getProjectOsoDetails = async (name: string) => {
+    const requestOptions: RequestInit = { method: "GET", headers: getHeader(""), cache: "no-store" };
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/oso-metrics/${name}`, requestOptions);
+    if (!response?.ok) {
+        return { error: { statusText: response?.statusText } }
+    }
+
+    const result = await response?.json();
+    return { data:  result  }
 }

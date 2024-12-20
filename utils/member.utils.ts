@@ -184,7 +184,7 @@ export const dateDifference = (date1: any, date2: any) => {
 };
 
 export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): IMemberListOptions {
-  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent, includeUnVerified } = queryParams;
+  const { sort, searchBy, skills, region, country, metroArea, officeHoursOnly, includeFriends, openToWork, memberRoles, isRecent, includeUnVerified, isHost, isSpeaker, isHostAndSpeaker } = queryParams;
 
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase();
@@ -202,6 +202,9 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
     ...(includeFriends ? {isVerified: 'all'} : { plnFriend: false, isVerified: 'true' }),
     ...(openToWork ? { openToWork: true } : {}),
     ...(isRecent ? { isRecent: true } : {}),
+    ...(isHost ? { isHost: true } : {}),
+    ...(isSpeaker ? { isSpeaker: true } : {}),
+    ...(isHostAndSpeaker ? { isHostAndSpeaker: true } : {}),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(memberRoles ? { memberRoles: stringifyQueryValues(memberRoles) } : {}),
    /*  ...(includeUnVerified ? { isVerified: 'all' } : {}), */
@@ -628,3 +631,42 @@ export const validateBasicForms = async (formattedData: any) => {
 
   return errors;
 };
+
+export function getFormattedDateString(startDate: string, endDate: string) {
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  try {
+    const [startDateOnly] = startDate.split('T');
+    const [endDateOnly] = endDate.split('T');
+
+    const [startYear, startMonth] = startDateOnly.split('-');
+    const [endYear, endMonth] = endDateOnly.split('-');
+
+    const startMonthName = monthNames[parseInt(startMonth, 10) - 1];
+    const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
+
+    const formattedStartYear = startYear.slice(2); 
+    const formattedEndYear = endYear.slice(2);
+
+    if (startDateOnly === endDateOnly) {
+      return `${startMonthName} ${formattedStartYear}`;
+    } else if (startMonth === endMonth && startYear === endYear) {
+      return `${startMonthName} ${formattedStartYear}`;
+    } else if (startYear === endYear) {
+      return `${startMonthName} - ${endMonthName} ${formattedStartYear}`;
+    } else {
+      return `${startMonthName} ${formattedStartYear} - ${endMonthName} ${formattedEndYear}`;
+    }
+  } catch {
+    return '';
+  }
+}
+
+
+export function handleHostAndSpeaker(options: any) {
+  if (options?.isHostAndSpeaker && options?.isHostAndSpeaker === true) {
+    delete options.isHostAndSpeaker;
+    options.isHost = true;
+    options.isSpeaker = true;
+  }
+}

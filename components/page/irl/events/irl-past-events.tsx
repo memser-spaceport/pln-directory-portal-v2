@@ -26,7 +26,6 @@ interface EventDetailsProps {
 }
 
 const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, handleDataNotFound }: EventDetailsProps) => {
-
   const dialogRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { updateQueryParams } = useUpdateQueryParams();
@@ -58,8 +57,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
     if (gathering.slugURL !== searchParams?.event) {
       triggerLoader(true);
       const currentParams = new URLSearchParams(searchParams);
-      const allowedParams = ['event', 'type', 'location']; 
-  
+      const allowedParams = ['event', 'type', 'location'];
+
       // Remove parameters not in the allowed list
       for (const [key, value] of Object.entries(searchParams)) {
         if (!allowedParams.includes(key)) {
@@ -87,8 +86,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
       triggerLoader(true);
       selectedEvent = gathering;
       const currentParams = new URLSearchParams(searchParams);
-      const allowedParams = ['event', 'type', 'location']; 
-  
+      const allowedParams = ['event', 'type', 'location'];
+
       // Remove parameters not in the allowed list
       for (const [key, value] of Object.entries(searchParams)) {
         if (!allowedParams.includes(key)) {
@@ -146,12 +145,24 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
   const sanitizedDesc = sanitize(selectedEvent?.description);
   const clippedDesc = clip(sanitizedDesc, 80, { html: true, maxLines: 2 });
 
-const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' &&
-        eventDetails?.pastEvents?.some(event => event.slugURL === searchParams?.event) : true;
+  const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event) : true;
+
+  useEffect(() => {
+    const gathering = eventsToShow.find((event: any) => event.slugURL === searchParams?.event);
+    const container = document.getElementById('container');
+    const element = document.getElementById(`past-web-${gathering.uid}`);
+
+    if (container) {
+      const containerRect = container.getBoundingClientRect();
+      const elementRect = element ? element.getBoundingClientRect() : null;
+      const scrollTop = elementRect ? elementRect.top - containerRect.top + container.scrollTop : 0;
+      container.scrollTo({ top: scrollTop - 42, behavior: 'smooth' });
+    }
+  }, []);
 
   return (
     <>
-      <div className="root__irl__tableContainer" id='container'>
+      <div className="root__irl__tableContainer" id="container">
         <div className="root__irl__table">
           {eventsToShow?.length > 0 && isEventAvailable ? (
             <>
@@ -186,12 +197,11 @@ const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' &&
               <div>
                 <img src="/icons/no-calender.svg" alt="calendar" />
               </div>
-              <div>No results found for the applied input
-                  {' '}<span
-                      className="root__irl__table__no-data__errorMsg"
-                      onClick={handleDataNotFound}>
-                      Reset to default im
-                  </span>
+              <div>
+                No results found for the applied input{' '}
+                <span className="root__irl__table__no-data__errorMsg" onClick={handleDataNotFound}>
+                  Reset to default im
+                </span>
               </div>
             </div>
           )}
@@ -733,8 +743,8 @@ const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' &&
         }
 
         .root__irl__table__no-data__errorMsg {
-            cursor: pointer;
-            color: #156FF7;
+          cursor: pointer;
+          color: #156ff7;
         }
 
         @media screen and (min-width: 360px) {
@@ -784,7 +794,7 @@ const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' &&
           }
 
           .root__irl__table__no-data {
-              width: 1203px;
+            width: 1203px;
           }
         }
 
@@ -805,7 +815,7 @@ const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' &&
           }
 
           .root__irl__table__no-data {
-              width: 1638px;
+            width: 1638px;
           }
         }
 
@@ -817,7 +827,7 @@ const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' &&
 
           .root__irl__table-col__headerDesc,
           .root__irl__table-col__contentDesc {
-            width: 1411px; 
+            width: 1411px;
           }
 
           .root__irl__table-col__headerRes,
@@ -826,7 +836,7 @@ const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' &&
           }
 
           .root__irl__table__no-data {
-              width: 2196px;
+            width: 2196px;
           }
         }
       `}</style>

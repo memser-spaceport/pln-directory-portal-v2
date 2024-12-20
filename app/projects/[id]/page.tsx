@@ -8,7 +8,7 @@ import Header from '@/components/page/project-details/header';
 import Hyperlinks from '@/components/page/project-details/hyper-links';
 import KPIs from '@/components/page/project-details/kpis';
 import TeamsInvolved from '@/components/page/project-details/teams-involved';
-import { getProject } from '@/services/projects.service';
+import { getProject, getProjectOsoDetails } from '@/services/projects.service';
 import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -18,10 +18,12 @@ import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata, ResolvingMetadata } from 'next';
+import ProjectStats from '@/components/page/project-details/stats';
 
 export default async function ProjectDetails({ params }: any) {
   const projectId = params?.id;
-  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken } = await getPageData(projectId);
+  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } = await getPageData(projectId);
+  const showProjectStats = osoInfo?.forkCount > 0 || osoInfo?.starCount > 0 || osoInfo?.repositoryCount > 0 || osoInfo?.contributorCount > 0;
 
   if (isError) {
     return <Error />;
@@ -36,7 +38,7 @@ export default async function ProjectDetails({ params }: any) {
         <div className={styles.project__container__details}>
           <div className={styles.project__container__details__primary}>
             <Header project={project} userHasEditRights={hasEditAccess} userHasDeleteRights={hasDeleteAccess} user={userInfo} authToken={authToken} />
-            <Description description={project?.description} project={project} userHasEditRights={hasEditAccess} user={userInfo}/>
+            <Description description={project?.description} project={project} userHasEditRights={hasEditAccess} user={userInfo} />
           </div>
 
           {project?.projectLinks?.length > 0 && (
@@ -55,6 +57,12 @@ export default async function ProjectDetails({ params }: any) {
           {project?.kpis.length > 0 && (
             <div className={styles.project__container__details__kpis}>
               <KPIs kpis={project?.kpis} />
+            </div>
+          )}
+
+          {showProjectStats && (
+            <div className={styles.project__container__details__stats}>
+              <ProjectStats stats={osoInfo} />
             </div>
           )}
 
@@ -86,6 +94,7 @@ const getPageData = async (projectId: string) => {
   let isError = false;
   const { authToken, isLoggedIn, userInfo } = getCookiesFromHeaders();
   let project = null;
+  let osoInfo = null;
   let hasEditAccess = false;
   let hasDeleteAccess = false;
   let loggedInMemberTeams = [];
@@ -93,7 +102,6 @@ const getPageData = async (projectId: string) => {
 
   try {
     const [projectResponse, focusAreaResponse] = await Promise.all([getProject(projectId, {}), getFocusAreas('Project', {})]);
-
     if (projectResponse?.error || focusAreaResponse?.error) {
       return {
         isError: true,
@@ -124,6 +132,12 @@ const getPageData = async (projectId: string) => {
 
     project = projectResponse?.data?.formattedData;
     focusAreas = focusAreaResponse?.data?.filter((data: IFocusArea) => !data.parentUid);
+    if (project.osoProjectName) {
+      const osoResponse = await getProjectOsoDetails(project.osoProjectName);
+      if (!osoResponse?.error) {
+        osoInfo = osoResponse?.data ?? {};
+      }
+    }
 
     hasEditAccess = hasProjectEditAccess(userInfo, project, isLoggedIn, loggedInMemberTeams);
     hasDeleteAccess = hasProjectDeleteAccess(userInfo, project, isLoggedIn);
@@ -137,6 +151,7 @@ const getPageData = async (projectId: string) => {
       project,
       focusAreas,
       authToken,
+      osoInfo,
     };
   } catch (error) {
     return {
@@ -148,10 +163,10 @@ const getPageData = async (projectId: string) => {
       project,
       focusAreas,
       authToken,
+      osoInfo,
     };
   }
 };
-
 
 type IGenerateMetadata = {
   params: { id: string };

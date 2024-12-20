@@ -235,7 +235,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                       <div className="ptndtls__cnt__pptdtls__pptdtl__lft__hst">
                         <CustomCheckbox
                           name={`isHost-${selectedGathering.uid}`}
-                          value={'true'}
+                          value={isHostSubEvents.toString()}
                           initialValue={isHostSubEvents}
                           disabled={isVerifiedMember === false}
                           onSelect={() => onHostSelectHandler(selectedGathering)}
@@ -246,7 +246,7 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                       <div className="ptndtls__cnt__pptdtls__pptdtl__lft__spkr">
                         <CustomCheckbox
                           name={`isSpeaker-${selectedGathering.uid}`}
-                          value={'true'}
+                          value={isSpeakerSubEvents.toString()}
                           initialValue={isSpeakerSubEvents}
                           disabled={isVerifiedMember === false}
                           onSelect={() => onSpeakerSelectHandler(selectedGathering)}

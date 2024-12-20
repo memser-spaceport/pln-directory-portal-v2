@@ -27,7 +27,7 @@ function ManageTeamsSettings(props: any) {
   const userInfo = props?.userInfo ?? {};
 
   //variables
-  const steps = [{ name: 'basic' }, { name: 'project details' }, { name: 'social' }];
+  const steps = [{ name: 'basic' }, { name: 'team details' }, { name: 'social' }];
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -35,7 +35,7 @@ function ManageTeamsSettings(props: any) {
   const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], projectErrors: [] });
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
-    'project details': errors.projectErrors.length > 0,
+    'team details': errors.projectErrors.length > 0,
     social: errors.socialErrors.length > 0,
   };
   const errorDialogRef = useRef<HTMLDialogElement>(null);
@@ -340,7 +340,7 @@ function ManageTeamsSettings(props: any) {
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
             <TeamBasicInfo isEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent}/>
           </div>
-          <div className={`${activeTab.name !== 'project details' ? 'hidden' : ''}`}>
+          <div className={`${activeTab.name !== 'team details' ? 'hidden' : ''}`}>
             <TeamProjectsInfo
               errors={errors.projectErrors}
               protocolOptions={allData?.technologies}

@@ -35,7 +35,7 @@ const MemberGridView = (props: IMemberGridView) => {
         <div className="member-grid__profile-container">
           <div className="member-grid__profile-container__outer-section">
             <div className={`${isBorder ? 'gradiant-border-rounded' : ''} member-grid__profile-container__outer-section__inner-circle`}>
-              <img  className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
+              <img loading='eager' className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
               {isTeamLead && (
                 <Tooltip
                   asChild

@@ -18,7 +18,7 @@ const TeamGridView = (props: ITeamGridView) => {
     <>
       <div className="team-grid">
         <div className="team-grid__profile-container">
-          <img loading="lazy" className="team-grid__profile-container__profile" alt="profile" src={profile} />
+          <img loading="eager" className="team-grid__profile-container__profile" alt="profile" src={profile} />
         </div>
         <div className="team-grid__details-container">
           <div className="team-grid__details-container__team-detail">

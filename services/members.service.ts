@@ -4,6 +4,7 @@ import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
 import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpeaker } from '@/utils/member.utils';
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
+  handleHostAndSpeaker(options);
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/filters${options? '?': ''}${options ? new URLSearchParams(options as any) : ''}`, {
     cache: 'force-cache',
     method: 'GET',

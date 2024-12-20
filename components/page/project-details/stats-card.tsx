@@ -61,7 +61,7 @@ const StatsCard = (props: IStatsCard) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap 1px;
+          gap: 4px;
         }
 
         .statsCard__cn__name {

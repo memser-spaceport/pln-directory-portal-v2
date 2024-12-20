@@ -25,7 +25,7 @@ const MemberListView = (props: IMemberListView) => {
   return (
     <>
       <div className="member-list-view">
-        <img src={profileUrl} alt="user-profile" height={72} width={72} className="member-list-view__profile" />
+        <img loading='eager' src={profileUrl} alt="user-profile" height={72} width={72} className="member-list-view__profile" />
 
         <div className="member-list-view__details-section">
           <div className="member-list-view__details-section__right">

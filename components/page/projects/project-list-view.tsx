@@ -19,7 +19,7 @@ const ProjectListView = (props: any) => {
       <>
         <div className="projectlist">
           <div className="projectlistt__profile">
-            <img className="projectlist__profile__img" alt="profile" src={profile} />
+            <img loading='eager' className="projectlist__profile__img" alt="profile" src={profile} />
           </div>
           <div className="projectlist__details">
             <div className="projectlist__details__cn">

@@ -1,0 +1,106 @@
+.teamReg {
+    background: white;
+    border-radius: 8px;
+    border: none;
+    height: 87svh;
+    max-height: 1000px;
+    margin: auto;
+    position: relative;
+    width: 100%;
+}
+
+.loginPrompt {
+    background: white;
+    border-radius: 8px;
+    border: none;
+    margin: auto;
+    position: relative;
+    max-width: 756px;
+    margin-top: 130px;
+}
+
+
+.teamReg__close {
+    display: none;
+}
+
+.teamReg__cn {
+    position: relative;
+    display: flex;
+    border-radius: 8px;
+    border: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.teamReg__cn__mobile {
+    display: flex;
+}
+
+.teamReg__cn__desktopinfo {
+    width: 100%;
+    height: fit-content;
+    display: none;
+    background-image: linear-gradient(rgba(30, 58, 138, 1), rgba(29, 78, 216, 1));
+}
+
+.teamReg__cn__bannermobile {
+    display: block;
+    height: 109px;
+    overflow: hidden;
+    background-image: linear-gradient(rgba(30, 58, 138, 1), rgba(29, 78, 216, 1));
+}
+
+.teamReg__cn__desktopinfo__steps {
+    padding: 24px 0;
+}
+
+.teamReg__cn__content {
+    height: 100%;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+@media (min-width: 1024px) {
+    .teamReg{
+        top: 20px;
+        width: 956px;
+        height: 81svh;
+    }
+    .teamReg__cn {
+        flex-direction: row;
+        overflow-y: hidden;
+    }
+
+    .teamReg__cn__mobile {
+        display: none;
+    }
+
+    .teamReg__cn__bannermobile {
+        display: none;
+    }
+
+    .teamReg__cn__desktopinfo {
+        display: block;
+        width: 300px;
+    }
+
+    .teamReg__cn__desktopinfo {
+        height: 100%;
+    }
+
+    .teamReg__cn__content {
+        /* // overflow-y: auto; */
+    }
+
+    .teamReg__close {
+        display: block;
+        cursor: pointer;
+        position: absolute;
+        top: 16px;
+        right: 16px;
+    }
+}

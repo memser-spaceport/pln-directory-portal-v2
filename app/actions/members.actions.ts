@@ -2,9 +2,12 @@
 
 import { IMemberListOptions } from "@/types/members.types";
 import { getHeader } from "@/utils/common.utils";
+import { handleHostAndSpeaker } from "@/utils/member.utils";
 
 export const getMemberListForQuery = async (options: IMemberListOptions, currentPage: number, limit: number, authToken?: string) => {
-    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}${options ? '&' + new URLSearchParams(options as any) : ''}`, {
+  
+  handleHostAndSpeaker(options);
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}${options ? '&' + new URLSearchParams(options as any) : ''}`, {
       cache: 'force-cache',
       method: 'GET',
       next: { tags: ['member-list'] },

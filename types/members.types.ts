@@ -12,6 +12,9 @@ export type IMemberListOptions = IListOptions & {
   openToWork?: boolean;
   isRecent?: boolean;
   includeUnVerified?: string;
+  isHost?: boolean;
+  isSpeaker?: boolean;
+  isHostAndSpeaker?: boolean;
 };
 
 export interface IMemberResponse {
@@ -62,6 +65,7 @@ export interface IMember {
   preferences: IMemberPreferences;
   bio?: string;
   isVerified?: boolean;
+  eventGuests?: [];
 }
 
 export interface ILoggedoutMember {}
@@ -128,6 +132,9 @@ export interface IMembersSearchParams {
   memberRoles: string;
   isRecent: string;
   includeUnVerified: string;
+  isHost: string;
+  isSpeaker: string;
+  isHostAndSpeaker: string;
 }
 
 export interface IMemberDetailParams {

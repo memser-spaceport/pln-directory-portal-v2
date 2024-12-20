@@ -3,7 +3,7 @@ import styles from './page.module.css';
 import { IMember, IMembersSearchParams } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getFormattedFilters, getMembersListOptions, getMembersOptionsFromQuery, getRoleTagsFromValues } from '@/utils/member.utils';
-import { getFilterValuesForQuery, getMemberRoles, } from '@/services/members.service';
+import { getFilterValuesForQuery, getMemberRoles } from '@/services/members.service';
 import Error from '@/components/core/error';
 import MembersToolbar from '@/components/page/members/members-toolbar';
 import FilterWrapper from '@/components/page/members/filter-wrapper';
@@ -60,18 +60,18 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
       getFilterValuesForQuery(null, authToken),
       getFilterValuesForQuery(filtersFromQueryParams, authToken),
       getMemberListForQuery(memberFilterQuery, 1, ITEMS_PER_PAGE, authToken),
-      getMemberRoles(filtersFromQueryParams)
+      getMemberRoles(filtersFromQueryParams),
     ]);
 
-    if(memberList?.isError || rawFilterValues?.isError || availableFilters?.isError || memberRoles?.isError){
+    if (memberList?.isError || rawFilterValues?.isError || availableFilters?.isError || memberRoles?.isError) {
       return { isError: true, error: memberList?.error || rawFilterValues?.error || availableFilters?.error || memberRoles?.error };
-    }
+    } 
 
-   
     filters = getFormattedFilters(searchParams, rawFilterValues, availableFilters, isLoggedIn);
     filters.memberRoles = getRoleTagsFromValues(memberRoles, searchParams.memberRoles);
     members = memberList?.items;
     totalMembers = memberList?.total;
+    
     return { isError, members, filters, totalMembers, isLoggedIn };
   } catch (error) {
     console.error(error);

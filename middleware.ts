@@ -19,26 +19,32 @@ export const config = {
     '/projects/:path',
     '/irl/:path',
     '/settings/:path',
-    '/changelog'
+    '/changelog',
   ],
 };
 
 export async function middleware(req: NextRequest) {
+  const response = NextResponse.next();
   const refreshTokenFromCookie = req?.cookies?.get('refreshToken');
   const authTokenFromCookie = req?.cookies?.get('authToken');
   const userInfo = req?.cookies?.get('userInfo');
-  const response = NextResponse.next();
+  let isValidAuthToken = false;
 
   try {
-    const authToken = authTokenFromCookie?.value.replace(/"/g, '');
-    const isValidAuthToken = await checkIsValidToken(authToken as string);
-
-    if (isValidAuthToken) {
-      response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
-      response.headers.set('authToken', authTokenFromCookie?.value as string);
-      response.headers.set('userInfo', userInfo?.value as string);
-      response.headers.set('isLoggedIn', 'true');
+    if (!refreshTokenFromCookie) {
       return response;
+    }
+
+    const authToken = authTokenFromCookie?.value.replace(/"/g, '');
+    if (authToken) {
+      isValidAuthToken = await checkIsValidToken(authToken as string);
+      if (isValidAuthToken) {
+        response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
+        response.headers.set('authToken', authTokenFromCookie?.value as string);
+        response.headers.set('userInfo', userInfo?.value as string);
+        response.headers.set('isLoggedIn', 'true');
+        return response;
+      }
     }
 
     if ((!authTokenFromCookie || !isValidAuthToken || !userInfo) && refreshTokenFromCookie) {
@@ -67,10 +73,6 @@ export async function middleware(req: NextRequest) {
         return response;
       }
     } else {
-      // response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
-      // response.headers.set('authToken', authTokenFromCookie?.value as string);
-      // response.headers.set('userInfo', userInfo?.value as string);
-      // response.headers.set('isLoggedIn', "true");
       return response;
     }
   } catch (err) {

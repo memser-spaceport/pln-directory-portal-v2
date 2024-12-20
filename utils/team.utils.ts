@@ -3,7 +3,7 @@ import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from ".
 import { URL_QUERY_VALUE_SEPARATOR } from "./constants";
 
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
-  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent } = queryParams;
+  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent, isHost } = queryParams;
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase();
 
@@ -17,6 +17,7 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(focusAreas ? { 'focusAreas': stringifyQueryValues(focusAreas) } : {}),
     ...(isRecent ? {isRecent:true} : {}),
+    ...(isHost ? {isHost:true} : {}),
     orderBy: `${sortFromQuery.direction === "desc" ? "-" : ""}${sortField}`,
   };
 }
@@ -233,4 +234,34 @@ export const teamRegisterDefault = {
     telegramHandler: '',
     blog: '',
   },
+}
+
+export function getFormattedDateString(startDate: string, endDate: string) {
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  try {
+    const [startDateOnly] = startDate.split('T');
+    const [endDateOnly] = endDate.split('T');
+
+    const [startYear, startMonth] = startDateOnly.split('-');
+    const [endYear, endMonth] = endDateOnly.split('-');
+
+    const startMonthName = monthNames[parseInt(startMonth, 10) - 1];
+    const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
+
+    const formattedStartYear = startYear.slice(2); 
+    const formattedEndYear = endYear.slice(2); 
+
+    if (startDateOnly === endDateOnly) {
+      return `${startMonthName} ${formattedStartYear}`;
+    } else if (startMonth === endMonth && startYear === endYear) {
+      return `${startMonthName} ${formattedStartYear}`;
+    } else if (startYear === endYear) {
+      return `${startMonthName} - ${endMonthName} ${formattedStartYear}`;
+    } else {
+      return `${startMonthName} ${formattedStartYear} - ${endMonthName} ${formattedEndYear}`;
+    }
+  } catch {
+    return '';
+  }
 }

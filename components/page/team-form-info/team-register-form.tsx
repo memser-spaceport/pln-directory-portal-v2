@@ -14,14 +14,15 @@ import { teamRegisterDefault, transformRawInputsToFormObj } from '@/utils/team.u
 import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
+import { useRouter } from 'next/navigation';
 
 interface ITeamRegisterForm {
-  onCloseForm: () => void;
+  // onCloseForm: () => void;
 }
 
 function TeamRegisterForm(props: ITeamRegisterForm) {
-  const onCloseForm = props.onCloseForm;
-  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'project details', 'social', 'success'], defaultStep: 'basic', uniqueKey: 'register' });
+  // const onCloseForm = props.onCloseForm;
+  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'team details', 'social', 'success'], defaultStep: 'basic', uniqueKey: 'register' });
   const formRef = useRef<HTMLFormElement>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
   const [basicErrors, setBasicErrors] = useState<string[]>([]);
@@ -30,6 +31,8 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
   const formContainerRef = useRef<HTMLDivElement | null>(null);
   const [initialValues, setInitialValues] = useState({...teamRegisterDefault});
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
+
+  const router = useRouter();
   
   const analytics = useJoinNetworkAnalytics();
 
@@ -38,6 +41,10 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
       formContainerRef.current.scrollTop = 0;
     }
   };
+
+  const onCloseForm = ()=>{
+    router.push('/');
+  }
 
   const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -147,7 +154,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           return;
         }
         setBasicErrors([]);
-      } else if (currentStep === 'project details') {
+      } else if (currentStep === 'team details') {
         const validationResponse = validateForm(projectDetailsSchema, formattedData);
         if (!validationResponse.success) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
@@ -204,7 +211,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
               <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent}/>
             </div>
-            <div className={currentStep !== 'project details' ? 'hidden' : 'form'}>
+            <div className={currentStep !== 'team details' ? 'hidden' : 'form'}>
               <TeamProjectsInfo
                 errors={projectDetailsErrors}
                 protocolOptions={allData?.technologies}

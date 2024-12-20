@@ -162,6 +162,9 @@ export const getQuery = (searchParams: any) => {
     memberRoles: searchParams?.memberRoles ?? '',
     funding: searchParams?.funding ?? '',
     team: searchParams?.team ?? '',
+    isHost: searchParams?.isHost ?? '',
+    isSpeaker: searchParams?.isSpeaker ?? '',
+    isHostAndSpeaker: searchParams?.isHostAndSpeaker ?? '',
   };
 };
 

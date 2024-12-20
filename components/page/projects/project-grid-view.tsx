@@ -25,7 +25,7 @@ const ProjectGridView = (props: any) => {
     <>
       <div className="projectgrid">
         <div className="projectgrid__profile">
-          <img className="projectgrid__profile__img" alt="profile" src={profile} />
+          <img loading='eager' className="projectgrid__profile__img" alt="profile" src={profile} />
           {lookingForFunding && <Tooltip side="top" asChild trigger={<img className="projectgrid__profile__fund" onClick={handleIconClick} alt="profile" src="/icons/raising-fund-indicator.svg" />} content={'Raising Funds'} />}
         </div>
         <div className="projectgrid__detail">

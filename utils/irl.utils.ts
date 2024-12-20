@@ -386,6 +386,34 @@ export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, past
   }
   return false;
 }
+
+export function sortEventsByDate(member:any) {
+  const now = new Date().toISOString(); // Current time in UTC ISO format
+
+  return [...member]?.sort((a, b) => {
+    const startA = a.event.startDate;
+    const endA = a.event.endDate;
+    const startB = b.event.startDate;
+    const endB = b.event.endDate;
+
+    // Determine category for event A
+    const categoryA = startA > now ? 0 : (startA <= now && endA >= now) ? 1 : 2;
+    // Determine category for event B
+    const categoryB = startB > now ? 0 : (startB <= now && endB >= now) ? 1 : 2;
+
+    // Sort by category first (0: upcoming, 1: ongoing, 2: completed)
+    if (categoryA !== categoryB) return categoryA - categoryB;
+
+    // If in the same category, sort by start date in descending order (ISO strings compare lexicographically)
+    if (startA !== startB) return startB.localeCompare(startA);
+
+    // If start dates are the same, sort by duration (longer events first)
+    const durationA = Date.parse(endA) - Date.parse(startA);
+    const durationB = Date.parse(endB) - Date.parse(startB);
+    return durationB - durationA; // Longer duration first
+  });
+}
+
 // combine guest going events and new events(if any event matches with the new events will replace the events in going events)
 export function mergeGuestEvents(userAlreadyGoingEvents: any, formattedEvents: any) {
   // Create a Map for `formattedEvents` for quick lookup by `uid`

@@ -1,4 +1,4 @@
-import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
+import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -29,6 +29,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
 
   const analytics = useCommonAnalytics();
   const drawerRef = useRef(null);
+  const router = useRouter();
 
   useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
 
@@ -60,7 +61,8 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
 
   const handleSubmitTeam = () => {
     analytics.onSubmitATeamBtnClicked();
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
+    router.push(PAGE_ROUTES.ADD_TEAM);
+    // document.dispatchEvent(new CustomEvent(EVENTS.OPEN_TEAM_REGISTER_DIALOG));
     onNavMenuClick();
   };
 
@@ -139,8 +141,6 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             {!isLoggedIn && (
               <div className="md__container__bdy__footer__lgnop">
                 <LoginBtn />
-                {/* <JoinNetwork /> */}
-                <SignUpBtn />
               </div>
             )}
 
@@ -192,7 +192,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             flex-direction: column;
             gap: 20px;
             padding: 10px 0px;
-            height: calc(100vh - 60px);
+            height: calc(100dvh - 60px);
             width: 100%;
             position: relative;
             overflow: auto;

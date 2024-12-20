@@ -19,6 +19,7 @@ import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
+import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -60,6 +61,12 @@ async function Page({ params }: { params: ITeamDetailParams }) {
               <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={team.teamFocusAreas} />
             </div>
           )}
+          {/* Irl Contribuions */}
+          {team.eventGuests.length > 0 &&
+            <div className={styles?.teamDetail__irlContributions}>
+              <TeamIrlContributions team={team} userInfo={userInfo} members={members} teamId={teamId} />
+            </div>
+          }
           {/* Member */}
           <div className={styles?.teamDetail__container__member}>
             <TeamMembers team={team} userInfo={userInfo} members={members} teamId={teamId} />

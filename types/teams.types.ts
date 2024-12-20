@@ -13,6 +13,7 @@ export interface ITeamsSearchParams {
     officeHoursOnly: string;
     focusAreas: string;
     isRecent: string;
+    isHost: string;
   }
   
 
@@ -80,6 +81,7 @@ export interface ITeamsSearchParams {
     contributingProjects: any [];
     officeHours?: string | null;
     teamFocusAreas: any [];
+    eventGuests?: any;
   }
 
   export interface ITeamDetailParams {

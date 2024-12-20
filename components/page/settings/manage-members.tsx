@@ -177,7 +177,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         if (errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
           toast.error('Email already exists. Please try again with different email');
         } else {
-          toast.error('People update failed. Something went wrong, please try again later');
+          toast.error('Member updated failed. Something went wrong, please try again later');
         }
 
         analytics.recordManageMemberSave('save-error', getAnalyticsUserInfo(userInfo), payload);
@@ -187,13 +187,13 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           } */
 
         setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
-        toast.success('People updated successfully');
+        toast.success('Member updated successfully');
         analytics.recordManageMemberSave('save-success', getAnalyticsUserInfo(userInfo), payload);
         window.location.href = `/settings/members?id=${selectedMember.uid}&isVerified=${isVerifiedFlag}`;
       }
     } catch (e) {
       triggerLoader(false);
-      toast.error('People update failed. Something went wrong, please try again later');
+      toast.error('Member updated failed. Something went wrong, please try again later');
       analytics.recordManageMemberSave('save-error', getAnalyticsUserInfo(userInfo));
     }
   };

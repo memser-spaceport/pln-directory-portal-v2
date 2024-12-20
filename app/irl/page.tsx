@@ -144,7 +144,7 @@ const getPageData = async (searchParams: any) => {
     guestDetails.topics = topics;
     guestDetails.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, currentEvents, isLoggedIn, userInfo);
 
-    // Fetch people preferences if the user is logged in
+    // Fetch member preferences if the user is logged in
     if (isLoggedIn) {
       const memberPreferencesResponse = await getMemberPreferences(userInfo.uid, authToken);
       if (memberPreferencesResponse.isError) {
@@ -175,7 +175,7 @@ const getPageData = async (searchParams: any) => {
 export const metadata: Metadata = {
   title: 'IRL Gatherings | Protocol Labs Directory',
   description:
-    'The Protocol Labs Directory helps network people orient themselves within the network by making it easy to learn about other teams and people, including their roles, capabilities, and experiences.',
+    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

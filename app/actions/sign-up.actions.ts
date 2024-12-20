@@ -18,7 +18,7 @@ import { cookies } from 'next/headers';
  * 2. Formats the form data to match the API requirements.
  * 3. Validates the formatted form data.
  * 4. Checks for duplicate email addresses.
- * 5. Handles image upload if a people profile image is provided.
+ * 5. Handles image upload if a member profile image is provided.
  * 6. Creates a registration request with the formatted data.
  * 7. Returns the result of the form submission.
  *
@@ -69,7 +69,7 @@ export async function signUpFormAction(data: any, recaptchaToken: string) {
     //     if (formattedObj.memberProfile && formattedObj.memberProfile.size > 0) {
     //       try {
 
-    //         // Uploads the people profile image into s3 and attaches the imageUid and imageUrl
+    //         // Uploads the member profile image into s3 and attaches the imageUid and imageUrl
     //         const imgResponse = await saveRegistrationImage(formattedObj.memberProfile);
     //         const image = imgResponse?.image;
     //         formattedObj.imageUid = image.uid;

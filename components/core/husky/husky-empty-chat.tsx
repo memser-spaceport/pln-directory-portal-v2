@@ -64,7 +64,7 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
             <h3 className="hec__info__title__text">What is Husky?</h3>
           </div>
           <p className="hec__info__desc">
-            Husky is an LLM-powered chatbot, designed to help you explore Protocol Labs teams, projects, events and people. It can make suggestions and recommendations based on what you’re
+            Husky is an LLM-powered chatbot, designed to help you explore Protocol Labs teams, projects, events and members. It can make suggestions and recommendations based on what you’re
             looking for. While it’s currently trained on a limited set of Protocol Labs entities, we encourage you to upload data about your team, project, or yourself to help others across our
             growing innovation network discover and explore what you’re working on.
           </p>
@@ -112,7 +112,7 @@ function HuskyEmptyChat({ onPromptClicked }: HuskyEmptyChatProps) {
           </div>
           <div className="hec__content__footer">
             <img alt="Husky Add" width={16} height={16} src="/icons/husky-add.svg" className="hec__content__footer__icon" />
-            <p className="hec__content__footer__text">Want Husky to be able to fetch results for your teams, projects and people too?</p>
+            <p className="hec__content__footer__text">Want Husky to be able to fetch results for your teams, projects and members too?</p>
             <a href='https://airtable.com/appgb6O7eF6mBEl8t/pagkXZKMaDujXVdio/form' target='_blank' className="hec__content__footer__button">Upload data</a>
           </div>
         </div>

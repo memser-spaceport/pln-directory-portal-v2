@@ -34,7 +34,7 @@ async function PrivacyPage() {
   }
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'People', url: '/members' },
+    { text: 'Members', url: '/members' },
     { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
     { text: 'Privacy', url: '/settings/privacy' },
   ];
@@ -48,7 +48,7 @@ async function PrivacyPage() {
           </div>
         </div>
         <div className={styles.privacy__backbtn}>
-          <SettingsBackButton title="People Privacy" />
+          <SettingsBackButton title="Member Privacy" />
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>
@@ -68,7 +68,7 @@ export default PrivacyPage;
 export const metadata: Metadata = {
   title: 'Settings | Protocol Labs Directory',
   description:
-    'The Protocol Labs Directory helps network people orient themselves within the network by making it easy to learn about other teams and people, including their roles, capabilities, and experiences.',
+    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

@@ -364,7 +364,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
                 <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
                 <span className="info__text">
                   You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified
-                  network people and will not be available to any individuals or entities outside the network.
+                  network members and will not be available to any individuals or entities outside the network.
                 </span>
               </p>
             </div>

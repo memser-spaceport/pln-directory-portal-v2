@@ -142,7 +142,7 @@ const MembersFilter = (props: IMembersFilter) => {
         <div className="team-filter__body">
           <div className="team-filter__body__toggle-section">
             <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Only Show People with Office Hours</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Only Show Members with Office Hours</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"
@@ -162,7 +162,7 @@ const MembersFilter = (props: IMembersFilter) => {
                   content={
                     <div className="team-filter__body__toggle-section__toggle-option__title-container__collaborate-note">
                       <span>
-                        People with this icon
+                        Members with this icon
                         <img
                           loading="lazy"
                           alt="open to work"
@@ -171,7 +171,7 @@ const MembersFilter = (props: IMembersFilter) => {
                           width={20}
                           src="/icons/badge/open-to-work.svg"
                         />
-                        are open to collaborate on shared ideas & projects with other people.
+                        are open to collaborate on shared ideas & projects with other members.
                       </span>
                     </div>
                   }
@@ -196,7 +196,7 @@ const MembersFilter = (props: IMembersFilter) => {
             </div>
             {/* Recently Added filter */}
             <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">New People</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">New Members</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"
@@ -209,7 +209,7 @@ const MembersFilter = (props: IMembersFilter) => {
             </div>
             {/* Unverified Members filter */}
             {/* <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Include Unverified People</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Include Unverified Members</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"

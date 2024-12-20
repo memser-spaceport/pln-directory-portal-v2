@@ -38,7 +38,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
 
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
-  const editUrl = isAdmin && !isOwner ? `${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}` : `${PAGE_ROUTES.SETTINGS}/profile`;
+  const editUrl = isAdmin && !isOwner ? `${PAGE_ROUTES.SETTINGS}/people?id=${member?.id}` : `${PAGE_ROUTES.SETTINGS}/profile`;
 
   const analytics = useMemberAnalytics();
 

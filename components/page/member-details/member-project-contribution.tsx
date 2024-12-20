@@ -50,7 +50,7 @@ const MemberProjectContribution = (props: IMemberProjectExperience) => {
   const onEditOrAdd = () => {
     analytics.onProjectContributionEditClicked(member);
     if (isAdmin && !isOwner) {
-      router.push(`${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}`);
+      router.push(`${PAGE_ROUTES.SETTINGS}/people?id=${member?.id}`);
     } else {
       router.push(`${PAGE_ROUTES.SETTINGS}/profile`);
     }

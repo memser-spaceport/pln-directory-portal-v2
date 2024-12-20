@@ -61,7 +61,7 @@ describe('Contributors', () => {
     fireEvent.click(contributorElement);
   
     expect(mockAnalytics.onProjectDetailContributorClicked).toHaveBeenCalled();
-    expect(openMock).toHaveBeenCalledWith('/members/1', '_blank');
+    expect(openMock).toHaveBeenCalledWith('/people/1', '_blank');
   });
 
   // it('should call onCloseContributorsModal when the modal is closed', () => {

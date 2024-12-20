@@ -15,7 +15,7 @@ export const config = {
      */
     '/((?!api|_next/static|_next/image|favicon.ico|icons|images).*)',
     '/teams/:path',
-    '/members/:path',
+    '/people/:path',
     '/projects/:path',
     '/irl/:path',
     '/settings/:path',

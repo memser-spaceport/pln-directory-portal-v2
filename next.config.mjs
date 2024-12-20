@@ -11,7 +11,23 @@ const nextConfig = {
         source: '/irl/lw24-web3',
         destination: '/irl?location=Thailand',
         permanent: true,
-      }
+      },
+      {
+        source: '/members',
+        destination: '/people',
+        permanent: true,
+      },
+      {
+        source: '/members/:id',
+        destination: '/people/:id',
+        permanent: true
+      },
+      {
+        source: '/settings/members',
+        destination: '/settings/people',
+        permanent: true
+      },
+      
     ];
   },
   env: {

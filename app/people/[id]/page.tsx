@@ -31,7 +31,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
   return (
     <div className={styles?.memberDetail}>
       <div className={styles?.memberDetail__breadcrumb}>
-        <BreadCrumb backLink="/members" directoryName="People" pageName={member?.name ?? ''} />
+        <BreadCrumb backLink="/people" directoryName="People" pageName={member?.name ?? ''} />
       </div>
       <div className={styles?.memberDetail__container}>
         <div>

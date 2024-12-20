@@ -34,8 +34,8 @@ async function PrivacyPage() {
   }
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'People', url: '/members' },
-    { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
+    { text: 'People', url: '/people' },
+    { text: `${userInfo.name}`, url: `/people/${userInfo.uid}` },
     { text: 'Privacy', url: '/settings/privacy' },
   ];
 

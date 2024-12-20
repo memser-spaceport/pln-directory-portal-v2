@@ -13,7 +13,7 @@ export const NAV_OPTIONS = [
   },
   {
     name: 'People',
-    url: '/members',
+    url: '/people',
     selectedLogo: '/icons/members--selected.svg',
     unSelectedLogo: '/icons/members.svg',
   },
@@ -346,7 +346,7 @@ export const HOME = {
 
 export const PAGE_ROUTES = {
   HOME: '/',
-  MEMBERS: '/members',
+  MEMBERS: '/people',
   TEAMS: '/teams',
   SETTINGS: '/settings',
   PROJECTS: '/projects',

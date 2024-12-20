@@ -70,9 +70,9 @@ export default async function ManageMembers(props: any) {
 
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'People', url: '/members' },
-    { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
-    { text: 'Manage People', url: '/settings/members' },
+    { text: 'People', url: '/people' },
+    { text: `${userInfo.name}`, url: `/people/${userInfo.uid}` },
+    { text: 'Manage People', url: '/settings/people' },
   ];
   return (
     <>
@@ -87,7 +87,7 @@ export default async function ManageMembers(props: any) {
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" userInfo={userInfo}/>
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage people" userInfo={userInfo}/>
           </aside>
           <div className={styles.ps__main__content}>
             <ManageMembersSettings preferences={preferences} viewType={viewType} selectedMember={selectedMember} members={formattedMembers ?? []} userInfo={userInfo} isVerifiedFlag={selectedVerifiedFlag ?? 'true'}/>

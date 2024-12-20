@@ -75,12 +75,12 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     }
 
     triggerLoader(true);
-    window.location.href = `/settings/members?id=${uid}&viewType=${selectedProfileType.name}&isVerified=${isVerifiedFlag}`;
+    window.location.href = `/settings/people?id=${uid}&viewType=${selectedProfileType.name}&isVerified=${isVerifiedFlag}`;
     analytics.recordManageMembersMemberChange(member, getAnalyticsUserInfo(userInfo));
   };
 
   const onVerifiedFlagChange = (item: any) => {
-    window.location.href = `/settings/members?viewType=${selectedProfileType.name}&isVerified=${item.value}`;
+    window.location.href = `/settings/people?viewType=${selectedProfileType.name}&isVerified=${item.value}`;
   }
 
   const onResetForm = async (e?: any) => {
@@ -189,7 +189,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
         toast.success('People updated successfully');
         analytics.recordManageMemberSave('save-success', getAnalyticsUserInfo(userInfo), payload);
-        window.location.href = `/settings/members?id=${selectedMember.uid}&isVerified=${isVerifiedFlag}`;
+        window.location.href = `/settings/people?id=${selectedMember.uid}&isVerified=${isVerifiedFlag}`;
       }
     } catch (e) {
       triggerLoader(false);
@@ -311,7 +311,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         return false;
       }
 
-      router.push(`/settings/members?id=${selectedMember.uid}&viewType=${item.name}&isVerified=${isVerifiedFlag}`);
+      router.push(`/settings/people?id=${selectedMember.uid}&viewType=${item.name}&isVerified=${isVerifiedFlag}`);
     },
     [viewType, selectedMember, isVerifiedFlag]
   );

@@ -56,7 +56,7 @@ describe('MemberEmptyProjectExperience Component', () => {
     fireEvent.click(link);
 
     expect(mockAnalytics.onProjectContributionAddlicked).toHaveBeenCalledWith(newProps.member);
-    expect(mockPush).toHaveBeenCalledWith(`${PAGE_ROUTES.SETTINGS}/members?id=${newProps.member.id}`);
+    expect(mockPush).toHaveBeenCalledWith(`${PAGE_ROUTES.SETTINGS}/people?id=${newProps.member.id}`);
   });
 
   it('calls analytics and navigates to profile settings for owner', () => {

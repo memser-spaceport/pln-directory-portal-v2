@@ -123,7 +123,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
   };
 
   const onContributorClicked = (contributor: any) => {
-    window.open('/members/' + contributor?.uid, '_blank');
+    window.open('/people/' + contributor?.uid, '_blank');
   };
 
   const getTeamsCount = () => {

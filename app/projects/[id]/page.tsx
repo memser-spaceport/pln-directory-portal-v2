@@ -23,6 +23,7 @@ import ProjectStats from '@/components/page/project-details/stats';
 export default async function ProjectDetails({ params }: any) {
   const projectId = params?.id;
   const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } = await getPageData(projectId);
+  const showProjectStats = osoInfo?.forkCount > 0 || osoInfo?.starCount > 0 || osoInfo?.repositoryCount > 0 || osoInfo?.contributorCount > 0;
 
   if (isError) {
     return <Error />;
@@ -37,7 +38,7 @@ export default async function ProjectDetails({ params }: any) {
         <div className={styles.project__container__details}>
           <div className={styles.project__container__details__primary}>
             <Header project={project} userHasEditRights={hasEditAccess} userHasDeleteRights={hasDeleteAccess} user={userInfo} authToken={authToken} />
-            <Description description={project?.description} project={project} userHasEditRights={hasEditAccess} user={userInfo}/>
+            <Description description={project?.description} project={project} userHasEditRights={hasEditAccess} user={userInfo} />
           </div>
 
           {project?.projectLinks?.length > 0 && (
@@ -59,9 +60,11 @@ export default async function ProjectDetails({ params }: any) {
             </div>
           )}
 
-<div className={styles.project__container__details__stats}>
-          <ProjectStats stats={osoInfo} />
-          </div>
+          {showProjectStats && (
+            <div className={styles.project__container__details__stats}>
+              <ProjectStats stats={osoInfo} />
+            </div>
+          )}
 
           <div className={styles.project__container__details__additionalDetails}>
             <AdditionalDetails project={project} userHasEditRights={hasEditAccess} authToken={authToken} user={userInfo} />
@@ -99,7 +102,6 @@ const getPageData = async (projectId: string) => {
 
   try {
     const [projectResponse, focusAreaResponse] = await Promise.all([getProject(projectId, {}), getFocusAreas('Project', {})]);
-
     if (projectResponse?.error || focusAreaResponse?.error) {
       return {
         isError: true,
@@ -130,35 +132,12 @@ const getPageData = async (projectId: string) => {
 
     project = projectResponse?.data?.formattedData;
     focusAreas = focusAreaResponse?.data?.filter((data: IFocusArea) => !data.parentUid);
-    const osoResponse = await getProjectOsoDetails(project.name);
-    console.log("osoResponse", osoResponse);
-    if (!osoResponse?.error) {
-      osoInfo = osoResponse?.data ?? {};
+    if (project.osoProjectName) {
+      const osoResponse = await getProjectOsoDetails(project.osoProjectName);
+      if (!osoResponse?.error) {
+        osoInfo = osoResponse?.data ?? {};
+      }
     }
-
-    // osoInfo = {
-    //   activeDeveloperCount6Months: 0,
-    //   closedIssueCount6Months: 0,
-    //   commitCount6Months: 0,
-    //   contributorCount: 80,
-    //   contributorCount6Months: 10,
-    //   displayName: "MonezoXyz",
-    //   eventSource: "GITHUB",
-    //   firstCommitDate: "1970-01-01 00:00:00",
-    //   forkCount: "5",
-    //   fulltimeDeveloperAverage6Months: 0,
-    //   lastCommitDate: "1970-01-01 00:00:00",
-    //   mergedPullRequestCount6Months: 0,
-    //   newContributorCount6Months: 0,
-    //   openedIssueCount6Months: 0,
-    //   openedPullRequestCount6Months: 0,
-    //   projectId: "Xwq2x0EpJca2tVoc-eLLhJ2cTXqb-3UgFO_NwV2d0GA=",
-    //   projectName: "monezoxyz",
-    //   projectNamespace: "oso",
-    //   projectSource: "OSS_DIRECTORY",
-    //   repositoryCount: "3",
-    //   starCount: "0"
-    // }
 
     hasEditAccess = hasProjectEditAccess(userInfo, project, isLoggedIn, loggedInMemberTeams);
     hasDeleteAccess = hasProjectDeleteAccess(userInfo, project, isLoggedIn);
@@ -172,7 +151,7 @@ const getPageData = async (projectId: string) => {
       project,
       focusAreas,
       authToken,
-      osoInfo
+      osoInfo,
     };
   } catch (error) {
     return {
@@ -184,11 +163,10 @@ const getPageData = async (projectId: string) => {
       project,
       focusAreas,
       authToken,
-      osoInfo
+      osoInfo,
     };
   }
 };
-
 
 type IGenerateMetadata = {
   params: { id: string };

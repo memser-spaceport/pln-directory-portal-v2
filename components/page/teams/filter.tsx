@@ -43,6 +43,7 @@ const Filter = (props: ITeamFilterWeb) => {
   const includeFriends = searchParams['includeFriends'] === 'true' || false;
   const includeOfficeHours = searchParams['officeHoursOnly'] === 'true' || false;
   const isRecent = searchParams['isRecent'] === 'true' || false;
+  const isHost = searchParams['isHost'] === 'true' || false;
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
 
@@ -72,6 +73,18 @@ const Filter = (props: ITeamFilterWeb) => {
     updateQueryParams('isRecent', '', searchParams);
   };
 
+  const onIsHostToggle = () => {
+    triggerLoader(true);
+    if (searchParams?.page) {
+      searchParams.page = '1';
+    }
+    if (!isHost) {
+      updateQueryParams('isHost', 'true', searchParams);
+      return;
+    }
+    updateQueryParams('isHost', '', searchParams);
+  }
+
   const onOfficeHoursToogle = () => {
     triggerLoader(true);
     if (searchParams?.page) {
@@ -98,9 +111,9 @@ const Filter = (props: ITeamFilterWeb) => {
       }
       const currentTags = [...selectedItems[key], value];
       updateQueryParams(key, currentTags.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
-      analytics.onFilterApplied(from,  value);
+      analytics.onFilterApplied(from, value);
       return;
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const onClearAllClicked = () => {
@@ -109,7 +122,7 @@ const Filter = (props: ITeamFilterWeb) => {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
-      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent'];
+      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           current.delete(query);
@@ -171,6 +184,20 @@ const Filter = (props: ITeamFilterWeb) => {
               <Toggle height="16px" width="28px" callback={onIsRecentToggle} isChecked={isRecent} />
             </div>
           </div>
+          {/* Border line */}
+          <div className="team-filter__bl"></div>
+
+          <div className='team-filter__body__event'>
+            <p className="team-filter__body__ttl">Contributors</p>
+            {/* New member filter */}
+            <div className="team-filter__body__host">
+              <h3 className="team-filter__body__host__title">Host</h3>
+              <div className="pe__body__topic__select__toggle">
+                <Toggle height="16px" width="28px" callback={onIsHostToggle} isChecked={isHost} />
+              </div>
+            </div>
+          </div>
+
           {/* Border line */}
           <div className="team-filter__bl"></div>
 
@@ -246,6 +273,18 @@ const Filter = (props: ITeamFilterWeb) => {
             z-index: 3;
             height: 100%;
           }
+
+          .team-filter__body__event {
+            display: flex;
+            gap: 20px;
+            flex-direction: column;
+          }
+          .team-filter__body__ttl {
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+          }
           .team-filter__header {
             display: flex;
             padding: 20px 24px;
@@ -299,7 +338,7 @@ const Filter = (props: ITeamFilterWeb) => {
             justify-content: space-between;
           }
 
-          .team-filter__body__includes, .team-filter__body__recent{
+          .team-filter__body__includes, .team-filter__body__recent, .team-filter__body__host{
             // padding: 0px 0px 16px 0px;
             display: flex;
             align-items: center;
@@ -307,7 +346,7 @@ const Filter = (props: ITeamFilterWeb) => {
             justify-content: space-between;
           }
 
-          .team-filter__body__includes__title, .team-filter__body__recent__title {
+          .team-filter__body__includes__title, .team-filter__body__recent__title, .team-filter__body__host__title {
             color: #475569;
             font-size: 14px;
             font-weight: 400;

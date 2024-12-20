@@ -60,11 +60,11 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
 
         return acc;
       },
-      { Attendee: [], Speaker: [], Host: [] }
+      { Host: [], Speaker: [], Attendee: [] }
     );
   };
 
-  const groupedData: GroupedEvents = member ? transformData(sortedEvents) : { Attendee: [], Speaker: [], Host: [] };
+  const groupedData: GroupedEvents = member ? transformData(sortedEvents) : { Host: [], Speaker: [], Attendee: [] };
 
   const onClose = () => {
     if (modalRef.current) {
@@ -118,7 +118,7 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
   return (
     <>
       <div className="root">
-        <div className="root__header">IRL Contributions ({member?.length})</div>
+        <div className="root__header">Contributions ({member?.length})</div>
         <div className="root__irlCrbts">
           {Object.entries(groupedData).map(([role, events]) => {
             if (events.length === 0) return null;

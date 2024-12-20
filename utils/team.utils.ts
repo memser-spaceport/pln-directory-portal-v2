@@ -3,7 +3,7 @@ import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from ".
 import { URL_QUERY_VALUE_SEPARATOR } from "./constants";
 
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
-  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent } = queryParams;
+  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent, isHost } = queryParams;
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase();
 
@@ -17,6 +17,7 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(focusAreas ? { 'focusAreas': stringifyQueryValues(focusAreas) } : {}),
     ...(isRecent ? {isRecent:true} : {}),
+    ...(isHost ? {isHost:true} : {}),
     orderBy: `${sortFromQuery.direction === "desc" ? "-" : ""}${sortField}`,
   };
 }

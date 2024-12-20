@@ -192,7 +192,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             flex-direction: column;
             gap: 20px;
             padding: 10px 0px;
-            height: calc(100vh - 60px);
+            height: calc(100dvh - 60px);
             width: 100%;
             position: relative;
             overflow: auto;

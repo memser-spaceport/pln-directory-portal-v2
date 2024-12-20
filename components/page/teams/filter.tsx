@@ -188,10 +188,10 @@ const Filter = (props: ITeamFilterWeb) => {
           <div className="team-filter__bl"></div>
 
           <div className='team-filter__body__event'>
-            <p className="team-filter__body__ttl">Event Contributors</p>
+            <p className="team-filter__body__ttl">Contributors</p>
             {/* New member filter */}
             <div className="team-filter__body__host">
-              <h3 className="team-filter__body__host__title">Host only</h3>
+              <h3 className="team-filter__body__host__title">Host</h3>
               <div className="pe__body__topic__select__toggle">
                 <Toggle height="16px" width="28px" callback={onIsHostToggle} isChecked={isHost} />
               </div>

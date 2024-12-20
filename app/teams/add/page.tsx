@@ -8,7 +8,7 @@ import LoginInfo from '@/components/page/team-form-info/team-login-info';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 export default function AddTeam(props: any) {
-  const steps = ['basic', 'project details', 'social', 'success'];
+  const steps = ['basic', 'team details', 'social', 'success'];
 
   const { userInfo } = getPageData();
 

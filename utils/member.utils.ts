@@ -274,11 +274,6 @@ export function getRoleTagsFromValues(allValues: any[], queryValues: string | st
 }
 
 export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedIn: boolean, roleValues: any[]) => {
-  // if(query?.isHostAndSpeaker && query?.isHostAndSpeaker === 'true') {
-  //   delete query.isHostAndSpeaker;
-  //   query.isHost = 'true';
-  //   query.isSpeaker = 'true';
-  // }
   const { parsedValuesByFilter, parsedAvailableValuesByFilter } = filtersValues;
 
   const formattedData = {

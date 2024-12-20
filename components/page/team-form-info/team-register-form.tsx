@@ -22,7 +22,7 @@ interface ITeamRegisterForm {
 
 function TeamRegisterForm(props: ITeamRegisterForm) {
   // const onCloseForm = props.onCloseForm;
-  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'project details', 'social', 'success'], defaultStep: 'basic', uniqueKey: 'register' });
+  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'team details', 'social', 'success'], defaultStep: 'basic', uniqueKey: 'register' });
   const formRef = useRef<HTMLFormElement>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
   const [basicErrors, setBasicErrors] = useState<string[]>([]);
@@ -154,7 +154,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
           return;
         }
         setBasicErrors([]);
-      } else if (currentStep === 'project details') {
+      } else if (currentStep === 'team details') {
         const validationResponse = validateForm(projectDetailsSchema, formattedData);
         if (!validationResponse.success) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
@@ -211,7 +211,7 @@ function TeamRegisterForm(props: ITeamRegisterForm) {
             <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
               <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent}/>
             </div>
-            <div className={currentStep !== 'project details' ? 'hidden' : 'form'}>
+            <div className={currentStep !== 'team details' ? 'hidden' : 'form'}>
               <TeamProjectsInfo
                 errors={projectDetailsErrors}
                 protocolOptions={allData?.technologies}

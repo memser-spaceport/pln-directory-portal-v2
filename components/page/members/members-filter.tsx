@@ -243,7 +243,7 @@ const MembersFilter = (props: IMembersFilter) => {
           <div className="team-filter__bl"></div>
           <div className='team-filter__body__event '>
             {/* <div className="team-filter__bod"> */}
-            <p className="team-filter__body__ttl">Event Contributors</p>
+            <p className="team-filter__body__ttl">Contributors</p>
             <div className="team-filter__body__toggle-section__toggle-option">
               <h3 className="team-filter__body__toggle-section__toogle-option__title">Host</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">

@@ -188,7 +188,7 @@ const Filter = (props: ITeamFilterWeb) => {
           <div className="team-filter__bl"></div>
 
           <div className='team-filter__body__event'>
-            <p className="team-filter__body__ttl">Contributors</p>
+            <p className="team-filter__body__ttl">Contributions</p>
             {/* New member filter */}
             <div className="team-filter__body__host">
               <h3 className="team-filter__body__host__title">Host</h3>

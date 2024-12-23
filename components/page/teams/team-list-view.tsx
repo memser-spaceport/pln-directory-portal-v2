@@ -18,6 +18,7 @@ const TeamListView = (props: ITeamListView) => {
   const teamName = team?.name;
   const description = team?.shortDescription;
   const tags = team?.industryTags ?? [];
+  const remainingTags = tags.slice(3, tags?.length).map((tag: any) => tag.title);
 
   return (
     <>
@@ -34,23 +35,27 @@ const TeamListView = (props: ITeamListView) => {
           <div className="team-list__details-container__tagscontainer team-list__details-container__tagscontainer">
             {tags?.map((tag: ITag, index: number) => (
               <Fragment key={`${tag} + ${index}`}>
-                {index < 3 && <div>{<Tooltip asChild trigger={<div><Tag value={tag?.title} variant="primary" tagsLength={tags?.length} /> </div>} content={tag?.title} />}</div>}
+                {index < 3 && <div>{
+                  // <Tooltip asChild trigger={<div><Tag value={tag?.title} variant="primary" tagsLength={tags?.length} /> </div>} content={tag?.title} />
+                  <Tag value={tag?.title} variant="primary" tagsLength={tags?.length} title={tag?.title}/> 
+                  }</div>}
               </Fragment>
             ))}
             {tags?.length > 3 && (
-              <Tooltip
-              asChild
-                trigger={<div><Tag variant="primary" value={"+" + (tags?.length - 3).toString()}></Tag></div>}
-                content={
-                  <div>
-                    {tags?.slice(3, tags?.length).map((tag, index) => (
-                      <div key={`${tag} + ${tag} + ${index}`}>
-                        {tag?.title}{index !== tags?.slice(3, tags?.length - 1)?.length ? "," : ""}
-                      </div>
-                    ))}
-                  </div>
-                }
-              />
+              // <Tooltip
+              // asChild
+              //   trigger={<div><Tag variant="primary" value={"+" + (tags?.length - 3).toString()}></Tag></div>}
+              //   content={
+              //     <div>
+              //       {tags?.slice(3, tags?.length).map((tag, index) => (
+              //         <div key={`${tag} + ${tag} + ${index}`}>
+              //           {tag?.title}{index !== tags?.slice(3, tags?.length - 1)?.length ? "," : ""}
+              //         </div>
+              //       ))}
+              //     </div>
+              //   }
+              // />
+              <Tag variant="primary" value={"+" + (tags?.length - 3).toString()} title={remainingTags.join(", ")}/>
             )}
           </div>
         </div>

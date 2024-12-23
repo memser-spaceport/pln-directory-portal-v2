@@ -1,6 +1,6 @@
-import { VIEW_TYPE_OPTIONS } from "@/utils/constants";
-import { Tooltip } from "../core/tooltip/tooltip";
-import Image from "next/image";
+import { VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import { Tooltip } from '../core/tooltip/tooltip';
+import Image from 'next/image';
 
 interface IViewType {
   view: string;
@@ -14,7 +14,7 @@ const ViewType = (props: IViewType) => {
   return (
     <>
       <div className="view-option-container">
-        <Tooltip
+        {/* <Tooltip
         asChild
           trigger={
             <button className={`view-option-container__grid ${view === VIEW_TYPE_OPTIONS.GRID ? "selected" : "not-selected"}`} onClick={() => callback(VIEW_TYPE_OPTIONS.GRID)}>
@@ -22,17 +22,44 @@ const ViewType = (props: IViewType) => {
             </button>
           }
           content={VIEW_TYPE_OPTIONS.GRID}
-        />
+        /> */}
+        <button
+          title={VIEW_TYPE_OPTIONS.GRID}
+          className={`view-option-container__grid ${view === VIEW_TYPE_OPTIONS.GRID ? 'selected' : 'not-selected'}`}
+          onClick={() => callback(VIEW_TYPE_OPTIONS.GRID)}
+        >
+          {view === VIEW_TYPE_OPTIONS.GRID ? (
+            <Image loading="lazy" alt="grid" src="/icons/grid-selected.svg" width={24} height={24} />
+          ) : (
+            <Image loading="lazy" alt="grid" src="/icons/grid-deselect.svg" width={24} height={24} />
+          )}
+        </button>
 
-        <Tooltip
-        asChild
+        {/* <Tooltip
+          asChild
           trigger={
-            <button className={`view-option-container__list ${view === VIEW_TYPE_OPTIONS.LIST ? "selected" : "not-selected"}`} onClick={() => callback(VIEW_TYPE_OPTIONS.LIST)}>
-              {view === VIEW_TYPE_OPTIONS.LIST ? <Image loading="lazy" alt="grid" src="/icons/list-selected.svg" width={24} height={24} /> : <Image loading="lazy" alt="list" src="/icons/list-deselect.svg" width={24} height={24} />}
+            <button className={`view-option-container__list ${view === VIEW_TYPE_OPTIONS.LIST ? 'selected' : 'not-selected'}`} onClick={() => callback(VIEW_TYPE_OPTIONS.LIST)}>
+              {view === VIEW_TYPE_OPTIONS.LIST ? (
+                <Image loading="lazy" alt="grid" src="/icons/list-selected.svg" width={24} height={24} />
+              ) : (
+                <Image loading="lazy" alt="list" src="/icons/list-deselect.svg" width={24} height={24} />
+              )}
             </button>
           }
           content={VIEW_TYPE_OPTIONS.LIST}
-        />
+        /> */}
+
+        <button
+          title={VIEW_TYPE_OPTIONS.LIST}
+          className={`view-option-container__list ${view === VIEW_TYPE_OPTIONS.LIST ? 'selected' : 'not-selected'}`}
+          onClick={() => callback(VIEW_TYPE_OPTIONS.LIST)}
+        >
+          {view === VIEW_TYPE_OPTIONS.LIST ? (
+            <Image loading="lazy" alt="grid" src="/icons/list-selected.svg" width={24} height={24} />
+          ) : (
+            <Image loading="lazy" alt="list" src="/icons/list-deselect.svg" width={24} height={24} />
+          )}
+        </button>
       </div>
 
       <style jsx>

@@ -86,19 +86,22 @@ const MemberInfiniteList = (props: any) => {
             <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
           </div>
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
-          {[...userList?.users]?.map((member: any, index: number) => (
-                <Link
-                  href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
-                  key={`memberitem-${member?.id}-${index}`}
-                  className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
-                  onClick={(e) => onMemberOnClickHandler(e, member)}
-                  // scroll={false}
-                >
-                  {VIEW_TYPE_OPTIONS.GRID === viewType && <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />}
-                  {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
-                </Link>
-              ))}
-            <div ref={observerTarget} />
+            {[...userList?.users]?.map((member: any, index: number) => (
+              <Link
+                href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
+                key={`memberitem-${member?.id}-${index}`}
+                className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
+                onClick={(e) => onMemberOnClickHandler(e, member)}
+                // scroll={false}
+              >
+                {index == ((userList.users.length - 30) as any) && (
+                  <div style={{ position: 'absolute', fontSize: '100px', zIndex: '10000' }} ref={observerTarget}/>
+                )}
+
+                {VIEW_TYPE_OPTIONS.GRID === viewType && <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />}
+                {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
+              </Link>
+            ))}
           </div>
           {isLoading && <TableLoader />}
         </div>

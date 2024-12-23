@@ -26,12 +26,14 @@ const ProjectListView = (props: any) => {
               <div className="projectlist__details__cn__name">
                 <h2 className="projectlist__details__cn__name__text">{projectName}</h2>
                 {lookingForFunding && (
-                  <Tooltip
-                    side="top"
-                    asChild
-                    trigger={<img className="projectlist__details__cn__name__fund" alt="Raising funds" src="/icons/raising-fund-indicator.svg" />}
-                    content={'Raising Funds'}
-                  />
+                  // <Tooltip
+                  //   side="top"
+                  //   asChild
+                  //   trigger={<img className="projectlist__details__cn__name__fund" alt="Raising funds" src="/icons/raising-fund-indicator.svg" />}
+                  //   content={'Raising Funds'}
+                  // />
+                  <img className="projectlist__details__cn__name__fund" alt="Raising funds" title='Raising Funds' src="/icons/raising-fund-indicator.svg" />
+
                 )}
               </div>
 

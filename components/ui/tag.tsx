@@ -9,6 +9,7 @@ interface TagProps {
   tagsLength?: number;
   keyValue?: string;
   from?: string;
+  title?: string;
 }
 
 export function Tag(props: Readonly<TagProps>) {
@@ -47,7 +48,7 @@ export function Tag(props: Readonly<TagProps>) {
 
   return (
     <>
-      <button tabIndex={-1} data-testid={`ui-tag-${value}`} className={`tag ${getTagStyle()}  ${tagsLength < 3 ? 'tag-md' : ''}`} onClick={onTagClickHandler} disabled={disabled}>
+      <button title={props?.title ?? ""} tabIndex={-1} data-testid={`ui-tag-${value}`} className={`tag ${getTagStyle()}  ${tagsLength < 3 ? 'tag-md' : ''}`} onClick={onTagClickHandler} disabled={disabled}>
         {value}
       </button>
       <style jsx>

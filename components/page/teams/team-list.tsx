@@ -94,12 +94,12 @@ const TeamList = (props: any) => {
             onClick={(e) => onTeamClickHandler(e, team)}
           >
             <Link href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
+              {index == ((teamList.teams.length - 30) as any) && <div style={{ position: 'absolute', fontSize: '100px', zIndex: '10000' }} ref={observerTarget} />}
               {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}
               {VIEW_TYPE_OPTIONS.LIST === viewType && <TeamListView team={team} viewType={viewType} />}
             </Link>
           </div>
         ))}
-        <div ref={observerTarget} />
       </div>
       {isLoading && <TableLoader />}
       <style jsx>{`

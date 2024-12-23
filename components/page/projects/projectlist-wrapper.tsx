@@ -103,11 +103,11 @@ const ProjectlistWrapper = (props: any) => {
               className={`project-list__project ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid__project' : 'project-list__list__project'}`}
               onClick={(e) => onNavigateToProject(e, project)}
             >
+              {index == ((allProjects.length - 30) as any) && <div style={{ position: 'absolute', fontSize: '100px', zIndex: '10000' }} ref={paginationRef} />}
               {VIEW_TYPE_OPTIONS.GRID === viewType && <ProjectGridView project={project} viewType={viewType} />}
               {VIEW_TYPE_OPTIONS.LIST === viewType && <ProjectListView project={project} viewType={viewType} />}
             </Link>
           ))}
-          <div ref={paginationRef} />
         </div>
       </div>
       {isloading && <TableLoader />}

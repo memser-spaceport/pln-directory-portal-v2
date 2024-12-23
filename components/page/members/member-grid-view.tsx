@@ -5,6 +5,7 @@ import { IMember } from '@/types/members.types';
 import { parseMemberLocation } from '@/utils/member.utils';
 import MemberSkillList from './member-skill-list';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 
 interface IMemberGridView {
   member: IMember;
@@ -35,19 +36,37 @@ const MemberGridView = (props: IMemberGridView) => {
         <div className="member-grid__profile-container">
           <div className="member-grid__profile-container__outer-section">
             <div className={`${isBorder ? 'gradiant-border-rounded' : ''} member-grid__profile-container__outer-section__inner-circle`}>
-              <img loading='eager' className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
+              <img height={72} width={72} loading="eager" alt="profile" className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
               {isTeamLead && (
-                <Tooltip
-                  asChild
-                  trigger={<img loading="lazy" className="member-grid__profile-container__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" />}
-                  content={'Team Lead'}
+                // <Tooltip
+                //   asChild
+                //   trigger={<img loading="lazy" className="member-grid__profile-container__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" />}
+                //   content={'Team Lead'}
+                // />
+                <img
+                  loading="lazy"
+                  alt="Team lead"
+                  title="Team Lead"
+                  className="member-grid__profile-container__outer-section__inner-circle__lead"
+                  height={20}
+                  width={20}
+                  src="/icons/badge/team-lead.svg"
                 />
               )}
               {isOpenToWork && (
-                <Tooltip
-                  asChild
-                  trigger={<img loading="lazy" className="member-grid__profile-container__outer-section__inner-circle__opento-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
-                  content={'Open To Collaborate'}
+                // <Tooltip
+                //   asChild
+                //   trigger={<img loading="lazy" className="member-grid__profile-container__outer-section__inner-circle__opento-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
+                //   content={'Open To Collaborate'}
+                // />
+                <img
+                  loading="lazy"
+                  alt="Open To Collaborate"
+                  title="Open To Collaborate"
+                  className="member-grid__profile-container__outer-section__inner-circle__opento-work"
+                  height={20}
+                  width={20}
+                  src="/icons/badge/open-to-work.svg"
                 />
               )}
             </div>
@@ -62,30 +81,33 @@ const MemberGridView = (props: IMemberGridView) => {
               <div className="member-grid__details__member-details__team-name-container">
                 <p className="member-grid__details__member-details__team-name-container__team-name">{member?.teams?.length > 0 ? mainTeam?.name : '-'}</p>
                 {member?.teams?.length > 2 && (
-                  <Tooltip
-                    asChild
-                    trigger={
-                      <button onClick={(e) => e.preventDefault()} className="member-grid__details__member-details__team-name-container__tems-count">
-                        +{(member?.teams?.length - 1).toString()}
-                      </button>
-                    }
-                    content={otherTeams?.map((team, index) => (
-                      <div key={`${team} + ${index}`}>
-                        {team}
-                        {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
-                      </div>
-                    ))}
-                  />
+                  // <Tooltip
+                  //   asChild
+                  //   trigger={
+                  //     <button onClick={(e) => e.preventDefault()} className="member-grid__details__member-details__team-name-container__tems-count">
+                  //       +{(member?.teams?.length - 1).toString()}
+                  //     </button>
+                  //   }
+                  //   content={otherTeams?.map((team, index) => (
+                  //     <div key={`${team} + ${index}`}>
+                  //       {team}
+                  //       {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
+                  //     </div>
+                  //   ))}
+                  // />
+                  <button onClick={(e) => e.preventDefault()} title={otherTeams.join(", ")} className="member-grid__details__member-details__team-name-container__tems-count">
+                    +{(member?.teams?.length - 1).toString()}
+                  </button>
                 )}
               </div>
-              <p className="member-grid__details__member-details__role">{role}</p>      
+              <p className="member-grid__details__member-details__role">{role}</p>
             </div>
             {isUserLoggedIn && (
               <>
                 <div className="member-grid__details__location">
                   {location ? (
                     <>
-                      <img loading="lazy" src="/icons/location.svg" height={13} width={11} />
+                      <img alt="location" loading="lazy" src="/icons/location.svg" height={13} width={11} />
                       <p className="member-grid__details__location__name">{location}</p>
                     </>
                   ) : (

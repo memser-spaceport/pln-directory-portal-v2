@@ -13,13 +13,14 @@ import React, { Fragment, memo } from 'react';
 const TeamsTagsList = (props: any) => {
   const tags = props?.tags ?? [];
   const noOfTagsToShow = props?.noOfTagsToShow ?? 2;
+  const remainingTags = tags?.slice(noOfTagsToShow, tags?.length)?.map((tag: any) => tag.title);
 
   return (
     <React.Fragment>
       <div className="tagsContainer" data-testid="tags-container">
         {tags?.slice(0, noOfTagsToShow).map((tag: ITag, index: number) => (
           <Fragment key={tag.title}>
-            <Tooltip
+            {/* <Tooltip
               asChild
               trigger={
                 <div className="tagsContainer__tag" data-testid={`tag-${index}`}>
@@ -27,28 +28,32 @@ const TeamsTagsList = (props: any) => {
                 </div>
               }
               content={tag?.title}
-            />
+            /> */}
+            <div className="tagsContainer__tag" data-testid={`tag-${index}`}>
+              <Tag title={tag?.title} value={tag?.title} variant="primary" tagsLength={tags?.length} />{' '}
+            </div>
           </Fragment>
         ))}
         {tags?.length > noOfTagsToShow && (
-          <Tooltip
-            asChild
-            trigger={
-              <div className="tagsContainer__additionalTags" data-testid="additional-tags">
-                <Tag variant="primary" value={'+' + (tags?.length - noOfTagsToShow).toString()}></Tag>{' '}
-              </div>
-            }
-            content={
-              <div>
-                {tags?.slice(noOfTagsToShow, tags?.length).map((tag: ITag, index: number) => (
-                  <div key={tag.title} className="tagsContainer__additionalTag" data-testid={`additional-tag-${index}`}>
-                    {tag?.title}
-                    {index !== tags?.slice(noOfTagsToShow, tags?.length - 1)?.length ? ',' : ''}
-                  </div>
-                ))}
-              </div>
-            }
-          />
+          // <Tooltip
+          //   asChild
+          //   trigger={
+          //     <div className="tagsContainer__additionalTags" data-testid="additional-tags">
+          //       <Tag variant="primary" value={'+' + (tags?.length - noOfTagsToShow).toString()}></Tag>{' '}
+          //     </div>
+          //   }
+          //   content={
+          //     <div>
+          //       {tags?.slice(noOfTagsToShow, tags?.length).map((tag: ITag, index: number) => (
+          //         <div key={tag.title} className="tagsContainer__additionalTag" data-testid={`additional-tag-${index}`}>
+          //           {tag?.title}
+          //           {index !== tags?.slice(noOfTagsToShow, tags?.length - 1)?.length ? ',' : ''}
+          //         </div>
+          //       ))}
+          //     </div>
+          //   }
+          // />
+          <Tag variant="primary" title={remainingTags.join(', ')} value={'+' + (tags?.length - noOfTagsToShow).toString()}></Tag>
         )}
       </div>
       <style jsx>{`
@@ -66,6 +71,6 @@ const TeamsTagsList = (props: any) => {
       `}</style>
     </React.Fragment>
   );
-}
+};
 
 export default TeamsTagsList;

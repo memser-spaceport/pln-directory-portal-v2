@@ -1,6 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import Image from 'next/image';
 
 const ProjectGridView = (props: any) => {
   //props
@@ -25,7 +26,7 @@ const ProjectGridView = (props: any) => {
     <>
       <div className="projectgrid">
         <div className="projectgrid__profile">
-          <img loading='eager' className="projectgrid__profile__img" alt="profile" src={profile} />
+          <Image alt='profile' loading='eager' height={72} width={72} layout='intrinsic' priority={true} className="projectgrid__profile__img" src={profile} />
           {lookingForFunding && <Tooltip side="top" asChild trigger={<img className="projectgrid__profile__fund" onClick={handleIconClick} alt="profile" src="/icons/raising-fund-indicator.svg" />} content={'Raising Funds'} />}
         </div>
         <div className="projectgrid__detail">
@@ -34,7 +35,7 @@ const ProjectGridView = (props: any) => {
             <p className="projectgrid__detail__cn__desc">{description}</p>
           </div>
           <div className="projectgrid__maintainer">
-            <img className="projectgrid__maintainer__img" alt="img" src={maintainerLogo} />
+          <Image alt='maintainer' loading='eager' height={36} width={36} layout='intrinsic' priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />
             <div className="projectgrid__maintainer__cn">
               <p className="projectgrid__maintainer__cn__name">{maintainerName}</p>
               <p className="projectgrid__maintainer__cn__title">Maintainer</p>
@@ -63,21 +64,6 @@ const ProjectGridView = (props: any) => {
             border-radius: 12px 12px 0px 0px;
             border-bottom: 1px solid #e2e8f0;
             background: linear-gradient(180deg, #fff 0%, #e2e8f0 205.47%);
-          }
-
-          .projectgrid__profile__img {
-            height: 36px;
-            width: 36px;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
-            position: absolute;
-            background-color: #e2e8f0;
-            right: 0;
-            left: 0;
-            margin: auto;
-            top: 13px;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
           }
 
           .projectgrid__detail {
@@ -149,16 +135,6 @@ const ProjectGridView = (props: any) => {
             line-height: 18px;
           }
 
-          .projectgrid__maintainer__img {
-            height: 28px;
-            width: 28px;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
-            background-color: #e2e8f0;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
-          }
-
           .projectgrid__maintainer__cn {
             display: flex;
             flex-direction: column;
@@ -188,12 +164,6 @@ const ProjectGridView = (props: any) => {
               line-height: 28px;
             }
 
-            .projectgrid__profile__img {
-              height: 72px;
-              width: 72px;
-              top: 20px;
-            }
-
             .projectgrid__detail__cn {
               gap: 10px;
               border-bottom: 1px solid #e2e8f0;
@@ -210,11 +180,6 @@ const ProjectGridView = (props: any) => {
               line-height: 20px;
               height: 60px;
               font-size: 14px;
-            }
-
-            .projectgrid__maintainer__img {
-              height: 36px;
-              width: 36px;
             }
 
             .projectgrid__maintainer__cn__name {

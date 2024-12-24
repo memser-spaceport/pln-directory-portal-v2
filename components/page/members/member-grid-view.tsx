@@ -5,6 +5,7 @@ import { IMember } from '@/types/members.types';
 import { parseMemberLocation } from '@/utils/member.utils';
 import MemberSkillList from './member-skill-list';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 
 interface IMemberGridView {
   member: IMember;
@@ -35,7 +36,7 @@ const MemberGridView = (props: IMemberGridView) => {
         <div className="member-grid__profile-container">
           <div className="member-grid__profile-container__outer-section">
             <div className={`${isBorder ? 'gradiant-border-rounded' : ''} member-grid__profile-container__outer-section__inner-circle`}>
-              <img loading='eager' className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl} />
+            <Image alt="profile" loading='eager' height={72} width={72} layout='intrinsic' priority={true} className="member-grid__profile-container__outer-section__inner-circle__profile" src={profileUrl}   />
               {isTeamLead && (
                 <Tooltip
                   asChild
@@ -188,14 +189,6 @@ const MemberGridView = (props: IMemberGridView) => {
             position: relative;
           }
 
-          .member-grid__profile-container__outer-section__inner-circle__profile {
-            object-fit: cover;
-            object-position: center;
-            border: 1px solid #e2e8f0;
-            border-radius: 50%;
-            height: 36px;
-            width: 36px;
-          }
 
           .member-grid__details__member-details__team-name-container__tems-count {
             font-size: 10px;
@@ -347,11 +340,6 @@ const MemberGridView = (props: IMemberGridView) => {
             .member-grid__profile-container__outer-section__inner-circle {
               height: 104px;
               width: 104px;
-            }
-
-            .member-grid__profile-container__outer-section__inner-circle__profile {
-              height: 72px;
-              width: 72px;
             }
 
             .member-grid__profile-container__outer-section {

@@ -13,6 +13,7 @@ import { getMembersListOptions, getMembersOptionsFromQuery } from '@/utils/membe
 import cookies from 'js-cookie';
 import TableLoader from '@/components/core/table-loader';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
+import useListPagination from '@/hooks/use-list-pagination';
 
 const MemberInfiniteList = (props: any) => {
   const members = props?.members ?? [];
@@ -25,7 +26,7 @@ const MemberInfiniteList = (props: any) => {
   const [userList, setUserList] = useState<any>({ users: members, totalItems: totalItems });
   const [isLoading, setIsLoading] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
-  const { currentPage, setPagination } = usePagination({
+  const { currentPage, setPagination } = useListPagination({
     observerTargetRef: observerTarget,
     totalItems: totalItems,
     totalCurrentItems: userList?.users?.length,
@@ -42,13 +43,13 @@ const MemberInfiniteList = (props: any) => {
   const getAllMembers = async () => {
     const toast = (await import('react-toastify')).toast;
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
       const authToken = cookies.get('authToken');
       const optionsFromQuery = getMembersOptionsFromQuery(searchParams);
       const listOptions: IMemberListOptions = getMembersListOptions(optionsFromQuery);
       const teamsRes = await getMemberListForQuery(listOptions, currentPage, ITEMS_PER_PAGE, authToken);
       if (teamsRes.isError) {
-        setIsLoading(false);
+        // setIsLoading(false);
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
         return;
       }
@@ -56,9 +57,9 @@ const MemberInfiniteList = (props: any) => {
     } catch (error) {
       console.error('Error in fetching teams', error);
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-      setIsLoading(false);
+      // setIsLoading(false);
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   };
 
@@ -74,7 +75,7 @@ const MemberInfiniteList = (props: any) => {
 
     // Sync team list
     useEffect(() => {
-    setPagination({ page: 1, limit: ITEMS_PER_PAGE});
+    setPagination({ page: 2, limit: ITEMS_PER_PAGE});
     setUserList({ users: members, totalItems: totalItems });
   }, [members]);
 

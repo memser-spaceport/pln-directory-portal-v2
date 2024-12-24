@@ -7,7 +7,7 @@ import EmptyResult from '@/components/core/empty-result';
 import ProjectlistWrapper from '@/components/page/projects/projectlist-wrapper';
 import FilterWrapper from '@/components/page/projects/filter-wrapper';
 import { getFocusAreas } from '@/services/common.service';
-import { URL_QUERY_VALUE_SEPARATOR, SOCIAL_IMAGE_URL, ITEMS_PER_PAGE } from '@/utils/constants';
+import { URL_QUERY_VALUE_SEPARATOR, SOCIAL_IMAGE_URL, ITEMS_PER_PAGE, INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import { Metadata } from 'next';
 import { getTeam, searchTeamsByName } from '@/services/teams.service';
 import { getAllProjects } from '../actions/projects.actions';
@@ -49,7 +49,7 @@ const getPageData = async (searchParams: any) => {
     const selectOpitons = getProjectSelectOptions(filterFromQuery);
     const [projectsResponse, focusAreasResponse] = await Promise.all([getAllProjects({...selectOpitons, isDeleted: false,
       select: "uid,name,tagline,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url"
-    }, 1, ITEMS_PER_PAGE), getFocusAreas('Project', searchParams)]);
+    }, 1, INITIAL_ITEMS_PER_PAGE), getFocusAreas('Project', searchParams)]);
     if (projectsResponse?.error || focusAreasResponse?.error) {
       isError = true;
       return { isError };

@@ -12,6 +12,7 @@ import usePagination from '@/hooks/irl/use-pagination';
 import TeamListView from './team-list-view';
 import TableLoader from '@/components/core/table-loader';
 import { getTeamList } from '@/app/actions/teams.actions';
+import useListPagination from '@/hooks/use-list-pagination';
 
 interface ITeamList {
   totalTeams: number;
@@ -59,7 +60,7 @@ const TeamList = (props: any) => {
     }
   };
 
-  const { currentPage, setPagination } = usePagination({
+  const { currentPage, setPagination } = useListPagination({
     observerTargetRef: observerTarget,
     totalItems: totalTeams,
     totalCurrentItems: teamList?.teams?.length,

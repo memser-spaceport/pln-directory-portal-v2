@@ -14,6 +14,7 @@ import { getProjectSelectOptions, getProjectsFiltersFromQuery } from '@/utils/pr
 import ProjectAddCard from './project-add-card';
 import TableLoader from '@/components/core/table-loader';
 import { getAllProjects } from '@/app/actions/projects.actions';
+import useListPagination from '@/hooks/use-list-pagination';
 
 const ProjectlistWrapper = (props: any) => {
   const searchParams = props?.searchParams;
@@ -30,7 +31,7 @@ const ProjectlistWrapper = (props: any) => {
   const paginationRef = useRef(null);
   const [isloading, setIsLoading] = useState(false);
 
-  const { currentPage, limit, setPagination } = usePagination({
+  const { currentPage, limit, setPagination } = useListPagination({
     observerTargetRef: paginationRef,
     totalItems: totalProjects,
     totalCurrentItems: allProjects?.length,

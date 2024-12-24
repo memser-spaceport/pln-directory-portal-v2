@@ -53,7 +53,7 @@ const ProjectlistWrapper = (props: any) => {
 
   const getProjects = async () => {
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
       const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
       const selectOpitons = getProjectSelectOptions(filterFromQuery);
 
@@ -63,14 +63,14 @@ const ProjectlistWrapper = (props: any) => {
         ITEMS_PER_PAGE
       );
       if (!projectsResponse?.error) {
-        setIsLoading(false);
+        // setIsLoading(false);
         setAllProjects([...allProjects, ...projectsResponse?.data?.formattedData]);
         return;
       } else {
-        setIsLoading(false);
+        // setIsLoading(false);
       }
     } catch (error) {
-      setIsLoading(false);
+      // setIsLoading(false);
       console.error(error);
     }
   };
@@ -83,7 +83,7 @@ const ProjectlistWrapper = (props: any) => {
 
   // Sync  eventDetails changes
   useEffect(() => {
-    setPagination({ page: 1, limit: 10 });
+    setPagination({ page: 2, limit: ITEMS_PER_PAGE });
     setAllProjects([...projects]);
   }, [projects]);
 

@@ -2,6 +2,7 @@
 
 import { ITeam } from '@/types/teams.types';
 import TeamsTagsList from './teams-tags-list';
+import Image from 'next/image';
 
 interface ITeamGridView {
   team: ITeam;
@@ -18,7 +19,7 @@ const TeamGridView = (props: ITeamGridView) => {
     <>
       <div className="team-grid">
         <div className="team-grid__profile-container">
-          <img loading="eager" className="team-grid__profile-container__profile" alt="profile" src={profile} />
+        <Image alt='profile' height={72} width={72} layout='intrinsic' loading='eager' priority={true} className="team-grid__profile-container__profile" src={profile} />
         </div>
         <div className="team-grid__details-container">
           <div className="team-grid__details-container__team-detail">
@@ -65,21 +66,6 @@ const TeamGridView = (props: ITeamGridView) => {
             border-radius: 12px 12px 0px 0px;
             border-bottom: 1px solid #e2e8f0;
             background: linear-gradient(180deg, #fff 0%, #e2e8f0 205.47%);
-          }
-
-          .team-grid__profile-container__profile {
-            height: 36px;
-            width: 36px;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
-            position: absolute;
-            background-color: #e2e8f0;
-            right: 0;
-            left: 0;
-            margin: auto;
-            top: 13px;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
           }
 
           .team-grid__details-container {
@@ -142,12 +128,6 @@ const TeamGridView = (props: ITeamGridView) => {
             .team-grid {
               width: 289px;
               height: 267px;
-            }
-
-            .team-grid__profile-container__profile {
-              height: 72px;
-              width: 72px;
-              top: 20px;
             }
 
             .team-grid__details-container__team-detail__team-name {

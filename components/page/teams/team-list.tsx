@@ -40,12 +40,12 @@ const TeamList = (props: any) => {
   const getAllTeams = async () => {
     const toast = (await import('react-toastify')).toast;
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
       const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
       const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
       const teamsRes = await getTeamList(listOptions, currentPage);
       if (teamsRes.isError) {
-        setIsLoading(false);
+        // setIsLoading(false);
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
         return;
       }
@@ -53,9 +53,9 @@ const TeamList = (props: any) => {
     } catch (error) {
       console.error('Error in fetching teams', error);
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-      setIsLoading(false);
+      // setIsLoading(false);
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   };
 
@@ -77,7 +77,7 @@ const TeamList = (props: any) => {
 
   // Sync team list
   useEffect(() => {
-    setPagination({ page: 1, limit: ITEMS_PER_PAGE });
+    setPagination({ page: 2, limit: ITEMS_PER_PAGE });
     setTeamList({ teams: allTeams, totalTeams: totalTeams });
   }, [allTeams]);
 

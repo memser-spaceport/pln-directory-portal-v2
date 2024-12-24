@@ -9,7 +9,7 @@ import MembersToolbar from '@/components/page/members/members-toolbar';
 import FilterWrapper from '@/components/page/members/filter-wrapper';
 import EmptyResult from '@/components/core/empty-result';
 import { Metadata } from 'next';
-import { ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { INITIAL_ITEMS_PER_PAGE, ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import MemberInfiniteList from '@/components/page/members/member-infinite-list';
 import { getMemberListForQuery } from '../actions/members.actions';
 
@@ -59,7 +59,7 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
     const [rawFilterValues, availableFilters, memberList, memberRoles] = await Promise.all([
       getFilterValuesForQuery(null, authToken),
       getFilterValuesForQuery(filtersFromQueryParams, authToken),
-      getMemberListForQuery(memberFilterQuery, 1, ITEMS_PER_PAGE, authToken),
+      getMemberListForQuery(memberFilterQuery, 1, INITIAL_ITEMS_PER_PAGE, authToken),
       getMemberRoles(filtersFromQueryParams),
     ]);
 

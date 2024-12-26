@@ -22,8 +22,9 @@ export const getFilterValuesForQuery = async (options?: IMemberListOptions | nul
 export const getMembers = async (options: IMemberListOptions, teamId: string, currentPage: number, limit: number, isLoggedIn: boolean) => {
   handleHostAndSpeaker(options);
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}&${new URLSearchParams(options as any)}`, {
-    cache: 'no-store',
     method: 'GET',
+    cache: 'force-cache',
+    next: { tags: ['member-list'] },
     headers: getHeader(''),
   });
 
@@ -62,7 +63,7 @@ const getMembersFiltersValues = async (options: IMemberListOptions = {}, isUserL
 };
 
 export const getMemberUidByAirtableId = async (id: string) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'no-store' };
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache',next: { tags: ['member-airtable'] }};
   const query = { airtableRecId: id, select: 'uid' };
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?${new URLSearchParams(query)}`, requestOPtions);
   const result = await response?.json();
@@ -73,7 +74,7 @@ export const getMemberUidByAirtableId = async (id: string) => {
 };
 
 export const getMemberRepositories = async (id: string) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'no-store' };
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache',next: { tags: ['member-repositories'] } };
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}/git-projects`, requestOPtions);
   if (!response?.ok) {
     return { error: { status: response?.status, statusText: response?.statusText } };
@@ -83,7 +84,7 @@ export const getMemberRepositories = async (id: string) => {
 };
 
 export const getMember = async (id: string, query: any, isLoggedIn?: boolean, userInfo?: any, isHidePref: boolean = true) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'no-store' };
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['member-detail']} };
   const memberResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}?${new URLSearchParams(query)}`, requestOPtions);
   // let memberRepository;
   let member;

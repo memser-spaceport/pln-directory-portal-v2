@@ -14,7 +14,7 @@ import HuskyLogin from './husky-login';
 import HuskyLoginExpired from './husky-login-expired';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { createLogoutChannel } from '../login/broadcast-channel';
-import { incrementHuskyShareCount } from '@/services/home.service';
+import { incrementHuskyShareCount } from '@/services/discovery.service';
 import { getHuskyResponse } from '@/services/husky.service';
 import HuskyAsk from './husky-ask';
 

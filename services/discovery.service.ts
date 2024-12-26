@@ -1,45 +1,12 @@
-import { formatNumber, getFormattedEvents, getformattedMembers, getFormattedProjects, getFormattedTeams } from '@/utils/home.utils';
-
-export const getFeaturedData = async () => {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/home/featured`;
-
-  const response = await fetch(url, {
-    method: 'GET',
-    cache: 'no-store',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  const result = await response.json();
-
-  const formattedMembers = getformattedMembers(result?.members?.members || []);
-  const formattedTeams = getFormattedTeams(result?.teams?.teams || []);
-  const formattedEvents = getFormattedEvents(result?.events || []);
-  const formattedProjects = getFormattedProjects(result.projects?.projects || []);
-
-  const maxLength = Math.max(formattedMembers.length, formattedTeams.length, formattedEvents.length, formattedProjects.length);
-
-  const combinedData = [];
-  for (let i = 0; i < maxLength; i++) {
-    if (formattedEvents[i] !== undefined) combinedData.push(formattedEvents[i]);
-    if (formattedMembers[i] !== undefined) combinedData.push(formattedMembers[i]);
-    if (formattedTeams[i] !== undefined) combinedData.push(formattedTeams[i]);
-    if (formattedProjects[i] !== undefined) combinedData.push(formattedProjects[i]);
-  }
-
-  if (!response?.ok) {
-    return { error: { statusText: response?.statusText } };
-  }
-  return { data: combinedData };
-};
+import { formatNumber } from '@/utils/home.utils';
 
 export const getDiscoverData = async () => {
   const url = `${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?isActive=true&teamName=null&projectName=null&eventName=null`;
 
   const response = await fetch(url, {
     method: 'GET',
-    cache: 'no-store',
+    cache: 'force-cache',
+    next: { tags: ['discovery-questions'] },
     headers: {
       'Content-Type': 'application/json',
     },
@@ -79,7 +46,7 @@ export const incrementHuskyViewCount = async (slug: string) => {
     });
   } catch (e) {}
 };
-
+  
 export const incrementHuskyShareCount = async (slug: string) => {
   try {
     await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions/${slug}`, {
@@ -127,6 +94,25 @@ export const getHuskyResponseBySlug = async (slug: string, increaseView = false)
   };
 };
 
+export const getIrlPrompts = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?eventName__not=null`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const output = await response.json();
+  return output.map((o: any) => {
+    return {
+      name: o?.plevent?.name || o?.eventName,
+      logo: '/icons/irl-light-blue.svg',
+      relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
+    };
+  });
+};
+
 export const getTeamPrompts = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?teamName__not=null`, {
     cache: 'no-store',
@@ -164,24 +150,3 @@ export const getProjectsPrompts = async () => {
     };
   });
 };
-
-export const getIrlPrompts = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?eventName__not=null`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  const output = await response.json();
-  return output.map((o: any) => {
-    return {
-      name: o?.plevent?.name || o?.eventName,
-      logo: '/icons/irl-light-blue.svg',
-      relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
-    };
-  });
-};
-
-

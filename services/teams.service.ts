@@ -29,7 +29,7 @@ export const getTeamListFilters = async (options: any) => {
 };
 
 export const getAllTeams = async (authToken: string, queryParams: any, currentPage: number, limit: number) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'no-cache' };
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(authToken), cache: 'force-cache', next: { tags: ['team-list'] } };
   const response = await fetch(`${teamsAPI}?page=${currentPage}&limit=${limit}&${new URLSearchParams(queryParams)}`, requestOPtions);
   const result = await response.json();
   if (!response?.ok) {
@@ -90,7 +90,7 @@ export const updateTeam = async (payload: any, authToken: string, teamUid: strin
 };
 
 export const getTeam = async (id: string, options: string | string[][] | Record<string, string> | URLSearchParams | undefined) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'no-store' };
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache',next: { tags: ['team-detail'] }, };
   const response = await fetch(`${teamsAPI}/${id}?${new URLSearchParams(options)}`, requestOPtions);
   const result = await response?.json();
   if (!response?.ok) {

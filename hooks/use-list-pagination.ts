@@ -18,7 +18,7 @@ const useListPagination = (props: any) => {
       },
       {
         root: document.body,
-        rootMargin: '0px 0px 900px 0px',
+        rootMargin: '0px 0px 2000px 0px',
         threshold: 0,
       }
     );

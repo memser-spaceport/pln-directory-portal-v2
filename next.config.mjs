@@ -37,7 +37,6 @@ const nextConfig = {
         hostname: '**',
       },
     ],
-    unoptimized: true
   },
   experimental:{
     serverSourceMaps:false

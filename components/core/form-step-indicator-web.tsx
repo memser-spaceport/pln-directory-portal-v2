@@ -1,14 +1,16 @@
 'use client';
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
+import { IFormStepIndicatorProps } from '@/types/shared.types';
 import { EVENTS, PROJECT_FORM_STEPS } from '@/utils/constants';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-export function FormStepIndicatorWeb() {
-  const { currentStep } = useStepsIndicator({ steps: PROJECT_FORM_STEPS, defaultStep: 'General', uniqueKey: 'add-project' });
+export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle}: IFormStepIndicatorProps) {
+  const { currentStep} = useStepsIndicator({ steps, defaultStep, uniqueKey });
+  // const { currentStep } = useStepsIndicator({ steps: PROJECT_FORM_STEPS, defaultStep: 'General', uniqueKey: 'add-project' });
 
-  const currentStepIndex = PROJECT_FORM_STEPS.findIndex((v: string) => v === currentStep);
+  const currentStepIndex = steps.findIndex((v: string) => v === currentStep);
 
   const activeIcon = '/icons/polygon-blue.svg';
   const completedIcon = '/icons/hexagon-completed.svg';
@@ -30,13 +32,13 @@ export function FormStepIndicatorWeb() {
     <>
       <div className="formstep">
         <div className="formstep__header">
-          <h1 className="formstep__header__title">Add Project {currentStep}</h1>
+          <h1 className="formstep__header__title">{title} {currentStep}</h1>
 
-          <p className="formstep__header__desc">Share your project details</p>
+          <p className="formstep__header__desc">{subTitle}</p>
         </div>
 
         <div className="formstep__body">
-          {PROJECT_FORM_STEPS?.map((step: string, index: number) => (
+          {steps?.map((step: string, index: number) => (
             <div className="formstep__body__step" key={`${step} + ${index}`}>
               <div className="formstep__body__step__imgc">
                 <img className="formstep__body__step__imgc__img" src={getStepImageSrc(index)} alt="step icon" width="24" height="24" />

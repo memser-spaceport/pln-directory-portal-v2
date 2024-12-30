@@ -447,6 +447,7 @@ export const OFFICE_HOURS_MSG = 'Schedule a one on one office hours discussion w
 export const TEAM_OFFICE_HOURS_MSG = 'Join office hours discussion with';
 
 export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Details'];
+export const TEAM_FORM_STEPS = ['Basic', 'Project Details', 'Social'];
 
 export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
@@ -953,3 +954,5 @@ export const SIGN_UP = {
   POLICY_URL: 'https://protocol.ai/legal/',
   CAPTCHA_URL: 'https://www.google.com/recaptcha/api/siteverify'
 }
+
+export const PROJECT_NAME = 'Protocol Labs Directory';

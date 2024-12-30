@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { FormStepIndicatorWeb } from '@/components/page/add-edit-project/form-step-indicator-web';
+import { FormStepIndicatorWeb } from '@/components/core/form-step-indicator-web';
 import useStepsIndicator from '@/hooks/useStepsIndicator'; // Mock this hook to control its output
 import { PROJECT_FORM_STEPS } from '@/utils/constants';
 import '@testing-library/jest-dom';
@@ -23,7 +23,7 @@ describe('FormStepIndicatorWeb', () => {
     });
 
     // Render the component
-    render(<FormStepIndicatorWeb />);
+    render(<FormStepIndicatorWeb steps={undefined} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />);
 
     // Test that the title contains the current step
     expect(screen.getByText(/Add Project General/i)).toBeInTheDocument();

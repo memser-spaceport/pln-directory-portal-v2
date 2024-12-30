@@ -1,4 +1,4 @@
-import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
+import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
 import { PAGE_ROUTES } from '@/utils/constants';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -26,7 +26,7 @@ import React from 'react';
  */
 const AddEditTeamSuccess = () => {
   const router = useRouter();
-  const analytics = useSignUpAnalytics();
+  const analytics = useJoinNetworkAnalytics();
 
   /**
    * Handles the click event for the "Back to Home" button.
@@ -36,7 +36,7 @@ const AddEditTeamSuccess = () => {
    */
   const onBackToHomeClick = () => {
     router.push('/');
-    analytics.recordHomeClickAfterSuccess();
+    analytics.recordTeamSubmitSuccessHomeClick();
   };
 
   /**
@@ -47,7 +47,7 @@ const AddEditTeamSuccess = () => {
    */
   const onSubmitAnotherTeamClick = () => {
     window.location.href = PAGE_ROUTES.ADD_TEAM;
-    analytics.recordHomeClickAfterSuccess();
+    analytics.recordTeamSubmitSuccessAnotherTeamClick();
   };
 
   return (

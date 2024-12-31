@@ -229,8 +229,8 @@ function ManageTeamsSettings(props: any) {
             actionRef.current.style.visibility = 'hidden';
           } */
         toast.success('Team updated successfully');
-        // window.location.href = `/settings/teams?id=${selectedTeam.uid}`;
         analytics.recordManageTeamSave('save-success', getAnalyticsUserInfo(userInfo), payload);
+        window.location.href = `/settings/teams?id=${selectedTeam.uid}`;
       }
     } catch (e) {
       triggerLoader(false);

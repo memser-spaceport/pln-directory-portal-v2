@@ -1,8 +1,7 @@
 
 export const getMemberPreferences = async (uid: string, authToken: string) => {
     const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${uid}/preferences`, {
-        cache: 'force-cache',
-        next: { tags: ['member-preferences'] },
+        cache: 'no-store',
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${authToken}`

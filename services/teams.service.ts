@@ -54,7 +54,7 @@ export const getAllTeams = async (authToken: string, queryParams: any, currentPa
 };
 
 export const getTeamUIDByAirtableId = async (id: string) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'no-store' };
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['team-airtable'] } };
   const query = { airtableRecId: id, select: 'uid' };
   const response = await fetch(`${teamsAPI}?${new URLSearchParams(query)}`, requestOPtions);
   const result = await response?.json();

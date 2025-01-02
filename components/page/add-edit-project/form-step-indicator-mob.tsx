@@ -1,14 +1,11 @@
 'use client';
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
-import { IFormStepIndicatorProps } from '@/types/shared.types';
 import { EVENTS, PROJECT_FORM_STEPS } from '@/utils/constants';
 
-
-function FormStepIndicatorMob({steps,defaultStep,uniqueKey,title,subTitle}: IFormStepIndicatorProps) {
-  // const { currentStep } = useStepsIndicator({ steps: PROJECT_FORM_STEPS, defaultStep: 'General', uniqueKey: 'add-project' });
-  const { currentStep} = useStepsIndicator({ steps, defaultStep, uniqueKey });
-  const currentStepIndex = steps.findIndex((v: string) => v === currentStep);
+function FormStepIndicatorMob(props: any) {
+  const { currentStep } = useStepsIndicator({ steps: PROJECT_FORM_STEPS, defaultStep: 'General', uniqueKey: 'add-project' });
+  const currentStepIndex = PROJECT_FORM_STEPS.findIndex((v: string) => v === currentStep);
 
   const activeIcon = '/icons/hexagon-active-blue.svg';
 
@@ -22,14 +19,14 @@ function FormStepIndicatorMob({steps,defaultStep,uniqueKey,title,subTitle}: IFor
             </div>
             <p className="mri__stepsm__stepname">{currentStep}</p>
           </div>
-          <p className="mri__stepsm__stepinfo">{`Step ${currentStepIndex + 1} of ${steps.length}`}</p>
+          <p className="mri__stepsm__stepinfo">{`Step ${currentStepIndex + 1} of ${PROJECT_FORM_STEPS.length}`}</p>
         </div>
 
         <div className='mri__stepsm__titles'>
             <div>
-            <h1 className='mri__stepsm__titles__title'>{title}</h1>
+            <h1 className='mri__stepsm__titles__title'>Add Project</h1>
             </div>
-            <div className='mri__stepsm__titles__desc'>{subTitle}</div>
+            <div className='mri__stepsm__titles__desc'>Share your project details</div>
         </div>
       <style jsx>
         {`

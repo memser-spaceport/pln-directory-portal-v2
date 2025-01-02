@@ -13,8 +13,6 @@ import TeamListView from './team-list-view';
 import TableLoader from '@/components/core/table-loader';
 import { getTeamList } from '@/app/actions/teams.actions';
 import useListPagination from '@/hooks/use-list-pagination';
-import ProjectAddCard from '../projects/project-add-card';
-import TeamAddCard from './team-add-card';
 
 interface ITeamList {
   totalTeams: number;
@@ -24,8 +22,6 @@ interface ITeamList {
 const TeamList = (props: any) => {
   const allTeams = props?.teams ?? [];
   const userInfo = props?.userInfo;
-  console.log(userInfo);
-  
   const searchParams = props?.searchParams;
   const totalTeams = props?.totalTeams;
 
@@ -92,7 +88,6 @@ const TeamList = (props: any) => {
         <h1 className="team-list__titlesec__title">Teams</h1> <div className="team-list__title__count">({totalTeams})</div>
       </div>
       <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid' : 'team-list__list'}`}>
-      {userInfo && teamList?.teams?.length > 0 && <TeamAddCard userInfo={userInfo} viewType={viewType} />}
         {[...teamList?.teams]?.map((team: ITeam, index: number) => (
           <div
             key={`teamitem-${team.id}-${index}`}

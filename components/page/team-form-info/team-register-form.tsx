@@ -15,27 +15,20 @@ import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
 import { useRouter } from 'next/navigation';
-import { STEP_INDICATOR_KEY, TEAM_FORM_STEPS } from '@/utils/constants/team-constants';
 
 interface ITeamRegisterForm {
   // onCloseForm: () => void;
-  onSuccess: () => void;
-  userInfo: any;
 }
 
-function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
+function TeamRegisterForm(props: ITeamRegisterForm) {
   // const onCloseForm = props.onCloseForm;
-  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: TEAM_FORM_STEPS, defaultStep: TEAM_FORM_STEPS[0], uniqueKey: STEP_INDICATOR_KEY });
+  const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: ['basic', 'team details', 'social', 'success'], defaultStep: 'basic', uniqueKey: 'register' });
   const formRef = useRef<HTMLFormElement>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
   const [basicErrors, setBasicErrors] = useState<string[]>([]);
   const [projectDetailsErrors, setProjectDetailsErrors] = useState<string[]>([]);
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
-  if(userInfo?.email){
-    teamRegisterDefault.basicInfo.requestorEmail = userInfo.email;
-  }
-
   const [initialValues, setInitialValues] = useState({...teamRegisterDefault});
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
 
@@ -43,16 +36,11 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
   
   const analytics = useJoinNetworkAnalytics();
 
-  // const scrollToTop = () => {
-  //   if (formContainerRef.current) {
-  //     formContainerRef.current.scrollTop = 0;
-  //   }
-  // };
-
-  // Scrolls the page to the top
-  function scrollToTop() {
-    document.body.scrollTop = 0;
-  }
+  const scrollToTop = () => {
+    if (formContainerRef.current) {
+      formContainerRef.current.scrollTop = 0;
+    }
+  };
 
   const onCloseForm = ()=>{
     router.push('/');
@@ -64,7 +52,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
       const formData = new FormData(formRef.current);
       const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
       analytics.recordTeamJoinNetworkSave("save-click", formattedData);
-      if (currentStep === TEAM_FORM_STEPS[2]) {
+      if (currentStep === 'social') {
         const validationResponse = validateForm(socialSchema, formattedData);
         if (!validationResponse?.success) {
           setSocialErrors(validationResponse.errors);
@@ -96,8 +84,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
           const response = await createParticipantRequest(data);
 
           if (response.ok) {
-            // goToNextStep();
-            onSuccess();
+            goToNextStep();
             document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
             analytics.recordTeamJoinNetworkSave("save-success", data);
           } else {
@@ -157,7 +144,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
       const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
       formattedData['longDescription'] = content;
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
-      if (currentStep === TEAM_FORM_STEPS[0]) {
+      if (currentStep === 'basic') {
         const teamBasicInfoErrors = await validateTeamBasicErrors(formattedData)
         if (teamBasicInfoErrors.length > 0) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
@@ -167,7 +154,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
           return;
         }
         setBasicErrors([]);
-      } else if (currentStep === TEAM_FORM_STEPS[1]) {
+      } else if (currentStep === 'team details') {
         const validationResponse = validateForm(projectDetailsSchema, formattedData);
         if (!validationResponse.success) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
@@ -205,7 +192,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
         formRef.current.reset();
         // Toggle reset flag to force re-render
       }
-      setCurrentStep(TEAM_FORM_STEPS[0]);
+      setCurrentStep('basic');
       setBasicErrors([]);
       setProjectDetailsErrors([]);
       setSocialErrors([]);
@@ -218,13 +205,13 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
 
   return (
     <>
-      {(
+      {currentStep !== 'success' && (
         <form className="trf" onSubmit={onFormSubmit} ref={formRef} noValidate>
           <div ref={formContainerRef} className="trf__form">
-            <div className={currentStep !== TEAM_FORM_STEPS[0] ? 'hidden' : 'form'}>
+            <div className={currentStep !== 'basic' ? 'hidden' : 'form'}>
               <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent}/>
             </div>
-            <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>
+            <div className={currentStep !== 'team details' ? 'hidden' : 'form'}>
               <TeamProjectsInfo
                 errors={projectDetailsErrors}
                 protocolOptions={allData?.technologies}
@@ -234,7 +221,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
                 initialValues={initialValues.projectsInfo}
               />
             </div>
-            <div className={currentStep !== TEAM_FORM_STEPS[2] ? 'hidden' : 'form'}>
+            <div className={currentStep !== 'social' ? 'hidden' : 'form'}>
               <TeamSocialInfo errors={socialErrors} />
             </div>
           </div>
@@ -242,7 +229,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
         </form>
       )}
 
-      {/* {currentStep === 'success' && <RegisterSuccess onCloseForm={onCloseForm} />} */}
+      {currentStep === 'success' && <RegisterSuccess onCloseForm={onCloseForm} />}
 
       <style jsx>
         {`

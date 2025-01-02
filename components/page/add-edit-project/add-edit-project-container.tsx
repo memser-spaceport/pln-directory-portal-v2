@@ -3,11 +3,8 @@
 import { IProjectResponse } from '@/types/project.types';
 import { IUserInfo } from '@/types/shared.types';
 import AddEditProjectForm from './add-edit-project-form';
-import FormStepIndicatorMob from '../../core/form-step-indicator-mob';
-import { FormStepIndicatorWeb } from '../../core/form-step-indicator-web';
-import { PROJECT_FORM_STEPS } from '@/utils/constants';
-import AddEditTeamContainer from '../add-edit-team/add-edit-team-container';
-import { SUB_TITLE, SUBMIT_A_TEAM_PAGE_TITLE, TEAM_FORM_STEPS } from '@/utils/constants/team-constants';
+import FormStepIndicatorMob from './form-step-indicator-mob';
+import { FormStepIndicatorWeb } from './form-step-indicator-web';
 
 interface IAddEditProjectContainerProps {
   project: IProjectResponse;
@@ -27,11 +24,11 @@ export default function AddEditProjectContainer(props: any): JSX.Element {
     <>
       <div className="add-edit-project">
         <div className="add-edit-project__indicator--mobile">
-          <FormStepIndicatorMob steps={PROJECT_FORM_STEPS} defaultStep={PROJECT_FORM_STEPS[0]} uniqueKey={'add-project'} title='Add Project' subTitle='Share your project details'/>
+          <FormStepIndicatorMob />
         </div>
 
         <div className="add-edit-project__indicator--web">
-          <FormStepIndicatorWeb steps={PROJECT_FORM_STEPS} defaultStep={PROJECT_FORM_STEPS[0]} uniqueKey={'add-project'} title='Add Project' subTitle='Share your project details'/>
+          <FormStepIndicatorWeb />
         </div>
 
         <div className="add-edit-project__form-container">

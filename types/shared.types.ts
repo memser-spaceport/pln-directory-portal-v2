@@ -69,11 +69,3 @@ export interface IUserInfo {
     name: string;
     shortDescription: string;
   }
-
-  export interface IFormStepIndicatorProps {
-    steps: any;
-    defaultStep: string;
-    uniqueKey: string;
-    title: string;
-    subTitle: string;
-  }

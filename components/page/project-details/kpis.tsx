@@ -61,6 +61,12 @@ const KPIs = (props: IKpis) => {
           font-weight: 700;
           line-height: 32px;
           letter-spacing: 0px;
+          text-overflow: hidden;
+          white-space: nowrap;
+          overflow: hidden;
+          width: -webkit-fill-available;
+          text-align: center;
+          text-overflow: ellipsis;
           color: #000000;
         }
 

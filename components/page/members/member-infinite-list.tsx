@@ -89,6 +89,7 @@ const MemberInfiniteList = (props: any) => {
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
           {[...userList?.users]?.map((member: any, index: number) => (
                 <Link
+                  prefetch={false}
                   href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
                   key={`memberitem-${member?.id}-${index}`}
                   className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}

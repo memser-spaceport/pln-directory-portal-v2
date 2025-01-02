@@ -1,7 +1,5 @@
 'use client';
 
-import { TEAM_FORM_STEPS } from "@/utils/constants";
-
 interface RegisterActionsProps {
   currentStep: string;
   onCloseForm: () => void;
@@ -13,22 +11,22 @@ function RegisterActions({ currentStep, onBackClicked, onCloseForm, onNextClicke
   return (
     <>
       <div className="rfa rfa--desktop">
-        {currentStep === TEAM_FORM_STEPS[0] && (
+        {currentStep === 'basic' && (
           <button onClick={onCloseForm} className="rfa__cancel" type="button">
             Cancel
           </button>
         )}
-        {currentStep !== TEAM_FORM_STEPS[0] && (
+        {currentStep !== 'basic' && (
           <button className="rfa__back" onClick={onBackClicked} type="button">
             Back
           </button>
         )}
-        {currentStep !== TEAM_FORM_STEPS[TEAM_FORM_STEPS.length-1] && (
+        {currentStep !== 'social' && (
           <button className="rfa__next" onClick={onNextClicked} type="button">
             Next
           </button>
         )}
-        {currentStep === TEAM_FORM_STEPS[TEAM_FORM_STEPS.length-1] && (
+        {currentStep === 'social' && (
           <button className="rfa__submit" type="submit">
             Submit
           </button>
@@ -36,24 +34,22 @@ function RegisterActions({ currentStep, onBackClicked, onCloseForm, onNextClicke
       </div>
       <div className="rfa rfa--mobile">
         <div className="rfa__cancelmobile">
-          {currentStep === TEAM_FORM_STEPS[0] && 
-            <button onClick={onCloseForm} className="rfa__cancel" type="button">
+          <button onClick={onCloseForm} className="rfa__cancel" type="button">
             Cancel
           </button>
-          }
         </div>
         <div className="rfa__group">
-          {currentStep !== TEAM_FORM_STEPS[0] && (
+          {currentStep !== 'basic' && (
             <div className="rfa__back" onClick={onBackClicked}>
               Back
             </div>
           )}
-          {currentStep !== TEAM_FORM_STEPS[TEAM_FORM_STEPS.length-1] && (
+          {currentStep !== 'social' && (
             <div className="rfa__next" onClick={onNextClicked}>
               Next
             </div>
           )}
-          {currentStep === TEAM_FORM_STEPS[TEAM_FORM_STEPS.length-1] && (
+          {currentStep === 'social' && (
             <button className="rfa__submit" type="submit">
               Submit
             </button>

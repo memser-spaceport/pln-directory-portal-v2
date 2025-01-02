@@ -147,8 +147,6 @@ export const JOIN_NETWORK_ANALYTICS_EVENTS = {
   TEAM_JOIN_NETWORK_NEXT_CLICK: 'team-join-network-form-steps',
   TEAM_JOIN_NETWORK_BACK_CLICK: 'team-join-network-back-click',
   TEAM_JOIN_NETWORK_SAVE: 'member-join-network-save',
-  TEAM_JOIN_NETWORK_SAVE_SUCCESS_HOME_CLICK: 'team-join-network-save-success-home-click',
-  TEAM_JOIN_NETWORK_SAVE_SUCCESS_SUBMIT_ANOTHER_TEAM_CLICK: 'team-join-network-save-success-submit-another-team-click',
 };
 
 export const SIGN_UP_ANALYTICS_EVENTS = {
@@ -449,7 +447,6 @@ export const OFFICE_HOURS_MSG = 'Schedule a one on one office hours discussion w
 export const TEAM_OFFICE_HOURS_MSG = 'Join office hours discussion with';
 
 export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Details'];
-export const TEAM_FORM_STEPS = ['Basic', 'Project Details', 'Social'];
 
 export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
@@ -956,5 +953,3 @@ export const SIGN_UP = {
   POLICY_URL: 'https://protocol.ai/legal/',
   CAPTCHA_URL: 'https://www.google.com/recaptcha/api/siteverify'
 }
-
-export const PROJECT_NAME = 'Protocol Labs Directory';

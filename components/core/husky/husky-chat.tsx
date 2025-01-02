@@ -19,7 +19,7 @@ interface HuskyChatProps {
   blogId?: string;
   isAnswerLoading: boolean;
 }
-function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onCopyAnswer, onRegenerate, onFeedback, blogId }: HuskyChatProps) {
+function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onCopyAnswer, onRegenerate, onFeedback, blogId }: HuskyChatProps) {  
   return (
     <>
       <div className="huskychat">
@@ -46,7 +46,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
                     mode={mode}
                     answer={chat?.answer}
                   />
-                  <HuskyChatSuggestions isAnswerLoading={isAnswerLoading} chatIndex={index} onFollowupClicked={onFollowupClicked} followupQuestions={chat?.followupQuestions} />
+                  {chat?.followupQuestions?.length > 0 && <HuskyChatSuggestions isAnswerLoading={isAnswerLoading} chatIndex={index} onFollowupClicked={onFollowupClicked} followupQuestions={chat?.followupQuestions} />}
                   {mode !== 'blog' && chat?.actions?.length > 0 && <HuskyChatActions actions={chat?.actions} />}
                 </>
               )}

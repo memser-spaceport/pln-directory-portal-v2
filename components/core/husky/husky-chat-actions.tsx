@@ -20,13 +20,13 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
         </h3>
         <div className="chat-actions__cn ">
           {actions.map((action: any) => (
-            <div className="chat-actions__cn__item" key={action.link}>
+            <div className="chat-actions__cn__item" key={action.directoryLink}>
               <p className="chat-actions__cn__item__name">
-                <img className="actions__cn__item__name__icon" src={action.icon}/>
+                <img className="actions__cn__item__name__icon" src={action.icon || '/icons/default_profile.svg'}/>
                 <span>{action.name}</span>
               </p>
-              <p className="chat-actions__cn__item__desc">{action.desc}</p>
-              <a onClick={() => onActionCardClicked(action)} className="chat-actions__cn__item__link" href={action.link} target="_blank">{`View ${action.type}`}</a>
+              {action.desc && <p className="chat-actions__cn__item__desc">{action.desc}</p>}
+              <a onClick={() => onActionCardClicked(action)} className="chat-actions__cn__item__link" href={action.directoryLink} target="_blank">{`View ${action.type}`}</a>
             </div>
           ))}
         </div>
@@ -75,6 +75,7 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
             width: 17px;
             height: 17px;
             margin-bottom: 1px;
+            border-radius: 50%;
           }
           .chat-actions__cn__item__desc {
             display: -webkit-box;

@@ -152,9 +152,9 @@ export const addProject = async (data: any, authToken: string | undefined) => {
 const formatToSave = (payload: any) => {
 
     const objectToSave: any = {
-        "name": payload?.name.trim(),
-        "tagline": payload?.tagline.trim(),
-        "description": payload?.description.trim(),
+        "name": payload?.name?.trim(),
+        "tagline": payload?.tagline?.trim(),
+        "description": payload?.description?.trim(),
         "lookingForFunding": payload?.lookingForFunding,
         "readMe": payload?.readMe,
         "maintainingTeamUid": payload?.maintainingTeamUid,

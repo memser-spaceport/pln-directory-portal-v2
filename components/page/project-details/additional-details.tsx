@@ -83,7 +83,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
   };
 
   const onCancelAction = () => {
-    analytics.onProjectDetailAdditionalDetailEditCanceled(getAnalyticsUserInfo(userInfo), project?.uid);
+    analytics.onProjectDetailAdditionalDetailEditCanceled(getAnalyticsUserInfo(userInfo), project?.id);
     setText(initialReadme);
     setIsEditorVisible(false);
   };
@@ -92,7 +92,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
     triggerLoader(true);
     analytics.onProjectDetailReadMeEditSaveBtnClicked(getAnalyticsUserInfo(userInfo), project?.id);
     try {
-      const res = await updateProject(project?.uid, { readMe: text }, authToken);
+      const res = await updateProject(project?.id, { readMe: text }, authToken);
       if (res.status === 200 || res.status === 201) {
         triggerLoader(false);
         toast.success('Additional Details updated successfully.');

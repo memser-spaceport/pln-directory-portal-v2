@@ -393,7 +393,7 @@ export const FOCUS_AREAS_FILTER_KEYS = {
 };
 
 export const ITEMS_PER_PAGE = 50;
-export const INITIAL_ITEMS_PER_PAGE = 100;
+export const INITIAL_ITEMS_PER_PAGE = 50
 
 export const ENROLLMENT_TYPE = {
   MEMBER: 'MEMBER',

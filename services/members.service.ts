@@ -137,6 +137,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     isSubscribedToNewsletter: result?.isSubscribedToNewsletter ?? false,
     isVerified: result?.isVerified,
     eventGuests: result?.eventGuests ?? [],
+    telegramUid: result?.telegramUid
   };
 
   if (isLoggedIn) {

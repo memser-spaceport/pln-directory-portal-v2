@@ -38,6 +38,10 @@ async function PrivacyPage() {
     { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
     { text: 'Privacy', url: '/settings/privacy' },
   ];
+  userInfo.telegramDetails = {
+    telegramURL: memberDetails?.data?.formattedData?.telegramHandle,
+    telegramUid:  memberDetails?.data?.formattedData?.telegramUid,
+  };
 
   return (
     <>

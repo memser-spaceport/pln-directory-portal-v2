@@ -181,7 +181,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       if (!memberResult.error) {
         const memberData = memberResult?.data?.formattedData;
         setIsVerifiedMember(memberData?.isVerified)
-        document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: memberData?.telegramHandle, showTelegram } }));
+        document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: memberData?.telegramHandle, showTelegram, telegramUid: memberData.telegramUid } }));
         document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: memberData?.officeHours } }));
         if (updateAll) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));

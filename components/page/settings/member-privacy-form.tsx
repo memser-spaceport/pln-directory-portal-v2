@@ -3,11 +3,12 @@ import CustomToggle from '@/components/form/custom-toggle';
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import SettingsAction from './actions';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import ActionRequired from './action-required';
 
 function MemberPrivacyForm(props: any) {
   const uid = props?.uid;
@@ -200,15 +201,18 @@ function MemberPrivacyForm(props: any) {
             </h2>
             <div className="pf__fields">
               {prefForm.items.map((pref: any) => (
-                <div className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`} key={`pref-${pref.name}`}>
-                  <div>
-                    <CustomToggle disabled={!settings[pref.name]} onChange={onItemChange} name={pref.name} id={`privacy-${pref.name}`} defaultChecked={memberSettings[pref.name] ?? true} />
+                <Fragment key={`pref-${pref.name}`}>
+                  <div className={`pf__fields__item ${!settings[pref.name] ? 'pf__fields__item--disabled' : ''}`}>
+                    <div>
+                      <CustomToggle disabled={!settings[pref.name]} onChange={onItemChange} name={pref.name} id={`privacy-${pref.name}`} defaultChecked={memberSettings[pref.name] ?? true} />
+                    </div>
+                    <div className="pf__field__item__cn">
+                      <label className="pf__field__item__cn__label">{pref.title}</label>
+                      <div className="pf__field__item__cn__info">{pref.info}</div>
+                    </div>
                   </div>
-                  <div className="pf__field__item__cn">
-                    <label className="pf__field__item__cn__label">{pref.title}</label>
-                    <div className="pf__field__item__cn__info">{pref.info}</div>
-                  </div>
-                </div>
+                  {pref.name === 'telegram' && !userInfo.telegramDetails.telegramUid && <ActionRequired />}
+                </Fragment>
               ))}
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
+import Modal from '@/components/core/modal';
 import { IIrlLocation } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsLocationInfo, getAnalyticsUserInfo, getTelegramUsername, removeAtSymbol } from '@/utils/common.utils';
@@ -22,9 +23,11 @@ const TelegramHandle = (props: ITelegramHandle) => {
 
   const [isTelegramNote, setIsTelegramNote] = useState(false);
   const [telegramId, setTelegramId] = useState('');
+  const [telegramUId, setTelegramUId] = useState('');
   const [isHiddenTelegram, setIsHiddenTelegram] = useState(false);
   const telegramRef: any = useRef(null);
   const analytics = useIrlAnalytics();
+  const actionReqModalRef = useRef<HTMLDialogElement>(null);
 
   const handleChange = (e: any) => {
     setTelegramId(e.target.value);
@@ -45,6 +48,7 @@ const TelegramHandle = (props: ITelegramHandle) => {
   useEffect(() => {
     function handler(e: any) {
       const formattedValue = removeAtSymbol(e?.detail?.telegramHandle || "");
+      setTelegramUId(e.detail.telegramUid);
       setTelegramId(getTelegramUsername(formattedValue));
       setIsHiddenTelegram(!e.detail?.showTelegram);
     }
@@ -77,6 +81,15 @@ const TelegramHandle = (props: ITelegramHandle) => {
     }
   }, [])
 
+  const onCloseActionReqModal = () => {
+    actionReqModalRef.current?.close();
+  };
+
+  const onClickHere = () => {
+    if (actionReqModalRef.current) {
+      actionReqModalRef.current.showModal();
+    }
+  };
 
   return (
     <>
@@ -93,6 +106,21 @@ const TelegramHandle = (props: ITelegramHandle) => {
           onBlur={() => onFocusBlur()}
           ref={telegramRef}
         />
+        {!telegramUId && telegramId && (
+          <div className="details__cn__telegram__required__alert">
+            <div className="details__cn__telegram__required__alert__fr">
+              <img src="/icons/info-blue.svg" alt="info-blue" />
+              <div className="details__cn__telegram__required__alert__fr__info">Additional step required to receive notifications</div>
+            </div>
+            <p className="details__cn__telegram__required__alert__info">
+              You’ve enabled notifications for this gathering. To receive updates to your handle, please{' '}
+              <span className="details__cn__telegram__required__alert__info__click" onClick={onClickHere}>
+                click here
+              </span>{' '}
+              or go to your privacy settings to complete the required step.
+            </p>
+          </div>
+        )}
         <span className="details__cn__telegram__handle">@</span>
         {isHiddenTelegram && (
           <div className="details__cn__telegram__info">
@@ -115,7 +143,12 @@ const TelegramHandle = (props: ITelegramHandle) => {
           </div>
         )}
       </div>
-
+      <Modal modalRef={actionReqModalRef} onClose={onCloseActionReqModal}>
+        <div className="action__required___modal">
+          Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley
+          of type and scrambled it to make a type specimen boo
+        </div>
+      </Modal>
       <style jsx>
         {`
           .details__cn__telegram {
@@ -154,6 +187,33 @@ const TelegramHandle = (props: ITelegramHandle) => {
             color: #aab0b8;
           }
 
+          .details__cn__telegram__required__alert {
+            background-color: #dbeafe;
+            padding: 12px;
+            border-radius: 8px;
+          }
+          .details__cn__telegram__required__alert__fr {
+            display: flex;
+            align-items: center;
+          }
+          .details__cn__telegram__required__alert__fr__info {
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 24px;
+            color: #000000;
+            margin-left: 5px;
+          }
+          .details__cn__telegram__required__alert__info {
+            font-size: 14px;
+            font-weight: 400;
+            color: #000000;
+            line-height: 24px;
+            margin-top: 4px;
+          }
+          .details__cn__telegram__required__alert__info__click {
+            color: #156ff7;
+            cursor: pointer;
+          }
           .details__cn__telegram__handle {
             position: absolute;
             top: 39px;
@@ -204,6 +264,15 @@ const TelegramHandle = (props: ITelegramHandle) => {
             font-size: 14px;
             line-height: 20px;
             color: #0f172a;
+          }
+          .action__required___modal {
+            width: 50vw;
+            background: #ffffff;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 85vh;
           }
         `}
       </style>

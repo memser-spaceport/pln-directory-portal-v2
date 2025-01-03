@@ -26,6 +26,7 @@ interface HuskyAiProps {
   isLoggedIn: boolean;
   blogId?: string;
   onClose?: () => void;
+  authToken: string;
 }
 
 interface Chat {
@@ -41,7 +42,7 @@ const DEFAULT_TAB_ITEMS = [
 
 // This component represents the Husky AI interface, allowing users to interact with the AI in chat or blog modes.
 
-function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose }: HuskyAiProps) {
+function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose, authToken }: HuskyAiProps) {
   const [activeTab, setActiveTab] = useState<string>(DEFAULT_TAB_ITEMS[0].key);
   const [chats, setChats] = useState<Chat[]>(initialChats);
   const [isLoading, setLoadingStatus] = useState<boolean>(false);
@@ -55,36 +56,6 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const chatCnRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { trackTabSelection, trackUserPrompt, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse } = useHuskyAnalytics();
-  
-  const {
-    object,
-    isLoading: isLoadingObject,
-    submit,
-    error,
-  } = experimental_useObject({
-    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/assistant`,
-    schema: z.object({
-      content: z.string(),
-      followUpQuestions: z.array(z.string()),
-      sources: z.array(z.string()).optional(),
-      actions: z
-        .array(
-          z.object({
-            name: z.string(),
-            directoryLink: z.string(),
-            type: z.string(),
-          })
-        )
-        .optional(),
-    }),
-    onFinish: (data) => {
-      console.log(data);
-    },
-    onError: (error) => {
-      console.error(error);
-      setAnswerLoadingStatus(false);
-    }
-  });
 
   // Handles the selection of a tab in the UI
   const onTabSelected = (item: string) => {
@@ -134,6 +105,41 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       userInfo: newUserInfo,
     };
   };
+
+
+  const {
+    object,
+    isLoading: isLoadingObject,
+    submit,
+    error,
+  } = experimental_useObject({
+    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/assistant`,
+    headers: {
+      "Authorization": `Bearer ${authToken}`,
+      "Content-Type": "application/json",
+    },
+    schema: z.object({
+      content: z.string(),
+      followUpQuestions: z.array(z.string()),
+      sources: z.array(z.string()).optional(),
+      actions: z
+        .array(
+          z.object({
+            name: z.string(),
+            directoryLink: z.string(),
+            type: z.string(),
+          })
+        )
+        .optional(),
+    }),
+    onFinish: (data) => {
+      console.log(data);
+    },
+    onError: (error) => {
+      console.error(error);
+      setAnswerLoadingStatus(false);
+    }
+  });
 
   // Checks and sets the prompt ID for the current chat session
   const checkAndSetPromptId = () => {
@@ -229,12 +235,20 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       const chatUid = checkAndSetPromptId();
       setAskingQuestion(question);
       setAnswerLoadingStatus(true);
+
+      const previousQues = chats.length === 1 ? chats[0].question : null;
+      const previousAns = chats.length === 1 ? chats[0].answer : null;
+
       await submit({
         uid: chatUid,
         question,
         ...(userInfo?.name && { name: userInfo?.name }),
         ...(userInfo?.email && { email: userInfo?.email }), 
         ...(userInfo?.uid && { directoryId: userInfo?.uid }),
+        ...( mode === 'blog' && { chatSummary: {
+          user: previousQues,
+          system: previousAns
+        }}),
         source: selectedSource,
       });
       // const result = await getHuskyResponse(userInfo, authToken, question, selectedSource, chatUid, mode === 'blog' && chats.length === 1 ? chats[0].question : null, mode === 'blog' && chats.length === 1 ? chats[0].answer : null, mode === 'blog'); // Fixed function name
@@ -414,7 +428,6 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
       {mode === 'blog' && (      
         <div className="huskyai" data-testid="husky-ai-blog">
-          sec 2
           <div ref={chatCnRef} className="huskyai__cn" data-testid="blog-chat-container">
             <HuskyChat
               onFeedback={onFeedback}

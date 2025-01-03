@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 function HuskyDialog(props:any) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const isLoggedIn = props?.isLoggedIn;
+  const authToken = props?.authToken;
   const [isOpen, setIsOpen] = useState(false);
 
   const onDialogClose = () => {
@@ -34,7 +35,7 @@ function HuskyDialog(props:any) {
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">
-          {isOpen && <HuskyAi onClose={onDialogClose} isLoggedIn={isLoggedIn} />}
+          {isOpen && <HuskyAi onClose={onDialogClose} isLoggedIn={isLoggedIn} authToken={authToken} />}
         </div>
       </dialog>
       <style jsx>

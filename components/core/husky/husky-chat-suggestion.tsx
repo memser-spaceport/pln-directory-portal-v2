@@ -70,6 +70,7 @@ function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowu
             font-weight: 400;
             cursor: pointer;
             padding: 8px 14px;
+            border-radius: 8px;
           }
         `}
       </style>

@@ -36,7 +36,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
                     shareCount={chat?.shareCount}
                     question={chat?.question}
                   />
-                  <HuskyChatAnswer
+                  {chat.answer && <HuskyChatAnswer
                     onCopyAnswer={onCopyAnswer}
                     onFeedback={onFeedback}
                     onRegenerate={onRegenerate}
@@ -45,7 +45,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
                     question={chat?.question}
                     mode={mode}
                     answer={chat?.answer}
-                  />
+                  />}
                   {chat?.followupQuestions?.length > 0 && <HuskyChatSuggestions isAnswerLoading={isAnswerLoading} chatIndex={index} onFollowupClicked={onFollowupClicked} followupQuestions={chat?.followupQuestions} />}
                   {mode !== 'blog' && chat?.actions?.length > 0 && <HuskyChatActions actions={chat?.actions} />}
                 </>

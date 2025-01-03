@@ -3,9 +3,9 @@ function HuskyAnswerLoader(props: any) {
   return (
     <>
       <div id="answer-loader" className="husky-loader">
-        <div className="husky-loader__ques">
+        {/* <div className="husky-loader__ques">
           <h2>{question}</h2>
-        </div>
+        </div> */}
         <div className="huksy-loader__body">
           <div className="husky-loader__sources">
             <div className="husky-loader__ans__line"></div>

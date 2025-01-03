@@ -308,6 +308,26 @@ dialog {
   width: 32px !important;
 }
 
+.contributors__body__list__contributor__img {
+  border-radius: 50%;
+  height: 32px !important;
+  width: 32px !important;
+  object-fit: cover;
+}
+
+.contributors__body__list__contributor__img:hover {
+  border: 2px solid #156ff7;
+}
+
+.contributor__info__img {
+  border: 1px solid #e2e8f0;
+  color: #e2e8f0;
+  object-fit: cover;
+  border-radius: 50%;
+  height: 40px !important;
+  width: 40px !important;
+}
+
 @media (min-width: 1024px) {
   
   .team-grid__profile-container__profile {

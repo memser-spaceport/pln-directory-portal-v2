@@ -1,6 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import Image from 'next/image';
 
 const ProjectListView = (props: any) => {
   //props
@@ -19,7 +20,7 @@ const ProjectListView = (props: any) => {
       <>
         <div className="projectlist">
           <div className="projectlistt__profile">
-            <img loading='eager' className="projectlist__profile__img" alt="profile" src={profile} />
+            <Image alt="profile" height={72} width={72} layout="intrinsic" loading="eager" priority={true} className="projectlist__profile__img" src={profile} />
           </div>
           <div className="projectlist__details">
             <div className="projectlist__details__cn">
@@ -39,7 +40,8 @@ const ProjectListView = (props: any) => {
             </div>
 
             <div className="projectlist__details__maintainer">
-              <img className="projectlist__details__maintainer__img" alt="img" src={maintainerLogo} />
+              <Image alt="maintainer" height={36} width={36} layout="intrinsic" loading="eager" priority={true} className="projectlist__details__maintainer__img" src={maintainerLogo} />
+
               <div className="projectlist__details__maintainer__cn">
                 <p className="projectlist__details__maintainer__cn__name">{maintainerName}</p>
                 <p className="projectlist__details__maintainer__cn__title">Maintainer</p>
@@ -76,14 +78,6 @@ const ProjectListView = (props: any) => {
 
             .projectlistt__profile {
               position: relative;
-            }
-
-            .projectlist__profile__img {
-              height: 32px;
-              width: 32px;
-              background-color: #e2e8f0;
-              border-radius: 4px;
-              border: 1px solid #e2e8f0;
             }
 
             .projectlist__details {
@@ -192,11 +186,6 @@ const ProjectListView = (props: any) => {
               .projectlist__maintainer {
               }
 
-              .projectlist__profile__img {
-                height: 72px;
-                width: 72px;
-              }
-
               .projectlist__details__maintainer {
                 display: flex;
                 align-items: center;
@@ -220,16 +209,6 @@ const ProjectListView = (props: any) => {
                 line-height: 20px;
                 color: #94a3b8;
                 text-align: left;
-              }
-
-              .projectlist__details__maintainer__img {
-                height: 36px;
-                width: 36px;
-                border-radius: 4px;
-                border: 1px solid #cbd5e1;
-                background-color: #e2e8f0;
-                border-radius: 4px;
-                border: 1px solid #e2e8f0;
               }
 
               .projectlist__details {

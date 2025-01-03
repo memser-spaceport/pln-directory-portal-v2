@@ -5,7 +5,8 @@ import { sortPastEvents, transformMembers } from '@/utils/irl.utils';
 
 export const getAllLocations = async () => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations`, {
-    cache: 'no-store',
+    cache: 'force-cache',
+    next: { tags: ['irl-locations'] },
     method: 'GET',
     headers: getHeader(''),
   });
@@ -27,7 +28,8 @@ export const getAllLocations = async () => {
 
 const fetchGuests = async (url: string, authToken: string) => {
   const response = await fetch(url, {
-    cache: 'no-store',
+    cache: 'force-cache',
+    next: { tags: ['irl-guests'] },
     method: 'GET',
     headers: getHeader(authToken),
   });
@@ -122,7 +124,8 @@ export const editEventGuest = async (locationId: string, guestUid: string, paylo
 
 export const getGuestEvents = async (locationId: string, authToken: string,) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/me/events`, {
-    cache: 'no-store',
+    cache: 'force-cache',
+    next: { tags: ['irl-guest-events'] },
     method: 'GET',
     headers: getHeader(authToken),
   });
@@ -132,7 +135,8 @@ export const getGuestEvents = async (locationId: string, authToken: string,) => 
 
 export const getTopicsByLocation = async (locationId: string, type: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/topics?type=${type}`, {
-    cache: 'no-store',
+    cache: 'force-cache',
+    next: { tags: ['irl-locations-topic'] },
     method: 'GET',
     headers: getHeader(''),
   });

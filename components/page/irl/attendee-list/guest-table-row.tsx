@@ -15,6 +15,7 @@ import GuestDescription from './guest-description';
 import { IGuest, IIrlEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { SyntheticEvent } from 'react';
+import Image from 'next/image';
 
 interface IGuestTableRow {
   guest: IGuest;
@@ -178,7 +179,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           <Link passHref legacyBehavior href={`/members/${guestUid}`}>
             <a target="_blank" className="gtr__guestName__li" onClick={() => onMemberClick(guestUid, guestName)}>
               <div className="gtr__guestName__li__imgWrpr">
-                <img title={guestName} width={32} height={32} alt="member image" src={guestLogo} loading="lazy" className="gtr__guestName__li__img" />
+                <Image alt="profile" loading='eager' height={32} width={32} layout='intrinsic' priority={true} className="gtr__guestName__li__img" src={guestLogo}   />
               </div>
               <div className="gtr__guestName__li__txtWrpr">
                 <div title={guestName} className="gtr__guestName__li__txt ">
@@ -283,7 +284,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
           {teamUid ? <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
             <a target="_blank" className="gtr__team__link" onClick={() => onTeamClick(teamUid, teamName)}>
               <div className="gtr__team__link__imgWrpr">
-                <img title={teamName} className="gtr__team__link__img" width={32} height={32} alt="team logo" src={teamLogo} loading="lazy" />
+                <Image alt="profile" loading='eager' height={32} width={32} layout='intrinsic' priority={true} className="gtr__team__link__img" src={teamLogo}   />
               </div>
               <div>
                 <div title={teamName} className="break-word">
@@ -475,11 +476,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
           border-radius: 58px;
         }
 
-        .gtr__guestName__li__img {
-          border-radius: 58px;
-          background-color: #e5e7eb;
-          object-fit: cover;
-        }
 
         .gtr__guestName__li__txtWrpr {
           display: flex;
@@ -613,11 +609,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
           min-width: 32px;
           background: #e2e8f0;
           border-radius: 4px;
-        }
-
-        .gtr__team__link__img {
-          border-radius: 4px;
-          object-fit: cover;
         }
 
         .gtr__attending {

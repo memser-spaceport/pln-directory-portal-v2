@@ -76,7 +76,7 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
                   <div className="contributor">
                     <div className="contributor__info">
                       <div className="contributor__info__imgWrpr">
-                        <img width={40} height={40} src={contributor.logo || '/icons/default_profile.svg'} alt="image" className="contributor__info__img" />
+                        <Image alt="profile" width={40} height={40} layout='intrinsic' loading='eager' priority={true}  className="contributor__info__img" src={contributor.logo || '/icons/default_profile.svg'}  />
                         {contributor?.teamLead && <img src="/icons/badge/team-lead.svg" className="contributor__info__teamlead" alt="team lead image" width={16} height={16} />}
                       </div>
                       <div className="contributor__info__name">{contributor?.name}</div>
@@ -182,13 +182,6 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
 
         .contributor__info__imgWrpr {
           position: relative;
-        }
-
-        .contributor__info__img {
-          border: 1px solid #e2e8f0;
-          color: #e2e8f0;
-          object-fit: cover;
-          border-radius: 50%;
         }
 
         .contributor__info__name {

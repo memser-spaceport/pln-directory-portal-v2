@@ -205,3 +205,193 @@ dialog {
 .tox.tox-tinymce-aux {
   z-index: 4000;
 }
+
+.member-grid__profile-container__outer-section__inner-circle__profile {
+  height: 36px;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  object-fit: cover;
+  object-position: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+}
+
+.team-grid__profile-container__profile {
+  height: 36px;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  position: absolute;
+  background-color: #e2e8f0;
+  right: 0;
+  left: 0;
+  margin: auto;
+  top: 13px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.projectgrid__profile__img {
+  height: 36px;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  position: absolute;
+  background-color: #e2e8f0;
+  right: 0;
+  left: 0;
+  margin: auto;
+  top: 13px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.member-list-view__profile {
+  border: 1px solid #e2e8f0;
+  border-radius: 100%;
+  width: 32px;
+  height: 32px !important;
+  min-width: 32px;
+  min-height: 32px !important;
+  position: absolute;
+}
+
+.team-list__profile-container__profile {
+  height: 32px !important;
+  width: 32px;
+  min-width: 32px;
+  min-height: 32px !important;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.projectlist__profile__img {
+  height: 32px !important;
+  width: 32px;
+  min-width: 32px;
+  min-height: 32px !important;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.projectgrid__maintainer__img {
+  height: 28px !important;
+  width: 28px;
+  min-width: 28px;
+  min-height: 28px !important;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.gtr__guestName__li__img {
+  border-radius: 58px;
+  background-color: #e5e7eb;
+  object-fit: cover;
+  height: 32px !important;
+  width: 32px !important;
+}
+
+.gtr__team__link__img {
+  border-radius: 4px;
+  object-fit: cover;
+  height: 32px !important;
+  width: 32px !important;
+}
+
+.contributors__body__list__contributor__img {
+  border-radius: 50%;
+  height: 32px !important;
+  width: 32px !important;
+  object-fit: cover;
+}
+
+.contributors__body__list__contributor__img:hover {
+  border: 2px solid #156ff7;
+}
+
+.contributor__info__img {
+  border: 1px solid #e2e8f0;
+  color: #e2e8f0;
+  object-fit: cover;
+  border-radius: 50%;
+  height: 40px !important;
+  width: 40px !important;
+}
+
+@media (min-width: 1024px) {
+  
+  .team-grid__profile-container__profile {
+    height: 72px !important;
+    width: 72px;
+    min-width: 72px;
+    min-height: 72px !important;
+    top: 20px;
+  }
+
+  .projectgrid__profile__img {
+    height: 72px !important;
+    width: 72px;
+    min-width: 72px;
+    min-height: 72px !important;
+    top: 20px;
+  }
+
+  .member-list-view__profile {
+    width: 72px;
+    height: 72px !important;
+    min-width: 72px;
+    min-height: 72px !important;
+    position: unset;
+  }
+
+  .team-list__profile-container__profile {
+    height: 72px !important;
+    width: 72px;
+    min-width: 72px;
+    min-height: 72px !important;
+  }
+
+  .projectlist__profile__img {
+    height: 72px !important;
+    width: 72px;
+    min-width: 72px;
+    min-height: 72px !important;
+  }
+
+  .member-grid__profile-container__outer-section__inner-circle__profile {
+    height: 72px !important;
+    width: 72px;
+    min-width: 72px;
+    min-height: 72px !important;
+  }
+
+  .projectgrid__maintainer__img {
+    height: 36px !important;
+    width: 36px;
+    min-width: 36px;
+    min-height: 36px !important;
+  }
+
+  .projectlist__details__maintainer__img {
+    height: 36px !important;
+    width: 36px;
+    min-height: 36px !important;
+    min-width: 36px !important;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    background-color: #e2e8f0;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+  }
+
+}

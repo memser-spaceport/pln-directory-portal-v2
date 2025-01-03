@@ -14,6 +14,7 @@ import { getProjectSelectOptions, getProjectsFiltersFromQuery } from '@/utils/pr
 import ProjectAddCard from './project-add-card';
 import TableLoader from '@/components/core/table-loader';
 import { getAllProjects } from '@/app/actions/projects.actions';
+import useListPagination from '@/hooks/use-list-pagination';
 
 const ProjectlistWrapper = (props: any) => {
   const searchParams = props?.searchParams;
@@ -30,7 +31,7 @@ const ProjectlistWrapper = (props: any) => {
   const paginationRef = useRef(null);
   const [isloading, setIsLoading] = useState(false);
 
-  const { currentPage, limit, setPagination } = usePagination({
+  const { currentPage, limit, setPagination } = useListPagination({
     observerTargetRef: paginationRef,
     totalItems: totalProjects,
     totalCurrentItems: allProjects?.length,
@@ -53,7 +54,7 @@ const ProjectlistWrapper = (props: any) => {
 
   const getProjects = async () => {
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
       const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
       const selectOpitons = getProjectSelectOptions(filterFromQuery);
 
@@ -63,14 +64,14 @@ const ProjectlistWrapper = (props: any) => {
         ITEMS_PER_PAGE
       );
       if (!projectsResponse?.error) {
-        setIsLoading(false);
+        // setIsLoading(false);
         setAllProjects([...allProjects, ...projectsResponse?.data?.formattedData]);
         return;
       } else {
-        setIsLoading(false);
+        // setIsLoading(false);
       }
     } catch (error) {
-      setIsLoading(false);
+      // setIsLoading(false);
       console.error(error);
     }
   };
@@ -83,7 +84,7 @@ const ProjectlistWrapper = (props: any) => {
 
   // Sync  eventDetails changes
   useEffect(() => {
-    setPagination({ page: 1, limit: 10 });
+    setPagination({ page: 2, limit: ITEMS_PER_PAGE });
     setAllProjects([...projects]);
   }, [projects]);
 

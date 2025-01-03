@@ -163,6 +163,3 @@ function fetchItemsFromArrays(arr1: Item[], arr2: Item[], arr3: Item[]): Item[] 
 
   return items;
 }
-
-
-

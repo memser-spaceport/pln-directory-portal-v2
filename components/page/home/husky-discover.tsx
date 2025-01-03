@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import cookies from 'js-cookie'
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { getHuskyResponseBySlug, incrementHuskyViewCount } from '@/services/home.service';
+import { getHuskyResponseBySlug, incrementHuskyViewCount } from '@/services/discovery.service';
 
 let huskyRecorded = false;
 

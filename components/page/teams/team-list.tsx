@@ -12,6 +12,7 @@ import usePagination from '@/hooks/irl/use-pagination';
 import TeamListView from './team-list-view';
 import TableLoader from '@/components/core/table-loader';
 import { getTeamList } from '@/app/actions/teams.actions';
+import useListPagination from '@/hooks/use-list-pagination';
 
 interface ITeamList {
   totalTeams: number;
@@ -40,12 +41,12 @@ const TeamList = (props: any) => {
   const getAllTeams = async () => {
     const toast = (await import('react-toastify')).toast;
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
       const optionsFromQuery = getTeamsOptionsFromQuery(searchParams);
       const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
       const teamsRes = await getTeamList(listOptions, currentPage);
       if (teamsRes.isError) {
-        setIsLoading(false);
+        // setIsLoading(false);
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
         return;
       }
@@ -53,13 +54,13 @@ const TeamList = (props: any) => {
     } catch (error) {
       console.error('Error in fetching teams', error);
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-      setIsLoading(false);
+      // setIsLoading(false);
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   };
 
-  const { currentPage, setPagination } = usePagination({
+  const { currentPage, setPagination } = useListPagination({
     observerTargetRef: observerTarget,
     totalItems: totalTeams,
     totalCurrentItems: teamList?.teams?.length,
@@ -77,7 +78,7 @@ const TeamList = (props: any) => {
 
   // Sync team list
   useEffect(() => {
-    setPagination({ page: 1, limit: ITEMS_PER_PAGE });
+    setPagination({ page: 2, limit: ITEMS_PER_PAGE });
     setTeamList({ teams: allTeams, totalTeams: totalTeams });
   }, [allTeams]);
 
@@ -93,7 +94,7 @@ const TeamList = (props: any) => {
             className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid__team' : 'team-list__list__team'}`}
             onClick={(e) => onTeamClickHandler(e, team)}
           >
-            <Link href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
+            <Link prefetch={false} href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
               {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}
               {VIEW_TYPE_OPTIONS.LIST === viewType && <TeamListView team={team} viewType={viewType} />}
             </Link>

@@ -5,6 +5,7 @@ import { ITag, ITeam } from "@/types/teams.types";
 import { Fragment } from "react";
 import { Tooltip } from "../../core/tooltip/tooltip";
 import { Tag } from "../../ui/tag";
+import Image from "next/image";
 
 
 interface ITeamListView {
@@ -23,7 +24,7 @@ const TeamListView = (props: ITeamListView) => {
     <>
       <div className="team-list">
         <div className="team-list__profile-container">
-          <img loading="eager" className="team-list__profile-container__profile" alt="profile" src={profile} />
+        <Image alt="profile" loading="eager" height={72} width={72} layout='intrinsic' priority={true} className="team-list__profile-container__profile" src={profile} />
         </div>
         <div className="team-list__details-container">
           <div className="team-list__details-container__team-detail">
@@ -79,14 +80,6 @@ const TeamListView = (props: ITeamListView) => {
             outline-offset: 0;
             outline-color: #156ff7;
             box-shadow: 0px 0px 0px 2px #156ff740;
-          }
-
-          .team-list__profile-container__profile {
-            height: 32px;
-            width: 32px;
-            background-color: #e2e8f0;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
           }
 
           .team-list__details-container {
@@ -167,10 +160,6 @@ const TeamListView = (props: ITeamListView) => {
               flex-wrap: wrap;
             }
 
-            .team-list__profile-container__profile {
-              height: 72px;
-              width: 72px;
-            }
           }
         `}
       </style>

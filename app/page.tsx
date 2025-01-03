@@ -1,6 +1,6 @@
 import styles from './page.module.css';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getDiscoverData, getFeaturedData } from '@/services/home.service';
+import { getDiscoverData } from '@/services/discovery.service';
 import Error from '@/components/core/error';
 import Featured from '@/components/page/home/featured/featured';
 import Discover from '@/components/page/home/discover/discover';
@@ -12,6 +12,7 @@ import HuskyDiscover from '@/components/page/home/husky-discover';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
+import { getFeaturedData } from '@/services/featured.service';
 
 export default async function Home() {
   const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();

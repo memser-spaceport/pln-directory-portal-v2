@@ -2,7 +2,7 @@ import { getHeader} from "@/utils/common.utils"
 
 
 export const getProject = async (id: string, options: any) => {
-    const requestOPtions: RequestInit = { method: "GET", headers: getHeader(""), cache: "no-store" };
+    const requestOPtions: RequestInit = { method: "GET", headers: getHeader(""), cache: 'force-cache',next: { tags: ['project-detail'] }, };
     const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/projects/${id}?${new URLSearchParams(options)}`, requestOPtions);
     if (!response?.ok) {
         return { error: { statusText: response?.statusText } }
@@ -152,9 +152,9 @@ export const addProject = async (data: any, authToken: string | undefined) => {
 const formatToSave = (payload: any) => {
 
     const objectToSave: any = {
-        "name": payload?.name.trim(),
-        "tagline": payload?.tagline.trim(),
-        "description": payload?.description.trim(),
+        "name": payload?.name?.trim(),
+        "tagline": payload?.tagline?.trim(),
+        "description": payload?.description?.trim(),
         "lookingForFunding": payload?.lookingForFunding,
         "readMe": payload?.readMe,
         "maintainingTeamUid": payload?.maintainingTeamUid,
@@ -179,7 +179,7 @@ const formatToSave = (payload: any) => {
 }
 
 export const getProjectOsoDetails = async (name: string) => {
-    const requestOptions: RequestInit = { method: "GET", headers: getHeader(""), cache: "no-store" };
+    const requestOptions: RequestInit = { method: "GET", headers: getHeader(""), cache: "force-cache", next: { tags: ['project-oso'] } };
     const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/oso-metrics/${name}`, requestOptions);
     if (!response?.ok) {
         return { error: { statusText: response?.statusText } }

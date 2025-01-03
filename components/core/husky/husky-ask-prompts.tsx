@@ -1,7 +1,7 @@
 // This component allows users to select prompts based on a selected topic and search for specific prompts.
 
 import SingleSelectWithImage from '@/components/form/single-select-with-image';
-import { getIrlPrompts, getProjectsPrompts, getTeamPrompts } from '@/services/home.service';
+import { getIrlPrompts, getTeamPrompts, getProjectsPrompts } from '@/services/discovery.service';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface HuskyAskPromptsProps {

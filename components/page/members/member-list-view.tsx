@@ -5,6 +5,7 @@ import { Tag } from '@/components/ui/tag';
 import { IMember } from '@/types/members.types';
 import { parseMemberLocation } from '@/utils/member.utils';
 import MemberSkillList from './member-skill-list';
+import Image from 'next/image';
 
 interface IMemberListView {
   member: IMember;
@@ -25,8 +26,7 @@ const MemberListView = (props: IMemberListView) => {
   return (
     <>
       <div className="member-list-view">
-        <img loading='eager' src={profileUrl} alt="user-profile" height={72} width={72} className="member-list-view__profile" />
-
+        <Image alt='profile'  height={72} width={72} layout='intrinsic' loading='eager' priority={true} className="member-list-view__profile" src={profileUrl}   />
         <div className="member-list-view__details-section">
           <div className="member-list-view__details-section__right">
             <div className="member-list-view__details-section__name-container">
@@ -139,14 +139,6 @@ const MemberListView = (props: IMemberListView) => {
             outline-offset: 0;
             outline-color: #156ff7;
             box-shadow: 0px 0px 0px 2px #156ff740;
-          }
-
-          .member-list-view__profile {
-            border: 1px solid #e2e8f0;
-            border-radius: 100%;
-            width: 32px;
-            height: 32px;
-            position: absolute;
           }
 
           .member-list-view__details-section__right {
@@ -301,11 +293,7 @@ const MemberListView = (props: IMemberListView) => {
               justify-content: space-between;
             }
 
-            .member-list-view__profile {
-              width: 72px;
-              height: 72px;
-              position: unset;
-            }
+
 
             .member-list-view__details-section__right__work-detail__team__role {
               max-width: 400px;

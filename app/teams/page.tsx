@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 
 import {getTeamListFilters } from '@/services/teams.service';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { INITIAL_ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getTeamsListOptions, getTeamsOptionsFromQuery, processFilters } from '@/utils/team.utils';
 import EmptyResult from '../../components/core/empty-result';
@@ -58,7 +58,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     const listOptions: ITeamListOptions = getTeamsListOptions(optionsFromQuery);
 
     const [teamListResponse, teamListFiltersResponse, teamListFiltersForOptionsResponse, focusAreaResponse] = await Promise.all([
-      getTeamList(listOptions),
+      getTeamList(listOptions, 1, INITIAL_ITEMS_PER_PAGE),
       getTeamListFilters({}),
       getTeamListFilters(listOptions),
       getFocusAreas("Team",searchParams),

@@ -5,6 +5,7 @@ import AllContributorsModal from './all-contributors-modal';
 import { EVENTS } from '@/utils/constants';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import Image from 'next/image';
 
 interface IContributors {
   contributors: any[];
@@ -48,7 +49,7 @@ const Contributors = (props: IContributors) => {
             {contributorsLength > 0 &&
               slicedContributors.map((contributor: any, index: number) => (
                 <button key={`contributor-${index}`} className="contributors__body__list__contributor" title={contributor?.name} onClick={() => onContributorClick(contributor)}>
-                  <img width={32} height={32} className="contributors__body__list__contributor__img" src={contributor.logo || '/icons/default_profile.svg'} />
+                  <Image alt="profile" width={32} height={32} layout='intrinsic' loading='eager' priority={true}  className="contributors__body__list__contributor__img" src={contributor.logo || '/icons/default_profile.svg'} />
                 </button>
               ))}
             {contributorsLength > 20 && (
@@ -113,15 +114,6 @@ const Contributors = (props: IContributors) => {
 
         .contributors__body__list__contributor {
           cursor: pointer;
-        }
-
-        .contributors__body__list__contributor__img {
-          border-radius: 50%;
-          object-fit: cover;
-        }
-
-        .contributors__body__list__contributor__img:hover {
-          border: 2px solid #156ff7;
         }
 
         .contributors__body__list__remaining {

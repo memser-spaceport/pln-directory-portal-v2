@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 interface IKpis {
   kpis: any[];
@@ -15,7 +17,9 @@ const KPIs = (props: IKpis) => {
           {kpis?.map((kpi: any, index: number) => (
             <div className="kpi" key={`kpi-${index}`}>
               <span className="kpi__value">{kpi.value}</span>
-              <span className="kpi__name">{kpi.key}</span>
+              <span className="kpi__name">{kpi?.key}</span>
+              {/* <Tooltip asChild trigger={<span className="kpi__value">{kpi.value}</span>} content={kpi?.value} />
+              <Tooltip asChild trigger={<span className="kpi__name">{kpi?.key}</span>} content={kpi?.value} /> */}
             </div>
           ))}
         </div>
@@ -61,6 +65,12 @@ const KPIs = (props: IKpis) => {
           font-weight: 700;
           line-height: 32px;
           letter-spacing: 0px;
+          text-overflow: hidden;
+          white-space: nowrap;
+          overflow: hidden;
+          width: -webkit-fill-available;
+          text-align: center;
+          text-overflow: ellipsis;
           color: #000000;
         }
 
@@ -86,7 +96,7 @@ const KPIs = (props: IKpis) => {
           }
 
           .kpi {
-            width: ${kpis.length === 1 ? "50%" : "unset"};
+            width: ${kpis.length === 1 ? '50%' : 'unset'};
           }
         }
       `}</style>

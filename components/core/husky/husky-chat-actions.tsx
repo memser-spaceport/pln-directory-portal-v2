@@ -20,19 +20,37 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
         </h3>
         <div className="chat-actions__cn ">
           {actions.map((action: any) => (
-            <div className="chat-actions__cn__item" key={action.directoryLink}>
+            <a target="_blank" href={action.directoryLink} onClick={() => onActionCardClicked(action)}  className="chat-actions__cn__item" key={action.directoryLink}>
+              <div></div>
+              <div className="center">
               <p className="chat-actions__cn__item__name">
-                <img className="actions__cn__item__name__icon" src={action.icon || '/icons/default_profile.svg'}/>
                 <span>{action.name}</span>
               </p>
-              {action.desc && <p className="chat-actions__cn__item__desc">{action.desc}</p>}
-              <a onClick={() => onActionCardClicked(action)} className="chat-actions__cn__item__link" href={action.directoryLink} target="_blank">{`View ${action.type}`}</a>
-            </div>
+              <p className="chat-action-type">{`(${action.type})`}</p>
+              </div>
+              <div></div>
+              
+             
+            </a>
           ))}
         </div>
       </div>
       <style jsx>
         {`
+          
+          .center {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          
+          }
+
+          .chat-action-type {
+           text-transform: capitalize;
+           margin-top: 3px;
+           width: fit-content;
+          }
           .chat-actions {
             width: 100%;
           }
@@ -56,12 +74,13 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
           }
           .chat-actions__cn__item {
             background: rgba(241, 245, 249, 1);
-            padding: 20px;
+            padding: 8px;
             border-radius: 8px;
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            cursor: pointer;
           }
           .chat-actions__cn__item__name {
             font-size: 18px;

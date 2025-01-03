@@ -15,7 +15,7 @@ interface HuskyChatAnswerProps {
 function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, onQuestionEdit, onRegenerate, onFeedback }: HuskyChatAnswerProps) {
   const anchorWrapper = (props: any) => (
     <a style={{ color: 'blue' }} target="_blank" href={props.href}>
-      {props.children}
+      {`[${props.children}]`}
     </a>
   );
 

@@ -55,7 +55,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const chatCnRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { trackTabSelection, trackUserPrompt, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse } = useHuskyAnalytics();
-
+  
   const {
     object,
     isLoading: isLoadingObject,
@@ -79,6 +79,10 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     }),
     onFinish: (data) => {
       console.log(data);
+    },
+    onError: (error) => {
+      console.error(error);
+      setAnswerLoadingStatus(false);
     }
   });
 
@@ -324,7 +328,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
   useEffect(() => {
     if (object?.content && isLoadingObject) {
-
+      setAnswerLoadingStatus(false);
       setChats((prev:any) => {
         if (prev.length === 0) {
 
@@ -400,7 +404,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               mode="chat"
               onCopyAnswer={onCopyAnswer}
             />
-            {isAnswerLoading && <div id="answer-loader" />}
+             {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} data-testid="chat-answer-loader" />}
           </div>
           {((activeTab === 'home' && chats.length !== 0) || activeTab === 'supported-scope') && <div className="huskyai__input" data-testid="input-box">
             <HuskyInputBox isAnswerLoading={isAnswerLoading} selectedSource={selectedSource} onSourceSelected={onSourceSelected} onHuskyInput={onHuskyInput} />

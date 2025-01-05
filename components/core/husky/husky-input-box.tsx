@@ -81,6 +81,20 @@ function HuskyInputBox(props: any) {
     };
   }, [isAnswerLoading]);
 
+  useEffect(() => {
+    const handler = (e: any) => {
+      const question = e.detail;
+      if (inputRef.current) {
+        inputRef.current.innerText = question;
+      }
+    };
+    
+    document.addEventListener('husky-ai-input', handler);
+    return () => {
+      document.removeEventListener('husky-ai-input', handler);
+    };
+  }, []);
+
   return (
     <>
       <div className={`huskyinput`} data-testid="husky-input-box">
@@ -189,7 +203,7 @@ function HuskyInputBox(props: any) {
           }
 
           .huskyinput__itemcn__instruction__tag {
-            border: 1px solid #CBD5E1;
+            border: 1px solid #cbd5e1;
             padding: 2px 4px;
             border-radius: 4px;
           }

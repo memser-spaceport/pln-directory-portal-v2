@@ -23,7 +23,6 @@ function HuskyDiscover(props: any) {
   const [initialChats, setInitialChats] = useState<any[]>([])
   const [isLoading, setLoadingStatus] = useState(false);
   const { trackSharedBlog} = useHuskyAnalytics();
-  const authToken = props?.authToken;
 
   const onDialogClose = () => {
     dialogRef.current?.close();
@@ -105,7 +104,7 @@ function HuskyDiscover(props: any) {
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
         <div className="hd__content">
-          {initialChats.length > 0 && <HuskyAi blogId={slugId} isLoggedIn={isLoggedIn} authToken={authToken} initialChats={initialChats} mode="blog" onClose={onDialogClose} />}
+          {initialChats.length > 0 && <HuskyAi blogId={slugId} isLoggedIn={isLoggedIn} initialChats={initialChats} mode="blog" onClose={onDialogClose} />}
         </div>
       </dialog>
       {isLoading && <PageLoader/>}

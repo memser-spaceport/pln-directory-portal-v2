@@ -26,7 +26,6 @@ interface HuskyAiProps {
   isLoggedIn: boolean;
   blogId?: string;
   onClose?: () => void;
-  authToken: string;
 }
 
 interface Chat {
@@ -42,7 +41,7 @@ const DEFAULT_TAB_ITEMS = [
 
 // This component represents the Husky AI interface, allowing users to interact with the AI in chat or blog modes.
 
-function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose, authToken }: HuskyAiProps) {
+function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose }: HuskyAiProps) {
   const [activeTab, setActiveTab] = useState<string>(DEFAULT_TAB_ITEMS[0].key);
   const [chats, setChats] = useState<Chat[]>(initialChats);
   const [isLoading, setLoadingStatus] = useState<boolean>(false);
@@ -56,6 +55,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const chatCnRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { trackTabSelection, trackUserPrompt, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse } = useHuskyAnalytics();
+  const [authToken, setAuthToken] = useState(null);
 
   // Handles the selection of a tab in the UI
   const onTabSelected = (item: string) => {
@@ -79,6 +79,24 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   // Copies the provided answer to the clipboard
   const onCopyAnswer = async (answer: string) => {
     trackAnswerCopy(answer);
+  };
+
+  // update auth token
+  const updateToken = async () => {
+    try {
+      if (!isLoggedIn) {
+        setAuthToken(null);
+        return;
+      }
+      const { isLoginRequired, newAuthToken } = await getUserCredentialsInfo();
+      if (isLoginRequired) {
+        setAuthToken(null);
+        return;
+      }
+      setAuthToken(newAuthToken); // Update token state
+    } catch (error) {
+      console.error('Failed to update token:', error);
+    }
   };
 
   // Fetches user credentials and handles login state
@@ -133,7 +151,6 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         .optional(),
     }),
     onFinish: (data) => {
-      console.log(data);
     },
     onError: (error) => {
       console.error(error);
@@ -151,6 +168,10 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     return chatUid;
   };
 
+  const onInitialPromptClicked = (quesObj: any) => {
+    setChats([{ ...quesObj, isError: false }]);
+  }
+
   // Handles the event when a prompt is clicked
   const onPromptClicked = async (question: string) => {
     try {
@@ -158,13 +179,14 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       if (!authToken) {
         return;
       }
+      await updateToken();
       const chatUid = checkAndSetPromptId();
       setAskingQuestion(question);
       setAnswerLoadingStatus(true);
       setActiveTab(DEFAULT_TAB_ITEMS[0].key);
       setChats((prev:any) => [...prev, {
         question,
-        content: "",
+        answer: "",
         followupQuestions: [],
         sources: [],
         actions: [],
@@ -222,10 +244,10 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         setLoginBoxStatus(true);
         return;
       }
-
+      await updateToken();
       setChats((prev:any) => [...prev, {
         question,
-        content: "",
+        answer: "",
         followupQuestions: [],
         sources: [],
         actions: [],
@@ -302,13 +324,14 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         setLoginBoxStatus(true);
         return;
       }
+      await updateToken();
       if (activeTab === 'supported-scope') { 
         setChats([]);
         setActiveTab(DEFAULT_TAB_ITEMS[0].key);
       }
       setChats((prev:any) => [...prev, {
         question:query,
-        content: "",
+        answer: "",
         followupQuestions: [],
         sources: [],
         actions: [],
@@ -341,6 +364,21 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   useEffect(() => {
+    if(error) {
+      setChats((prev:any) => {
+      const newMessages = [...prev];
+      
+      // Update the last item in the array
+      const lastIndex = newMessages.length - 1;
+      newMessages[lastIndex] = {
+        ...newMessages[lastIndex],
+        answer:  "",
+        isError: true
+      };
+      return newMessages;
+    })
+    }
+
     if (object?.content && isLoadingObject) {
       setAnswerLoadingStatus(false);
       setChats((prev:any) => {
@@ -373,7 +411,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       });
       
     }
-  }, [object, isLoadingObject]);
+  }, [object, isLoadingObject, error]);
 
   // Handles the login click event
   const onLoginClick = () => {
@@ -395,6 +433,11 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     }
   }, [isAnswerLoading]);
 
+  useEffect(() => {
+    updateToken(); // Fetch token on initial render
+  }, []);
+
+
   return (
     <>
       {mode === 'chat' && (
@@ -411,12 +454,14 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               onRegenerate={onRegenerate}
               onQuestionEdit={onQuestionEdit}
               onPromptClicked={onPromptClicked}
+              onInitialPromptClicked={onInitialPromptClicked}
               isAnswerLoading={isAnswerLoading}
               chats={chats}
               blogId={blogId}
               onFollowupClicked={onFollowupClicked}
               mode="chat"
               onCopyAnswer={onCopyAnswer}
+              isLoadingObject={isLoadingObject}
             />
              {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} data-testid="chat-answer-loader" />}
           </div>
@@ -434,6 +479,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               onRegenerate={onHuskyInput}
               onQuestionEdit={onQuestionEdit}
               onPromptClicked={onPromptClicked}
+              onInitialPromptClicked={onInitialPromptClicked}
               onShareClicked={onShareClicked}
               isAnswerLoading={isAnswerLoading}
               chats={chats}
@@ -441,6 +487,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               onFollowupClicked={onFollowupClicked}
               mode="blog"
               onCopyAnswer={onCopyAnswer}
+              isLoadingObject={isLoadingObject}
             />
             {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} data-testid="blog-answer-loader" />}
           </div>

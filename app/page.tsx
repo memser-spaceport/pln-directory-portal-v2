@@ -15,7 +15,7 @@ import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 
 export default async function Home() {
-  const { featuredData, discoverData, isLoggedIn, isError, userInfo, authToken, focusAreas } = await getPageData();
+  const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
 
   if (isError) {
     return <Error />;
@@ -39,8 +39,8 @@ export default async function Home() {
         <ScrollToTop pageName='Home' userInfo={userInfo}/>
       </div>
     </div>
-    <HuskyDialog isLoggedIn={isLoggedIn} authToken={authToken}/>
-    <HuskyDiscover isLoggedIn={isLoggedIn} authToken={authToken}/>
+    <HuskyDialog isLoggedIn={isLoggedIn} />
+    <HuskyDiscover isLoggedIn={isLoggedIn} />
     </>
 }
 
@@ -80,7 +80,6 @@ const getPageData = async () => {
         isError,
         userInfo,
         isLoggedIn,
-        authToken,
         focusAreas: {
             teamFocusAreas ,
             projectFocusAreas

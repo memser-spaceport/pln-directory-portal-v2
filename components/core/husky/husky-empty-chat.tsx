@@ -107,7 +107,7 @@ function HuskyEmptyChat({ onPromptClicked, onInitialPromptClicked }: HuskyEmptyC
                 <span className="hec__content__box__prompts__title__text">Try asking or searching for</span>
               </h4>
               <div className="hec__content__box__prompts__list">
-                {initialPrompts?.slice(0, 5)?.map((prompt, index) => (
+                {initialPrompts?.slice(0, 3)?.map((prompt, index) => (
                   <div className="hec__content__box__prompts__list__item" key={index} onClick={() => onExplorationPromptClicked(prompt)} data-testid={`prompt-${index}`}> {/* Added data-testid for each prompt */}
                     <img alt="Prompt Icon" src={prompt.icon} className="hec__content__box__prompts__list__item__icon" />
                     <span className="hec__content__box__prompts__list__item__text">{prompt.question}</span>

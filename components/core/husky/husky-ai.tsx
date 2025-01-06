@@ -151,6 +151,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         .optional(),
     }),
     onFinish: (data) => {
+      setAnswerLoadingStatus(false);
     },
     onError: (error) => {
       console.error(error);
@@ -202,7 +203,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       });
       // const result = await getHuskyResponse(userInfo, authToken, question, selectedSource, chatUid, null, null, mode === 'blog'); // Fixed function name
       setAskingQuestion('');
-      setAnswerLoadingStatus(false);
+      // setAnswerLoadingStatus(false);
       // if (result.isError) {
       //   trackAiResponse('error', 'prompt', mode === 'blog', question);
       //   setChats((prevChats) => [...prevChats, { question, answer: '', isError: true }]);
@@ -275,7 +276,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       });
       // const result = await getHuskyResponse(userInfo, authToken, question, selectedSource, chatUid, mode === 'blog' && chats.length === 1 ? chats[0].question : null, mode === 'blog' && chats.length === 1 ? chats[0].answer : null, mode === 'blog'); // Fixed function name
       setAskingQuestion('');
-      setAnswerLoadingStatus(false);
+      // setAnswerLoadingStatus(false);
       // if (result.isError) {
       //   trackAiResponse('error', 'followup', mode === 'blog', question);
       //   setChats((prevChats) => [...prevChats, { question, answer: '', isError: true }]);
@@ -302,6 +303,9 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
   // Regenerates the response based on the query
   const onRegenerate = async (query: string) => {
+    if(isLoadingObject) {
+      return
+    }
     const { authToken } = await getUserCredentials();
     if (!authToken) {
       return;
@@ -350,7 +354,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         source: selectedSource,
       });
       setAskingQuestion('');
-      setAnswerLoadingStatus(false);
+      // setAnswerLoadingStatus(false);
       // if (result.isError) {
       //   trackAiResponse('error', 'user-input', mode === 'blog', query);
       //   setChats((prevChats) => [...prevChats, { question: query, answer: '', isError: true }]);
@@ -466,7 +470,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
              {isAnswerLoading && <HuskyAnswerLoader question={askingQuestion} data-testid="chat-answer-loader" />}
           </div>
           {((activeTab === 'home' && chats.length !== 0) || activeTab === 'supported-scope') && <div className="huskyai__input" data-testid="input-box">
-            <HuskyInputBox isAnswerLoading={isAnswerLoading} selectedSource={selectedSource} onSourceSelected={onSourceSelected} onHuskyInput={onHuskyInput} />
+            <HuskyInputBox isLoadingObject={isLoadingObject} isAnswerLoading={isAnswerLoading} selectedSource={selectedSource} onSourceSelected={onSourceSelected} onHuskyInput={onHuskyInput} />
           </div> }
         </div>
       )}

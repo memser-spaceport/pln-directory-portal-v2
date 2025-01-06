@@ -1,52 +1,80 @@
-import RegsiterFormLoader from '@/components/core/register/register-form-loader';
-import StepsIndicatorDesktop from '@/components/core/register/steps-indicator-desktop';
-import StepsIndicatorMobile from '@/components/core/register/steps-indicator-mobile';
-import TeamRegisterForm from '@/components/page/team-form-info/team-register-form';
-import TeamRegisterInfo from '@/components/page/team-form-info/team-register-info';
-import styles from './page.module.css';
-import LoginInfo from '@/components/page/team-form-info/team-login-info';
+import { BreadCrumb } from '@/components/core/bread-crumb';
+import Error from '@/components/core/error';
+import AddEditProjectContainer from '@/components/page/add-edit-project/add-edit-project-container';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import styles from './page.module.css';
+import { RedirectType, redirect } from 'next/navigation';
+import { PAGE_ROUTES, PROJECT_NAME, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { Metadata } from 'next';
+import { METADATA_DESC, METADATA_TITLE, SUBMIT_A_TEAM_PAGE_TITLE } from '@/utils/constants/team-constants';
+import AddEditTeamContainer from '@/components/page/add-edit-team/add-edit-team-container';
+import LoginInfo from '@/components/page/team-form-info/team-login-info';
 
-export default function AddTeam(props: any) {
-  const steps = ['basic', 'team details', 'social', 'success'];
+export default function SubmitATeam(props: any) {
+  const { isError, isLoggedIn, userInfo } = getPageData();
 
-  const { userInfo } = getPageData();
+  // if(!isLoggedIn) {
+  //     redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
+  // }
 
-  const showLoginInfo = !userInfo;
-  
+  if (isError) {
+    <Error />;
+  }
 
   return (
-    <>
-      {!showLoginInfo && (
-        <div className={styles.teamReg}>
-          <div className={styles.teamReg__cn}>
-            <div className={styles.teamReg__cn__mobile}>
-              <StepsIndicatorMobile steps={steps} />
-            </div>
-            <aside className={styles.teamReg__cn__desktopinfo}>
-              <TeamRegisterInfo />
-              <StepsIndicatorDesktop skip={['success']} steps={steps} />
-            </aside>
-            <section className={styles.teamReg__cn__content}>
-              <RegsiterFormLoader />
-              <TeamRegisterForm />
-            </section>
-          </div>
+    <div className={styles?.submitATeam}>
+      <div className={styles.submitATeam__breadcrumb}>
+        <BreadCrumb backLink={PAGE_ROUTES.TEAMS} directoryName="Teams" pageName={SUBMIT_A_TEAM_PAGE_TITLE} />
+      </div>
+      {isLoggedIn && (
+        <div className={styles.submitATeam__cnt}>
+          <AddEditTeamContainer team={null} type="Add" userInfo={userInfo} />
         </div>
       )}
-      {showLoginInfo && (
+      {!isLoggedIn && (
         <div className={styles.loginPrompt}>
           <LoginInfo />
         </div>
       )}
-    </>
+    </div>
   );
 }
 
 function getPageData() {
-  const { userInfo } = getCookiesFromHeaders();
-
-  return {
-    userInfo
-  };
+  const isError = false;
+  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  try {
+    return {
+      isLoggedIn,
+      userInfo,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      isError: true,
+      userInfo,
+    };
+  }
 }
+
+export const metadata: Metadata = {
+  title: METADATA_TITLE,
+  description: METADATA_DESC,
+  openGraph: {
+    type: 'website',
+    url: process.env.APPLICATION_BASE_URL,
+    images: [
+      {
+        url: SOCIAL_IMAGE_URL,
+        width: 1280,
+        height: 640,
+        alt: PROJECT_NAME,
+        type: 'image/jpeg',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [SOCIAL_IMAGE_URL],
+  },
+};

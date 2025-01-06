@@ -104,3 +104,34 @@
         right: 16px;
     }
 }
+
+
+.submitATeam__breadcrumb {
+    /* display: none; */
+    height: 48px;
+    border-bottom: 1px solid #e2e8f0;
+    width: 100%;
+    position: sticky;
+    top: 80px;
+    z-index: 3;
+    background-color: #fff;
+  }
+  
+  .submitATeam {
+    background-color:  #F1F5F9;
+  }
+  
+  .submitATeam__cnt {
+    display: flex;
+    justify-content: center;
+  }
+  
+  @media (min-width: 1024px) {
+    .submitATeam__breadcrumb {
+      display: unset;
+      height: 48px;
+      display: flex;
+      align-items: center;
+    }
+  }
+  

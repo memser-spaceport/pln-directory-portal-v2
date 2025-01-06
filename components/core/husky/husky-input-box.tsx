@@ -21,10 +21,11 @@ function HuskyInputBox(props: any) {
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
   const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
   const { trackSourceChange } = useHuskyAnalytics();
-
+  const isLoadingObject = props?.isLoadingObject;
+  
   // Handles the submission of text input
   const onTextSubmit = async () => {
-    if (isAnswerLoading) {
+    if (isAnswerLoading || isLoadingObject) {
       return;
     }
 
@@ -86,6 +87,18 @@ function HuskyInputBox(props: any) {
       const question = e.detail;
       if (inputRef.current) {
         inputRef.current.innerText = question;
+        const editableDiv =inputRef.current;
+        editableDiv.focus();
+
+        // Position the caret at the end
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(editableDiv); 
+        range.collapse(false); 
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
       }
     };
     
@@ -132,7 +145,7 @@ function HuskyInputBox(props: any) {
           <div
             onClick={onTextSubmit}
             title={isAnswerLoading ? 'Please wait till response is generated.' : 'Submit query'}
-            className={`huskyinput__action__submit ${isAnswerLoading ? 'huskyinput__action__submit--disabled' : ''}`}
+            className={`huskyinput__action__submit ${(isAnswerLoading || isLoadingObject) ? 'huskyinput__action__submit--disabled' : ''}`}
           >
             <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
           </div>
@@ -243,8 +256,8 @@ function HuskyInputBox(props: any) {
           }
 
           .huskyinput__action__submit--disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+            background-color: #94A3B8 !important;
+            cursor: not-allowed !important;
           }
 
           .huskyinput__action__submit {

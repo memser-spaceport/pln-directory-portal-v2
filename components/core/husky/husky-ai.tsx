@@ -203,7 +203,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       });
       // const result = await getHuskyResponse(userInfo, authToken, question, selectedSource, chatUid, null, null, mode === 'blog'); // Fixed function name
       setAskingQuestion('');
-      // setAnswerLoadingStatus(false);
+      setAnswerLoadingStatus(false);
       // if (result.isError) {
       //   trackAiResponse('error', 'prompt', mode === 'blog', question);
       //   setChats((prevChats) => [...prevChats, { question, answer: '', isError: true }]);
@@ -276,7 +276,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       });
       // const result = await getHuskyResponse(userInfo, authToken, question, selectedSource, chatUid, mode === 'blog' && chats.length === 1 ? chats[0].question : null, mode === 'blog' && chats.length === 1 ? chats[0].answer : null, mode === 'blog'); // Fixed function name
       setAskingQuestion('');
-      // setAnswerLoadingStatus(false);
+      setAnswerLoadingStatus(false);
       // if (result.isError) {
       //   trackAiResponse('error', 'followup', mode === 'blog', question);
       //   setChats((prevChats) => [...prevChats, { question, answer: '', isError: true }]);
@@ -334,7 +334,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         setActiveTab(DEFAULT_TAB_ITEMS[0].key);
       }
       setChats((prev:any) => [...prev, {
-        question:query,
+        question: query,
         answer: "",
         followupQuestions: [],
         sources: [],
@@ -354,7 +354,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         source: selectedSource,
       });
       setAskingQuestion('');
-      // setAnswerLoadingStatus(false);
+      setAnswerLoadingStatus(false);
       // if (result.isError) {
       //   trackAiResponse('error', 'user-input', mode === 'blog', query);
       //   setChats((prevChats) => [...prevChats, { question: query, answer: '', isError: true }]);

@@ -57,7 +57,7 @@ const HuskyFeedback = (props: HuskyFeedbackProps) => {
         const payload = {
           name: memberDetails.name,
           email: memberDetails.email,
-          team: memberDetails.teamMemberRoles[0].teamTitle,
+          team: memberDetails.teamMemberRoles[0]?.teamTitle ?? '',
           directoryId: memberDetails.uid,
           rating: ratingInfo.rating,
           comment: ratingInfo.comment,
@@ -77,6 +77,7 @@ const HuskyFeedback = (props: HuskyFeedbackProps) => {
         }
       }
     } catch (error) {
+      console.log("errr while send", error)
       trackFeedbackStatus('error', ratingInfo.rating.toString(), question);
       setStep('error');
     }

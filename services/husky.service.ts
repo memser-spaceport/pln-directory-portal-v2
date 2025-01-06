@@ -1,5 +1,5 @@
 export const saveFeedback = async (authToken: string,payload: any) => {
-  const saveResponse = await fetch(`${process.env.HUSKY_API_URL}/feedback`, {
+  const saveResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/chat/feedback`, {
     cache: 'no-store',
     method: 'POST',
     body: JSON.stringify(payload),

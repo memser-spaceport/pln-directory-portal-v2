@@ -18,8 +18,10 @@ interface HuskyChatProps {
   onCopyAnswer: (answer: string) => Promise<void>;
   blogId?: string;
   isAnswerLoading: boolean;
+  isLoadingObject: boolean;
+  onInitialPromptClicked: (quesObj: any) => void;
 }
-function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onCopyAnswer, onRegenerate, onFeedback, blogId }: HuskyChatProps) {
+function HuskyChat({ mode, chats, onInitialPromptClicked, onFollowupClicked, isAnswerLoading, onQuestionEdit, onShareClicked, onPromptClicked, onCopyAnswer, onRegenerate, onFeedback, blogId, isLoadingObject }: HuskyChatProps) {  
   return (
     <>
       <div className="huskychat">
@@ -36,7 +38,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
                     shareCount={chat?.shareCount}
                     question={chat?.question}
                   />
-                  <HuskyChatAnswer
+                  {chat.answer && <HuskyChatAnswer
                     onCopyAnswer={onCopyAnswer}
                     onFeedback={onFeedback}
                     onRegenerate={onRegenerate}
@@ -45,8 +47,8 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
                     question={chat?.question}
                     mode={mode}
                     answer={chat?.answer}
-                  />
-                  <HuskyChatSuggestions isAnswerLoading={isAnswerLoading} chatIndex={index} onFollowupClicked={onFollowupClicked} followupQuestions={chat?.followupQuestions} />
+                  />}
+                  {chat?.followupQuestions?.length > 0 && <HuskyChatSuggestions isLoadingObject={isLoadingObject} isAnswerLoading={isAnswerLoading} chatIndex={index} onFollowupClicked={onFollowupClicked} followupQuestions={chat?.followupQuestions} />}
                   {mode !== 'blog' && chat?.actions?.length > 0 && <HuskyChatActions actions={chat?.actions} />}
                 </>
               )}
@@ -69,7 +71,7 @@ function HuskyChat({ mode, chats, onFollowupClicked, isAnswerLoading, onQuestion
             </div>
           ))}
         </div>}
-        {chats.length === 0 && !isAnswerLoading && <HuskyEmptyChat onPromptClicked={onPromptClicked} />}
+        {chats.length === 0 && !isAnswerLoading && <HuskyEmptyChat onInitialPromptClicked={onInitialPromptClicked} onPromptClicked={onPromptClicked} />}
       </div>
       <style jsx>
         {`

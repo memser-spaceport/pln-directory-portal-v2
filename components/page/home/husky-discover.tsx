@@ -22,7 +22,7 @@ function HuskyDiscover(props: any) {
   const [slugId, setSlugId] = useState(huskyShareId ?? '');
   const [initialChats, setInitialChats] = useState<any[]>([])
   const [isLoading, setLoadingStatus] = useState(false);
-  const { trackSharedBlog} = useHuskyAnalytics()
+  const { trackSharedBlog} = useHuskyAnalytics();
 
   const onDialogClose = () => {
     dialogRef.current?.close();

@@ -39,13 +39,13 @@ export default async function Home() {
         <ScrollToTop pageName='Home' userInfo={userInfo}/>
       </div>
     </div>
-    <HuskyDialog isLoggedIn={isLoggedIn}/>
-    <HuskyDiscover isLoggedIn={isLoggedIn}/>
+    <HuskyDialog isLoggedIn={isLoggedIn} />
+    <HuskyDiscover isLoggedIn={isLoggedIn} />
     </>
 }
 
 const getPageData = async () => {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
   let isError = false;
   let featuredData = [] as any;
   let discoverData = [] as any;

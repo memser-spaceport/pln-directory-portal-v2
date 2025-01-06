@@ -17,13 +17,13 @@ function HuskySourceCard({ sources }: HuskySourceCardProps) {
     <>
       <div className="sources">
         <h3 className="sources__title">Sources</h3>
-        {sources.map((source: SourceProps, index: number) => (
-          <a target="_blank" href={source.link} onClick={() => trackHuskySourceLinkClicked(source.link)} key={`husky-chat${index}`} className="sources__item">
+        {sources.map((source: any, index: number) => (
+          <a target="_blank" href={source} onClick={() => trackHuskySourceLinkClicked(source.link)} key={`husky-chat${index}`} className="sources__item">
             <div className="sources__item__head">
              
-              <p className="sources__item__head__title">{source.title}</p>
+              <p className="sources__item__head__title">{source}</p>
             </div>
-            <div className="sources__item__body">{source.description}</div>
+            {/* <div className="sources__item__body">{source.description}</div> */}
           </a>
         ))}
       </div>
@@ -49,6 +49,7 @@ function HuskySourceCard({ sources }: HuskySourceCardProps) {
             display: flex;
             flex-direction: column;
             gap: 12px;
+            word-break: break-word;
           }
           .sources__item__body {
             display: -webkit-box;

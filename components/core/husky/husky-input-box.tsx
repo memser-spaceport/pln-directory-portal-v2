@@ -21,11 +21,13 @@ function HuskyInputBox(props: any) {
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
   const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
   const { trackSourceChange } = useHuskyAnalytics();
+
   const isLoadingObject = props?.isLoadingObject;
+  const isLoadingObjectRef = useRef(isLoadingObject);
   
   // Handles the submission of text input
   const onTextSubmit = async () => {
-    if (isAnswerLoading || isLoadingObject) {
+    if (isAnswerLoading ||  isLoadingObjectRef.current) {
       return;
     }
 
@@ -107,6 +109,10 @@ function HuskyInputBox(props: any) {
       document.removeEventListener('husky-ai-input', handler);
     };
   }, []);
+
+  useEffect(() => {
+    isLoadingObjectRef.current = isLoadingObject;
+  }, [isLoadingObject])
 
   return (
     <>

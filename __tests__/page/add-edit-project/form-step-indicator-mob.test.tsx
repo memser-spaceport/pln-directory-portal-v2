@@ -1,6 +1,6 @@
 // __tests__/FormStepIndicatorMob.test.tsx
 import { render, screen } from '@testing-library/react';
-import FormStepIndicatorMob from '@/components/page/add-edit-project/form-step-indicator-mob';
+import FormStepIndicatorMob from '@/components/core/form-step-indicator-mob';
 import useStepsIndicator from '@/hooks/useStepsIndicator';  // Mock this hook to control its output
 import '@testing-library/jest-dom';
 
@@ -23,7 +23,7 @@ describe('FormStepIndicatorMob', () => {
     });
 
     // Render the component
-    render(<FormStepIndicatorMob />);
+    render(<FormStepIndicatorMob steps={undefined} defaultStep={''} uniqueKey={''} title={''} subTitle={''} />);
 
     // Test that the current step is rendered correctly
     expect(screen.getByText('General')).toBeInTheDocument();

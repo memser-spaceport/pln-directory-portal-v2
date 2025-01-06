@@ -13,6 +13,7 @@ import styles from './page.module.css';
 import TeamList from '@/components/page/teams/team-list';
 import { getFocusAreas } from '@/services/common.service';
 import { getTeamList } from '../actions/teams.actions';
+import ProjectAddCard from '@/components/page/projects/project-add-card';
 
 async function Page({ searchParams }: { searchParams: ITeamsSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();

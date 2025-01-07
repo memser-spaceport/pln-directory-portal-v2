@@ -62,12 +62,12 @@ export const EVENTS = {
 };
 
 export const HELPER_MENU_OPTIONS = [
-  {
-    icon: '/icons/submitteam.svg',
-    name: 'Submit a Team',
-    type: 'button',
-    isExternal: false,
-  },
+  // {
+  //   icon: '/icons/submitteam.svg',
+  //   name: 'Submit a Team',
+  //   type: 'button',
+  //   isExternal: false,
+  // },
   {
     icon: '/icons/message.svg',
     name: 'ProtoSphere',

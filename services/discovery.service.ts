@@ -152,7 +152,7 @@ export const getProjectsPrompts = async () => {
 };
 
 export const getChatQuestions = async () => {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions/?type=CHAT`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?type=CHAT`;
 
   const response = await fetch(url, {
     method: 'GET',

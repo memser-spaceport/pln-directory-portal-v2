@@ -958,3 +958,8 @@ export const SIGN_UP = {
 }
 
 export const PROJECT_NAME = 'Protocol Labs Directory';
+export const FOLLOW_ENTITY_TYPES = {
+  LOCATION: "EVENT_LOCATION",
+  EVENT: "EVENT",
+  PROJECT: "PROJECT"
+}

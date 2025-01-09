@@ -1,7 +1,7 @@
 'use client';
 
 import Modal from '@/components/core/modal';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import IrlUpcomingEvents from './irl-upcoming-events';
@@ -13,17 +13,23 @@ import { ILocationDetails } from '@/types/irl.types';
 import Image from 'next/image';
 import { IRL_SUBMIT_FORM_LINK } from '@/utils/constants';
 import IrlAllEvents from './irl-all-events';
+import { IUserInfo } from '@/types/shared.types';
+import FollowSection from './follow-section';
 
 interface IIrlEvents {
   searchParams: any;
   eventDetails: ILocationDetails;
   isLoggedIn: boolean;
+  userInfo: IUserInfo;
+  followers: any;
+  eventLocationSummary: any;
 }
 
 const IrlEvents = (props: IIrlEvents) => {
   const searchParams = props?.searchParams;
   const eventDetails = props?.eventDetails;
   const isLoggedIn = props?.isLoggedIn;
+  const eventLocationSummary = props?.eventLocationSummary;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const addResRef = useRef<HTMLDialogElement>(null);
   const analytics = useIrlAnalytics();
@@ -238,6 +244,10 @@ const IrlEvents = (props: IIrlEvents) => {
                 {getFormattedDate(eventDetails?.upcomingEvents)}
               </div>
             </div>
+          )}
+
+          {isLoggedIn && (
+            <FollowSection searchParams={searchParams} userInfo={props.userInfo} followers={props.followers} eventLocationSummary={eventLocationSummary} />
           )}
         </div>
         <div className="mob">
@@ -591,8 +601,8 @@ const IrlEvents = (props: IIrlEvents) => {
           width: 70px;
           height: 30px;
           border-radius: 8px;
-          display:grid;
-          place-items:center;
+          display: grid;
+          place-items: center;
         }
 
         .root__irl__addRes__cnt {
@@ -764,7 +774,7 @@ const IrlEvents = (props: IIrlEvents) => {
             // box-shadow: 0px 4px 4px 0px #0F172A0A;
             box-shadow: 0px -4px 4px 0px #0f172a0a;
             max-width: 900px;
-            padding: 20px 0px 20px 20px;
+            padding: 20px 20px 20px 20px;
             border-bottom: 0;
           }
           .add-gathering {
@@ -777,7 +787,7 @@ const IrlEvents = (props: IIrlEvents) => {
             overflow-x: ${searchParams?.type === 'past' ? 'visible' : 'auto'};
             scroll-behavior: smooth;
             scrollbar-width: none;
-            margin-right: ${eventType === 'past' ? '20px' : ''};
+            margin-right: ${eventType === 'past' ? '0px' : ''};
           }
 
           .root__irl__addRes__popup {
@@ -794,7 +804,7 @@ const IrlEvents = (props: IIrlEvents) => {
           }
 
           .root__irl {
-            flex-direction: column;
+            flex-direction: column-reverse;
             align-items: baseline;
             gap: 16px;
           }
@@ -813,7 +823,6 @@ const IrlEvents = (props: IIrlEvents) => {
 
           .root__irl__eventWrapper {
             min-width: 200px;
-            margin-right: 20px;
           }
         }
 

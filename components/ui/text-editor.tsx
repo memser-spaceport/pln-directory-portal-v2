@@ -9,6 +9,7 @@ interface ITextEditorProps {
   text: string;
   setContent: (item: string) => void;
   id?: string;
+  name?: string;
   maxLength?: number;
 }
 
@@ -164,7 +165,7 @@ const TextEditor = (props: ITextEditorProps) => {
           {maxLen - textOnly.length}/{maxLen}
         </div>
       </div>
-      <input type="hidden" name='rich-text-editor' value={text}/>
+      <input type="hidden" name={props?.name || 'rich-text-editor'} value={text}/>
       <style jsx>{`
         .editor__save-changes {
           padding: 10px 24px;

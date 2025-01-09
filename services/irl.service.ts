@@ -165,7 +165,7 @@ export const getGuestDetail = async (guestId: string, locationId: string, authTo
 
 
 export const getFollowersByLocation = async (locationId: string, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-subcriptions?entityUid=${locationId}&isActive=true&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(authToken),

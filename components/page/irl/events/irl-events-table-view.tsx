@@ -34,6 +34,10 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
                 {!website && <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>}
               </div>
               <div className="root__irl__table-col__contentName__bottom">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</div>
+              <div className='root__irl__table-col__contentName__attendee__list'>
+                <img src="/icons/users-default.svg" alt="users" />
+                <div>{gathering._count?.eventGuests} Attendees</div>
+              </div>
             </div>
             {gathering?.type && (
               <div className="root__irl__table-col__inviteOnlyIcon">
@@ -200,6 +204,16 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           text-align: left;
         }
 
+        .root__irl__table-col__contentName__attendee__list {
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+          align-items: center;
+          
+          font-size: 10px;
+          font-weight: 400;
+          line-height: 20px;
+        }
         .root__irl__table-col__inviteOnlyIcon {
           padding-left: 4px;
         }

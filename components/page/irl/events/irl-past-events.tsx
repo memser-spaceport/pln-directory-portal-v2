@@ -228,9 +228,11 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                     <div>
                       <img src={selectedEvent?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" />
                     </div>
-                    <div className="root__irl__mobileView__top__cnt__title">{selectedEvent?.name}</div>
+                    <div className="root__irl__mobileView__top__cnt__title">{selectedEvent?.name} 
+                      <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(selectedEvent?.startDate, selectedEvent?.endDate)}</span>
+                      <span className="root__irl__mobileView__top__cnt__eventDate--count"><img src="/icons/users-default.svg" alt="users" /> {selectedEvent._count?.eventGuests}</span>
+                    </div>
                   </div>
-                  <div className="root__irl__mobileView__top__cnt__eventDate">{getFormattedDateString(selectedEvent?.startDate, selectedEvent?.endDate)}</div>
                 </>
               ) : (
                 <div className="root__irl__mobileView__top__cnt__eventDate">
@@ -288,9 +290,13 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                                 <div>
                                   <img src={gathering?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" />
                                 </div>
-                                <div className="root__irl__mobileView__top__cnt__title">{gathering.name}</div>
+                                {/* <div className="root__irl__mobileView__top__cnt__title">{gathering.name}</div> */}
+                                <div className="root__irl__mobileView__top__cnt__title">{gathering?.name} 
+                                  <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</span>
+                                  <span className="root__irl__mobileView__top__cnt__eventDate--count"><img src="/icons/users-default.svg" alt="users" /> {gathering._count?.eventGuests}</span>
+                                </div>
                               </div>
-                              <div className="root__irl__mobileView__top__cnt__eventDate">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</div>
+                              {/* <div className="root__irl__mobileView__top__cnt__eventDate">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</div> */}
                             </div>
                           </div>
                         ))}
@@ -587,8 +593,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           flex-direction: row;
           gap: 10px;
           padding-right: 10px;
-          border-right: 1px solid #cbd5e1;
-          height: 20px;
+          min-height: 20px;
           align-items: center;
         }
 
@@ -610,6 +615,24 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           align-items: center;
         }
 
+        .root__irl__mobileView__top__cnt__eventDate--date {
+          font-size: 11px;
+          font-weight: 400;
+          line-height: 20px;
+          text-align: left;
+          padding: 0px 8px;
+          margin: 0px 8px;
+          border-left: 1px solid #cbd5e1;
+          border-right: 1px solid #cbd5e1;
+        }
+
+        .root__irl__mobileView__top__cnt__eventDate--count {
+          font-size: 11px;
+          font-weight: 400;
+          line-height: 20px;
+          text-align: left;
+        }
+
         .root__irl__mobileView__body__title {
           font-size: 11px;
           font-weight: 400;
@@ -627,7 +650,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 10px;
+          padding: 5px 10px;
           background-color: #fff;
           border: 1px solid #156ff7;
           border-radius: 6px;
@@ -636,7 +659,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
 
         .custom-dropdown__menu {
           position: absolute;
-          top: 50px;
+          // top: 50px;
           left: 0;
           right: 0;
           background-color: white;
@@ -659,6 +682,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           justify-content: space-between;
           cursor: pointer;
           overflow-y: auto;
+          min-height: 42px;
         }
 
         .custom-dropdown__item:hover {

@@ -100,7 +100,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
       } else {
         const isEmailValid = await checkEmailDuplicate(formattedObj.email);
         if (Object.entries(isEmailValid).length) {
-          setErrors({...errors, ...isEmailValid});
+          setErrors(isEmailValid);
         } else {
           if (formattedObj.memberProfile && formattedObj.memberProfile.size > 0) {
             try {

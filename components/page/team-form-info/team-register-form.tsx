@@ -162,8 +162,8 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
         if (teamBasicInfoErrors.length > 0) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           setBasicErrors([...teamBasicInfoErrors]);
-          scrollToTop();
           analytics.recordTeamJoinNetworkNextClick(currentStep, 'error');
+          scrollToTop();
           return;
         }
         setBasicErrors([]);
@@ -180,12 +180,14 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
       }
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       goToNextStep();
+      scrollToTop();
       analytics.recordTeamJoinNetworkNextClick(currentStep, 'success');
     }
   };
 
   const onBackClicked = () => {
     goToPreviousStep();
+    scrollToTop();
     analytics.recordTeamJoinNetworkBackClick(currentStep);
   };
 

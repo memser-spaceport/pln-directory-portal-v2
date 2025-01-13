@@ -36,7 +36,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
               <div className="root__irl__table-col__contentName__bottom">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</div>
               <div className='root__irl__table-col__contentName__attendee__list'>
                 <img src="/icons/users-default.svg" alt="users" />
-                <div>{gathering._count?.eventGuests} Attendees</div>
+                <div>{gathering._count?.eventGuests} {gathering?._count?.eventGuests > 1 ? "Attendees" : "Attendee"}</div>
               </div>
             </div>
             {gathering?.type && (

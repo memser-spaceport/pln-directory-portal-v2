@@ -42,6 +42,7 @@ export const EVENTS = {
   TEAM_DETAIL_ALL_PROJECTS_CLOSE: 'team-detail-all-projects-close',
   TEAM_DETAIL_ALL_MEMBERS_CLOSE: 'team-detail-all-members-close',
   PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE: 'project-detail-all-members-open-and-close',
+  IRL_ALL_FOLLOWERS_OPEN_AND_CLOSE: 'irl-all-followers-open-and-close',
   PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE: 'project-detail-all-teams-open-and-close',
   PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: 'project-detail-delete-modal-open-and-close',
   ADD_OR_EDIT_PROJECT_STEP_CHANGE: 'add-or-edit-project-step-change',

@@ -1,36 +1,64 @@
 'use client';
 
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import AskBox from '@/components/ui/ask-box';
+import { getAnalyticsProjectInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { PAGE_ROUTES } from '@/utils/constants';
+
 const ProjectCard = (props: any) => {
-  const name = props?.name;
-  const description = props?.description;
-  const contributors = props?.contributors ?? [];
-  const logo = props?.logo || '/icons/project-default.svg';
-  const isNew = props?.isNew;
+  const project = props?.project;
+  const userInfo = props?.userInfo;
+  const name = project?.name;
+  const description = project?.description;
+  const contributors = project?.contributors ?? [];
+  const logo = project?.logo || '/icons/project-default.svg';
+  const isNew = project?.isNew;
+  const asks = [
+    {
+      text: 'This is url',
+      link: 'https://directoryv2.dev.plnetwork.io/irl',
+      description: "abc",
+    },
+  ];
+
+  const analytics = useHomeAnalytics();
+
+  const onProjectClicked = (project: any) => {
+    analytics.onProjectCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
+  };
+
+  const onAskLinkClicked = () => {
+
+  }
 
   return (
     <>
       <div className="projectCard">
-        <div className="projectCard__header">
-          <img className="projectCard__header__img" src={logo} width={72} height={72} alt="project logo" />
-          {isNew && <div className="projectCard__header__badge">New</div>}
-          <div className="white-line" />
-          <div className="projectCard__header__notch">
-            <img src="/icons/clip.svg" />
+        <a target="_blank" className="projectCard__cnt" href={`${PAGE_ROUTES.PROJECTS}/${project?.id}`} onClick={() => onProjectClicked(project)}>
+          <div className="projectCard__header">
+            <img className="projectCard__header__img" src={logo} width={72} height={72} alt="project logo" />
+            {isNew && <div className="projectCard__header__badge">New</div>}
+            <div className="white-line" />
+            <div className="projectCard__header__notch">
+              <img src="/icons/clip.svg" />
+            </div>
+            <div className="projectCard__header__avatars">
+              {contributors.map((contributor: any, index: number) => {
+                if (index < 2) {
+                  return <img title="Contributor" key={contributor?.id} width={24} height={24} src={contributor.logo} alt="contributor" className="projectCard__header__avatar" />;
+                }
+              })}
+              {contributors.length > 2 && <div className="projectCard__header__avatars__more">+{contributors.length - 2}</div>}
+            </div>
           </div>
-          <div className="projectCard__header__avatars">
-            {contributors.map((contributor: any, index: number) => {
-              if (index < 2) {
-                return <img title="Contributor" key={contributor?.id} width={24} height={24} src={contributor.logo} alt="contributor" className="projectCard__header__avatar" />;
-              }
-            })}
-            {contributors.length > 2 && <div className="projectCard__header__avatars__more">+{contributors.length - 2}</div>}
+          <div className="projectCard__content">
+            <h3 className="projectCard__content__ttl">{name}</h3>
+            <p className="projectCard__content__desc">{description}</p>
           </div>
-        </div>
-        <div className="projectCard__content">
-          <h3 className="projectCard__content__ttl">{name}</h3>
-          <p className="projectCard__content__desc">{description}</p>
-        </div>
-        {/* <div className="projectCard__footer"></div> */}
+          {asks[0]?.text?.trim() !== '' && asks[0]?.link?.trim() == '' && <AskBox info={asks[0]} callback={onAskLinkClicked} />}
+        </a>
+        {asks[0]?.link?.trim() !== '' && <AskBox info={asks[0]} callback={onAskLinkClicked} />}
+
       </div>
       <style jsx>{`
         .projectCard__header__notch {
@@ -55,6 +83,12 @@ const ProjectCard = (props: any) => {
           border-radius: 12px;
           box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
           background-color: white;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .projectCard__cnt {
+          flex: 1;
           display: flex;
           flex-direction: column;
         }
@@ -112,7 +146,7 @@ const ProjectCard = (props: any) => {
           padding: 0px 17px;
           overflow: hidden;
           display: -webkit-box;
-          -webkit-line-clamp: 6;
+          -webkit-line-clamp: ${asks ? '4' : '6'};
           -webkit-box-orient: vertical;
         }
 

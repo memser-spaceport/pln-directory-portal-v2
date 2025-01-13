@@ -61,6 +61,11 @@ async function Page({ params }: { params: ITeamDetailParams }) {
               <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={team.teamFocusAreas} />
             </div>
           )}
+          {/* Asks section */}
+          <div className={styles?.teamDetail__container__asksSection}>
+             
+
+          </div>
           {/* Irl Contribuions */}
           {team.eventGuests.length > 0 &&
             <div className={styles?.teamDetail__irlContributions}>

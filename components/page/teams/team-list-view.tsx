@@ -10,19 +10,21 @@ import Image from "next/image";
 
 interface ITeamListView {
   team: ITeam;
+  callback: any;
   viewType: string;
 }
 const TeamListView = (props: ITeamListView) => {
   const team = props?.team;
   const viewType = props?.viewType;
-  const profile = team?.logo ?? "/icons/team-default-profile.svg";
+  const profile = team?.logo || "/icons/team-default-profile.svg";
   const teamName = team?.name;
   const description = team?.shortDescription;
   const tags = team?.industryTags ?? [];
+  const callback = props?.callback;
 
   return (
     <>
-      <div className="team-list">
+      <div className="team-list" onClick={(e) => callback(e, team)}>
         <div className="team-list__profile-container">
         <Image alt="profile" loading="eager" height={72} width={72} layout='intrinsic' priority={true} className="team-list__profile-container__profile" src={profile} />
         </div>

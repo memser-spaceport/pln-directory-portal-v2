@@ -1,23 +1,52 @@
 'use client';
 
+import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+import AskBox from '@/components/ui/ask-box';
+import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { useEffect, useState } from 'react';
+
 const TeamCard = (props: any) => {
-  const name = props?.name;
-  const logo = props?.logo || '/icons/team-default-profile.svg';
-  const description = props?.shortDescription;
-  const isNew = props?.isNew;
+  const team = props?.team;
+  const name = team?.name;
+  const userInfo = props?.userInfo;
+  const logo = team?.logo || '/icons/team-default-profile.svg';
+  const description = team?.shortDescription;
+  const isNew = team?.isNew;
+  const info = [
+    {
+      text: 'This is url',
+      link: 'a',
+    },
+  ];
+
+  const analytics = useHomeAnalytics();
+
+  const onTeamClicked = (team: any) => {
+    analytics.onTeamCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
+  };
+
+
+  const onAskLinkClicked = () => {
+
+  }
 
   return (
     <>
       <div className="teamCard">
-        <div className="teamCard__header">
-          <img className="teamCard__header__img" src={logo} width={72} height={72} alt="team image" />
-          {isNew && <div className="teamCard__header__badge">New</div>}
-        </div>
-        <div className="teamCard__content">
-          <h3 className="teamCard__content__ttl">{name}</h3>
-          <p className="teamCard__content__desc">{description}</p>
-        </div>
-        {/* <div className="teamCard-footer"></div> */}
+        <a target="_blank" className="teamCard__cnt" href={`${PAGE_ROUTES.TEAMS}/${props?.id}`} onClick={() => onTeamClicked(team)}>
+          <div className="teamCard__header">
+            <img className="teamCard__header__img" src={logo} width={72} height={72} alt="team image" />
+            {isNew && <div className="teamCard__header__badge">New</div>}
+          </div>
+          <div className="teamCard__content">
+            <h3 className="teamCard__content__ttl">{name}</h3>
+            <p className="teamCard__content__desc">{description}</p>
+          </div>
+          {info[0]?.text?.trim() !== '' && info[0]?.link?.trim() == '' && <AskBox info={info[0]} callback={onAskLinkClicked} />}
+        </a>
+        {info[0]?.link?.trim() !== '' && <AskBox info={info[0]} callback={onAskLinkClicked} />}
       </div>
       <style jsx>{`
         .teamCard {
@@ -26,6 +55,12 @@ const TeamCard = (props: any) => {
           border-radius: 12px;
           box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
           background-color: white;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .teamCard__cnt {
+          flex: 1;
           display: flex;
           flex-direction: column;
         }
@@ -92,7 +127,7 @@ const TeamCard = (props: any) => {
           padding: 0px 17px;
           overflow: hidden;
           display: -webkit-box;
-          -webkit-line-clamp: 6;
+          -webkit-line-clamp: ${info ? '3' : '6'};
           -webkit-box-orient: vertical;
         }
 
@@ -110,12 +145,7 @@ const TeamCard = (props: any) => {
           justify-content: center;
           border-radius: 0px 12px 0px 12px;
         }
-
-        .teamCard-footer {
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(174, 217, 254, 0.5) 100%);
-          min-height: 70px;
-          border-radius: 0px 0px 12px 12px;
-        }
+      }
       `}</style>
     </>
   );

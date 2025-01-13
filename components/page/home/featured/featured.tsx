@@ -14,6 +14,7 @@ import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
 import { isPastDate } from '@/utils/irl.utils';
+import Link from 'next/link';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
@@ -33,14 +34,6 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
 
   const onMemberClicked = (member: any) => {
     analytics.onMemberCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
-  };
-
-  const onTeamClicked = (team: any) => {
-    analytics.onTeamCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
-  };
-
-  const onProjectClicked = (project: any) => {
-    analytics.onProjectCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
   };
 
   const getEventLocation = (event: any) => {
@@ -69,15 +62,11 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
       );
     case 'team':
       return (
-        <a target="_blank" href={`${PAGE_ROUTES.TEAMS}/${item?.id}`} onClick={() => onTeamClicked(item)}>
-          <TeamCard {...item} />
-        </a>
+          <TeamCard team={item} userInfo={userInfo}/>
       );
     case 'project':
       return (
-        <a target="_blank" href={`${PAGE_ROUTES.PROJECTS}/${item?.id}`} onClick={() => onProjectClicked(item)}>
-          <ProjectCard {...item} />
-        </a>
+          <ProjectCard project={item} userInfo={userInfo} />
       );
     default:
       return null;
@@ -163,6 +152,9 @@ const Featured = (props: any) => {
           .featured__body {
             justify-content: start;
           }
+
+          .abc  {
+          background: black;}
         }
       `}</style>
     </>

@@ -15,10 +15,12 @@ const ProjectListView = (props: any) => {
   const maintainerLogo = project?.maintainingTeam?.logo?.url ?? '/icons/project-default.svg';
   const maintainerName = project?.maintainingTeam?.name;
 
+  const callback = props?.callback;
+
   return (
     <>
       <>
-        <div className="projectlist">
+        <div className="projectlist" onClick={(e) => callback(e, project)}>
           <div className="projectlistt__profile">
             <Image alt="profile" height={72} width={72} layout="intrinsic" loading="eager" priority={true} className="projectlist__profile__img" src={profile} />
           </div>

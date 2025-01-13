@@ -17,7 +17,7 @@ const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((
 const MemberGridView = (props: IMemberGridView) => {
   const member = props?.member;
   const isUserLoggedIn = props?.isUserLoggedIn;
-  const profileUrl = member?.profile ?? '/icons/default_profile.svg';
+  const profileUrl = member?.profile || '/icons/default_profile.svg';
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams
     .filter((team) => team.id !== mainTeam?.id)

@@ -1,7 +1,10 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import AskBox from '@/components/ui/ask-box';
 import Image from 'next/image';
+import Link from 'next/link';
+import { Fragment } from 'react';
 
 const ProjectGridView = (props: any) => {
   //props
@@ -15,33 +18,60 @@ const ProjectGridView = (props: any) => {
   const maintainerLogo = project?.maintainingTeam?.logo?.url ?? '/icons/team-default-profile.svg';
   const maintainerName = project?.maintainingTeam?.name;
   const lookingForFunding = project?.lookingForFunding;
+  const callback = props?.callback;
+  const asks = [
+    {
+      text: 'This is url',
+      link: '',
+      description: 'abc',
+    },
+  ];
 
   //methods
-  const handleIconClick = (e:any) => {
+  const handleIconClick = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
+  };
+
+  const onAskLinkClicked = () => {
+
   }
 
   return (
     <>
       <div className="projectgrid">
-        <div className="projectgrid__profile">
-          <Image alt='profile' loading='eager' height={72} width={72} layout='intrinsic' priority={true} className="projectgrid__profile__img" src={profile} />
-          {lookingForFunding && <Tooltip side="top" asChild trigger={<img className="projectgrid__profile__fund" onClick={handleIconClick} alt="profile" src="/icons/raising-fund-indicator.svg" />} content={'Raising Funds'} />}
-        </div>
-        <div className="projectgrid__detail">
-          <div className="projectgrid__detail__cn">
-            <h2 className="projectgrid__detail__cn__name">{projectName}</h2>
-            <p className="projectgrid__detail__cn__desc">{description}</p>
+        <Link href={`/projects/${project.id}`} prefetch={false}>
+          <div className="projectgrid__profile">
+            <Image alt="profile" loading="eager" height={72} width={72} layout="intrinsic" priority={true} className="projectgrid__profile__img" src={profile} />
+            {lookingForFunding && (
+              <Tooltip
+                side="top"
+                asChild
+                trigger={<img className="projectgrid__profile__fund" onClick={handleIconClick} alt="profile" src="/icons/raising-fund-indicator.svg" />}
+                content={'Raising Funds'}
+              />
+            )}
           </div>
-          <div className="projectgrid__maintainer">
-          <Image alt='maintainer' loading='eager' height={36} width={36} layout='intrinsic' priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />
-            <div className="projectgrid__maintainer__cn">
-              <p className="projectgrid__maintainer__cn__name">{maintainerName}</p>
-              <p className="projectgrid__maintainer__cn__title">Maintainer</p>
+          <div className="projectgrid__detail">
+            <div className="projectgrid__detail__cn">
+              <h2 className="projectgrid__detail__cn__name">{projectName}</h2>
+              <p className="projectgrid__detail__cn__desc">{description}</p>
+            </div>
+            <div className="projectgrid__maintainer">
+              <Image alt="maintainer" loading="eager" height={36} width={36} layout="intrinsic" priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />
+              <div className="projectgrid__maintainer__cn">
+                <p className="projectgrid__maintainer__cn__name">{maintainerName}</p>
+                <p className="projectgrid__maintainer__cn__title">Maintainer</p>
+              </div>
             </div>
           </div>
-        </div>
+          {asks?.map((ask: any, index: number) => {
+            return <Fragment key={`${ask.text} + ${index}`}>{asks[0]?.text?.trim() !== '' && asks[0]?.link?.trim() == '' && <AskBox info={asks[0]} callback={onAskLinkClicked} />}</Fragment>;
+          })}
+        </Link>
+        {asks?.map((ask: any, index: number) => {
+          return <Fragment key={`${ask.text} + ${index}`}>{asks[0]?.link?.trim() !== '' && <AskBox info={asks[0]} callback={onAskLinkClicked} />}</Fragment>;
+        })}
       </div>
       <style jsx>
         {`
@@ -99,7 +129,6 @@ const ProjectGridView = (props: any) => {
             font-size: 12px;
             font-weight: 400;
             line-height: 18px;
-            height: 54px;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
@@ -178,7 +207,6 @@ const ProjectGridView = (props: any) => {
 
             .projectgrid__detail__cn__desc {
               line-height: 20px;
-              height: 60px;
               font-size: 14px;
             }
 

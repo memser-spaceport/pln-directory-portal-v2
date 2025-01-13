@@ -24,7 +24,6 @@ interface ITeamList {
 const TeamList = (props: any) => {
   const allTeams = props?.teams ?? [];
   const userInfo = props?.userInfo;
-  console.log(userInfo);
   
   const searchParams = props?.searchParams;
   const totalTeams = props?.totalTeams;
@@ -97,12 +96,10 @@ const TeamList = (props: any) => {
           <div
             key={`teamitem-${team.id}-${index}`}
             className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid__team' : 'team-list__list__team'}`}
-            onClick={(e) => onTeamClickHandler(e, team)}
           >
-            <Link prefetch={false} href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}>
-              {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}
-              {VIEW_TYPE_OPTIONS.LIST === viewType && <TeamListView team={team} viewType={viewType} />}
-            </Link>
+
+              {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView callback={onTeamClickHandler} team={team} viewType={viewType} />}
+              {VIEW_TYPE_OPTIONS.LIST === viewType && <TeamListView callback={onTeamClickHandler} team={team} viewType={viewType} />}
           </div>
         ))}
         <div ref={observerTarget} />
@@ -138,9 +135,6 @@ const TeamList = (props: any) => {
           color: #64748b;
         }
 
-        .team-list__team {
-          cursor: pointer;
-        }
 
         .team-list__grid {
           display: grid;

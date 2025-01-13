@@ -97,16 +97,13 @@ const ProjectlistWrapper = (props: any) => {
         <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid' : 'project-list__list'}`}>
           {isLoggedIn && totalProjects > 0 && <ProjectAddCard userInfo={userInfo} viewType={viewType} />}
           {allProjects?.map((project: any, index: number) => (
-            <Link
-              href={`/projects/${project.id}`}
+            <div
               key={`projectitem-${project.id}-${index}`}
-              prefetch={false}
               className={`project-list__project ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid__project' : 'project-list__list__project'}`}
-              onClick={(e) => onNavigateToProject(e, project)}
             >
-              {VIEW_TYPE_OPTIONS.GRID === viewType && <ProjectGridView project={project} viewType={viewType} />}
-              {VIEW_TYPE_OPTIONS.LIST === viewType && <ProjectListView project={project} viewType={viewType} />}
-            </Link>
+              {VIEW_TYPE_OPTIONS.GRID === viewType && <ProjectGridView callback={onNavigateToProject} project={project} viewType={viewType} />}
+              {VIEW_TYPE_OPTIONS.LIST === viewType && <ProjectListView callback={onNavigateToProject} project={project} viewType={viewType} />}
+            </div>
           ))}
           <div ref={paginationRef} />
         </div>

@@ -15,7 +15,7 @@ interface IMemberListView {
 const MemberListView = (props: IMemberListView) => {
   const member = props?.member;
   const isUserLoggedIn = props?.isUserLoggedIn;
-  const profileUrl = member?.profile ?? '/icons/default_profile.svg';
+  const profileUrl = member?.profile || '/icons/default_profile.svg';
   const role = member.mainTeam?.role || 'Contributor';
   const location = parseMemberLocation(member?.location);
   const skills = member?.skills ?? [];

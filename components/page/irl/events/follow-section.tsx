@@ -3,11 +3,13 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useState, useEffect } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
-import { IRL_SUBMIT_FORM_LINK, FOLLOW_ENTITY_TYPES } from '@/utils/constants';
+import { IRL_SUBMIT_FORM_LINK, FOLLOW_ENTITY_TYPES, EVENTS } from '@/utils/constants';
 import { toast } from 'react-toastify';
 import { getFollowersByLocation } from '@/services/irl.service';
 import { get } from 'http';
 import { useRouter } from 'next/navigation';
+import AllFollowers from './all-followers';
+import Image from 'next/image';
 
 const FollowSection = (props: any) => {
   const userInfo = props?.userInfo;
@@ -15,7 +17,7 @@ const FollowSection = (props: any) => {
   const searchParams = props?.searchParams;
   const analytics = useIrlAnalytics();
   const router = useRouter();
-  const [followProperties, setFollowProperties] = useState<any>({followers: [], isFollowing: false});
+  const [followProperties, setFollowProperties] = useState<any>({ followers: [], isFollowing: false });
 
   function getFollowProperties(followers: any) {
     return {
@@ -102,30 +104,47 @@ const FollowSection = (props: any) => {
     } catch (e) {
       triggerLoader(false);
     }
-    analytics.irlLocationUnFollowBtnClicked({ userInfo, locationId: locationId });
   };
+
+  const onFollowersCloseClicHandler = () => {
+    document.dispatchEvent(new CustomEvent(EVENTS.IRL_ALL_FOLLOWERS_OPEN_AND_CLOSE, { detail: { status: false } }))
+  }
+
+  const onFollowerClickHandler = () => {
+    analytics.irlFollowerBtnClicked({})
+
+
+  }
+
+  const onFollowersClickHandler = () => {
+    document.dispatchEvent(new CustomEvent(EVENTS.IRL_ALL_FOLLOWERS_OPEN_AND_CLOSE, { detail: { status: true } }))
+    const filteredFollowers = followProperties.followers?.map((follower: any) => follower.memberUid)
+    analytics.irlAllFollowersBtnClicked({ followers: filteredFollowers });
+
+  }
 
   return (
     <>
+      <AllFollowers location={eventLocationSummary.name} onClose={onFollowersCloseClicHandler} followersList={followProperties.followers} onFollowerClickHandler={onFollowerClickHandler} />
       <div className="root__irl__follwcnt">
         <div className="root__irl__follwcnt__imgsec">
-          <div className="root__irl__follwcnt__imgsec__images">
+          <div onClick={onFollowersClickHandler} className="root__irl__follwcnt__imgsec__images">
             {followProperties.followers?.slice(0, 3).map((follower: any, index: number) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 key={index}
-                style={{ position: 'relative', zIndex: `${followProperties.followers.length - index}`, marginLeft: `-11px` }}
+                style={{ position: 'relative', zIndex: `${3- index }`, marginLeft: `-11px` }}
                 className="root__irl__follwcnt__imgsec__images__img"
-                src={follower.member.image.url}
+                src={follower?.logo || '/icons/default_profile.svg'}
                 alt="follower"
                 height={24}
                 width={24}
               />
             ))}
-          </div>
+          </div >
           <div className="root__irl__follwcnt__imgsec__desccnt">
             <p className="root__irl__follwcnt__imgsec__desccnt__desc">
-              {followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} Following
+              {followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `& ${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} Following
             </p>
           </div>
         </div>
@@ -161,15 +180,9 @@ const FollowSection = (props: any) => {
           .root__irl__follwcnt__imgsec__images {
             display: flex;
             justify-content: end;
-          }
-
-          .root__irl__follwcnt__imgsec__images__img {
-            height: 24px;
-            width: 24px;
-            border: 1px solid #156ff7;
-            object-fit: cover;
-            border-radius: 50%;
-          }
+            cursor: pointer;
+            min-height: ${followProperties?.followers?.length > 0 ? "25px" : ""}
+        }
 
           .root__irl__follwcnt {
             display: flex;
@@ -179,6 +192,7 @@ const FollowSection = (props: any) => {
 
           .root__irl__follwcnt__followbtn {
             padding: 4px 8px;
+            min-width: 103px;
             border: 1px solid #cbd5e1;
             background: #156ff7;
             border-radius: 8px;

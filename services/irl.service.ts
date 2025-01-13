@@ -38,7 +38,7 @@ const fetchGuests = async (url: string, authToken: string) => {
   return await response.json();
 };
 
-export const getGuestsByLocation = async (location: string, searchParams: any, authToken: string,currentEventNames: string[], currentPage = 1, limit = 10) => {
+export const getGuestsByLocation = async (location: string, searchParams: any, authToken: string, currentEventNames: string[], currentPage = 1, limit = 10) => {
   const urlParams = new URLSearchParams() as any;
 
   // Loop through the searchParams object
@@ -51,7 +51,7 @@ export const getGuestsByLocation = async (location: string, searchParams: any, a
       urlParams.append(key, value);
     }
   }
-  const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?&page=${currentPage}&limit=${limit}&${urlParams.toString()}`;  
+  const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?&page=${currentPage}&limit=${limit}&${urlParams.toString()}`;
 
   let result = await fetchGuests(url, authToken);
   if (result.isError) return { isError: true };
@@ -149,7 +149,7 @@ export const getTopicsByLocation = async (locationId: string, type: string) => {
   return await response.json();
 };
 
-export const getGuestDetail = async (guestId: string, locationId: string, authToken:string, type: string) => {
+export const getGuestDetail = async (guestId: string, locationId: string, authToken: string, type: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestId}?type=${type}`, {
     cache: 'no-store',
     method: 'GET',
@@ -165,7 +165,7 @@ export const getGuestDetail = async (guestId: string, locationId: string, authTo
 
 
 export const getFollowersByLocation = async (locationId: string, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url,member.name,member.teamMemberRoles.team`, {
     cache: 'no-store',
     method: 'GET',
     headers: getHeader(authToken),
@@ -180,7 +180,41 @@ export const getFollowersByLocation = async (locationId: string, authToken: stri
 
   const result = await response.json();
 
+
+  const formattedData = result?.map((follower: any) => {
+    const teams = follower?.member?.teamMemberRoles?.map((teamMemberRole: any) => ({
+      id: teamMemberRole.team?.uid || '',
+      name: teamMemberRole.team?.name || '',
+      role: teamMemberRole.role || 'Contributor',
+      teamLead: !!teamMemberRole.teamLead,
+      mainTeam: !!teamMemberRole.mainTeam,
+      logo: teamMemberRole?.team?.logo?.url || '',
+    })) || [];
+  
+    const teamAndRoles = teams.map((team: any) => ({
+      teamTitle: team.name,
+      role: team.role,
+      teamUid: team.id,
+    }));
+  
+    const teamLead = teams.some((team: any) => team.teamLead);
+    const roles = teams.map((team: any) => team.id);
+  
+    return {
+      uid: follower?.uid,
+      name: follower?.member?.name,
+      memberUid: follower?.memberUid,
+      entityUid: follower?.entityUid,
+      entityAction: follower?.entityAction,
+      entityType: follower?.entityType,
+      isActive: follower?.isActive,
+      logo: follower?.member?.image?.url,
+      teamLead: teamLead,
+      roles: Array.isArray(roles) ? roles : [],
+    };
+  });
+  
   return {
-    data: result,
+    data: formattedData,
   }
 }

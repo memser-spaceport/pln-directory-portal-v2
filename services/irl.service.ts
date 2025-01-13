@@ -198,7 +198,7 @@ export const getFollowersByLocation = async (locationId: string, authToken: stri
     }));
   
     const teamLead = teams.some((team: any) => team.teamLead);
-    const roles = teams.map((team: any) => team.id);
+    const roles = Array.from(new Set(teams.map((team: any) => team.role)));
   
     return {
       uid: follower?.uid,

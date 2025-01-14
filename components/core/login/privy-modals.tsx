@@ -149,7 +149,7 @@ function PrivyModals() {
         }),
       });
 
-      if (response.status === 500) {
+      if (response.status === 500 || response.status === 401) {
         triggerLoader(false);
         document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'unexpected_error' }));
         setLinkAccountKey('');

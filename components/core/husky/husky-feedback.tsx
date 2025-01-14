@@ -46,24 +46,27 @@ const HuskyFeedback = (props: HuskyFeedbackProps) => {
    */
   const onFeedbackSubmit = async () => {
     try {
-      const { isLoginRequired, newAuthToken, newUserInfo: userInfo } = await getUserCredentialsInfo();
-      if (isLoginRequired) {
-        forceUserLogin();
-      }
-      if (userInfo) {
+      const { newAuthToken, newUserInfo: userInfo } = await getUserCredentialsInfo();
         trackFeedbackStatus('initiated', ratingInfo.rating.toString(), question);
-        const memberInfo = await getMemberInfo(userInfo.uid);
-        const memberDetails = memberInfo.data;
-        const payload = {
-          name: memberDetails.name,
-          email: memberDetails.email,
-          team: memberDetails.teamMemberRoles[0]?.teamTitle ?? '',
-          directoryId: memberDetails.uid,
+
+        let payload = {
           rating: ratingInfo.rating,
           comment: ratingInfo.comment,
           prompt: question,
           response: answer,
-        };
+        } as any;
+
+        if (userInfo) {
+          const memberInfo = await getMemberInfo(userInfo.uid);
+          const memberDetails = memberInfo.data;
+          payload = {
+            ...payload,
+            name: memberDetails.name,
+            email: memberDetails.email,
+            team: memberDetails.teamMemberRoles[0]?.teamTitle ?? '',
+            directoryId: memberDetails.uid,
+          };
+        }
 
         setLoadingStatus(true);
         const response = await saveFeedback(newAuthToken, payload);
@@ -75,7 +78,6 @@ const HuskyFeedback = (props: HuskyFeedbackProps) => {
           trackFeedbackStatus('error', ratingInfo.rating.toString(), question);
           setStep('error');
         }
-      }
     } catch (error) {
       console.log("errr while send", error)
       trackFeedbackStatus('error', ratingInfo.rating.toString(), question);

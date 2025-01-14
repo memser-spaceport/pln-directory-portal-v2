@@ -13,6 +13,7 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
+import Husky from '@/components/page/home/husky/husky';
 
 export default async function Home() {
   const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
@@ -23,6 +24,10 @@ export default async function Home() {
 
   return <>
     <div className={styles.home}>
+      {/* Husky chat */}
+      <div className={styles.home__husky}>
+        <Husky/>
+      </div>
       <div className={styles.home__cn}>
         {/* Focus Area section */} 
         <div className={styles.home__cn__focusarea}>

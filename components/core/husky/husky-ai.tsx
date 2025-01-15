@@ -135,7 +135,8 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const checkChatLimit = (userInfo: any): boolean => {
-    if (userInfo?.uid) return true;
+    const refreshToken = getParsedValue(Cookies.get('refreshToken'));
+    if (refreshToken) return true;
     return false;
   };
 
@@ -427,7 +428,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           <HuskyFeedback forceUserLogin={forceUserLogin} setLoadingStatus={setLoadingStatus} question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
         </div>
       )}
-      
+
       {isLoading && <PageLoader data-testid="page-loader" />}
 
       <style jsx>
@@ -505,17 +506,23 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           .huskyai__cn__strip {
             position: sticky;
             bottom: 0;
-            padding: 0px 0px 20px 0px;
-            margin: 0px 16px;
+            // padding: 0px 0px 20px 0px;
+            // margin: 0px 16px;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 54.22%);
-          }
-          .huskyai__footer__strip {
-            margin: 0px 16px;
           }
 
           @media (min-width: 1024px) {
             .huskyai__selection {
               padding-bottom: ${limitReached !== 'close' ? '100px' : '64px'};
+            }
+
+            .huskyai__footer__strip {
+              margin: 0px 16px;
+            }
+
+            .huskyai__cn__strip {
+              padding: 0px 0px 20px 0px;
+              margin: 0px 16px;
             }
           }
         `}

@@ -54,9 +54,9 @@ function HuskyChatQuestion({ question, shareCount, viewCount, sources, onShareCl
             width: 100%;
           }
           .chat__ques__title {
-            font-size: 22px;
+            font-size: 16px;
             font-weight: 400;
-            line-height: 25px;
+            line-height: 26px;
           }
           .chat__quesactions {
             width: 100%;

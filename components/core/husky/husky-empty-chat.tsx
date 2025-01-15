@@ -349,7 +349,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
             width: 40px;
           }
           .hec__content__box__prompts {
-            width: 100%;
+            width: 600px;
             border-top: 1px solid #e2e8f0;
           }
           .err {

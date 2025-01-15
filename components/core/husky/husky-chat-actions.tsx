@@ -15,7 +15,7 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
       <div className="chat-actions">
         <h3 className="chat-actions__title">
           <img width={16} height={16} src="/icons/husky-brain.svg" />
-          <span>Suggested actions</span>
+          <span>Related results</span>
         </h3>
         <div className="chat-actions__cn ">
           {actions.map((action: any, index: number) => (

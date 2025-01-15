@@ -9,8 +9,8 @@ const Husky = () => {
   const [limitReached, setLimitReached] = useState<boolean>(false); // daily limit
 
   const checkIsLimitReached = () => {
-    const userInfo = getParsedValue(Cookies.get('userInfo'));
-    if (!userInfo) {
+    const refreshToken = getParsedValue(Cookies.get('refreshToken'));
+    if (!refreshToken) {
       const chatCount = parseInt(Cookies.get('dailyChats') || '0', 10);
       return DAILY_CHAT_LIMIT === chatCount;
     }

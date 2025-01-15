@@ -41,48 +41,61 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLim
     <>
       <div className={`husky-limit-strip ${type === 'info' ? 'info' : 'error'}`}>
         <div className="husky-limit-strip__text">
-          {type === 'info' ? <img height={18} width={18} src="/icons/info-blue.svg" alt="info" /> : <img height={18} width={18} src="/icons/info-red.svg" alt="info" />}
-          <p>
+          <span className="husky-limit-strip__text__iconWrpr">
+            {type === 'info' ? (
+              <img className="icon" height={18} width={18} src="/icons/info-blue.svg" alt="info" />
+            ) : (
+              <img className="icon" height={18} width={18} src="/icons/info-red.svg" alt="info" />
+            )}
             {type === 'info' ? (
               <span className="highlight">
                 {count} {count === 1 ? 'response' : 'response(s)'} remaining
               </span>
             ) : (
               <span className="warn">Limit reached</span>
+            )}
+          </span>
+          <p className="husky-limit-strip__text__wrpr">
+            {' '}
+            <span className="seperator">|</span>{' '}
+            {type === 'info' ? (
+              <span className="husky-limit-strip__text__huskyMsg">Husky is running out of bones!</span>
+            ) : (
+              <span className="husky-limit-strip__text__huskyMsg">Husky is done fetching for the day!</span>
             )}{' '}
-            | {type === 'info' ? <span>Husky is running out of bones!</span> : <span>Husky is done fetching for the day!</span>}{' '}
-            <span onClick={onLoginClickHandler} role="a" className="link">
-              Log in
-            </span>{' '}
-            or{' '}
-            <span onClick={handleSignUpClick} role="a" className="link">
-              Sign up
-            </span>{' '}
-            to get unlimited responses
+            <p>
+              <span onClick={onLoginClickHandler} role="a" className="link">
+                Log in
+              </span>{' '}
+              or{' '}
+              <span onClick={handleSignUpClick} role="a" className="link">
+                Sign up
+              </span>{' '}
+              to get unlimited responses
+            </p>
           </p>
         </div>
-        {type === 'info' && (
+        {/* {type === 'info' && (
           <button onClick={onClose}>
             <img height={10} width={10} src="/icons/close-blue.svg" alt="close" />
           </button>
-        )}
+        )} */}
       </div>
       <style jsx>{`
         .husky-limit-strip {
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 400;
           line-height: 20px;
           display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 10px;
+          justify-content: center;
+          padding: 8px;
           gap: 20px;
-          border-radius: ${mode === 'blog' ? '8px' : '8px 8px 0px 0px'};
+          border-radius: 0px;
         }
 
         .husky-limit-strip__text {
           display: flex;
-          gap: 3px;
+          flex-direction: column;
           align-items: center;
         }
 
@@ -97,9 +110,8 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLim
         }
 
         .info {
-          border: 1px solid #cbd5e1;
           background: #dbeafe;
-          border-radius: 8px;
+          border-bottom: ${mode === 'blog' ? '' : '0px'};
         }
 
         .warn {
@@ -108,7 +120,6 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLim
         }
 
         .error {
-          border: 1px solid #ff7777;
           background: #f2e0e5;
           border-bottom: ${mode === 'blog' ? '' : '0px'};
         }
@@ -117,13 +128,60 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLim
           background: transparent;
         }
 
+        .husky-limit-strip__text__huskyMsg {
+          display: none;
+        }
+
+        .seperator {
+          display: none;
+          color: #cbd5e1;
+        }
+
+        .husky-limit-strip__text__iconWrpr {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+        }
+
+        .icon {
+          display: none;
+        }
+
         @media (min-width: 1024px) {
           .husky-limit-strip {
+            font-size: 14px;
             padding: 12px 12px 12px 20px;
+            justify-content: unset;
+            border-radius: ${mode === 'blog' ? '8px' : '8px 8px 0px 0px'};
           }
 
           .husky-limit-strip__text {
             align-items: start;
+            flex-direction: row;
+            gap: 4px;
+          }
+
+          .husky-limit-strip__text__huskyMsg {
+            display: block;
+          }
+          .seperator {
+            display: block;
+          }
+
+          .husky-limit-strip__text__wrpr {
+            display: flex;
+            gap: 4px;
+          }
+
+          .info {
+            border: 1px solid #cbd5e1;
+          }
+
+          .icon {
+            display: block;
+          }
+          .error {
+            border: 1px solid #ff7777;
           }
         }
       `}</style>

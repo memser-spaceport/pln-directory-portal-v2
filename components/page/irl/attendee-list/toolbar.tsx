@@ -44,17 +44,9 @@ const Toolbar = (props: IToolbar) => {
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
   const search = searchParams.get('search');
-  const editResponseRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
   const inPastEvents = type ? type === 'past' : (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0);
-
-  useClickedOutside({
-    ref: editResponseRef,
-    callback: () => {
-      seIsEdit(false);
-    },
-  });
 
   //hooks
   const analytics = useIrlAnalytics();
@@ -180,12 +172,6 @@ const Toolbar = (props: IToolbar) => {
             </div>
           )}
 
-          {!isUserGoing && isUserLoggedIn && !inPastEvents && (
-            <button onClick={onIAmGoingClick} className="mb-btn toolbar__actionCn__imGoingBtn">
-              I&apos;m Going
-            </button>
-          )}
-
           {!isUserLoggedIn && (
             <>
               <button onClick={onLoginClick} className="toolbar__actionCn__login">
@@ -197,24 +183,6 @@ const Toolbar = (props: IToolbar) => {
             </>
           )}
 
-          {isUserGoing && isUserLoggedIn && !inPastEvents && (
-            <div className="toolbar__actionCn__edit__wrpr">
-              <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
-                Edit Response
-                <img src="/icons/down-arrow-white.svg" alt="arrow" width={18} height={18} />
-              </button>
-              {isEdit && (
-                <div className="toolbar__actionCn__edit__list">
-                  <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
-                    Edit Details
-                  </button>
-                  <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
-                    Remove from Gathering(s)
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
         </div>
         <div className="toolbar__search">
           <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
@@ -403,6 +371,8 @@ const Toolbar = (props: IToolbar) => {
             cursor: pointer;
             padding: 4px 8px;
             white-space: nowrap;
+            background: #fff;
+            width: 100%;
           }
 
           .toolbar__actionCn__edit__list__item:hover {
@@ -436,7 +406,7 @@ const Toolbar = (props: IToolbar) => {
             color: #fff;
           }
 
-          @media (min-width: 498px) {
+          @media (min-width: 480px) {
             // .mb-btn {
             //   font-size: 12px;
             // }

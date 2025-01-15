@@ -5,8 +5,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { IMember } from '@/types/members.types';
 import { EVENTS } from '@/utils/constants';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface IAllFollowers {
   onClose: () => void;
@@ -37,36 +36,31 @@ const AllFollowers = (props: IAllFollowers) => {
   }, []);
 
   useEffect(() => {
-    setFilteredFollowers([...followersList])
-  }, [followersList])
-
-
+    setFilteredFollowers([...followersList]);
+  }, [followersList]);
 
   const onInputchangeHandler = (event: any) => {
     const searchTerm = event?.target.value.toLowerCase();
     setSearchTerm(event.target.value);
     const filteredMembers = followersList?.filter((member: IMember) => member?.name?.toLowerCase()?.includes(searchTerm));
     setFilteredFollowers(filteredMembers);
-
   };
 
   const onModalCloseClickHandler = () => {
-    setSearchTerm("");
+    setSearchTerm('');
     setFilteredFollowers(followersList);
     onClose();
-  }
-
+  };
 
   return (
     <>
       <Modal modalRef={allFollowersRef} onClose={onModalCloseClickHandler}>
         <div className="cm">
           <div className="cm__hdr">
-            <div className='cm__hdr__ttl'>People following {location}</div>
-            <div className='cm__hdr__count'>{followersList.length} following</div>
-
+            <div className="cm__hdr__ttl">People following {location}</div>
+            <div className="cm__hdr__count">{followersList.length} following</div>
           </div>
-          <div>
+          <div className="cm__body__search__cnt">
             <div className="cm__body__search">
               <div className="cm__body__search__icon">
                 <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
@@ -75,49 +69,56 @@ const AllFollowers = (props: IAllFollowers) => {
             </div>
           </div>
           <div className="cm__body__followers">
-            {filteredFollowers?.map((contributor: any, index: number) => {
+            {filteredFollowers?.map((follower: any, index: number) => {
               return (
-                <div key={'contributor' + contributor?.uid}
-                  className={`contributor__wrpr ${index !== filteredFollowers.length - 1 ? "borderb" : ""}`}
-                >
-                  <a href={`${process.env.APPLICATION_BASE_URL}/members/${contributor.memberUid}`}
-                    target='_blank'
-                    onClick={() => onFollowerClickHandler(contributor)}
-                  >
-                    <div className="contributor">
-                      <div className="contributor__info">
-                        <div className="contributor__info__imgWrpr">
-                          <Image alt="profile" width={40} height={40} layout='intrinsic' loading='eager' priority={true} className="contributor__info__img" src={contributor.logo || '/icons/default_profile.svg'} />
-                          {contributor?.teamLead &&
+                <div key={'follower' + follower?.uid} className={`follower__wrpr ${index !== filteredFollowers.length - 1 ? 'borderb' : ''}`}>
+                  <a href={`${process.env.APPLICATION_BASE_URL}/members/${follower.memberUid}`} target="_blank" onClick={() => onFollowerClickHandler(follower)}>
+                    <div className="follower">
+                      <div className="follower__info">
+                        <div className="follower__info__imgWrpr">
+                          <Image
+                            alt="profile"
+                            width={40}
+                            height={40}
+                            layout="intrinsic"
+                            loading="eager"
+                            priority={true}
+                            className="follower__info__img"
+                            src={follower.logo || '/icons/default_profile.svg'}
+                          />
+                          {follower?.teamLead && (
                             <>
-                              <Tooltip asChild trigger={<img src="/icons/badge/team-lead.svg" className="contributor__info__teamlead" alt="team lead image" width={16} height={16} />}
-                                content="Team Lead" />
-                            </>}
+                              <Tooltip
+                                asChild
+                                trigger={<img src="/icons/badge/team-lead.svg" className="follower__info__teamlead" alt="team lead image" width={16} height={16} />}
+                                content="Team Lead"
+                              />
+                            </>
+                          )}
                         </div>
-                        <div className="contributor__info__nameandrole">
-                          <div className="contributor__info__name">{contributor?.name}</div>
-                          {contributor?.roles?.length > 0 && (
-                            <div className='contributor__info__nameandrole__role'>
-                              <span className='contributor__info__nameandrole__role__name' >{contributor?.roles[0]}</span>
-                              {contributor?.roles?.length > 1 && (
-                                <Tooltip asChild content={
-                                  <>
-                                    {contributor?.roles.slice(1, contributor.roles.length).map((con: any, index: any) => (
-                                      <div key={`key-${index}`}>{con}</div>
-                                    ))}
-                                  </>
-
-                                }
-                                  trigger={<span className='contributor__info__nameandrole__role__count'>+{contributor.roles.length - 1}</span>}
+                        <div className="follower__info__nameandrole">
+                          <div className="follower__info__name">{follower?.name}</div>
+                          {follower?.roles?.length > 0 && (
+                            <div className="follower__info__nameandrole__role">
+                              <span className="follower__info__nameandrole__role__name">{follower?.roles[0]}</span>
+                              {follower?.roles?.length > 1 && (
+                                <Tooltip
+                                  asChild
+                                  content={
+                                    <>
+                                      {follower?.roles.slice(1, follower.roles.length).map((con: any, index: any) => (
+                                        <div key={`key-${index}`}>{con}</div>
+                                      ))}
+                                    </>
+                                  }
+                                  trigger={<span className="follower__info__nameandrole__role__count">+{follower.roles.length - 1}</span>}
                                 />
                               )}
                             </div>
-
                           )}
-
                         </div>
                       </div>
-                      <div className="contributor__nav">
+                      <div className="follower__nav">
                         <img src="/icons/right-arrow-gray.svg" alt="icon" />
                       </div>
                     </div>
@@ -125,13 +126,12 @@ const AllFollowers = (props: IAllFollowers) => {
                 </div>
               );
             })}
-            {filteredFollowers.length === 0 && <div className="cm__body__contributors__notFound">No Followers found.</div>}
+            {filteredFollowers.length === 0 && <div className="cm__body__followers__notFound">No Followers found.</div>}
           </div>
         </div>
       </Modal>
       <style jsx>{`
         .cm {
-          padding: 24px;
           width: 320px;
           display: flex;
           flex-direction: column;
@@ -142,8 +142,12 @@ const AllFollowers = (props: IAllFollowers) => {
           background: #fff;
         }
 
+        .cm__hdr {
+          padding: 24px 24px 0 24px;
+        }
+
         .cm__hdr__ttl {
-          font-size: 16px;
+          font-size: 20px;
           font-weight: 600;
           line-height: 22px;
           letter-spacing: 0px;
@@ -151,14 +155,19 @@ const AllFollowers = (props: IAllFollowers) => {
           background-color: #ffffff;
         }
 
-        .cm__hdr__count {
-        font-size: 14px;
-        font-weight: 400;
-        line-height: 28px;
-
+        .cm__body__followers {
+          flex: 1;
+          padding: 0px 24px 0 24px;
+          overflow: auto;
         }
 
-        .cm__body__contributors {
+        .cm__hdr__count {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 28px;
+        }
+
+        .cm__body__followers {
           display: flex;
           flex-direction: column;
           gap: 10px;
@@ -166,37 +175,38 @@ const AllFollowers = (props: IAllFollowers) => {
           overflow: auto;
         }
 
-        .contributor__info__nameandrole {
-        display: flex;
-        gap: 4px;
-        flex-direction: column;}
-
-        .contributor__info__nameandrole__role {
-        display: flex;
-        gap: 5px;
+        .follower__info__nameandrole {
+          display: flex;
+          gap: 4px;
+          flex-direction: column;
         }
 
-        .contributor__info__nameandrole__role__name {
-        font-size: 14px;
-        font-weight: 400;
-        lineh-height: 20px;
-        color: #64748B;
-                  max-width: 160px;
+        .follower__info__nameandrole__role {
+          display: flex;
+          gap: 5px;
+        }
+
+        .follower__info__nameandrole__role__name {
+          font-size: 14px;
+          font-weight: 400;
+          lineh-height: 20px;
+          color: #64748b;
+          max-width: 160px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        .contributor__info__nameandrole__role__count {
-        background: #f1f5f9;
-    border-radius: 24px;
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 14px;
-    padding: 2px 8px;
-    display: flex;
-    color: #64748b;
-    align-items: center;
+        .follower__info__nameandrole__role__count {
+          background: #f1f5f9;
+          border-radius: 24px;
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 14px;
+          padding: 2px 8px;
+          display: flex;
+          color: #64748b;
+          align-items: center;
         }
 
         .cm__body__search {
@@ -234,35 +244,38 @@ const AllFollowers = (props: IAllFollowers) => {
           outline-offset: 2px;
         }
 
-        .contributor__wrpr {
+        .follower__wrpr {
           cursor: pointer;
           padding: 10px 10px 10px 0;
           border-radius: 4px;
         }
-  
 
-        .contributor__wrpr:hover {
+        .cm__body__search__cnt {
+          padding: 0 24px 0 24px;
+        }
+
+        .follower__wrpr:hover {
           background-color: #f1f5f9;
         }
 
-        .contributor {
+        .follower {
           display: flex;
           justify-content: space-between;
           align-items: center;
           gap: 10px;
         }
 
-        .contributor__info {
+        .follower__info {
           display: flex;
           gap: 16px;
           align-items: center;
         }
 
-        .contributor__info__imgWrpr {
+        .follower__info__imgWrpr {
           position: relative;
         }
 
-        .contributor__info__name {
+        .follower__info__name {
           font-size: 16px;
           font-weight: 500;
           line-height: 20px;
@@ -273,17 +286,17 @@ const AllFollowers = (props: IAllFollowers) => {
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .contributor__info__teamlead {
+        .follower__info__teamlead {
           position: absolute;
           left: 25px;
           bottom: 33px;
         }
 
-        .contributor__nav {
+        .follower__nav {
           dislay: flex;
         }
 
-        .cm__body__contributors__notFound {
+        .cm__body__followers__notFound {
           color: #0f172a;
           text-align: center;
           font-size: 14px;
@@ -294,8 +307,9 @@ const AllFollowers = (props: IAllFollowers) => {
             width: 512px;
           }
 
-          .contributor__info__name {
-          width: 350px}
+          .follower__info__name {
+            width: 350px;
+          }
         }
       `}</style>
     </>

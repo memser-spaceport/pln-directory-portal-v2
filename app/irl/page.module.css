@@ -10,8 +10,6 @@
 
 .irlGatheings__locations {
   height: 177px;
-  border-radius: 16px;
-  padding: 16px;
   gap: 16px;
 }
 
@@ -23,12 +21,17 @@
 }
 
 @media (min-width: 360px) {
+  .irlGatheings__follow {
+    overflow: unset;
+    max-width: 782px;
+  }
+  
   .irlGatheings__locations {
     overflow-x: auto;
     scroll-behavior: smooth;
     scrollbar-width: none;
     margin: unset;
-    background-color: #E4EDF7;
+    background-color: #F1F5F9;
     height: 122px;
     padding: 10px;
     border-radius: unset;
@@ -43,6 +46,10 @@
 }
 
 @media (min-width: 1024px) {
+  .irlGatheings__follow {
+    width: 900px !important;
+  }
+
   .irlGatherings {
     width: 900px;
     margin: auto;
@@ -52,12 +59,16 @@
     border-radius: 16px;
     height: 173px;
     border: 1px solid #cbd5e1;
-    border-radius: 16px;
+    border-radius: 16px 16px 0px 16px;
     gap: 16px;
     overflow: unset;
     position: relative;
     background-color: unset;
     max-width: 900px;
+    border-bottom: none;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+
   }
 
   .irlGatherings__events {

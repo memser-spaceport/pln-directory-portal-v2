@@ -1,7 +1,7 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
 import { IRL_SUBMIT_FORM_LINK, FOLLOW_ENTITY_TYPES, EVENTS } from '@/utils/constants';
 import { toast } from 'react-toastify';
@@ -10,6 +10,8 @@ import { get } from 'http';
 import { useRouter } from 'next/navigation';
 import AllFollowers from './all-followers';
 import Image from 'next/image';
+import Modal from "@/components/core/modal";
+
 
 const FollowSection = (props: any) => {
   const userInfo = props?.userInfo;
@@ -18,6 +20,19 @@ const FollowSection = (props: any) => {
   const analytics = useIrlAnalytics();
   const router = useRouter();
   const [followProperties, setFollowProperties] = useState<any>({ followers: [], isFollowing: false });
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const onCloseModal = () => {
+    if (dialogRef.current) {
+      dialogRef.current.close();
+    }
+  };
+
+  const handleClickUnFollowPopUp = (e: React.MouseEvent) => {
+    if (dialogRef.current) {
+      dialogRef.current.showModal();
+    }
+  }
 
   function getFollowProperties(followers: any) {
     return {
@@ -133,7 +148,7 @@ const FollowSection = (props: any) => {
               // eslint-disable-next-line @next/next/no-img-element
               <Image
                 key={index}
-                style={{ position: 'relative', zIndex: `${3- index }`, marginLeft: `-11px` }}
+                style={{ position: 'relative', zIndex: `${3 - index}`, marginLeft: `-11px` }}
                 className="root__irl__follwcnt__imgsec__images__img"
                 src={follower?.logo || '/icons/default_profile.svg'}
                 alt="follower"
@@ -143,38 +158,77 @@ const FollowSection = (props: any) => {
             ))}
           </div >
           <div className="root__irl__follwcnt__imgsec__desccnt">
-            <p className="root__irl__follwcnt__imgsec__desccnt__desc">
-              {followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `& ${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} Following
-            </p>
+            <div className="root__irl__follwcnt__imgsec__desccnt__desc">
+              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `& ${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} members </span>
+              are following this gathering at
+              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt__location'><img src={eventLocationSummary.flag} alt="flag" style={{ width: '17px', height: '17px' }} /></span>
+              {eventLocationSummary.name}
+            </div>
+          </div>
+          <div className="root__irl__follwcnt__imgsec__desccnt__mob">
+            <div className="root__irl__follwcnt__imgsec__desccnt__desc">
+              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `& ${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} members</span>
+            </div>
           </div>
         </div>
 
         {followProperties.isFollowing && (
-          <button className="root__irl__follwcnt__followingbtn" onClick={() => onUnFollowbtnClicked(eventLocationSummary.uid)}>
-            <img src="/icons/bell-black.svg" alt="follow" />
+          <button className="root__irl__follwcnt__followingbtn" onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}>
+            <img src="/icons/bell-green.svg" alt="follow" />
             Following
           </button>
         )}
 
         {!followProperties.isFollowing && (
           <button className="root__irl__follwcnt__followbtn" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
-            <img src="/icons/bell-white.svg" alt="follow" />
-            Follow
+            <img src="/icons/bell-blue.svg" alt="follow" />
+            Follow this gathering
           </button>
         )}
+      </div>
+
+      <div className="root__irl__mobileView">
+        <Modal modalRef={dialogRef} onClose={onCloseModal}>
+          <div className='popup__cnt'>
+
+            <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
+            <div className="popup__cnt__body">
+              You&apos;ll stop receiving updates about exciting events happening in Kyoto. Stay connected to never miss out!
+            </div>
+
+            <div className="popup__footer">
+              <button onClick={onCloseModal} className="popup__footer__cancel">
+                cancel
+              </button>
+              <button
+                onClick={() => {
+                  onCloseModal();
+                  onUnFollowbtnClicked(eventLocationSummary.uid)}
+                }
+                className={`popup__footer__confirm `}
+              >
+                Unfollow
+              </button>
+            </div>
+          </div>
+        </Modal>
       </div>
 
       <style jsx>
         {`
           .root__irl__follwcnt {
             width: 100%;
+            display: flex;
+            flex-direction: row;
             justify-content: space-between;
+            padding: 10px;
           }
 
           .root__irl__follwcnt__imgsec {
             display: flex;
             gap: 8px;
             align-items: center;
+            padding-left: 12px;
           }
 
           .root__irl__follwcnt__imgsec__images {
@@ -187,19 +241,19 @@ const FollowSection = (props: any) => {
           .root__irl__follwcnt {
             display: flex;
             gap: 12px;
-            align-items: center;
+            align-items: center;root__irl__follwcnt
           }
 
           .root__irl__follwcnt__followbtn {
             padding: 4px 8px;
             min-width: 103px;
             border: 1px solid #cbd5e1;
-            background: #156ff7;
+            background: #fff;
             border-radius: 8px;
             display: flex;
             gap: 8px;
             align-items: center;
-            color: #fff;
+            color: #0F172A;
             font-weight: 500;
             line-height: 20px;
             font-size: 14px;
@@ -222,20 +276,125 @@ const FollowSection = (props: any) => {
           }
 
           .root__irl__follwcnt__imgsec__desccnt__desc {
+            display: flex;
             color: #64748b;
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;
+            gap:4px;
           }
 
-          @media (min-width: 700px) {
+          .root__irl__follwcnt__imgsec__desccnt__desc__cnt{
+            color: #156ff7;
+          }
+
+          .root__irl__follwcnt__imgsec__desccnt__desc__cnt__location {
+            display: flex;
+            align-items: center;
+          }
+
+          .popup__footer {
+            display: flex;
+            justify-content: end;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 10px 10px 0px 0px;
+          }
+
+          .popup__footer__cancel {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #0f172a;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            padding: 10px 24px;
+            border-radius: 8px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+        .popup__footer__confirm {
+          height: 40px;
+          border-radius: 8px;
+          padding: 10px 24px;
+          background: #dd2c5a;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          color: #ffffff;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .popup__cnt__header {
+          font-size: 24px;
+          font-weight: 700;
+          line-height: 32px;
+          text-align: left;
+          color: #0f172a;
+          padding-top: 10px;
+        }
+
+        .popup__cnt__body {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 20px;
+          text-align: left;
+          color: #0F172a;
+          padding-top: 20px;
+        }
+
+          @media (min-width: 360px) {
+            .root__irl__follwcnt__imgsec__desccnt {
+              display: none;
+            }
+
+            .root__irl__mobileView {
+              display: flex;
+              width: 90vw;
+              max-height: 70vh;
+              overflow-y: auto;
+            }
+
+
+            .popup__cnt {
+              width: 89vw;
+              max-height: 80svh;
+              min-height: 25vh;
+              display: flex;
+              flex-direction: column;
+              overflow-y: auto;
+              padding: 20px;
+            }
+          }
+
+          @media (min-width: 1024px) {
+
+            .popup__cnt {
+              height: 220px;
+              width: 656px;
+              padding: 24px;
+            }
+
+            .root__irl__follwcnt__imgsec__desccnt {
+              display: flex;
+            }
+
+            .root__irl__follwcnt__imgsec__desccnt__mob {
+              display: none;
+            }
             .root__irl__follwcnt {
               width: unset;
-              justify-content: unset;
+              justify-content: space-between;
             }
 
             .root__irl__follwcnt__imgsec {
-              display: unset;
+              display: flex;
             }
 
             .root__irl__follwcnt__followbtn {
@@ -244,6 +403,13 @@ const FollowSection = (props: any) => {
 
             .root__irl__follwcnt__followingbtn {
               padding: 10px 16px;
+            }
+
+            .root__irl__mobileView {
+              display: flex;
+              width: 90vw;
+              max-height: 70vh;
+              overflow-y: auto;
             }
           }
         `}

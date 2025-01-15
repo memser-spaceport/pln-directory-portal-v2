@@ -12,6 +12,7 @@ import styles from './page.module.css';
 import { IAnalyticsGuestLocation } from '@/types/irl.types';
 import IrlErrorPage from '@/components/core/irl-error-page';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
+import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
 
 export default async function Page({ searchParams }: any) {
   const { isError, userInfo, isLoggedIn, followers, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(
@@ -35,9 +36,12 @@ export default async function Page({ searchParams }: any) {
         <section className={styles.irlGatheings__locations}>
           <IrlLocation locationDetails={locationDetails} searchParams={searchParams} />
         </section>
+        <section className={styles.irlGatheings__follow}>
+          <IrlFollowGathering eventLocationSummary={eventLocationSummary} followers={followers ?? []} userInfo={userInfo} isLoggedIn={isLoggedIn} searchParams={searchParams} />
+        </section>
         {/* Events */}
         <section className={styles.irlGatherings__events}>
-          <IrlEvents  eventLocationSummary={eventLocationSummary} followers={followers ?? []} userInfo={userInfo}  isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} />
+          <IrlEvents isUserGoing={isUserGoing as boolean} userInfo={userInfo} isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} guestDetails={guestDetails} />
         </section>
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
@@ -84,7 +88,7 @@ const getPageData = async (searchParams: any) => {
 
     // Find event details based on search parameters or default to first location
     const eventDetails = searchParams?.location ? locationDetails.find((loc: any) => loc.location.split(',')[0].trim() === searchParams.location) : locationDetails[0];
-    const { uid, location: name, pastEvents } = eventDetails;
+    const { uid, location: name, pastEvents, flag } = eventDetails;
 
     //check correct event type
     if (searchParams?.type) {
@@ -105,7 +109,7 @@ const getPageData = async (searchParams: any) => {
     if (!eventDetails || !isEventActive || !isEventAvailable) {
       return { isLocationError: true };
     }
-    const eventLocationSummary = { uid, name };
+    const eventLocationSummary = { uid, name, flag };
 
     // Determine event type and fetch event guest data
     const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
@@ -136,7 +140,7 @@ const getPageData = async (searchParams: any) => {
     if (events?.isError) {
       return { isError: true };
     }
-    if(followersResponse?.isError) {
+    if (followersResponse?.isError) {
       followers = [];
     }
 

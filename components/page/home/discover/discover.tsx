@@ -44,12 +44,12 @@ const Discover = (props: any) => {
             <img className="discover__hdr__ttl__img" src="icons/discover.svg" alt="discover" />
             <h2 className="discover__hdr__ttl__txt">Discover</h2>
           </div>
-          <p className="discover__hdr__desc">
+          {/* <p className="discover__hdr__desc">
             Explore Protocol Labs with{' '}
             <button aria-label="Explore with Husky" onClick={onHuskyClick} className="discover__hdr__desc__husky">
               Husky
             </button>
-          </p>
+          </p> */}
         </header>
         {/* Carousel */}
         <div className="embla" aria-label="Discover carousel">

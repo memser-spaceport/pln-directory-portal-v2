@@ -964,3 +964,5 @@ export const FOLLOW_ENTITY_TYPES = {
   EVENT: "EVENT",
   PROJECT: "PROJECT"
 }
+
+export const DAILY_CHAT_LIMIT = 20;

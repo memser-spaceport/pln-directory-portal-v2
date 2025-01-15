@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, ReactNode } from 'react';
 
 type PaneProps = {
   children: ReactNode;
-  position?: 'top' | 'bottom' | 'bottom-right';
+  position?: 'top' | 'bottom' | 'bottom-right'| 'left';
 };
 
 type WrapperProps = {
@@ -75,6 +75,11 @@ export const Pane: React.FC<PaneProps> = ({ children, position = 'bottom' }) => 
          top: 100%;
           right: 0;
          
+        }
+        .pane.left {
+          top: 100%;
+          right: 0;
+          margin-top: 5px;
         }
       `}</style>
     </div>

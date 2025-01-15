@@ -20,15 +20,17 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
         <div className="chat-actions__cn ">
           {actions.map((action: any, index: number) => (
             <a target="_blank" href={action.directoryLink} onClick={() => onActionCardClicked(action)} className="chat-actions__cn__item" key={index}>
-              <div className='chat-actions__cn__item__wrpr'>
-                { (action.type)?.toLowerCase() === 'member' && <img className="actions__cn__item__name__icon" src="/icons/default_profile.svg" alt="icon" />}
-                { (action.type)?.toLowerCase() === 'team' && <img className="actions__cn__item__name__icon" src="/icons/team-default-profile.svg" alt="icon" />}
-                { (action.type)?.toLowerCase() === 'project' && <img className="actions__cn__item__name__icon" src="/icons/default-project.svg" alt="icon" />}
+              <div className="chat-actions__cn__item__wrpr">
+                <div className="actions__cn__item__name__iconWrpr">
+                  {action.type?.toLowerCase() === 'member' && <img className="actions__cn__item__name__icon" src="/icons/default_profile.svg" alt="icon" />}
+                  {action.type?.toLowerCase() === 'team' && <img className="actions__cn__item__name__icon" src="/icons/team-default-profile.svg" alt="icon" />}
+                  {action.type?.toLowerCase() === 'project' && <img className="actions__cn__item__name__icon" src="/icons/default-project.svg" alt="icon" />}
+                </div>
                 <div className="">
                   <p className="chat-actions__cn__item__name">
                     <span>{action.name}</span>
                   </p>
-                  {action.type && <p className="chat-action-type">{`${action.type}`}</p>}
+                  <p className="chat-action-type">{action.type || ''}</p>
                 </div>
               </div>
               <img height={20} width={20} src="/icons/open-link.svg" alt="arrow" />
@@ -50,8 +52,9 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
             text-transform: capitalize;
             margin-top: 3px;
             width: fit-content;
-            color: #64748B;
+            color: #64748b;
             font-weight: 400;
+            min-height: 17px;
           }
           .chat-actions {
             width: 100%;
@@ -61,7 +64,7 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
             font-weight: 500;
             color: #ff820e;
             text-transform: uppercase;
-            border-bottom: 1px solid #cbd5e1;
+            border-bottom: 0.5px solid #cbd5e1;
             height: 36px;
             display: flex;
             gap: 4px;
@@ -71,7 +74,6 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
             width: 100%;
             display: grid;
             gap: 16px;
-            // flex-wrap: wrap;
             grid-template-columns: repeat(1, minmax(0, 1fr));
             margin-top: 16px;
           }
@@ -94,9 +96,15 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
 
           .chat-actions__cn__item__name {
             font-size: 14px;
+            min-height: 17px;
             font-weight: 400;
             display: flex;
             gap: 6px;
+          }
+
+          .actions__cn__item__name__iconWrpr {
+            width: 32px;
+            height: 32px;
           }
 
           .actions__cn__item__name__icon {
@@ -126,7 +134,7 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
             text-transform: capitalize;
           }
 
-           @media (min-width: 475px) {
+          @media (min-width: 475px) {
             .chat-actions__cn {
               grid-template-columns: repeat(2, minmax(0, 1fr));
             }

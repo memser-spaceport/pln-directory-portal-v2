@@ -491,6 +491,9 @@ const IrlLocation = (props: IrlLocation) => {
 
                 @media (min-width: 1024px) {
 
+                    .root {
+                        height: 170px;
+                    }
                     .root__irl__seeMoreCard__desktop--sm {
                         display: none;
                     }

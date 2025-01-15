@@ -356,6 +356,15 @@ dialog {
   border-radius: 8px;
 }
 
+.follower__info__img {
+  border: 1px solid #e2e8f0;
+  color: #e2e8f0;
+  object-fit: cover;
+  border-radius: 50%;
+  height: 40px !important;
+  width: 40px !important;
+}
+
 @media (min-width: 1024px) {
   
   .team-grid__profile-container__profile {

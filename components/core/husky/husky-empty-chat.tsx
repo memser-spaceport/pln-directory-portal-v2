@@ -53,7 +53,8 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
   // Handles the click event for exploration prompts
   const onExplorationPromptClicked = async (quesObj: any) => {
     trackExplorationPromptSelection(quesObj.question);
-    document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: quesObj } }));
+    const links = quesObj?.answerSourceLinks?.map((item:any) => item?.link);
+    document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: {...quesObj, answerSourceLinks: links } } }));
   };
 
   // Handles key down events in the textarea

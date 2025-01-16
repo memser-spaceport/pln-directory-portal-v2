@@ -1,5 +1,6 @@
 import { getFormattedDateString } from '@/utils/irl.utils';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import Image from 'next/image';
 
 const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, handleElementClick, isEventSelected, eventType, isLoggedIn }: any) => {
   const handleRowClick = (gathering: any) => {
@@ -33,10 +34,43 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
                 )}
                 {!website && <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>}
               </div>
-              <div className="root__irl__table-col__contentName__bottom">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</div>
-              <div className='root__irl__table-col__contentName__attendee__list'>
-                <img src="/icons/users-default.svg" alt="users" />
-                <div>{gathering._count?.eventGuests} {gathering?._count?.eventGuests > 1 ? "Attendees" : "Attendee"}</div>
+              <div className="root__irl__table-col__contentName__bottom">
+                <div
+                  className='root__irl__table-col__contentName__bottom__date'
+                  style={gathering.eventGuests?.length > 0 ? { paddingRight: "10px", marginRight: "10px", borderRight: "1px solid #cbd5e1" } : {}}
+                >
+                  {getFormattedDateString(gathering?.startDate, gathering?.endDate)}
+                </div>
+
+                {gathering.eventGuests?.length > 0 &&
+                  <div className='root__irl__table-col__contentName__attendee__list'>
+                    <span className="root__irl__imgsec__images">
+                      {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <Image
+                          key={index}
+                          style={{ marginLeft: `-6px` }}
+                          className="root__irl__imgsec__images__img"
+                          src={member?.image?.url || '/icons/default_profile.svg'}
+                          alt="attendee"
+                          height={18}
+                          width={18}
+                        />
+                      ))}
+                    </span>
+                    <span className=''>{gathering.eventGuests?.length > 0 ? gathering.eventGuests?.length : ''} {gathering?.eventGuests.length > 1 ? "Attendees" : "Attendee"}</span>
+                  </div>
+                }
+              </div>
+              <div className='root__irl__table-col__contentName__resSection'>
+                {gathering?.resources?.length > 0 && (
+                  <div className="root__irl__table-col__contentRes__viewCnt" onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}>
+                    <div  style={{ display: 'flex' }}>
+                      <img src="/images/irl/elements.svg" alt="view" />
+                    </div>
+                    <div>View Resources</div>
+                  </div>
+                )}
               </div>
             </div>
             {gathering?.type && (
@@ -57,24 +91,19 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           </div>
         </div>
         <div className="root__irl__table-col__contentDesc" dangerouslySetInnerHTML={{ __html: gathering?.description }}></div>
-        <div className="root__irl__table-col__contentRes">
-          {gathering?.resources?.length > 0 ? (
-            <div className="root__irl__table-col__contentRes__viewCnt" onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}>
-              <div>
-                <img src="/images/irl/elements.svg" alt="view" />
-              </div>
-              <div style={{ paddingBottom: '4px' }}>View</div>
-            </div>
-          ) : (
-            <div className="root__irl__table-col__contentRes__noCnt">-</div>
-          )}
-        </div>
       </div>
       <style jsx>{`
         .root__irl__table-header {
           display: flex;
           flex-direction: row;
           justify-content: space-between;
+        }
+
+        .root__irl__imgsec__images {
+          display: flex;
+          justify-content: end;
+          cursor: pointer;
+          padding-right: 5px;
         }
 
         .root__irl__table-col-header {
@@ -118,8 +147,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
         }
 
         .root__irl__table-col__headerName,
-        .root__irl__table-col__headerDesc,
-        .root__irl__table-col__headerRes {
+        .root__irl__table-col__headerDesc {
           font-size: 13px;
           font-weight: 600;
           line-height: 20px;
@@ -128,14 +156,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
 
         .root__irl__table-col__headerDesc,
         .root__irl__table-col__contentDesc {
-          width: 566px;
-          padding: 10px;
-          border-right: 1px solid #cbd5e1;
-        }
-
-        .root__irl__table-col__headerRes,
-        .root__irl__table-col__contentRes {
-          width: 91px;
+          width: 660px;
           padding: 10px;
         }
 
@@ -154,29 +175,15 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
         }
 
         .root__irl__table-col__headerName,
-        .root__irl__table-col__headerDesc,
-        .root__irl__table-col__headerRes,
+        .root__irl__table-col__headerDesc
         .root__irl__table-col__contentName,
-        .root__irl__table-col__contentDesc,
-        .root__irl__table-col__contentRes {
+        .root__irl__table-col__contentDesc{
           padding: 10px;
         }
 
         .root__irl__table-col__contentDesc {
           display: flex;
           align-items: center;
-        }
-
-        .root__irl__table-col__contentRes {
-          display: flex;
-          flex-direction: row;
-          gap: 4px;
-          align-items: center;
-          font-size: 11px;
-          font-weight: 500;
-          line-height: 20px;
-          color: #156ff7;
-          justify-content: center;
         }
 
         .root__irl__table-col__contentName {
@@ -202,6 +209,19 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           font-weight: 400;
           line-height: 20px;
           text-align: left;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          width: 175px;
+          flex-wrap: wrap;
+        }
+
+        .root__irl__table-col__contentName__resSection {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 5px;
+          padding: 10px 0px 0px 0px;
         }
 
         .root__irl__table-col__contentName__attendee__list {
@@ -209,10 +229,11 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           flex-direction: row;
           gap: 4px;
           align-items: center;
-          
+          padding-left: 5px;
           font-size: 10px;
           font-weight: 400;
           line-height: 20px;
+         
         }
         .root__irl__table-col__inviteOnlyIcon {
           padding-left: 4px;
@@ -225,6 +246,14 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           align-items: center;
           align-self: center;
           cursor: pointer;
+          background-color: #f1f5f9;
+          padding: 0px 8px;
+          border-radius: 35px;
+          font-size: 11px;
+          font-weight: 500;
+          line-height: 20px;
+          text-align: center;
+          color: #156ff7;
         }
 
          @media (min-width: 1440px) {
@@ -238,10 +267,8 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
             width: 727px;
           }
 
-          .root__irl__table-col__headerRes,
-          .root__irl__table-col__contentRes {
-            width: 177px;
-            text-align: center;
+          .root__irl__table-col__contentName__bottom {
+            width: 280px;
           }
         }
 
@@ -256,9 +283,8 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
             width: 1095px;
           }
 
-          .root__irl__table-col__headerRes,
-          .root__irl__table-col__contentRes {
-            width: 178px;
+          .root__irl__table-col__contentName__bottom {
+            width: 350px;
           }
         }
 
@@ -273,9 +299,8 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
             width: 1411px; 
           }
 
-          .root__irl__table-col__headerRes,
-          .root__irl__table-col__contentRes {
-            width: 277px;
+          .root__irl__table-col__contentName__bottom {
+            width: 485px;
           }
         }
       `}</style>

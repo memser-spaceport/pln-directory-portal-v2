@@ -57,7 +57,7 @@ const AllFollowers = (props: IAllFollowers) => {
       <Modal modalRef={allFollowersRef} onClose={onModalCloseClickHandler}>
         <div className="cm">
           <div className="cm__hdr">
-            <div className="cm__hdr__ttl">People following {location}</div>
+            <div className="cm__hdr__ttl">People following gatherings at {location}</div>
             <div className="cm__hdr__count">{followersList.length} following</div>
           </div>
           <div className="cm__body__search__cnt">

@@ -160,7 +160,7 @@ const FollowSection = (props: any) => {
           <div className="root__irl__follwcnt__imgsec__desccnt">
             <div className="root__irl__follwcnt__imgsec__desccnt__desc">
               <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `& ${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} members </span>
-              are following this gathering at
+              are following gatherings at
               <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt__location'><img src={eventLocationSummary.flag} alt="flag" style={{ width: '17px', height: '17px' }} /></span>
               {eventLocationSummary.name}
             </div>
@@ -182,7 +182,7 @@ const FollowSection = (props: any) => {
         {!followProperties.isFollowing && (
           <button className="root__irl__follwcnt__followbtn" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
             <img src="/icons/bell-blue.svg" alt="follow" />
-            Follow this gathering
+            Follow
           </button>
         )}
       </div>
@@ -286,6 +286,7 @@ const FollowSection = (props: any) => {
 
           .root__irl__follwcnt__imgsec__desccnt__desc__cnt{
             color: #156ff7;
+            cursor: pointer;
           }
 
           .root__irl__follwcnt__imgsec__desccnt__desc__cnt__location {

@@ -336,6 +336,20 @@ dialog {
   border-radius: 50%;
 }
 
+.root__irl__imgsec__images__img {
+  height: 18px;
+  width: 18px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.root__irl__imgsec__images__img__mob {
+  height: 15px;
+  width: 15px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 /* home page husky text area  */
 .hec__content__box__search__input::placeholder {
   font-size: 12px;

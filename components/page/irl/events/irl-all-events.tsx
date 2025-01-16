@@ -76,7 +76,6 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
                     <SearchGatherings searchParams={searchParams} type={"all"} eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={setItemsToShow} />
                   </div>
                   <div className="root__irl__table-col__headerDesc">Description</div>
-                  <div className="root__irl__table-col__headerRes">Resources</div>
                 </div>
               </div>
               <div className="">
@@ -202,8 +201,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
         }
 
         .root__irl__table-col__headerName,
-        .root__irl__table-col__headerDesc,
-        .root__irl__table-col__headerRes {
+        .root__irl__table-col__headerDesc {
           font-size: 13px;
           font-weight: 600;
           line-height: 20px;
@@ -211,19 +209,12 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
         }
 
         .root__irl__table-col__headerDesc {
-          width: 566px;
-          padding: 10px;
-          border-right: 1px solid #cbd5e1;
-        }
-
-        .root__irl__table-col__headerRes {
-          width: 91px;
+          width: 660px;
           padding: 10px;
         }
 
         .root__irl__table-col__headerName,
-        .root__irl__table-col__headerDesc,
-        .root__irl__table-col__headerRes {
+        .root__irl__table-col__headerDesc  {
           padding: 10px;
         }
 
@@ -378,13 +369,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
 
           .root__irl__table-col__headerDesc,
           .root__irl__table-col__contentDesc {
-            width: 727px;
-          }
-
-          .root__irl__table-col__headerRes,
-          .root__irl__table-col__contentRes {
-            width: 177px;
-            text-align: center;
+            width: 870px;
           }
 
           .root__irl__table__no-data {
@@ -400,12 +385,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
 
           .root__irl__table-col__headerDesc,
           .root__irl__table-col__contentDesc {
-            width: 1095px;
-          }
-
-          .root__irl__table-col__headerRes,
-          .root__irl__table-col__contentRes {
-            width: 178px;
+            width: 1250px;
           }
 
           .root__irl__table__no-data {
@@ -421,12 +401,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
 
           .root__irl__table-col__headerDesc,
           .root__irl__table-col__contentDesc {
-            width: 1411px; 
-          }
-
-          .root__irl__table-col__headerRes,
-          .root__irl__table-col__contentRes {
-            width: 277px;
+            width: 1681px; 
           }
 
           .root__irl__table__no-data {

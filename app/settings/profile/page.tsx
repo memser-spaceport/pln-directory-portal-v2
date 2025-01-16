@@ -8,7 +8,7 @@ import { getMemberInfo } from '@/services/members.service';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
-import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { CAPITAL_MEMBER, CAPITAL_MEMBERS, PAGE_ROUTES, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 const getPageData = async (userId: string) => {
   const memberInfo = await getMemberInfo(userId);
@@ -38,7 +38,7 @@ export default async function ProfileSettings() {
 
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'Members', url: '/members' },
+    { text: CAPITAL_MEMBERS, url: '/members' },
     { text: `${memberInfo.name}`, url: `/members/${memberInfo.uid}` },
     { text: 'Profile', url: `/settings/profile` },
   ]
@@ -52,7 +52,7 @@ export default async function ProfileSettings() {
           </div>
         </div>
         <div className={styles.ps__backbtn}>
-            <SettingsBackButton title="Member Profile" />
+            <SettingsBackButton title={CAPITAL_MEMBER+" Profile"} />
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
@@ -69,8 +69,7 @@ export default async function ProfileSettings() {
 
 export const metadata: Metadata = {
   title: 'Settings | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

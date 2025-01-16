@@ -8,7 +8,7 @@ import Link from 'next/link';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
-import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { CAPITAL_MEMBER, CAPITAL_MEMBERS, PAGE_ROUTES, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getMember } from '@/services/members.service';
 
 const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean) => {
@@ -34,7 +34,7 @@ async function PrivacyPage() {
   }
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'Members', url: '/members' },
+    { text: CAPITAL_MEMBERS, url: '/members' },
     { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
     { text: 'Privacy', url: '/settings/privacy' },
   ];
@@ -48,7 +48,7 @@ async function PrivacyPage() {
           </div>
         </div>
         <div className={styles.privacy__backbtn}>
-          <SettingsBackButton title="Member Privacy" />
+          <SettingsBackButton title={CAPITAL_MEMBER+" Privacy"} />
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>
@@ -67,8 +67,7 @@ export default PrivacyPage;
 
 export const metadata: Metadata = {
   title: 'Settings | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

@@ -1,6 +1,6 @@
 'use client';
 
-import { ITEMS_PER_PAGE, PAGE_ROUTES, TOAST_MESSAGES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import { CAPITAL_MEMBERS, ITEMS_PER_PAGE, PAGE_ROUTES, TOAST_MESSAGES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import MemberGridView from './member-grid-view';
 import MemberListView from './member-list-view';
 import { IMember, IMemberListOptions } from '@/types/members.types';
@@ -84,7 +84,7 @@ const MemberInfiniteList = (props: any) => {
       <div>
         <div className="members-list">
           <div className="members-list__titlesec">
-            <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
+            <h1 className="members-list__titlesec__title">{CAPITAL_MEMBERS}</h1> <div className="members-list__title__count">({totalItems})</div>
           </div>
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
           {[...userList?.users]?.map((member: any, index: number) => (

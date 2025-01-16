@@ -16,7 +16,7 @@ import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
-import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PAGE_ROUTES, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata, ResolvingMetadata } from 'next';
 import ProjectStats from '@/components/page/project-details/stats';
 
@@ -178,8 +178,7 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
   if (projectResponse?.error) {
     return {
       title: 'Protocol Labs Directory',
-      description:
-        'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+      description: PROJECT_DESC,
       openGraph: {
         images: [
           {

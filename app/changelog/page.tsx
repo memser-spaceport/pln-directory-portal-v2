@@ -1,7 +1,7 @@
 import ChangelogList from '@/components/page/changelog/changelog-list';
 import styles from './page.module.css'
 import { Metadata } from 'next';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 export default function Changelog() {
   return (
@@ -15,8 +15,7 @@ export default function Changelog() {
 
 export const metadata: Metadata = {
   title: 'Changelog | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import SettingsMobileHandler from '@/components/page/settings/settings-mobile-handler';
 import { Metadata } from 'next';
-import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PAGE_ROUTES, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 
 export default function Settings() {
   const {isLoggedIn, userInfo} = getCookiesFromHeaders();
@@ -32,8 +32,7 @@ export default function Settings() {
 
 export const metadata: Metadata = {
   title: 'Settings | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

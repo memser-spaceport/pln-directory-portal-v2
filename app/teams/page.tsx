@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 
 import {getTeamListFilters } from '@/services/teams.service';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
-import { INITIAL_ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { INITIAL_ITEMS_PER_PAGE, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getTeamsListOptions, getTeamsOptionsFromQuery, processFilters } from '@/utils/team.utils';
 import EmptyResult from '../../components/core/empty-result';
@@ -83,8 +83,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
 
 export const metadata: Metadata = {
   title: 'Teams | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

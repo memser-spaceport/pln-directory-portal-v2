@@ -1,5 +1,5 @@
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
-import { EVENTS } from '@/utils/constants';
+import { EVENTS, MEMBERS_LABEL } from '@/utils/constants';
 import { Fragment, useEffect, useRef, useState } from 'react';
 
 export default function ContributorsPopup(props: any) {
@@ -137,7 +137,7 @@ export default function ContributorsPopup(props: any) {
                 <div className="">Select Contributors</div>
               </div>
 
-              <div className="cpc__header__titlSec__desc">Have any of these members contributed to this project?</div>
+              <div className="cpc__header__titlSec__desc">Have any of these {MEMBERS_LABEL} contributed to this project?</div>
             </div>
 
             <div className="cpc__header__titlSec__opts">

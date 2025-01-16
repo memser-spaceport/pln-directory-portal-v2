@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { canUserPerformEditAction } from '@/utils/irl.utils';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, CAPITAL_MEMBER, EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
@@ -167,7 +167,7 @@ const Toolbar = (props: IToolbar) => {
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
                 <img src="/icons/add.svg" width={16} height={16} alt="add" />
-                <span className="toolbar__actionCn__add__btn__txt">New Member</span>
+                <span className="toolbar__actionCn__add__btn__txt">New {CAPITAL_MEMBER}</span>
               </button>
             </div>
           )}

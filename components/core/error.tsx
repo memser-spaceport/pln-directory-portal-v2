@@ -1,5 +1,5 @@
 "use client";
-import { PAGE_ROUTES } from "@/utils/constants";
+import { MEMBERS_LABEL, PAGE_ROUTES } from "@/utils/constants";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -27,7 +27,7 @@ const Error = () => {
               </a>
               &nbsp;or&nbsp;
               <a href={PAGE_ROUTES.MEMBERS} className="error-container__content__message__desc__link">
-                members
+                {MEMBERS_LABEL}
               </a>
               &nbsp;or&nbsp;
               <a href={PAGE_ROUTES.PROJECTS} className="error-container__content__message__desc__link">

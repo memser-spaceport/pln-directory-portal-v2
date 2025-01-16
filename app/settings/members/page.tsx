@@ -9,7 +9,8 @@ import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMemberPreferences } from '@/services/preferences.service';
 import { Metadata } from 'next';
-import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { MANAGE_MEMBERS, MEMBER_LABEL, MEMBERS_LABEL, PAGE_ROUTES, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { capitalizeFirstLetter } from '@/utils/common.utils';
 
 const getPageData = async (selectedMemberId: string, authToken: string, isVerifiedFlag: string) => {
   const dpResult = await getMembersInfoForDp(isVerifiedFlag);
@@ -68,11 +69,12 @@ export default async function ManageMembers(props: any) {
     return 'Error';
   }
 
+  const MEMBERS = capitalizeFirstLetter(MEMBERS_LABEL);
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'Members', url: '/members' },
+    { text: MEMBERS, url: '/members' },
     { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
-    { text: 'Manage Members', url: '/settings/members' },
+    { text: 'Manage '+MEMBERS, url: '/settings/members' },
   ];
   return (
     <>
@@ -83,11 +85,11 @@ export default async function ManageMembers(props: any) {
           </div>
         </div>
         <div className={styles.ps__backbtn}>
-            <SettingsBackButton title="Manage Member" />
+            <SettingsBackButton title={"Manage "+capitalizeFirstLetter(MEMBER_LABEL)} />
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" userInfo={userInfo}/>
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem={MANAGE_MEMBERS} userInfo={userInfo}/>
           </aside>
           <div className={styles.ps__main__content}>
             <ManageMembersSettings preferences={preferences} viewType={viewType} selectedMember={selectedMember} members={formattedMembers ?? []} userInfo={userInfo} isVerifiedFlag={selectedVerifiedFlag ?? 'true'}/>
@@ -100,8 +102,7 @@ export default async function ManageMembers(props: any) {
 
 export const metadata: Metadata = {
   title: 'Settings | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

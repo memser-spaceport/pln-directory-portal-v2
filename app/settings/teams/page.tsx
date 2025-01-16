@@ -1,7 +1,7 @@
 import Breadcrumbs from '@/components/ui/breadcrumbs';
 import styles from './page.module.css';
 import SettingsMenu from '@/components/page/settings/menu';
-import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { CAPITAL_MEMBER, CAPITAL_MEMBERS, PAGE_ROUTES, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ManageTeamsSettings from '@/components/page/settings/manage-teams';
 import Link from 'next/link';
 import { getTeamInfo, getTeamsInfoForDp } from '@/services/teams.service';
@@ -61,7 +61,7 @@ export default async function ManageTeams(props: any) {
 
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },
-    { text: 'Members', url: '/members' },
+    { text: CAPITAL_MEMBERS, url: '/members' },
     { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
     { text: 'Manage Teams', url: '/settings/teams' },
   ];
@@ -91,8 +91,7 @@ export default async function ManageTeams(props: any) {
 
 export const metadata: Metadata = {
   title: 'Settings | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

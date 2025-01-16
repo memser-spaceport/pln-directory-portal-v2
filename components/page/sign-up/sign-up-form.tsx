@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import { signUpFormAction } from '@/app/actions/sign-up.actions';
 import { useRouter } from 'next/navigation';
-import { SIGN_UP } from '@/utils/constants';
+import { MEMBERS_LABEL, SIGN_UP } from '@/utils/constants';
 import TextField from '@/components/form/text-field';
 import SearchWithSuggestions from '@/components/form/suggestions';
 import MultiSelect from '@/components/form/multi-select';
@@ -364,7 +364,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
                 <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
                 <span className="info__text">
                   You also allow Protocol Labs and companies within the network to contact you for events and opportunities within the network. Your information may only be shared with verified
-                  network members and will not be available to any individuals or entities outside the network.
+                  network {MEMBERS_LABEL} and will not be available to any individuals or entities outside the network.
                 </span>
               </p>
             </div>

@@ -8,6 +8,7 @@ import AuthInvalidUser from './auth-invalid-user';
 import { useEffect } from 'react';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
+import { MEMBER_LABEL } from '@/utils/constants';
 
 function AuthBox() {
   const hash = useHash();
@@ -29,7 +30,7 @@ function AuthBox() {
         appearance: {
           theme: 'light',
           accentColor: '#676FFF',
-          landingHeader: 'PL Member Login',
+          landingHeader: `PL ${MEMBER_LABEL} Login`,
         },
         loginMethods: ['email', 'google', 'github', 'wallet'],
       }}

@@ -2,7 +2,7 @@ import { BreadCrumb } from '@/components/core/bread-crumb';
 import Error from '@/components/core/error';
 import AllNotifications from '@/components/page/notifications/all-notifications';
 import { getFollowUps } from '@/services/office-hours.service';
-import { PAGE_ROUTES } from '@/utils/constants';
+import { PAGE_ROUTES, PROJECT_DESC } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
@@ -68,8 +68,7 @@ export default Notifications;
 
 export const metadata: Metadata = {
   title: 'Notifications | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

@@ -1,7 +1,7 @@
 'use client';
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
-import { EVENTS, PROJECT_FORM_STEPS, TOAST_MESSAGES } from '@/utils/constants';
+import { CAPITAL_MEMBER, CAPITAL_MEMBERS, EVENTS, PROJECT_FORM_STEPS, TOAST_MESSAGES } from '@/utils/constants';
 import { SyntheticEvent, useRef, useState } from 'react';
 import ProjectGeneralInfo from './project-general-info';
 import ProjectContributorsInfo from './project-contributors-info';
@@ -33,7 +33,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
     description: '',
     lookingForFunding: false,
     readMe:
-      '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n',
+      `## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing ${CAPITAL_MEMBERS}\n| ${CAPITAL_MEMBER} Name | ${CAPITAL_MEMBER} Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n`,
     maintainingTeamUid: '',
     contactEmail: userInfo?.email ?? null,
     kpis: [{ key: '', value: '' }],

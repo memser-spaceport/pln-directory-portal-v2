@@ -2,6 +2,7 @@
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
 import TextEditor from '@/components/ui/text-editor';
+import { MEMBERS_LABEL } from '@/utils/constants';
 import { useEffect, useRef, useState } from 'react';
 
 interface ITeamBasicInfo {
@@ -166,7 +167,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
-            <span className="info__text">If your team offers group office hours or open meetings that are open to the public, please share the link so PLN members can join and learn more.</span>
+            <span className="info__text">If your team offers group office hours or open meetings that are open to the public, please share the link so PLN {MEMBERS_LABEL} can join and learn more.</span>
           </p>
         </div>
       </div>

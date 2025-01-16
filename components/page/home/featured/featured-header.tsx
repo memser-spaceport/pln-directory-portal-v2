@@ -1,6 +1,6 @@
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
-import { HOME_PAGE_LINKS } from '@/utils/constants';
+import { HOME_PAGE_LINKS, MEMBER_LABEL, MEMBERS_LABEL } from '@/utils/constants';
 
 const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
   const analytics = useHomeAnalytics();
@@ -21,7 +21,7 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
           </div>
           <div className="featured__hdr__desc">
             <span className="featured__hdr__desc__txt">
-              Want to feature your team, project, team member or event?{' '}
+              Want to feature your team, project, team {MEMBER_LABEL} or event?{' '}
               <a
                 aria-label="Submit a request to feature content"
                 rel="noopener noreferrer"

@@ -3,6 +3,7 @@
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { MANAGE_MEMBERS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 
 interface SettingsMenuProps {
@@ -22,7 +23,7 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
   const teamAdminSettings = [{ name: 'manage teams', url: '/settings/teams', icon: '/icons/team.svg', activeIcon: '/icons/teams-blue.svg' }];
 
   const appAdminSettings = [
-    { name: 'manage members', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
+    { name: MANAGE_MEMBERS, url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
   ];
 
   const onItemClicked = (url: string, name: string) => {

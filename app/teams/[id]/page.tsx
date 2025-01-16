@@ -9,7 +9,7 @@ import { getAllTeams, getTeam, getTeamUIDByAirtableId } from '@/services/teams.s
 import { IMember } from '@/types/members.types';
 import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.types';
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
-import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, redirect } from 'next/navigation';
@@ -220,8 +220,7 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
   if (teamResonse?.error) {
     return {
       title: 'Protocol Labs Directory',
-      description:
-        'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+      description: PROJECT_DESC,
       openGraph: {
         images: [
           {

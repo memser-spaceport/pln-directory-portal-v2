@@ -6,11 +6,12 @@ import { getMemberPreferences } from '@/services/preferences.service';
 import { IIrlAttendeeFormErrors, IIrlEvent, IIrlLocation } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue, getUserInfoFromLocal, triggerLoader } from '@/utils/common.utils';
-import { EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
+import { CAPITAL_MEMBER, EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { SetStateAction, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { getGuestDetail } from '@/services/irl.service';
 import { transformGuestDetail } from '@/utils/irl.utils';
+import { MEMBER_LABEL } from '../../../../utils/constants';
 
 interface IAttendeeForm {
   memberInfo: IUserInfo | null;
@@ -204,11 +205,11 @@ const AttendeeDetails = (props: IAttendeeForm) => {
     <>
       <div className="attenddtls">
         <div className={`attenddtls__member ${mode != IAM_GOING_POPUP_MODES.ADMINADD ? 'hide' : ''}`}>
-          <div className="attenddtls__member__ttl">Member</div>
+          <div className="attenddtls__member__ttl">{CAPITAL_MEMBER}</div>
           <div className="details__cn__teams__mems">
             <SearchableSingleSelect
               id="irl-member-info"
-              placeholder="Select member"
+              placeholder={"Select "+MEMBER_LABEL}
               displayKey="name"
               options={initialContributors}
               selectedOption={selectedMember}

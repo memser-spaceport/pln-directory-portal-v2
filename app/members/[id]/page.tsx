@@ -1,5 +1,5 @@
 import Error from '@/components/core/error';
-import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { AIRTABLE_REGEX, MEMBER_LABEL, MEMBERS_LABEL, PAGE_ROUTES, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { BreadCrumb } from '@/components/core/bread-crumb';
@@ -15,6 +15,7 @@ import MemberProjectContribution from '@/components/page/member-details/member-p
 import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
+import { capitalizeFirstLetter } from '@/utils/common.utils';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -31,7 +32,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
   return (
     <div className={styles?.memberDetail}>
       <div className={styles?.memberDetail__breadcrumb}>
-        <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
+        <BreadCrumb backLink="/members" directoryName={capitalizeFirstLetter(MEMBERS_LABEL)} pageName={member?.name ?? ''} />
       </div>
       <div className={styles?.memberDetail__container}>
         <div>
@@ -131,8 +132,7 @@ export async function generateMetadata({ params, searchParams }: IGenerateMetada
   if (memberResponse?.error) {
     return {
       title: 'Protocol Labs Directory',
-      description:
-        'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+      description: PROJECT_DESC,
       openGraph: {
         images: [
           {

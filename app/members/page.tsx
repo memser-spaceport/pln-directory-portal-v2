@@ -9,9 +9,10 @@ import MembersToolbar from '@/components/page/members/members-toolbar';
 import FilterWrapper from '@/components/page/members/filter-wrapper';
 import EmptyResult from '@/components/core/empty-result';
 import { Metadata } from 'next';
-import { INITIAL_ITEMS_PER_PAGE, ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { INITIAL_ITEMS_PER_PAGE, ITEMS_PER_PAGE, MEMBERS_LABEL, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import MemberInfiniteList from '@/components/page/members/member-infinite-list';
 import { getMemberListForQuery } from '../actions/members.actions';
+import { capitalizeFirstLetter } from '@/utils/common.utils';
 
 async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -82,9 +83,8 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
 export default Page;
 
 export const metadata: Metadata = {
-  title: 'Members | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  title: capitalizeFirstLetter(MEMBERS_LABEL)+' | Protocol Labs Directory',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

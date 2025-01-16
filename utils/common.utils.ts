@@ -352,3 +352,8 @@ export function getTelegramUsername(input: string) {
   const match = input?.match(regex);
   return match ? match[1] : input;
 }
+
+
+export function capitalizeFirstLetter(text: string){
+  return text[0].toUpperCase() + text.slice(1);
+}

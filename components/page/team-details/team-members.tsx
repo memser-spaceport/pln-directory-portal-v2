@@ -3,7 +3,7 @@
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
-import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
+import { CAPITAL_MEMBERS, EVENTS, MEMBERS_LABEL, PAGE_ROUTES } from '@/utils/constants';
 import { Fragment, useRef, useState } from 'react';
 import TeamDetailsMembersCard from './team-member-card';
 import AllMembers from './all-members';
@@ -49,7 +49,7 @@ const TeamMembers = (props: ITeamMembers) => {
     <>
       <div className="team-members">
         <div className="team-members__header">
-          <h2 className="team-members__header__title">Members ({members?.length ? members?.length : 0})</h2>
+          <h2 className="team-members__header__title">{CAPITAL_MEMBERS} ({members?.length ? members?.length : 0})</h2>
           {members?.length > 3 && (
             <button className="team-members__header__seeall-btn" onClick={onSeeAllClickHandler}>
               See All
@@ -71,7 +71,7 @@ const TeamMembers = (props: ITeamMembers) => {
             );
           })}
         </div>
-        {!members?.length && <p className="team-members__empty">No members added yet</p>}
+        {!members?.length && <p className="team-members__empty">No {MEMBERS_LABEL} added yet</p>}
       </div>
       
         <div className="all-member-container">

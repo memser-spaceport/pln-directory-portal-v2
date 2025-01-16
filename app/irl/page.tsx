@@ -5,7 +5,7 @@ import IrlHeader from '@/components/page/irl/irl-header';
 import IrlLocation from '@/components/page/irl/locations/irl-location';
 import { getAllLocations, getFollowersByLocation, getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
 import { getMemberPreferences } from '@/services/preferences.service';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { MEMBERS_LABEL, PROJECT_DESC, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import styles from './page.module.css';
@@ -185,8 +185,7 @@ const getPageData = async (searchParams: any) => {
 
 export const metadata: Metadata = {
   title: 'IRL Gatherings | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

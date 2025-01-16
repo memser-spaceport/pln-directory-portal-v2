@@ -7,7 +7,7 @@ import EmptyResult from '@/components/core/empty-result';
 import ProjectlistWrapper from '@/components/page/projects/projectlist-wrapper';
 import FilterWrapper from '@/components/page/projects/filter-wrapper';
 import { getFocusAreas } from '@/services/common.service';
-import { URL_QUERY_VALUE_SEPARATOR, SOCIAL_IMAGE_URL, ITEMS_PER_PAGE, INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
+import { URL_QUERY_VALUE_SEPARATOR, SOCIAL_IMAGE_URL, ITEMS_PER_PAGE, INITIAL_ITEMS_PER_PAGE, PROJECT_DESC } from '@/utils/constants';
 import { Metadata } from 'next';
 import { getTeam, searchTeamsByName } from '@/services/teams.service';
 import { getAllProjects } from '../actions/projects.actions';
@@ -95,8 +95,7 @@ const getPageData = async (searchParams: any) => {
 
 export const metadata: Metadata = {
   title: 'Projects | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: PROJECT_DESC,
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

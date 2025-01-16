@@ -1,7 +1,7 @@
 
 import { IMember } from "@/types/members.types";
 import { ITeam } from "@/types/teams.types";
-import { EVENTS, PAGE_ROUTES } from "@/utils/constants";
+import { CAPITAL_MEMBERS, EVENTS, PAGE_ROUTES } from "@/utils/constants";
 import { ChangeEvent, Fragment, useEffect, useRef, useState } from "react";
 import TeamDetailsMembersCard from "./team-member-card";
 import Image from "next/image";
@@ -40,7 +40,7 @@ const AllMembers = (props: IAllMembers) => {
   return (
     <>
       <div className="all-members">
-        <h2 className="all-membes__title">Members ({members?.length})</h2>
+        <h2 className="all-membes__title">{CAPITAL_MEMBERS} ({members?.length})</h2>
         <div className="all-members__search-bar">
             <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20}/>
           <input value={searchValue} className="all-members__search-bar__input" placeholder="Search" name="name" autoComplete="off" onChange={onInputChangeHandler} />
@@ -57,7 +57,7 @@ const AllMembers = (props: IAllMembers) => {
               </Fragment>
             );
           })}
-          {allMembers.length === 0 && <div className="all-members__members__empty-result"><p>No Members found.</p></div>}
+          {allMembers.length === 0 && <div className="all-members__members__empty-result"><p>No {CAPITAL_MEMBERS} found.</p></div>}
         </div>
       </div>
 

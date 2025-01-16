@@ -8,7 +8,7 @@ import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { IMemberFilterSelectedItem, IMemberFilterSelectedItems } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
-import { EVENTS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { CAPITAL_MEMBERS, EVENTS, MEMBERS_LABEL, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -159,7 +159,7 @@ const MembersFilter = (props: IMembersFilter) => {
         <div className="team-filter__body">
           <div className="team-filter__body__toggle-section">
             <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Only Show Members with Office Hours</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Only Show {CAPITAL_MEMBERS} with Office Hours</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"
@@ -179,7 +179,7 @@ const MembersFilter = (props: IMembersFilter) => {
                   content={
                     <div className="team-filter__body__toggle-section__toggle-option__title-container__collaborate-note">
                       <span>
-                        Members with this icon
+                        {CAPITAL_MEMBERS} with this icon
                         <img
                           loading="lazy"
                           alt="open to work"
@@ -188,7 +188,7 @@ const MembersFilter = (props: IMembersFilter) => {
                           width={20}
                           src="/icons/badge/open-to-work.svg"
                         />
-                        are open to collaborate on shared ideas & projects with other members.
+                        are open to collaborate on shared ideas & projects with other {MEMBERS_LABEL}.
                       </span>
                     </div>
                   }
@@ -213,7 +213,7 @@ const MembersFilter = (props: IMembersFilter) => {
             </div>
             {/* Recently Added filter */}
             <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">New Members</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">New {CAPITAL_MEMBERS}</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"

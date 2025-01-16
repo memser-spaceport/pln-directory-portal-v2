@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import SettingsAction from './actions';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { MEMBERS_LABEL } from '@/utils/constants';
 
 function MemberPrivacyForm(props: any) {
   const uid = props?.uid;
@@ -22,12 +23,12 @@ function MemberPrivacyForm(props: any) {
     {
       title: 'Contact details',
       items: [
-        { name: 'email', title: 'Show Email', info: 'Enabling this will display your email to all logged in members' },
-        { name: 'github', title: 'Show GitHub', info: 'Enabling this will display your GitHub handle to all logged in members' },
-        { name: 'telegram', title: 'Show Telegram', info: 'Enabling this will display your Telegram handle to all logged in members' },
-        { name: 'linkedin', title: 'Show LinkedIn Profile', info: 'Enabling this will display your LinkedIn Profile link to all logged in members' },
-        { name: 'discord', title: 'Show Discord', info: 'Enabling this will display your Discord handle link to all logged in members' },
-        { name: 'twitter', title: 'Show Twitter', info: 'Enabling this will display your Twitter Handle to all logged in members' },
+        { name: 'email', title: 'Show Email', info: 'Enabling this will display your email to all logged in '+MEMBERS_LABEL },
+        { name: 'github', title: 'Show GitHub', info: 'Enabling this will display your GitHub handle to all logged in '+MEMBERS_LABEL },
+        { name: 'telegram', title: 'Show Telegram', info: 'Enabling this will display your Telegram handle to all logged in '+MEMBERS_LABEL },
+        { name: 'linkedin', title: 'Show LinkedIn Profile', info: 'Enabling this will display your LinkedIn Profile link to all logged in '+MEMBERS_LABEL },
+        { name: 'discord', title: 'Show Discord', info: 'Enabling this will display your Discord handle link to all logged in '+MEMBERS_LABEL },
+        { name: 'twitter', title: 'Show Twitter', info: 'Enabling this will display your Twitter Handle to all logged in '+MEMBERS_LABEL },
       ],
     },
     { title: 'Profile', items: [{ name: 'githubProjects', title: 'Show my GitHub Projects', info: 'Control visibility of your GitHub projects' }] },

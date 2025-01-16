@@ -9,7 +9,7 @@ import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { IMembersSearchParams } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
-import { EVENTS, SORT_OPTIONS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import { CAPITAL_MEMBER, CAPITAL_MEMBERS, EVENTS, SORT_OPTIONS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import Image from 'next/image';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 
@@ -116,7 +116,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
             {filterCount > 0 && <FilterCount count={filterCount} />}
           </button>
           <div className="toolbar__left__title-container">
-            <h1 className="toolbar__left__title-container__title">Members</h1>
+            <h1 className="toolbar__left__title-container__title">{CAPITAL_MEMBERS}</h1>
             <p className="toolbar__left__title__container__count">({totalTeams})</p>
           </div>
           <div className="toolbar__left__search-container">
@@ -126,7 +126,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
                 value={searchInput}
                 onChange={(e) => onInputChange(e)}
                 className="toolbar__left__search-container__searchfrm__input"
-                placeholder="Search by Member Name, Team, or Project"
+                placeholder={`Search by ${CAPITAL_MEMBER} Name, Team, or Project`}
                 onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
               />
               <div className="toolbar__left__search-container__searchfrm__optns">

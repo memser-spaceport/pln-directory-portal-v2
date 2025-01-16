@@ -22,6 +22,7 @@ import SettingsAction from './actions';
 import MemberPrivacyReadOnly from './member-privacy-readonly';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
+import { CAPITAL_MEMBER } from '@/utils/constants';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
@@ -177,7 +178,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         if (errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
           toast.error('Email already exists. Please try again with different email');
         } else {
-          toast.error('Member updated failed. Something went wrong, please try again later');
+          toast.error(CAPITAL_MEMBER+' update failed. Something went wrong, please try again later');
         }
 
         analytics.recordManageMemberSave('save-error', getAnalyticsUserInfo(userInfo), payload);
@@ -187,13 +188,13 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           } */
 
         setErrors({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
-        toast.success('Member updated successfully');
+        toast.success(CAPITAL_MEMBER+' updated successfully');
         analytics.recordManageMemberSave('save-success', getAnalyticsUserInfo(userInfo), payload);
         window.location.href = `/settings/members?id=${selectedMember.uid}&isVerified=${isVerifiedFlag}`;
       }
     } catch (e) {
       triggerLoader(false);
-      toast.error('Member updated failed. Something went wrong, please try again later');
+      toast.error(CAPITAL_MEMBER+' update failed. Something went wrong, please try again later');
       analytics.recordManageMemberSave('save-error', getAnalyticsUserInfo(userInfo));
     }
   };

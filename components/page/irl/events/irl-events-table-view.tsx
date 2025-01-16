@@ -102,7 +102,6 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
         .root__irl__imgsec__images {
           display: flex;
           justify-content: end;
-          cursor: pointer;
           padding-right: 5px;
         }
 
@@ -227,7 +226,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
         .root__irl__table-col__contentName__attendee__list {
           display: flex;
           flex-direction: row;
-          gap: 4px;
+          gap: 2px;
           align-items: center;
           padding-left: 5px;
           font-size: 10px;

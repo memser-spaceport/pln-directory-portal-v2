@@ -501,7 +501,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
         .root__irl__imgsec__images {
           align-items: center;
           min-height: ${selectedEvent?.eventGuests?.length > 0 ? "25px" : ""}
-          
         }
           
         .root__irl__addRes,

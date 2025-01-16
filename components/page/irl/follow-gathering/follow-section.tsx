@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { EVENTS } from '@/utils/constants';
 import AllFollowers from './all-followers';
 import Image from 'next/image';
-import FollowButton from './follow-button';
+// import FollowButton from './follow-button';
 
 const FollowSection = (props: any) => {
   const userInfo = props?.userInfo;
@@ -51,6 +51,8 @@ const FollowSection = (props: any) => {
     <>
       <AllFollowers location={eventLocationSummary.name} onClose={onFollowersCloseClicHandler} followersList={followProperties.followers} onFollowerClickHandler={onFollowerClickHandler} />
       <div className="root__irl__follwcnt">
+        <div className='root__irl__follcnt__update'>Follow to get real-time updates and never miss upcoming events.</div>
+
         <div className="root__irl__follwcnt__imgsec">
           <div onClick={onFollowersClickHandler} className="root__irl__follwcnt__imgsec__images">
             {followProperties.followers?.slice(0, 3).map((follower: any, index: number) => (
@@ -78,15 +80,8 @@ const FollowSection = (props: any) => {
               {eventLocationSummary.name}
             </div>
           </div>
-          <div className="root__irl__follwcnt__imgsec__desccnt__mob">
-            <div className="root__irl__follwcnt__imgsec__desccnt__desc">
-              <span className="root__irl__follwcnt__imgsec__desccnt__desc__cnt" onClick={onFollowersClickHandler}>
-                {followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `& ${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} members
-              </span>
-            </div>
-          </div>
         </div>
-        <FollowButton eventLocationSummary={eventLocationSummary} userInfo={userInfo} followProperties={followProperties} />
+        {/* <FollowButton eventLocationSummary={eventLocationSummary} userInfo={userInfo} followProperties={followProperties} /> */}
       </div>
 
       <style jsx>
@@ -157,6 +152,7 @@ const FollowSection = (props: any) => {
             font-weight: 500;
             line-height: 20px;
             gap:4px;
+            flex-wrap: wrap;
           }
 
           .root__irl__follwcnt__imgsec__desccnt__desc__cnt{
@@ -167,6 +163,7 @@ const FollowSection = (props: any) => {
           .root__irl__follwcnt__imgsec__desccnt__desc__cnt__location {
             display: flex;
             align-items: center;
+            gap: 4px;
           }
 
           .popup__footer {
@@ -225,8 +222,17 @@ const FollowSection = (props: any) => {
           padding-top: 20px;
         }
 
+        .root__irl__follcnt__update {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 20px;
+          letter-spacing: 0.01em;
+          text-align: left;
+        }
+          
           @media (min-width: 360px) {
-            .root__irl__follwcnt__imgsec__desccnt {
+              
+            .root__irl__follcnt__update {
               display: none;
             }
 
@@ -250,20 +256,15 @@ const FollowSection = (props: any) => {
           }
 
           @media (min-width: 1024px) {
-
+            .root__irl__follcnt__update {
+              display: flex;
+            }
             .popup__cnt {
               height: 220px;
               width: 656px;
               padding: 24px;
             }
-
-            .root__irl__follwcnt__imgsec__desccnt {
-              display: flex;
-            }
-
-            .root__irl__follwcnt__imgsec__desccnt__mob {
-              display: none;
-            }
+            
             .root__irl__follwcnt {
               width: unset;
               justify-content: space-between;

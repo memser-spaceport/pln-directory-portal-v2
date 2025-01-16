@@ -965,4 +965,4 @@ export const FOLLOW_ENTITY_TYPES = {
   PROJECT: "PROJECT"
 }
 
-export const DAILY_CHAT_LIMIT = 20;
+export const DAILY_CHAT_LIMIT = 10;

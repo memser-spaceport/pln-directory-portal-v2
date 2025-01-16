@@ -44,12 +44,9 @@ const Discover = (props: any) => {
             <img className="discover__hdr__ttl__img" src="icons/discover.svg" alt="discover" />
             <h2 className="discover__hdr__ttl__txt">Discover</h2>
           </div>
-          {/* <p className="discover__hdr__desc">
-            Explore Protocol Labs with{' '}
-            <button aria-label="Explore with Husky" onClick={onHuskyClick} className="discover__hdr__desc__husky">
-              Husky
-            </button>
-          </p> */}
+          <p className="discover__hdr__desc">
+            Explore Protocol Labs with Husky, which is an LLM-powered chatbot, designed to help you explore Protocol Labs teams, projects, events and members
+          </p>
         </header>
         {/* Carousel */}
         <div className="embla" aria-label="Discover carousel">

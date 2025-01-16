@@ -366,7 +366,10 @@ dialog {
 
 /* home page husky text area  */
 .hec__content__box {
-  border: 1px solid #156ff7;
+  outline-style: solid;
+  outline-width: 1px;
+  outline-offset: 0;
+  outline-color: #156ff7;
   border-radius: 8px;
 }
 
@@ -471,7 +474,7 @@ dialog {
 
   /* home page husky text area  */
   .hec__content__box:focus-within:not(:has(.hec__content__box__search__button:focus)) {
-    border: none;
+    outline: none;
     border-radius: 8px 8px 0px 0px ;
     box-shadow: unset;
   }

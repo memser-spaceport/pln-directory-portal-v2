@@ -141,6 +141,9 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const updateChatCount = (): number => {
+    if(DAILY_CHAT_LIMIT <  getChatCount()) {
+      return getChatCount();
+    }
     const currentCount = getChatCount() + 1;
     const midnight = new Date();
     midnight.setHours(23, 59, 59, 999);
@@ -149,11 +152,12 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const updateLimitType = () => {
-    if (DAILY_CHAT_LIMIT === getChatCount()) {
+    if (DAILY_CHAT_LIMIT + 1 <= getChatCount()) {
       return 'warn';
-    } else if (DAILY_CHAT_LIMIT - getChatCount() === 1) {
+    } else if (DAILY_CHAT_LIMIT === getChatCount()) {
       return 'finalRequest';
-    } else if (DAILY_CHAT_LIMIT - getChatCount() > 1) {
+    }
+     else if (DAILY_CHAT_LIMIT - getChatCount() < 4) {
       return 'info';
     }
     return null;
@@ -186,6 +190,10 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       const { userInfo } = await getUserCredentials();
 
       if (!checkChatLimit(userInfo)) {
+        updateChatCount();
+      }
+
+      if (!checkChatLimit(userInfo)) {
         const countResponse = updateLimitType();
         if (countResponse === 'warn') {
           setLimitReached('warn');
@@ -197,9 +205,6 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         }
       }
 
-      if (!checkChatLimit(userInfo)) {
-        updateChatCount();
-      }
 
       const chatUid = checkAndSetPromptId();
       setAnswerLoadingStatus(true);

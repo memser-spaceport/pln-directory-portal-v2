@@ -22,14 +22,14 @@ function HuskyChatAnswer({ mode, answer, sources, question }: HuskyChatAnswerPro
       <div className="chat__ans">
         {mode !== 'blog' && (
           <div className="chat__ans__hdr">
-            <h3 className="chat__ans__title">
+            {/* <h3 className="chat__ans__title">
               <img alt="Answer" width={16} height={16} src="/icons/chat-orange.svg" />
               <span>Answer</span>
-            </h3>
+            </h3> */}
             {sources && sources.length > 0 && (
               <PopoverDp.Wrapper>
                 <InfoBox info={`${sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
-                <PopoverDp.Pane position="left">
+                <PopoverDp.Pane position="bottom">
                   <HuskySourceCard sources={sources} />
                 </PopoverDp.Pane>
               </PopoverDp.Wrapper>
@@ -66,7 +66,6 @@ function HuskyChatAnswer({ mode, answer, sources, question }: HuskyChatAnswerPro
             line-height: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
             border-radius: 8px;
             width: 100%;
           }
@@ -75,6 +74,7 @@ function HuskyChatAnswer({ mode, answer, sources, question }: HuskyChatAnswerPro
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding-left: 12px;
           }
 
           .feeback {
@@ -102,17 +102,6 @@ function HuskyChatAnswer({ mode, answer, sources, question }: HuskyChatAnswerPro
 
           .chat__ans__text--blog {
             background: white;
-            padding: 14px 0;
-          }
-
-          .chat__ans__title {
-            font-size: 12px;
-            font-weight: 500;
-            color: #ff820e;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
           }
         `}
       </style>

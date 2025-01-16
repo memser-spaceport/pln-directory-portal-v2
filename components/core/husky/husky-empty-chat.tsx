@@ -53,8 +53,8 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
   // Handles the click event for exploration prompts
   const onExplorationPromptClicked = async (quesObj: any) => {
     trackExplorationPromptSelection(quesObj.question);
-    const links = quesObj?.answerSourceLinks?.map((item:any) => item?.link);
-    document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: {...quesObj, answerSourceLinks: links } } }));
+    const links = quesObj?.answerSourceLinks?.map((item: any) => item?.link);
+    document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: { ...quesObj, answerSourceLinks: links } } }));
   };
 
   // Handles key down events in the textarea
@@ -115,7 +115,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
               width: '100%',
               border: 'none',
               outline: 'none',
-              padding: '6px 6px 6px 40px',
+              padding: '10px 6px 6px 40px',
               borderRadius: ' 8px',
               margin: '0px 42px 0px 0px',
               resize: 'none',
@@ -156,7 +156,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
               <div className="error__strip">
                 <div className="error__strip__msgWrpr">
                   <div className="error__strip__warnMsg">
-                    <img height={18} width={18} src="/icons/info-red.svg" alt="info" />
+                    <img height={18} width={18} src="/icons/info-orange.svg" alt="info" />
                     <span className="warn">Limit reached</span>
                     <span className="seperator">|</span>
                   </div>
@@ -202,6 +202,9 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
           </div>
         )}
       </div>
+      <div className="hec__content__input__logo">
+        Powered by <img className="hec__content__input__logo__img" src="/images/husky-logo.svg" />
+      </div>
       <style jsx>{`
         .error__strip__msgWrpr {
           display: flex;
@@ -213,7 +216,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
           gap: 3px;
         }
         .warn {
-          color: #dd2c5a;
+          color: #ff820e;
           font-weight: 600;
           font-size: 12px;
           line-height: 20px;
@@ -247,14 +250,10 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
         }
 
         .hec__content__input {
-          position: absolute;
+          position: relative;
           display: flex;
           flex-direction: column;
-          top: 90px;
-          left: 50%;
-          transform: translateX(-50%);
           align-items: center;
-          z-index: 1;
         }
         .hec__content__box__search__icon {
           position: absolute;
@@ -288,10 +287,12 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
           width: 308px;
           box-shadow: 0px 5px 6px 0px #00000024;
           border-radius: 0 0 8px 8px;
+          position: absolute;
+          top: 100%;
         }
         .err {
-          background-color: #f2e0e5;
-          border: 1px solid #ff7777;
+          background-color: #ffe8cc;
+          border: 1px solid #ff820e;
           border-top: 0px;
           padding: 12px;
         }
@@ -335,13 +336,30 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
         .seperator {
           display: none;
         }
+
+        .hec__content__input__logo {
+          display: flex;
+          align-items: center;
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 14.52px;
+          color: #64748b;
+          gap: 4px;
+          padding: 10px 0px 0px 0px;
+          justify-content: center;
+        }
+
+        .hec__content__input__logo__img {
+          width: 65px;
+        }
+
         @media (min-width: 1024px) {
           .error__strip__msgWrpr {
             flex-direction: row;
             gap: 4px;
           }
           .hec__content__input {
-            top: 165px;
+            // top: 165px;
             border-radius: 8px;
           }
           .hec__content__box__search__button {
@@ -394,6 +412,10 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
           .seperator {
             display: block;
             color: #adadad;
+          }
+
+          .hec__content__input__logo {
+            justify-content: end;
           }
         }
       `}</style>

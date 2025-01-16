@@ -119,7 +119,7 @@ function HuskyInputBox(props: any) {
       <div className={`huskyinput`} data-testid="husky-input-box">
         <img width={24} height={24} className="huskyinput__img" src="/images/husky-brain.png" alt="Husky Brain" />
         <div className="huskyinput__itemcn" data-testid="husky-input-container">
-          <div ref={inputRef} data-placeholder="Ask follow up..." contentEditable={true} className="huskyinput__itemcn__textbox" tabIndex={0} data-testid="husky-input-textbox"></div>
+          <div ref={inputRef} data-placeholder="Ask a follow up..." contentEditable={true} className="huskyinput__itemcn__textbox" tabIndex={0} data-testid="husky-input-textbox"></div>
           {!isMobileDevice() && (
             <div className="huskyinput__itemcn__instruction">
               <p>

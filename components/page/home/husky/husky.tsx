@@ -6,13 +6,13 @@ import { DAILY_CHAT_LIMIT } from '@/utils/constants';
 import { getParsedValue } from '@/utils/common.utils';
 
 const Husky = () => {
-  const [limitReached, setLimitReached] = useState<boolean>(false); // daily limit
+  const [limitReached, setLimitReached] = useState<boolean>(false); // daily limit check
 
   const checkIsLimitReached = () => {
     const refreshToken = getParsedValue(Cookies.get('refreshToken'));
     if (!refreshToken) {
       const chatCount = parseInt(Cookies.get('dailyChats') || '0', 10);
-      return DAILY_CHAT_LIMIT === chatCount;
+      return DAILY_CHAT_LIMIT <= chatCount;
     }
     return false;
   };
@@ -39,15 +39,14 @@ const Husky = () => {
           background-repeat: no-repeat;
           background-position: 50% 15px;
           background-size: 200px 195px;
-          position: relative;
           display: flex;
           flex-direction: column;
           align-items: center;
+          gap: 15px;
+          padding: 35px 0px 20px 0px;
         }
 
-        .husky__hdr {
-          margin-top: 31px;
-        }
+    
 
         .husky__hdr__title {
           font-size: 15px;
@@ -60,19 +59,16 @@ const Husky = () => {
           margin: 0px 0;
         }
 
-        .husky_input {
-          width: 100%;
-        }
-
+      
         @media (min-width: 1024px) {
           .husky {
             background-position: 50% 31px;
             background-size: 240px 235px;
+            padding: 80px 0px 35px 0px;
+            gap: 36px;
           }
 
-          .husky__hdr {
-            margin-top: 71px;
-          }
+  
           .husky__hdr__title {
             font-size: 24px;
             font-weight: 500;

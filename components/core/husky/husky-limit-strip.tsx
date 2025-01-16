@@ -43,13 +43,13 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLim
         <div className="husky-limit-strip__text">
           <span className="husky-limit-strip__text__iconWrpr">
             {type === 'info' ? (
-              <img className="icon" height={18} width={18} src="/icons/info-blue.svg" alt="info" />
+              <img className="icon" height={18} width={18} src="/icons/info-dark-yellow.svg" alt="info" />
             ) : (
-              <img className="icon" height={18} width={18} src="/icons/info-red.svg" alt="info" />
+              <img className="icon" height={18} width={18} src="/icons/info-orange.svg" alt="info" />
             )}
             {type === 'info' ? (
               <span className="highlight">
-                {count} {count === 1 ? 'response' : 'response(s)'} remaining
+                {count} {count === 1 ? 'request' : 'requests'} remaining
               </span>
             ) : (
               <span className="warn">Limit reached</span>
@@ -71,7 +71,7 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLim
               <span onClick={handleSignUpClick} role="a" className="link">
                 Sign up
               </span>{' '}
-              to get unlimited responses
+              to get unlimited requests
             </p>
           </p>
         </div>
@@ -105,22 +105,22 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLim
         }
 
         .highlight {
-          color: #156ff7;
+          color: #d3a119;
           font-weight: 600;
         }
 
         .info {
-          background: #dbeafe;
+          background: #fff4cc;
           border-bottom: ${mode === 'blog' ? '' : '0px'};
         }
 
         .warn {
-          color: #dd2c5a;
+          color: #ff820e;
           font-weight: 600;
         }
 
         .error {
-          background: #f2e0e5;
+          background: #ffe8cc;
           border-bottom: ${mode === 'blog' ? '' : '0px'};
         }
 
@@ -134,7 +134,7 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLim
 
         .seperator {
           display: none;
-          color: #cbd5e1;
+          color: #64748b;
         }
 
         .husky-limit-strip__text__iconWrpr {
@@ -174,14 +174,14 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLim
           }
 
           .info {
-            border: 1px solid #cbd5e1;
+            border: 1px solid #d4a116;
           }
 
           .icon {
             display: block;
           }
           .error {
-            border: 1px solid #ff7777;
+            border: 1px solid #ff820e;
           }
         }
       `}</style>

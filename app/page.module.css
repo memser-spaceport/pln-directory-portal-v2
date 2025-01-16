@@ -13,7 +13,6 @@
 }
 
 .home__husky {
-  height: 150px;
   width: 100%;
   position: sticky;
   top: 8px;
@@ -32,8 +31,7 @@
   }
 
   .home__husky {
-    height: 297px;
-    position: unset;
+    top: -60px;
   }
 }
 

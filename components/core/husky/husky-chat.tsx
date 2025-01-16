@@ -52,7 +52,7 @@ function HuskyChat({
                       mode={mode}
                     />
                     {chat.answer && (
-                      <div className="huskychat__threads__item__ansWrpr">
+                      <div className={`huskychat__threads__item__ansWrpr ${mode === 'blog' ? 'huskychat__threads__item__ansWrpr--blog' : ''}`}>
                         <HuskyChatAnswer question={chat?.question} mode={mode} answer={chat?.answer} sources={chat?.answerSourceLinks} />
 
                         {chat?.followupQuestions?.length > 0 && (
@@ -141,7 +141,11 @@ function HuskyChat({
             flex-direction: column;
             gap: 10px;
             width: 100%;
-            padding: 0px 10px 6px 10px;
+            padding: 26px 10px 6px 10px;
+          }
+
+          .huskychat__threads__item__ansWrpr--blog {
+            padding: 10px 10px 6px 10px;
           }
 
           .huskychat__threads__item__error {
@@ -170,7 +174,11 @@ function HuskyChat({
             }
 
             .huskychat__threads__item__ansWrpr {
-              padding: 0px 14px 8px 14px;
+              padding: 24px 14px 8px 14px;
+            }
+
+            .huskychat__threads__item__ansWrpr--blog {
+              padding: 14px 14px 8px 14px;
             }
           }
         `}

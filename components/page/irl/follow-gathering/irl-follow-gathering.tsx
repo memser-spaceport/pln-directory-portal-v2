@@ -15,9 +15,7 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   return (
     <>
       <div className="root">
-        {props.isLoggedIn && (
           <FollowSection searchParams={props.searchParams} userInfo={props.userInfo} followers={props.followers} eventLocationSummary={props.eventLocationSummary} />
-        )}
       </div>
 
       <style jsx>{`

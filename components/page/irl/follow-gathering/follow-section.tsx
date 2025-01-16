@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import { EVENTS } from '@/utils/constants';
 import AllFollowers from './all-followers';
 import Image from 'next/image';
-// import FollowButton from './follow-button';
 
 const FollowSection = (props: any) => {
   const userInfo = props?.userInfo;
@@ -25,7 +24,7 @@ const FollowSection = (props: any) => {
 
   useEffect(() => {
     function updateFollowers(e: any) {
-      setFollowProperties((e: any) => getFollowProperties(e.detail.followers));
+      setFollowProperties(getFollowProperties(e.detail));
     }
     document.addEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
     return function () {
@@ -69,19 +68,11 @@ const FollowSection = (props: any) => {
             ))}
           </div>
           <div className="root__irl__follwcnt__imgsec__desccnt">
-            <div className="root__irl__follwcnt__imgsec__desccnt__desc">
-              <span className="root__irl__follwcnt__imgsec__desccnt__desc__cnt" onClick={onFollowersClickHandler}>
-                {followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `& ${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} members{' '}
-              </span>
-              are following gatherings at
-              <span className="root__irl__follwcnt__imgsec__desccnt__desc__cnt__location">
-                <img src={eventLocationSummary.flag} alt="flag" style={{ width: '17px', height: '17px' }} />
-              </span>
-              {eventLocationSummary.name}
-            </div>
+          <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.followers.length} {followProperties.followers.length > 1 ? "members" : "member"} </span>
+              following gatherings at
+              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt__location'><img src={eventLocationSummary.flag} alt="flag" style={{ width: '17px', height: '17px' }} /> {eventLocationSummary.name} </span>
           </div>
         </div>
-        {/* <FollowButton eventLocationSummary={eventLocationSummary} userInfo={userInfo} followProperties={followProperties} /> */}
       </div>
 
       <style jsx>
@@ -99,6 +90,7 @@ const FollowSection = (props: any) => {
             gap: 8px;
             align-items: center;
             padding-left: 12px;
+            // width: 100%;
           }
 
           .root__irl__follwcnt__imgsec__images {
@@ -256,6 +248,11 @@ const FollowSection = (props: any) => {
           }
 
           @media (min-width: 1024px) {
+          .root__irl__follwcnt__imgsec__desccnt {
+            display: flex;
+            gap: 4px;
+          }
+
             .root__irl__follcnt__update {
               display: flex;
             }

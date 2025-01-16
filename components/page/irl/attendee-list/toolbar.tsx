@@ -8,6 +8,7 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import { IAnalyticsGuestLocation, IGuestDetails } from '@/types/irl.types';
 import Search from './search';
 import { triggerLoader } from '@/utils/common.utils';
+import FollowButton from '../follow-gathering/follow-button';
 interface IToolbar {
   onLogin: () => void;
   userInfo: IUserInfo;
@@ -17,6 +18,7 @@ interface IToolbar {
   location: IAnalyticsGuestLocation;
   isAdminInAllEvents: any;
   locationEvents: any;
+  followers: any;
 }
 const Toolbar = (props: IToolbar) => {
   //props
@@ -145,6 +147,29 @@ const Toolbar = (props: IToolbar) => {
       searchRef.current.value = search ?? '';
     }
   }, [router, searchParams]);
+
+  const [followProperties, setFollowProperties] = useState<any>({ followers: [], isFollowing: false });
+
+  function getFollowProperties(followers: any) {
+    return {
+      followers: followers ?? [],
+      isFollowing: followers.some((follower: any) => follower.memberUid === userInfo?.uid),
+    };
+  }
+
+  useEffect(() => {
+    setFollowProperties((e: any) => getFollowProperties(props.followers));
+  }, [location.uid, searchParams]);
+
+  useEffect(() => {
+    function updateFollowers(e: any) {
+      setFollowProperties(getFollowProperties(e.detail));
+    }
+    document.addEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
+    return function () {
+      document.removeEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
+    };
+  }, []);
   return (
     <>
       <div className="toolbar">
@@ -168,6 +193,7 @@ const Toolbar = (props: IToolbar) => {
               I&apos;m Going
             </button>
           )}
+
 
           {!isUserLoggedIn && (
             <>
@@ -200,6 +226,10 @@ const Toolbar = (props: IToolbar) => {
               </div>
             )}
           </div>
+
+          <div className='toolbar__actionCn__webView__follCnt'>
+            <FollowButton eventLocationSummary={location} userInfo={userInfo} followProperties={followProperties} />
+          </div>
         </div>
         <div className="toolbar__search">
           <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
@@ -218,7 +248,7 @@ const Toolbar = (props: IToolbar) => {
             padding: 16px 20px;
           }
           .toolbar__search {
-            // width: 100%;
+            width: 100%;
           }
           .toolbar__hdr {
             font-size: 18px;
@@ -398,11 +428,6 @@ const Toolbar = (props: IToolbar) => {
           }
 
           @media (min-width: 360px) {
-            .toolbar__actionCn__webView {
-              display: none;
-            }
-          }
-          @media (min-width: 498px) {
             // .mb-btn {
             //   font-size: 12px;
             // }
@@ -426,9 +451,13 @@ const Toolbar = (props: IToolbar) => {
               right: 0px;
               left: unset;
             }
+
+            .toolbar__actionCn__webView, .toolbar__actionCn__webView__follCnt {
+              display: none;
+            }
           }
           @media (min-width: 1024px) {
-            .toolbar__actionCn__webView {
+            .toolbar__actionCn__webView, .toolbar__actionCn__webView__follCnt {
               display: flex;
             }
 

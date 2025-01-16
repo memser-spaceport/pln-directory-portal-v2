@@ -61,6 +61,7 @@ export default async function Page({ searchParams }: any) {
             searchParams={searchParams}
             currentEventNames={currentEventNames}
             locationEvents={eventDetails}
+            followers={followers}
           />
         </section>
       </div>

@@ -31,6 +31,7 @@ interface IAttendeeList {
   searchParams: any;
   currentEventNames: string[];
   locationEvents: any;
+  followers: any;
 }
 
 const AttendeeList = (props: IAttendeeList) => {
@@ -196,7 +197,7 @@ const AttendeeList = (props: IAttendeeList) => {
       )}
       <div className="attendeeList">
         <div className="attendeeList__toolbar">
-          <Toolbar locationEvents={locationEvents} isAdminInAllEvents={isAdminInAllEvents} location={location} onLogin={onLogin} filteredListLength={updatedEventDetails.totalGuests} eventDetails={updatedEventDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} />
+          <Toolbar locationEvents={locationEvents} isAdminInAllEvents={isAdminInAllEvents} location={location} onLogin={onLogin} filteredListLength={updatedEventDetails.totalGuests} eventDetails={updatedEventDetails} userInfo={userInfo} isLoggedIn={isLoggedIn} followers={props.followers}/>
         </div>
         <div className="attendeeList__table">
           {/* {eventDetails?.guests?.length > 0 && ( */}

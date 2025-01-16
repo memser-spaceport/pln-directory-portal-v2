@@ -60,6 +60,7 @@ export const EVENTS = {
   UPDATE_TELEGRAM_HANDLE: 'update-telegram-handle',
   UPDATE_OFFICE_HOURS: 'update-office-hours',
   OPEN_IAM_GOING_POPUP: 'open-iam-going-popup',
+  UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
 };
 
 export const HELPER_MENU_OPTIONS = [

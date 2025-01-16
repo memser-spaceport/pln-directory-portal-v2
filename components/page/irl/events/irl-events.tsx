@@ -45,8 +45,6 @@ const IrlEvents = (props: IIrlEvents) => {
   const isUserGoing = guestDetails?.isUserGoing;
   const updatedUser = guestDetails?.currentGuest ?? null;
 
-  console.log(updatedUser, "updatedUser", isUserGoing);
-
   useClickedOutside({
     ref: editResponseRef,
     callback: () => {
@@ -55,9 +53,7 @@ const IrlEvents = (props: IIrlEvents) => {
   });
 
   const onEditResponseClick = (e: any) => {
-    // e.preventDefault();
     console.log("onEditResponseClick", isEdit);
-    // setIamGoingPopupProps({isOpen: true, formdata: updatedUser, mode: IAM_GOING_POPUP_MODES.EDIT});
     seIsEdit((prev) => !prev);
     console.log(isEdit, "isEdit");
   };

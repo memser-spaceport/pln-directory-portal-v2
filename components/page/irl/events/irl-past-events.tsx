@@ -238,7 +238,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                               key={index}
                               style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: "3px" }}
                               className="root__irl__imgsec__images__img__mob"
-                              src={member?.image?.url || '/icons/default_profile.svg'}
+                              src={member?.member?.image?.url || '/icons/default_profile.svg'}
                               alt="attendee"
                               height={18}
                               width={18}
@@ -308,10 +308,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                                 <div>
                                   <img src={gathering?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" />
                                 </div>
-                                {/* <div className="root__irl__mobileView__top__cnt__title">{gathering.name}</div> */}
                                 <div className="root__irl__mobileView__top__cnt__title">{gathering?.name}
                                   <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</span>
-                                  {/* <span className="root__irl__mobileView__top__cnt__eventDate--count"><img src="/icons/users-default.svg" alt="users" /> {gathering._count?.eventGuests}</span> */}
                                   {gathering?.eventGuests?.length > 0 &&
                                     <span className="root__irl__mobileView__top__cnt__eventDate--count">
                                       <span className="root__irl__imgsec__images" style={{ paddingLeft: "5px" }}>
@@ -321,7 +319,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                                             key={index}
                                             style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: "3px" }}
                                             className="root__irl__imgsec__images__img__mob"
-                                            src={member?.image?.url || '/icons/default_profile.svg'}
+                                            src={member?.member?.image?.url || '/icons/default_profile.svg'}
                                             alt="attendee"
                                             height={15}
                                             width={15}
@@ -335,7 +333,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                                   }
                                 </div>
                               </div>
-                              {/* <div className="root__irl__mobileView__top__cnt__eventDate">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</div> */}
                             </div>
                           </div>
                         ))}

@@ -31,7 +31,7 @@ export default async function Page({ searchParams }: any) {
       <div className={styles.irlGatherings__cn}>
         <div className={styles.irlGatherings__irlsubHeader}>Follow to get real-time updates and never miss upcoming events.</div>
         <section className={styles.irlGatherings__mobileHeader}>
-          <IrlMobileHeader searchParams={searchParams} isLoggedIn={isLoggedIn} userInfo={userInfo} isUserGoing={isUserGoing as boolean}  guestDetails={guestDetails} />
+          <IrlMobileHeader searchParams={searchParams} isLoggedIn={isLoggedIn} userInfo={userInfo} isUserGoing={isUserGoing as boolean}  guestDetails={guestDetails} eventLocationSummary={eventLocationSummary} followers={followers ?? []}/>
         </section>
         {/* Header */}
         <section className={styles.irlGatherings__header}>

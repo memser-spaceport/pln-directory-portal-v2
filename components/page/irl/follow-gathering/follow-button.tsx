@@ -75,11 +75,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: Foll
         triggerLoader(false);
       }
     } else {
-      if (window.location.pathname === '/sign-up') {
-        router.push(`/#login`);
-      } else {
         router.push(`${window.location.pathname}${window.location.search}#login`);
-      }
     }
   };
 
@@ -138,7 +134,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: Foll
           </button>
         )}
       </div>
-      <div className="followRoot__unfollow__popup">
+      {/* <div className="followRoot__unfollow__popup"> */}
         <Modal modalRef={dialogRef} onClose={onCloseModal}>
           <div className="popup__cnt">
             <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
@@ -160,11 +156,11 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: Foll
             </div>
           </div>
         </Modal>
-      </div>
+      {/* </div> */}
       <style jsx>
         {`
           .followRoot__followBtn {
-            padding: 4px 8px;
+            padding: 9px 42.5px;
             min-width: 103px;
             border: 1px solid #cbd5e1;
             background: #fff;
@@ -180,7 +176,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: Foll
           }
 
           .followRoot__followingBtn {
-            padding: 4px 8px;
+            padding: 9px 42.5px;
             border: 1px solid #cbd5e1;
             background: #ffffff;
             border-radius: 8px;

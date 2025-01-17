@@ -334,7 +334,7 @@ export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents:
     }
   });
 
-  const filteredEvents = Array.from(uniqueEventsMap.values())?.filter((event) => event._count && event._count.eventGuests > 0);
+  const filteredEvents = Array.from(uniqueEventsMap.values())?.filter((event) => event.eventGuests && event.eventGuests?.length > 0);
 
   // Convert the map values to an array for the final unique events list
   return filteredEvents;

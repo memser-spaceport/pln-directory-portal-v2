@@ -183,7 +183,7 @@ const Toolbar = (props: IToolbar) => {
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
                 <img src="/icons/add.svg" width={16} height={16} alt="add" />
-                <span className="toolbar__actionCn__add__btn__txt">Member</span>
+                <span className="toolbar__actionCn__add__btn__txt">New Member</span>
               </button>
             </div>
           )}
@@ -206,7 +206,7 @@ const Toolbar = (props: IToolbar) => {
             </>
           )}
 
-          <div className='toolbar__actionCn__webView'>
+          {/* <div className='toolbar__actionCn__webView'> */}
             {isUserGoing && isUserLoggedIn && !inPastEvents && (
               <div className="toolbar__actionCn__edit__wrpr">
                 <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
@@ -225,7 +225,7 @@ const Toolbar = (props: IToolbar) => {
                 )}
               </div>
             )}
-          </div>
+          {/* </div> */}
 
           {/* <div className='toolbar__actionCn__webView__follCnt'>
             <FollowButton eventLocationSummary={location} userInfo={userInfo} followProperties={followProperties} />

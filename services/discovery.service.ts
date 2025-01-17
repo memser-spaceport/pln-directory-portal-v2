@@ -12,6 +12,10 @@ export const getDiscoverData = async () => {
     },
   });
 
+  if (!response?.ok) {
+    return { error: { statusText: response?.statusText } };
+  }
+
   const result = await response.json();
   const formattedResult = result?.map((res: any) => {
     return {
@@ -28,9 +32,6 @@ export const getDiscoverData = async () => {
     };
   });
 
-  if (!response?.ok) {
-    return { error: { statusText: response?.statusText } };
-  }
   return { data: formattedResult };
 };
 
@@ -162,6 +163,10 @@ export const getChatQuestions = async () => {
     },
   });
 
+  if (!response?.ok) {
+    return { error: { statusText: response?.statusText, status: response?.status } };
+  }
+
   const result = await response.json();
   const formattedResult = result?.map((res: any) => {
     return {
@@ -173,9 +178,6 @@ export const getChatQuestions = async () => {
       icon: '/icons/send-black.svg'
     };
   });
-
-  if (!response?.ok) {
-    return { error: { statusText: response?.statusText, status: response?.status } };
-  }
+ 
   return { data: formattedResult };
 };

@@ -1,7 +1,6 @@
 // This component represents an empty chat interface for the Husky chatbot,
 // allowing users to submit prompts and view suggestions.
 
-import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { getChatQuestions } from '@/services/discovery.service';
 import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
@@ -23,7 +22,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const inputContainerRef = useRef<HTMLDivElement>(null);
-  const analytics = useAuthAnalytics();
+  const analytics = useHuskyAnalytics();
   const router = useRouter();
 
   // Function to check if the user is on a mobile device
@@ -31,7 +30,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
     return /Mobi|Android/i.test(navigator.userAgent);
   };
 
-  const { trackExplorationPromptSelection } = useHuskyAnalytics();
+  const { trackExplorationPromptSelection, trackHuskyHomeSearch } = useHuskyAnalytics();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Handles the submission of the prompt
@@ -43,6 +42,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
     setLimitReached(checkIsLimitReached());
     if (!checkIsLimitReached()) {
       document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { from: 'home', searchText: trimmedValue } }));
+      trackHuskyHomeSearch(trimmedValue);
     }
 
     if (textareaRef.current && !checkIsLimitReached()) {
@@ -80,12 +80,12 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
   };
 
   const handleSignUpClick = () => {
-    analytics.onSignUpBtnClicked();
+    analytics.trackSignupFromHuskyChat('home-search');
     window.location.href = PAGE_ROUTES.SIGNUP;
   };
 
   const onLoginClickHandler = () => {
-    analytics.onLoginBtnClicked();
+    analytics.trackSignupFromHuskyChat('home-search');
     const userInfo = Cookies.get('userInfo');
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
@@ -203,7 +203,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
         )}
       </div>
       <div className="hec__content__input__logo">
-        Powered by <img className="hec__content__input__logo__img" src="/images/husky-logo.svg" />
+        <span className="hec__content__input__logo__txt">Powered by</span> <img className="hec__content__input__logo__img" src="/images/husky-logo.svg" />
       </div>
       <style jsx>{`
         .error__strip__msgWrpr {
@@ -346,11 +346,15 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
           color: #64748b;
           gap: 4px;
           padding: 10px 0px 0px 0px;
-          justify-content: center;
+          justify-content: end;
         }
 
         .hec__content__input__logo__img {
           width: 65px;
+        }
+
+        .hec__content__input__logo__txt {
+          display: none;
         }
 
         @media (min-width: 1024px) {
@@ -414,8 +418,8 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
             color: #adadad;
           }
 
-          .hec__content__input__logo {
-            justify-content: end;
+          .hec__content__input__logo__txt {
+            display: block;
           }
         }
       `}</style>

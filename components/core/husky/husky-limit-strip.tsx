@@ -1,4 +1,4 @@
-import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
@@ -10,20 +10,21 @@ type HuskyLimitStrip = {
   count: number;
   onDialogClose: any;
   mode: 'blog' | 'chat';
+  from: string
 };
 
-const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode }: HuskyLimitStrip) => {
-  const analytics = useAuthAnalytics();
+const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode, from }: HuskyLimitStrip) => {
+  const analytics = useHuskyAnalytics();
   const router = useRouter();
 
   const handleSignUpClick = () => {
-    analytics.onSignUpBtnClicked();
+    analytics.trackSignupFromHuskyChat(from);
     window.location.href = PAGE_ROUTES.SIGNUP;
   };
 
   const onLoginClickHandler = () => {
     onDialogClose();
-    analytics.onLoginBtnClicked();
+    analytics.trackLoginFromHuskyChat(from);
     const userInfo = Cookies.get('userInfo');
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);

@@ -29,8 +29,8 @@ export const getAllLocations = async () => {
 
 const fetchGuests = async (url: string, authToken: string) => {
   const response = await fetch(url, {
-    cache: 'force-cache',
-    next: { tags: ['irl-guests'] },
+    cache: 'no-store',
+    // next: { tags: ['irl-guests'] },
     method: 'GET',
     headers: getHeader(authToken),
   });

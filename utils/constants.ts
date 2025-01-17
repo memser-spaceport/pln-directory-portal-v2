@@ -462,6 +462,21 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.1 - Enhanced user experience with Husky AI',
+    tag: 'Improvements',
+    date: '17, Jan 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <p><b>Directory Integration</b>: Husky, the LLM chatbot can now fetch and provide information from all members, teams, and projects available in the directory.</p>
+    <br/>
+    <p><b>Enhanced Search Capability</b>: Users can perform precise and context-aware searches across the organizational directory.</p>
+    <br/>
+    <p><b>User-Friendly Navigation</b>: Improved interface by bringing the Husky search to the Home page for easier navigation and better interaction with directory information.</p>
+    <br/>
+    <p><b>Real-Time Response Streaming</b>: Introducing real-time streaming of responses, providing users with immediate and progressively loading answers.</p>
+    </div>`,
+  },
+  {
     title: 'Version 4.1.0 - Enhanced IRL Gatherings Experience!',
     tag: 'Improvements',
     releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },

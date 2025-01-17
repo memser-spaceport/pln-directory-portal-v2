@@ -45,60 +45,6 @@ const IrlEvents = (props: IIrlEvents) => {
   const isUserGoing = guestDetails?.isUserGoing;
   const updatedUser = guestDetails?.currentGuest ?? null;
 
-  useClickedOutside({
-    ref: editResponseRef,
-    callback: () => {
-      seIsEdit(false);
-    },
-  });
-
-  const onEditResponseClick = (e: any) => {
-    console.log("onEditResponseClick", isEdit);
-    seIsEdit((prev) => !prev);
-    console.log(isEdit, "isEdit");
-  };
-
-  const onRemoveFromGatherings = () => {
-    analytics.trackSelfRemoveAttendeePopupOpen(location);
-    document.dispatchEvent(
-      new CustomEvent(EVENTS.OPEN_REMOVE_GUESTS_POPUP, {
-        detail: {
-          isOpen: true,
-          type: 'self-delete',
-        },
-      })
-    );
-  };
-
-  const onEditDetailsClicked = () => {
-    analytics.trackSelfEditDetailsClicked(location);
-    const formData = {
-      team: {
-        name: updatedUser?.teamName,
-        logo: updatedUser?.teamLogo,
-        uid: updatedUser?.teamUid,
-      },
-      member: {
-        name: updatedUser?.memberName,
-        logo: updatedUser?.memberLogo,
-        uid: updatedUser?.memberUid,
-      },
-      teamUid: updatedUser?.teamUid,
-      events: updatedUser?.events,
-      teams: updatedUser?.teams?.map((team: any) => {
-        return { ...team, uid: team?.id };
-      }),
-      memberUid: updatedUser?.memberUid,
-      additionalInfo: { checkInDate: updatedUser?.additionalInfo?.checkInDate || '', checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '' },
-      topics: updatedUser?.topics,
-      reason: updatedUser?.reason,
-      telegramId: updatedUser?.telegramId,
-      officeHours: updatedUser?.officeHours ?? '',
-    };
-
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
-  };
-
   const isEventAvailable = searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event);
 
   const searchType = searchParams?.type;
@@ -322,7 +268,7 @@ const IrlEvents = (props: IIrlEvents) => {
             </div>
           )} */}
 
-          <div className='irl__event__going__pop__up'>
+          {/* <div className='irl__event__going__pop__up'>
             {!isUserGoing && isUserLoggedIn && !inPastEvents && (
               <button onClick={onIAmGoingClick} className="mb-btn toolbar__actionCn__imGoingBtn">
                 I&apos;m Going
@@ -337,7 +283,7 @@ const IrlEvents = (props: IIrlEvents) => {
                 onRemoveFromGatherings={onRemoveFromGatherings}
               />
             )}
-          </div>
+          </div> */}
         </div>
         <div className="mob">
           {((searchParams?.type === 'past' && eventDetails?.upcomingEvents?.length > 0) || (searchParams?.type === 'upcoming' && eventDetails?.pastEvents?.length > 0)) &&
@@ -445,7 +391,7 @@ const IrlEvents = (props: IIrlEvents) => {
             </div>
           </Modal>
         </div>
-        <div className='irl__event__going__pop__up__mob'>
+        {/* <div className='irl__event__going__pop__up__mob'>
           {!isUserGoing && isUserLoggedIn && !inPastEvents && (
             <button onClick={onIAmGoingClick} className="mb-btn toolbar__actionCn__imGoingBtn">
               I&apos;m Going
@@ -460,7 +406,7 @@ const IrlEvents = (props: IIrlEvents) => {
               onRemoveFromGatherings={onRemoveFromGatherings}
             />
           )}
-        </div>
+        </div> */}
       </div>
 
 
@@ -1061,8 +1007,8 @@ const IrlEvents = (props: IIrlEvents) => {
           }
 
           .add-gathering {
-            border-bottom-right-radius: 8px;
-            border-bottom-left-radius: 8px;
+            // border-bottom-right-radius: 8px;
+            // border-bottom-left-radius: 8px;
           }
           .mob {
             overflow-x: unset;

@@ -1,38 +1,15 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { customFetch } from '@/utils/fetch-wrapper';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useState, useEffect, useRef } from 'react';
-import { triggerLoader } from '@/utils/common.utils';
-import { IRL_SUBMIT_FORM_LINK, FOLLOW_ENTITY_TYPES, EVENTS } from '@/utils/constants';
-import { toast } from 'react-toastify';
-import { getFollowersByLocation } from '@/services/irl.service';
-import { get } from 'http';
-import { useRouter } from 'next/navigation';
+import { EVENTS } from '@/utils/constants';
 import AllFollowers from './all-followers';
 import Image from 'next/image';
-import Modal from "@/components/core/modal";
-
 
 const FollowSection = (props: any) => {
   const userInfo = props?.userInfo;
   const eventLocationSummary = props?.eventLocationSummary;
   const searchParams = props?.searchParams;
   const analytics = useIrlAnalytics();
-  const router = useRouter();
   const [followProperties, setFollowProperties] = useState<any>({ followers: [], isFollowing: false });
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  const onCloseModal = () => {
-    if (dialogRef.current) {
-      dialogRef.current.close();
-    }
-  };
-
-  const handleClickUnFollowPopUp = (e: React.MouseEvent) => {
-    if (dialogRef.current) {
-      dialogRef.current.showModal();
-    }
-  }
 
   function getFollowProperties(followers: any) {
     return {
@@ -45,103 +22,36 @@ const FollowSection = (props: any) => {
     setFollowProperties((e: any) => getFollowProperties(props.followers));
   }, [eventLocationSummary.uid, searchParams]);
 
-  const onFollowbtnClicked = async (locationId: string) => {
-    try {
-      triggerLoader(true);
-      const { authToken } = getCookiesFromClient();
-      const response = await customFetch(
-        `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions`,
-        {
-          cache: 'no-store',
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({
-            memberUid: userInfo?.uid,
-            entityType: FOLLOW_ENTITY_TYPES.LOCATION,
-            entityUid: locationId,
-            entityAction: 'Default',
-            isActive: true,
-          }),
-        },
-        true
-      );
-
-      if (response?.ok) {
-        toast.success(`Successfully following ${eventLocationSummary.name}`);
-        analytics.irlLocationFollowBtnClicked({ userInfo, locationId: locationId });
-        const followersResponse = await getFollowersByLocation(locationId, authToken ?? '');
-        if (!followersResponse?.isError) {
-          setFollowProperties(getFollowProperties(followersResponse.data));
-
-        }
-      }
-      triggerLoader(false);
-      router.refresh();
-    } catch (e) {
-      triggerLoader(false);
+  useEffect(() => {
+    function updateFollowers(e: any) {
+      setFollowProperties(getFollowProperties(e.detail));
     }
-  };
-
-  const onUnFollowbtnClicked = async (locationId: string) => {
-    try {
-      triggerLoader(true);
-      const { authToken } = getCookiesFromClient();
-      const memberFollowUp = followProperties.followers.find((follower: any) => follower.memberUid === userInfo?.uid);
-
-      const response = await customFetch(
-        `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions/${memberFollowUp.uid}`,
-        {
-          cache: 'no-store',
-          method: 'PUT',
-          body: JSON.stringify({
-            isActive: false,
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          },
-        },
-        true
-      );
-      if (response?.ok) {
-        toast.success(`Successfully unfollowed ${eventLocationSummary.name}`);
-        analytics.irlLocationUnFollowBtnClicked({ userInfo, locationId: locationId });
-        const followersResponse = await getFollowersByLocation(locationId, authToken ?? '');
-        if (!followersResponse?.isError) {
-          setFollowProperties(getFollowProperties(followersResponse.data));
-        }
-      }
-      triggerLoader(false);
-      router.refresh();
-    } catch (e) {
-      triggerLoader(false);
-    }
-  };
+    document.addEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
+    return function () {
+      document.removeEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
+    };
+  }, []);
 
   const onFollowersCloseClicHandler = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.IRL_ALL_FOLLOWERS_OPEN_AND_CLOSE, { detail: { status: false } }))
-  }
+    document.dispatchEvent(new CustomEvent(EVENTS.IRL_ALL_FOLLOWERS_OPEN_AND_CLOSE, { detail: { status: false } }));
+  };
 
   const onFollowerClickHandler = () => {
-    analytics.irlFollowerBtnClicked({})
-
-
-  }
+    analytics.irlFollowerBtnClicked({});
+  };
 
   const onFollowersClickHandler = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.IRL_ALL_FOLLOWERS_OPEN_AND_CLOSE, { detail: { status: true } }))
-    const filteredFollowers = followProperties.followers?.map((follower: any) => follower.memberUid)
+    document.dispatchEvent(new CustomEvent(EVENTS.IRL_ALL_FOLLOWERS_OPEN_AND_CLOSE, { detail: { status: true } }));
+    const filteredFollowers = followProperties.followers?.map((follower: any) => follower.memberUid);
     analytics.irlAllFollowersBtnClicked({ followers: filteredFollowers });
-
-  }
+  };
 
   return (
     <>
       <AllFollowers location={eventLocationSummary.name} onClose={onFollowersCloseClicHandler} followersList={followProperties.followers} onFollowerClickHandler={onFollowerClickHandler} />
       <div className="root__irl__follwcnt">
+        <div className='root__irl__follcnt__update'>Follow to get real-time updates and never miss upcoming events.</div>
+
         <div className="root__irl__follwcnt__imgsec">
           <div onClick={onFollowersClickHandler} className="root__irl__follwcnt__imgsec__images">
             {followProperties.followers?.slice(0, 3).map((follower: any, index: number) => (
@@ -156,62 +66,13 @@ const FollowSection = (props: any) => {
                 width={24}
               />
             ))}
-          </div >
-          <div className="root__irl__follwcnt__imgsec__desccnt">
-            <div className="root__irl__follwcnt__imgsec__desccnt__desc">
-              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `& ${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} members </span>
-              are following gatherings at
-              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt__location'><img src={eventLocationSummary.flag} alt="flag" style={{ width: '17px', height: '17px' }} /></span>
-              {eventLocationSummary.name}
-            </div>
           </div>
-          <div className="root__irl__follwcnt__imgsec__desccnt__mob">
-            <div className="root__irl__follwcnt__imgsec__desccnt__desc">
-              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.isFollowing ? `You ${followProperties.followers.length > 1 ? `& ${followProperties.followers.length - 1}` : ''}` : `${followProperties.followers.length}`} members</span>
-            </div>
+          <div className="root__irl__follwcnt__imgsec__desccnt">
+          <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.followers.length} {followProperties.followers.length > 1 ? "members" : "member"} </span>
+              following gatherings at
+              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt__location'><img src={eventLocationSummary.flag} alt="flag" style={{ width: '17px', height: '17px' }} /> {eventLocationSummary.name} </span>
           </div>
         </div>
-
-        {followProperties.isFollowing && (
-          <button className="root__irl__follwcnt__followingbtn" onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}>
-            <img src="/icons/bell-green.svg" alt="follow" />
-            Following
-          </button>
-        )}
-
-        {!followProperties.isFollowing && (
-          <button className="root__irl__follwcnt__followbtn" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
-            <img src="/icons/bell-blue.svg" alt="follow" />
-            Follow
-          </button>
-        )}
-      </div>
-
-      <div className="root__irl__mobileView">
-        <Modal modalRef={dialogRef} onClose={onCloseModal}>
-          <div className='popup__cnt'>
-
-            <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
-            <div className="popup__cnt__body">
-              You&apos;ll stop receiving updates about exciting events happening in Kyoto. Stay connected to never miss out!
-            </div>
-
-            <div className="popup__footer">
-              <button onClick={onCloseModal} className="popup__footer__cancel">
-                cancel
-              </button>
-              <button
-                onClick={() => {
-                  onCloseModal();
-                  onUnFollowbtnClicked(eventLocationSummary.uid)}
-                }
-                className={`popup__footer__confirm `}
-              >
-                Unfollow
-              </button>
-            </div>
-          </div>
-        </Modal>
       </div>
 
       <style jsx>
@@ -229,13 +90,14 @@ const FollowSection = (props: any) => {
             gap: 8px;
             align-items: center;
             padding-left: 12px;
+            // width: 100%;
           }
 
           .root__irl__follwcnt__imgsec__images {
             display: flex;
             justify-content: end;
             cursor: pointer;
-            min-height: ${followProperties?.followers?.length > 0 ? "25px" : ""}
+            min-height: ${followProperties?.followers?.length > 0 ? '25px' : ''}
         }
 
           .root__irl__follwcnt {
@@ -282,6 +144,7 @@ const FollowSection = (props: any) => {
             font-weight: 500;
             line-height: 20px;
             gap:4px;
+            flex-wrap: wrap;
           }
 
           .root__irl__follwcnt__imgsec__desccnt__desc__cnt{
@@ -292,6 +155,7 @@ const FollowSection = (props: any) => {
           .root__irl__follwcnt__imgsec__desccnt__desc__cnt__location {
             display: flex;
             align-items: center;
+            gap: 4px;
           }
 
           .popup__footer {
@@ -350,8 +214,17 @@ const FollowSection = (props: any) => {
           padding-top: 20px;
         }
 
+        .root__irl__follcnt__update {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 20px;
+          letter-spacing: 0.01em;
+          text-align: left;
+        }
+          
           @media (min-width: 360px) {
-            .root__irl__follwcnt__imgsec__desccnt {
+              
+            .root__irl__follcnt__update {
               display: none;
             }
 
@@ -375,20 +248,20 @@ const FollowSection = (props: any) => {
           }
 
           @media (min-width: 1024px) {
+          .root__irl__follwcnt__imgsec__desccnt {
+            display: flex;
+            gap: 4px;
+          }
 
+            .root__irl__follcnt__update {
+              display: flex;
+            }
             .popup__cnt {
               height: 220px;
               width: 656px;
               padding: 24px;
             }
-
-            .root__irl__follwcnt__imgsec__desccnt {
-              display: flex;
-            }
-
-            .root__irl__follwcnt__imgsec__desccnt__mob {
-              display: none;
-            }
+            
             .root__irl__follwcnt {
               width: unset;
               justify-content: space-between;

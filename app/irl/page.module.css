@@ -20,10 +20,29 @@
   margin-top: 20px;
 }
 
+.irlGatherings__irlsubHeader {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    letter-spacing: 0.01em;
+    text-align: left;
+    padding: 10px 20px 0px 20px;
+    background-color: #DBEAFE;
+}
+
 @media (min-width: 360px) {
   .irlGatheings__follow {
     overflow: unset;
     max-width: 782px;
+  }
+
+  .irlGatherings__mobileHeader {
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 80px;
+    gap: 0px;
+    z-index: 4;
   }
   
   .irlGatheings__locations {
@@ -46,6 +65,9 @@
 }
 
 @media (min-width: 1024px) {
+  .irlGatherings__mobileHeader, .irlGatherings__irlsubHeader {
+    display: none;
+  }
   .irlGatheings__follow {
     width: 900px !important;
   }
@@ -59,16 +81,12 @@
     border-radius: 16px;
     height: 173px;
     border: 1px solid #cbd5e1;
-    border-radius: 16px 16px 0px 16px;
+    border-radius: 16px;
     gap: 16px;
     overflow: unset;
     position: relative;
     background-color: unset;
     max-width: 900px;
-    border-bottom: none;
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;
-
   }
 
   .irlGatherings__events {

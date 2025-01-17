@@ -15,28 +15,25 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   return (
     <>
       <div className="root">
-        {props.isLoggedIn && (
           <FollowSection searchParams={props.searchParams} userInfo={props.userInfo} followers={props.followers} eventLocationSummary={props.eventLocationSummary} />
-        )}
       </div>
 
       <style jsx>{`
         .root {
-          background-color: #DBEAFE80;
+          background-color: #DBEAFE;
         }
 
         @media (min-width: 360px) {
           .root {
             border-radius: none;
+            width: 900px;
           }
         }
 
         @media (min-width: 1024px) {
           .root {
-            border-radius:  0px 0px 16px 16px;
-            border: 1px solid #cbd5e1;
+            border-radius:  0px 0px 8px 8px;
             border-top: none;
-            width: 900px;
           }
         }
 

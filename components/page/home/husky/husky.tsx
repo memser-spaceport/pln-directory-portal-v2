@@ -24,7 +24,7 @@ const Husky = () => {
     <>
       <div className="husky">
         <div className="husky__hdr">
-          <h3 className="husky__hdr__title">Explore Teams, Members, Projects & Gatherings happening around the network</h3>
+          <h3 className="husky__hdr__title">Explore Protocol Labs with Husky, an LLM-powered chatbot</h3>
         </div>
         <div className="husky_input">
           <HuskyEmptyChat checkIsLimitReached={checkIsLimitReached} limitReached={limitReached} setLimitReached={setLimitReached} />
@@ -46,20 +46,17 @@ const Husky = () => {
           padding: 35px 0px 20px 0px;
         }
 
-    
-
         .husky__hdr__title {
           font-size: 15px;
           font-weight: 500;
           line-height: 18.15px;
           text-align: center;
           color: #1e3a8a;
-          width: 314px;
+          width: 284px;
           z-index: 1;
           margin: 0px 0;
         }
 
-      
         @media (min-width: 1024px) {
           .husky {
             background-position: 50% 31px;
@@ -68,12 +65,11 @@ const Husky = () => {
             gap: 36px;
           }
 
-  
           .husky__hdr__title {
             font-size: 24px;
             font-weight: 500;
             line-height: 29.05px;
-            width: 551px;
+            width: 464px;
           }
         }
       `}</style>

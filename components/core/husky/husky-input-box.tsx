@@ -17,7 +17,7 @@ function HuskyInputBox(props: any) {
     { name: 'Twitter', value: 'twitter', icon: '/icons/social-x.svg' },
     /* { name: 'LinkedIn', value: 'linkedin', icon: '/icons/social-linkedin.svg' }, */
   ];
-
+  const isLimitReached = props?.isLimitReached;
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
   const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
   const { trackSourceChange } = useHuskyAnalytics();
@@ -151,7 +151,7 @@ function HuskyInputBox(props: any) {
           <div
             onClick={onTextSubmit}
             title={isAnswerLoading ? 'Please wait till response is generated.' : 'Submit query'}
-            className={`huskyinput__action__submit ${(isAnswerLoading || isLoadingObject) ? 'huskyinput__action__submit--disabled' : ''}`}
+            className={`huskyinput__action__submit ${(isAnswerLoading || isLoadingObject || isLimitReached) ? 'huskyinput__action__submit--disabled' : ''}`}
           >
             <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
           </div>

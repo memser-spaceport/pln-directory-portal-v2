@@ -13,7 +13,7 @@ interface HuskyChatAnswerProps {
 function HuskyChatAnswer({ mode, answer, sources, question }: HuskyChatAnswerProps) {
   const anchorWrapper = (props: any) => (
     <a style={{ color: 'blue' }} target="_blank" href={props.href}>
-      {`[${props.children}]`}
+      {isNaN(props.children) ? props.children : `[${props.children}]`}
     </a>
   );
 

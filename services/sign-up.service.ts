@@ -51,7 +51,7 @@ export const formatFormDataToApi = (formData: any,cookiesValue?:any) => {
     try {
       const teamOrProject = JSON.parse(formData['selected-team-or-project']);
       if (teamOrProject.group === GROUP_TYPES.PROJECT) {
-        result['projectContributions'] = [{ projectUid: teamOrProject.uid, projectTitle: teamOrProject.name }];
+        result['projectContributions'] = [{ projectUid: teamOrProject.uid }];
       } else if (teamOrProject.group === GROUP_TYPES.TEAM) {
         result['teamAndRoles'] = [{ teamUid: teamOrProject.uid, teamTitle: teamOrProject.name }];
       }

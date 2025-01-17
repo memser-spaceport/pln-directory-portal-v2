@@ -12,8 +12,8 @@ import styles from './page.module.css';
 import { IAnalyticsGuestLocation } from '@/types/irl.types';
 import IrlErrorPage from '@/components/core/irl-error-page';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
-import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
-import IrlMobileHeader from '@/components/page/irl/irl-mobile-header';
+// import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
+// import IrlMobileHeader from '@/components/page/irl/irl-mobile-header';
 
 export default async function Page({ searchParams }: any) {
   const { isError, userInfo, isLoggedIn, followers, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(
@@ -29,10 +29,10 @@ export default async function Page({ searchParams }: any) {
   return (
     <div className={styles.irlGatherings}>
       <div className={styles.irlGatherings__cn}>
-        <div className={styles.irlGatherings__irlsubHeader}>Follow to get real-time updates and never miss upcoming events.</div>
+        {/* <div className={styles.irlGatherings__irlsubHeader}>Follow to get real-time updates and never miss upcoming events.</div>
         <section className={styles.irlGatherings__mobileHeader}>
           <IrlMobileHeader searchParams={searchParams} isLoggedIn={isLoggedIn} userInfo={userInfo} isUserGoing={isUserGoing as boolean}  guestDetails={guestDetails} eventLocationSummary={eventLocationSummary} followers={followers ?? []}/>
-        </section>
+        </section> */}
         {/* Header */}
         <section className={styles.irlGatherings__header}>
           <IrlHeader />
@@ -46,9 +46,9 @@ export default async function Page({ searchParams }: any) {
           <IrlEvents isUserGoing={isUserGoing as boolean} userInfo={userInfo} isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} guestDetails={guestDetails} />
         </section>
         {/* Follow Gathering */}
-        <section className={styles.irlGatheings__follow}>
+        {/* <section className={styles.irlGatheings__follow}>
           <IrlFollowGathering eventLocationSummary={eventLocationSummary} followers={followers ?? []} userInfo={userInfo} isLoggedIn={isLoggedIn} searchParams={searchParams} />
-        </section>
+        </section> */}
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
           <AttendeeList

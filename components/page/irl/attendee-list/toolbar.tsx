@@ -8,7 +8,7 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import { IAnalyticsGuestLocation, IGuestDetails } from '@/types/irl.types';
 import Search from './search';
 import { triggerLoader } from '@/utils/common.utils';
-import FollowButton from '../follow-gathering/follow-button';
+// import FollowButton from '../follow-gathering/follow-button';
 interface IToolbar {
   onLogin: () => void;
   userInfo: IUserInfo;
@@ -227,9 +227,9 @@ const Toolbar = (props: IToolbar) => {
             )}
           </div>
 
-          <div className='toolbar__actionCn__webView__follCnt'>
+          {/* <div className='toolbar__actionCn__webView__follCnt'>
             <FollowButton eventLocationSummary={location} userInfo={userInfo} followProperties={followProperties} />
-          </div>
+          </div> */}
         </div>
         <div className="toolbar__search">
           <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />

@@ -29,7 +29,8 @@ const DiscoverCard = (props: DiscoverCardProps) => {
   // Handle click event on the discover card
   const onDiscoverCardClick = () => {
     analytics.onDiscoverCardClicked(data, getAnalyticsUserInfo(userInfo));
-    document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: data }));
+    const links = data?.answerSourceLinks?.map((item:any) => item?.link);
+    document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: {...data,answerSourceLinks: links }}));
   };
 
   return (

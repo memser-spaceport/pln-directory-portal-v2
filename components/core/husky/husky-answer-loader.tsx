@@ -1,11 +1,7 @@
-function HuskyAnswerLoader(props: any) {
-  const question = props.question;
+function HuskyAnswerLoader() {
   return (
     <>
       <div id="answer-loader" className="husky-loader">
-        <div className="husky-loader__ques">
-          <h2>{question}</h2>
-        </div>
         <div className="huksy-loader__body">
           <div className="husky-loader__sources">
             <div className="husky-loader__ans__line"></div>
@@ -16,11 +12,6 @@ function HuskyAnswerLoader(props: any) {
             ))}
           </div>
           <div className="husky-loader__info">
-            {/* <p className="husky-loader__info__text">
-            <img className="husky-loader__info__text__icon" src="/icons/husky-bone.svg" />
-            Fetching your response...this may take a moment. Data may be inaccurate due to outdated sources.
-          </p> */}
-
             <div className="husky-loader__info__text--mob">
               <span className="husky-loader__info__text__icon__wrpr">
                 <img className="husky-loader__info__text__icon" src="/icons/husky-bone.svg" />

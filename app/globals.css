@@ -328,6 +328,60 @@ dialog {
   width: 40px !important;
 }
 
+.root__irl__follwcnt__imgsec__images__img {
+  height: 24px;
+  width: 24px;
+  border: 1px solid #156ff7;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.root__irl__imgsec__images__img {
+  height: 18px;
+  width: 18px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.root__irl__imgsec__images__img__mob {
+  height: 15px;
+  width: 15px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* home page husky text area  */
+.hec__content__box__search__input::placeholder {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #64748b;
+}
+
+/* home page husky text area  */
+.hec__content__box__search__input {
+  min-height: 40px !important;
+  max-height: 60px !important;
+}
+
+/* home page husky text area  */
+.hec__content__box {
+  outline-style: solid;
+  outline-width: 1px;
+  outline-offset: 0;
+  outline-color: #156ff7;
+  border-radius: 8px;
+}
+
+.follower__info__img {
+  border: 1px solid #e2e8f0;
+  color: #e2e8f0;
+  object-fit: cover;
+  border-radius: 50%;
+  height: 40px !important;
+  width: 40px !important;
+}
+
 @media (min-width: 1024px) {
   
   .team-grid__profile-container__profile {
@@ -394,4 +448,45 @@ dialog {
     border: 1px solid #e2e8f0;
   }
 
+  /* home page husky text area  */
+  .hec__content__box__search__input::placeholder {
+    font-size: 14px;
+  }
+
+  /* home page husky text area  */
+  .hec__content__box__search__input {
+    padding: 22px 44px 22px 40px !important;
+    min-height: 64px !important;
+    max-height: 80px !important;
+    margin-right: 60px !important;
+  }
+  
+  /* home page husky text area  */
+  .hec__content__input {
+    box-shadow: none; 
+    transition: box-shadow 0.3s ease;
+  }
+
+  /* home page husky text area  */
+  .hec__content__input:focus-within {
+    box-shadow: 0px 5px 6px 0px #00000024;
+  }
+
+  /* home page husky text area  */
+  .hec__content__box:focus-within:not(:has(.hec__content__box__search__button:focus)) {
+    outline: none;
+    border-radius: 8px 8px 0px 0px ;
+    box-shadow: unset;
+  }
+
+  /* home page husky text area  */
+  .hec__content__box__search__input:placeholder-shown + .hec__content__box__search__instruction {
+    display: flex;
+  }
+
+  /* home page husky text area  */
+  .hec__content__box__search__input:not(:placeholder-shown) + .hec__content__box__search__instruction {
+    display: none;
+  }
+  
 }

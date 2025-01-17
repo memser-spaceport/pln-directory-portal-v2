@@ -66,6 +66,14 @@ export const useJoinNetworkAnalytics = () => {
     };
     captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.TEAM_JOIN_NETWORK_SAVE, params);
   }
+
+  function recordTeamSubmitSuccessHomeClick(){
+    captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.TEAM_JOIN_NETWORK_SAVE_SUCCESS_HOME_CLICK);
+  }
+
+  function recordTeamSubmitSuccessAnotherTeamClick(){
+    captureEvent(JOIN_NETWORK_ANALYTICS_EVENTS.TEAM_JOIN_NETWORK_SAVE_SUCCESS_SUBMIT_ANOTHER_TEAM_CLICK);
+  }
   
   return {
     recordMemberJoinNetworkNextClick,
@@ -73,6 +81,8 @@ export const useJoinNetworkAnalytics = () => {
     recordMemberJoinNetworkSave,
     recordTeamJoinNetworkNextClick,
     recordTeamJoinNetworkBackClick,
-    recordTeamJoinNetworkSave
+    recordTeamJoinNetworkSave,
+    recordTeamSubmitSuccessAnotherTeamClick,
+    recordTeamSubmitSuccessHomeClick
   };
 };

@@ -17,14 +17,17 @@ function HuskyInputBox(props: any) {
     { name: 'Twitter', value: 'twitter', icon: '/icons/social-x.svg' },
     /* { name: 'LinkedIn', value: 'linkedin', icon: '/icons/social-linkedin.svg' }, */
   ];
-
+  const isLimitReached = props?.isLimitReached;
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
   const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
   const { trackSourceChange } = useHuskyAnalytics();
 
+  const isLoadingObject = props?.isLoadingObject;
+  const isLoadingObjectRef = useRef(isLoadingObject);
+  
   // Handles the submission of text input
   const onTextSubmit = async () => {
-    if (isAnswerLoading) {
+    if (isAnswerLoading ||  isLoadingObjectRef.current) {
       return;
     }
 
@@ -81,12 +84,42 @@ function HuskyInputBox(props: any) {
     };
   }, [isAnswerLoading]);
 
+  useEffect(() => {
+    const handler = (e: any) => {
+      const question = e.detail;
+      if (inputRef.current) {
+        inputRef.current.innerText = question;
+        const editableDiv =inputRef.current;
+        editableDiv.focus();
+
+        // Position the caret at the end
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(editableDiv); 
+        range.collapse(false); 
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      }
+    };
+    
+    document.addEventListener('husky-ai-input', handler);
+    return () => {
+      document.removeEventListener('husky-ai-input', handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    isLoadingObjectRef.current = isLoadingObject;
+  }, [isLoadingObject])
+
   return (
     <>
       <div className={`huskyinput`} data-testid="husky-input-box">
         <img width={24} height={24} className="huskyinput__img" src="/images/husky-brain.png" alt="Husky Brain" />
         <div className="huskyinput__itemcn" data-testid="husky-input-container">
-          <div ref={inputRef} data-placeholder="Ask follow up..." contentEditable={true} className="huskyinput__itemcn__textbox" tabIndex={0} data-testid="husky-input-textbox"></div>
+          <div ref={inputRef} data-placeholder="Ask a follow up..." contentEditable={true} className="huskyinput__itemcn__textbox" tabIndex={0} data-testid="husky-input-textbox"></div>
           {!isMobileDevice() && (
             <div className="huskyinput__itemcn__instruction">
               <p>
@@ -118,7 +151,7 @@ function HuskyInputBox(props: any) {
           <div
             onClick={onTextSubmit}
             title={isAnswerLoading ? 'Please wait till response is generated.' : 'Submit query'}
-            className={`huskyinput__action__submit ${isAnswerLoading ? 'huskyinput__action__submit--disabled' : ''}`}
+            className={`huskyinput__action__submit ${(isAnswerLoading || isLoadingObject || isLimitReached) ? 'huskyinput__action__submit--disabled' : ''}`}
           >
             <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
           </div>
@@ -189,7 +222,7 @@ function HuskyInputBox(props: any) {
           }
 
           .huskyinput__itemcn__instruction__tag {
-            border: 1px solid #CBD5E1;
+            border: 1px solid #cbd5e1;
             padding: 2px 4px;
             border-radius: 4px;
           }
@@ -229,8 +262,8 @@ function HuskyInputBox(props: any) {
           }
 
           .huskyinput__action__submit--disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+            background-color: #94A3B8 !important;
+            cursor: not-allowed !important;
           }
 
           .huskyinput__action__submit {

@@ -1,36 +1,40 @@
 import Markdown from 'markdown-to-jsx';
-import CopyText from '../copy-text';
 import HuskyCodeBlock from './husky-code-block';
+import { PopoverDp } from '../popover-dp';
+import InfoBox from '@/components/ui/info-box';
+import HuskySourceCard from './husky-source-card';
 
 interface HuskyChatAnswerProps {
   mode: 'blog' | 'chat';
   answer: string;
-  isLastIndex: boolean;
   question: string;
-  onQuestionEdit: (ques: string) => void;
-  onFeedback: (ques: string, answer: string) => Promise<void>;
-  onRegenerate: (ques: string) => Promise<void>;
-  onCopyAnswer: (answer: string) => Promise<void>;
+  sources: any[];
 }
-function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, onQuestionEdit, onRegenerate, onFeedback }: HuskyChatAnswerProps) {
+function HuskyChatAnswer({ mode, answer, sources, question }: HuskyChatAnswerProps) {
   const anchorWrapper = (props: any) => (
     <a style={{ color: 'blue' }} target="_blank" href={props.href}>
-      {props.children}
+      {isNaN(props.children) ? props.children : `[${props.children}]`}
     </a>
   );
-
-  const onFeedbackClicked = async () => {
-    await onFeedback(question, answer);
-  };
 
   return (
     <>
       <div className="chat__ans">
         {mode !== 'blog' && (
-          <h3 className="chat__ans__title">
-            <img alt="Answer" width={16} height={16} src="/icons/chat-orange.svg" />
-            <span>Answer</span>
-          </h3>
+          <div className="chat__ans__hdr">
+            {/* <h3 className="chat__ans__title">
+              <img alt="Answer" width={16} height={16} src="/icons/chat-orange.svg" />
+              <span>Answer</span>
+            </h3> */}
+            {sources && sources.length > 0 && (
+              <PopoverDp.Wrapper>
+                <InfoBox info={`${sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
+                <PopoverDp.Pane position="bottom">
+                  <HuskySourceCard sources={sources} />
+                </PopoverDp.Pane>
+              </PopoverDp.Wrapper>
+            )}
+          </div>
         )}
         <div className={`chat__ans__text ${mode === 'blog' ? 'chat__ans__text--blog' : ''}`}>
           <Markdown
@@ -38,7 +42,7 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
             options={{
               overrides: {
                 a: { component: anchorWrapper },
-                p: { props: { style: { marginBottom: '6px', lineHeight: '20px', fontSize: '14px', maxWidth: '100%' } } },
+                p: { props: { style: { marginBottom: '6px', lineHeight: '22px', fontSize: '14px', maxWidth: '100%' } } },
                 h1: { props: { style: { marginTop: '14px', marginBottom: '14px', fontSize: '22px' } } },
                 h2: { props: { style: { marginTop: '12px', marginBottom: '12px', fontSize: '20px' } } },
                 h3: { props: { style: { marginTop: '10px', marginBottom: '10px', fontSize: '18px' } } },
@@ -52,19 +56,6 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
             {answer}
           </Markdown>
         </div>
-        {mode !== 'blog' && (
-          <div className="chat__ansactions">
-            <div className={`chat__ansactions__cn`}>
-              {isLastIndex && <img onClick={async () => await onRegenerate(question)} className="chat__ansactions__cn__item" title="regenerate response" src="/icons/refresh-circle.svg" />}
-              {isLastIndex && <img onClick={() => onQuestionEdit(question)} className="chat__ansactions__cn__item" title="edit question" src="/icons/edit-chat.svg" />}
-              <CopyText onCopyCallback={onCopyAnswer} textToCopy={answer}>
-                {' '}
-                <img className="chat__ansactions__cn__item--copy" title="copy response" src="/icons/copy.svg" />
-              </CopyText>
-              <img className="chat__ansactions__cn__item" title="Submit feedback" onClick={onFeedbackClicked} src="/icons/feedback.svg" />
-            </div>
-          </div>
-        )}
       </div>
 
       <style jsx>
@@ -75,10 +66,17 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
             line-height: 20px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
             border-radius: 8px;
             width: 100%;
           }
+
+          .chat__ans__hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 12px;
+          }
+
           .feeback {
             width: 100%;
             height: 100%;
@@ -91,10 +89,9 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
           .chat__ans__text {
             font-size: 14px;
             line-height: 26px;
-            background: #f1f5f9;
             display: flex;
             gap: 8px;
-            padding: 14px;
+            padding: 0px 12px 12px 12px;
             border-radius: 8px;
             max-width: 100%;
           }
@@ -105,38 +102,6 @@ function HuskyChatAnswer({ mode, answer, isLastIndex, question, onCopyAnswer, on
 
           .chat__ans__text--blog {
             background: white;
-            padding: 14px 0;
-          }
-
-          .chat__ans__title {
-            font-size: 12px;
-            font-weight: 500;
-            color: #ff820e;
-            text-transform: uppercase;
-            border-bottom: 1px solid #cbd5e1;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          }
-          .chat__ansactions {
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-          }
-
-          .chat__ansactions__cn {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-          }
-          .chat__ansactions__cn__item {
-            cursor: pointer;
-          }
-
-          .chat__ansactions__cn__item--copy {
-            margin-top: 4px;
           }
         `}
       </style>

@@ -42,6 +42,7 @@ export const EVENTS = {
   TEAM_DETAIL_ALL_PROJECTS_CLOSE: 'team-detail-all-projects-close',
   TEAM_DETAIL_ALL_MEMBERS_CLOSE: 'team-detail-all-members-close',
   PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE: 'project-detail-all-members-open-and-close',
+  IRL_ALL_FOLLOWERS_OPEN_AND_CLOSE: 'irl-all-followers-open-and-close',
   PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE: 'project-detail-all-teams-open-and-close',
   PROJECT_DETAIL_DELETE_MODAL_OPEN_AND_CLOSE: 'project-detail-delete-modal-open-and-close',
   ADD_OR_EDIT_PROJECT_STEP_CHANGE: 'add-or-edit-project-step-change',
@@ -59,15 +60,16 @@ export const EVENTS = {
   UPDATE_TELEGRAM_HANDLE: 'update-telegram-handle',
   UPDATE_OFFICE_HOURS: 'update-office-hours',
   OPEN_IAM_GOING_POPUP: 'open-iam-going-popup',
+  UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
 };
 
 export const HELPER_MENU_OPTIONS = [
-  {
-    icon: '/icons/submitteam.svg',
-    name: 'Submit a Team',
-    type: 'button',
-    isExternal: false,
-  },
+  // {
+  //   icon: '/icons/submitteam.svg',
+  //   name: 'Submit a Team',
+  //   type: 'button',
+  //   isExternal: false,
+  // },
   {
     icon: '/icons/message.svg',
     name: 'ProtoSphere',
@@ -147,6 +149,8 @@ export const JOIN_NETWORK_ANALYTICS_EVENTS = {
   TEAM_JOIN_NETWORK_NEXT_CLICK: 'team-join-network-form-steps',
   TEAM_JOIN_NETWORK_BACK_CLICK: 'team-join-network-back-click',
   TEAM_JOIN_NETWORK_SAVE: 'member-join-network-save',
+  TEAM_JOIN_NETWORK_SAVE_SUCCESS_HOME_CLICK: 'team-join-network-save-success-home-click',
+  TEAM_JOIN_NETWORK_SAVE_SUCCESS_SUBMIT_ANOTHER_TEAM_CLICK: 'team-join-network-save-success-submit-another-team-click',
 };
 
 export const SIGN_UP_ANALYTICS_EVENTS = {
@@ -447,6 +451,7 @@ export const OFFICE_HOURS_MSG = 'Schedule a one on one office hours discussion w
 export const TEAM_OFFICE_HOURS_MSG = 'Join office hours discussion with';
 
 export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Details'];
+export const TEAM_FORM_STEPS = ['Basic', 'Project Details', 'Social'];
 
 export const EVENT_TYPE = {
   INVITE_ONLY: 'INVITE_ONLY',
@@ -456,6 +461,21 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.1 - Enhanced user experience with Husky AI',
+    tag: 'Improvements',
+    date: '17, Jan 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <p><b>Directory Integration</b>: Husky, the LLM chatbot can now fetch and provide information from all members, teams, and projects available in the directory.</p>
+    <br/>
+    <p><b>Enhanced Search Capability</b>: Users can perform precise and context-aware searches across the organizational directory.</p>
+    <br/>
+    <p><b>User-Friendly Navigation</b>: Improved interface by bringing the Husky search to the Home page for easier navigation and better interaction with directory information.</p>
+    <br/>
+    <p><b>Real-Time Response Streaming</b>: Introducing real-time streaming of responses, providing users with immediate and progressively loading answers.</p>
+    </div>`,
+  },
   {
     title: 'Version 4.1.0 - Enhanced IRL Gatherings Experience!',
     tag: 'Improvements',
@@ -953,3 +973,12 @@ export const SIGN_UP = {
   POLICY_URL: 'https://protocol.ai/legal/',
   CAPTCHA_URL: 'https://www.google.com/recaptcha/api/siteverify'
 }
+
+export const PROJECT_NAME = 'Protocol Labs Directory';
+export const FOLLOW_ENTITY_TYPES = {
+  LOCATION: "EVENT_LOCATION",
+  EVENT: "EVENT",
+  PROJECT: "PROJECT"
+}
+
+export const DAILY_CHAT_LIMIT = 10;

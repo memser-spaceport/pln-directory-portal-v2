@@ -12,6 +12,10 @@ export const getDiscoverData = async () => {
     },
   });
 
+  if (!response?.ok) {
+    return { error: { statusText: response?.statusText } };
+  }
+
   const result = await response.json();
   const formattedResult = result?.map((res: any) => {
     return {
@@ -28,9 +32,6 @@ export const getDiscoverData = async () => {
     };
   });
 
-  if (!response?.ok) {
-    return { error: { statusText: response?.statusText } };
-  }
   return { data: formattedResult };
 };
 
@@ -149,4 +150,34 @@ export const getProjectsPrompts = async () => {
       relatedQuestions: o.relatedQuestions.map((v: any) => v.content),
     };
   });
+};
+
+export const getChatQuestions = async () => {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?type=CHAT`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    cache: 'no-store',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response?.ok) {
+    return { error: { statusText: response?.statusText, status: response?.status } };
+  }
+
+  const result = await response.json();
+  const formattedResult = result?.map((res: any) => {
+    return {
+      uid: res.uid,
+      question: res.content,
+      answer: res.answer,
+      answerSourceLinks: res.answerSources,
+      followupQuestions: res.relatedQuestions.map((v: any) => v.content),
+      icon: '/icons/send-black.svg'
+    };
+  });
+ 
+  return { data: formattedResult };
 };

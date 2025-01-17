@@ -3,20 +3,35 @@
 import HuskyAi from '@/components/core/husky/husky-ai';
 import { useEffect, useRef, useState } from 'react';
 
-function HuskyDialog(props:any) {
+function HuskyDialog(props: any) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const isLoggedIn = props?.isLoggedIn;
   const [isOpen, setIsOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [huskySource, setHuskySource] = useState('');
+  const [initialChats, setInitialChats] = useState<any>([]);
 
   const onDialogClose = () => {
-    dialogRef.current?.close()
-    setIsOpen(false)
+    setInitialChats([]);
+    setSearchText('');
+    setHuskySource('');
+    dialogRef.current?.close();
+    setIsOpen(false);
   };
 
   useEffect(() => {
-    function dialogHandler(e: any) {
+    async function dialogHandler(e: any) {
       if (dialogRef.current) {
         setIsOpen(true);
+        if (e.detail?.searchText) {
+          setSearchText(e.detail.searchText);
+        }
+        if (e.detail?.from) {
+          setHuskySource(e.detail.from);
+        }
+        if (e.detail?.initialChat) {
+          setInitialChats([{ ...e.detail?.initialChat, isError: false }]);
+        }
         dialogRef.current.showModal();
       }
     }
@@ -33,9 +48,7 @@ function HuskyDialog(props:any) {
           <img className="hd__head__logo" src="/images/husky-logo.svg" />
           <img onClick={onDialogClose} className="hd__head__close" src="/icons/close.svg" />
         </div>
-        <div className="hd__content">
-          {isOpen && <HuskyAi onClose={onDialogClose} isLoggedIn={isLoggedIn} />}
-        </div>
+        <div className="hd__content">{isOpen && <HuskyAi initialChats={initialChats} onClose={onDialogClose} isLoggedIn={isLoggedIn} huskySource={huskySource} searchText={searchText} />}</div>
       </dialog>
       <style jsx>
         {`
@@ -52,11 +65,12 @@ function HuskyDialog(props:any) {
           .hd__head {
             width: 100%;
             height: 42px;
-           
+
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
+            border-bottom: 0.5px solid #cbd5e1;
           }
           .hd__head__logo {
             height: 24px;

@@ -22,7 +22,7 @@ function HuskyDiscover(props: any) {
   const [slugId, setSlugId] = useState(huskyShareId ?? '');
   const [initialChats, setInitialChats] = useState<any[]>([])
   const [isLoading, setLoadingStatus] = useState(false);
-  const { trackSharedBlog} = useHuskyAnalytics()
+  const { trackSharedBlog} = useHuskyAnalytics();
 
   const onDialogClose = () => {
     dialogRef.current?.close();
@@ -36,8 +36,6 @@ function HuskyDiscover(props: any) {
     .then(() => {
       if(data && dialogRef.current) {
         setSlugId(data.slug)
-        setInitialChats([data])
-        dialogRef.current.showModal();
        }
     })
     .catch(e => console.error(e))
@@ -59,6 +57,8 @@ function HuskyDiscover(props: any) {
     function dialogHandler(e: any) {
       if (dialogRef.current) {
         increaseViewAndShow(e?.detail)
+        setInitialChats([e?.detail])
+        dialogRef.current.showModal();
         trackSharedBlog(e?.detail?.slug, 'discover', e?.detail?.question)
       }
     }

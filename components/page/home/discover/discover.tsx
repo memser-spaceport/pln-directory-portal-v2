@@ -44,12 +44,7 @@ const Discover = (props: any) => {
             <img className="discover__hdr__ttl__img" src="icons/discover.svg" alt="discover" />
             <h2 className="discover__hdr__ttl__txt">Discover</h2>
           </div>
-          <p className="discover__hdr__desc">
-            Explore Protocol Labs with{' '}
-            <button aria-label="Explore with Husky" onClick={onHuskyClick} className="discover__hdr__desc__husky">
-              Husky
-            </button>
-          </p>
+
         </header>
         {/* Carousel */}
         <div className="embla" aria-label="Discover carousel">
@@ -150,22 +145,6 @@ const Discover = (props: any) => {
           font-weight: 500;
           line-height: 32px;
           color: #0f172a;
-        }
-
-        .discover__hdr__desc {
-          font-size: 14px;
-          font-weight: 400;
-          line-height: 24px;
-          color: #475569;
-        }
-
-        .discover__hdr__desc__husky {
-          font-size: 14px;
-          font-weight: 500;
-          line-height: 24px;
-          color: #156ff7;
-          cursor: pointer;
-          background: transparent;
         }
 
         .discover__body {

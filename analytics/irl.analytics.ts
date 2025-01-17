@@ -38,6 +38,10 @@ export const useIrlAnalytics = () => {
 
     //locations and events
     IRL_LOCATION_CARD_CLICKED:'irl-location-card-button-clicked',
+    IRL_LOCATION_FOLLOW_BUTTON_CLICKED: 'irl-location-follow-button-clicked',
+    IRL_LOCATION_UNFOLLOW_BUTTON_CLICKED: 'irl-location-unfollow-button-clicked',
+    IRL_ALL_FOLLLOWERS_BUTTON_CLICKED: 'irl-location-all-followers-button-clicked',
+    IRL_FOLLOWER_BUTTON_CLICKED: 'irl-follower-button-clicked',
     IRL_SEE_OTHER_LOCATION_CARD_CLICKED: 'on-see-other-location-card-clicked',
     IRL_UPCOMING_EVENTS_BUTTON_CLICKED: 'on-upcoming-events-button-clicked',
     IRL_ALL_EVENTS_BUTTON_CLICKED: 'on-all-events-button-clicked',
@@ -491,6 +495,23 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_SEARCH_EVENT_CLICKED, {...params})
   }
 
+  function irlLocationFollowBtnClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_LOCATION_FOLLOW_BUTTON_CLICKED, {...params});
+  }
+
+  function irlLocationUnFollowBtnClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_LOCATION_UNFOLLOW_BUTTON_CLICKED, {...params});
+  }
+
+  function irlAllFollowersBtnClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ALL_FOLLLOWERS_BUTTON_CLICKED, {...params})
+  }
+
+  function irlFollowerBtnClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_FOLLOWER_BUTTON_CLICKED, {...params})
+
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -540,6 +561,10 @@ export const useIrlAnalytics = () => {
     trackLoginClicked,
     onAddGatheringClicked,
     searchEventClicked,
-    trackAllEventsButtonClicked
+    trackAllEventsButtonClicked,
+    irlLocationFollowBtnClicked,
+    irlLocationUnFollowBtnClicked,
+    irlAllFollowersBtnClicked,
+    irlFollowerBtnClicked
   };
 };

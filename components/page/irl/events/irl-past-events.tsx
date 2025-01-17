@@ -13,6 +13,7 @@ import IrlEventsTableView from './irl-events-table-view';
 import clip from 'text-clipper';
 import { sanitize } from 'isomorphic-dompurify';
 import SearchGatherings from './search-gatherings';
+import Image from 'next/image';
 
 interface EventDetailsProps {
   eventDetails: {
@@ -172,7 +173,6 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                     <SearchGatherings searchParams={searchParams} type="past" eventsToShow={eventsToShow} setExpanded={setExpanded} setItemsToShow={null} />
                   </div>
                   <div className="root__irl__table-col__headerDesc">Description</div>
-                  <div className="root__irl__table-col__headerRes">Resources</div>
                 </div>
               </div>
               {eventsToShow?.map((gathering, index) => (
@@ -228,9 +228,29 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                     <div>
                       <img src={selectedEvent?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" />
                     </div>
-                    <div className="root__irl__mobileView__top__cnt__title">{selectedEvent?.name}</div>
+                    <div className="root__irl__mobileView__top__cnt__title">{selectedEvent?.name}
+                      <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(selectedEvent?.startDate, selectedEvent?.endDate)}</span>
+                      <span className="root__irl__mobileView__top__cnt__eventDate--count">
+                        <span className="root__irl__imgsec__images" style={{ paddingLeft: "5px" }}>
+                          {selectedEvent.eventGuests?.slice(0, 3).map((member: any, index: number) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <Image
+                              key={index}
+                              style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: "3px" }}
+                              className="root__irl__imgsec__images__img__mob"
+                              src={member?.member?.image?.url || '/icons/default_profile.svg'}
+                              alt="attendee"
+                              height={18}
+                              width={18}
+                            />
+                          ))}
+                        </span>
+                        <span style={{ paddingLeft: "5px" }}>
+                          {selectedEvent?.eventGuests?.length}
+                        </span>
+                      </span>
+                    </div>
                   </div>
-                  <div className="root__irl__mobileView__top__cnt__eventDate">{getFormattedDateString(selectedEvent?.startDate, selectedEvent?.endDate)}</div>
                 </>
               ) : (
                 <div className="root__irl__mobileView__top__cnt__eventDate">
@@ -288,9 +308,31 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                                 <div>
                                   <img src={gathering?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" />
                                 </div>
-                                <div className="root__irl__mobileView__top__cnt__title">{gathering.name}</div>
+                                <div className="root__irl__mobileView__top__cnt__title">{gathering?.name}
+                                  <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</span>
+                                  {gathering?.eventGuests?.length > 0 &&
+                                    <span className="root__irl__mobileView__top__cnt__eventDate--count">
+                                      <span className="root__irl__imgsec__images" style={{ paddingLeft: "5px" }}>
+                                        {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => (
+                                          // eslint-disable-next-line @next/next/no-img-element
+                                          <Image
+                                            key={index}
+                                            style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: "3px" }}
+                                            className="root__irl__imgsec__images__img__mob"
+                                            src={member?.member?.image?.url || '/icons/default_profile.svg'}
+                                            alt="attendee"
+                                            height={15}
+                                            width={15}
+                                          />
+                                        ))}
+                                      </span>
+                                      <span style={{ paddingLeft: "5px" }}>
+                                        {gathering?.eventGuests?.length}
+                                      </span>
+                                    </span>
+                                  }
+                                </div>
                               </div>
-                              <div className="root__irl__mobileView__top__cnt__eventDate">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</div>
                             </div>
                           </div>
                         ))}
@@ -415,8 +457,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
         }
 
         .root__irl__table-col__headerName,
-        .root__irl__table-col__headerDesc,
-        .root__irl__table-col__headerRes {
+        .root__irl__table-col__headerDesc {
           font-size: 13px;
           font-weight: 600;
           line-height: 20px;
@@ -425,23 +466,14 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
 
         .root__irl__table-col__headerDesc,
         .root__irl__table-col__contentDesc {
-          width: 566px;
-          padding: 10px;
-          border-right: 1px solid #cbd5e1;
-        }
-
-        .root__irl__table-col__headerRes,
-        .root__irl__table-col__contentRes {
-          width: 91px;
+          width: 660px;
           padding: 10px;
         }
 
         .root__irl__table-col__headerName,
         .root__irl__table-col__headerDesc,
-        .root__irl__table-col__headerRes,
         .root__irl__table-col__contentName,
-        .root__irl__table-col__contentDesc,
-        .root__irl__table-col__contentRes {
+        .root__irl__table-col__contentDesc {
           padding: 10px;
         }
 
@@ -466,6 +498,11 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           top: 0;
         }
 
+        .root__irl__imgsec__images {
+          align-items: center;
+          min-height: ${selectedEvent?.eventGuests?.length > 0 ? "25px" : ""}
+        }
+          
         .root__irl__addRes,
         .root__irl__addRes__loggedOut {
           display: flex;
@@ -587,8 +624,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           flex-direction: row;
           gap: 10px;
           padding-right: 10px;
-          border-right: 1px solid #cbd5e1;
-          height: 20px;
+          min-height: 20px;
           align-items: center;
         }
 
@@ -610,6 +646,26 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           align-items: center;
         }
 
+        .root__irl__mobileView__top__cnt__eventDate--date {
+          font-size: 11px;
+          font-weight: 400;
+          line-height: 20px;
+          text-align: left;
+          padding: 0px 0px 0px  8px;
+          margin: 0px 0px 0px  8px;
+          border-left: 1px solid #cbd5e1;
+        }
+
+        .root__irl__mobileView__top__cnt__eventDate--count {
+          font-size: 11px;
+          font-weight: 400;
+          line-height: 20px;
+          text-align: left;
+          padding: 0px 0px 0px  8px;
+          margin: 0px 0px 0px  8px;
+          border-left: 1px solid #cbd5e1;
+        }
+
         .root__irl__mobileView__body__title {
           font-size: 11px;
           font-weight: 400;
@@ -627,7 +683,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 10px;
+          padding: 5px 10px;
           background-color: #fff;
           border: 1px solid #156ff7;
           border-radius: 6px;
@@ -636,7 +692,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
 
         .custom-dropdown__menu {
           position: absolute;
-          top: 50px;
+          // top: 50px;
           left: 0;
           right: 0;
           background-color: white;
@@ -659,6 +715,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           justify-content: space-between;
           cursor: pointer;
           overflow-y: auto;
+          min-height: 42px;
         }
 
         .custom-dropdown__item:hover {
@@ -784,13 +841,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
 
           .root__irl__table-col__headerDesc,
           .root__irl__table-col__contentDesc {
-            width: 727px;
-          }
-
-          .root__irl__table-col__headerRes,
-          .root__irl__table-col__contentRes {
-            width: 177px;
-            text-align: center;
+            width: 870px;
           }
 
           .root__irl__table__no-data {
@@ -806,12 +857,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
 
           .root__irl__table-col__headerDesc,
           .root__irl__table-col__contentDesc {
-            width: 1095px;
-          }
-
-          .root__irl__table-col__headerRes,
-          .root__irl__table-col__contentRes {
-            width: 178px;
+            width: 1250px;
           }
 
           .root__irl__table__no-data {
@@ -827,12 +873,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
 
           .root__irl__table-col__headerDesc,
           .root__irl__table-col__contentDesc {
-            width: 1411px;
-          }
-
-          .root__irl__table-col__headerRes,
-          .root__irl__table-col__contentRes {
-            width: 277px;
+            width: 1681px;
           }
 
           .root__irl__table__no-data {

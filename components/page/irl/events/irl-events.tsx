@@ -1,23 +1,29 @@
 'use client';
 
 import Modal from '@/components/core/modal';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import IrlUpcomingEvents from './irl-upcoming-events';
 import IrlPastEvents from './irl-past-events';
 import { triggerLoader } from '@/utils/common.utils';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ILocationDetails } from '@/types/irl.types';
 import Image from 'next/image';
-import { IRL_SUBMIT_FORM_LINK } from '@/utils/constants';
+import { EVENTS, IAM_GOING_POPUP_MODES, IRL_SUBMIT_FORM_LINK } from '@/utils/constants';
 import IrlAllEvents from './irl-all-events';
+import { IUserInfo } from '@/types/shared.types';
+import useClickedOutside from '@/hooks/useClickedOutside';
+import IrlEditResponse from './irl-edit-response';
 
 interface IIrlEvents {
   searchParams: any;
   eventDetails: ILocationDetails;
   isLoggedIn: boolean;
+  userInfo: IUserInfo;
+  isUserGoing: boolean;
+  guestDetails: any;
 }
 
 const IrlEvents = (props: IIrlEvents) => {
@@ -28,6 +34,16 @@ const IrlEvents = (props: IIrlEvents) => {
   const addResRef = useRef<HTMLDialogElement>(null);
   const analytics = useIrlAnalytics();
   const router = useRouter();
+  const isUserLoggedIn = props?.isLoggedIn;
+  const [isEdit, seIsEdit] = useState(false);
+
+  const searchParam = useSearchParams();
+  const type = searchParam.get('type');
+
+  const editResponseRef = useRef<HTMLButtonElement>(null);
+  const guestDetails = props?.guestDetails;
+  const isUserGoing = guestDetails?.isUserGoing;
+  const updatedUser = guestDetails?.currentGuest ?? null;
 
   const isEventAvailable = searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event);
 
@@ -130,6 +146,17 @@ const IrlEvents = (props: IIrlEvents) => {
     }
     analytics.trackAdditionalResourceSeeMoreButtonClicked(eventDetails.resources);
   };
+  const inPastEvents = type ? type === 'past' : (eventDetails?.pastEvents && eventDetails?.pastEvents.length > 0 && eventDetails.upcomingEvents && eventDetails?.upcomingEvents?.length === 0);
+
+  // Open Attendee Details Popup to add guest
+  const onIAmGoingClick = () => {
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: { member: props.userInfo }, mode: IAM_GOING_POPUP_MODES.ADD } }));
+    analytics.trackImGoingBtnClick(location);
+  };
+
+  const onIamGoingPopupClose = () => {
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: false, formdata: null, mode: '' } }));
+  };
 
   function getFormattedDate(events: any) {
     const startDateList = events?.map((gathering: any) => gathering.startDate);
@@ -227,7 +254,8 @@ const IrlEvents = (props: IIrlEvents) => {
             </>
           )}
 
-          {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length > 0 && (
+          {/* TODO - To be used later*/}
+          {/* {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length > 0 && (
             <div className="root__irl__eventWrapper">
               <div className="root__irl__eventWrapper__icon">
                 <img src="/images/irl/calendar.svg" alt="calendar" />
@@ -238,11 +266,28 @@ const IrlEvents = (props: IIrlEvents) => {
                 {getFormattedDate(eventDetails?.upcomingEvents)}
               </div>
             </div>
-          )}
+          )} */}
+
+          {/* <div className='irl__event__going__pop__up'>
+            {!isUserGoing && isUserLoggedIn && !inPastEvents && (
+              <button onClick={onIAmGoingClick} className="mb-btn toolbar__actionCn__imGoingBtn">
+                I&apos;m Going
+              </button>
+            )}
+
+            {isUserGoing && isUserLoggedIn && !inPastEvents && (
+              <IrlEditResponse
+                isEdit={isEdit}
+                onEditResponseClick={onEditResponseClick}
+                onEditDetailsClicked={onEditDetailsClicked}
+                onRemoveFromGatherings={onRemoveFromGatherings}
+              />
+            )}
+          </div> */}
         </div>
         <div className="mob">
           {((searchParams?.type === 'past' && eventDetails?.upcomingEvents?.length > 0) || (searchParams?.type === 'upcoming' && eventDetails?.pastEvents?.length > 0)) &&
-          !(eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length !== 0) ? (
+            !(eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length !== 0) ? (
             <div className="root__irl__table__no-data">
               <div>
                 <img src="/icons/no-calender.svg" alt="calendar" />
@@ -346,7 +391,25 @@ const IrlEvents = (props: IIrlEvents) => {
             </div>
           </Modal>
         </div>
+        {/* <div className='irl__event__going__pop__up__mob'>
+          {!isUserGoing && isUserLoggedIn && !inPastEvents && (
+            <button onClick={onIAmGoingClick} className="mb-btn toolbar__actionCn__imGoingBtn">
+              I&apos;m Going
+            </button>
+          )}
+
+          {isUserGoing && isUserLoggedIn && !inPastEvents && (
+            <IrlEditResponse
+              isEdit={isEdit}
+              onEditResponseClick={onEditResponseClick}
+              onEditDetailsClicked={onEditDetailsClicked}
+              onRemoveFromGatherings={onRemoveFromGatherings}
+            />
+          )}
+        </div> */}
       </div>
+
+
       <div className="add-gathering">
         <div className="add-gathering__icon">
           <Image src="/icons/irl/add-gathering.svg" alt="add-gathering" width={19} height={19} />
@@ -417,44 +480,38 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         .root__irl__events {
-          width: 310px;
+          width: 314px;
           height: 48px;
           padding: 3px;
           border-radius: 8px;
           border: 1px solid #cbd5e1;
           display: flex;
           flex-direction: row;
+          background-color: #F1F5F9;
         }
 
         .root__irl__events button {
           height: 40px;
-          padding: 10px 18px;
+          padding: 8px 18px;
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
           text-align: center;
           border-radius: 8px;
-          border: none;
+          // border: none;
         }
 
         .root__irl__events__active {
-          background-color: #156ff7;
-          color: #fff;
+          background-color: #fff;
+          color: #156ff7;
+          border: 1px solid #156ff7 !important;
         }
 
         .root__irl__events__inactive {
-          background-color: #fff;
+          background-color: #F1F5F9;
           color: #0f172a;
         }
 
-        .root__irl__events__active {
-          background-color: #156ff7;
-          color: #fff;
-        }
-        .root__irl__events__inactive {
-          background-color: #fff;
-          color: #0f172a;
-        }
         .root__irl__events__section {
           display: flex;
           flex-direction: row;
@@ -500,15 +557,17 @@ const IrlEvents = (props: IIrlEvents) => {
           padding: 1px 5px 0px 5px;
           gap: 10px;
           border-radius: 2px;
-          border: 0.5px solid #fff;
+          border: 0.5px solid transparent;
+          background-color: #156ff7;
+          color: #fff;
         }
 
         .root__irl__events__inactive__count {
           padding: 1px 4px 0px 4px;
           border-radius: 2px;
           border: 0.5px solid transparent;
-          background-color: #f1f5f9;
-          color: #475569;
+          background-color: #94A3B8;
+          color: #fff;
         }
 
         .root__irl__eventWrapper {
@@ -591,8 +650,8 @@ const IrlEvents = (props: IIrlEvents) => {
           width: 70px;
           height: 30px;
           border-radius: 8px;
-          display:grid;
-          place-items:center;
+          display: grid;
+          place-items: center;
         }
 
         .root__irl__addRes__cnt {
@@ -753,7 +812,96 @@ const IrlEvents = (props: IIrlEvents) => {
           color: #156ff7;
         }
 
+        .toolbar__actionCn__imGoingBtn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            height: 40px;
+            cursor: pointer;
+            background: #156ff7;
+            color: #fff;
+            width: 132px;
+        }
+
+        .toolbar__actionCn__imGoingBtn:hover {
+          background: #1d4ed8;
+        }
+
+        .toolbar__actionCn__imGoingBtn {
+            width: 95px;
+            padding: 10px 12px;
+        }
+
+        .toolbar__actionCn__edit__wrpr {
+            position: relative;
+          }
+
+          .toolbar__actionCn__edit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            height: 40px;
+            cursor: pointer;
+            background: #156ff7;
+            color: #fff;
+          }
+
+          .toolbar__actionCn__edit__list {
+            position: absolute;
+            z-index: 4;
+            width: 207px;
+            background: #fff;
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0px 2px 6px 0px #0f172a29;
+            margin-top: 4px;
+            left: 0;
+          }
+
+          .toolbar__actionCn__edit__list__item {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 28px;
+            text-align: left;
+            color: #0f172a;
+            cursor: pointer;
+            padding: 4px 8px;
+            white-space: nowrap;
+            background: inherit;
+            width: 100%;
+          }
+
+          .toolbar__actionCn__edit__list__item:hover {
+            background-color: #f1f5f9;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+          }
+
+          .toolbar__actionCn__edit:hover {
+            background: #1d4ed8;
+          }
+
         @media (min-width: 360px) {
+          .irl__event__going__pop__up {
+            display: none;
+          }
+
+          .irl__event__going__pop__up__mob {
+            display: flex;
+          }
+
           .root {
             scroll-behavior: smooth;
             scrollbar-width: none;
@@ -764,7 +912,7 @@ const IrlEvents = (props: IIrlEvents) => {
             // box-shadow: 0px 4px 4px 0px #0F172A0A;
             box-shadow: 0px -4px 4px 0px #0f172a0a;
             max-width: 900px;
-            padding: 20px 0px 20px 20px;
+            padding: 20px 20px 10px 20px;
             border-bottom: 0;
           }
           .add-gathering {
@@ -777,7 +925,7 @@ const IrlEvents = (props: IIrlEvents) => {
             overflow-x: ${searchParams?.type === 'past' ? 'visible' : 'auto'};
             scroll-behavior: smooth;
             scrollbar-width: none;
-            margin-right: ${eventType === 'past' ? '20px' : ''};
+            margin-right: ${eventType === 'past' ? '0px' : ''};
           }
 
           .root__irl__addRes__popup {
@@ -794,7 +942,7 @@ const IrlEvents = (props: IIrlEvents) => {
           }
 
           .root__irl {
-            flex-direction: column;
+            flex-direction: column-reverse;
             align-items: baseline;
             gap: 16px;
           }
@@ -813,7 +961,13 @@ const IrlEvents = (props: IIrlEvents) => {
 
           .root__irl__eventWrapper {
             min-width: 200px;
-            margin-right: 20px;
+          }
+        }
+
+        @media (min-width: 498px) {
+          .toolbar__actionCn__edit__list {
+            right: 0px;
+            left: 0px;
           }
         }
 
@@ -832,6 +986,19 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         @media (min-width: 1024px) {
+          .irl__event__going__pop__up {
+            display: block;
+          }
+
+          .toolbar__actionCn__edit__list {
+            // right: 0px;
+            left: unset;
+          }
+
+          .irl__event__going__pop__up__mob {
+            display: none;
+          }
+
           .root {
             overflow-x: unset;
             border-top-right-radius: 8px;
@@ -840,8 +1007,8 @@ const IrlEvents = (props: IIrlEvents) => {
           }
 
           .add-gathering {
-            border-bottom-right-radius: 8px;
-            border-bottom-left-radius: 8px;
+            // border-bottom-right-radius: 8px;
+            // border-bottom-left-radius: 8px;
           }
           .mob {
             overflow-x: unset;

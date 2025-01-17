@@ -26,6 +26,9 @@ export const useHuskyAnalytics = () => {
     husky_action_card_clicked: 'husky_action_card_clicked',
     husky_ask_upload_data_clicked: 'husky_ask_upload_data_clicked',
     husky_login_clicked: 'husky_login_clicked',
+    husky_home_search_clicked: 'husky_home_search_clicked',
+    husky_chat_info_strip_login_clicked: 'husky_chat_info_strip_login_clicked',
+    husky_chat_info_strip_signup_clicked : 'husky_chat_info_strip_signup_clicked'
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -119,7 +122,19 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_exploration_prompt_clicked, { prompt })
   }
 
-  return { trackSharedBlog, trackHuskyLogin, trackUploadData, trackHuskySourceLinkClicked, trackHuskyActionCardClicked, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus };
+  function trackHuskyHomeSearch( prompt: string) {
+    captureEvent(events.husky_home_search_clicked, { prompt })
+  }
+
+  function trackLoginFromHuskyChat(from: string) {
+    captureEvent(events.husky_chat_info_strip_login_clicked, { from })
+  }
+
+  function trackSignupFromHuskyChat(from: string) {
+    captureEvent(events.husky_chat_info_strip_signup_clicked, { from })
+  }
+
+  return { trackSharedBlog, trackHuskyLogin, trackUploadData, trackHuskySourceLinkClicked, trackHuskyActionCardClicked, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus, trackHuskyHomeSearch, trackLoginFromHuskyChat, trackSignupFromHuskyChat };
 };
 
 

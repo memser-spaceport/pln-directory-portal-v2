@@ -1,27 +1,37 @@
 .home {
   display: flex;
-  justify-content: center;
-  padding: 20px;
+  flex-direction: column;
+  align-items: center;
 }
 
 .home__cn {
   width: 100%;
   display: flex;
   flex-direction: column;
+  padding: 14px;
   gap: 20px;
 }
 
-@media (min-width: 1024px) {
-  .home {
-    padding: 40px 20px;
-  }
+.home__husky {
+  width: 100%;
+  position: sticky;
+  top: 8px;
+  z-index: 4;
+  background: linear-gradient(71.47deg, #E0EAF9 8.43%,  #E0F2F3 87.45%);
+}
 
+@media (min-width: 1024px) {
   .home__cn {
     width: 940px;
+    padding: 50px 0px;
   }
 
   .home__cn {
     gap: 40px;
+  }
+
+  .home__husky {
+    top: -60px;
   }
 }
 

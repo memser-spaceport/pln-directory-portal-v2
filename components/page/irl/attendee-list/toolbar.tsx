@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { canUserPerformEditAction } from '@/utils/irl.utils';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
@@ -9,7 +8,7 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import { IAnalyticsGuestLocation, IGuestDetails } from '@/types/irl.types';
 import Search from './search';
 import { triggerLoader } from '@/utils/common.utils';
-
+// import FollowButton from '../follow-gathering/follow-button';
 interface IToolbar {
   onLogin: () => void;
   userInfo: IUserInfo;
@@ -19,8 +18,8 @@ interface IToolbar {
   location: IAnalyticsGuestLocation;
   isAdminInAllEvents: any;
   locationEvents: any;
+  followers: any;
 }
-
 const Toolbar = (props: IToolbar) => {
   //props
   const onLogin = props.onLogin;
@@ -36,7 +35,6 @@ const Toolbar = (props: IToolbar) => {
   const locationEvents = props?.locationEvents;
   const pastEvents = locationEvents?.pastEvents;
   const upcomingEvents = locationEvents?.upcomingEvents;
-
   //states
   // const [searchTerm, setSearchTerm] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
@@ -59,22 +57,18 @@ const Toolbar = (props: IToolbar) => {
   //hooks
   const analytics = useIrlAnalytics();
   const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
-
   const onEditResponseClick = () => {
     // setIamGoingPopupProps({isOpen: true, formdata: updatedUser, mode: IAM_GOING_POPUP_MODES.EDIT});
     seIsEdit((prev) => !prev);
   };
-
   // Open Attendee Details Popup to add guest
   const onIAmGoingClick = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: { member: userInfo }, mode: IAM_GOING_POPUP_MODES.ADD } }));
     analytics.trackImGoingBtnClick(location);
   };
-
   const onIamGoingPopupClose = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: false, formdata: null, mode: '' } }));
   };
-
   const debounce = (func: Function, delay: number) => {
     let timeoutId: NodeJS.Timeout;
     return (...args: any[]) => {
@@ -86,7 +80,6 @@ const Toolbar = (props: IToolbar) => {
       }, delay);
     };
   };
-
   const updateQueryParams = debounce((value: string) => {
     triggerLoader(true);
     const params = new URLSearchParams(searchParams);
@@ -98,23 +91,19 @@ const Toolbar = (props: IToolbar) => {
     router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
     analytics.trackGuestListSearch(location, value);
   }, 300);
-
   const getValue = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event?.target?.value;
     updateQueryParams(searchValue?.trim());
   };
-
   const onLoginClick = () => {
     analytics.trackLoginToRespondBtnClick(location);
     onLogin();
   };
-
   // Open Attendee Details Popup to add the guest by admin
   const onAddMemberClick = () => {
     analytics.trackGuestListAddNewMemberBtnClicked(location);
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD } }));
   };
-
   const onRemoveFromGatherings = () => {
     analytics.trackSelfRemoveAttendeePopupOpen(location);
     document.dispatchEvent(
@@ -126,7 +115,6 @@ const Toolbar = (props: IToolbar) => {
       })
     );
   };
-
   const onEditDetailsClicked = () => {
     analytics.trackSelfEditDetailsClicked(location);
     const formData = {
@@ -152,16 +140,36 @@ const Toolbar = (props: IToolbar) => {
       telegramId: updatedUser?.telegramId,
       officeHours: updatedUser?.officeHours ?? '',
     };
-
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
   };
-
   useEffect(() => {
     if (searchRef.current) {
       searchRef.current.value = search ?? '';
     }
   }, [router, searchParams]);
 
+  const [followProperties, setFollowProperties] = useState<any>({ followers: [], isFollowing: false });
+
+  function getFollowProperties(followers: any) {
+    return {
+      followers: followers ?? [],
+      isFollowing: followers.some((follower: any) => follower.memberUid === userInfo?.uid),
+    };
+  }
+
+  useEffect(() => {
+    setFollowProperties((e: any) => getFollowProperties(props.followers));
+  }, [location.uid, searchParams]);
+
+  useEffect(() => {
+    function updateFollowers(e: any) {
+      setFollowProperties(getFollowProperties(e.detail));
+    }
+    document.addEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
+    return function () {
+      document.removeEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
+    };
+  }, []);
   return (
     <>
       <div className="toolbar">
@@ -186,6 +194,7 @@ const Toolbar = (props: IToolbar) => {
             </button>
           )}
 
+
           {!isUserLoggedIn && (
             <>
               <button onClick={onLoginClick} className="toolbar__actionCn__login">
@@ -197,30 +206,35 @@ const Toolbar = (props: IToolbar) => {
             </>
           )}
 
-          {isUserGoing && isUserLoggedIn && !inPastEvents && (
-            <div className="toolbar__actionCn__edit__wrpr">
-              <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
-                Edit Response
-                <img src="/icons/down-arrow-white.svg" alt="arrow" width={18} height={18} />
-              </button>
-              {isEdit && (
-                <div className="toolbar__actionCn__edit__list">
-                  <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
-                    Edit Details
-                  </button>
-                  <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
-                    Remove from Gathering(s)
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+          {/* <div className='toolbar__actionCn__webView'> */}
+            {isUserGoing && isUserLoggedIn && !inPastEvents && (
+              <div className="toolbar__actionCn__edit__wrpr">
+                <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
+                  Edit Response
+                  <img src="/icons/down-arrow-white.svg" alt="arrow" width={18} height={18} />
+                </button>
+                {isEdit && (
+                  <div className="toolbar__actionCn__edit__list">
+                    <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
+                      Edit Details
+                    </button>
+                    <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
+                      Remove from Gathering(s)
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          {/* </div> */}
+
+          {/* <div className='toolbar__actionCn__webView__follCnt'>
+            <FollowButton eventLocationSummary={location} userInfo={userInfo} followProperties={followProperties} />
+          </div> */}
         </div>
         <div className="toolbar__search">
           <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
         </div>
       </div>
-
       <style jsx>
         {`
           button {
@@ -233,17 +247,14 @@ const Toolbar = (props: IToolbar) => {
             row-gap: 16px;
             padding: 16px 20px;
           }
-
           .toolbar__search {
-            // width: 100%;
+            width: 100%;
           }
-
           .toolbar__hdr {
             font-size: 18px;
             font-weight: 700;
             display: flex;
           }
-
           .toolbar__hdr__count {
             font-size: 14px;
             font-weight: 400;
@@ -252,23 +263,19 @@ const Toolbar = (props: IToolbar) => {
             line-height: 20px;
             color: #0f172a;
           }
-
           .toolbar__actionCn {
             display: flex;
             // justify-content: flex-end;
             gap: 8px;
             width: auto;
           }
-
           .toolbar__actionCn__add {
             display: flex;
             align-items: center;
           }
-
           .toolbar__actionCn__download__btn {
             display: none;
           }
-
           .toolbar__actionCn__add__btn {
             display: flex;
             align-items: center;
@@ -281,21 +288,18 @@ const Toolbar = (props: IToolbar) => {
             border-radius: 8px;
             justify-content: center;
           }
-
           .toolbar__actionCn__add__btn__txt {
             font-size: 14px;
             font-weight: 500;
             line-height: 24px;
             color: #0f172a;
           }
-
           .toolbar__actionCn__download__btn__txt {
             font-size: 14px;
             font-weight: 500;
             line-height: 24px;
             color: #0f172a;
           }
-
           .toolbar__actionCn__add__btn-mob {
             height: 40px;
             padding: 10px;
@@ -306,7 +310,6 @@ const Toolbar = (props: IToolbar) => {
             border-radius: 8px;
             border: 1px solid #cbd5e1;
           }
-
           .toolbar__actionCn__download__btn-mob {
             height: 40px;
             padding: 10px 12px;
@@ -317,14 +320,12 @@ const Toolbar = (props: IToolbar) => {
             border-radius: 8px;
             border: 1px solid #cbd5e1;
           }
-
           .toolbar__actionCn__add__btn__txt-mob {
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;
             color: #0f172a;
           }
-
           .toolbar__actionCn__schduleBtn {
             display: flex;
             align-items: center;
@@ -340,7 +341,6 @@ const Toolbar = (props: IToolbar) => {
             background: white;
             color: #0f172a;
           }
-
           .toolbar__actionCn__imGoingBtn {
             display: flex;
             align-items: center;
@@ -357,15 +357,12 @@ const Toolbar = (props: IToolbar) => {
             color: #fff;
             width: 132px;
           }
-
           .toolbar__actionCn__imGoingBtn:hover {
             background: #1d4ed8;
           }
-
           .toolbar__actionCn__edit__wrpr {
             position: relative;
           }
-
           .toolbar__actionCn__edit {
             display: flex;
             align-items: center;
@@ -381,7 +378,6 @@ const Toolbar = (props: IToolbar) => {
             background: #156ff7;
             color: #fff;
           }
-
           .toolbar__actionCn__edit__list {
             position: absolute;
             z-index: 4;
@@ -393,7 +389,6 @@ const Toolbar = (props: IToolbar) => {
             margin-top: 4px;
             left: 0;
           }
-
           .toolbar__actionCn__edit__list__item {
             font-size: 14px;
             font-weight: 500;
@@ -404,21 +399,17 @@ const Toolbar = (props: IToolbar) => {
             padding: 4px 8px;
             white-space: nowrap;
           }
-
           .toolbar__actionCn__edit__list__item:hover {
             background-color: #f1f5f9;
             border-radius: 4px;
             transition: all 0.2s ease;
           }
-
           .toolbar__actionCn__edit:hover {
             background: #1d4ed8;
           }
-
           .toolbar__actionCn__login {
             display: none;
           }
-
           .toolbar__actionCn__login-mob {
             display: flex;
             align-items: center;
@@ -436,80 +427,74 @@ const Toolbar = (props: IToolbar) => {
             color: #fff;
           }
 
-          @media (min-width: 498px) {
+          @media (min-width: 360px) {
             // .mb-btn {
             //   font-size: 12px;
             // }
-
             .toolbar {
               flex-direction: row;
               flex-wrap: wrap;
             }
-
             .toolbar__actionCn,
             .toolbar__hdr {
               flex: 1;
               align-items: center;
             }
-
             .toolbar__actionCn {
               justify-content: flex-end;
               flex: unset;
             }
-
             .toolbar__search {
               flex-basis: 100%;
             }
-
             .toolbar__actionCn__edit__list {
               right: 0px;
               left: unset;
             }
-          }
 
+            .toolbar__actionCn__webView, .toolbar__actionCn__webView__follCnt {
+              display: none;
+            }
+          }
           @media (min-width: 1024px) {
+            .toolbar__actionCn__webView, .toolbar__actionCn__webView__follCnt {
+              display: flex;
+            }
+
             .toolbar {
               flex-wrap: unset;
               justify-content: unset;
               align-items: center;
               padding: 0px;
             }
-
             .toolbar__search {
-              width: 400px;
+              width: 300px;
               margin-left: 16px;
               order: 1;
               flex-basis: unset;
             }
-
             .toolbar__hdr {
               font-size: 20px;
               flex: unset;
             }
-
             .toolbar__hdr__count {
               min-width: 140px;
             }
-
             .toolbar__actionCn {
               flex: 1;
               justify-content: flex-end;
               order: 2;
             }
-
             .toolbar__actionCn__schduleBtn {
               width: unset;
             }
-
             .toolbar__actionCn__imGoingBtn {
               width: 95px;
               padding: 10px 12px;
             }
-
             .toolbar__actionCn__login {
               width: fit-content;
             }
-
             .toolbar__actionCn__download__btn {
               display: flex;
               align-items: center;
@@ -521,15 +506,12 @@ const Toolbar = (props: IToolbar) => {
               padding: 10px 12px;
               border-radius: 8px;
             }
-
             .toolbar__actionCn__download__btn-mob {
               display: none;
             }
-
             .toolbar__actionCn__login-mob {
               display: none;
             }
-
             .toolbar__actionCn__login {
               display: flex;
               align-items: center;
@@ -545,7 +527,6 @@ const Toolbar = (props: IToolbar) => {
               background: #156ff7;
               color: #fff;
             }
-
             .toolbar__actionCn__login:hover {
               background: #1d4ed8;
             }
@@ -555,5 +536,4 @@ const Toolbar = (props: IToolbar) => {
     </>
   );
 };
-
 export default Toolbar;

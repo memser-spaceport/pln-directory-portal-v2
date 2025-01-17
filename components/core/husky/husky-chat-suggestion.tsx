@@ -6,13 +6,14 @@ interface HuskyChatSuggestionsProps {
   onFollowupClicked?: (question: string) => Promise<void>;
   chatIndex?: number;
   isAnswerLoading: boolean;
+  isLoadingObject: boolean;
 }
 
-function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowupClicked, isAnswerLoading }: HuskyChatSuggestionsProps) {
+function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowupClicked, isAnswerLoading, isLoadingObject }: HuskyChatSuggestionsProps) {
   // Handles the click event for a follow-up question.
   // If an answer is loading, it prevents further actions.
   const onQuestionClicked = (question: string) => {
-    if(isAnswerLoading) {
+    if(isAnswerLoading || isLoadingObject) {
       return;
     }
     if (onFollowupClicked) {
@@ -52,7 +53,7 @@ function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowu
             font-weight: 500;
             color: #ff820e;
             text-transform: uppercase;
-            border-bottom: 1px solid #cbd5e1;
+            border-bottom: 0.5px solid #cbd5e1;
             height: 36px;
             display: flex;
             gap: 4px;
@@ -70,6 +71,7 @@ function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowu
             font-weight: 400;
             cursor: pointer;
             padding: 8px 14px;
+            border-radius: 8px;
           }
         `}
       </style>

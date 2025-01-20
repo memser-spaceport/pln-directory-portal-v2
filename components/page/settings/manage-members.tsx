@@ -174,8 +174,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
       const { data, isError, errorMessage, errorData } = await updateMember(selectedMember.uid, payload, authToken);
       triggerLoader(false);
       if (isError) {
-        if (errorData?.message && errorData?.message === 'Email already exists. Please try again with different email') {
-          toast.error('Email already exists. Please try again with different email');
+        if (errorData?.message && errorData?.message === 'Email already exists. Please try again with a different email') {
+          toast.error('Email already exists. Please try again with a different email');
         } else {
           toast.error('Member updated failed. Something went wrong, please try again later');
         }

@@ -211,7 +211,6 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           display: flex;
           flex-direction: row;
           align-items: center;
-          width: 175px;
           flex-wrap: wrap;
         }
 
@@ -266,9 +265,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
             width: 727px;
           }
 
-          .root__irl__table-col__contentName__bottom {
-            width: 280px;
-          }
+       
         }
 
         @media (min-width: 1920px) {
@@ -298,9 +295,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
             width: 1411px; 
           }
 
-          .root__irl__table-col__contentName__bottom {
-            width: 485px;
-          }
+
         }
       `}</style>
     </>

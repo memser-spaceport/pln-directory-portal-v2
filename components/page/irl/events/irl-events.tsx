@@ -319,6 +319,7 @@ const IrlEvents = (props: IIrlEvents) => {
               )}
 
               {eventDetails?.resources?.length > 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
+                <div className={`${searchParams?.type === 'past' ? 'root__irl__addResWrpr' :'' }`}>
                 <div className="root__irl__addRes">
                   <div className="root__irl__addRes__cnt">
                     <div className="root__irl__addRes__cnt__icon">📋</div>
@@ -349,6 +350,7 @@ const IrlEvents = (props: IIrlEvents) => {
                       </div>
                     )}
                   </div>
+                </div>
                 </div>
               )}
             </>
@@ -409,7 +411,7 @@ const IrlEvents = (props: IIrlEvents) => {
         </div> */}
       </div>
 
-
+{/* 
       <div className="add-gathering">
         <div className="add-gathering__icon">
           <Image src="/icons/irl/add-gathering.svg" alt="add-gathering" width={19} height={19} />
@@ -422,7 +424,7 @@ const IrlEvents = (props: IIrlEvents) => {
             </a>
           </div>
         </div>
-      </div>
+      </div> */}
       <style jsx>{`
         .root {
           color: #0f172a;
@@ -672,6 +674,12 @@ const IrlEvents = (props: IIrlEvents) => {
           overflow-y: auto;
           flex-direction: column;
           padding: 25px;
+        }
+
+        .root__irl__addResWrpr {
+          scrollbar-width: none;
+          scroll-behavior: smooth;
+          overflow-x: scroll;
         }
 
         .root__irl__modalHeader {
@@ -1001,15 +1009,10 @@ const IrlEvents = (props: IIrlEvents) => {
 
           .root {
             overflow-x: unset;
-            border-top-right-radius: 8px;
-            border-top-left-radius: 8px;
+            border-radius: 8px;
             padding: 20px;
           }
 
-          .add-gathering {
-            // border-bottom-right-radius: 8px;
-            // border-bottom-left-radius: 8px;
-          }
           .mob {
             overflow-x: unset;
             width: 864px;

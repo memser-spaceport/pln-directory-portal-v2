@@ -467,13 +467,22 @@ export const ChangeLogList = [
     date: '17, Jan 2025',
     shortContent: `
     <div style="font-size: 14px; line-height:23px;">
-    <p><b>Directory Integration</b>: Husky, the LLM chatbot can now fetch and provide information from all members, teams, and projects available in the directory.</p>
-    <br/>
-    <p><b>Enhanced Search Capability</b>: Users can perform precise and context-aware searches across the organizational directory.</p>
-    <br/>
-    <p><b>User-Friendly Navigation</b>: Improved interface by bringing the Husky search to the Home page for easier navigation and better interaction with directory information.</p>
-    <br/>
-    <p><b>Real-Time Response Streaming</b>: Introducing real-time streaming of responses, providing users with immediate and progressively loading answers.</p>
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Husky AI is the new LLM-powered chatbot that can respond to your queries for any and all members, teams, and projects within the directory with a faster response time <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/" target="_blank">Use Husky to traverse the network</a></li>
+    </ul>
+
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that’s a good fit, feel free to recommend it to the network.</li>
+    <li>To provide more insights into event information, we have now added the attendee count for every event in the <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/irl" target="_blank">IRL Gatherings page</a>, allowing users to see the number of attendees along with the resources for each event at a quick glance.</li>
+    </ul>
+
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug Fixes</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Fixed the horizontal scroll issue in the Additional Resources section on the IRL Gatherings page for mobile devices.</li>
+    </ul>
+
     </div>`,
   },
   {

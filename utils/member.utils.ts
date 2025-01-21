@@ -670,3 +670,32 @@ export function handleHostAndSpeaker(options: any) {
     options.isSpeaker = true;
   }
 }
+
+export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: string) => {
+  return members?.map((member: IMemberResponse): IMember => {
+    let parsedMember = { ...member };
+    if (teamId) {
+      parsedMember = {
+        ...member,
+        teamMemberRoles: member.teamMemberRoles?.filter((teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId),
+      };
+    }
+
+    const teams ={
+      teamUid: parsedMember.teamMemberRoles[0]?.team?.uid || '',
+      memberUid: parsedMember?.uid || '',
+      role: parsedMember.teamMemberRoles[0]?.role || 'Contributor',
+      teamLead: !!parsedMember.teamMemberRoles[0]?.teamLead,
+      mainTeam: !!parsedMember.teamMemberRoles[0]?.mainTeam,
+    };
+
+    const data: any = {
+      id: parsedMember.uid,
+      name: parsedMember.name,
+      profile: parsedMember.image?.url || null,
+      teams,
+    };
+
+    return data;
+  });
+};

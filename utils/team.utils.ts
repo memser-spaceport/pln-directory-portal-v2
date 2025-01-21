@@ -58,7 +58,8 @@ export function transformTeamApiToFormObj(obj: any){
   const output = {
     ...obj.basicInfo,
     ...obj.projectsInfo,
-    ...obj.socialInfo
+    ...obj.socialInfo,
+    ...obj.memberInfo,
   };
 
   output.fundingStage = {
@@ -180,7 +181,7 @@ export const getTechnologyImage = (technology: string) => {
   }
 };
 
-export const getTeamInitialValue = (selectedTeam: any) => {
+export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
   return {
     basicInfo: {
       requestorEmail: '',
@@ -208,6 +209,9 @@ export const getTeamInitialValue = (selectedTeam: any) => {
       telegramHandler: selectedTeam?.telegramHandler ?? '',
       blog: selectedTeam?.blog ?? '',
     },
+    memberInfo: {
+      teamMemberRoles: membersDetail
+    }
   }
 }
 

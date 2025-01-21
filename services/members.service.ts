@@ -1,7 +1,7 @@
 import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
-import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpeaker } from '@/utils/member.utils';
+import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpeaker, parseMemberDetailsForTeams } from '@/utils/member.utils';
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
   handleHostAndSpeaker(options);
@@ -417,3 +417,18 @@ export const updateMemberBio = async (uid: string, payload: any, authToken: stri
     data: output
   }
 }
+
+export const getMemberRolesForTeam = async (options: IMemberListOptions, teamId: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?${new URLSearchParams(options as any)}`, {
+    method: 'GET',
+    cache: 'no-store',
+    headers: getHeader(''),
+  });
+
+  if (!response?.ok) {
+    return { error: { status: response?.status, statusText: response?.statusText } };
+  }
+  const result = await response?.json();
+  const formattedData: any = parseMemberDetailsForTeams(result.members, teamId);
+  return { data: { formattedData, status: response?.status } };
+};

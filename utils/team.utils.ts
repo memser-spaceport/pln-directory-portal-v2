@@ -154,6 +154,7 @@ export function transformRawInputsToFormObj(obj: any) {
     }
   }
 
+  result['plnFriend'] = result.plnFriend  === 'on' ? true : false;
   result.fundingStage = fundingStage;
   result.technologies = Object.values(technologies);
   result.membershipSources = Object.values(membershipSources);
@@ -190,6 +191,7 @@ export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
       shortDescription: selectedTeam.shortDescription ?? '',
       longDescription: selectedTeam.longDescription ?? '',
       officeHours: selectedTeam.officeHours ?? '',
+      plnFriend: selectedTeam.plnFriend ?? false,
     },
     projectsInfo: {
       technologies: selectedTeam.technologies ?? [],

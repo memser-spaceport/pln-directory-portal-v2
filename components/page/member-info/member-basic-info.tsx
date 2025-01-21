@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import LinkAuthAccounts from './link-auth-accounts';
 import SelfEmailUpdate from './self-email-update';
 import AdminEmailUpdate from './admin-email-update';
+import Toggle from '@/components/ui/toogle';
 
 interface MemberBasicInfoProps {
   errors: string[];
@@ -27,6 +28,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const uid = props.uid;
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
+  const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
 
@@ -46,6 +48,13 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   };
 
   /**
+   * Handles PLN friend toggle.
+   */
+  const onTogglePlnFriend = () => {
+    setIsPlnFriend(!isPlnFriend);
+  };
+
+  /**
    * Deletes the uploaded image and resets the image state.
    * @param e - The pointer event from the delete image action.
    */
@@ -61,6 +70,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
 
   useEffect(() => {
     setSavedImage(initialValues?.imageFile ?? '');
+    setIsPlnFriend(initialValues?.plnFriend ?? false);
     setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
@@ -86,9 +96,11 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
         <div className="memberinfo__form">
           <div className="memberinfo__form__user">
             <label htmlFor="member-image-upload" className="memberinfo__form__user__profile" data-testid="profile-image-upload">
-              {(!profileImage && !savedImage) && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
-              {(!profileImage && !savedImage) && <span className="memberinfo__form__user__profile__text">Add Image</span>}
-              {(profileImage || savedImage) && <img className="memberinfo__form__user__profile__preview" src={formImage} data-testid="profile-image-preview" alt="user profile" width="95" height="95" />}
+              {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
+              {!profileImage && !savedImage && <span className="memberinfo__form__user__profile__text">Add Image</span>}
+              {(profileImage || savedImage) && (
+                <img className="memberinfo__form__user__profile__preview" src={formImage} data-testid="profile-image-preview" alt="user profile" width="95" height="95" />
+              )}
               {(profileImage || savedImage) && (
                 <span className="memberinfo__form__user__profile__actions">
                   <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
@@ -96,7 +108,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 </span>
               )}
             </label>
-            <input type='text' readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
+            <input type="text" readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
             <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
             <div className="memberinfo__form__item">
               <TextField
@@ -112,13 +124,27 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 data-testid="member-name-input"
               />
             </div>
+            {isAdminEdit && <div className="memberinfo__form__plnFriend">
+              <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
+              <label className="memberinfo__form__plnFriend__label">Friends of PL</label>
+              <Toggle height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+            </div>}
           </div>
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
           {!isMemberSelfEdit && !isAdminEdit && (
             <div className="memberinfo__form__item">
-              <TextField defaultValue={initialValues.email} isMandatory={true} id="register-member-email" label="Email*" name="email" type="email" placeholder="Enter your email address" data-testid="member-email-input" />
+              <TextField
+                defaultValue={initialValues.email}
+                isMandatory={true}
+                id="register-member-email"
+                label="Email*"
+                name="email"
+                type="email"
+                placeholder="Enter your email address"
+                data-testid="member-email-input"
+              />
             </div>
           )}
 
@@ -130,10 +156,26 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             </div>
           )}
           <div className="memberinfo__form__item">
-            <TextField defaultValue={initialValues.plnStartDate} id="register-member-startDate" label="Join date" name="plnStartDate" type="date" placeholder="Enter Start Date" data-testid="member-join-date-input" />
+            <TextField
+              defaultValue={initialValues.plnStartDate}
+              id="register-member-startDate"
+              label="Join date"
+              name="plnStartDate"
+              type="date"
+              placeholder="Enter Start Date"
+              data-testid="member-join-date-input"
+            />
           </div>
           <div className="memberinfo__form__item">
-            <TextField defaultValue={initialValues.city} id="register-member-city" label="Metro Area/City" name="city" type="text" placeholder="Enter your metro area or city" data-testid="member-city-input" />
+            <TextField
+              defaultValue={initialValues.city}
+              id="register-member-city"
+              label="Metro Area/City"
+              name="city"
+              type="text"
+              placeholder="Enter your metro area or city"
+              data-testid="member-city-input"
+            />
             <p className="info">
               <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
               <span className="info__text">Please share location details to receive invitations for the network events happening in your area.</span>
@@ -142,7 +184,15 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
 
           <div className="memberinfo__form__item">
             <div className="memberinfo__form__item__cn">
-              <TextField defaultValue={initialValues.region} id="register-member-state" label="State or Province" name="region" type="text" placeholder="Enter state or province" data-testid="member-state-input" />
+              <TextField
+                defaultValue={initialValues.region}
+                id="register-member-state"
+                label="State or Province"
+                name="region"
+                type="text"
+                placeholder="Enter state or province"
+                data-testid="member-state-input"
+              />
               <TextField defaultValue={initialValues.country} id="register-member-country" label="Country" name="country" type="text" placeholder="Enter country" data-testid="member-country-input" />
             </div>
           </div>
@@ -184,6 +234,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             display: flex;
             gap: 20px;
             width: 100%;
+            position: relative;
           }
           .memberinfo__form__user__profile {
             width: 100px;
@@ -219,6 +270,20 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             border-radius: 50%;
             object-fit: cover;
             object-position: top;
+          }
+
+          .memberinfo__form__plnFriend {
+            position: absolute;
+            top: 10px;
+            right: 0;
+            display: flex;
+            gap: 9px;
+          }
+
+          .memberinfo__form__plnFriend__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
           }
         `}
       </style>

@@ -19,7 +19,6 @@ import SettingsAction from './actions';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
-import TeamMembersInfo from '../team-form-info/team-members-info';
 import TeamMemberCard from '../team-form-info/team-member-card';
 
 function ManageTeamsSettings(props: any) {
@@ -308,7 +307,7 @@ function ManageTeamsSettings(props: any) {
       let proceed = true;
       const isSame = onFormChange();
       if (!isSame) {
-        proceed = confirm('There are some unsaved changed. Do you want to proceed?');
+        proceed = confirm('There are some unsaved changes. Do you want to proceed?');
       }
       if (!proceed) {
         return;

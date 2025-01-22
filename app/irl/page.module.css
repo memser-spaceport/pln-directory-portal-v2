@@ -33,7 +33,13 @@
 @media (min-width: 360px) {
   .irlGatheings__follow {
     overflow: unset;
-    max-width: 782px;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 78px;
+    gap: 0px;
+    z-index: 4;
   }
 
   .irlGatherings__mobileHeader {
@@ -70,6 +76,11 @@
   }
   .irlGatheings__follow {
     width: 900px !important;
+    margin-top: 20px;
+    position: unset;
+    top: unset;
+    gap: unset;
+    z-index: unset;
   }
 
   .irlGatherings {
@@ -95,7 +106,7 @@
   }
   
   .irlGatheings__guests {
-    padding-top: 32px;
+    padding-top: 42px;
   }
 }
 

@@ -173,7 +173,7 @@ const FollowSection = (props: IFollowSectionProps) => {
       <AllFollowers location={eventLocationSummary.name} onClose={onFollowersCloseClicHandler} followersList={followProperties.followers} onFollowerClickHandler={onFollowerClickHandler} />
       <div className={`root__irl__follwcnt ${isShrunk ? 'showCntr' : ''}`} id='actionCn'>
         <div className={`root__irl__follwcnt__cnt ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>
-          <div className='root__irl__follcnt__update__web'>Planning to attend? Click &apos;I&apos;m Going&apos; & follow to get event updates & reminders.</div>
+          <div className='root__irl__follcnt__update__web'>Planning to attend? Enroll yourselves & follow to get event updates & reminders.</div>
           <div className={`root__irl__follwcnt__imgsec ${!isShrunk ? 'hideCnt-mob' : 'showCnt'}`}>
             <div onClick={onFollowersClickHandler} className="root__irl__follwcnt__imgsec__images">
               {followProperties.followers?.slice(0, 3).map((follower: any, index: number) => (
@@ -205,7 +205,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
                 <img src="/icons/add.svg" width={16} height={16} alt="add" />
-                <span className="toolbar__actionCn__add__btn__txt">New</span>
+                <span className="toolbar__actionCn__add__btn__txt">Member</span>
               </button>
             </div>
           )}
@@ -243,7 +243,7 @@ const FollowSection = (props: IFollowSectionProps) => {
           )}
         </div>
 
-        <div className={`root__irl__follcnt__update__mob ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>Planning to attend? Click &apos;I&apos;m Going&apos; & follow to get event updates & reminders.</div>
+        <div className={`root__irl__follcnt__update__mob ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>Planning to attend? Enroll yourselves & follow to get event updates & reminders.</div>
       </div>
 
       <style jsx>
@@ -418,7 +418,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             border: 1px solid #cbd5e1;
             background: #fff;
             height: 40px;
-            padding: 10px 12px;
+            padding: 10px 8px;
             border-radius: 8px;
             justify-content: center;
           }
@@ -489,7 +489,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             cursor: pointer;
             background: #156ff7;
             color: #fff;
-            width: ${!canUserAddAttendees ? "162px" : "132px"};
+            width: ${!canUserAddAttendees ? "162px" : "127px"};
           }
           .toolbar__actionCn__imGoingBtn:hover {
             background: #1d4ed8;
@@ -504,7 +504,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             gap: 6px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
-            padding: ${canUserAddAttendees ? "10px 12px" : "10px 32px"};
+            padding: ${canUserAddAttendees ? "10px 8px" : "10px 25px"};
             font-size: 14px;
             font-weight: 500;
             height: 40px;

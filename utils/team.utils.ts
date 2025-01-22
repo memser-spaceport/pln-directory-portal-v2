@@ -58,7 +58,8 @@ export function transformTeamApiToFormObj(obj: any){
   const output = {
     ...obj.basicInfo,
     ...obj.projectsInfo,
-    ...obj.socialInfo
+    ...obj.socialInfo,
+    // ...obj.memberInfo,   // Team lead config
   };
 
   output.fundingStage = {
@@ -153,6 +154,7 @@ export function transformRawInputsToFormObj(obj: any) {
     }
   }
 
+  // result['plnFriend'] = result.plnFriend  === 'on' ? true : false;   //Team lead config
   result.fundingStage = fundingStage;
   result.technologies = Object.values(technologies);
   result.membershipSources = Object.values(membershipSources);
@@ -180,7 +182,8 @@ export const getTechnologyImage = (technology: string) => {
   }
 };
 
-export const getTeamInitialValue = (selectedTeam: any) => {
+// export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {  // Team lead config
+  export const getTeamInitialValue = (selectedTeam: any) => {
   return {
     basicInfo: {
       requestorEmail: '',
@@ -189,6 +192,7 @@ export const getTeamInitialValue = (selectedTeam: any) => {
       shortDescription: selectedTeam.shortDescription ?? '',
       longDescription: selectedTeam.longDescription ?? '',
       officeHours: selectedTeam.officeHours ?? '',
+      // plnFriend: selectedTeam.plnFriend ?? false,   //Team lead config
     },
     projectsInfo: {
       technologies: selectedTeam.technologies ?? [],
@@ -208,6 +212,9 @@ export const getTeamInitialValue = (selectedTeam: any) => {
       telegramHandler: selectedTeam?.telegramHandler ?? '',
       blog: selectedTeam?.blog ?? '',
     },
+    // memberInfo: {       //Team lead config -start
+    //   teamMemberRoles: membersDetail
+    // }   //Team lead config -end
   }
 }
 

@@ -866,37 +866,6 @@ const IrlEvents = (props: IIrlEvents) => {
             color: #fff;
           }
 
-          .toolbar__actionCn__edit__list {
-            position: absolute;
-            z-index: 4;
-            width: 207px;
-            background: #fff;
-            padding: 8px;
-            border-radius: 12px;
-            box-shadow: 0px 2px 6px 0px #0f172a29;
-            margin-top: 4px;
-            left: 0;
-          }
-
-          .toolbar__actionCn__edit__list__item {
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 28px;
-            text-align: left;
-            color: #0f172a;
-            cursor: pointer;
-            padding: 4px 8px;
-            white-space: nowrap;
-            background: inherit;
-            width: 100%;
-          }
-
-          .toolbar__actionCn__edit__list__item:hover {
-            background-color: #f1f5f9;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-          }
-
           .toolbar__actionCn__edit:hover {
             background: #1d4ed8;
           }
@@ -972,13 +941,6 @@ const IrlEvents = (props: IIrlEvents) => {
           }
         }
 
-        @media (min-width: 498px) {
-          .toolbar__actionCn__edit__list {
-            right: 0px;
-            left: 0px;
-          }
-        }
-
         @media (min-width: 450px) {
           .add-gathering__content {
             flex-direction: row;
@@ -998,11 +960,6 @@ const IrlEvents = (props: IIrlEvents) => {
             display: block;
           }
 
-          .toolbar__actionCn__edit__list {
-            // right: 0px;
-            left: unset;
-          }
-
           .irl__event__going__pop__up__mob {
             display: none;
           }
@@ -1013,6 +970,10 @@ const IrlEvents = (props: IIrlEvents) => {
             padding: 20px;
           }
 
+          .add-gathering {
+            border-bottom-right-radius: 8px;
+            border-bottom-left-radius: 8px;
+          }
           .mob {
             overflow-x: unset;
             width: 864px;

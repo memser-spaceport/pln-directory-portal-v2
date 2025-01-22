@@ -462,7 +462,7 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
-    title: 'Version 4.1.1 - Enhanced user experience with Husky AI',
+    title: 'Version 4.1.1 - Search with Husky & other feature updates',
     tag: 'Improvements',
     date: '17, Jan 2025',
     shortContent: `

@@ -47,7 +47,7 @@ const Discover = (props: any) => {
                   );
                 })}
               </div>
-              {formattedDiscoverData.length > 3 && <div className="discover__body__sec2 embla__slide">
+              {/* {formattedDiscoverData.length > 3 && <div className="discover__body__sec2 embla__slide">
                 {formattedDiscoverData.slice(3, 5).map((data) => {
                   return (
                     <div key={`section-two-discover-card-${data.uid}`} className="discover__body__sec2__child1">
@@ -55,7 +55,7 @@ const Discover = (props: any) => {
                     </div>
                   );
                 })}
-              </div>}
+              </div>} */}
             </div>
           </div>
         </div>

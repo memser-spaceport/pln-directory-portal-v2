@@ -331,6 +331,8 @@ const AttendeeList = (props: IAttendeeList) => {
         @media (min-width: 360px) {
           .attendeeList__table {
             overflow: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
           }
         }
         @media (min-width: 1024px) {

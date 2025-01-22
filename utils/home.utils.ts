@@ -154,7 +154,7 @@ export function formatDiscoverData(discoverData: any) {
     item.image = image;
   });
 
-  const questionAndAnswers = [...temp, {uid:'discover-husky', type: 'discoverhusky' }];
+  const questionAndAnswers = [...temp];
 
   return questionAndAnswers;
 }

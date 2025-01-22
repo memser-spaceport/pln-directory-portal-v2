@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
-import { canUserPerformEditAction } from '@/utils/irl.utils';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
+import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
@@ -22,53 +21,19 @@ interface IToolbar {
 }
 const Toolbar = (props: IToolbar) => {
   //props
-  const onLogin = props.onLogin;
-  const userInfo = props?.userInfo;
   const location = props?.location;
-  const isUserLoggedIn = props?.isLoggedIn;
   const filteredListLength = props?.filteredListLength ?? 0;
-  const roles = userInfo?.roles ?? [];
-  const eventDetails = props?.eventDetails;
-  const updatedUser = eventDetails?.currentGuest ?? null;
-  const isUserGoing = eventDetails?.isUserGoing;
-  const isAdminInAllEvents = props?.isAdminInAllEvents;
-  const locationEvents = props?.locationEvents;
-  const pastEvents = locationEvents?.pastEvents;
-  const upcomingEvents = locationEvents?.upcomingEvents;
   //states
   // const [searchTerm, setSearchTerm] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
-  const [isEdit, seIsEdit] = useState(false);
   const searchParams = useSearchParams();
-  const type = searchParams.get('type');
   const search = searchParams.get('search');
-  const editResponseRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
-  const inPastEvents = type ? type === 'past' : (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0);
-
-  useClickedOutside({
-    ref: editResponseRef,
-    callback: () => {
-      seIsEdit(false);
-    },
-  });
 
   //hooks
   const analytics = useIrlAnalytics();
-  const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
-  const onEditResponseClick = () => {
-    // setIamGoingPopupProps({isOpen: true, formdata: updatedUser, mode: IAM_GOING_POPUP_MODES.EDIT});
-    seIsEdit((prev) => !prev);
-  };
-  // Open Attendee Details Popup to add guest
-  const onIAmGoingClick = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: { member: userInfo }, mode: IAM_GOING_POPUP_MODES.ADD } }));
-    analytics.trackImGoingBtnClick(location);
-  };
-  const onIamGoingPopupClose = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: false, formdata: null, mode: '' } }));
-  };
+ 
   const debounce = (func: Function, delay: number) => {
     let timeoutId: NodeJS.Timeout;
     return (...args: any[]) => {
@@ -95,81 +60,13 @@ const Toolbar = (props: IToolbar) => {
     const searchValue = event?.target?.value;
     updateQueryParams(searchValue?.trim());
   };
-  const onLoginClick = () => {
-    analytics.trackLoginToRespondBtnClick(location);
-    onLogin();
-  };
-  // Open Attendee Details Popup to add the guest by admin
-  const onAddMemberClick = () => {
-    analytics.trackGuestListAddNewMemberBtnClicked(location);
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD } }));
-  };
-  const onRemoveFromGatherings = () => {
-    analytics.trackSelfRemoveAttendeePopupOpen(location);
-    document.dispatchEvent(
-      new CustomEvent(EVENTS.OPEN_REMOVE_GUESTS_POPUP, {
-        detail: {
-          isOpen: true,
-          type: 'self-delete',
-        },
-      })
-    );
-  };
-  const onEditDetailsClicked = () => {
-    analytics.trackSelfEditDetailsClicked(location);
-    const formData = {
-      team: {
-        name: updatedUser?.teamName,
-        logo: updatedUser?.teamLogo,
-        uid: updatedUser?.teamUid,
-      },
-      member: {
-        name: updatedUser?.memberName,
-        logo: updatedUser?.memberLogo,
-        uid: updatedUser?.memberUid,
-      },
-      teamUid: updatedUser?.teamUid,
-      events: updatedUser?.events,
-      teams: updatedUser?.teams?.map((team: any) => {
-        return { ...team, uid: team?.id };
-      }),
-      memberUid: updatedUser?.memberUid,
-      additionalInfo: { checkInDate: updatedUser?.additionalInfo?.checkInDate || '', checkOutDate: updatedUser?.additionalInfo?.checkOutDate ?? '' },
-      topics: updatedUser?.topics,
-      reason: updatedUser?.reason,
-      telegramId: updatedUser?.telegramId,
-      officeHours: updatedUser?.officeHours ?? '',
-    };
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
-  };
+
   useEffect(() => {
     if (searchRef.current) {
       searchRef.current.value = search ?? '';
     }
   }, [router, searchParams]);
 
-  const [followProperties, setFollowProperties] = useState<any>({ followers: [], isFollowing: false });
-
-  function getFollowProperties(followers: any) {
-    return {
-      followers: followers ?? [],
-      isFollowing: followers.some((follower: any) => follower.memberUid === userInfo?.uid),
-    };
-  }
-
-  useEffect(() => {
-    setFollowProperties((e: any) => getFollowProperties(props.followers));
-  }, [location.uid, searchParams]);
-
-  useEffect(() => {
-    function updateFollowers(e: any) {
-      setFollowProperties(getFollowProperties(e.detail));
-    }
-    document.addEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
-    return function () {
-      document.removeEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
-    };
-  }, []);
   return (
     <>
       <div className="toolbar">
@@ -178,59 +75,6 @@ const Toolbar = (props: IToolbar) => {
             Attendees{` `}({filteredListLength})
           </span>
         </span>
-        <div className="toolbar__actionCn">
-          {canUserAddAttendees && (
-            <div className="toolbar__actionCn__add">
-              <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
-                <img src="/icons/add.svg" width={16} height={16} alt="add" />
-                <span className="toolbar__actionCn__add__btn__txt">New Member</span>
-              </button>
-            </div>
-          )}
-
-          {!isUserGoing && isUserLoggedIn && !inPastEvents && (
-            <button onClick={onIAmGoingClick} className="mb-btn toolbar__actionCn__imGoingBtn">
-              I&apos;m Going
-            </button>
-          )}
-
-
-          {!isUserLoggedIn && (
-            <>
-              <button onClick={onLoginClick} className="toolbar__actionCn__login">
-                Login to Respond
-              </button>
-              <button onClick={onLoginClick} className="toolbar__actionCn__login-mob">
-                Login to respond & view complete list
-              </button>
-            </>
-          )}
-
-          {/* <div className='toolbar__actionCn__webView'> */}
-            {isUserGoing && isUserLoggedIn && !inPastEvents && (
-              <div className="toolbar__actionCn__edit__wrpr">
-                <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
-                  Edit Response
-                  <img src="/icons/down-arrow-white.svg" alt="arrow" width={18} height={18} />
-                </button>
-                {isEdit && (
-                  <div className="toolbar__actionCn__edit__list">
-                    <button className="toolbar__actionCn__edit__list__item" onClick={onEditDetailsClicked}>
-                      Edit Details
-                    </button>
-                    <button onClick={onRemoveFromGatherings} className="toolbar__actionCn__edit__list__item">
-                      Remove from Gathering(s)
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          {/* </div> */}
-
-          {/* <div className='toolbar__actionCn__webView__follCnt'>
-            <FollowButton eventLocationSummary={location} userInfo={userInfo} followProperties={followProperties} />
-          </div> */}
-        </div>
         <div className="toolbar__search">
           <Search searchRef={searchRef} onChange={getValue} placeholder="Search by Attendee, Team or Project" />
         </div>

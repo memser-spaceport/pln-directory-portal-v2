@@ -467,6 +467,7 @@ export function formInputsToMemberObj(obj: any) {
   }
 
   result['openToWork'] = result.openToWork  === 'on' ? true : false;
+  // result['plnFriend'] = result.plnFriend  === 'on' ? true : false;   //Team lead config
   result.teamAndRoles = Object.values(teamAndRoles);
   result.projectContributions = Object.values(projectContributions);
   result.skills = Object.values(skills);
@@ -537,6 +538,7 @@ export const getInitialMemberFormValues = (selectedMember: any) => {
       city: selectedMember?.location?.city ?? '',
       region: selectedMember?.location?.region ?? '',
       country: selectedMember?.location?.country ?? '',
+      // plnFriend: selectedMember?.plnFriend ?? false,   //Team lead config
     },
     socialInfo: {
       linkedinHandler: selectedMember?.linkedinHandler ?? '',
@@ -670,3 +672,32 @@ export function handleHostAndSpeaker(options: any) {
     options.isSpeaker = true;
   }
 }
+
+export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: string) => {
+  return members?.map((member: IMemberResponse): IMember => {
+    let parsedMember = { ...member };
+    if (teamId) {
+      parsedMember = {
+        ...member,
+        teamMemberRoles: member.teamMemberRoles?.filter((teamMemberRole: ITeamMemberRole) => teamMemberRole.team?.uid === teamId),
+      };
+    }
+
+    const teams ={
+      teamUid: parsedMember.teamMemberRoles[0]?.team?.uid || '',
+      memberUid: parsedMember?.uid || '',
+      role: parsedMember.teamMemberRoles[0]?.role || 'Contributor',
+      teamLead: !!parsedMember.teamMemberRoles[0]?.teamLead,
+      mainTeam: !!parsedMember.teamMemberRoles[0]?.mainTeam,
+    };
+
+    const data: any = {
+      id: parsedMember.uid,
+      name: parsedMember.name,
+      profile: parsedMember.image?.url || null,
+      teams,
+    };
+
+    return data;
+  });
+};

@@ -13,9 +13,10 @@ interface FollowButtonProps {
   eventLocationSummary: any;
   followProperties: any;
   userInfo: any;
+  expand?: boolean;
 }
 
-const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: FollowButtonProps) => {
+const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand }: FollowButtonProps) => {
   const router = useRouter();
   const analytics = useIrlAnalytics();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -75,7 +76,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: Foll
         triggerLoader(false);
       }
     } else {
-        router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`);
     }
   };
 
@@ -134,33 +135,31 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: Foll
           </button>
         )}
       </div>
-      {/* <div className="followRoot__unfollow__popup"> */}
-        <Modal modalRef={dialogRef} onClose={onCloseModal}>
-          <div className="popup__cnt">
-            <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
-            <div className="popup__cnt__body">You&apos;ll stop receiving updates about exciting events happening in Kyoto. Stay connected to never miss out!</div>
+      <Modal modalRef={dialogRef} onClose={onCloseModal}>
+        <div className="popup__cnt">
+          <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
+          <div className="popup__cnt__body">You&apos;ll stop receiving updates about exciting events happening in {eventLocationSummary.name}. Stay connected to never miss out!</div>
 
-            <div className="popup__footer">
-              <button onClick={onCloseModal} className="popup__footer__cancel">
-                cancel
-              </button>
-              <button
-                onClick={() => {
-                  onCloseModal();
-                  onUnFollowbtnClicked(eventLocationSummary.uid);
-                }}
-                className={`popup__footer__confirm `}
-              >
-                Unfollow
-              </button>
-            </div>
+          <div className="popup__footer">
+            <button onClick={onCloseModal} className="popup__footer__cancel">
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                onCloseModal();
+                onUnFollowbtnClicked(eventLocationSummary.uid);
+              }}
+              className={`popup__footer__confirm `}
+            >
+              Unfollow
+            </button>
           </div>
-        </Modal>
-      {/* </div> */}
+        </div>
+      </Modal>
       <style jsx>
         {`
           .followRoot__followBtn {
-            padding: 9px 42.5px;
+            padding: ${expand ? "9px 15.5px" : "9px 40px"};
             min-width: 103px;
             border: 1px solid #cbd5e1;
             background: #fff;
@@ -176,7 +175,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: Foll
           }
 
           .followRoot__followingBtn {
-            padding: 9px 42.5px;
+            padding: ${expand ? "9px 7px" : "9px 35px"}; 
             border: 1px solid #cbd5e1;
             background: #ffffff;
             border-radius: 8px;
@@ -257,11 +256,17 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: Foll
             .popup__cnt {
               width: 89vw;
               max-height: 80svh;
-              min-height: 25vh;
+              // min-height: 25vh;
               display: flex;
               flex-direction: column;
               overflow-y: auto;
               padding: 20px;
+            }
+          }
+
+          @media (min-width: 768px) {
+            .followRoot__followBtn, .followRoot__followingBtn {
+              padding: 10px 16px !important;
             }
           }
 
@@ -273,7 +278,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo }: Foll
             }
 
             .followRoot__followBtn {
-              padding: 10px 16px;
+              padding: 10px 16px !important;
             }
 
             .followRoot__followingBtn {

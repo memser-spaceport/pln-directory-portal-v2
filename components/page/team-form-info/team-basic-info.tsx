@@ -3,6 +3,7 @@ import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
 import TextEditor from '@/components/ui/text-editor';
 import { useEffect, useRef, useState } from 'react';
+// import Toggle from '@/components/ui/toogle';    //Team lead config
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -16,11 +17,12 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const errors = props?.errors;
   const initialValues = props?.initialValues;
   const isEdit = props.isEdit ?? false;
-  const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '')
+  const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
   const [profileImage, setProfileImage] = useState<string>('');
-  const formImage = profileImage ? profileImage : savedImage ? savedImage : ''
+  const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const uploadImageRef = useRef<HTMLInputElement>(null);
-  
+  // const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);   //Team lead config
+
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -32,23 +34,31 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
     }
   };
 
+  /**
+   * Handles PLN friend toggle.
+   */
+  // const onTogglePlnFriend = () => {
+  //   setIsPlnFriend(!isPlnFriend);
+  // };  //Team lead config
+
   const onDeleteImage = (e: React.MouseEvent<HTMLImageElement>) => {
     e.stopPropagation();
     e.preventDefault();
     setProfileImage('');
-    setSavedImage('')
+    setSavedImage('');
     if (uploadImageRef.current) {
       uploadImageRef.current.value = '';
     }
   };
 
   useEffect(() => {
-    setSavedImage(initialValues?.imageFile ?? '')
+    setSavedImage(initialValues?.imageFile ?? '');
+    // setIsPlnFriend(initialValues?.plnFriend ?? false);  //Team lead config
     setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
         uploadImageRef.current.value = '';
-        setSavedImage(initialValues?.imageFile ?? '')
+        setSavedImage(initialValues?.imageFile ?? '');
         setProfileImage('');
       }
     }
@@ -63,7 +73,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
       <div className="teaminfo__form">
         {errors.length > 0 && (
           <ul className="teaminfo__form__errs">
-            {errors.map((error:string, index: number) => {
+            {errors.map((error: string, index: number) => {
               return (
                 <li className="teaminfo__form__errs__err" key={`team-err-${index}`}>
                   {error}
@@ -72,23 +82,25 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             })}
           </ul>
         )}
-        {!isEdit && <div className="teaminfo__form__email">
-          <TextField
-            defaultValue={initialValues.requestorEmail}
-            isMandatory={true}
-            id="register-team-requestor-email"
-            label="Requestor's email*"
-            name="requestorEmail"
-            type="email"
-            placeholder="Enter your email address"
-          />
-        </div>}
+        {!isEdit && (
+          <div className="teaminfo__form__email">
+            <TextField
+              defaultValue={initialValues.requestorEmail}
+              isMandatory={true}
+              id="register-team-requestor-email"
+              label="Requestor's email*"
+              name="requestorEmail"
+              type="email"
+              placeholder="Enter your email address"
+            />
+          </div>
+        )}
         <div className="teaminfo__form__item">
           <div className="teaminfo__form__team">
             <div>
               <label htmlFor="team-image-upload" className="teaminfo__form__team__profile">
-                {(!profileImage && !savedImage) && <img width="32" height="32" alt="upload team image" src="/icons/camera.svg" />}
-                {(!profileImage && !savedImage) && <span className="teaminfo__form__team__profile__text">Add Image</span>}
+                {!profileImage && !savedImage && <img width="32" height="32" alt="upload team image" src="/icons/camera.svg" />}
+                {!profileImage && !savedImage && <span className="teaminfo__form__team__profile__text">Add Image</span>}
                 {(profileImage || savedImage) && <img className="teaminfo__form__team__profile__preview" src={formImage} alt="team profile" width="95" height="95" />}
                 {(profileImage || savedImage) && (
                   <span className="teaminfo__form__team__profile__actions">
@@ -97,17 +109,28 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                   </span>
                 )}
               </label>
-              
-              <input readOnly id="team-info-basic-image" value={formImage} hidden name="imageFile"  />
-              <input data-testid="team-image-upload" onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" /> 
+
+              <input readOnly id="team-info-basic-image" value={formImage} hidden name="imageFile" />
+              <input data-testid="team-image-upload" onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" />
             </div>
-            <div className="teaminfo__form__item">
+            {/* <div className="teaminfo__form__name">  //Team lead config -start
+              <label htmlFor="register-team-name" className="tf__label">
+                What is your organization, company, or team name?*
+              </label>
+              {
+                <div className="teaminfo__form__plnFriend">
+                  <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
+                  <label className="teaminfo__form__plnFriend__label">Friends of PL</label>
+                  <Toggle height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+                </div>
+              }  //Team lead config -end */}
+              <div className="teaminfo__form__item"> 
               <TextField
                 defaultValue={initialValues?.name}
                 maxLength={150}
                 isMandatory
                 id="register-team-name"
-                label="What is your organization, company, or team name?*"
+                label="What is your organization, company, or team name?*"   //Team lead config - uncomment
                 name="name"
                 type="text"
                 placeholder="Enter name here"
@@ -134,11 +157,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           </p>
         </div>
         <div className="teaminfo__form__item">
-          {
-            <label className={`tf__label`}>
-              Long Description*
-            </label>
-          }
+          {<label className={`tf__label`}>Long Description*</label>}
           <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id="register-team-longDescription" />
           {/* <TextArea
             defaultValue={initialValues?.longDescription}
@@ -172,7 +191,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
       </div>
       <style jsx>
         {`
-        .tf__label {
+          .tf__label {
             font-weight: 600;
             font-size: 14px;
             margin-bottom: 12px;
@@ -187,6 +206,11 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             display: flex;
             flex-direction: column;
             gap: 12px;
+            width: 100%;
+          }
+          .teaminfo__form__name {
+            display: flex;
+            flex-direction: column;
             width: 100%;
           }
           .teaminfo__form__team {
@@ -263,6 +287,16 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             color: #0f172a;
             font-weight: 500;
             line-height: 18px;
+          }
+          .teaminfo__form__plnFriend {
+            display: flex;
+            gap: 9px;
+          }
+
+          .teaminfo__form__plnFriend__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
           }
         `}
       </style>

@@ -4,7 +4,6 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { EmblaOptionsType } from 'embla-carousel';
 import { usePrevNextButtons } from '@/hooks/use-prev-next-buttons';
 import DiscoverCard from './discover-card';
-import DiscoverHuskyCard from './discover-husky-card';
 import { formatDiscoverData } from '@/utils/home.utils';
 import { Fragment } from 'react';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
@@ -20,18 +19,7 @@ const Discover = (props: any) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const { onPrevButtonClick, onNextButtonClick, prevBtnDisabled, nextBtnDisabled } = usePrevNextButtons(emblaApi);
 
-  const onHuskyClick = () => {
-    analytics.onDiscoverHuskyClicked({ from: 'home page' }, getAnalyticsUserInfo(userInfo));
-    document.dispatchEvent(new CustomEvent('open-husky-dialog'));
-  };
-
   const renderCard = (data: any) => {
-    const isHusky = data.type === 'discoverhusky';
-
-    if (isHusky) {
-      return <DiscoverHuskyCard userInfo={userInfo} />;
-    }
-
     return <DiscoverCard data={data} userInfo={userInfo} />;
   };
 
@@ -59,7 +47,7 @@ const Discover = (props: any) => {
                   );
                 })}
               </div>
-              <div className="discover__body__sec2 embla__slide">
+              {formattedDiscoverData.length > 3 && <div className="discover__body__sec2 embla__slide">
                 {formattedDiscoverData.slice(3, 5).map((data) => {
                   return (
                     <div key={`section-two-discover-card-${data.uid}`} className="discover__body__sec2__child1">
@@ -67,7 +55,7 @@ const Discover = (props: any) => {
                     </div>
                   );
                 })}
-              </div>
+              </div>}
             </div>
           </div>
         </div>

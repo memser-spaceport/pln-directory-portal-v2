@@ -467,7 +467,7 @@ export function formInputsToMemberObj(obj: any) {
   }
 
   result['openToWork'] = result.openToWork  === 'on' ? true : false;
-  result['plnFriend'] = result.plnFriend  === 'on' ? true : false;
+  // result['plnFriend'] = result.plnFriend  === 'on' ? true : false;   //Team lead config
   result.teamAndRoles = Object.values(teamAndRoles);
   result.projectContributions = Object.values(projectContributions);
   result.skills = Object.values(skills);
@@ -538,7 +538,7 @@ export const getInitialMemberFormValues = (selectedMember: any) => {
       city: selectedMember?.location?.city ?? '',
       region: selectedMember?.location?.region ?? '',
       country: selectedMember?.location?.country ?? '',
-      plnFriend: selectedMember?.plnFriend ?? false,
+      // plnFriend: selectedMember?.plnFriend ?? false,   //Team lead config
     },
     socialInfo: {
       linkedinHandler: selectedMember?.linkedinHandler ?? '',

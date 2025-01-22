@@ -39,16 +39,7 @@
     position: sticky;
     top: 78px;
     gap: 0px;
-    z-index: 4;
-  }
-
-  .irlGatherings__mobileHeader {
-    display: flex;
-    flex-direction: column;
-    position: sticky;
-    top: 80px;
-    gap: 0px;
-    z-index: 4;
+    z-index: 3;
   }
   
   .irlGatheings__locations {
@@ -71,7 +62,7 @@
 }
 
 @media (min-width: 1024px) {
-  .irlGatherings__mobileHeader, .irlGatherings__irlsubHeader {
+  .irlGatherings__irlsubHeader {
     display: none;
   }
   .irlGatheings__follow {

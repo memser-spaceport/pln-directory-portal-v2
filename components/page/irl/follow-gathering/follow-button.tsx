@@ -159,7 +159,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
       <style jsx>
         {`
           .followRoot__followBtn {
-            padding: ${expand ? "9px 22.5px" : "9px 40px"};
+            padding: ${expand ? "9px 15.5px" : "9px 40px"};
             min-width: 103px;
             border: 1px solid #cbd5e1;
             background: #fff;
@@ -175,7 +175,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
           }
 
           .followRoot__followingBtn {
-            padding: ${expand ? "9px 12.5px" : "9px 40px"}; 
+            padding: ${expand ? "9px 7px" : "9px 35px"}; 
             border: 1px solid #cbd5e1;
             background: #ffffff;
             border-radius: 8px;

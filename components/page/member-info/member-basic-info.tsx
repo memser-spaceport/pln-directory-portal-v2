@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import LinkAuthAccounts from './link-auth-accounts';
 import SelfEmailUpdate from './self-email-update';
 import AdminEmailUpdate from './admin-email-update';
-import Toggle from '@/components/ui/toogle';
+// import Toggle from '@/components/ui/toogle'; //Team lead config code
 
 interface MemberBasicInfoProps {
   errors: string[];
@@ -28,7 +28,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const uid = props.uid;
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
-  const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
+  // const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false); //Team lead config code
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
 
@@ -50,9 +50,9 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   /**
    * Handles PLN friend toggle.
    */
-  const onTogglePlnFriend = () => {
-    setIsPlnFriend(!isPlnFriend);
-  };
+  // const onTogglePlnFriend = () => {
+  //   setIsPlnFriend(!isPlnFriend);
+  // };   //Team lead config code
 
   /**
    * Deletes the uploaded image and resets the image state.
@@ -70,7 +70,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
 
   useEffect(() => {
     setSavedImage(initialValues?.imageFile ?? '');
-    setIsPlnFriend(initialValues?.plnFriend ?? false);
+    // setIsPlnFriend(initialValues?.plnFriend ?? false); //Team lead config code
     setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
@@ -124,11 +124,11 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 data-testid="member-name-input"
               />
             </div>
-            {isAdminEdit && <div className="memberinfo__form__plnFriend">
+            {/* {isAdminEdit && <div className="memberinfo__form__plnFriend">
               <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
               <label className="memberinfo__form__plnFriend__label">Friends of PL</label>
               <Toggle height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
-            </div>}
+            </div>} //Team lead config code */}
           </div>
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>

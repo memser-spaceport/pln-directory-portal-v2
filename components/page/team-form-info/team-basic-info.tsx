@@ -3,7 +3,7 @@ import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
 import TextEditor from '@/components/ui/text-editor';
 import { useEffect, useRef, useState } from 'react';
-import Toggle from '@/components/ui/toogle';
+// import Toggle from '@/components/ui/toogle';    //Team lead config
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -21,7 +21,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const uploadImageRef = useRef<HTMLInputElement>(null);
-  const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
+  // const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);   //Team lead config
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -37,9 +37,9 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   /**
    * Handles PLN friend toggle.
    */
-  const onTogglePlnFriend = () => {
-    setIsPlnFriend(!isPlnFriend);
-  };
+  // const onTogglePlnFriend = () => {
+  //   setIsPlnFriend(!isPlnFriend);
+  // };  //Team lead config
 
   const onDeleteImage = (e: React.MouseEvent<HTMLImageElement>) => {
     e.stopPropagation();
@@ -53,7 +53,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
 
   useEffect(() => {
     setSavedImage(initialValues?.imageFile ?? '');
-    setIsPlnFriend(initialValues?.plnFriend ?? false);
+    // setIsPlnFriend(initialValues?.plnFriend ?? false);  //Team lead config
     setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
@@ -113,7 +113,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
               <input readOnly id="team-info-basic-image" value={formImage} hidden name="imageFile" />
               <input data-testid="team-image-upload" onChange={onImageUpload} id="team-image-upload" ref={uploadImageRef} name="teamProfile" hidden type="file" accept="image/png, image/jpeg" />
             </div>
-            <div className="teaminfo__form__name">
+            {/* <div className="teaminfo__form__name">  //Team lead config -start
               <label htmlFor="register-team-name" className="tf__label">
                 What is your organization, company, or team name?*
               </label>
@@ -123,13 +123,14 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                   <label className="teaminfo__form__plnFriend__label">Friends of PL</label>
                   <Toggle height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
                 </div>
-              }
+              }  //Team lead config -end */}
+              <div className="teaminfo__form__item"> 
               <TextField
                 defaultValue={initialValues?.name}
                 maxLength={150}
                 isMandatory
                 id="register-team-name"
-                // label="What is your organization, company, or team name?*"
+                label="What is your organization, company, or team name?*"   //Team lead config - uncomment
                 name="name"
                 type="text"
                 placeholder="Enter name here"

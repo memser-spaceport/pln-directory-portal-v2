@@ -59,7 +59,7 @@ export function transformTeamApiToFormObj(obj: any){
     ...obj.basicInfo,
     ...obj.projectsInfo,
     ...obj.socialInfo,
-    // ...obj.memberInfo,   // Team lead config
+    ...obj.memberInfo,
   };
 
   output.fundingStage = {
@@ -154,7 +154,7 @@ export function transformRawInputsToFormObj(obj: any) {
     }
   }
 
-  // result['plnFriend'] = result.plnFriend  === 'on' ? true : false;   //Team lead config
+  result['plnFriend'] = result.plnFriend  === 'on' ? true : false;
   result.fundingStage = fundingStage;
   result.technologies = Object.values(technologies);
   result.membershipSources = Object.values(membershipSources);
@@ -182,8 +182,7 @@ export const getTechnologyImage = (technology: string) => {
   }
 };
 
-// export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {  // Team lead config
-  export const getTeamInitialValue = (selectedTeam: any) => {
+export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
   return {
     basicInfo: {
       requestorEmail: '',
@@ -192,7 +191,7 @@ export const getTechnologyImage = (technology: string) => {
       shortDescription: selectedTeam.shortDescription ?? '',
       longDescription: selectedTeam.longDescription ?? '',
       officeHours: selectedTeam.officeHours ?? '',
-      // plnFriend: selectedTeam.plnFriend ?? false,   //Team lead config
+      plnFriend: selectedTeam.plnFriend ?? false,
     },
     projectsInfo: {
       technologies: selectedTeam.technologies ?? [],
@@ -212,9 +211,9 @@ export const getTechnologyImage = (technology: string) => {
       telegramHandler: selectedTeam?.telegramHandler ?? '',
       blog: selectedTeam?.blog ?? '',
     },
-    // memberInfo: {       //Team lead config -start
-    //   teamMemberRoles: membersDetail
-    // }   //Team lead config -end
+    memberInfo: {
+      teamMemberRoles: membersDetail
+    } 
   }
 }
 

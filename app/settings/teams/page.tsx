@@ -9,13 +9,13 @@ import { redirect } from 'next/navigation';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
-// import { getMemberRolesForTeam } from '@/services/members.service';   //Team lead config code 
-// import { sortMemberByRole } from '@/utils/common.utils';              //Team lead config code
+import { getMemberRolesForTeam } from '@/services/members.service';
+import { sortMemberByRole } from '@/utils/common.utils';
 
 const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean) => {
   const dpResult = await getTeamsInfoForDp();
   let selectedTeam;
-  // let membersDetail;    //Team lead config code
+  let membersDetail;
   if (dpResult.error) {
     return { isError: true };
   }
@@ -24,32 +24,31 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
   if (isTeamLead) {
     teams = [...structuredClone(teams)].filter((v) => leadingTeams.includes(v.id));
   }
-  const teamResult = await getTeamInfo(selectedTeamId ?? teams[0].id);
-      // const [teamResult, teamMembersResponse] = await Promise.all([   //Team lead config code - start
-      //   getTeamInfo(selectedTeamId ?? teams[0].id),
-      //   getMemberRolesForTeam(
-      //     {
-      //       'teamMemberRoles.team.uid': selectedTeamId ?? teams[0].id,
-      //       select: 'uid,name,image.url,teamMemberRoles.team.uid,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
-      //       pagination: false,
-      //     },
-      //     selectedTeamId ?? teams[0].id,
-      //   )
-      // ]);     //Team lead config code - end  
-  
-  // if (teamResult.isError || teamMembersResponse.error) { //Team lead config code
-    if (teamResult.isError) {
+  // const teamResult = await getTeamInfo(selectedTeamId ?? teams[0].id);
+  const [teamResult, teamMembersResponse] = await Promise.all([
+    getTeamInfo(selectedTeamId ?? teams[0].id),
+    getMemberRolesForTeam(
+      {
+        'teamMemberRoles.team.uid': selectedTeamId ?? teams[0].id,
+        select: 'uid,name,image.url,teamMemberRoles.team.uid,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+        pagination: false,
+      },
+      selectedTeamId ?? teams[0].id
+    ),
+  ]);
+
+  if (teamResult.isError || teamMembersResponse.error) {
     return {
       isError: true,
     };
   }
   selectedTeam = teamResult.data;
-  // membersDetail = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);  //Team lead config code
+  membersDetail = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
 
   return {
     teams,
     selectedTeam,
-    // membersDetail,     //Team lead config code
+    membersDetail,
   };
 };
 
@@ -58,7 +57,7 @@ export default async function ManageTeams(props: any) {
   const { userInfo, isLoggedIn } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
-     redirect(PAGE_ROUTES.HOME);
+    redirect(PAGE_ROUTES.HOME);
   }
 
   const roles = userInfo.roles ?? [];
@@ -66,14 +65,13 @@ export default async function ManageTeams(props: any) {
   const isTeamLead = leadingTeams.length > 0;
   const isAdmin = roles.includes('DIRECTORYADMIN');
   if (!isAdmin && !isTeamLead) {
-     redirect(PAGE_ROUTES.HOME);
+    redirect(PAGE_ROUTES.HOME);
   }
   if (selectedTeamId && isTeamLead && !leadingTeams.includes(selectedTeamId)) {
-     redirect(PAGE_ROUTES.HOME);
+    redirect(PAGE_ROUTES.HOME);
   }
 
-  // const { teams, isError, selectedTeam, membersDetail } = await getPageData(selectedTeamId, leadingTeams, isTeamLead);   //Team lead config code
-  const { teams, isError, selectedTeam } = await getPageData(selectedTeamId, leadingTeams, isTeamLead);
+  const { teams, isError, selectedTeam, membersDetail } = await getPageData(selectedTeamId, leadingTeams, isTeamLead);
   if (isError) {
     return 'Error';
   }
@@ -100,8 +98,7 @@ export default async function ManageTeams(props: any) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage teams" userInfo={userInfo} />
           </aside>
           <div className={styles.ps__main__content}>
-            {/* <ManageTeamsSettings selectedTeam={selectedTeam} membersDetail={membersDetail} teams={teams} userInfo={userInfo} /> //Team lead config code */}
-            <ManageTeamsSettings selectedTeam={selectedTeam} teams={teams} userInfo={userInfo} />
+            <ManageTeamsSettings selectedTeam={selectedTeam} membersDetail={membersDetail} teams={teams} userInfo={userInfo} />
           </div>
         </div>
       </div>

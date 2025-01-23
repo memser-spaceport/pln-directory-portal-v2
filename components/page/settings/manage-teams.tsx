@@ -19,23 +19,22 @@ import SettingsAction from './actions';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
-// import TeamMemberCard from '../team-form-info/team-member-card';   //Team lead config
+import TeamMemberCard from '../team-form-info/team-member-card';
 
 function ManageTeamsSettings(props: any) {
   //props
   const teams = props.teams ?? [];
   const selectedTeam = props.selectedTeam;
   const userInfo = props?.userInfo ?? {};
-  // const membersDetail = useMemo(() => props?.membersDetail ?? [], [props?.membersDetail]);  //Team lead config
+  const membersDetail = useMemo(() => props?.membersDetail ?? [], [props?.membersDetail]);
 
   //variables
-  // const steps = [{ name: 'basic' }, { name: 'team details' }, { name: 'social' }, {name: 'members'}];  //Team lead config
-  const steps = [{ name: 'basic' }, { name: 'team details' }, { name: 'social' }];
+  const steps = [{ name: 'basic' }, { name: 'team details' }, { name: 'social' }, {name: 'members'}];
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], focusAreas: [], isError: false });
-  // const [teamMembers, setTeamMembers] = useState(structuredClone(membersDetail)); //Team lead config
+  const [teamMembers, setTeamMembers] = useState(structuredClone(membersDetail));
   const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], projectErrors: [] });
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
@@ -43,8 +42,7 @@ function ManageTeamsSettings(props: any) {
     social: errors.socialErrors.length > 0,
   };
   const errorDialogRef = useRef<HTMLDialogElement>(null);
-  // const initialValues = useMemo(() => getTeamInitialValue(selectedTeam, membersDetail), [selectedTeam, membersDetail]);   //Team lead config
-  const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
+  const initialValues = useMemo(() => getTeamInitialValue(selectedTeam, membersDetail), [selectedTeam, membersDetail]);
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
   const analytics = useSettingsAnalytics();
 
@@ -96,7 +94,7 @@ function ManageTeamsSettings(props: any) {
       return;
     }
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
-    // setTeamMembers(structuredClone(membersDetail)); //Team lead config
+    setTeamMembers(structuredClone(membersDetail));
     setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
   };
   const validateForm = (schema: any, data: any) => {
@@ -168,7 +166,7 @@ function ManageTeamsSettings(props: any) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       formValues.longDescription = content;
-      // formValues.teamMemberRoles=teamMembers.map((member:any)=>member.teams);  //Team lead config
+      formValues.teamMemberRoles=teamMembers.map((member:any)=>member.teams);
       const formattedInputValues = transformRawInputsToFormObj(formValues);
       analytics.recordManageTeamSave('save-click', getAnalyticsUserInfo(userInfo), formattedInputValues);
       const basicInfoErrors: any = await validateBasicInfo({ ...formattedInputValues });
@@ -246,26 +244,26 @@ function ManageTeamsSettings(props: any) {
     }
   };
 
-  // const handleTeamLeadToggle = (memberUid: string) => {   //Team lead config -start
-  //   const updatedMembers = teamMembers.map((member: any) => {
-  //     if (member.id === memberUid) {
-  //       member.teams.teamLead = !member.teams.teamLead;
-  //       member.teams.status = "Update";
-  //     }
-  //     return member;
-  //   });
-  //   setTeamMembers(updatedMembers);
-  // }
+  const handleTeamLeadToggle = (memberUid: string) => {
+    const updatedMembers = teamMembers.map((member: any) => {
+      if (member.id === memberUid) {
+        member.teams.teamLead = !member.teams.teamLead;
+        member.teams.status = "Update";
+      }
+      return member;
+    });
+    setTeamMembers(updatedMembers);
+  }
 
-  // const handleRemoveMember = (memberUid: string) => {
-  //   const updatedMembers = teamMembers.map((member: any) => {
-  //     if (member.id === memberUid) {
-  //       member.teams.status = "Delete";
-  //     }
-  //     return member;
-  //   });
-  //   setTeamMembers(updatedMembers);
-  // }     //Team lead config -end
+  const handleRemoveMember = (memberUid: string) => {
+    const updatedMembers = teamMembers.map((member: any) => {
+      if (member.id === memberUid) {
+        member.teams.status = "Delete";
+      }
+      return member;
+    });
+    setTeamMembers(updatedMembers);
+  }
 
   const onFormChange = () => {
     if (formRef.current) {
@@ -275,7 +273,7 @@ function ManageTeamsSettings(props: any) {
       const formattedInputValues = transformRawInputsToFormObj(formValues);
       // formattedInputValues.longDescription = content;
       delete formattedInputValues.teamProfile;
-      // formattedInputValues.teamMemberRoles=teamMembers;  //Team lead config
+      formattedInputValues.teamMemberRoles=teamMembers;
       if (!formattedInputValues.teamFocusAreas) {
         formattedInputValues.teamFocusAreas = [];
       }
@@ -384,7 +382,7 @@ function ManageTeamsSettings(props: any) {
           <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
             <TeamSocialInfo initialValues={initialValues.socialInfo} errors={errors.socialErrors} />
           </div>
-          {/* <div className={`${activeTab.name !== 'members' ? 'hidden' : ''}`}>  //Team lead config -start
+          <div className={`${activeTab.name !== 'members' ? 'hidden' : ''}`}>  
             {teamMembers.filter((member:any)=>member?.teams?.status!=='Delete')?.map((member: any, index: number) => {
             return (
               <Fragment key={index}>
@@ -392,7 +390,7 @@ function ManageTeamsSettings(props: any) {
               </Fragment>
             );
           })}
-          </div>  //Team lead config -end */}
+          </div>
         </div>
         <SettingsAction />
       </form>

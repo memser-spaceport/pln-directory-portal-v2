@@ -432,3 +432,16 @@ export const getMemberRolesForTeam = async (options: IMemberListOptions, teamId:
   const formattedData: any = parseMemberDetailsForTeams(result.members, teamId);
   return { data: { formattedData, status: response?.status } };
 };
+
+export const getMembersUid = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?pagination=false&&select=uid`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+  if (!response?.ok) {
+    return { error: { status: response?.status, statusText: response?.statusText } };
+  }
+  const result = await response?.json();
+  return { data: result };
+};

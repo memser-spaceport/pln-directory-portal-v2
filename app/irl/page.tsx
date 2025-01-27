@@ -147,6 +147,13 @@ const getPageData = async (searchParams: any) => {
     }
 
     followers = followersResponse?.data ?? [];
+    if(followers?.length>0){
+      followers = followers?.sort((a:any, b:any) => {
+        if (!a.logo && b.logo) return 1; 
+        if (a.logo && !b.logo) return -1; 
+        return a.name.localeCompare(b.name); 
+      });
+    }
     let guestDetails = events as any;
     const selectedTypeEvents = (eventType === 'past' || eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) ? eventDetails.pastEvents : eventDetails.upcomingEvents;
 

@@ -54,6 +54,12 @@
   padding: 20px;
 }
 
+.teamDetail__Container__asks {
+  padding: 20px;
+  border-radius: 8px;
+  background: #fff;
+}
+
 @media (min-width: 1024px) {
   .teamDetail {
     align-items: center;

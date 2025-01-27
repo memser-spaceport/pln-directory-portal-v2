@@ -24,7 +24,6 @@ interface ITeamList {
 const TeamList = (props: any) => {
   const allTeams = props?.teams ?? [];
   const userInfo = props?.userInfo;
-  console.log(userInfo);
   
   const searchParams = props?.searchParams;
   const totalTeams = props?.totalTeams;

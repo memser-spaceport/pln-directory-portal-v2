@@ -100,8 +100,8 @@ const AllFollowers = (props: IAllFollowers) => {
                           <div className="follower__info__name">{follower?.name}</div>
                           {follower?.roles?.length > 0 && (
                             <div className="follower__info__nameandrole__role">
-                              <span className="follower__info__nameandrole__role__name">{follower?.roles[0]}</span>
-                              {follower?.roles?.length > 1 ? (
+                              <span className="follower__info__nameandrole__role__name">{follower?.roles[0] || "Contributor"}</span>
+                              {follower?.roles?.length > 1 && (
                                 <Tooltip
                                   asChild
                                   content={
@@ -113,7 +113,7 @@ const AllFollowers = (props: IAllFollowers) => {
                                   }
                                   trigger={<span className="follower__info__nameandrole__role__count">+{follower.roles.length - 1}</span>}
                                 />
-                              ): <div>Contributor</div>}
+                              )}
                             </div>
                           )}
                         </div>

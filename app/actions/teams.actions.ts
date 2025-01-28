@@ -20,6 +20,7 @@ export const getTeamList = async (queryParams: any, currentPage = 1, limit = ITE
         logo: team?.logo?.url,
         shortDescription: team?.shortDescription,
         industryTags: team?.industryTags || [],
+        asks: team?.asks || [],
       };
     });
     return { data: formattedData, totalItems: result?.count };

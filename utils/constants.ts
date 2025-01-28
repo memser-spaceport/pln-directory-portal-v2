@@ -285,6 +285,9 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_DETAIL_ABOUT_SAVE: 'team-detail-about-save',
   ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS: 'on_click_see_more_button_irl_contributions',
   TEAM_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS: 'team-details-on-click-irl-contributions',
+  CAROUSEL_PREV_BTN_CLICKED: 'carousel-previous-btn-clicked',
+  CAROUSEL_NEXT_BTN_CLICKED: 'carousel-next-btn-clicked',
+  CAROUSEL_BTN_CLICKED: 'carousel-btn-clicked',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {

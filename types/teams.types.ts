@@ -14,6 +14,7 @@ export interface ITeamsSearchParams {
     focusAreas: string;
     isRecent: string;
     isHost: string;
+    asks?: string;
   }
   
 
@@ -22,7 +23,8 @@ export interface ITeamsSearchParams {
     membershipSources: { selected: boolean; value: string; disabled: boolean }[];
     fundingStage: { selected: boolean; value: string; disabled: boolean }[];
     technology: { selected: boolean; value: string; disabled: boolean }[];
-    focusAreas: any
+    focusAreas: any;
+    asks: { selected: boolean; value: string; disabled: boolean }[];
   }
   
   export type ITeamListOptions = IListOptions & {
@@ -32,6 +34,7 @@ export interface ITeamsSearchParams {
     "fundingStage.title__with"?: string;
     "teamMemberRoles.member.uid"?: string;
     plnFriend?: boolean;
+    "askTags"?: string;
   };
 
   export interface ITeamResponse {
@@ -53,6 +56,7 @@ export interface ITeamsSearchParams {
     twitterHandler?: string;
     linkedinHandle?: string | null;
     createdAt?: string;
+    asks?: string[];
   }
 
   export interface ITag {

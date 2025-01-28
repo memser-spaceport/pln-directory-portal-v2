@@ -388,6 +388,36 @@ dialog {
   width: 40px !important;
 }
 
+.asks__tooltip {
+  min-height: 50px;
+  width: 304px ;
+  background-color: #fff ;
+  overflow: unset;
+  padding: 12px;
+  gap: 10px;
+  border-radius: 12px;
+  border: 1px solid;
+  z-index: 4;
+  border-image-source: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%);
+}
+
+.asks__tooltip::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px; 
+  border: 1px solid transparent;
+  background: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%) border-box;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) padding-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+}
+
 @media (min-width: 1024px) {
   .team-grid__profile-container__profile {
     height: 72px !important;

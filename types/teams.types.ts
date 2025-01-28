@@ -59,7 +59,16 @@ export interface ITeamsSearchParams {
     title: string;
   }
 
+  export interface ITeamAsk {
+      uid: string;
+      title: string;
+      tags: string[];
+      description: string;
+      teamUid: string;
+  }
+
   export interface ITeam {
+    asks: never[];
     role?: string;
     id: string;
     logo?: string;

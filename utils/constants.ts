@@ -61,6 +61,7 @@ export const EVENTS = {
   UPDATE_OFFICE_HOURS: 'update-office-hours',
   OPEN_IAM_GOING_POPUP: 'open-iam-going-popup',
   UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
+  RESET_ASK_FORM_VALUES: 'reset-ask-form'
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -186,7 +187,7 @@ export const PROJECT_ANALYTICS_EVENTS = {
   PROJECT_DETAIL_DESC_SHOW_LESS_CLICKED: 'project-detail-desc-show-less-clicked',
   PROJECT_DETAIL_DESC_CANCEL_CLICKED: 'project-detail-desc-cancel-clicked',
   PROJECT_DETAIL_DESC_EDIT_CLICKED: 'project-detail-desc-edit-clicked',
-  PROJECT_DETAIL_DESC_EDIT_SAVE_CLICKED:  'project-detail-desc-edit-save-clicked',
+  PROJECT_DETAIL_DESC_EDIT_SAVE_CLICKED: 'project-detail-desc-edit-save-clicked',
   PROJECT_DETAIL_DESC_EDIT_SAVE: 'project-detail-desc-edit-save',
 
   PROJECT_LIST_FILTERS_APPLIED: 'projects-filters-applied',
@@ -272,6 +273,12 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_DETAIL_SEE_ALL_MEMBERS_CLICKED: 'team-detail-members-see-all-clicked',
   TEAM_DETAIL_ADD_PROJECT_CLICKED: 'team-detail-add-project-clicked',
   TEAM_DETAIL_MEMBER_CLICKED: 'team-detail-member-clicked',
+  TEAM_DETAIL_SHARE_YOUR_ASKS_CLICKED: 'team-detail-share-your-asks-clicked',
+  TEAM_DETAIL_SUBMIT_ASK_CLICKED: 'team-detail-submit-ask-clicked',
+  TEAM_DETAIL_EDIT_ASK_CLICKED: 'team-detail-edit-ask-clicked',
+  TEAM_DETAIL_UPDATE_ASK_CLICKED: 'team-detail-update-ask-clicked',
+  TEAM_DETAIL_DELETE_ASK_CLICKED: 'team-detail-delete-ask-clicked',
+  TEAM_DETAIL_DELETE_ASK_CONFIRM_CLICKED: 'team-detail-delete-ask-confirm-clicked',
   TEAM_OFFICEHOURS_CLICKED: 'team-officehours-clicked',
   PROJECT_EDIT_CLICKED: 'project-edit-clicked',
   TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED: 'team-officehours-login-btn-clicked',
@@ -323,7 +330,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
 };
 
 export const IRL_ANALYTICS_EVENTS = {
-  
+
 };
 
 export const HOME_ANALYTICS_EVENTS = {
@@ -864,7 +871,7 @@ export const PLN_LOCATIONS = [{
   pastEvents: 7,
   upcomingEvents: 6,
   isActive: true,
-}, 
+},
 {
   id: 2,
   location: "Mumbai",
@@ -873,7 +880,7 @@ export const PLN_LOCATIONS = [{
   pastEvents: 4,
   upcomingEvents: 10,
   isActive: false,
-}, 
+},
 {
   id: 3,
   location: "Australia",
@@ -882,10 +889,10 @@ export const PLN_LOCATIONS = [{
   pastEvents: 2,
   upcomingEvents: 4,
   isActive: false,
-}, 
+},
 {
   id: 4,
-  location: "France", 
+  location: "France",
   flag: "&#127467;&#127479;",
   icon: "/images/irl/france.svg",
   pastEvents: 8,
@@ -897,7 +904,7 @@ export const PLN_LOCATIONS = [{
   location: "USA",
   flag: "&#127482;&#127480;",
   icon: "",
-  pastEvents: 2,  
+  pastEvents: 2,
   upcomingEvents: 3,
   isActive: false,
 },
@@ -906,7 +913,7 @@ export const PLN_LOCATIONS = [{
   location: "Bali",
   flag: "&#127470;&#127465",
   icon: "",
-  pastEvents: 1,  
+  pastEvents: 1,
   upcomingEvents: 6,
   isActive: false,
 },
@@ -915,7 +922,7 @@ export const PLN_LOCATIONS = [{
   location: "Brazil",
   flag: "&#127463;&#127479;",
   icon: "",
-  pastEvents: 3,  
+  pastEvents: 3,
   upcomingEvents: 2,
   isActive: false,
 },
@@ -924,7 +931,7 @@ export const PLN_LOCATIONS = [{
   location: "Bangalore",
   flag: "&#127470;&#127475;",
   icon: "",
-  pastEvents: 5,  
+  pastEvents: 5,
   upcomingEvents: 7,
   isActive: false,
 },
@@ -933,7 +940,7 @@ export const PLN_LOCATIONS = [{
   location: "Canberra",
   flag: "&#127462;&#127482;",
   icon: "",
-  pastEvents: 4,  
+  pastEvents: 4,
   upcomingEvents: 3,
   isActive: false,
 },
@@ -942,7 +949,7 @@ export const PLN_LOCATIONS = [{
   location: "Bangalore",
   flag: "&#127470;&#127475;",
   icon: "",
-  pastEvents: 5,  
+  pastEvents: 5,
   upcomingEvents: 7,
   isActive: false,
 },
@@ -951,7 +958,7 @@ export const PLN_LOCATIONS = [{
   location: "Canberra",
   flag: "&#127462;&#127482;",
   icon: "",
-  pastEvents: 4,  
+  pastEvents: 4,
   upcomingEvents: 3,
   isActive: false,
 }
@@ -960,7 +967,7 @@ export const PLN_LOCATIONS = [{
 export const IRL_ATTENDEE_FORM_ERRORS = {
   CHECKOUT_DATE_REQUIRED: "Departure date is required",
   CHECKIN_DATE_REQUIRED: "Arrival date is required",
-  DATE_DIFFERENCE : "Departure date should be greater than or equal to the Arrival date",
+  DATE_DIFFERENCE: "Departure date should be greater than or equal to the Arrival date",
   SELECT_MEMBER: "Please select a member",
   SELECT_GATHERING: "At least one Gathering should be selected",
 
@@ -970,8 +977,8 @@ export const MONTHS = ["January", "February", "March", "April", "May", "June", "
 
 export const IRL_SUBMIT_FORM_LINK = "https://eventsmanagement.labweek.io/"
 
-export const LOGIN_BANNER_URL="https://plabs-assets.s3.us-west-1.amazonaws.com/images/login-banner.png"
-export const IRL_DEFAULT_TOPICS="AI,Apps,AR/VR,Argentina,Automation,AVS,BCI,Capital Allocation,Collaboration,Compliance,Compute,Cryptography,Culture,Decentralized IP,Decentralized Compute,Decentralized AI,DeFi,DePin,DeSci,Dev Tooling,Distributed Systems,Encryption,Events,Extended Reality,Filecoin,Funding Mechanism,Fundraising,Governance,Growth,GTM,Hackathon,Hard Tech,Human Organization,Human AI-Cooperation,Incentives,InfoSec,Interoperability,IoT,Longevity & Biotech,Marketing,Networks,Neurotech,OpSec,Partnerships,Privacy,Product Market Fit,Products,Public Goods,Real World Crypto,Retrieval,RWA,Scaling,Security,SLA's,Startups,Storage,Sustainability,Tokenomics,UI/UX,Wallet,Web3,ZK Proofs"
+export const LOGIN_BANNER_URL = "https://plabs-assets.s3.us-west-1.amazonaws.com/images/login-banner.png"
+export const IRL_DEFAULT_TOPICS = "AI,Apps,AR/VR,Argentina,Automation,AVS,BCI,Capital Allocation,Collaboration,Compliance,Compute,Cryptography,Culture,Decentralized IP,Decentralized Compute,Decentralized AI,DeFi,DePin,DeSci,Dev Tooling,Distributed Systems,Encryption,Events,Extended Reality,Filecoin,Funding Mechanism,Fundraising,Governance,Growth,GTM,Hackathon,Hard Tech,Human Organization,Human AI-Cooperation,Incentives,InfoSec,Interoperability,IoT,Longevity & Biotech,Marketing,Networks,Neurotech,OpSec,Partnerships,Privacy,Product Market Fit,Products,Public Goods,Real World Crypto,Retrieval,RWA,Scaling,Security,SLA's,Startups,Storage,Sustainability,Tokenomics,UI/UX,Wallet,Web3,ZK Proofs"
 
 export const GROUP_TYPES = {
   TEAM: 'Team',
@@ -991,3 +998,21 @@ export const FOLLOW_ENTITY_TYPES = {
 }
 
 export const DAILY_CHAT_LIMIT = 10;
+
+export const DEFAULT_ASK_TAGS = [
+  "Funding",
+  "Mentorship",
+  "Partnerships",
+  "Hiring",
+  "Feedback",
+  "Marketing",
+  "Introductions",
+  "Community Growth",
+  "Technical Support",
+  "Legal & Compliance",
+  "Operations",
+  "Access to Resources",
+  "Market Research",
+  "Event Support",
+  "Collaboration Opportunities",
+]

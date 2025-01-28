@@ -33,15 +33,15 @@
   padding-bottom: unset;
 } */
 
- button {
+button {
   cursor: pointer;
- }
+}
 
- .layout {
+.layout {
   height: 100dvh;
   position: relative;
-  background-color:  #F1F5F9;
- }
+  background-color: #f1f5f9;
+}
 
 html,
 body {
@@ -82,7 +82,7 @@ body {
 }
 
 textarea {
-  font-family:inherit;
+  font-family: inherit;
 }
 
 body {
@@ -137,15 +137,12 @@ dialog {
 }
 
 @media (prefers-color-scheme: dark) {
-
 }
-
 
 .list {
   height: 4000px;
 }
 @media (prefers-color-scheme: dark) {
-  
 }
 
 ::-webkit-scrollbar {
@@ -165,29 +162,38 @@ dialog {
   background: #cbd5e1;
 }
 
-
 #md-editor-rt-preview {
   word-break: break-word;
-  
 }
 
-.about__content a, .desc__content a,.bioCn__content a {
+.about__content a,
+.desc__content a,
+.bioCn__content a {
   text-decoration: underline;
   color: blue;
 }
+.asksec__allasks__ask__cont a {
+  text-decoration: underline;
+  color: blue;
 
-.about__content ul, .desc__content ul,.bioCn__content ul{
-  display: block;
-    list-style-type: disc;
-    margin-block-start: 1em;
-    margin-block-end: 1em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    padding-inline-start: 40px;
-    unicode-bidi: isolate;
 }
 
-.about__content ol, .desc__content ol,.bioCn__content ol {
+.about__content ul,
+.desc__content ul,
+.bioCn__content ul {
+  display: block;
+  list-style-type: disc;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  padding-inline-start: 40px;
+  unicode-bidi: isolate;
+}
+
+.about__content ol,
+.desc__content ol,
+.bioCn__content ol {
   display: block;
   list-style-type: decimal;
   margin-block-start: 1em;
@@ -199,7 +205,7 @@ dialog {
 }
 
 .tox .tox-dialog {
-  z-index:  40000 !important;
+  z-index: 40000 !important;
 }
 
 .tox.tox-tinymce-aux {
@@ -383,7 +389,6 @@ dialog {
 }
 
 @media (min-width: 1024px) {
-  
   .team-grid__profile-container__profile {
     height: 72px !important;
     width: 72px;
@@ -460,10 +465,10 @@ dialog {
     max-height: 80px !important;
     margin-right: 60px !important;
   }
-  
+
   /* home page husky text area  */
   .hec__content__input {
-    box-shadow: none; 
+    box-shadow: none;
     transition: box-shadow 0.3s ease;
   }
 
@@ -488,5 +493,4 @@ dialog {
   .hec__content__box__search__input:not(:placeholder-shown) + .hec__content__box__search__instruction {
     display: none;
   }
-  
 }

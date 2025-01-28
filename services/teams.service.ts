@@ -117,6 +117,7 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
     officeHours: result?.officeHours,
     teamFocusAreas: result?.teamFocusAreas,
     eventGuests: result?.eventGuests,
+    asks: result?.asks ?? []
   };
   return { data: { formatedData } };
 };

@@ -98,9 +98,9 @@ const AllFollowers = (props: IAllFollowers) => {
                         </div>
                         <div className="follower__info__nameandrole">
                           <div className="follower__info__name">{follower?.name}</div>
-                          {follower?.roles?.length > 0 && (
+                          {follower?.roles?.length > 0 ? (
                             <div className="follower__info__nameandrole__role">
-                              <span className="follower__info__nameandrole__role__name">{follower?.roles[0] || "Contributor"}</span>
+                              <span className="follower__info__nameandrole__role__name">{follower?.roles[0]}</span>
                               {follower?.roles?.length > 1 && (
                                 <Tooltip
                                   asChild
@@ -115,7 +115,7 @@ const AllFollowers = (props: IAllFollowers) => {
                                 />
                               )}
                             </div>
-                          )}
+                          ): <span className="follower__info__nameandrole__role__name">{"Contributor"}</span>}
                         </div>
                       </div>
                       <div className="follower__nav">

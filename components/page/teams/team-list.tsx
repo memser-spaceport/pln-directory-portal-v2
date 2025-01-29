@@ -99,7 +99,7 @@ const TeamList = (props: any) => {
           >
             <Link prefetch={false} href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}
               onClick={(e: any) => {
-              if (e.defaultPrevented) return;
+                if (e.defaultPrevented) return;
               }}
             >
               {VIEW_TYPE_OPTIONS.GRID === viewType && <TeamGridView team={team} viewType={viewType} />}

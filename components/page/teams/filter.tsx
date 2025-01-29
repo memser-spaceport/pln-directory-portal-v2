@@ -2,7 +2,7 @@
 
 import { IFilterSelectedItem, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems, ITeamsSearchParams } from '@/types/teams.types';
-import { EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { DEFAULT_ASK_TAGS, EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { useRouter, useSearchParams } from 'next/navigation';
 import FilterCount from '../../ui/filter-count';
 import Toggle from '../../ui/toogle';
@@ -30,6 +30,13 @@ const Filter = (props: ITeamFilterWeb) => {
   const filterValues = props?.filterValues;
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
+  
+  filterValues?.asks.push(
+    ...DEFAULT_ASK_TAGS.filter(
+      (i: any) => !filterValues.asks.some((ask: { value: any }) => i === ask.value)
+    ).map((value: any) => ({ value, selected: false, disabled: true }))
+  );
+
   const selectedItems: any = {
     tags: filterValues?.tags.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
     membershipSources: filterValues?.membershipSources?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
@@ -48,7 +55,7 @@ const Filter = (props: ITeamFilterWeb) => {
   const isHost = searchParams['isHost'] === 'true' || false;
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
-
+  
   const onIncludeFriendsToggle = () => {
     triggerLoader(true);
     if (searchParams?.page) {
@@ -213,12 +220,12 @@ const Filter = (props: ITeamFilterWeb) => {
 
           {/* Border line */}
           <div className="team-filter__bl"></div>
-          {filterValues?.asks &&
+          {filterValues?.asks && filterValues.asks.length > 0 &&
             <TagContainer
               page={PAGE_ROUTES.TEAMS}
               label="Asks"
               name="asks"
-              items={filterValues.asks ?? []}
+              items={filterValues?.asks ?? []}
               onTagClickHandler={onTagClickHandler}
               initialCount={18}
               userInfo={userInfo}
@@ -226,17 +233,17 @@ const Filter = (props: ITeamFilterWeb) => {
             />
           }
 
-          {!filterValues?.asks &&
+          {filterValues?.asks && (filterValues?.asks?.length ?? 0) < 1 &&
             <>
               <div className='tags-container__title'>
                 Asks
-                  <Tooltip
-                    asChild
-                    trigger={
-                      <Image alt='left' height={16} width={16} src='/icons/info.svg' style={{ marginLeft: "5px" }} />
-                    }
-                    content={'Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project.'}
-                  />
+                <Tooltip
+                  asChild
+                  trigger={
+                    <Image alt='left' height={16} width={16} src='/icons/info.svg' style={{ marginLeft: "5px" }} />
+                  }
+                  content={'Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project.'}
+                />
               </div>
               <div className="team-filter__no-data">
                 No open asks or requests at this time

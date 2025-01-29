@@ -4,7 +4,7 @@ import useEmblaCarousel from "embla-carousel-react";
 
 const AUTO_SCROLL_INTERVAL = 10000;
 
-export const useCarousel = (options: EmblaOptionsType) => {
+export const useCarousel = (options: EmblaOptionsType & { isPaused?: boolean }) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
@@ -24,7 +24,7 @@ export const useCarousel = (options: EmblaOptionsType) => {
   }, [emblaApi]);
 
   useEffect(() => {
-    if (!emblaApi) return;
+    if (!emblaApi || options.isPaused) return;
 
     const updateActiveIndex = () => {
       setActiveIndex(emblaApi.selectedScrollSnap());
@@ -52,7 +52,7 @@ export const useCarousel = (options: EmblaOptionsType) => {
       stopAutoScroll();
       emblaApi.off("select", updateActiveIndex);
     };
-  }, [emblaApi]);
+  }, [emblaApi, options.isPaused]);
 
   return { emblaRef, activeIndex, scrollPrev, scrollNext, setActiveIndex, emblaApi };
 };

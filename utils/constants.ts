@@ -1018,4 +1018,6 @@ export const DEFAULT_ASK_TAGS = [
   "Market Research",
   "Event Support",
   "Collaboration Opportunities",
-]
+];
+
+export const IRL_AIRTABLE_FORM_LINK = 'https://airtable.com/appgb6O7eF6mBEl8t/pagYqoRNnscWBQKSp/form';

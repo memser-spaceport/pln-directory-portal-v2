@@ -316,6 +316,18 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS. TEAM_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS, params);
       }
 
+      function onCarouselPrevButtonClicked(){
+        captureEvent(TEAMS_ANALYTICS_EVENTS.CAROUSEL_PREV_BTN_CLICKED);
+      }
+
+      function onCarouselNextButtonClicked(){
+        captureEvent(TEAMS_ANALYTICS_EVENTS.CAROUSEL_NEXT_BTN_CLICKED);
+      }
+
+      function onCarouselButtonClicked(){
+        captureEvent(TEAMS_ANALYTICS_EVENTS.CAROUSEL_BTN_CLICKED);
+      }
+
       return {
         onOfficeHoursSelected,
         onFriendsOfProtocolSelected,
@@ -355,8 +367,10 @@ export const useTeamAnalytics = () => {
         teamDetailUpdateAskClicked,
         teamDetailDeleteAskClicked,
         teamDetailDeleteAskConfirmClicked,
-        teamDetailEditAskClicked
-
+        teamDetailEditAskClicked,
+        onCarouselNextButtonClicked,
+        onCarouselPrevButtonClicked,
+        onCarouselButtonClicked,
       }
 
 }

@@ -165,6 +165,7 @@ export const getQuery = (searchParams: any) => {
     isHost: searchParams?.isHost ?? '',
     isSpeaker: searchParams?.isSpeaker ?? '',
     isHostAndSpeaker: searchParams?.isHostAndSpeaker ?? '',
+    asks: searchParams?.asks ?? '',
   };
 };
 

@@ -1,7 +1,7 @@
 import { formatNumber } from '@/utils/home.utils';
 
 export const getDiscoverData = async () => {
-  const url = `${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?isActive=true&teamName=null&projectName=null&eventName=null`;
+  const url = `${process.env.DIRECTORY_API_URL}/v1/home/discovery/questions?isActive=true&teamName=null&projectName=null&eventName=null&type=null`;
 
   const response = await fetch(url, {
     method: 'GET',

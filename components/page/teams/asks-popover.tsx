@@ -23,7 +23,14 @@ const Tooltip: React.FC<TooltipProps> = ({ name, description, tags, onOpenChange
                 <div className="asks__tooltip__cnt__name">{name}</div>
                 <div
                   className="asks__tooltip__cnt__desc"
-                  dangerouslySetInnerHTML={{ __html: description }} />
+                  dangerouslySetInnerHTML={{ __html: description }}
+                  onClick={(e) => {
+                    const link = (e.target as Element).closest('a');
+                    if (link) {
+                      window.open(link.href, '_blank');
+                    }
+                  }}
+                   />
                 <div className="asks__tooltip__cnt__tags">
                   {tags?.map((tag, index) => (
                     <Fragment key={`${tag} + ${index}`}>
@@ -78,6 +85,10 @@ const Tooltip: React.FC<TooltipProps> = ({ name, description, tags, onOpenChange
           }
           .hoverable-name {
             display: flex;
+          }
+
+          .asks__tooltip__cnt {
+            pointer-events: auto;
           }
     `}</style>
     </>

@@ -31,12 +31,6 @@ const Filter = (props: ITeamFilterWeb) => {
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
   
-  filterValues?.asks.push(
-    ...DEFAULT_ASK_TAGS.filter(
-      (i: any) => !filterValues.asks.some((ask: { value: any }) => i === ask.value)
-    ).map((value: any) => ({ value, selected: false, disabled: true }))
-  );
-
   const selectedItems: any = {
     tags: filterValues?.tags.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
     membershipSources: filterValues?.membershipSources?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),

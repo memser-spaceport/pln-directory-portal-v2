@@ -186,6 +186,7 @@ const TeamGridView = (props: ITeamGridView) => {
             transition: color 0.3s;
             width: 9px;
             height: 3px;
+            border-radius: 30px;
           }
 
           .embla__dash.highlighted {

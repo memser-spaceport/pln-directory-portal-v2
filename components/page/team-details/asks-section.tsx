@@ -10,6 +10,7 @@ import { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo } from '@/utils/common.utils';
+import { Tooltip } from '../../core/tooltip/tooltip';
 
 interface IAsksSection {
   asks: any[];
@@ -28,8 +29,8 @@ const AsksSection = (props: IAsksSection) => {
 
   const [allAsks, setAllAsks]: any = useState(initialAsks ?? []);
 
-  const addAsksFormRef = useRef<HTMLDialogElement>(null);
   const [type, setType] = useState('Add');
+  const [isAddAsk, setIsAddAsk] = useState(false);
   const [allErrors, setAllErrors]: any = useState([]);
   const [selectedAsk, setSelectedAsk] = useState({
     title: '',
@@ -40,13 +41,13 @@ const AsksSection = (props: IAsksSection) => {
   });
 
   const onAddAsksClickHandler = () => {
-    addAsksFormRef.current?.showModal();
+    setIsAddAsk(true);
     analytics.teamDetailShareyourAsksClicked(getAnalyticsTeamInfo(team));
     setType('Add');
   };
 
   const onAsksCloseClickHandler = () => {
-    addAsksFormRef.current?.close();
+    setIsAddAsk(false);
     document.dispatchEvent(new CustomEvent(EVENTS.RESET_ASK_FORM_VALUES));
     formRef.current.reset();
   };
@@ -75,7 +76,7 @@ const AsksSection = (props: IAsksSection) => {
       }
 
       // Reset form and trigger UI events
-      addAsksFormRef.current?.close();
+      setIsAddAsk(false);
       document.dispatchEvent(new CustomEvent(EVENTS.RESET_ASK_FORM_VALUES));
       formRef.current.reset();
       triggerLoader(true);
@@ -152,7 +153,7 @@ const AsksSection = (props: IAsksSection) => {
         teamUid: ask.teamUid,
       };
     });
-    addAsksFormRef.current?.showModal();
+    setIsAddAsk(true);
     setType('Edit');
     analytics.teamDetailEditAskClicked(getAnalyticsTeamInfo(team), {
       title: ask.title,
@@ -164,7 +165,7 @@ const AsksSection = (props: IAsksSection) => {
   };
 
   const onDeleteClickHandler = async (id: string) => {
-    addAsksFormRef.current?.close();
+    setIsAddAsk(false);
     deleteModalRef.current?.showModal();
     analytics.teamDetailDeleteAskClicked(getAnalyticsTeamInfo(team), selectedAsk);
   };
@@ -178,7 +179,7 @@ const AsksSection = (props: IAsksSection) => {
       deleteModalRef.current?.close();
       triggerLoader(true);
       document.dispatchEvent(new CustomEvent(EVENTS.RESET_ASK_FORM_VALUES));
-      formRef.current.reset();
+      formRef?.current?.reset();
       const { authToken } = getCookiesFromClient();
       const payload = {
         ask: { ...selectedAsk, isDeleted: true },
@@ -198,7 +199,7 @@ const AsksSection = (props: IAsksSection) => {
         true
       );
       if (response?.ok) {
-        analytics.teamDetailDeleteAskConfirmClicked(getAnalyticsTeamInfo(team), {...payload.ask, teamName: payload.teamName});
+        analytics.teamDetailDeleteAskConfirmClicked(getAnalyticsTeamInfo(team), { ...payload.ask, teamName: payload.teamName });
         toast.success('Ask deleted successfully');
         const teamResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${team.id}`, {
           cache: 'no-store',
@@ -224,8 +225,23 @@ const AsksSection = (props: IAsksSection) => {
     <>
       <div className="asksec">
         <div className="asksec__hdr">
-          <h2 className="asksec__hdr__ttl">Asks</h2>
-          {(allAsks.length > 0 && allAsks.length < 3 && hasEditAsksAccess) && (
+          <div className="asksec__hdr__lft">
+            <h2 className="asksec__hdr__ttl">Asks</h2>
+            {allAsks.length > 0 && (
+              <Tooltip
+                asChild
+                trigger={<img src="/icons/info.svg" height={16} />}
+                content={
+                  <p style={{ padding: '8px' }}>
+                    Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise,
+                    networks, or resources to support your project.
+                  </p>
+                }
+              />
+            )}
+          </div>
+
+          {allAsks.length > 0 && allAsks.length < 3 && hasEditAsksAccess && (
             <button className="asksec__hdr__addask" onClick={onAddAsksClickHandler}>
               Share you Asks
             </button>
@@ -279,7 +295,7 @@ const AsksSection = (props: IAsksSection) => {
         setErrors={setAllErrors}
         remainingAsks={3 - allAsks.length}
         formValues={selectedAsk}
-        modalRef={addAsksFormRef}
+        isAddAsk={isAddAsk}
         onClose={onAsksCloseClickHandler}
         onSubmit={onFormSubmitHandler}
         onDeleteClickHandler={onDeleteClickHandler}
@@ -292,11 +308,11 @@ const AsksSection = (props: IAsksSection) => {
             <p className="dcm__body__desc">Clicking delete will remove your asks</p>
           </div>
           <div className="dcm__footer">
-            <button className="dcm__footer__cncl" onClick={onDeleteConfirmationClose}>
+            <button type="button" className="dcm__footer__cncl" onClick={onDeleteConfirmationClose}>
               Cancel
             </button>
 
-            <button onClick={onDeleteAsk} className="dcm__footer__dlt">
+            <button type="button" onClick={onDeleteAsk} className="dcm__footer__dlt">
               Delete
             </button>
           </div>
@@ -321,6 +337,12 @@ const AsksSection = (props: IAsksSection) => {
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;
+          }
+
+          .asksec__hdr__lft {
+            display: flex;
+            align-items: center;
+            gap: 4px;
           }
 
           .asksec__desc {

@@ -178,6 +178,10 @@ dialog {
 
 }
 
+.asks__tooltip__cnt__desc a {
+  text-decoration: underline;
+  color: blue;
+}
 .about__content ul,
 .desc__content ul,
 .bioCn__content ul {
@@ -397,8 +401,9 @@ dialog {
   gap: 10px;
   border-radius: 12px;
   border: 1px solid;
-  z-index: 4;
+  left: -9px;
   border-image-source: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%);
+  position: relative;
 }
 
 .asks__tooltip::before {
@@ -416,6 +421,7 @@ dialog {
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: destination-out;
   mask-composite: exclude;
+  pointer-events: none;
 }
 
 @media (min-width: 1024px) {

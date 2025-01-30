@@ -6,11 +6,12 @@ import { DEFAULT_ASK_TAGS } from '@/utils/constants';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import HiddenField from '@/components/form/hidden-field';
 import { EVENTS } from '@/utils/constants';
+import Image from 'next/image';
 
 interface IAddEditAsks {
   onClose: (e?: any) => void;
-  modalRef: any;
   onSubmit: any;
+  isAddAsk: any;
   formValues: any;
   remainingAsks: number;
   type: string;
@@ -21,7 +22,7 @@ interface IAddEditAsks {
 }
 
 const AddEditAsk = (props: IAddEditAsks) => {
-  const addAsksRef = props?.modalRef;
+  const isAddAsk = props?.isAddAsk;
   const formRef = props?.formRef;
   const onClose = props?.onClose;
   const type = props?.type;
@@ -39,7 +40,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState(defaultValues?.tags ?? []);
   const [isTagsDropdown, setIsTagsDropdown] = useState(false);
-  const [filteredTags, setFilteredTags] = useState(DEFAULT_ASK_TAGS);
+  const [filteredTags, setFilteredTags] = useState(defaultValues?.tags ?? []);
 
   useClickedOutside({ callback: () => setIsTagsDropdown(false), ref: tagSearchRef });
 
@@ -66,14 +67,24 @@ const AddEditAsk = (props: IAddEditAsks) => {
   };
 
   const onTagsKeyDown = (e: any) => {
-    console.log(e.key);
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
     if (e.key === 'Backspace' && e.target.value === '') {
       setTags((prevItems: any) => prevItems.slice(0, -1));
+      setFilteredTags((prev: any) => {
+        const finalTags = [...prev, tags[tags.length - 1]];
+        return DEFAULT_ASK_TAGS.filter((defaultTag: string) => finalTags.includes(defaultTag) );
+      });
     }
   };
 
   const onTagSectionClickHandler = () => {
     setIsTagsDropdown(true);
+    setFilteredTags((prev: any) => {
+      return DEFAULT_ASK_TAGS.filter((initialTag: string) => (!defaultValues.tags.includes(initialTag) && !tags.includes(initialTag)));
+    });
+
     scrollToBottom();
   };
 
@@ -91,11 +102,11 @@ const AddEditAsk = (props: IAddEditAsks) => {
     const allTags = [...tags, tag];
     setIsTagsDropdown(true);
     tagSearchRef.current.value = '';
-    setFilteredTags(() => DEFAULT_ASK_TAGS.filter((tag: string) => !allTags.includes(tag)));
+    setFilteredTags(() => DEFAULT_ASK_TAGS.filter((defaultTag: string) => !allTags.includes(defaultTag)));
     setTags((prev: string) => [...prev, tag]);
     setErrors((error: string) => {
-      return errors.filter((err: string)=> err !== "Tags")
-    })
+      return errors.filter((err: string) => err !== 'Tags');
+    });
   };
 
   const onTagRemoveClickhandler = (tag: string) => {
@@ -127,123 +138,184 @@ const AddEditAsk = (props: IAddEditAsks) => {
     return document.removeEventListener(EVENTS.RESET_ASK_FORM_VALUES, () => resetFormValues());
   }, []);
 
+  useEffect(() => {
+    if (isAddAsk) {
+      setTimeout(() => {
+        const formContainer = document.getElementById('addaskform');
+
+        if (formContainer) {
+          formContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 50);
+    }
+  }, [isAddAsk]);
+
   return (
     <>
-      <Modal modalRef={addAsksRef} onClose={onClose}>
-        <form ref={formRef} noValidate onSubmit={onFormSubmitHandler} className="addaskcnt">
-          <div className="addaskcnt__hdr">
-            {/* Form title */}
-            <h2 className="addaskcnt__hdr__ttl">Your Asks</h2>
-            {/* Count */}
-            <div className="addaskcnt__remng">{`(${remainingAsks} ${remainingAsks > 1 ? 'asks' : 'ask'} remaining)`}</div>
-          </div>
+      {isAddAsk && (
+        <div className="modal">
+          <div className="modal__cnt">
+            {/* for skip button focus */}
+            <button className="modal__cn__hidden"></button>
+            <div className="modal__cn">
+              <button type="button" className="modal__cn__closebtn" onClick={onClose}>
+                <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
+              </button>
+              <div className="model">
+                <form ref={formRef} noValidate onSubmit={onFormSubmitHandler} className="addaskcnt">
+                  <div className="addaskcnt__hdr">
+                    {/* Form title */}
+                    <h2 className="addaskcnt__hdr__ttl">Your Asks</h2>
+                    {/* Count */}
+                    <div className="addaskcnt__remng">{`(${remainingAsks}${remainingAsks > 1 ? '/3 asks' : '/3 asks'} remaining)`}</div>
+                  </div>
 
-          <div ref={bodyRef} id="addaskform" className="addaskcnt__body">
-            {/* Title */}
-            <div className="addaskcnt__ttlsec">
-              <TextField
-                isError={title.trim().length === 0}
-                onChange={onTitleChangeHandler}
-                maxLength={32}
-                isMandatory={true}
-                id="add-ask-title"
-                label="Title*"
-                value={title}
-                defaultValue={title}
-                name="title"
-                type="text"
-                placeholder="Enter short title eg. Looking for partnerships"
-              />
-              <div className="addaskcnt__ttlsec__error">
-                <div>{errors.includes('Title') && <span className="error">Please enter title</span>}</div>
-                <div className="addaskcnt__ttlsec__cnt">{`${32 - title.length}/32`}</div>
-              </div>
-            </div>
-            {/* Description */}
-            <div className="addaskcnt__desc">
-              <label className="addaskcnt__desc__lbl">Describe what you need help with*</label>
-              <div className="addaskcnt__desc__edtr">
-                <TextEditor
-                  maxLength={200}
-                  height={165}
-                  isRequired={description.trim().length ? false : true}
-                  statusBar={false}
-                  toolbarOptions="bold italic underline strikethrough customLinkButton"
-                  text={description}
-                  setContent={onEditorChange}
-                  errorMessage={errors.includes("Description") ? "Please enter description" : ""}
-                />
-                <HiddenField value={description.trim()} defaultValue={description} name={`description`} />
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="addaskcnt__tagscnt">
-              <div className='addaskcnt__tagscnt__inpt'>
-              <label className="addaskcnt__tagscnt__lbl">Enter Tags*</label>
-              <div style={{position: "relative"}}>
-              <div className="addaskcnt__tagscnt__tagsandinput" onClick={onTagSectionClickHandler}>
-                {tags.length > 0 && (
-                  <div className="addaskcnt__tagscnt__tagsandinput__tgs">
-                    {tags?.map((tag: string, index: number) => (
-                      <div className="addaskcnt__tagscnt__tagsandinput__tgs__tag" key={`${tag}+${index}`}>
-                        {tag}
-                        <button onClick={() => onTagRemoveClickhandler(tag)} className="addaskcnt__tagscnt__tagsandinput__tgs__tag__dlte">
-                          <img alt="delete" src="/icons/close-gray.svg" />
-                        </button>
-                        <HiddenField value={tag ?? ''} defaultValue={tag ?? ''} name={`askTag${index}-name`} />
+                  <div ref={bodyRef} id="addaskform" className="addaskcnt__body">
+                    {/* Title */}
+                    <div className="addaskcnt__ttlsec">
+                      <TextField
+                        isError={title.trim().length === 0}
+                        onChange={onTitleChangeHandler}
+                        maxLength={32}
+                        isMandatory={true}
+                        id="add-ask-title"
+                        label="Title*"
+                        value={title}
+                        defaultValue={title}
+                        name="title"
+                        type="text"
+                        placeholder="Enter short title eg. Looking for partnerships"
+                      />
+                      <div className="addaskcnt__ttlsec__error">
+                        <div>{errors.includes('Title') && <span className="error">Please enter title</span>}</div>
+                        <div className="addaskcnt__ttlsec__cnt">{`${32 - title.length}/32`}</div>
                       </div>
-                    ))}
+                    </div>
+                    {/* Description */}
+                    <div className="addaskcnt__desc">
+                      <label className="addaskcnt__desc__lbl">Describe what you need help with*</label>
+                      <div className="addaskcnt__desc__edtr">
+                        <TextEditor
+                          maxLength={200}
+                          height={165}
+                          isRequired={description.trim().length ? false : true}
+                          statusBar={false}
+                          toolbarOptions="bold italic underline strikethrough customLinkButton"
+                          text={description}
+                          setContent={onEditorChange}
+                          errorMessage={errors.includes('Description') ? 'Please enter description' : ''}
+                        />
+                        <HiddenField value={description.trim()} defaultValue={description} name={`description`} />
+                      </div>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="addaskcnt__tagscnt">
+                      <div className="addaskcnt__tagscnt__inpt">
+                        <label className="addaskcnt__tagscnt__lbl">Select Tags*</label>
+                        <div style={{ position: 'relative' }}>
+                          <div className="addaskcnt__tagscnt__tagsandinput" onClick={onTagSectionClickHandler}>
+                            {tags.length > 0 && (
+                              <div className="addaskcnt__tagscnt__tagsandinput__tgs">
+                                {tags?.map((tag: string, index: number) => (
+                                  <div className="addaskcnt__tagscnt__tagsandinput__tgs__tag" key={`${tag}+${index}`}>
+                                    {tag}
+                                    <button onClick={() => onTagRemoveClickhandler(tag)} className="addaskcnt__tagscnt__tagsandinput__tgs__tag__dlte">
+                                      <img alt="delete" src="/icons/close-gray.svg" />
+                                    </button>
+                                    <HiddenField value={tag ?? ''} defaultValue={tag ?? ''} name={`askTag${index}-name`} />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <input
+                              onKeyDown={onTagsKeyDown}
+                              ref={tagSearchRef}
+                              onChange={onTagsChangeHandler}
+                              className="addaskcnt__tagscnt__tagsandinput__input"
+                              placeholder="Select tags"
+                              type="text"
+                            />
+                          </div>
+                          {errors.includes('Tags') && <span className="error">Please select tag</span>}
+                          {isTagsDropdown && (
+                            <div className="addaskcnt__tagscnt__tagsandinput__optns">
+                              {filteredTags?.length === 0 && <div className="addaskcnt__tagscnt__tagsandinput__optns__empty">No tags found</div>}
+                              {filteredTags.map((tag: string, index: number) => (
+                                <button onClick={() => onTagClicHandler(tag)} className="addaskcnt__tagscnt__tagsandinput__optns__optn" key={`${tag}+${index}`}>
+                                  {tag}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
-                <input onKeyDown={onTagsKeyDown} ref={tagSearchRef} onChange={onTagsChangeHandler} className="addaskcnt__tagscnt__tagsandinput__input" placeholder="Enter tags" type="text" />
-              </div>
-              {errors.includes("Tags") && <span className='error'>Please select tag</span>}
-              {isTagsDropdown && (
-                  <div className="addaskcnt__tagscnt__tagsandinput__optns">
-                    {filteredTags?.length === 0 && <div className="addaskcnt__tagscnt__tagsandinput__optns__empty">No tags found</div>}
-                    {filteredTags.map((tag: string, index: number) => (
-                      <button onClick={() => onTagClicHandler(tag)} className="addaskcnt__tagscnt__tagsandinput__optns__optn" key={`${tag}+${index}`}>
-                        {tag}
+
+                  <div className="addaskcnt__fotr">
+                    <div className="addaskcnt__fotr__ltoptns">
+                      {type == 'Edit' && (
+                        <>
+                          <button type="button" onClick={() => onDeleteClickHandler(askId)} className="addaskcnt__fotr__ltoptns__dlt">
+                            <span className="addaskcnt__fotr__ltoptns__dlt__txt">Delete</span>
+                            <img className="addaskcnt__fotr__ltoptns__dlt__img" src="/icons/delete.svg"></img>
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="addaskcnt__fotr__rtoptns">
+                      <button type="button" className="addaskcnt__fotr__cncl" onClick={onClose}>
+                        Cancel
                       </button>
-                    ))}
+
+                      <button type="button" onClick={onFormSubmit} className="addaskcnt__fotr__sbt">
+                        {type === 'Add' && 'Submit'}
+                        {type === 'Edit' && 'Update'}
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
+                </form>
               </div>
             </div>
           </div>
-
-          <div className="addaskcnt__fotr">
-            <div className="addaskcnt__fotr__ltoptns">
-              {type == 'Edit' && (
-                <>
-                  <button type="button" onClick={() => onDeleteClickHandler(askId)} className="addaskcnt__fotr__ltoptns__dlt">
-                    <span className="addaskcnt__fotr__ltoptns__dlt__txt">Delete</span>
-                    <img className="addaskcnt__fotr__ltoptns__dlt__img" src="/icons/delete.svg"></img>
-                  </button>
-                </>
-              )}
-            </div>
-
-            <div className="addaskcnt__fotr__rtoptns">
-              <button type="button" className="addaskcnt__fotr__cncl" onClick={onClose}>
-                Cancel
-              </button>
-
-              <button type="button" onClick={onFormSubmit} className="addaskcnt__fotr__sbt">
-                {type === 'Add' && 'Submit'}
-                {type === 'Edit' && 'Update'}
-              </button>
-            </div>
-          </div>
-        </form>
-      </Modal>
+        </div>
+      )}
 
       <style jsx>
         {`
           button {
             background: inherit;
+          }
+
+          .modal {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #00000066;
+          }
+
+          .modal__cn__closebtn {
+            position: absolute;
+            border: none;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            user-select: none;
+            outline: none;
+          }
+
+          .modal__cnt {
+            background: white;
+            border-radius: 12px;
+            position: relative;
           }
 
           .error {
@@ -261,9 +333,10 @@ const AddEditAsk = (props: IAddEditAsks) => {
           }
 
           .addaskcnt__hdr {
+            min-height: 82px;
             height: 82px;
             flex: 1;
-            padding: 24px 24px 20px 24px;
+            padding: 0 24px;
           }
           .addaskcnt__hdr__ttl {
             font-size: 24px;
@@ -342,9 +415,9 @@ const AddEditAsk = (props: IAddEditAsks) => {
           }
 
           .addaskcnt__tagscnt__inpt {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
           }
 
           .addaskcnt__ttlsec__error {
@@ -401,9 +474,9 @@ const AddEditAsk = (props: IAddEditAsks) => {
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;
-                          padding: 10px 24px;
-              border: 1px solid #cbd5e1;
-              box-shadow: 0px 1px 1px 0px #0f172a14;
+            padding: 10px 24px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0px 1px 1px 0px #0f172a14;
           }
 
           .addaskcnt__fotr__sbt {
@@ -421,7 +494,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
           .addaskcnt__tagscnt__tagsandinput__optns {
             position: absolute;
             top: 100%;
-            height: 200px;
+            height: 150px;
             overflow: auto;
             box-shadow: 0px 2px 6px 0px #0f172a29;
             boder-radius: 8px;

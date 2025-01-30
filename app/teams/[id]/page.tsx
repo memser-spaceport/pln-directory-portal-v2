@@ -59,9 +59,17 @@ async function Page({ params }: { params: ITeamDetailParams }) {
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
           {/* Asks */}
+          {!hasEditAsksAccess && team?.asks.length > 0 && (
             <div className={styles.teamDetail__Container__asks}>
               <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
             </div>
+          )}
+
+          {hasEditAsksAccess && (
+            <div className={styles.teamDetail__Container__asks}>
+              <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
+            </div>
+          )}
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
@@ -126,7 +134,7 @@ async function getPageData(teamId: string) {
     contributingProjects: [],
     officeHours: '',
     teamFocusAreas: [],
-    asks: []
+    asks: [],
   };
   let members: IMember[] = [];
   let focusAreas: IFocusArea[] = [];

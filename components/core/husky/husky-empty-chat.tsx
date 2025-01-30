@@ -14,9 +14,10 @@ interface HuskyEmptyChatProps {
   limitReached: any;
   setLimitReached: any;
   checkIsLimitReached: any;
+  isHidden: any;
 }
 
-function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: HuskyEmptyChatProps) {
+function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, isHidden }: HuskyEmptyChatProps) {
   // Initial prompts displayed to the user
   const [initialPrompts, setInitialPrompts] = useState<any[]>([]);
 
@@ -202,9 +203,10 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
           </div>
         )}
       </div>
-      <div className="hec__content__input__logo">
-        <span className="hec__content__input__logo__txt">Powered by</span> <img className="hec__content__input__logo__img" src="/images/husky-logo.svg" />
-      </div>
+        <div className={`hec__content__input__logo ${isHidden ? 'logo--hidden' : ''}`}>
+          <span className="hec__content__input__logo__txt">Powered by</span>
+          <img className="hec__content__input__logo__img" src="/images/husky-logo.svg" alt="Husky Logo" />
+        </div>
       <style jsx>{`
         .error__strip__msgWrpr {
           display: flex;
@@ -347,6 +349,15 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached }: 
           gap: 4px;
           padding: 10px 0px 0px 0px;
           justify-content: end;
+          opacity: 1;
+          transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .logo--hidden {
+          height: 16px;
+          opacity: 0;
+          transform: translateY(-10px);
+          pointer-events: none; 
         }
 
         .hec__content__input__logo__img {

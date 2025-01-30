@@ -82,7 +82,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
   const onTagSectionClickHandler = () => {
     setIsTagsDropdown(true);
     setFilteredTags((prev: any) => {
-      return DEFAULT_ASK_TAGS.filter((initialTag: string) => (!defaultValues.tags.includes(initialTag) && !tags.includes(initialTag)));
+      return DEFAULT_ASK_TAGS.filter((initialTag: string) => (!tags.includes(initialTag)));
     });
 
     scrollToBottom();
@@ -123,6 +123,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
     setTitle(defaultValues?.title ?? '');
     setTags(defaultValues?.tags ?? []);
     setDescription(defaultValues.description ?? '');
+    setFilteredTags(DEFAULT_ASK_TAGS.filter((defaultTag: string) => !defaultValues?.tags?.includes(defaultTag)))
   }, [defaultValues]);
 
   useEffect(() => {
@@ -134,7 +135,6 @@ const AddEditAsk = (props: IAddEditAsks) => {
       setErrors([]);
     };
     document.addEventListener(EVENTS.RESET_ASK_FORM_VALUES, (e) => resetFormValues());
-
     return document.removeEventListener(EVENTS.RESET_ASK_FORM_VALUES, () => resetFormValues());
   }, []);
 
@@ -204,6 +204,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
                           text={description}
                           setContent={onEditorChange}
                           errorMessage={errors.includes('Description') ? 'Please enter description' : ''}
+                          isToolbarSticky={false}
                         />
                         <HiddenField value={description.trim()} defaultValue={description} name={`description`} />
                       </div>
@@ -233,7 +234,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
                               ref={tagSearchRef}
                               onChange={onTagsChangeHandler}
                               className="addaskcnt__tagscnt__tagsandinput__input"
-                              placeholder="Select tags"
+                              placeholder={`${(tags?.length === 0) ? "Select tags" : ""}`}
                               type="text"
                             />
                           </div>
@@ -367,6 +368,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
 
           .addaskcnt__desc__edtr {
             min-height: 165px;
+            position: unset;
           }
 
           .addaskcnt__tagscnt {

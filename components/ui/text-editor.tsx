@@ -14,6 +14,7 @@ interface ITextEditorProps {
   isRequired?: boolean;
   height?: number;
   errorMessage?: string;
+  isToolbarSticky?: boolean;
 }
 
 const TextEditor = (props: ITextEditorProps) => {
@@ -22,6 +23,7 @@ const TextEditor = (props: ITextEditorProps) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const isRequired = props?.isRequired ?? false;
   const errorMessage = props?.errorMessage;
+  const isToolbarSticky  = props?.isToolbarSticky ?? true;
 
   const [linkObj, setlinkObj] = useState<{ text: string; url: string }>({ text: '', url: '' });
   // const wordcount = tinymce.activeEditor?.plugins.wordcount;
@@ -67,7 +69,7 @@ const TextEditor = (props: ITextEditorProps) => {
             // height:372,
             height: props?.height ?? 400,
             menubar: false,
-            toolbar_sticky: true,
+            toolbar_sticky: isToolbarSticky,
             statusbar: props?.statusBar ?? true,
             toolbar_mode: 'wrap',
             plugins: 'lists fullscreen link',

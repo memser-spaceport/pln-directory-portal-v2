@@ -285,7 +285,6 @@ const AsksSection = (props: IAsksSection) => {
             ))}
           </div>
         )}
-        <div></div>
       </div>
 
       <AddEditAsk

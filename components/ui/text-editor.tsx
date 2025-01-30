@@ -72,6 +72,9 @@ const TextEditor = (props: ITextEditorProps) => {
             toolbar_sticky: isToolbarSticky,
             statusbar: props?.statusBar ?? true,
             toolbar_mode: 'wrap',
+            relative_urls: false,
+            remove_script_host: false,
+            convert_urls: true,
             plugins: 'lists fullscreen link',
             toolbar: props?.toolbarOptions ?? 'undo redo fullscreen  | bold italic underline strikethrough aligncenter alignleft alignright blockquote customLinkButton bullist numlist removeformat',
             setup: (editor) => {

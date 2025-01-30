@@ -23,6 +23,7 @@ const TeamGridView = (props: ITeamGridView) => {
   const description = team?.shortDescription;
   const tags = team?.industryTags ?? [];
   const analytics = useTeamAnalytics();
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const carousel: any[] = team?.asks?.map((ask: any) => {
     return {
@@ -38,6 +39,7 @@ const TeamGridView = (props: ITeamGridView) => {
     loop: true,
     align: "start",
     containScroll: "trimSnaps",
+    isPaused: isTooltipOpen,
   });
 
   const handleClick = (e: any) => {
@@ -88,6 +90,7 @@ const TeamGridView = (props: ITeamGridView) => {
                           name={item.name}
                           description={item.description}
                           tags={item.tags}
+                          onOpenChange={(isOpen) => setIsTooltipOpen(isOpen)}
                         />
                       </div>
                       <div className='hide-name'>

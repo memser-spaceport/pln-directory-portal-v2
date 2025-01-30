@@ -25,6 +25,7 @@ const TeamListView = (props: ITeamListView) => {
   const tags = team?.industryTags ?? [];
   const analytics = useTeamAnalytics();
   const [activeIndexMob, setActiveIndexMob] = useState<number>(0);
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const carousel: any[] = team?.asks?.map((ask: any) => {
     return {
@@ -40,6 +41,7 @@ const TeamListView = (props: ITeamListView) => {
     loop: true,
     align: "start",
     containScroll: "trimSnaps",
+    isPaused: isTooltipOpen,
   });
 
   const AUTO_SCROLL_INTERVAL = 10000;
@@ -68,7 +70,7 @@ const TeamListView = (props: ITeamListView) => {
     if (!emblaApiMob) return;
 
     const updateActiveIndex = () => {
-      const index = emblaApiMob.selectedScrollSnap(); 
+      const index = emblaApiMob.selectedScrollSnap();
       setActiveIndexMob(index);
     };
 
@@ -80,7 +82,7 @@ const TeamListView = (props: ITeamListView) => {
           } else {
             emblaApiMob.scrollTo(0);
           }
-          updateActiveIndex(); 
+          updateActiveIndex();
         }
       }, AUTO_SCROLL_INTERVAL);
     };
@@ -104,15 +106,15 @@ const TeamListView = (props: ITeamListView) => {
 
   return (
     <>
-      <div className="team-list" draggable={false}>
+      <div className="team-list">
         <div className="team-list__Cntr">
-          <div className="team-list__profile-container" draggable={false} >
+          <div className="team-list__profile-container">
             <Image alt="profile" loading="eager" height={72} width={72} layout='intrinsic' priority={true} className="team-list__profile-container__profile" src={profile} />
           </div>
           <div className="team-list__details-container">
             <div className="team-list__details-container__team-detail">
-              <h2 className="team-list__details-container__team-detail__team-name" draggable={false} >{teamName}</h2>
-              <p className="team-list__details-container__team-detail__team-desc" draggable={false} >{description}</p>
+              <h2 className="team-list__details-container__team-detail__team-name">{teamName}</h2>
+              <p className="team-list__details-container__team-detail__team-desc">{description}</p>
               <div className="team-list__details-container__team-detail__team-carousel">
                 {carousel.length > 0 && (
                   <div className="embla__wrapper" onClick={handleClick}>
@@ -141,8 +143,8 @@ const TeamListView = (props: ITeamListView) => {
                               className={`embla__dash__list ${index === activeIndex ? "highlighted" : ""
                                 }`}
                               onClick={() => {
-                                setActiveIndex(index);  
-                                emblaApi?.scrollTo(index); 
+                                setActiveIndex(index);
+                                emblaApi?.scrollTo(index);
                                 analytics.onCarouselButtonClicked();
                               }}
                             ></button>
@@ -168,7 +170,7 @@ const TeamListView = (props: ITeamListView) => {
                     }
 
                     {/* Carousel Content */}
-                    <div className="embla__viewport__list" ref={emblaRef} draggable={false}>
+                    <div className="embla__viewport__list" ref={emblaRef}>
                       <div className="embla__container">
                         {carousel.map((item, index) => (
                           <div key={item.id} className="embla__slide__cntr__list">
@@ -188,6 +190,7 @@ const TeamListView = (props: ITeamListView) => {
                                   name={item.name}
                                   description={item.description}
                                   tags={item.tags}
+                                  onOpenChange={(isOpen) => setIsTooltipOpen(isOpen)}
                                 />
                               </div>
                               <div className="hide-name">{item.name}</div>
@@ -202,7 +205,7 @@ const TeamListView = (props: ITeamListView) => {
               </div>
             </div>
 
-            <div className="team-list__details-container__tagscontainer team-list__details-container__tagscontainer" draggable={false} >
+            <div className="team-list__details-container__tagscontainer team-list__details-container__tagscontainer">
               {tags?.map((tag: ITag, index: number) => (
                 <Fragment key={`${tag} + ${index}`}>
                   {index < 3 && <div>{<Tooltip asChild trigger={<div><Tag value={tag?.title} variant="primary" tagsLength={tags?.length} /> </div>} content={tag?.title} />}</div>}

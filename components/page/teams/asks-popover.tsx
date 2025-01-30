@@ -6,13 +6,14 @@ interface TooltipProps {
   name: string;
   description: string;
   tags: string[];
+  onOpenChange?: (open: boolean) => void;
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ name, description, tags }) => {
+const Tooltip: React.FC<TooltipProps> = ({ name, description, tags, onOpenChange }) => {
   return (
     <>
-      <TooltipPrimitive.Provider delayDuration={0} disableHoverableContent={false}>
-        <TooltipPrimitive.Root>
+      <TooltipPrimitive.Provider delayDuration={0} disableHoverableContent={false} >
+        <TooltipPrimitive.Root onOpenChange={onOpenChange}>
           <TooltipPrimitive.Trigger asChild>
             <span className="hoverable-name">{name}</span>
           </TooltipPrimitive.Trigger>
@@ -62,6 +63,7 @@ const Tooltip: React.FC<TooltipProps> = ({ name, description, tags }) => {
             font-weight: 400;
             line-height: 22px;
             text-align: left;
+            word-break: break-word;
           }
 
           .asks__tooltip__cnt__tags {

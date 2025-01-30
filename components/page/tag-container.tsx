@@ -162,6 +162,7 @@ const TagContainer = (props: ITagContainer) => {
             font-size: 14px;
             font-weight: 600;
             line-height: 20px;
+            display: ${props?.info ? "flex" : "unset"};
           }
 
           .tags-container__tags {

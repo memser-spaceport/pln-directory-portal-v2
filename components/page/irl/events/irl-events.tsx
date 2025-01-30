@@ -630,6 +630,7 @@ const IrlEvents = (props: IIrlEvents) => {
         }
         .root__irl__addRes__loggedOut {
           font-weight: 400;
+          height: 56px;
         }
 
         .root__irl__addRes {
@@ -660,6 +661,7 @@ const IrlEvents = (props: IIrlEvents) => {
           border-radius: 8px;
           display: grid;
           place-items: center;
+          font-weight: 500;
         }
 
         .root__irl__addRes__cnt {
@@ -892,6 +894,7 @@ const IrlEvents = (props: IIrlEvents) => {
           .root__irl__submit__event a {
             color: #156FF7;
             cursor: pointer;
+            font-weight: 500;
           }
       
         @media (min-width: 320px) {
@@ -905,6 +908,9 @@ const IrlEvents = (props: IIrlEvents) => {
             flex-direction: row;
             gap: 8px;
             padding: 10px 20px;
+            height: 40px;
+          }
+          .root__irl__addRes__loggedOut {
             height: 40px;
           }
         }

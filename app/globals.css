@@ -404,6 +404,7 @@ dialog {
   left: -9px;
   border-image-source: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%);
   position: relative;
+  z-index: 3;
 }
 
 .asks__tooltip::before {

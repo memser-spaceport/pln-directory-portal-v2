@@ -1,10 +1,10 @@
 import { Metadata } from 'next';
 
-import {getTeamListFilters } from '@/services/teams.service';
+import { getTeamListFilters } from '@/services/teams.service';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
-import { INITIAL_ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { DEFAULT_ASK_TAGS, INITIAL_ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getTeamsListOptions, getTeamsOptionsFromQuery, processFilters } from '@/utils/team.utils';
+import { getTeamsListOptions, getTeamsOptionsFromQuery, parseFocusAreasParams, processFilters } from '@/utils/team.utils';
 import EmptyResult from '../../components/core/empty-result';
 import Error from '../../components/core/error';
 import FilterWrapper from '../../components/page/teams/filter-wrapper';
@@ -62,17 +62,35 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
       getTeamList(listOptions, 1, INITIAL_ITEMS_PER_PAGE),
       getTeamListFilters({}),
       getTeamListFilters(listOptions),
-      getFocusAreas("Team",searchParams),
+      getFocusAreas("Team", parseFocusAreasParams(searchParams)),
     ]);
+
+    if (teamListFiltersResponse?.data?.askTags) {
+      teamListFiltersResponse.data.askTags = [
+        ...(teamListFiltersResponse?.data?.askTags || []),
+        ...DEFAULT_ASK_TAGS.filter(
+          (defaultTag) =>
+            !(teamListFiltersResponse?.data?.askTags || []).includes(defaultTag)
+        ),
+      ];
+    }
 
     if (teamListResponse?.isError || teamListFiltersResponse?.isError || teamListFiltersForOptionsResponse?.isError || focusAreaResponse?.error) {
       isError = true;
       return { isError };
-    } 
+    }
 
     teams = teamListResponse.data;
     totalTeams = teamListResponse?.totalItems;
     filtersValues = processFilters(searchParams, teamListFiltersResponse?.data, teamListFiltersForOptionsResponse?.data, focusAreaResponse?.data);
+    
+    if(searchParams?.asks === 'all') {
+      filtersValues.asks.forEach((ask) => {
+        if (!ask.disabled) {
+          ask.selected = true;
+        }
+      });
+    }
     return JSON.parse(JSON.stringify({ isError, filtersValues, totalTeams, teams }));
   } catch (error: unknown) {
     isError = true;

@@ -3,9 +3,9 @@ import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from ".
 import { URL_QUERY_VALUE_SEPARATOR } from "./constants";
 
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
-  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent, isHost } = queryParams;
+  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent, isHost, asks } = queryParams;
   const sortFromQuery = getSortFromQuery(sort?.toString());
-  const sortField = sortFromQuery.field.toLowerCase();
+  const sortField = sortFromQuery.field.toLowerCase() + ',default';
 
   return {
     ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),
@@ -18,6 +18,7 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
     ...(focusAreas ? { 'focusAreas': stringifyQueryValues(focusAreas) } : {}),
     ...(isRecent ? {isRecent:true} : {}),
     ...(isHost ? {isHost:true} : {}),
+    ...(asks ? { 'askTags': stringifyQueryValues(asks) } : {}),
     orderBy: `${sortFromQuery.direction === "desc" ? "-" : ""}${sortField}`,
   };
 }
@@ -36,6 +37,7 @@ export function processFilters(searchParams: ITeamsSearchParams, formattedValues
       rawData: focusAreaData,
       selectedFocusAreas,
     },
+    asks: getTagsFromValues(formattedValuesByFilter?.askTags, formattedAvailableValuesByFilter?.askTags, searchParams?.asks),
   };
 }
 
@@ -51,7 +53,7 @@ export function getTagsFromValues(allValues: string[], availableValues: string[]
 
 
 export function getTeamsListOptions(options: ITeamListOptions) {
-  return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title", pagination: true };
+  return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title,asks", pagination: true };
 }
 
 export function transformTeamApiToFormObj(obj: any){
@@ -271,4 +273,19 @@ export function getFormattedDateString(startDate: string, endDate: string) {
   } catch {
     return '';
   }
+}
+
+export function parseFocusAreasParams(queryParams: any) {
+  const modifiedParams = { ...queryParams };
+
+  if (modifiedParams?.asks) {
+    modifiedParams.askTags = modifiedParams.asks;
+    delete modifiedParams.asks;
+  }
+
+  if (modifiedParams.askTags) {
+    modifiedParams.askTags = modifiedParams.askTags.replace(/\|/g, ',');
+  }
+
+  return modifiedParams;
 }

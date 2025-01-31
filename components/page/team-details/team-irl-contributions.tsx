@@ -300,7 +300,6 @@ const TeamIrlContributions = (props: ITeamMembers) => {
             line-height: 20px;
             letter-spacing: 0px;
             text-align: left;
-            color: #64748b;
           }
 
           .root__irlCrbts {

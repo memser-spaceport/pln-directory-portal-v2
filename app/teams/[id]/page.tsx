@@ -20,10 +20,24 @@ import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
+import AsksSection from '@/components/page/team-details/asks-section';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
-  const { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess = false, redirectTeamUid, isError, isNotFound, officeHoursFlag } = await getPageData(teamId);
+  const {
+    team,
+    members,
+    focusAreas,
+    isLoggedIn,
+    userInfo,
+    teamProjectList,
+    hasProjectsEditAccess = false,
+    redirectTeamUid,
+    isError,
+    isNotFound,
+    officeHoursFlag,
+    hasEditAsksAccess,
+  } = await getPageData(teamId);
 
   if (redirectTeamUid) {
     redirect(`/teams/${redirectTeamUid}`, RedirectType.replace);
@@ -44,6 +58,19 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           <div className={styles?.teamDetail__Container__details}>
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
+          {/* Asks */}
+          {!hasEditAsksAccess && team?.asks.length > 0 && (
+            <div className={styles.teamDetail__Container__asks}>
+              <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
+            </div>
+          )}
+
+          {hasEditAsksAccess && (
+            <div className={styles.teamDetail__Container__asks}>
+              <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
+            </div>
+          )}
+
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
             <ContactInfo team={team} userInfo={userInfo} />
@@ -62,11 +89,11 @@ async function Page({ params }: { params: ITeamDetailParams }) {
             </div>
           )}
           {/* Irl Contribuions */}
-          {team.eventGuests.length > 0 &&
+          {team.eventGuests.length > 0 && (
             <div className={styles?.teamDetail__irlContributions}>
               <TeamIrlContributions team={team} userInfo={userInfo} members={members} teamId={teamId} />
             </div>
-          }
+          )}
           {/* Member */}
           <div className={styles?.teamDetail__container__member}>
             <TeamMembers team={team} userInfo={userInfo} members={members} teamId={teamId} />
@@ -107,6 +134,7 @@ async function getPageData(teamId: string) {
     contributingProjects: [],
     officeHours: '',
     teamFocusAreas: [],
+    asks: [],
   };
   let members: IMember[] = [];
   let focusAreas: IFocusArea[] = [];
@@ -116,6 +144,7 @@ async function getPageData(teamId: string) {
   let isNotFound = false;
   let officeHoursFlag = false;
   let memberTeams: never[] = [];
+  let hasEditAsksAccess: boolean = false;
 
   try {
     if (AIRTABLE_REGEX.test(teamId)) {
@@ -129,7 +158,7 @@ async function getPageData(teamId: string) {
     }
 
     const [teamResponse, teamMembersResponse, focusAreaResponse] = await Promise.all([
-      getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' }),
+      getTeam(teamId, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks' }),
       getMembers(
         {
           'teamMemberRoles.team.uid': teamId,
@@ -172,6 +201,7 @@ async function getPageData(teamId: string) {
     }
 
     members = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
+    hasEditAsksAccess = members.some((member: any) => member.id === userInfo.uid) || (Array.isArray(userInfo?.roles) ? userInfo?.roles?.includes(ADMIN_ROLE) : false);
     focusAreas = focusAreaResponse.data;
     focusAreas = focusAreas.filter((data: IFocusArea) => !data.parentUid);
     const maintainingProjects = team?.maintainingProjects?.map((project: any) => {
@@ -199,10 +229,10 @@ async function getPageData(teamId: string) {
     if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes(ADMIN_ROLE) && authToken) {
       hasProjectsEditAccess = true;
     }
-    if(hasProjectsEditAccess){
+    if (hasProjectsEditAccess) {
       team.logoUid = team.logoUid;
     }
-    return { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess, officeHoursFlag };
+    return { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess, officeHoursFlag, hasEditAsksAccess };
   } catch (error: any) {
     console.error(error);
     isNotFound = true;

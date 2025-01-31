@@ -11,7 +11,7 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ILocationDetails } from '@/types/irl.types';
 import Image from 'next/image';
-import { EVENTS, IAM_GOING_POPUP_MODES, IRL_SUBMIT_FORM_LINK } from '@/utils/constants';
+import { EVENTS, IAM_GOING_POPUP_MODES, IRL_AIRTABLE_FORM_LINK, IRL_SUBMIT_FORM_LINK } from '@/utils/constants';
 import IrlAllEvents from './irl-all-events';
 import { IUserInfo } from '@/types/shared.types';
 import useClickedOutside from '@/hooks/useClickedOutside';
@@ -355,20 +355,6 @@ const IrlEvents = (props: IIrlEvents) => {
               )}
             </>
           )}
-
-          {!isLoggedIn && (
-            <div className="root__irl__addRes__loggedOut">
-              <div className="root__irl__addRes__cnt__loggedOut">
-                <div>
-                  <img src="/icons/info-orange.svg" alt="info" />
-                </div>
-                <div>Attending an event but don&apos;t have access?</div>
-                <a href="/sign-up" target="_blank" onClick={handleJoinPLNetworks}>
-                  Sign up
-                </a>
-              </div>
-            </div>
-          )}
           <Modal modalRef={addResRef} onClose={onCloseModal}>
             <div className="root__irl__addRes__popup">
               <div className="root__irl__modalHeader">
@@ -409,6 +395,25 @@ const IrlEvents = (props: IIrlEvents) => {
             />
           )}
         </div> */}
+      </div>
+      {!isLoggedIn && (
+        <div className="root__irl__addRes__loggedOut">
+          <div className="root__irl__addRes__cnt__loggedOut">
+            <div>
+              <img src="/icons/info-orange.svg" alt="info" />
+            </div>
+            <div>Attending an event but don&apos;t have access?</div>
+            <a href="/sign-up" target="_blank" onClick={handleJoinPLNetworks}>
+              Sign up
+            </a>
+          </div>
+        </div>
+      )}
+      <div className="root__irl__submit__event">
+        <div>Hosting an event or event not listed here?</div>
+        <a href={IRL_AIRTABLE_FORM_LINK} target="_blank">
+          Submit an event
+        </a>
       </div>
 
 {/* 
@@ -625,6 +630,7 @@ const IrlEvents = (props: IIrlEvents) => {
         }
         .root__irl__addRes__loggedOut {
           font-weight: 400;
+          height: 56px;
         }
 
         .root__irl__addRes {
@@ -637,6 +643,7 @@ const IrlEvents = (props: IIrlEvents) => {
           background-color: #ffe2c8;
           min-height: 44px;
           padding: 5px;
+          border-radius: 0;
         }
 
         .root__irl__addRes__cnt__loggedOut {
@@ -654,6 +661,7 @@ const IrlEvents = (props: IIrlEvents) => {
           border-radius: 8px;
           display: grid;
           place-items: center;
+          font-weight: 500;
         }
 
         .root__irl__addRes__cnt {
@@ -869,7 +877,43 @@ const IrlEvents = (props: IIrlEvents) => {
           .toolbar__actionCn__edit:hover {
             background: #1d4ed8;
           }
-
+          .root__irl__submit__event {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60px;
+            background-color: #fff;
+            padding: 10px 20px;
+            font-size: 14px;
+            line-height: 20px;
+            border-radius: 0 0 8px 8px;
+            margin-top: ${isLoggedIn ? '2px' : 0};
+            box-shadow: 0px 4px 4px 0px #0F172A0A;
+          }
+          .root__irl__submit__event a {
+            color: #156FF7;
+            cursor: pointer;
+            font-weight: 500;
+          }
+      
+        @media (min-width: 320px) {
+          .root__irl__submit__event {
+            margin-bottom: 10px;
+          }
+        }
+        @media (min-width: 450px) {
+          .root__irl__submit__event {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            padding: 10px 20px;
+            height: 40px;
+          }
+          .root__irl__addRes__loggedOut {
+            height: 40px;
+          }
+        }
         @media (min-width: 360px) {
           .irl__event__going__pop__up {
             display: none;
@@ -925,7 +969,7 @@ const IrlEvents = (props: IIrlEvents) => {
           }
 
           .root__irl__addRes__loggedOut {
-            width: ${eventType === 'upcoming' || eventType === 'all' ? '858px' : 'unset'};
+            width: ${eventType === 'upcoming' || eventType === 'all' ? '' : 'unset'};
           }
 
           .root__irl__eventWrapper__mobileTile {
@@ -953,6 +997,11 @@ const IrlEvents = (props: IIrlEvents) => {
             flex-direction: row;
             align-items: center;
           }
+          
+          .root__irl__addRes__loggedOut, .root__irl__submit__event {
+            max-width: 900px;
+            width: 100%;
+          }
         }
 
         @media (min-width: 1024px) {
@@ -966,7 +1015,7 @@ const IrlEvents = (props: IIrlEvents) => {
 
           .root {
             overflow-x: unset;
-            border-radius: 8px;
+            border-radius: 8px 8px 0 0;
             padding: 20px;
           }
 
@@ -1025,6 +1074,9 @@ const IrlEvents = (props: IIrlEvents) => {
           .root__irl__addRes__cntr {
             width: 84%;
           }
+          .root__irl__addRes__loggedOut, .root__irl__submit__event {
+            max-width: 1244px;
+          }
         }
 
         @media (min-width: 1920px) {
@@ -1043,6 +1095,9 @@ const IrlEvents = (props: IIrlEvents) => {
           .root__irl__addRes__cntr {
             width: 88%;
           }
+          .root__irl__addRes__loggedOut, .root__irl__submit__event {
+            max-width: 1678px;
+          }
         }
 
         @media (min-width: 2560px) {
@@ -1060,6 +1115,10 @@ const IrlEvents = (props: IIrlEvents) => {
 
           .root__irl__addRes__cntr {
             width: 91%;
+          }
+
+          .root__irl__addRes__loggedOut, .root__irl__submit__event {
+            max-width: 2240px;
           }
         }
       `}</style>

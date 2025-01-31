@@ -170,7 +170,6 @@ const About = (props: IAbout) => {
           }
 
           .about__header__title {
-            color: #64748b;
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;

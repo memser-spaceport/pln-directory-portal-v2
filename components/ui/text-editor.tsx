@@ -148,24 +148,28 @@ const TextEditor = (props: ITextEditorProps) => {
           }}
           onSave={(txt, link) => {
             setDialogOpen(false);
-            const linkMarkup = `<a href='${link}' target="_blank">${txt}</a>`;
-            // if (editorRef.current) {
-            //   editorRef.current.execCommand('mceInsertContent', false, linkMarkup);
-            // }
-
             if (editorRef.current) {
-              const selectedNode = editorRef.current.selection.getNode();
+              const editor = editorRef.current;
+              const selectedNode = editor.selection.getNode();
               if (selectedNode.nodeName === 'A') {
-                // Update existing link
-                selectedNode.setAttribute('href', link);
-                selectedNode.innerText = txt;
+                // Use TinyMCE's API to update the link properly
+                editor.dom.setAttrib(selectedNode, 'href', link);
+                editor.dom.setAttrib(selectedNode, 'target', '_blank');
+                editor.dom.setHTML(selectedNode, txt); // Updates the text inside <a>
+          
+                // Force TinyMCE to recognize the change
+                editor.undoManager.add(); // Add to the undo stack
               } else {
                 // Insert new link
-                editorRef.current.execCommand('mceInsertContent', false, linkMarkup);
+                const linkMarkup = `<a href="${link}" target="_blank">${txt}</a>`;
+                editor.execCommand('mceInsertContent', false, linkMarkup);
               }
-              setlinkObj({ text: '', url: '' });
+          
+              // Ensure the new link is stored in state
+              setlinkObj({ text: txt, url: link });
             }
           }}
+          
         />
       </div>
       <div className="editor__count">

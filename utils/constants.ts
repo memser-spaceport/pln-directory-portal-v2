@@ -481,7 +481,6 @@ export const ChangeLogList = [
     <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
     <li>The 'Asks' feature allows teams to submit requests for their various needs, such as hiring and marketing, thereby streamlining internal processes and improving collaboration. A newly added filter section on the Teams page enables users to refine and manage these requests more efficiently.</li>
     </ul>
-    <br/>
     <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug Fixes</span><br/>
     <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
     <li>Fixed the 'Additional Details' section on the project detail page to properly render content around new lines.</li>

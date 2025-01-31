@@ -274,3 +274,18 @@ export function getFormattedDateString(startDate: string, endDate: string) {
     return '';
   }
 }
+
+export function parseFocusAreasParams(queryParams: any) {
+  const modifiedParams = { ...queryParams };
+
+  if (modifiedParams?.asks) {
+    modifiedParams.askTags = modifiedParams.asks;
+    delete modifiedParams.asks;
+  }
+
+  if (modifiedParams.askTags) {
+    modifiedParams.askTags = modifiedParams.askTags.replace(/\|/g, ',');
+  }
+
+  return modifiedParams;
+}

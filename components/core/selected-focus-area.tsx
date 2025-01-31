@@ -30,7 +30,6 @@ const SelectedFocusAreas: React.FC<SelectedFocusAreasProps> = ({ focusAreas, sel
           }
 
           .focus__title {
-            color: #64748b;
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;

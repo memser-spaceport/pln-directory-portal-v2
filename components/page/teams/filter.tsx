@@ -2,7 +2,7 @@
 
 import { IFilterSelectedItem, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems, ITeamsSearchParams } from '@/types/teams.types';
-import { EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { DEFAULT_ASK_TAGS, EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { useRouter, useSearchParams } from 'next/navigation';
 import FilterCount from '../../ui/filter-count';
 import Toggle from '../../ui/toogle';
@@ -12,6 +12,7 @@ import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
 import Image from 'next/image';
 import FocusAreaFilter from '../../core/focus-area-filter/focus-area-filter';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 export interface ITeamFilterWeb {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -29,11 +30,13 @@ const Filter = (props: ITeamFilterWeb) => {
   const filterValues = props?.filterValues;
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
+  
   const selectedItems: any = {
     tags: filterValues?.tags.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
     membershipSources: filterValues?.membershipSources?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
     fundingStage: filterValues?.fundingStage?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
     technology: filterValues?.technology?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
+    asks: filterValues?.asks?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
   };
 
   const router = useRouter();
@@ -46,7 +49,7 @@ const Filter = (props: ITeamFilterWeb) => {
   const isHost = searchParams['isHost'] === 'true' || false;
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
-
+  
   const onIncludeFriendsToggle = () => {
     triggerLoader(true);
     if (searchParams?.page) {
@@ -83,6 +86,20 @@ const Filter = (props: ITeamFilterWeb) => {
       return;
     }
     updateQueryParams('isHost', '', searchParams);
+  }
+
+  const onIsActiveToggle = () => {
+    triggerLoader(true);
+    if (searchParams?.page) {
+      searchParams.page = '1';
+    }
+    
+    const newIsActive = query.asks === 'all' ? '' : 'all';
+    if (!query.asks) {
+      updateQueryParams('asks', newIsActive, searchParams);
+      return;
+    }
+    updateQueryParams('asks', newIsActive, searchParams);
   }
 
   const onOfficeHoursToogle = () => {
@@ -122,7 +139,7 @@ const Filter = (props: ITeamFilterWeb) => {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
-      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost'];
+      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost', 'asks'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           current.delete(query);
@@ -208,6 +225,42 @@ const Filter = (props: ITeamFilterWeb) => {
             selectedItems={filterValues?.focusAreas?.selectedFocusAreas}
             searchParams={searchParams}
           />
+
+          {/* Border line */}
+          <div className="team-filter__bl"></div>
+          {filterValues?.asks && filterValues.asks.length > 0 &&
+            <TagContainer
+              page={PAGE_ROUTES.TEAMS}
+              label="Asks"
+              name="asks"
+              items={filterValues?.asks ?? []}
+              onTagClickHandler={onTagClickHandler}
+              initialCount={18}
+              userInfo={userInfo}
+              info="Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project."
+              toggleTitle='Show all asks'
+              IsToggleActive={query.asks === 'all'}
+              onIsActiveToggle={onIsActiveToggle}
+            />
+          }
+
+          {filterValues?.asks && (filterValues?.asks?.length ?? 0) < 1 &&
+            <>
+              <div className='tags-container__title'>
+                Asks
+                <Tooltip
+                  asChild
+                  trigger={
+                    <Image alt='left' height={16} width={16} src='/icons/info.svg' style={{ marginLeft: "5px" }} />
+                  }
+                  content={'Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project.'}
+                />
+              </div>
+              <div className="team-filter__no-data">
+                No open asks or requests at this time
+              </div>
+            </>
+          }
 
           {/* Border line */}
           <div className="team-filter__bl"></div>
@@ -313,6 +366,13 @@ const Filter = (props: ITeamFilterWeb) => {
             gap: 8px;
           }
 
+          .tags-container__title {
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+          }
+
           .team-fitlter__header__clear-all-btn {
             display: none;
           }
@@ -351,6 +411,14 @@ const Filter = (props: ITeamFilterWeb) => {
             font-size: 14px;
             font-weight: 400;
             line-height: 20px;
+          }
+
+          .team-filter__no-data {
+            font-size: 12px;
+            font-style: italic;
+            font-weight: 300;
+            line-height: 14px;
+            text-align: left;
           }
 
           .team-filter__footer {

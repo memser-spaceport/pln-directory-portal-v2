@@ -247,6 +247,52 @@ export const useTeamAnalytics = () => {
         captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_OFFICEHOURS_LOGIN_BTN_CLICKED, params);
       }
 
+      function teamDetailShareyourAsksClicked(team: IAnalyticsTeamInfo | null) {
+        const params = {
+          ...team
+        }
+        captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SHARE_YOUR_ASKS_CLICKED, params)
+      }
+
+      function teamDetailSubmitAskClicked(team: IAnalyticsTeamInfo | null, ask: any) {
+        const params = {
+        ...team,
+        ask
+      }
+      captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_SUBMIT_ASK_CLICKED, params);
+    }
+
+    function teamDetailEditAskClicked(team: IAnalyticsTeamInfo | null, ask: any) {
+      const params = {
+        ...team,
+        ask
+      }
+      captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_EDIT_ASK_CLICKED, params);
+    }
+
+    function teamDetailUpdateAskClicked(team: IAnalyticsTeamInfo | null, ask: any) {
+      const params = {
+        ...team,
+        ask
+      }
+      captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_UPDATE_ASK_CLICKED, params)
+    }
+
+    function teamDetailDeleteAskClicked(team: IAnalyticsTeamInfo | null, ask: any) {
+      const params = {
+        ...team,
+        ask
+      }
+      captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_DELETE_ASK_CLICKED, params)
+    }
+
+    function teamDetailDeleteAskConfirmClicked(team: IAnalyticsTeamInfo | null, ask: any) {
+      const params = {
+        ...team,
+        ask
+      }
+      captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_DELETE_ASK_CONFIRM_CLICKED, params);
+    }
       function recordAboutSave(type: string, user: IAnalyticsUserInfo | null, payload?: any){
         const params = {
           type,
@@ -268,6 +314,18 @@ export const useTeamAnalytics = () => {
           user,
         };
         captureEvent(TEAMS_ANALYTICS_EVENTS. TEAM_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS, params);
+      }
+
+      function onCarouselPrevButtonClicked(){
+        captureEvent(TEAMS_ANALYTICS_EVENTS.CAROUSEL_PREV_BTN_CLICKED);
+      }
+
+      function onCarouselNextButtonClicked(){
+        captureEvent(TEAMS_ANALYTICS_EVENTS.CAROUSEL_NEXT_BTN_CLICKED);
+      }
+
+      function onCarouselButtonClicked(){
+        captureEvent(TEAMS_ANALYTICS_EVENTS.CAROUSEL_BTN_CLICKED);
       }
 
       return {
@@ -303,7 +361,16 @@ export const useTeamAnalytics = () => {
         onTeamDetailAboutEditClicked,
         recordAboutSave,
         onClickSeeMoreIrlContribution,
-        onClickTeamIrlContribution
+        onClickTeamIrlContribution,
+        teamDetailShareyourAsksClicked,
+        teamDetailSubmitAskClicked,
+        teamDetailUpdateAskClicked,
+        teamDetailDeleteAskClicked,
+        teamDetailDeleteAskConfirmClicked,
+        teamDetailEditAskClicked,
+        onCarouselNextButtonClicked,
+        onCarouselPrevButtonClicked,
+        onCarouselButtonClicked,
       }
 
 }

@@ -145,8 +145,8 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
         )}
         <div className="addDetails__preview">{!isEditorVisible && initialReadme && <MdPreview className="addDetails__preview__editor" modelValue={text} />}</div>
         {isEditorVisible && (
-          <div>
-            <MdEditor modelValue={text} onChange={setText} language={'en-US'} toolbarsExclude={['catalog', 'github', 'save', 'htmlPreview']} />
+          <div className="editDetails__preview">
+            <MdEditor className="editDetails__preview__editor" modelValue={text} onChange={setText} language={'en-US'} toolbarsExclude={['catalog', 'github', 'save', 'htmlPreview']} />
           </div>
         )}
       </div>
@@ -206,6 +206,11 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
         .addDetails__preview__nodetails__text {
           color: #156ff7;
           cursor: pointer;
+        }
+          
+        .addDetails__preview :global(.md-editor-preview),
+        .editDetails__preview :global(.md-editor-preview) {
+          word-break: normal;
         }
       `}</style>
     </>

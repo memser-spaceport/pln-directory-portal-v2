@@ -15,6 +15,10 @@
     cursor: default;
   }
 
+  .tooltip__trigger__mob {
+    display: flex;
+  }
+
   .tooltip__trigger__web {
     display: none;
 }
@@ -26,6 +30,6 @@
     }
 
     .tooltip__trigger__web {
-        display: unset;
+        display: flex;
     }
   }

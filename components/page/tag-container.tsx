@@ -6,6 +6,7 @@ import { Tag } from '../ui/tag';
 import { triggerLoader } from '@/utils/common.utils';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Image from 'next/image';
+import Toggle from '../ui/toogle';
 
 interface ITagContainer {
   onTagClickHandler: (key: string, value: string, selected: boolean, title?: string) => void;
@@ -17,6 +18,9 @@ interface ITagContainer {
   isUserLoggedIn?: boolean;
   page: string;
   info?: string;
+  toggleTitle?: string;
+  IsToggleActive?: boolean;
+  onIsActiveToggle?: (isActive: any) => void;
 }
 
 const TagContainer = (props: ITagContainer) => {
@@ -29,6 +33,10 @@ const TagContainer = (props: ITagContainer) => {
   const isUserLoggedIn = props?.isUserLoggedIn ?? false;
 
   const remainingItemsCount = items?.length - initialCount;
+
+  const title = props?.toggleTitle;
+  const isActive = props?.IsToggleActive ?? false;
+  const onIsActiveToggle = props?.onIsActiveToggle ?? (() => { });
 
   //   const analytics = useCommonAnalytics();
 
@@ -77,12 +85,27 @@ const TagContainer = (props: ITagContainer) => {
             <Tooltip
               asChild
               trigger={
-              <Image alt='left' height={16} width={16} src='/icons/info.svg' style={{marginLeft: "5px", top: "2px", position: "relative"}}/>
+                <Image alt='left' height={16} width={16} src='/icons/info.svg' style={{ marginLeft: "5px", top: "2px", position: "relative" }} />
               }
               content={props?.info}
             />
           }
         </h2>
+
+        {title && 
+          <>
+            <div className='tags-container__toggleCntr'>
+              <div className="tags-container__toggleCntr__title">
+                {title}
+              </div>
+              <div className="tags-container__toggleCntr__toggle">
+                <Toggle height="16px" width="28px" callback={onIsActiveToggle} isChecked={isActive} />
+              </div>
+            </div>
+            <div className="tags-container-filter__bl"></div>
+          </>
+        }
+
         <div className="tags-container__tags">
           {isShowMore && (
             <>
@@ -193,6 +216,26 @@ const TagContainer = (props: ITagContainer) => {
             gap: 4px;
             border: none;
             background-color: #fff;
+          }
+
+          .tags-container__toggleCntr {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .tags-container__toggleCntr__title {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+          }
+
+          .tags-container-filter__bl {
+            width: 100%;
+            height: 1px;
+            border-top: 1px solid #E2E8F0;
           }
         `}
       </style>

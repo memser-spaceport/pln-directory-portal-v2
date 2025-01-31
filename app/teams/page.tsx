@@ -83,6 +83,14 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
     teams = teamListResponse.data;
     totalTeams = teamListResponse?.totalItems;
     filtersValues = processFilters(searchParams, teamListFiltersResponse?.data, teamListFiltersForOptionsResponse?.data, focusAreaResponse?.data);
+    
+    if(searchParams?.asks === 'all') {
+      filtersValues.asks.forEach((ask) => {
+        if (!ask.disabled) {
+          ask.selected = true;
+        }
+      });
+    }
     return JSON.parse(JSON.stringify({ isError, filtersValues, totalTeams, teams }));
   } catch (error: unknown) {
     isError = true;

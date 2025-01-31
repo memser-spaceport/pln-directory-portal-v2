@@ -5,7 +5,7 @@ import { URL_QUERY_VALUE_SEPARATOR } from "./constants";
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
   const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent, isHost, asks } = queryParams;
   const sortFromQuery = getSortFromQuery(sort?.toString());
-  const sortField = sortFromQuery.field.toLowerCase();
+  const sortField = sortFromQuery.field.toLowerCase() + ',default';
 
   return {
     ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),

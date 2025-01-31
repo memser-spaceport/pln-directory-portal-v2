@@ -88,6 +88,20 @@ const Filter = (props: ITeamFilterWeb) => {
     updateQueryParams('isHost', '', searchParams);
   }
 
+  const onIsActiveToggle = () => {
+    triggerLoader(true);
+    if (searchParams?.page) {
+      searchParams.page = '1';
+    }
+    
+    const newIsActive = query.asks === 'all' ? '' : 'all';
+    if (!query.asks) {
+      updateQueryParams('asks', newIsActive, searchParams);
+      return;
+    }
+    updateQueryParams('asks', newIsActive, searchParams);
+  }
+
   const onOfficeHoursToogle = () => {
     triggerLoader(true);
     if (searchParams?.page) {
@@ -224,6 +238,9 @@ const Filter = (props: ITeamFilterWeb) => {
               initialCount={18}
               userInfo={userInfo}
               info="Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project."
+              toggleTitle='Show all asks'
+              IsToggleActive={query.asks === 'all'}
+              onIsActiveToggle={onIsActiveToggle}
             />
           }
 

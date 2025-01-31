@@ -4,7 +4,7 @@ import { getTeamListFilters } from '@/services/teams.service';
 import { ITeamListOptions, ITeamsSearchParams } from '@/types/teams.types';
 import { DEFAULT_ASK_TAGS, INITIAL_ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getTeamsListOptions, getTeamsOptionsFromQuery, processFilters } from '@/utils/team.utils';
+import { getTeamsListOptions, getTeamsOptionsFromQuery, parseFocusAreasParams, processFilters } from '@/utils/team.utils';
 import EmptyResult from '../../components/core/empty-result';
 import Error from '../../components/core/error';
 import FilterWrapper from '../../components/page/teams/filter-wrapper';
@@ -62,7 +62,7 @@ const getPageData = async (searchParams: ITeamsSearchParams) => {
       getTeamList(listOptions, 1, INITIAL_ITEMS_PER_PAGE),
       getTeamListFilters({}),
       getTeamListFilters(listOptions),
-      getFocusAreas("Team", searchParams),
+      getFocusAreas("Team", parseFocusAreasParams(searchParams)),
     ]);
 
     if (teamListFiltersResponse?.data?.askTags) {

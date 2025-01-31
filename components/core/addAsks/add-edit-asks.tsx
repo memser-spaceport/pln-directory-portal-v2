@@ -167,7 +167,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
                     {/* Form title */}
                     <h2 className="addaskcnt__hdr__ttl">Your Asks</h2>
                     {/* Count */}
-                    <div className="addaskcnt__remng">{`(${remainingAsks}${remainingAsks > 1 ? '/3 asks' : '/3 asks'} remaining)`}</div>
+                    <div className="addaskcnt__remng">{`(${remainingAsks}${remainingAsks > 1 ? '/3 asks' : '/3 asks'} remaining) You can submit up to 3 asks`}</div>
                   </div>
 
                   <div ref={bodyRef} id="addaskform" className="addaskcnt__body">

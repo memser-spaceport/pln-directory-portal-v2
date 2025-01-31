@@ -243,7 +243,7 @@ const AsksSection = (props: IAsksSection) => {
 
           {allAsks.length > 0 && allAsks.length < 3 && hasEditAsksAccess && (
             <button className="asksec__hdr__addask" onClick={onAddAsksClickHandler}>
-              Share you Asks
+              Submit Asks
             </button>
           )}
         </div>
@@ -256,7 +256,7 @@ const AsksSection = (props: IAsksSection) => {
             </p>
             {hasEditAsksAccess && (
               <button className="asksec__desc__addask" onClick={onAddAsksClickHandler}>
-                Share your Asks
+                Submit Asks
               </button>
             )}
           </div>

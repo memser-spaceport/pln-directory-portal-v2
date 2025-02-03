@@ -483,7 +483,7 @@ export const ChangeLogList = [
     </ul>
     <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug Fixes</span><br/>
     <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Fixed the 'Additional Details' section on the project detail page to properly render content around new lines.</li>
+    <li>Fixed the 'Additional Details' section within the project detail page to properly render content around new lines.</li>
     </ul>
     </div>`,
   },

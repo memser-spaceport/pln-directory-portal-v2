@@ -50,7 +50,7 @@ const LocationCard = (props: any) => {
   const hiddenEventCount = upcomingEvents.length - visibleEvents.length;
   const remainingEvents = upcomingEvents.slice(4);
 
-  const attendee = upcomingEvents?.map((item: any) => item.eventGuests.length);
+  const attendee = upcomingEvents?.flatMap((item: any) => item?.eventGuests).map((item:any) => item.member);
   const isAttendee = attendee.length > 10 && followProperties.isFollowing === true;
   const router = useRouter();
   const analytics = useIrlAnalytics();
@@ -181,7 +181,7 @@ const LocationCard = (props: any) => {
                     content={<div className="eventName">{event.name}</div>}
                   />
                 ))}
-                {hiddenEventCount > 4 && (
+                {hiddenEventCount > 0 && (
                   <Tooltip
                     asChild
                     align="start"
@@ -202,7 +202,7 @@ const LocationCard = (props: any) => {
             </div>
             :
             <div className='LocationCard__content__eventCntr__no-events'>
-              Stay tuned for upcoming gatherings in Bangkok! Follow this location for updates
+              Stay tuned for upcoming gatherings in {props?.location.split(",")[0].trim()}! Follow this location for updates
             </div>
           }
         </div>

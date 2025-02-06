@@ -66,6 +66,23 @@ export const getFormattedEvents = (events: any) => {
   });
 };
 
+export const getFormattedLocations = (location: any) => {
+  return location.map((loc: any) => {
+    return {
+      uid: loc.uid,
+      category: 'location',
+      location: loc.location,
+      flag: loc.flag,
+      icon: loc.icon, 
+      resources: loc.resources ?? [],
+      priority: loc.priority,
+      pastEvents: loc.pastEvents,
+      upcomingEvents: loc.upcomingEvents,
+      followers: loc.subscribers,
+    };
+  })
+}
+
 export const getformattedMembers = (members: IMemberResponse[]) => {
   return members?.map((member: IMemberResponse): IMember => {
     let parsedMember = { ...member };

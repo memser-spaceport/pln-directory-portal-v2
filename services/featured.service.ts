@@ -1,4 +1,5 @@
-import { getFormattedEvents, getformattedMembers, getFormattedProjects, getFormattedTeams } from "@/utils/home.utils";
+"use server"
+import { getFormattedEvents, getFormattedLocations, getformattedMembers, getFormattedProjects, getFormattedTeams } from "@/utils/home.utils";
 
 export const getFeaturedData = async () => {
     const url = `${process.env.DIRECTORY_API_URL}/v1/home/featured`;
@@ -18,7 +19,22 @@ export const getFeaturedData = async () => {
     const formattedTeams = getFormattedTeams(result?.teams?.teams || []);
     const formattedEvents = getFormattedEvents(result?.events || []);
     const formattedProjects = getFormattedProjects(result.projects?.projects || []);
-  
+    let formattedLocations = getFormattedLocations(result?.locations || [])
+
+    formattedLocations = formattedLocations.sort((a: any, b: any) => {
+      const getFirstImage = (location: any) =>
+        location.followers?.flatMap((follower: any) =>
+          Array.isArray(follower.member) ? follower.member : []
+        ).find((member: any) => member.image?.url);
+    
+      const aHasImage = !!getFirstImage(a);
+      const bHasImage = !!getFirstImage(b);
+    
+      if (!aHasImage && bHasImage) return 1;  
+      if (aHasImage && !bHasImage) return -1;
+      return a.category.localeCompare(b.category);
+    });
+    
     const maxLength = Math.max(formattedMembers.length, formattedTeams.length, formattedEvents.length, formattedProjects.length);
   
     const combinedData = [];
@@ -27,6 +43,7 @@ export const getFeaturedData = async () => {
       if (formattedMembers[i] !== undefined) combinedData.push(formattedMembers[i]);
       if (formattedTeams[i] !== undefined) combinedData.push(formattedTeams[i]);
       if (formattedProjects[i] !== undefined) combinedData.push(formattedProjects[i]);
+      if (formattedLocations[i] !== undefined) combinedData.push(formattedLocations[i]);
     }
   
     if (!response?.ok) {

@@ -142,6 +142,15 @@ export const getAnalyticsProjectInfo = (project: any) => {
   return null;
 };
 
+export const getAnalyticsLocationCardInfo = (location: any) => {
+  if(location?.uid && location.location) {
+    return {
+      uid: location.uid,
+      name: location.location,
+      slugUrl: location.location?.split(',')[0].trim(),
+    }
+  }
+};
 
 export const getQuery = (searchParams: any) => {
   return {

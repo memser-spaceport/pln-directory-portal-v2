@@ -218,3 +218,16 @@ export const getFollowersByLocation = async (locationId: string, authToken: stri
     data: formattedData,
   }
 }
+
+export const getLocationsUid = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/locations?pagination=false&&select=country`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+  if (!response?.ok) {
+    return { error: { status: response?.status, statusText: response?.statusText } };
+  }
+  const result = await response?.json();
+  return { data: result };
+};

@@ -216,3 +216,16 @@ export const searchTeamsByName = async (searchTerm: string) => {
     return { label: item.name, value: item.uid, logo: item.logo?.url };
   });
 };
+
+export const getTeamsUid = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false&&select=uid`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+  if (!response?.ok) {
+    return { error: { status: response?.status, statusText: response?.statusText } };
+  }
+  const result = await response?.json();
+  return { data: result };
+};

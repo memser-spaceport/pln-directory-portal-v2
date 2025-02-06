@@ -188,3 +188,16 @@ export const getProjectOsoDetails = async (name: string) => {
     const result = await response?.json();
     return { data:  result  }
 }
+
+export const getProjectsUid = async () => {
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&&select=uid`, {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(''),
+    });
+    if (!response?.ok) {
+      return { error: { status: response?.status, statusText: response?.statusText } };
+    }
+    const result = await response?.json();
+    return { data: result };
+};

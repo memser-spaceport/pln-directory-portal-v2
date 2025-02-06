@@ -47,6 +47,14 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_PROJECT_CARD_CLICKED, params);
   }
 
+  function onIrlLocationClicked(user: IAnalyticsUserInfo | null, location: any) {
+    const params = {
+      user,
+      ...location,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_LOCATION_CARD_CLICKED, params);
+  }
+
   function onTeamCardClicked(user: IAnalyticsUserInfo | null, team: IAnalyticsTeamInfo | null) {
     const params = {
       ...team,
@@ -141,5 +149,6 @@ export const useHomeAnalytics = () => {
     onMemberBioSeeMoreClicked,
     onMmeberBioPopupViewProfileBtnClicked,
     onFocusAreaProtocolLabsVisionUrlClicked,
+    onIrlLocationClicked,
   };
 };

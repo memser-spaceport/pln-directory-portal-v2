@@ -54,7 +54,7 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   useEffect(() => {
     setFollowProperties((e: any) => getFollowProperties(props.followers));
-  }, [eventLocationSummary.uid, searchParams]);
+  }, [eventLocationSummary.uid, props.followers]);
 
   useEffect(() => {
     function updateFollowers(e: any) {

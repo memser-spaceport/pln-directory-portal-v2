@@ -17,6 +17,7 @@ import { isPastDate } from '@/utils/irl.utils';
 import LocationCard from './location-card';
 import { getFeaturedData } from '@/services/featured.service';
 import { useRouter } from 'next/navigation';
+import { formatFeaturedData } from '@/utils/home.utils';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
@@ -106,7 +107,6 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDa
 const Featured = (props: any) => {
   const isLoggedIn = props?.isLoggedIn;
   const userInfo = props?.userInfo;
-  const searchParams = props?.searchParams;
   const options: EmblaOptionsType = { slidesToScroll: 'auto', loop: true, align: 'start' };
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const cauroselActions = usePrevNextButtons(emblaApi);
@@ -115,7 +115,7 @@ const Featured = (props: any) => {
   
   const getFeaturedDataa = async () => {
    const featData = await getFeaturedData(); 
-   setfeaturedData(featData.data);
+   setfeaturedData(formatFeaturedData(featData.data));
    router.refresh();
   }
 

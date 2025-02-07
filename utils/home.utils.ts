@@ -175,3 +175,24 @@ export function formatDiscoverData(discoverData: any) {
 
   return questionAndAnswers;
 }
+
+export function formatFeaturedData(featuredData: any) {
+  const priorities = (process.env.NEXT_PUBLIC_PRIORITY_FEATURED_SECTION || '').split('|').map((item: any, index: any) => {
+    const [key, value] = item.split(':');
+    return { key, value, order: index };  
+  });
+  
+  const prioritizedData = [...featuredData].sort((a, b) => {
+    const aPriority = priorities.find(p => a.category === p.key && (a.location === p.value || a.name === p.value));
+    const bPriority = priorities.find(p => b.category === p.key && (b.location === p.value || b.name === p.value));
+  
+    if (aPriority && bPriority) {
+      return aPriority.order - bPriority.order; 
+    }
+    if (aPriority && !bPriority) return -1; 
+    if (!aPriority && bPriority) return 1; 
+    return 0;  
+  });
+
+  return prioritizedData;
+}

@@ -50,8 +50,7 @@ const LocationCard = (props: any) => {
   const hiddenEventCount = upcomingEvents.length - visibleEvents.length;
   const remainingEvents = upcomingEvents.slice(4);
 
-  const attendee = upcomingEvents?.flatMap((item: any) => item?.eventGuests).map((item:any) => item.member);
-  const isAttendee = attendee.length > 10 && followProperties.isFollowing === true;
+  const attendee = upcomingEvents?.flatMap((item: any) => item?.eventGuests).map((item: any) => item.member);
   const router = useRouter();
   const analytics = useIrlAnalytics();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -211,41 +210,39 @@ const LocationCard = (props: any) => {
           e.stopPropagation();
           e.preventDefault();
         }}>
-          <div className='LocationCard-follCntr__cnt'>
-            {followProperties?.isFollowing ? `` : 'Receive event updates & notifications'}
-          </div>
           <div className="followRoot">
             {followProperties?.isFollowing ? (
-              <><button className="followRoot__followingBtn__cntr" onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}>
-                <span className='followRoot__followingBtn'>
-                  <div className="root__irl__follwcnt__imgsec__images">
-                    {props.followers
-                      ?.map((item: { member: any }) => item.member?.image?.url)
-                      .filter((url: string | undefined) => !!url)
-                      .slice(0, 3)
-                      .map((url: string, index: number) => (
-                        <Image
-                          key={index}
-                          style={{ position: 'relative', zIndex: `${1}`, marginLeft: `-8px` }}
-                          className="root__follwcnt__imgsec__images__img"
-                          src={url || '/icons/default_profile.svg'}
-                          alt="follower"
-                          height={16.45}
-                          width={16.45}
-                        />
-                      ))}
-                  </div>
-                  <span className=''>
-                    {props.followers.length} Following
+              <>
+                <button className="followRoot__followingBtn__cntr" onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}>
+                  <span className='followRoot__followingBtn'>
+                    <div className="root__irl__follwcnt__imgsec__images">
+                      {props.followers
+                        ?.map((item: { member: any }) => item.member?.image?.url)
+                        .filter((url: string | undefined) => !!url)
+                        .slice(0, 3)
+                        .map((url: string, index: number) => (
+                          <Image
+                            key={index}
+                            style={{ position: 'relative', zIndex: `${1}`, marginLeft: `-8px` }}
+                            className="root__follwcnt__imgsec__images__img"
+                            src={url || '/icons/default_profile.svg'}
+                            alt="follower"
+                            height={16.45}
+                            width={16.45}
+                          />
+                        ))}
+                    </div>
+                    <span className=''>
+                      {props.followers.length} Following
+                    </span>
                   </span>
-                </span>
-                <span className='followRoot__followingBtn__icon'>
-                  <img src="/icons/bell-green.svg" alt="follow" />
-                </span>
-              </button>
+                  <span className='followRoot__followingBtn__icon'>
+                    <img src="/icons/bell-green.svg" alt="follow" />
+                  </span>
+                </button>
                 <>
 
-                  {isAttendee &&
+                  {attendee.length > 0 &&
                     <div className="followRoot__followingBtn__count">
                       <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
                       <span>{`${attendee.length} Attending`}</span>
@@ -253,14 +250,68 @@ const LocationCard = (props: any) => {
                 </>
               </>
             ) : (
-              <button className="followRoot__followBtn" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
-                <img src="/icons/bell-white.svg" alt="follow" />
-                Follow
-              </button>
+              <>
+                {
+                  props.followers.length > 0 && attendee.length > 0 ?
+                    <>
+                      <button className="followRoot__followBtn" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
+                        {props.followers.length > 0 ?
+                          <>
+                            <span className='followRoot__followBtn_cntr'>
+                              <div className="root__irl__follwcnt__imgsec__images">
+                                {props.followers
+                                  ?.map((item: { member: any }) => item.member?.image?.url)
+                                  .filter((url: string | undefined) => !!url)
+                                  .slice(0, 3)
+                                  .map((url: string, index: number) => (
+                                    <Image
+                                      key={index}
+                                      style={{ position: 'relative', zIndex: `${1}`, marginLeft: `-8px` }}
+                                      className="root__follwcnt__imgsec__images__img"
+                                      src={url || '/icons/default_profile.svg'}
+                                      alt="follower"
+                                      height={16.45}
+                                      width={16.45}
+                                    />
+                                  ))}
+                              </div>
+                              <span className=''>
+                                {props.followers.length} Following
+                              </span>
+                            </span>
+                            <span className='followBtn__follow__icon'>
+                              <img src="/icons/bell-blue.svg" alt="follow" />
+                            </span>
+                          </>
+                          :
+                          <div className='followRoot__followBtn__no-followers'>
+                            <img src="/icons/bell-white.svg" alt="follow" />
+                            Follow for update
+                          </div>
+                        }
+                      </button>
+
+                      <div className="followRoot__followingBtn__count">
+                        <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
+                        <span>{`${attendee.length} Attending`}</span>
+                      </div>
+                    </>
+                    :
+                    <>
+                      <div className='LocationCard-follCntr__cnt'>
+                        Receive event updates & notifications
+                      </div>
+                      <button className="followRoot__followBtn__no-followers" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
+                        <img src="/icons/bell-white.svg" alt="follow" />
+                        Follow
+                      </button>
+                    </>
+                }
+              </>
             )}
           </div>
-        </div>
-      </div>
+        </div >
+      </div >
 
       <Modal modalRef={dialogRef} onClose={onCloseModal}>
         <div className="popup__cnt">
@@ -293,7 +344,7 @@ const LocationCard = (props: any) => {
           background-color: white;
           display: flex;
           flex-direction: column;
-          gap: ${followProperties.isFollowing ? '3px' : '5px'};
+          gap: ${followProperties.isFollowing ? '5px' : '5px'};
         }
 
         .LocationCard:hover {
@@ -305,6 +356,12 @@ const LocationCard = (props: any) => {
           flex-direction: column;
         }
 
+        .LocationCard-follow__cntr {
+          display: flex;
+          flex-direcion: row;
+          justify-content: space-between;
+        }
+
         .LocationCard:active {
           border-radius: 12px;
           outline-style: solid;
@@ -312,6 +369,22 @@ const LocationCard = (props: any) => {
           outline-offset: 0;
           outline-color: #156ff7;
           box-shadow: 0px 0px 0px 2px #156ff740;
+        }
+
+        .LocationCard-follCntr__cntr {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        }
+
+        .followBtn__follow__icon {
+          display: flex;
+          border-radius: 0px 8px 8px 0px;
+          border: 1px solid #cbd5e1;
+          padding: 5px;
+          border-left: none;
         }
 
         .LocationCard__content__heading {
@@ -339,12 +412,11 @@ const LocationCard = (props: any) => {
           height: 74px;
           width: 74px;
           background: #f1f5f9;
-          // border: 1px solid #e2e8f0;
           display: flex;
           background: linear-gradient(180deg, #EDF8FF 0%, #E0FFE3 100%);
         }
 
-      .LocationCard__header__img::before {
+        .LocationCard__header__img::before {
           content: "";
           position: absolute;
           top: 0;
@@ -359,8 +431,7 @@ const LocationCard = (props: any) => {
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: destination-out;
           mask-composite: exclude;
-      }
-
+        }
 
         .LocationCard__header__img img {
           position: relative;
@@ -378,16 +449,6 @@ const LocationCard = (props: any) => {
         }
 
         .LocationCard__content__ttl {
-          // font-size: 18px;
-          // font-weight: 600;
-          // line-height: 28px;
-          // text-align: center;
-          // color: #0f172a;
-          // margin-top: 38px;
-          // white-space: nowrap;
-          // text-overflow: ellipsis;
-          // overflow: hidden;
-          // padding: 0px 17px;
           display: flex;
           flex-direction: row;
           gap: 10px;
@@ -421,6 +482,20 @@ const LocationCard = (props: any) => {
           align-items: center;
           justify-content: center;
           border-radius: 0px 12px 0px 12px;
+        }
+
+        .followRoot__followBtn_cntr {
+          display: flex;
+          gap: 5px;
+          padding: 0px 5px;
+          align-items: center;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px 0px 0px 8px;
+          width: 200px;
+          align-items: center;
+          border: 1px solid #cbd5e1;
+          padding: 4px 4px 4px 17px;
+          width: 130px;
         }
 
         .LocationCard-footer {
@@ -463,16 +538,6 @@ const LocationCard = (props: any) => {
           align-items: center;
           
         }
-          
-        // .eventSummaryContainer {
-        //   display: flex;
-        //   align-items: center;
-        //   border-radius: 4px;
-        //   height: inherit;
-        //   border: 0.5px solid #cbd5e1;
-        //   background-color: #ffffff;
-        //   width: fit-content;
-        // }
 
         .eventsContainer {
           display: flex;
@@ -556,7 +621,6 @@ const LocationCard = (props: any) => {
           line-height: 15px;
           text-align: left;
           color: #64748B;
-
         }
 
         .LocationCard__content__eventCntr__no-events {
@@ -567,8 +631,22 @@ const LocationCard = (props: any) => {
           padding: 4px 10px;
         }
 
-
         .followRoot__followBtn {
+          padding: ${props.followers.length > 0 ? '0px' :'4px 7px'};
+          min-width: 82px;
+          border-radius: 8px;
+          display: flex;
+          gap: ${props.followers.length > 0 ? '0px' :'8px'};
+          align-items: center;
+          color: ${props.followers.length > 0 ? '#0F172A' :'#fff'};
+          font-weight: 500;
+          line-height: 20px;
+          font-size: 11.5px;
+          box-shadow: 0px 1px 1px 0px #0f172a14;
+          background: ${props.followers.length > 0 ? '#fff' :'#0F172A'};
+        }
+
+        .followRoot__followBtn__no-followers {
           padding: 4px 7px;
           min-width: 82px;
           border: 1px solid #cbd5e1;
@@ -593,7 +671,7 @@ const LocationCard = (props: any) => {
         .followRoot__followingBtn__count {
           font-size: 11.5px;
           font-weight: 500;
-          line-height: 14px;
+          line-height: 12px;
           text-align: left;
           color: #475569;
           display: flex;
@@ -614,7 +692,6 @@ const LocationCard = (props: any) => {
           line-height: 20px;
           width: 30px;
           font-size: 14px;
-          // border: 1px solid #cbd5e1;
           box-shadow: 0px 1px 1px 0px #0f172a14;
         }
         .followRoot__followingBtn {
@@ -627,7 +704,7 @@ const LocationCard = (props: any) => {
           align-items: center;
           font-weight: 500;
           line-height: 20px;
-          width: ${isAttendee ? '135px' : '235px'};
+          width: ${attendee.length > 0 ? '135px' : '235px'};
           font-size: 11.5px;
           border: 1px solid #cbd5e1;
           box-shadow: 0px 1px 1px 0px #0f172a14;
@@ -635,11 +712,11 @@ const LocationCard = (props: any) => {
         }
 
         .followRoot {
-          display: ${isAttendee ? 'flex' : 'unset'};
-          flex-direction: ${isAttendee ? 'row' : 'unset'};
-          align-items:  ${isAttendee ? 'center' : 'unset'};
-          justify-content: ${isAttendee ? 'space-between' : 'unset'};
-          width:  ${isAttendee ? '100%' : 'unset'};
+          display: flex;
+          flex-direction: row;
+          align-items:  center;
+          justify-content: space-between;
+          width: 100%;
         }
         .popup__footer {
           display: flex;
@@ -722,19 +799,12 @@ const LocationCard = (props: any) => {
           .popup__cnt {
             width: 89vw;
             max-height: 80svh;
-            // min-height: 25vh;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
             padding: 20px;
           }
         }
-
-        // @media (min-width: 768px) {
-        //   .followRoot__followBtn, .followRoot__followingBtn {
-        //     padding: 10px 16px !important;
-        //   }
-        // }
 
         @media (min-width: 1024px) {
           .popup__cnt {
@@ -743,14 +813,6 @@ const LocationCard = (props: any) => {
             padding: 24px;
           }
 
-          // .followRoot__followBtn {
-          //   padding: 10px 16px !important;
-          // }
-
-          // .followRoot__followingBtn {
-          //   padding: 10px 16px;
-          // }
-
           .followRoot__unfollow__popup {
             display: flex;
             width: 90vw;
@@ -758,9 +820,6 @@ const LocationCard = (props: any) => {
             overflow-y: auto;
           }
         }
-      
-
-        
       `}</style>
     </>
   );

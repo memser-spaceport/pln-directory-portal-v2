@@ -51,6 +51,18 @@ const LocationCard = (props: any) => {
   const remainingEvents = upcomingEvents.slice(4);
 
   const attendee = upcomingEvents?.flatMap((item: any) => item?.eventGuests);
+  const uniqueMembers: any[] = [];
+  const seenUids = new Set();
+  
+  attendee.forEach((item: any) => {
+    const uid = item.member?.uid;
+  
+    if (!seenUids.has(uid)) {
+      seenUids.add(uid); 
+      uniqueMembers.push(item); 
+    }
+  });
+
   const router = useRouter();
   const analytics = useIrlAnalytics();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -213,39 +225,50 @@ const LocationCard = (props: any) => {
           <div className="followRoot">
             {followProperties?.isFollowing ? (
               <>
-                <button className="followRoot__followingBtn__cntr" onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}>
-                  <span className="followRoot__followingBtn">
-                    <div className="root__irl__follwcnt__imgsec__images">
-                      {[
-                        ...props.followers
-                          ?.map((item: { member: any }) => item.member?.image?.url)
-                          .filter((url: string | undefined) => !!url), 
-                        ...Array(props.followers.length).fill('/icons/default_profile.svg') 
-                      ]
-                        .slice(0, Math.min(3, props.followers.length))
-                        .map((url: string, index: number) => (
-                          <Image
-                            key={index}
-                            style={{ position: 'relative', zIndex: `${index + 1}`, marginLeft: `-8px` }}
-                            className="root__follwcnt__imgsec__images__img"
-                            src={url}
-                            alt="follower"
-                            height={16.45}
-                            width={16.45}
-                          />
-                        ))}
-                    </div>
-                    <span>{props.followers.length} Following</span>
-                  </span>
-                  <span className='followRoot__followingBtn__icon'>
-                    <img src="/icons/bell-green.svg" alt="follow" />
-                  </span>
-                </button>
+                <Tooltip
+                  asChild
+                  align="center"
+                  trigger={
+                    <button className="followRoot__followingBtn__cntr" onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}>
+                      <span className="followRoot__followingBtn">
+                        <div className="root__irl__follwcnt__imgsec__images">
+                          {[
+                            ...props.followers
+                              ?.map((item: { member: any }) => item.member?.image?.url)
+                              .filter((url: string | undefined) => !!url),
+                            ...Array(props.followers.length).fill('/icons/default_profile.svg')
+                          ]
+                            .slice(0, Math.min(3, props.followers.length))
+                            .map((url: string, index: number) => (
+                              <Image
+                                key={index}
+                                style={{ position: 'relative', zIndex: `${index + 1}`, marginLeft: `-8px` }}
+                                className="root__follwcnt__imgsec__images__img"
+                                src={url}
+                                alt="follower"
+                                height={16.45}
+                                width={16.45}
+                              />
+                            ))}
+                        </div>
+                        <span>{props.followers.length} Following</span>
+                      </span>
+                      <span className="followRoot__followingBtn--line"></span>
+                      <span className='followRoot__followingBtn__icon'>
+                        <img src="/icons/bell-green.svg" alt="follow" />
+                      </span>
+                    </button>
+                  }
+                  content={
+                    <div className="eventName">Unfollow Gathering</div>
+                  }
+                />
+
                 <>
                   {attendee.length > 0 &&
                     <div className="followRoot__followingBtn__count">
                       <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
-                      <span>{`${attendee.length} Attending`}</span>
+                      <span>{`${uniqueMembers.length} Attending`}</span>
                     </div>}
                 </>
               </>
@@ -254,42 +277,53 @@ const LocationCard = (props: any) => {
                 {
                   props.followers.length > 0 || attendee.length > 0 ?
                     <>
-                      <button className="followRoot__followBtn" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
-                        {props.followers.length > 0 ?
-                          <>
-                            <span className='followRoot__followBtn_cntr'>
-                              <div className="root__irl__follwcnt__imgsec__images">
-                                {props.followers
-                                  ?.map((item: { member: any }) => item.member?.image?.url)
-                                  .filter((url: string | undefined) => !!url)
-                                  .slice(0, 3)
-                                  .map((url: string, index: number) => (
-                                    <Image
-                                      key={index}
-                                      style={{ position: 'relative', zIndex: `${1}`, marginLeft: `-8px` }}
-                                      className="root__follwcnt__imgsec__images__img"
-                                      src={url || '/icons/default_profile.svg'}
-                                      alt="follower"
-                                      height={16.45}
-                                      width={16.45}
-                                    />
-                                  ))}
+                      <Tooltip
+                        asChild
+                        align="center"
+                        trigger={
+                          <button className="followRoot__followBtn" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
+                            {props.followers.length > 0 ?
+                              <>
+                                <span className='followRoot__followBtn_cntr'>
+                                  <div className="root__irl__follwcnt__imgsec__images">
+                                    {[
+                                      ...props.followers
+                                        ?.map((item: { member: any }) => item.member?.image?.url)
+                                        .filter((url: string | undefined) => !!url),
+                                      ...Array(props.followers.length).fill('/icons/default_profile.svg')
+                                    ]
+                                      .slice(0, Math.min(3, props.followers.length))
+                                      .map((url: string, index: number) => (
+                                        <Image
+                                          key={index}
+                                          style={{ position: 'relative', zIndex: `${index + 1}`, marginLeft: `-8px` }}
+                                          className="root__follwcnt__imgsec__images__img"
+                                          src={url}
+                                          alt="follower"
+                                          height={16.45}
+                                          width={16.45}
+                                        />
+                                      ))}
+                                  </div>
+                                  <span className=''>
+                                    {props.followers.length} Following
+                                  </span>
+                                </span>
+                                <span className="followRoot__followingBtn--line"></span>
+                                <span className='followBtn__follow__icon'>
+                                  <img src="/icons/bell-blue.svg" alt="follow" />
+                                </span>
+                              </>
+                              :
+                              <div className='followRoot__followBtn__no-followers'>
+                                <img src="/icons/bell-white.svg" alt="follow" />
+                                Follow for update
                               </div>
-                              <span className=''>
-                                {props.followers.length} Following
-                              </span>
-                            </span>
-                            <span className='followBtn__follow__icon'>
-                              <img src="/icons/bell-blue.svg" alt="follow" />
-                            </span>
-                          </>
-                          :
-                          <div className='followRoot__followBtn__no-followers'>
-                            <img src="/icons/bell-white.svg" alt="follow" />
-                            Follow for update
-                          </div>
+                            }
+                          </button>
                         }
-                      </button>
+                        content={<div className="eventName">Click to follow gathering</div>}
+                      />
 
                       {attendee.length > 0 &&
                         <div className="followRoot__followingBtn__count">
@@ -299,15 +333,22 @@ const LocationCard = (props: any) => {
                       }
                     </>
                     :
-                    <>
-                      <div className='LocationCard-follCntr__cnt'>
-                        Receive event updates & notifications
-                      </div>
-                      <button className="followRoot__followBtn__no-followers" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
-                        <img src="/icons/bell-white.svg" alt="follow" />
-                        Follow
-                      </button>
-                    </>
+                    <Tooltip
+                      asChild
+                      align="center"
+                      trigger={
+                        <>
+                          <div className='LocationCard-follCntr__cnt'>
+                            Receive event updates & notifications
+                          </div>
+                          <button className="followRoot__followBtn__no-followers" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
+                            <img src="/icons/bell-white.svg" alt="follow" />
+                            Follow
+                          </button>
+                        </>
+                      }
+                      content={<div className="eventName">Click to follow gathering</div>}
+                    />
                 }
               </>
             )}
@@ -358,6 +399,12 @@ const LocationCard = (props: any) => {
           flex-direction: column;
         }
 
+        .followRoot__followingBtn--line {
+          width: 1px;
+          height: 100%;
+          background: #cbd5e1;
+        }
+
         .LocationCard-follow__cntr {
           display: flex;
           flex-direcion: row;
@@ -383,8 +430,6 @@ const LocationCard = (props: any) => {
 
         .followBtn__follow__icon {
           display: flex;
-          border-radius: 0px 8px 8px 0px;
-          border: 1px solid #cbd5e1;
           padding: 5px;
           border-left: none;
         }
@@ -491,14 +536,13 @@ const LocationCard = (props: any) => {
           gap: 5px;
           padding: 0px 5px;
           align-items: center;
-          border: 1px solid #cbd5e1;
           border-radius: 8px 0px 0px 8px;
           width: 200px;
           align-items: center;
-          border: 1px solid #cbd5e1;
           padding: 4px 4px 4px 17px;
           width: ${attendee.length > 0 ? '130px' : '235px'};
           justify-content: center; 
+          cursor: pointer;
         }
 
         .LocationCard-footer {
@@ -559,7 +603,7 @@ const LocationCard = (props: any) => {
           white-space: nowrap;
           text-overflow: ellipsis;
           overflow: hidden;
-          max-width: 96px;
+          max-width: 90px;
           padding: 0px 6px;
           font-size: 11.5px;
           font-weight: 400;
@@ -616,6 +660,7 @@ const LocationCard = (props: any) => {
           align-items: center;
           justify-content: space-between;
           padding: 5px 13px;
+          cursor: default;
         }
 
         .LocationCard-follCntr__cnt {
@@ -647,13 +692,18 @@ const LocationCard = (props: any) => {
           font-size: 11.5px;
           box-shadow: 0px 1px 1px 0px #0f172a14;
           background: ${props.followers.length > 0 ? '#fff' : 'none'};
+          border: 1px solid #cbd5e1 !important;
+          cursor: pointer;
+        }
+
+        .followRoot__followBtn:hover {
+           border:  ${followProperties.isFollowing ? '' : '1px solid #156ff7 !important'} ;
+           cursor: pointer;
         }
 
         .followRoot__followBtn__no-followers {
           padding: 4px 7px;
           min-width: 82px;
-          border: 1px solid #cbd5e1;
-          background: #fff;
           border-radius: 8px;
           display: flex;
           gap: 8px;
@@ -669,6 +719,13 @@ const LocationCard = (props: any) => {
         .followRoot__followingBtn__cntr {
           display: flex;
           background: inherit;
+          border: 1px solid #cbd5e1; 
+          border-radius: 8px;
+        }
+
+        .followRoot__followingBtn__cntr:hover {
+          border: 1px solid #156ff7; 
+          cursor: pointer;
         }
 
         .followRoot__followingBtn__count {
@@ -680,12 +737,11 @@ const LocationCard = (props: any) => {
           display: flex;
           align-items: center;
           gap: 5px;
+          cursor: default;
         }
 
         .followRoot__followingBtn__icon {
           padding: 5px; 
-          border: 1px solid #cbd5e1;
-          border-left: unset;
           background: #ffffff;
           border-radius: 0px  8px  8px  0px;
           display: flex;
@@ -699,7 +755,6 @@ const LocationCard = (props: any) => {
         }
         .followRoot__followingBtn {
           padding: 5px; 
-          border: 1px solid #cbd5e1;
           background: #ffffff;
           border-radius: 8px  0px  0px  8px;
           display: flex;
@@ -709,7 +764,6 @@ const LocationCard = (props: any) => {
           line-height: 20px;
           width: ${attendee.length > 0 ? '135px' : '235px'};
           font-size: 11.5px;
-          border: 1px solid #cbd5e1;
           box-shadow: 0px 1px 1px 0px #0f172a14;
           justify-content: center;
         }

@@ -286,16 +286,19 @@ const LocationCard = (props: any) => {
                               <>
                                 <span className='followRoot__followBtn_cntr'>
                                   <div className="root__irl__follwcnt__imgsec__images">
-                                    {props.followers
-                                      ?.map((item: { member: any }) => item.member?.image?.url)
-                                      .filter((url: string | undefined) => !!url)
-                                      .slice(0, 3)
+                                    {[
+                                      ...props.followers
+                                        ?.map((item: { member: any }) => item.member?.image?.url)
+                                        .filter((url: string | undefined) => !!url),
+                                      ...Array(props.followers.length).fill('/icons/default_profile.svg')
+                                    ]
+                                      .slice(0, Math.min(3, props.followers.length))
                                       .map((url: string, index: number) => (
                                         <Image
                                           key={index}
-                                          style={{ position: 'relative', zIndex: `${1}`, marginLeft: `-8px` }}
+                                          style={{ position: 'relative', zIndex: `${index + 1}`, marginLeft: `-8px` }}
                                           className="root__follwcnt__imgsec__images__img"
-                                          src={url || '/icons/default_profile.svg'}
+                                          src={url}
                                           alt="follower"
                                           height={16.45}
                                           width={16.45}

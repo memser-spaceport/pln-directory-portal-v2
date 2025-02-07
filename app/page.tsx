@@ -14,6 +14,7 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 import Husky from '@/components/page/home/husky/husky';
+import { formatFeaturedData } from '@/utils/home.utils';
 
 export default async function Home() {
   const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
@@ -79,7 +80,7 @@ const getPageData = async () => {
     }
     teamFocusAreas  = Array.isArray(teamFocusAreaResponse?.data) ?  teamFocusAreaResponse?.data?.filter((data: any) => !data?.parentUid) : [];
     projectFocusAreas = Array.isArray(projectFocusAreaResponse?.data) ? projectFocusAreaResponse?.data?.filter((data: any) => !data?.parentUid) : [];
-    featuredData = featuredResponse?.data;
+    featuredData = formatFeaturedData(featuredResponse?.data);
     discoverData = discoverResponse?.data;
     return {
         isError,

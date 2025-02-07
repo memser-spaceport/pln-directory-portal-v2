@@ -346,6 +346,14 @@ dialog {
   border-radius: 50%;
 }
 
+.root__follwcnt__imgsec__images__img {
+  height: 16.45px;
+  width: 16.45px;
+  border: 1px solid #156ff7;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 .root__irl__imgsec__images__img {
   height: 18px;
   width: 18px;

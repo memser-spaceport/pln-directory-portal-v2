@@ -346,6 +346,7 @@ export const HOME_ANALYTICS_EVENTS = {
   FEATUTRED_TEAM_CARD_CLICKED: 'featured-team-card-clicked',
   FEATURED_IRL_CARD_CLICKED: 'featured-irl-card-clicked',
   FEATURED_PROJECT_CARD_CLICKED: 'featured-project-card-clicked',
+  FEATURED_LOCATION_CARD_CLICKED: 'featured-location-card-clicked',
   FEATURED_MEMBER_BIO_SEE_MORE_CLICKED: 'featured-member-bio-see-more-clicked',
   FEATURED_MEMBER_BIO_POPUP_VIEW_PROFILE_BTN_CLICKED: 'featured-member-bio-popup-view-profile-btn-clicked',
 

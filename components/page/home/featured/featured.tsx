@@ -3,7 +3,7 @@
 import useEmblaCarousel from 'embla-carousel-react';
 import { usePrevNextButtons } from '@/hooks/use-prev-next-buttons';
 import { EmblaOptionsType } from 'embla-carousel';
-import React from 'react';
+import React, { useState } from 'react';
 import FeaturedHeader from './featured-header';
 import IrlCard from './irl-card';
 import MemberCard from './member-card';
@@ -11,13 +11,17 @@ import TeamCard from './team-card';
 import ProjectCard from './project-card';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
-import { getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsLocationCardInfo, getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
 import { isPastDate } from '@/utils/irl.utils';
+import LocationCard from './location-card';
+import { getFeaturedData } from '@/services/featured.service';
+import { useRouter } from 'next/navigation';
+import { formatFeaturedData } from '@/utils/home.utils';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
-function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
+function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDataa: () => void) {
   const { category } = item;
 
   const analytics = useHomeAnalytics();
@@ -43,11 +47,15 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
     analytics.onProjectCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsProjectInfo(project));
   };
 
+  const onIrlLocationClicked = (location: any) => {
+    analytics.onIrlLocationClicked(getAnalyticsUserInfo(userInfo), getAnalyticsLocationCardInfo(location));
+  };
+
   const getEventLocation = (event: any) => {
     try {
-    const isPast = isPastDate(event.endDate);
-    const country = event?.location?.split(',')[0].trim();
-    return `${PAGE_ROUTES.IRL}/?location=${country}&type=${isPast ? 'past' : 'upcoming'}&${isPast ? `event=${event?.slugUrl}` : ''}`;
+      const isPast = isPastDate(event.endDate);
+      const country = event?.location?.split(',')[0].trim();
+      return `${PAGE_ROUTES.IRL}/?location=${country}&type=${isPast ? 'past' : 'upcoming'}&${isPast ? `event=${event?.slugUrl}` : ''}`;
     } catch (error) {
       return ""
     }
@@ -79,19 +87,37 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any) {
           <ProjectCard {...item} />
         </a>
       );
+
+    case 'location':
+      return (
+        <a target="_blank" href={`${PAGE_ROUTES.IRL}?location=${item?.location.split(",")[0].trim()}`}
+        onClick={(e: any) => {
+          onIrlLocationClicked(item);
+          if (e.defaultPrevented) return;
+        }
+        }>
+          <LocationCard {...item} userInfo={userInfo} getFeaturedDataa={getFeaturedDataa}/>
+        </a>
+      );
     default:
       return null;
   }
 }
 
 const Featured = (props: any) => {
-  const featuredData = props?.featuredData ?? [];
   const isLoggedIn = props?.isLoggedIn;
   const userInfo = props?.userInfo;
-
   const options: EmblaOptionsType = { slidesToScroll: 'auto', loop: true, align: 'start' };
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const cauroselActions = usePrevNextButtons(emblaApi);
+  const router = useRouter();
+  const [featuredData, setfeaturedData] = useState(props.featuredData ?? [])
+  
+  const getFeaturedDataa = async () => {
+   const featData = await getFeaturedData(); 
+   setfeaturedData(formatFeaturedData(featData.data));
+   router.refresh();
+  }
 
   return (
     <>
@@ -100,7 +126,7 @@ const Featured = (props: any) => {
         <div>
           <div className={`featured__body`}>
             {featuredData?.map((item: any, index: number) => (
-              <div key={`${item.category}-${index}`}>{RenderCard(item, isLoggedIn, userInfo)}</div>
+              <div key={`${item.category}-${index}`}>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
             ))}
           </div>
         </div>

@@ -20,9 +20,11 @@ function HuskyInputBox(props: any) {
   const isLimitReached = props?.isLimitReached;
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
   const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
-  const { trackSourceChange } = useHuskyAnalytics();
+  const { trackSourceChange, trackHuskyChatStopBtnClicked } = useHuskyAnalytics();
 
   const isLoadingObject = props?.isLoadingObject;
+  const stopStreaming = props.stop;
+  const question = props?.question ?? ''
   const isLoadingObjectRef = useRef(isLoadingObject);
 
 
@@ -53,6 +55,11 @@ function HuskyInputBox(props: any) {
   const isMobileDevice = () => {
     return /Mobi|Android/i.test(navigator.userAgent);
   };
+
+  const onStopStreaming = () => {
+    trackHuskyChatStopBtnClicked(question)
+    stopStreaming();
+  }
 
   useEffect(() => {
     // Handles keydown events for input submission
@@ -156,7 +163,7 @@ function HuskyInputBox(props: any) {
             <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
           </div>
           ) : isLoadingObject ? (
-            <button onClick={props.stop} title="Stop" className="huskyinput__action__submit huskyinput__action__submit--loading">
+            <button onClick={onStopStreaming} title="Stop" className="huskyinput__action__submit huskyinput__action__submit--loading">
                 <div className="huskyinput__action__submit__loadingCn" />
             </button>
           ) : isLimitReached ? (

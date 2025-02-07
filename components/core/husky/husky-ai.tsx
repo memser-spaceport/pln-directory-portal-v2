@@ -45,10 +45,11 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   const [selectedSource, setSelectedSource] = useState<string>('none'); //currently selected source
   const chatCnRef = useRef<HTMLDivElement>(null);
   // track analytics
-  const { trackTabSelection, trackUserPrompt, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse } =
+  const { trackUserPrompt, trackAnswerCopy, trackFollowupQuestionClick, trackQuestionEdit, trackRegenerate, trackCopyUrl, trackFeedbackClick, trackAiResponse, trackDisoverHuskyChatStopBtnClicked } =
     useHuskyAnalytics();
   const initialRunRef = useRef(false); // ref for prevent api call second time
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest' | 'close'>(); // daily limit
+  const [question, setQuestion] = useState('');
   const COOKIE_NAME = 'dailyChats';
 
   // Forces the user to log in by displaying the login box
@@ -90,7 +91,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     isLoading: isLoadingObject,
     submit,
     error,
-    stop
+    stop,
   } = experimental_useObject({
     api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/assistant`,
     headers: {
@@ -142,7 +143,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const updateChatCount = (): number => {
-    if(DAILY_CHAT_LIMIT <  getChatCount()) {
+    if (DAILY_CHAT_LIMIT < getChatCount()) {
       return getChatCount();
     }
     const currentCount = getChatCount() + 1;
@@ -157,8 +158,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       return 'warn';
     } else if (DAILY_CHAT_LIMIT === getChatCount()) {
       return 'finalRequest';
-    }
-     else if (DAILY_CHAT_LIMIT - getChatCount() < 4) {
+    } else if (DAILY_CHAT_LIMIT - getChatCount() < 4) {
       return 'info';
     }
     return null;
@@ -205,8 +205,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           setLimitReached(countResponse);
         }
       }
-
-
+      setQuestion(question);
       const chatUid = checkAndSetPromptId();
       setAnswerLoadingStatus(true);
 
@@ -348,6 +347,11 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     setFeedbackQandA({ question: '', answer: '' });
   };
 
+  const onStopStreaming = () => {
+    trackDisoverHuskyChatStopBtnClicked(question);
+    stop();
+  };
+
   // Scrolls to the answer loader when loading
   useEffect(() => {
     if (isAnswerLoading) {
@@ -390,12 +394,21 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           <div className="huskyai__footer">
             <div className="huskyai__footer__strip">
               {limitReached && limitReached !== 'close' && (
-                <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} onClose={() => setLimitReached('close')} from='husky-chat' />
+                <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} onClose={() => setLimitReached('close')} from="husky-chat" />
               )}
             </div>
             {chats.length !== 0 && (
               <div className="huskyai__input" data-testid="input-box">
-                <HuskyInputBox stop={stop} isLoadingObject={isLoadingObject} isAnswerLoading={isAnswerLoading} selectedSource={selectedSource} onSourceSelected={onSourceSelected} onHuskyInput={onHuskyInput} isLimitReached={limitReached === 'warn' || limitReached === 'finalRequest' } />
+                <HuskyInputBox
+                  stop={stop}
+                  isLoadingObject={isLoadingObject}
+                  isAnswerLoading={isAnswerLoading}
+                  selectedSource={selectedSource}
+                  onSourceSelected={onSourceSelected}
+                  onHuskyInput={onHuskyInput}
+                  isLimitReached={limitReached === 'warn' || limitReached === 'finalRequest'}
+                  question={question}
+                />
               </div>
             )}
           </div>
@@ -422,7 +435,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             {isAnswerLoading && <HuskyAnswerLoader data-testid="blog-answer-loader" />}
             {limitReached && limitReached !== 'close' && (
               <div className="huskyai__cn__strip">
-                <HuskyLimitStrip mode="blog" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} onClose={() => setLimitReached('close')} onDialogClose={onClose} from='discover-blog' />
+                <HuskyLimitStrip mode="blog" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} onClose={() => setLimitReached('close')} onDialogClose={onClose} from="discover-blog" />
               </div>
             )}
           </div>
@@ -436,6 +449,16 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
       )}
 
       {isLoading && <PageLoader data-testid="page-loader" />}
+
+      {/* stop streaming */}
+      {isLoadingObject && !isAnswerLoading && mode === 'blog' && (
+        <button onClick={onStopStreaming} title="Stop" className='huskyai_pauseBtn'>
+          <div className="huskyai__pauseStreaming">
+            <div className="huskyai__pauseStreaming__loadingCn" />
+          </div>
+          <span className='huskyai_pauseBtn__txt'>Stop</span>
+        </button>
+      )}
 
       <style jsx>
         {`
@@ -517,6 +540,61 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 54.22%);
           }
 
+          .huskyai__pauseStreaming__loadingCn {
+            background-color: #156ff7;
+            border-radius: 1.5px;
+            animation: scaleDown 1s infinite alternate ease-in-out;
+            width: 7.2px;
+            height: 7.2px;
+          }
+
+          @keyframes scaleDown {
+            0% {
+              transform: scale(1);
+            }
+            100% {
+              transform: scale(0.83); /* 6/7.2 = 0.83 */
+            }
+          }
+
+          .huskyai__pauseStreaming {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: blue;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0px 2.4px 4.8px 0px #5661F640;
+            background-color: #dbeafe;
+            border: 1.5px solid #93c5fd;
+          }
+
+          .huskyai_pauseBtn {
+            outline: 1px solid #156FF7;
+            box-shadow: 0px 0px 8px 0px #00000040;
+            background: #FFFFFF;
+            border-radius: 4px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 70px;
+            right: 20px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            width: 43px;
+            height: 54px;
+          }
+
+          .huskyai_pauseBtn__txt {
+            font-size: 10px;
+            font-weight: 500;
+            line-height: 14px;
+            color: #156FF7;
+          }
+
           @media (min-width: 1024px) {
             .huskyai__selection {
               padding-bottom: ${limitReached !== 'close' ? '100px' : '64px'};
@@ -530,6 +608,27 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               padding: 0px 0px 20px 0px;
               margin: 0px 16px;
             }
+
+            .huskyai_pauseBtn {
+              flex-direction: row;
+              gap: 10px;
+              justify-content: unset;
+              border-radius: 1000px;
+              right: 30px;
+              width: 87px;
+              height: 40px;
+            }
+
+            .huskyai__pauseStreaming {
+              // margin-top: 1px;
+            }
+
+            .huskyai_pauseBtn__txt {
+              font-size: 14px;
+              line-height: 22px;
+              margin-top: 1.5px;
+            }
+
           }
         `}
       </style>

@@ -42,7 +42,6 @@ const Husky = () => {
     // Set the initial rootMargin
     let observer = new IntersectionObserver(
       ([entry]) => {
-        console.log('IntersectionObserver entry:', entry);
         setIsShrunk(!entry.isIntersecting);
       },
       {

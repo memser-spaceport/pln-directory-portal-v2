@@ -141,6 +141,10 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   PR_CONRTIBUTIONS_LIST_ITEM_ADD: 'pr-contributions-list-item-add',
   PR_CONRTIBUTIONS_LIST_ITEM_DELETE: 'pr-contributions-list-item-delete',
   PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT: 'pr-contributions-list-item-addproject',
+
+  MANAGE_TEAMS_MEMBER_TEAM_LEAD_TOGGLE_CHANGE: 'manage-teams-member-team-lead-toggle-change',
+  MANAGE_TEAMS_MEMBER_REMOVE: 'manage-teams-member-remove',
+  MANAGE_TEAMS_MEMBER_UNDO: 'manage-teams-member-undo',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {

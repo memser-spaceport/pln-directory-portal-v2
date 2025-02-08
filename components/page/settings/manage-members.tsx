@@ -22,6 +22,7 @@ import SettingsAction from './actions';
 import MemberPrivacyReadOnly from './member-privacy-readonly';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
+import AlertMessage from './alert-message';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
@@ -434,6 +435,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
                 <MemberSocialInfo initialValues={initialValues.socialInfo} />
               </div>
             </div>
+            <AlertMessage />
             <SettingsAction />
           </form>
         )}

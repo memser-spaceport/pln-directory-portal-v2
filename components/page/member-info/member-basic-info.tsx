@@ -124,15 +124,20 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 data-testid="member-name-input"
               />
             </div>
-            {isAdminEdit && <div className="memberinfo__form__plnFriend">
+            {/* {isAdminEdit && <div className="memberinfo__form__plnFriend">
               <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
               <label htmlFor="pl-friend" className="memberinfo__form__plnFriend__label">Friends of PL</label>
               <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
-            </div>}
+            </div>} */}
           </div>
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
+            {isAdminEdit && <div className="memberinfo__form__plnFriend__toggle">
+              <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
+              <p className="memberinfo__form__plnFriend__toggle__label">Are you friends of PL?</p>
+              <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+            </div>}
           {!isMemberSelfEdit && !isAdminEdit && (
             <div className="memberinfo__form__item">
               <TextField
@@ -284,6 +289,22 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             font-weight: 600;
             font-size: 14px;
             margin-bottom: 12px;
+          }
+          .memberinfo__form__plnFriend__toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 8px 8px 12px;
+            background-color: #DBEAFE;
+            border: 1px solid #E2E8F0;
+            margin-top: 20px;
+            border-radius: 8px;
+          }
+          .memberinfo__form__plnFriend__toggle__label {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+            color: #0F172A;
           }
         `}
       </style>

@@ -11,13 +11,14 @@ import TeamCard from './team-card';
 import ProjectCard from './project-card';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
-import { getAnalyticsLocationCardInfo, getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsLocationCardInfo, getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
 import { isPastDate } from '@/utils/irl.utils';
 import LocationCard from './location-card';
 import { getFeaturedData } from '@/services/featured.service';
 import { useRouter } from 'next/navigation';
 import { formatFeaturedData } from '@/utils/home.utils';
+import Cookies from 'js-cookie';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
@@ -114,7 +115,8 @@ const Featured = (props: any) => {
   const [featuredData, setfeaturedData] = useState(props.featuredData ?? [])
   
   const getFeaturedDataa = async () => {
-   const featData = await getFeaturedData(); 
+    const authToken = getParsedValue(Cookies.get('authToken'));
+   const featData = await getFeaturedData(authToken); 
    setfeaturedData(formatFeaturedData(featData.data));
    router.refresh();
   }

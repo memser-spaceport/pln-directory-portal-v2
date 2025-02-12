@@ -90,7 +90,7 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDa
 
     case 'location':
       return (
-        <a target="_blank" href={`${PAGE_ROUTES.IRL}?location=${item?.location.split(",")[0].trim()}`}
+        <a target="_blank" href={`${PAGE_ROUTES.IRL}?location=${item?.location?.split(",")[0].trim()}`}
         onClick={(e: any) => {
           onIrlLocationClicked(item);
           if (e.defaultPrevented) return;

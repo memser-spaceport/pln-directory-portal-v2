@@ -94,6 +94,10 @@ const IrlEvents = (props: IIrlEvents) => {
     analytics.trackViewScheduleClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${irlLocation}` });
   };
 
+  const onSubmitFormClick = () => {
+    analytics.trackSubmitFormClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${irlLocation}` });
+  }
+
   const handleAllGathering = () => {
     const currentParams = new URLSearchParams(searchParams);
     const allowedParams = ['type', 'location'];
@@ -428,7 +432,7 @@ const IrlEvents = (props: IIrlEvents) => {
       )}
       <div className="root__irl__submit__event">
         <div>Hosting an event or event not listed here?</div>
-        <a href={IRL_AIRTABLE_FORM_LINK} target="_blank">
+        <a href={irlLocation === "argentina" ? process.env.IRL_SUBMIT_FORM_URL : IRL_AIRTABLE_FORM_LINK} onClick={onSubmitFormClick} target="_blank">
           Submit an event
         </a>
       </div>

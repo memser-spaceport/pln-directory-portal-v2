@@ -72,7 +72,8 @@ export const useIrlAnalytics = () => {
     IRL_RSVP_POPUP_CLOSE_CLICKED: 'irl-rsvp-popup-close-clicked',
 
     IRL_ADD_EVENT_CLICKED:'irl-add-event-clicked',
-    IRL_VIEW_SCHEDULE_CLICKED:'irl-view-schedule-clicked'
+    IRL_VIEW_SCHEDULE_CLICKED:'irl-view-schedule-clicked',
+    IRL_SUBMIT_FORM_CLICKED:'irl-submit-form-clicked'
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -516,6 +517,10 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_VIEW_SCHEDULE_CLICKED, {...params})
   }
 
+  function trackSubmitFormClick(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_SUBMIT_FORM_CLICKED, {...params})
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -570,6 +575,7 @@ export const useIrlAnalytics = () => {
     irlLocationUnFollowBtnClicked,
     irlAllFollowersBtnClicked,
     irlFollowerBtnClicked,
-    trackViewScheduleClick
+    trackViewScheduleClick,
+    trackSubmitFormClick
   };
 };

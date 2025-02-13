@@ -432,7 +432,7 @@ const IrlEvents = (props: IIrlEvents) => {
       )}
       <div className="root__irl__submit__event">
         <div>Hosting an event or event not listed here?</div>
-        <a href={irlLocation === "argentina" ? process.env.IRL_SUBMIT_FORM_URL : IRL_AIRTABLE_FORM_LINK} onClick={onSubmitFormClick} target="_blank">
+        <a href={irlLocation === "denver" ? process.env.IRL_SUBMIT_FORM_URL : IRL_AIRTABLE_FORM_LINK} onClick={onSubmitFormClick} target="_blank">
           Submit an event
         </a>
       </div>

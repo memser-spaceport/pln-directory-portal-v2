@@ -16,6 +16,7 @@ import IrlAllEvents from './irl-all-events';
 import { IUserInfo } from '@/types/shared.types';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import IrlEditResponse from './irl-edit-response';
+import Link from 'next/link';
 
 interface IIrlEvents {
   searchParams: any;
@@ -44,6 +45,9 @@ const IrlEvents = (props: IIrlEvents) => {
   const guestDetails = props?.guestDetails;
   const isUserGoing = guestDetails?.isUserGoing;
   const updatedUser = guestDetails?.currentGuest ?? null;
+  const irlLocation = searchParams?.location?.toLowerCase() ?? '';
+  const scheduleEnabledLocations = process.env.SCHEDULE_ENABLED_LOCATIONS?.split(',');
+  const isScheduleEnabled = scheduleEnabledLocations?.includes(irlLocation) || false;
 
   const isEventAvailable = searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event);
 
@@ -84,6 +88,10 @@ const IrlEvents = (props: IIrlEvents) => {
       triggerLoader(true);
       analytics.trackUpcomingEventsButtonClicked(eventDetails.upcomingEvents);
     }
+  };
+
+  const onViewScheduleClick = () => {
+    analytics.trackViewScheduleClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${irlLocation}` });
   };
 
   const handleAllGathering = () => {
@@ -146,7 +154,7 @@ const IrlEvents = (props: IIrlEvents) => {
     }
     analytics.trackAdditionalResourceSeeMoreButtonClicked(eventDetails.resources);
   };
-  const inPastEvents = type ? type === 'past' : (eventDetails?.pastEvents && eventDetails?.pastEvents.length > 0 && eventDetails.upcomingEvents && eventDetails?.upcomingEvents?.length === 0);
+  const inPastEvents = type ? type === 'past' : eventDetails?.pastEvents && eventDetails?.pastEvents.length > 0 && eventDetails.upcomingEvents && eventDetails?.upcomingEvents?.length === 0;
 
   // Open Attendee Details Popup to add guest
   const onIAmGoingClick = () => {
@@ -254,6 +262,15 @@ const IrlEvents = (props: IIrlEvents) => {
             </>
           )}
 
+          {isScheduleEnabled && (
+            <Link legacyBehavior target="_blank" href={`${process.env.SCHEDULE_BASE_URL}/${irlLocation}`}>
+              <a className="root__schedule" onClick={onViewScheduleClick}>
+                <img src="/icons/calendar.svg" height={16} width={16} className="root__schedule__img" alt="calendar" />
+                View Schedule
+              </a>
+            </Link>
+          )}
+
           {/* TODO - To be used later*/}
           {/* {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length > 0 && (
             <div className="root__irl__eventWrapper">
@@ -287,7 +304,7 @@ const IrlEvents = (props: IIrlEvents) => {
         </div>
         <div className="mob">
           {((searchParams?.type === 'past' && eventDetails?.upcomingEvents?.length > 0) || (searchParams?.type === 'upcoming' && eventDetails?.pastEvents?.length > 0)) &&
-            !(eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length !== 0) ? (
+          !(eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length !== 0) ? (
             <div className="root__irl__table__no-data">
               <div>
                 <img src="/icons/no-calender.svg" alt="calendar" />
@@ -319,38 +336,38 @@ const IrlEvents = (props: IIrlEvents) => {
               )}
 
               {eventDetails?.resources?.length > 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
-                <div className={`${searchParams?.type === 'past' ? 'root__irl__addResWrpr' :'' }`}>
-                <div className="root__irl__addRes">
-                  <div className="root__irl__addRes__cnt">
-                    <div className="root__irl__addRes__cnt__icon">📋</div>
-                    <div>Additional Resources</div>
-                  </div>
-
-                  <div className="root__irl__addRes__cntr">
-                    <div className="root__irl__addRes__cntr__resource">
-                      {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
-                        <div key={index} className="root__irl__addRes__cntr__resCnt">
-                          <div style={{ display: 'flex' }} onClick={() => handleAdditionalResourceClicked(resource)}>
-                            <img src="/icons/hyper-link.svg" alt="icon" />
-                          </div>
-                          <a href={resource?.link} target="_blank">
-                            {resource?.type}
-                          </a>
-                          <div>
-                            <img src="/icons/arrow-blue.svg" alt="arrow icon" />
-                          </div>
-                        </div>
-                      ))}
+                <div className={`${searchParams?.type === 'past' ? 'root__irl__addResWrpr' : ''}`}>
+                  <div className="root__irl__addRes">
+                    <div className="root__irl__addRes__cnt">
+                      <div className="root__irl__addRes__cnt__icon">📋</div>
+                      <div>Additional Resources</div>
                     </div>
 
-                    {eventDetails?.resources?.length > 3 && (
-                      <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
-                        <div>+{eventDetails?.resources?.length - 3}</div>
-                        <div>more</div>
+                    <div className="root__irl__addRes__cntr">
+                      <div className="root__irl__addRes__cntr__resource">
+                        {eventDetails?.resources?.slice(0, 3).map((resource: any, index: number) => (
+                          <div key={index} className="root__irl__addRes__cntr__resCnt">
+                            <div style={{ display: 'flex' }} onClick={() => handleAdditionalResourceClicked(resource)}>
+                              <img src="/icons/hyper-link.svg" alt="icon" />
+                            </div>
+                            <a href={resource?.link} target="_blank">
+                              {resource?.type}
+                            </a>
+                            <div>
+                              <img src="/icons/arrow-blue.svg" alt="arrow icon" />
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    )}
+
+                      {eventDetails?.resources?.length > 3 && (
+                        <div className="root__irl__addRes__cntr__resCnt__showMore" onClick={handleAddResClick}>
+                          <div>+{eventDetails?.resources?.length - 3}</div>
+                          <div>more</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
                 </div>
               )}
             </>
@@ -416,7 +433,7 @@ const IrlEvents = (props: IIrlEvents) => {
         </a>
       </div>
 
-{/* 
+      {/* 
       <div className="add-gathering">
         <div className="add-gathering__icon">
           <Image src="/icons/irl/add-gathering.svg" alt="add-gathering" width={19} height={19} />
@@ -486,15 +503,31 @@ const IrlEvents = (props: IIrlEvents) => {
           align-items: center;
         }
 
+        .root__schedule {
+          background-color: #ffffff;
+          color: #0f172a;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          padding: 10px;
+          border-radius: 8px;
+          border: 1px solid #cbd5e1;
+          font-weight: 500;
+          font-size: 14px;
+          line-height: 20px;
+          width: 100%;
+        }
+
         .root__irl__events {
-          width: 314px;
+          width: 100%;
           height: 48px;
           padding: 3px;
           border-radius: 8px;
           border: 1px solid #cbd5e1;
           display: flex;
           flex-direction: row;
-          background-color: #F1F5F9;
+          background-color: #f1f5f9;
         }
 
         .root__irl__events button {
@@ -515,7 +548,7 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         .root__irl__events__inactive {
-          background-color: #F1F5F9;
+          background-color: #f1f5f9;
           color: #0f172a;
         }
 
@@ -573,7 +606,7 @@ const IrlEvents = (props: IIrlEvents) => {
           padding: 1px 4px 0px 4px;
           border-radius: 2px;
           border: 0.5px solid transparent;
-          background-color: #94A3B8;
+          background-color: #94a3b8;
           color: #fff;
         }
 
@@ -829,20 +862,20 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         .toolbar__actionCn__imGoingBtn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 20px;
-            height: 40px;
-            cursor: pointer;
-            background: #156ff7;
-            color: #fff;
-            width: 132px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          border-radius: 8px;
+          border: 1px solid #cbd5e1;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          height: 40px;
+          cursor: pointer;
+          background: #156ff7;
+          color: #fff;
+          width: 132px;
         }
 
         .toolbar__actionCn__imGoingBtn:hover {
@@ -850,53 +883,53 @@ const IrlEvents = (props: IIrlEvents) => {
         }
 
         .toolbar__actionCn__imGoingBtn {
-            width: 95px;
-            padding: 10px 12px;
+          width: 95px;
+          padding: 10px 12px;
         }
 
         .toolbar__actionCn__edit__wrpr {
-            position: relative;
-          }
+          position: relative;
+        }
 
-          .toolbar__actionCn__edit {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            padding: 10px 12px;
-            font-size: 14px;
-            font-weight: 500;
-            height: 40px;
-            cursor: pointer;
-            background: #156ff7;
-            color: #fff;
-          }
+        .toolbar__actionCn__edit {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          border-radius: 8px;
+          border: 1px solid #cbd5e1;
+          padding: 10px 12px;
+          font-size: 14px;
+          font-weight: 500;
+          height: 40px;
+          cursor: pointer;
+          background: #156ff7;
+          color: #fff;
+        }
 
-          .toolbar__actionCn__edit:hover {
-            background: #1d4ed8;
-          }
-          .root__irl__submit__event {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 60px;
-            background-color: #fff;
-            padding: 10px 20px;
-            font-size: 14px;
-            line-height: 20px;
-            border-radius: 0 0 8px 8px;
-            margin-top: ${isLoggedIn ? '2px' : 0};
-            box-shadow: 0px 4px 4px 0px #0F172A0A;
-          }
-          .root__irl__submit__event a {
-            color: #156FF7;
-            cursor: pointer;
-            font-weight: 500;
-          }
-      
+        .toolbar__actionCn__edit:hover {
+          background: #1d4ed8;
+        }
+        .root__irl__submit__event {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 60px;
+          background-color: #fff;
+          padding: 10px 20px;
+          font-size: 14px;
+          line-height: 20px;
+          border-radius: 0 0 8px 8px;
+          margin-top: ${isLoggedIn ? '2px' : 0};
+          box-shadow: 0px 4px 4px 0px #0f172a0a;
+        }
+        .root__irl__submit__event a {
+          color: #156ff7;
+          cursor: pointer;
+          font-weight: 500;
+        }
+
         @media (min-width: 320px) {
           .root__irl__submit__event {
             margin-bottom: 10px;
@@ -997,8 +1030,16 @@ const IrlEvents = (props: IIrlEvents) => {
             flex-direction: row;
             align-items: center;
           }
-          
-          .root__irl__addRes__loggedOut, .root__irl__submit__event {
+
+          .root__irl__events {
+            width: 314px;
+          }
+          .root__schedule {
+            width: auto;
+          }
+
+          .root__irl__addRes__loggedOut,
+          .root__irl__submit__event {
             max-width: 900px;
             width: 100%;
           }
@@ -1074,7 +1115,8 @@ const IrlEvents = (props: IIrlEvents) => {
           .root__irl__addRes__cntr {
             width: 84%;
           }
-          .root__irl__addRes__loggedOut, .root__irl__submit__event {
+          .root__irl__addRes__loggedOut,
+          .root__irl__submit__event {
             max-width: 1244px;
           }
         }
@@ -1095,7 +1137,8 @@ const IrlEvents = (props: IIrlEvents) => {
           .root__irl__addRes__cntr {
             width: 88%;
           }
-          .root__irl__addRes__loggedOut, .root__irl__submit__event {
+          .root__irl__addRes__loggedOut,
+          .root__irl__submit__event {
             max-width: 1678px;
           }
         }
@@ -1117,7 +1160,8 @@ const IrlEvents = (props: IIrlEvents) => {
             width: 91%;
           }
 
-          .root__irl__addRes__loggedOut, .root__irl__submit__event {
+          .root__irl__addRes__loggedOut,
+          .root__irl__submit__event {
             max-width: 2240px;
           }
         }

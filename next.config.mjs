@@ -30,6 +30,8 @@ const nextConfig = {
     GOOGLE_SITE_KEY: process.env.GOOGLE_SITE_KEY,
     GOOGLE_SECRET_KEY: process.env.GOOGLE_SECRET_KEY,
     PRIORITY_FEATURED_SECTION: process.env.PRIORITY_FEATURED_SECTION,
+    SCHEDULE_ENABLED_LOCATIONS: process.env.SCHEDULE_ENABLED_LOCATIONS,
+    SCHEDULE_BASE_URL: process.env.SCHEDULE_BASE_URL
   },
   images: {
     remotePatterns: [

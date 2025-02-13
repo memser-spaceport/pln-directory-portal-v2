@@ -9,7 +9,10 @@ export interface IUserInfo {
     roles?: string[];
     leadingTeams?: string[];
   }
-
+  export interface Option {
+    label: string;
+    value: string;
+  }
 
 
   export interface IAnalyticsUserInfo {

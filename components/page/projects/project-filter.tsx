@@ -10,10 +10,11 @@ import Toggle from '@/components/ui/toogle';
 import { Autocomplete } from '@/components/ui/autocomplete';
 import { getTeam, searchTeamsByName } from '@/services/teams.service';
 import Image from 'next/image';
-import { EVENTS, FOCUS_AREAS_FILTER_KEYS } from '@/utils/constants';
+import { DEFAULT_PROJECT_TAGS, EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES } from '@/utils/constants';
 import FocusAreaFilter from '@/components/core/focus-area-filter/focus-area-filter';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
+import TagContainer from '@/components/ui/tag-container';
 
 const ProjectFilter = (props: any) => {
   //props
@@ -31,6 +32,13 @@ const ProjectFilter = (props: any) => {
   const projectTeamRef = useRef<HTMLInputElement>(null);
   const projectPaneRef = useRef<HTMLDivElement>(null);
   const analytics = useProjectAnalytics();
+  
+  const tagsFilters = DEFAULT_PROJECT_TAGS.map((tag) => {
+    return {
+      value: tag.label,
+      selected: searchParams['tags']?.split(',').includes(tag.label) ?? false,
+      disabled: !props?.filters?.tags?.some((filterTag: any) => filterTag.value === tag.label),
+    }});
 
 
   //state
@@ -155,6 +163,28 @@ const ProjectFilter = (props: any) => {
     findTeamsByName('');
   }
 
+  const onTagClickHandler = (key: string, value: string, isSelected: boolean) => {
+    triggerLoader(true);
+    const tags = searchParams['tags'] ? searchParams['tags'].split(',') : [];
+    if (!isSelected) {
+      tags.push(value);
+    } else {
+      const index = tags.indexOf(value);
+      if (index > -1) {
+        tags.splice(index, 1);
+      }
+    }
+
+    if (tags.length === 0) {
+      updateQueryParams('tags', '', searchParams);
+    } else {
+      updateQueryParams('tags', tags, searchParams);
+    }
+    analytics.onProjectFilterApplied(getAnalyticsUserInfo(userInfo), {
+      tags: tags,
+    });
+  }
+
   useEffect(() => {
     setSearchText(selectedTeam?.label)
   }, [router, searchParams])
@@ -222,6 +252,18 @@ const ProjectFilter = (props: any) => {
               onClear={onClear}
               isClear={(searchText || selectedTeam?.logo) ? true : false}
             />
+          </div>
+          <div>
+            <TagContainer
+                        page={PAGE_ROUTES.PROJECTS}
+                        label="Tags"
+                        isUserLoggedIn={userInfo}
+                        name="tags"
+                        items={tagsFilters ?? []}
+                        onTagClickHandler={onTagClickHandler}
+                        initialCount={10}
+                        userInfo={userInfo}
+                      />
           </div>
         </div>
         <div className="project-filter__footer">

@@ -264,7 +264,7 @@ const IrlEvents = (props: IIrlEvents) => {
 
           {isScheduleEnabled && (
             <Link legacyBehavior target="_blank" href={`${process.env.SCHEDULE_BASE_URL}/${irlLocation}`}>
-              <a className="root__schedule" onClick={onViewScheduleClick}>
+              <a target="_blank" className="root__schedule" onClick={onViewScheduleClick}>
                 <img src="/icons/calendar.svg" height={16} width={16} className="root__schedule__img" alt="calendar" />
                 View Schedule
               </a>

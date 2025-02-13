@@ -2,10 +2,10 @@
 
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { deleteProject, getTagsLabel } from '@/services/projects.service';
+import { deleteProject } from '@/services/projects.service';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { DEFAULT_PROJECT_TAGS, EVENTS } from '@/utils/constants';
+import { EVENTS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import DeleteConfirmationModal from './delete-confirmation-modal';
@@ -31,10 +31,7 @@ const Header = (props: IHeader) => {
   const user = props?.user;
   const authToken = props?.authToken;
   const router = useRouter();
-  
 
-  const tags = project?.tags?.length ? getTagsLabel(project.tags) : [];
-  
   const analytics = useProjectAnalytics();
 
   const onOpenDeleteModal = () => {
@@ -121,11 +118,6 @@ const Header = (props: IHeader) => {
               <span className="header__tags__funds__text">Raising Funds</span>
             </div>
           )}
-          {tags.map((tag, index: number) => (
-            <div key={index} className="header__tags__tag">
-              <span className="header__tags__funds__text">{tag?.label}</span>
-            </div>
-          ))}
         </div>
       </div>
       <DeleteConfirmationModal onClose={onCloseModal} onDeleteProject={onDeleteProject} />
@@ -135,12 +127,6 @@ const Header = (props: IHeader) => {
           grid-template-columns: 48px auto;
           column-gap: 8px;
         }
-
-        .header__tags__tag{
-            background-color: #f1f5f9;
-            padding: 6px 12px 6px 12px;
-            border-radius: 24px;
-          }
 
         button {
           background: none;
@@ -212,12 +198,8 @@ const Header = (props: IHeader) => {
         .header__tags {
           grid-row: span 1 / span 1;
           grid-column: span 5 / span 5;
-          padding-top: 24px;
+          padding-top: ${lookingForFunding ? '24px' : '0px'};
           border-top: 1px solid #e2e8f0;
-          display: flex;
-          flex-wrap: wrap;
-          column-gap: 8px;
-          row-gap: 8px;
         }
 
         .header__tags__funds__text {
@@ -293,9 +275,6 @@ const Header = (props: IHeader) => {
             grid-column: 2 / auto;
             border-top: unset;
             padding: 16px 0px 0px 0px;
-            column-gap: 8px;
-            display: flex;
-            flex-wrap: wrap;
           }
 
           .header__details__controls__edit span,

@@ -1,15 +1,11 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { getTagsLabel } from '@/services/projects.service';
-import { Option } from '@/types/shared.types';
 import Image from 'next/image';
 
 const ProjectListView = (props: any) => {
   //props
   const project = props?.project;
-  const tags = project?.tags?.length ? getTagsLabel(project.tags) : [];
-  const tagsCountToShow = 2;
 
   //variables
   const profile = project?.logo ?? '/icons/project-default.svg';
@@ -43,34 +39,14 @@ const ProjectListView = (props: any) => {
               <p className="projectlist__details__cn__desc">{description}</p>
             </div>
 
-            <div className="projectlist__details__right__container">
-              <div className="projectlist__details__right__container__tags">
-                {tags.slice(0, tagsCountToShow).map((tag: Option, index: number) => (
-                  <div key={index} className="projectlist__details__right__container__tags__tag">
-                    <span className="projectlist__details__right__container__tags__tag__text">{tag.label}</span>
-                  </div>
-                ))}
-                {tags.length > tagsCountToShow && (
-                  <div className="projectlist__details__right__container__tags__tag">
-                    <span className="projectlist__details__right__container__tags__tag__text">+{tags.length - tagsCountToShow}</span>
-                  </div>
-                )}
-              </div>
-              <div className='projectlist__details__maintainer'>
-              <p className="projectlist__details__maintainer__cn__title">Maintainer</p>
-              <Image alt="maintainer" height={20} width={20} layout="intrinsic" loading="eager" priority={true} className="projectlist__details__maintainer__img" src={maintainerLogo} />
-              <p className="projectlist__details__maintainer__cn__name">{maintainerName}</p>
-              </div>
-            </div>
-
-            {/* <div className="projectlist__details__maintainer">
+            <div className="projectlist__details__maintainer">
               <Image alt="maintainer" height={36} width={36} layout="intrinsic" loading="eager" priority={true} className="projectlist__details__maintainer__img" src={maintainerLogo} />
 
               <div className="projectlist__details__maintainer__cn">
                 <p className="projectlist__details__maintainer__cn__name">{maintainerName}</p>
                 <p className="projectlist__details__maintainer__cn__title">Maintainer</p>
               </div>
-            </div> */}
+            </div>
           </div>
         </div>
         <style jsx>
@@ -82,7 +58,7 @@ const ProjectListView = (props: any) => {
               width: inherit;
               padding: 20px;
               gap: 8px;
-              height: 158px;
+              height: 112px;
               border: 1px solid #fff;
               box-shadow: 0px 4px 4px 0px rgba(15, 23, 42, 0.04), 0px 0px 1px 0px rgba(15, 23, 42, 0.12);
             }
@@ -106,9 +82,9 @@ const ProjectListView = (props: any) => {
 
             .projectlist__details {
               align-items: center;
-              // text-align: left;
+              text-align: left;
               justify-content: space-between;
-              display: flex !important;
+              display: flex;
               width: 100%;
               gap: 16px;
             }
@@ -148,43 +124,8 @@ const ProjectListView = (props: any) => {
               overflow: hidden;
               text-overflow: ellipsis;
               margin-top: 5px;
-              // margin-left: -39px;
+              margin-left: -39px;
               word-break: break-word;
-            }
-
-            .projectlist__details__right__container {
-              display: flex;
-              gap: 16px;
-              flex-direction: column;
-              width: 100%;
-            }
-
-            .projectlist__details__right__container__tags {
-              display: flex;
-              gap: 8px;
-            }
-
-            .projectlist__details__right__container__tags__tag {
-              padding: 6px 12px 6px 12px;
-              border-radius: 24px;
-              background: #f1f5f9;
-            }
-            .projectlist__details__right__container__tags__tag__text {
-              max-width: 100px;
-              width: max-content;
-              overflow: hidden;
-              display: -webkit-box;
-              -webkit-line-clamp: 1;
-              -webkit-box-orient: vertical;
-              text-overflow: ellipsis;
-              word-break: break-word;
-              font-size: 12px;
-              font-weight: 500;
-              line-height: 14px;
-              text-align: left;
-              text-underline-position: from-font;
-              text-decoration-skip-ink: none;
-              color: #475569;
             }
 
             .projectlist__details__maintainer {
@@ -198,46 +139,7 @@ const ProjectListView = (props: any) => {
               width: 100%;
               display: unset;
               gap: 16px;
-              flex-direction: column;
             }
-            
-            @media (min-width: 768px) {
-            .projectlist__details {
-              flex-direction: row;
-          }
-              .projectlist {
-                height: 112px;
-              }
-
-              .projectlist__details__right__container {
-                width: max-content;
-              }
-
-              .projectlist__details__maintainer {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-              }
-
-              .projectlist__details__maintainer__cn__name {
-                font-weight: 500;
-                width: 100%;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                font-size: 13px;
-                line-height: 20px;
-                color: #0f172a;
-                text-align: left;
-              }
-              .projectlist__details__maintainer__cn__title {
-                font-weight: 500;
-                font-size: 13px;
-                line-height: 20px;
-                color: #94a3b8;
-                text-align: left;
-              }
-          }
 
             @media (min-width: 1024px) {
               .projectlist__details {
@@ -284,8 +186,30 @@ const ProjectListView = (props: any) => {
               .projectlist__maintainer {
               }
 
+              .projectlist__details__maintainer {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              }
 
-              
+              .projectlist__details__maintainer__cn__name {
+                font-weight: 500;
+                width: 100px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                font-size: 13px;
+                line-height: 20px;
+                color: #0f172a;
+                text-align: left;
+              }
+              .projectlist__details__maintainer__cn__title {
+                font-weight: 500;
+                font-size: 13px;
+                line-height: 20px;
+                color: #94a3b8;
+                text-align: left;
+              }
 
               .projectlist__details {
                 display: flex;

@@ -1,5 +1,4 @@
 import { getHeader} from "@/utils/common.utils"
-import { DEFAULT_PROJECT_TAGS } from "@/utils/constants";
 
 
 export const getProject = async (id: string, options: any) => {
@@ -75,7 +74,6 @@ const getFormattedProject = (project: any) => {
             formattedProject['score'] = project.score ?? null;
             formattedProject['projectFocusAreas']= project.projectFocusAreas ?? [];
             formattedProject['osoProjectName'] = project.osoProjectName ?? null;
-            formattedProject['tags'] = project.tags ?? null;
 
             const tempContributors: any = [];
             project?.contributions?.map((mem: any) => {
@@ -150,29 +148,6 @@ export const addProject = async (data: any, authToken: string | undefined) => {
     return await response.json();
 }
 
-export const getTagsLabel = (tags: string[]) => {
-    const projectTags = tags.map((t:string) => t.toLowerCase()) ?? [];
-      const tagsObjList = DEFAULT_PROJECT_TAGS.filter((tag) => {
-        return projectTags.includes(tag.label.toLowerCase());
-      });
-      return tagsObjList;
-    }
-
-export const getProjectFilters = async (options: any) => {
-    try {
-        const requestOPtions: RequestInit = { method: 'GET', headers: getHeader('') };
-        const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/projects/filters?${new URLSearchParams(options)}`, requestOPtions);
-        if (!response?.ok) {
-          return { error: { statusText: response?.statusText } };
-        }
-
-        const result = await response?.json();
-        return { data: result };
-      } catch (err) {
-        return { error: err };
-      }
-};
-
 
 const formatToSave = (payload: any) => {
 
@@ -183,7 +158,6 @@ const formatToSave = (payload: any) => {
         "lookingForFunding": payload?.lookingForFunding,
         "readMe": payload?.readMe,
         "maintainingTeamUid": payload?.maintainingTeamUid,
-        "tags": payload?.tags,
     }
 
     if (payload?.contactEmail) {

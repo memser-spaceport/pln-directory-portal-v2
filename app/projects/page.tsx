@@ -11,10 +11,9 @@ import { URL_QUERY_VALUE_SEPARATOR, SOCIAL_IMAGE_URL, ITEMS_PER_PAGE, INITIAL_IT
 import { Metadata } from 'next';
 import { getTeam, searchTeamsByName } from '@/services/teams.service';
 import { getAllProjects } from '../actions/projects.actions';
-import { getProjectFilters } from '@/services/projects.service';
 
 export default async function Page({ searchParams }: any) {
-  const { projects, initialTeams, selectedTeam, isError, totalProjects, userInfo, focusAreas, isLoggedIn, filters } = await getPageData(searchParams);
+  const { projects, initialTeams, selectedTeam, isError, totalProjects, userInfo, focusAreas, isLoggedIn } = await getPageData(searchParams);
 
   if (isError) {
     return <Error />;
@@ -23,7 +22,7 @@ export default async function Page({ searchParams }: any) {
   return (
     <section className={styles.project}>
       <aside className={styles.project__filter}>
-        <FilterWrapper initialTeams={initialTeams} selectedTeam={selectedTeam} searchParams={searchParams} userInfo={userInfo} focusAreas={focusAreas} filters={filters}/>
+        <FilterWrapper initialTeams={initialTeams} selectedTeam={selectedTeam} searchParams={searchParams} userInfo={userInfo} focusAreas={focusAreas} />
       </aside>
       <div className={styles.project__cn}>
         <div className={styles.project__cn__toolbar}>
@@ -49,7 +48,7 @@ const getPageData = async (searchParams: any) => {
     const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
     const selectOpitons = getProjectSelectOptions(filterFromQuery);
     const [projectsResponse, focusAreasResponse] = await Promise.all([getAllProjects({...selectOpitons, isDeleted: false,
-      select: "uid,name,tagline,tags,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url"
+      select: "uid,name,tagline,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url"
     }, 1, INITIAL_ITEMS_PER_PAGE), getFocusAreas('Project', searchParams)]);
     if (projectsResponse?.error || focusAreasResponse?.error) {
       isError = true;
@@ -66,15 +65,9 @@ const getPageData = async (searchParams: any) => {
         }
     }
 
-    const [searchTeamsResponse, filterResponse] = await Promise.all([searchTeamsByName(selectedTeam.label), getProjectFilters(selectOpitons)]);
-
-    if(!searchTeamsResponse.error) {
-      initialTeams = searchTeamsResponse;
-    }
-
-    let filters = [];
-    if(!filterResponse.error) {
-      filters = filterResponse.data;
+    const result = await searchTeamsByName(selectedTeam.label);
+    if(!result.error) {
+      initialTeams = result;
     }
 
     const focusAreaQuery = searchParams?.focusAreas;
@@ -92,7 +85,6 @@ const getPageData = async (searchParams: any) => {
       isLoggedIn,
       selectedTeam,
       initialTeams,
-      filters,
     };
   } catch (error) {
     isError = true;

@@ -13,14 +13,13 @@ interface IFilterwrapper {
   focusAreas: any;
   selectedTeam: any
   initialTeams: any;
-  filters: any;
 }
 
 export default function FilterWrapper(props: IFilterwrapper) {
   const [isMobileFilter, setIsMobileFilter] = useState(false);
   const selectedTeam = props?.selectedTeam;
   const router = useRouter();
-  
+
   useEffect(() => {
     document.addEventListener(EVENTS.SHOW_PROJECTS_FILTER, (e: any) => {
       setIsMobileFilter(e.detail);

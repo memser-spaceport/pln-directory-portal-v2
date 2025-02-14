@@ -96,7 +96,7 @@ const IrlEvents = (props: IIrlEvents) => {
 
   const onSubmitFormClick = () => {
     analytics.trackSubmitFormClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${irlLocation}` });
-  }
+  };
 
   const handleAllGathering = () => {
     const currentParams = new URLSearchParams(searchParams);
@@ -275,6 +275,13 @@ const IrlEvents = (props: IIrlEvents) => {
             </Link>
           )}
 
+          <Link href={irlLocation === 'denver' ? process.env.IRL_SUBMIT_FORM_URL ?? '' : IRL_AIRTABLE_FORM_LINK} legacyBehavior target="_blank">
+            <a target="_blank" className="root__submit" onClick={onViewScheduleClick}>
+              <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
+              Submit an event
+            </a>
+          </Link>
+
           {/* TODO - To be used later*/}
           {/* {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length > 0 && (
             <div className="root__irl__eventWrapper">
@@ -430,12 +437,12 @@ const IrlEvents = (props: IIrlEvents) => {
           </div>
         </div>
       )}
-      <div className="root__irl__submit__event">
+      {/* <div className="root__irl__submit__event">
         <div>Hosting an event or event not listed here?</div>
         <a href={irlLocation === "denver" ? process.env.IRL_SUBMIT_FORM_URL : IRL_AIRTABLE_FORM_LINK} onClick={onSubmitFormClick} target="_blank">
           Submit an event
         </a>
-      </div>
+      </div> */}
 
       {/* 
       <div className="add-gathering">
@@ -507,13 +514,14 @@ const IrlEvents = (props: IIrlEvents) => {
           align-items: center;
         }
 
-        .root__schedule {
+        .root__schedule,
+        .root__submit {
           background-color: #ffffff;
           color: #0f172a;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 2px;
+          gap: 8px;
           padding: 10px;
           border-radius: 8px;
           border: 1px solid #cbd5e1;
@@ -1042,6 +1050,12 @@ const IrlEvents = (props: IIrlEvents) => {
             width: auto;
           }
 
+          .root__submit {
+            width: unset;
+            position: absolute;
+            right: 20px;
+          }
+
           .root__irl__addRes__loggedOut,
           .root__irl__submit__event {
             max-width: 900px;
@@ -1080,7 +1094,7 @@ const IrlEvents = (props: IIrlEvents) => {
 
           .root__irl {
             width: unset;
-            justify-content: space-between;
+            justify-content: flex-start;
           }
 
           .root__irl__addRes__popup {

@@ -20,14 +20,17 @@ function HuskyInputBox(props: any) {
   const isLimitReached = props?.isLimitReached;
   const selectedSourceName = sources.find((v) => v.value === selectedSource)?.name;
   const selectedIcon = sources.find((v) => v.value === selectedSource)?.icon;
-  const { trackSourceChange } = useHuskyAnalytics();
+  const { trackSourceChange, trackHuskyChatStopBtnClicked } = useHuskyAnalytics();
 
   const isLoadingObject = props?.isLoadingObject;
+  const stopStreaming = props.stop;
+  const question = props?.question ?? ''
   const isLoadingObjectRef = useRef(isLoadingObject);
-  
+
+
   // Handles the submission of text input
   const onTextSubmit = async () => {
-    if (isAnswerLoading ||  isLoadingObjectRef.current) {
+    if (isAnswerLoading || isLoadingObjectRef.current) {
       return;
     }
 
@@ -52,6 +55,11 @@ function HuskyInputBox(props: any) {
   const isMobileDevice = () => {
     return /Mobi|Android/i.test(navigator.userAgent);
   };
+
+  const onStopStreaming = () => {
+    trackHuskyChatStopBtnClicked(question)
+    stopStreaming();
+  }
 
   useEffect(() => {
     // Handles keydown events for input submission
@@ -89,21 +97,21 @@ function HuskyInputBox(props: any) {
       const question = e.detail;
       if (inputRef.current) {
         inputRef.current.innerText = question;
-        const editableDiv =inputRef.current;
+        const editableDiv = inputRef.current;
         editableDiv.focus();
 
         // Position the caret at the end
         const range = document.createRange();
         const selection = window.getSelection();
-        range.selectNodeContents(editableDiv); 
-        range.collapse(false); 
+        range.selectNodeContents(editableDiv);
+        range.collapse(false);
         if (selection) {
           selection.removeAllRanges();
           selection.addRange(range);
         }
       }
     };
-    
+
     document.addEventListener('husky-ai-input', handler);
     return () => {
       document.removeEventListener('husky-ai-input', handler);
@@ -112,7 +120,7 @@ function HuskyInputBox(props: any) {
 
   useEffect(() => {
     isLoadingObjectRef.current = isLoadingObject;
-  }, [isLoadingObject])
+  }, [isLoadingObject]);
 
   return (
     <>
@@ -129,32 +137,23 @@ function HuskyInputBox(props: any) {
           )}
         </div>
         <div className="huskyinput__action">
-          <PopoverDp.Wrapper>
-            <div data-testid="husky-input-source-menu" className="huskyinput__action__menu">
-              <div className="huskyinput__action__menu__dp">
-                <img src={selectedIcon} alt={selectedSourceName} />
-                <p className="huskyinput__action__menu__dp__name">{selectedSourceName}</p>
-              </div>
-              <img src="/icons/arrow-up.svg" alt="Arrow Up" />
-            </div>
-            <PopoverDp.Pane position="top">
-              <div className="huskyinput__action__pane" style={{ zIndex: 20 }}>
-                {sources.map((source: any, index: number) => (
-                  <div data-testid={`input-source-${index}`} key={`input-source-${index}`} onClick={() => onSourceClicked(source.value)} className="huskyinput__action__pane__item">
-                    <img src={source.icon} alt={source.name} />
-                    <p>{source.name}</p>
-                  </div>
-                ))}
-              </div>
-            </PopoverDp.Pane>
-          </PopoverDp.Wrapper>
-          <div
-            onClick={onTextSubmit}
-            title={isAnswerLoading ? 'Please wait till response is generated.' : 'Submit query'}
-            className={`huskyinput__action__submit ${(isAnswerLoading || isLoadingObject || isLimitReached) ? 'huskyinput__action__submit--disabled' : ''}`}
-          >
+          {isAnswerLoading ? (
+            <div onClick={onTextSubmit} title="Please wait till response is generated." className={`huskyinput__action__submit huskyinput__action__submit--disabled`}>
             <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
           </div>
+          ) : isLoadingObject ? (
+            <button onClick={onStopStreaming} title="Stop" className="huskyinput__action__submit huskyinput__action__submit--loading">
+                <div className="huskyinput__action__submit__loadingCn" />
+            </button>
+          ) : isLimitReached ? (
+            <div onClick={onTextSubmit} className={`huskyinput__action__submit huskyinput__action__submit--disabled`}>
+              <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
+            </div>
+          ) : (
+            <div onClick={onTextSubmit} title="Submit query" className="huskyinput__action__submit">
+              <img className="huskyinput__action__submit__btn" src="/icons/send.svg" alt="Send" />
+            </div>
+          )}
         </div>
       </div>
       <style jsx>
@@ -262,8 +261,17 @@ function HuskyInputBox(props: any) {
           }
 
           .huskyinput__action__submit--disabled {
-            background-color: #94A3B8 !important;
+            background-color: #94a3b8 !important;
             cursor: not-allowed !important;
+          }
+
+          .huskyinput__action__submit--loading {
+            background-color: #dbeafe !important;
+          }
+
+          .huskyinput__action__submit--loading:hover {
+            box-shadow: 0px 4px 8px 0px #5661f640;
+            border: 1.5px solid #93c5fd;
           }
 
           .huskyinput__action__submit {
@@ -280,6 +288,23 @@ function HuskyInputBox(props: any) {
             width: 25px;
             height: 25px;
             margin-left: -2px;
+          }
+
+          .huskyinput__action__submit__loadingCn {
+            background-color: #156ff7;
+            border-radius: 1.5px;
+            animation: scaleDown 1s infinite alternate ease-in-out;
+            width: 12px;
+            height: 12px;
+          }
+
+          @keyframes scaleDown {
+            0% {
+              transform: scale(1);
+            }
+            100% {
+              transform: scale(0.83); /* 10/12 = 0.83 */
+            }
           }
 
           [contenteditable='true']:empty:before {
@@ -313,7 +338,7 @@ function HuskyInputBox(props: any) {
             .huskyinput__itemcn__instruction {
               position: absolute;
               top: 0px;
-              right: 188px;
+              right: 108px;
               width: 180px;
               height: 100%;
               display: flex;

@@ -177,7 +177,7 @@ export function formatDiscoverData(discoverData: any) {
 }
 
 export function formatFeaturedData(featuredData: any) {
-  const priorities = (process.env.NEXT_PUBLIC_PRIORITY_FEATURED_SECTION || '').split('|').map((item: any, index: any) => {
+  const priorities = (process.env.PRIORITY_FEATURED_SECTION || '').split('|').map((item: any, index: any) => {
     const [key, value] = item.split(':');
     return { key, value, order: index };  
   });

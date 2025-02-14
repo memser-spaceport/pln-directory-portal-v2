@@ -275,7 +275,7 @@ const IrlEvents = (props: IIrlEvents) => {
             </Link>
           )}
 
-          <Link href={irlLocation === 'denver' ? process.env.IRL_SUBMIT_FORM_URL : IRL_AIRTABLE_FORM_LINK} legacyBehavior target="_blank">
+          <Link href={irlLocation === 'denver' ? process.env.IRL_SUBMIT_FORM_URL ?? '' : IRL_AIRTABLE_FORM_LINK} legacyBehavior target="_blank">
             <a target="_blank" className="root__submit" onClick={onViewScheduleClick}>
               <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
               Submit an event

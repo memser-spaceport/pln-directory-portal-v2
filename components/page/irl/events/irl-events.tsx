@@ -25,18 +25,22 @@ interface IIrlEvents {
   userInfo: IUserInfo;
   isUserGoing: boolean;
   guestDetails: any;
+  locationDetails: ILocationDetails[];
 }
 
 const IrlEvents = (props: IIrlEvents) => {
   const searchParams = props?.searchParams;
   const eventDetails = props?.eventDetails;
   const isLoggedIn = props?.isLoggedIn;
+  const locationDetails = props?.locationDetails;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const addResRef = useRef<HTMLDialogElement>(null);
   const analytics = useIrlAnalytics();
   const router = useRouter();
   const isUserLoggedIn = props?.isLoggedIn;
   const [isEdit, seIsEdit] = useState(false);
+
+  console.log("locationDetails: ILocationDetails[];", props?.locationDetails);
 
   const searchParam = useSearchParams();
   const type = searchParam.get('type');
@@ -45,7 +49,7 @@ const IrlEvents = (props: IIrlEvents) => {
   const guestDetails = props?.guestDetails;
   const isUserGoing = guestDetails?.isUserGoing;
   const updatedUser = guestDetails?.currentGuest ?? null;
-  const irlLocation = searchParams?.location?.toLowerCase() ?? '';
+  const irlLocation = searchParams?.location?.toLowerCase() || locationDetails?.[0]?.location?.toLowerCase();
   const scheduleEnabledLocations = process.env.SCHEDULE_ENABLED_LOCATIONS?.split(',');
   const isScheduleEnabled = scheduleEnabledLocations?.includes(irlLocation) || false;
 

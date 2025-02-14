@@ -23,6 +23,11 @@ const Discover = (props: any) => {
     return <DiscoverCard data={data} userInfo={userInfo} />;
   };
 
+
+  const slides = [];
+  for (let i = 0; i < formattedDiscoverData.length; i += 2) {
+    slides.push(formattedDiscoverData.slice(i, i + 2));
+  }
   return (
     <>
       <section className="discover">
@@ -32,12 +37,11 @@ const Discover = (props: any) => {
             <img className="discover__hdr__ttl__img" src="icons/discover.svg" alt="discover" />
             <h2 className="discover__hdr__ttl__txt">Discover</h2>
           </div>
-
         </header>
         {/* Carousel */}
         <div className="embla" aria-label="Discover carousel">
           <div className="embla__viewport" ref={emblaRef}>
-            <div className="discover__body embla__container">
+            {/* <div className="discover__body embla__container">
               <div className="discover__body__sec embla__slide">
                 {formattedDiscoverData.slice(0, 3).map((data) => {
                   return (
@@ -56,6 +60,24 @@ const Discover = (props: any) => {
                   );
                 })}
               </div>}
+            </div> */}
+            <div className="discover__body__carousal__cards embla__container">
+              {slides.map((slide, index) => (
+                <div key={index} className="discover__body__carousal__cards__embla embla__slide">
+                  {slide.map((card, slideIndex) => (
+                    <div key={slideIndex} className="discover__body__carousal__cards__embla__card ">{renderCard(card)}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <div className="discover__body embla__container">
+              <div className="discover__body__cards embla__slide">
+                {formattedDiscoverData.map((data) => (
+                  <Fragment key={`section-one-discover-card-${data.uid}`}>
+                    <div className="discover__body__cards__card">{renderCard(data)}</div>
+                  </Fragment>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -135,11 +157,6 @@ const Discover = (props: any) => {
           color: #0f172a;
         }
 
-        .discover__body {
-          display: flex;
-          gap: 12px;
-        }
-
         .discover__body__sec,
         .discover__body__sec2 {
           display: grid;
@@ -178,6 +195,74 @@ const Discover = (props: any) => {
           background: transparent;
         }
 
+    
+        .discover__body {
+          display: none;
+        }
+          
+        .discover__body__carousal__cards__embla {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .discover__body__carousal__cards__embla__card {
+          width: 100%;
+          height: 190px;
+        }
+
+        .discover__body__cards {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 14px;
+        }
+
+        .discover__body__cards__card {
+          max-height: 247px;
+          flex: 1 0 320px;
+        }
+
+        .discover__body__cards__card :global(.discover-card__sub) {
+          display: -webkit-box;
+          -webkit-line-clamp: 6;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .discover__body__cards__card :global(.discover-card__sub__cn) { 
+          overflow: hidden; 
+        }
+
+        @media (min-width: 692px) {
+          .discover__body__cards__card :global(.discover-card__sub) {
+            -webkit-line-clamp: 5;
+          }
+
+          .discover__body__carousal__cards {
+            display: none;
+          }
+
+          .discover__body {
+            display: block;
+          }
+
+          .discover__body__cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            flex-grow: 1;
+          }
+
+          .discover__body__cards__card {
+            height: 247px;
+            min-width: 320px
+            width: auto;
+          }
+            
+          .discover__ftr {
+            display: none;
+          }
+        }
         @media (min-width: 1024px) {
           .discover__body__sec {
             flex: 1;
@@ -207,10 +292,6 @@ const Discover = (props: any) => {
             gap: 8px;
           }
 
-          .discover__ftr {
-            display: none;
-          }
-
           .discover__hdr__ttl__txt {
             font-size: 32px;
             line-height: 28px;
@@ -223,6 +304,13 @@ const Discover = (props: any) => {
 
           .discover__hdr__ttl {
             gap: 8px;
+          }
+          
+          .discover__body__cards__card :global(.discover-card__sub) {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
           }
         }
       `}</style>

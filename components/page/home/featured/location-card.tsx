@@ -1,9 +1,7 @@
 'use client';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import FollowButton from '../../irl/follow-gathering/follow-button';
 import { useEffect, useRef, useState } from 'react';
 import { EVENTS, FOLLOW_ENTITY_TYPES } from '@/utils/constants';
-import { getFollowersByLocation } from '@/services/irl.service';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { triggerLoader } from '@/utils/common.utils';
 import { customFetch } from '@/utils/fetch-wrapper';
@@ -46,20 +44,19 @@ const LocationCard = (props: any) => {
 
   const upcomingEvents = props?.upcomingEvents;
 
-  const visibleEvents = upcomingEvents.slice(0, 4);
-  const hiddenEventCount = upcomingEvents.length - visibleEvents.length;
-  const remainingEvents = upcomingEvents.slice(4);
+  const visibleEvents = upcomingEvents?.slice(0, 4);
+  const hiddenEventCount = upcomingEvents?.length - visibleEvents?.length;
+  const remainingEvents = upcomingEvents?.slice(4);
 
   const attendee = upcomingEvents?.flatMap((item: any) => item?.eventGuests);
   const uniqueMembers: any[] = [];
   const seenUids = new Set();
   
-  attendee.forEach((item: any) => {
-    const uid = item.member?.uid;
-  
-    if (!seenUids.has(uid)) {
-      seenUids.add(uid); 
-      uniqueMembers.push(item); 
+  attendee?.forEach((item: any) => {
+    const uid = item.member?.uid?.trim();  
+    if (uid && !seenUids.has(uid)) {
+      seenUids.add(uid);
+      uniqueMembers.push(item);
     }
   });
 
@@ -201,7 +198,7 @@ const LocationCard = (props: any) => {
                         {remainingEvents.map((event: any, index: number) => (
                           <div className="eventName" key={index}>
                             {event.name}{ }
-                            {index < remainingEvents.length - 1 ? ',' : ''}
+                            {index < remainingEvents?.length - 1 ? ',' : ''}
                           </div>
                         ))}
                       </div>
@@ -213,7 +210,7 @@ const LocationCard = (props: any) => {
             </div>
             :
             <div className='LocationCard__content__eventCntr__no-events'>
-              Stay tuned for upcoming gatherings in {props?.location.split(",")[0].trim()}! Follow this location for updates
+              Stay tuned for upcoming gatherings in {props?.location?.split(",")[0].trim()}! Follow this location for updates
             </div>
           }
         </div>
@@ -229,16 +226,21 @@ const LocationCard = (props: any) => {
                   asChild
                   align="center"
                   trigger={
-                    <button className="followRoot__followingBtn__cntr" onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}>
+                    <button className="followRoot__followingBtn__cntr" 
+                    onClick={(e: any) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleClickUnFollowPopUp(eventLocationSummary.uid)}}
+                    >
                       <span className="followRoot__followingBtn">
                         <div className="root__irl__follwcnt__imgsec__images">
                           {[
                             ...props.followers
                               ?.map((item: { member: any }) => item.member?.image?.url)
                               .filter((url: string | undefined) => !!url),
-                            ...Array(props.followers.length).fill('/icons/default_profile.svg')
+                            ...Array(props?.followers?.length).fill('/icons/default_profile.svg')
                           ]
-                            .slice(0, Math.min(3, props.followers.length))
+                            .slice(0, Math.min(3, props?.followers?.length))
                             .map((url: string, index: number) => (
                               <Image
                                 key={index}
@@ -251,7 +253,7 @@ const LocationCard = (props: any) => {
                               />
                             ))}
                         </div>
-                        <span>{props.followers.length} Following</span>
+                        <span>{props?.followers?.length} Following</span>
                       </span>
                       <span className="followRoot__followingBtn--line"></span>
                       <span className='followRoot__followingBtn__icon'>
@@ -265,7 +267,7 @@ const LocationCard = (props: any) => {
                 />
 
                 <>
-                  {attendee.length > 0 &&
+                  {attendee?.length > 0 &&
                     <div className="followRoot__followingBtn__count">
                       <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
                       <span>{`${uniqueMembers.length} Attending`}</span>
@@ -275,14 +277,19 @@ const LocationCard = (props: any) => {
             ) : (
               <>
                 {
-                  props.followers.length > 0 || attendee.length > 0 ?
+                  props?.followers?.length > 0 || attendee?.length > 0 ?
                     <>
                       <Tooltip
                         asChild
                         align="center"
                         trigger={
-                          <button className="followRoot__followBtn" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
-                            {props.followers.length > 0 ?
+                          <button className="followRoot__followBtn" 
+                          onClick={(e: any) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            onFollowbtnClicked(eventLocationSummary.uid)}}
+                          >
+                            {props?.followers?.length > 0 ?
                               <>
                                 <span className='followRoot__followBtn_cntr'>
                                   <div className="root__irl__follwcnt__imgsec__images">
@@ -290,9 +297,9 @@ const LocationCard = (props: any) => {
                                       ...props.followers
                                         ?.map((item: { member: any }) => item.member?.image?.url)
                                         .filter((url: string | undefined) => !!url),
-                                      ...Array(props.followers.length).fill('/icons/default_profile.svg')
+                                      ...Array(props?.followers?.length).fill('/icons/default_profile.svg')
                                     ]
-                                      .slice(0, Math.min(3, props.followers.length))
+                                      .slice(0, Math.min(3, props?.followers?.length))
                                       .map((url: string, index: number) => (
                                         <Image
                                           key={index}
@@ -306,7 +313,7 @@ const LocationCard = (props: any) => {
                                       ))}
                                   </div>
                                   <span className=''>
-                                    {props.followers.length} Following
+                                    {props?.followers?.length} Following
                                   </span>
                                 </span>
                                 <span className="followRoot__followingBtn--line"></span>
@@ -325,10 +332,10 @@ const LocationCard = (props: any) => {
                         content={<div className="eventName">Click to follow gathering</div>}
                       />
 
-                      {attendee.length > 0 &&
+                      {attendee?.length > 0 &&
                         <div className="followRoot__followingBtn__count">
                           <img src="/icons/thumbs-up.svg" alt="Thumbs Up" />
-                          <span>{`${attendee.length} Attending`}</span>
+                          <span>{`${uniqueMembers?.length} Attending`}</span>
                         </div>
                       }
                     </>
@@ -341,7 +348,13 @@ const LocationCard = (props: any) => {
                           <div className='LocationCard-follCntr__cnt'>
                             Receive event updates & notifications
                           </div>
-                          <button className="followRoot__followBtn__no-followers" onClick={() => onFollowbtnClicked(eventLocationSummary.uid)}>
+                          <button 
+                            className="followRoot__followBtn__no-followers" 
+                            onClick={(e: any) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              onFollowbtnClicked(eventLocationSummary.uid)}}
+                            >
                             <img src="/icons/bell-white.svg" alt="follow" />
                             Follow
                           </button>
@@ -357,7 +370,7 @@ const LocationCard = (props: any) => {
       </div >
 
       <Modal modalRef={dialogRef} onClose={onCloseModal}>
-        <div className="popup__cnt">
+        <div className="popup__cnt" onClick={(e: any) => {e.preventDefault();}}>
           <div className="popup__cnt__header"> Wait! You&apos;re about to miss out…</div>
           <div className="popup__cnt__body">You&apos;ll stop receiving updates about exciting events happening in {eventLocationSummary.name}. Stay connected to never miss out!</div>
 
@@ -540,7 +553,7 @@ const LocationCard = (props: any) => {
           width: 200px;
           align-items: center;
           padding: 4px 4px 4px 17px;
-          width: ${attendee.length > 0 ? '130px' : '235px'};
+          width: ${attendee?.length > 0 ? '125px' : '235px'};
           justify-content: center; 
           cursor: pointer;
         }
@@ -680,18 +693,18 @@ const LocationCard = (props: any) => {
         }
 
         .followRoot__followBtn {
-          padding: ${props.followers.length > 0 ? '0px' : ''};
+          padding: ${props?.followers?.length > 0 ? '0px' : ''};
           min-width: 82px;
           border-radius: 8px;
           display: flex;
-          gap: ${props.followers.length > 0 ? '0px' : '8px'};
+          gap: ${props?.followers?.length > 0 ? '0px' : '8px'};
           align-items: center;
-          color: ${props.followers.length > 0 ? '#0F172A' : '#fff'};
+          color: ${props?.followers?.length > 0 ? '#0F172A' : '#fff'};
           font-weight: 500;
           line-height: 20px;
           font-size: 11.5px;
           box-shadow: 0px 1px 1px 0px #0f172a14;
-          background: ${props.followers.length > 0 ? '#fff' : 'none'};
+          background: ${props?.followers?.length > 0 ? '#fff' : 'none'};
           border: 1px solid #cbd5e1 !important;
           cursor: pointer;
         }
@@ -736,7 +749,7 @@ const LocationCard = (props: any) => {
           color: #475569;
           display: flex;
           align-items: center;
-          gap: 5px;
+          gap: 2px;
           cursor: default;
         }
 
@@ -762,7 +775,7 @@ const LocationCard = (props: any) => {
           align-items: center;
           font-weight: 500;
           line-height: 20px;
-          width: ${attendee.length > 0 ? '135px' : '235px'};
+          width: ${attendee?.length > 0 ? '125px' : '235px'};
           font-size: 11.5px;
           box-shadow: 0px 1px 1px 0px #0f172a14;
           justify-content: center;

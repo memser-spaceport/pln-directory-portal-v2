@@ -28,7 +28,9 @@ export const useHuskyAnalytics = () => {
     husky_login_clicked: 'husky_login_clicked',
     husky_home_search_clicked: 'husky_home_search_clicked',
     husky_chat_info_strip_login_clicked: 'husky_chat_info_strip_login_clicked',
-    husky_chat_info_strip_signup_clicked : 'husky_chat_info_strip_signup_clicked'
+    husky_chat_info_strip_signup_clicked: 'husky_chat_info_strip_signup_clicked',
+    husky_chat_stop_response_clicked : 'husky_chat_stop_response_clicked',
+    husky_discover_questions_stop_response_clicked: 'husky_discover_questions_stop_response_clicked'
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -134,7 +136,15 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_chat_info_strip_signup_clicked, { from })
   }
 
-  return { trackSharedBlog, trackHuskyLogin, trackUploadData, trackHuskySourceLinkClicked, trackHuskyActionCardClicked, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus, trackHuskyHomeSearch, trackLoginFromHuskyChat, trackSignupFromHuskyChat };
+  function trackHuskyChatStopBtnClicked(question: string) {
+    captureEvent(events.husky_chat_stop_response_clicked, { question })
+  }
+
+  function trackDisoverHuskyChatStopBtnClicked(question: string) {
+    captureEvent(events.husky_discover_questions_stop_response_clicked, { question })
+  }
+
+  return { trackSharedBlog, trackHuskyLogin, trackUploadData, trackHuskySourceLinkClicked, trackHuskyActionCardClicked, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus, trackHuskyHomeSearch, trackLoginFromHuskyChat, trackSignupFromHuskyChat, trackHuskyChatStopBtnClicked, trackDisoverHuskyChatStopBtnClicked };
 };
 
 

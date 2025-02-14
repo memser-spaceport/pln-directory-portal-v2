@@ -473,6 +473,15 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.3 - Improved Event Visualization for IRL Gatherings',
+    tag: 'Improvements',
+    date: '14, Feb 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <p>You can now submit events directly for specific locations and view them in a structured schedule, making it easier to plan and choose which events to attend.</p>
+    </div>`,
+  },
+  {
     title: 'Version 4.1.2 - Asks feature for Teams',
     tag: 'New Feature',
     date: '31, Jan 2025',

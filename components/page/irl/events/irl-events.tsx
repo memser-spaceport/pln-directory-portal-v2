@@ -40,8 +40,6 @@ const IrlEvents = (props: IIrlEvents) => {
   const isUserLoggedIn = props?.isLoggedIn;
   const [isEdit, seIsEdit] = useState(false);
 
-  console.log("locationDetails: ILocationDetails[];", props?.locationDetails);
-
   const searchParam = useSearchParams();
   const type = searchParam.get('type');
 
@@ -273,7 +271,7 @@ const IrlEvents = (props: IIrlEvents) => {
           {isScheduleEnabled && (
             <Link legacyBehavior target="_blank" href={`${process.env.SCHEDULE_BASE_URL}/${irlLocation}`}>
               <a target="_blank" className="root__schedule" onClick={onViewScheduleClick}>
-                <img src="/icons/calendar.svg" height={16} width={16} className="root__schedule__img" alt="calendar" />
+                <img src="/icons/calendar-white.svg" height={16} width={16} className="root__schedule__img" alt="calendar" />
                 View Schedule
               </a>
             </Link>
@@ -518,7 +516,22 @@ const IrlEvents = (props: IIrlEvents) => {
           align-items: center;
         }
 
-        .root__schedule,
+        .root__schedule{
+          background-color: #156FF7;
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 10px;
+          border-radius: 8px;
+          border: 1px solid #cbd5e1;
+          font-weight: 500;
+          font-size: 14px;
+          line-height: 20px;
+          width: 100%;
+        }
+
         .root__submit {
           background-color: #ffffff;
           color: #0f172a;
@@ -1056,8 +1069,6 @@ const IrlEvents = (props: IIrlEvents) => {
 
           .root__submit {
             width: unset;
-            position: absolute;
-            right: 20px;
           }
 
           .root__irl__addRes__loggedOut,

@@ -1,4 +1,5 @@
 import { IMember } from "./members.types";
+import { Option } from "./shared.types";
 import { ITeam } from "./teams.types";
 
 export interface IProjectResponse {
@@ -29,7 +30,8 @@ export interface IProjectResponse {
     uid: string;
     updatedAt: string;
     contributingTeams: ITeam[];
-    contributions: IMember[]
+    contributions: IMember[];
+    tags: string[];
 }
 
 export interface IProjectLinks {

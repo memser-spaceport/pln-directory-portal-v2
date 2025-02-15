@@ -88,6 +88,10 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         }
       }
 
+      if(!formattedData?.tags || formattedData?.tags?.length === 0) {
+        errors.push('Please provide at least one tag');
+      }
+
       if (errors.length > 0) {
         setGeneralErrors(errors);
         scrollToTop();
@@ -293,7 +297,16 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         }
       } else if (key.startsWith('rich-text-editor')) {
         result['description'] = object[key];
-      } else {
+      } else if (key.startsWith('projecttags')) {
+        if (!result['tags']) {
+          result['tags'] = [];
+        }
+        if (object[key]) {
+          const tagjson = object[key] as string;
+          const tag = JSON.parse(tagjson);
+          result['tags'].push(tag['label']);
+        }
+      }else {
         result[key] = object[key];
       }
     }

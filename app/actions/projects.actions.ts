@@ -18,6 +18,7 @@ export const getAllProjects = async (queryParams: any, currentPage: number, limi
             maintainingTeam: project?.maintainingTeam,
             lookingForFunding: project?.lookingForFunding,
             tagline: project?.tagline,
+            tags: project?.tags ?? []
         };
     });
     return { data: { formattedData, totalProjects: result?.count } };

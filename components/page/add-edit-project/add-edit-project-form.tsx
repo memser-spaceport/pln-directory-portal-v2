@@ -1,7 +1,7 @@
 'use client';
 
 import useStepsIndicator from '@/hooks/useStepsIndicator';
-import { EVENTS, PROJECT_FORM_STEPS, TOAST_MESSAGES } from '@/utils/constants';
+import { EVENTS, PROJECT_FORM_STEPS, PROJECT_README_DEFAULT, TOAST_MESSAGES } from '@/utils/constants';
 import { SyntheticEvent, useRef, useState } from 'react';
 import ProjectGeneralInfo from './project-general-info';
 import ProjectContributorsInfo from './project-contributors-info';
@@ -32,8 +32,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
     tagline: '',
     description: '',
     lookingForFunding: false,
-    readMe:
-      '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n',
+    readMe: PROJECT_README_DEFAULT,
     maintainingTeamUid: '',
     contactEmail: userInfo?.email ?? null,
     kpis: [{ key: '', value: '' }],
@@ -45,6 +44,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
   };
 
   const projectData = project ?? initialValue;
+  projectData.readMe = projectData.readMe === '' ? PROJECT_README_DEFAULT : projectData.readMe;
   const [generalErrors, setGeneralErrors] = useState<string[]>([]);
   const [kpiErrors, setKpiErrors] = useState<string[]>([]);
   const [contributorsErrors, setContributorsErrors] = useState<string[]>([]);
@@ -334,6 +334,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
     result.contributingTeams = Object.values(contributingTeams);
     result.contributions = Object.values(contributions);
     result.focusAreas = [];
+    result.readMe = result.readMe === PROJECT_README_DEFAULT ? '' : result.readMe;
     return result;
   }
 

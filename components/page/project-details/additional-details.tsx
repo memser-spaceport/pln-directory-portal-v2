@@ -4,6 +4,7 @@ import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { updateProject } from '@/services/projects.service';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { PROJECT_README_DEFAULT } from '@/utils/constants';
 import 'md-editor-rt/lib/style.css';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
@@ -78,6 +79,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
     }
   }
   const onEditAction = () => {
+    setText(!text ? PROJECT_README_DEFAULT : text);
     analytics.onProjectDetailEditReadMeClicked(getAnalyticsUserInfo(userInfo), project?.id, "project-details");
     setIsEditorVisible(true);
   };
@@ -92,8 +94,9 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
     triggerLoader(true);
     analytics.onProjectDetailReadMeEditSaveBtnClicked(getAnalyticsUserInfo(userInfo), project?.id);
     try {
-      const res = await updateProject(project?.id, { readMe: text }, authToken);
+      const res = await updateProject(project?.id, { readMe: text === PROJECT_README_DEFAULT ? '' : text }, authToken);
       if (res.status === 200 || res.status === 201) {
+        window.location.reload();
         triggerLoader(false);
         toast.success('Additional Details updated successfully.');
         analytics.onProjectDetailReadMeEditSuccess(getAnalyticsUserInfo(userInfo), project?.id);
@@ -132,7 +135,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
         {!isEditorVisible && !initialReadme && (
           <div className="addDetails__preview__nodetails">
             No additional details added.
-            {isTeamOftheProject && (
+            {(isTeamOftheProject || userHasEditRights) && (
               <span>
                 <span className="addDetails__preview__nodetails__text" onClick={onEditAction}>
                   {' '}

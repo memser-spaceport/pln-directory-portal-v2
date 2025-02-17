@@ -142,7 +142,7 @@ const SearchGatherings = (props: ISearchGatherings) => {
           {gatheringSearchProperties?.filteredValues?.length > 0 && (
             <>
               {gatheringSearchProperties?.filteredValues?.map((gathering: any, index: number) => {
-                const dateString = getFormattedDateString(gathering?.startDate, gathering?.endDate);
+                const dateString = getFormattedDateString(gathering?.startDate, gathering?.endDate, true);
                 return (
                   <button
                     onClick={() => onGatheringSelectHandler(gathering)}

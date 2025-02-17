@@ -113,7 +113,7 @@ export function getTelegramUsername(input: string) {
   return match ? match[1] : input;
 }
 
-export function getFormattedDateString(startDate: string, endDate: string) {
+export function getFormattedDateString(startDate: string, endDate: string, showStartYear?: boolean) {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   try {
@@ -133,7 +133,11 @@ export function getFormattedDateString(startDate: string, endDate: string) {
     } else if (startYear === endYear) {
       return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)}`;
     } else {
-      return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
+      if(showStartYear) {
+        return `${startMonthName} ${parseInt(startDay, 10)} '${startYear.slice(2)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
+      } else {
+        return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
+      }
     }
   } catch {
     return '';

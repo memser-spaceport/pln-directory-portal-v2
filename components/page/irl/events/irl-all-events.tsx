@@ -193,7 +193,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
         }
 
         .root__irl__table-col__headerName {
-          width: 281px;
+          width: 325px;
           padding: 8px 11px;
           background-color: inherit;
           border-right: 1px solid #cbd5e1;

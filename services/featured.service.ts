@@ -2,9 +2,19 @@
 import { getHeader } from "@/utils/common.utils";
 import { getFormattedEvents, getFormattedLocations, getformattedMembers, getFormattedProjects, getFormattedTeams } from "@/utils/home.utils";
 
-export const getFeaturedData = async (authToken: any) => {
-    const url = `${process.env.DIRECTORY_API_URL}/v1/home/featured`;
-  
+export const getFeaturedData = async (authToken: any, isLoggedIn: boolean, isAdmin: boolean) => {
+    let url = `${process.env.DIRECTORY_API_URL}/v1/home/featured`;
+    if (authToken && isLoggedIn) {
+      const params = new URLSearchParams();
+      params.append('state', 'login');
+      
+      if (isAdmin) {
+        params.append('user', 'admin');
+      }
+      
+      url += `?${params.toString()}`;
+    }
+
     const response = await fetch(url, {
       method: 'GET',
       cache: 'force-cache',

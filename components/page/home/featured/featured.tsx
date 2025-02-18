@@ -9,7 +9,7 @@ import IrlCard from './irl-card';
 import MemberCard from './member-card';
 import TeamCard from './team-card';
 import ProjectCard from './project-card';
-import { PAGE_ROUTES } from '@/utils/constants';
+import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsLocationCardInfo, getAnalyticsMemberInfo, getAnalyticsProjectInfo, getAnalyticsTeamInfo, getAnalyticsUserInfo, getParsedValue } from '@/utils/common.utils';
 import dynamic from 'next/dynamic';
@@ -108,6 +108,7 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDa
 const Featured = (props: any) => {
   const isLoggedIn = props?.isLoggedIn;
   const userInfo = props?.userInfo;
+  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const options: EmblaOptionsType = { slidesToScroll: 'auto', loop: true, align: 'start' };
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const cauroselActions = usePrevNextButtons(emblaApi);
@@ -116,7 +117,7 @@ const Featured = (props: any) => {
   
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
-   const featData = await getFeaturedData(authToken); 
+   const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin); 
    setfeaturedData(formatFeaturedData(featData.data));
    router.refresh();
   }

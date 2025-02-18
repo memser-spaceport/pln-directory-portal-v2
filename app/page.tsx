@@ -10,7 +10,7 @@ import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-ar
 import HuskyDialog from '@/components/page/home/husky-dialog';
 import HuskyDiscover from '@/components/page/home/husky-discover';
 import { Metadata } from 'next';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { ADMIN_ROLE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 import Husky from '@/components/page/home/husky/husky';
@@ -57,12 +57,13 @@ const getPageData = async () => {
   let discoverData = [] as any;
   let teamFocusAreas: IFocusArea[] = [];
   let projectFocusAreas: IFocusArea[]= [];
+  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   try {
     const [
       teamFocusAreaResponse, projectFocusAreaResponse, featuredResponse, discoverResponse] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
-      getFeaturedData(authToken),
+      getFeaturedData(authToken, isLoggedIn, isAdmin),
       getDiscoverData()
     ]);
     if (teamFocusAreaResponse?.error || projectFocusAreaResponse?.error || featuredResponse?.error || discoverResponse?.error) {

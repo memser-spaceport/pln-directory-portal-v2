@@ -451,7 +451,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
 
         .root__irl__table-col__headerName,
         .root__irl__table-col__contentName {
-          width: 281px;
+          width: 325px;
           padding: 10px;
           border-right: 1px solid #cbd5e1;
         }

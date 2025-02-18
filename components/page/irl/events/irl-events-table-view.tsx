@@ -140,7 +140,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
 
         .root__irl__table-col__headerName,
         .root__irl__table-col__contentName {
-          width: 280px;
+          width: 325px;
           padding: 10px;
           border-right: 1px solid #cbd5e1;
         }

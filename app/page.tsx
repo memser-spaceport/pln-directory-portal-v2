@@ -62,7 +62,7 @@ const getPageData = async () => {
       teamFocusAreaResponse, projectFocusAreaResponse, featuredResponse, discoverResponse] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
-      getFeaturedData(),
+      getFeaturedData(authToken),
       getDiscoverData()
     ]);
     if (teamFocusAreaResponse?.error || projectFocusAreaResponse?.error || featuredResponse?.error || discoverResponse?.error) {

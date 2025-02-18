@@ -20,6 +20,7 @@ import { validateLocation } from '@/services/location.service';
 import Modal from '@/components/core/modal';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
+import AlertMessage from './alert-message';
 
 interface MemberSettingsProps {
   memberInfo: any;
@@ -339,6 +340,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
             <MemberSocialInfo initialValues={initialValues.socialInfo} />
           </div>
         </div>
+        <AlertMessage />
         <SettingsAction/>
       </form>
       <Modal modalRef={errorDialogRef} onClose={onModalClose}>
@@ -421,7 +423,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
             }
           .fa {
             position: sticky;
-            border-top: 2px solid #ff820e;
+            // border-top: 2px solid #ff820e;
             margin: 0;
             width: 100%;
             flex-direction: column;

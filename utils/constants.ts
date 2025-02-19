@@ -465,7 +465,7 @@ export const ROLE_FILTER_QUERY_NAME = 'memberRoles';
 export const OFFICE_HOURS_MSG = 'Schedule a one on one office hours discussion with';
 export const TEAM_OFFICE_HOURS_MSG = 'Join office hours discussion with';
 
-export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'Additionl Details'];
+export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'Additional Details'];
 export const TEAM_FORM_STEPS = ['Basic', 'Project Details', 'Social'];
 
 export const EVENT_TYPE = {

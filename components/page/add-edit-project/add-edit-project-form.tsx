@@ -366,7 +366,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
           <div className={`${currentStep === 'KPIs' ? 'add-edit-form__container--kpis' : 'hidden'}`} data-testid="kpis-info">
             <ProjectKpisInfo project={projectData} errors={kpiErrors} />
           </div>
-          <div className={`${currentStep === 'More Details' ? 'add-edit-form__container--more-details' : 'hidden'}`} data-testid="more-details">
+          <div className={`${currentStep === 'Additional Details' ? 'add-edit-form__container--more-details' : 'hidden'}`} data-testid="more-details">
             <ProjectMoreDetails readMe={projectData?.readMe} />
           </div>
         </div>
@@ -388,12 +388,12 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
                 </button>
               </div>
             )}
-            {currentStep !== 'More Details' && (
+            {currentStep !== 'Additional Details' && (
               <button type="button" className="add-edit-form__opts__acts__next" onClick={onNextClicked} data-testid="next-button">
                 Next
               </button>
             )}
-            {currentStep === 'More Details' && (
+            {currentStep === 'Additional Details' && (
               <div>
                 {type === 'Add' && (
                   <button className="add-edit-form__opts__acts__next" type="submit" data-testid="add-project-button">

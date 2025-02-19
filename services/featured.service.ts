@@ -4,16 +4,6 @@ import { getFormattedEvents, getFormattedLocations, getformattedMembers, getForm
 
 export const getFeaturedData = async (authToken: any, isLoggedIn: boolean, isAdmin: boolean) => {
     let url = `${process.env.DIRECTORY_API_URL}/v1/home/featured`;
-    if (authToken && isLoggedIn) {
-      const params = new URLSearchParams();
-      params.append('state', 'login');
-      
-      if (isAdmin) {
-        params.append('user', 'admin');
-      }
-      
-      url += `?${params.toString()}`;
-    }
 
     const response = await fetch(url, {
       method: 'GET',

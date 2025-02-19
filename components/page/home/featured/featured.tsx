@@ -58,9 +58,9 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDa
       const country = event?.location?.split(',')[0].trim();
       return `${PAGE_ROUTES.IRL}/?location=${country}&type=${isPast ? 'past' : 'upcoming'}&${isPast ? `event=${event?.slugUrl}` : ''}`;
     } catch (error) {
-      return ""
+      return '';
     }
-  }
+  };
 
   switch (category) {
     case 'event':
@@ -91,13 +91,15 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDa
 
     case 'location':
       return (
-        <a target="_blank" href={`${PAGE_ROUTES.IRL}?location=${item?.location?.split(",")[0].trim()}`}
-        onClick={(e: any) => {
-          onIrlLocationClicked(item);
-          if (e.defaultPrevented) return;
-        }
-        }>
-          <LocationCard {...item} userInfo={userInfo} getFeaturedDataa={getFeaturedDataa}/>
+        <a
+          target="_blank"
+          href={`${PAGE_ROUTES.IRL}?location=${item?.location?.split(',')[0].trim()}`}
+          onClick={(e: any) => {
+            onIrlLocationClicked(item);
+            if (e.defaultPrevented) return;
+          }}
+        >
+          <LocationCard {...item} userInfo={userInfo} getFeaturedDataa={getFeaturedDataa} />
         </a>
       );
     default:
@@ -113,14 +115,14 @@ const Featured = (props: any) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const cauroselActions = usePrevNextButtons(emblaApi);
   const router = useRouter();
-  const [featuredData, setfeaturedData] = useState(props.featuredData ?? [])
-  
+  const [featuredData, setfeaturedData] = useState(props.featuredData ?? []);
+
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
-   const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin); 
-   setfeaturedData(formatFeaturedData(featData.data));
-   router.refresh();
-  }
+    const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin);
+    setfeaturedData(formatFeaturedData(featData.data));
+    router.refresh();
+  };
 
   return (
     <>
@@ -129,7 +131,13 @@ const Featured = (props: any) => {
         <div>
           <div className={`featured__body`}>
             {featuredData?.map((item: any, index: number) => (
-              <div key={`${item.category}-${index}`}>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+              <>
+                {item?.category === 'location' ? (
+                  item?.upcomingEvents?.length > 0 && <div key={`${item.category}-${index}`}>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                ) : (
+                  <div key={`${item.category}-${index}`}>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                )}
+              </>
             ))}
           </div>
         </div>

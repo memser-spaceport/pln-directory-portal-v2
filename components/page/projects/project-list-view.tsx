@@ -1,7 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { getTagsLabel } from '@/services/projects.service';
+import { getRemainingTags, getTagsLabel } from '@/services/projects.service';
 import { Option } from '@/types/shared.types';
 import Image from 'next/image';
 import { Fragment } from 'react';
@@ -68,7 +68,7 @@ const ProjectListView = (props: any) => {
                     <span className="projectlist__details__right__container__tags__tag__text">+{tags.length - tagsCountToShow}</span>
                   </div>
                     }
-                    content={`+${tags.length - tagsCountToShow}`}
+                    content={getRemainingTags(tags,tagsCountToShow)}
                   />
                 )}
               </div>

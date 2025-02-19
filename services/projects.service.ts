@@ -158,6 +158,10 @@ export const getTagsLabel = (tags: string[]) => {
       return tagsObjList;
     }
 
+export const getRemainingTags = (tags: any,tagsCountToShow: any) => {
+    return tags.slice(tagsCountToShow).map((item: any) => item.label).join(",");
+  }
+
 export const getProjectFilters = async (options: any) => {
     try {
         const requestOPtions: RequestInit = { method: 'GET', headers: getHeader('') };

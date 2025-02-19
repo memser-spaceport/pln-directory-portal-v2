@@ -145,6 +145,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
             />
           </div>
 
+          {/* Tags */}
           <MultiSelectWithSearch 
             label="Tags"
             mandatory={true}

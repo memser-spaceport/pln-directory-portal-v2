@@ -92,9 +92,9 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
 
   const onSaveAction = async () => {
     triggerLoader(true);
-    analytics.onProjectDetailReadMeEditSaveBtnClicked(getAnalyticsUserInfo(userInfo), project?.id);
+        analytics.onProjectDetailReadMeEditSaveBtnClicked(getAnalyticsUserInfo(userInfo), project?.id);
     try {
-      const res = await updateProject(project?.id, { readMe: text === PROJECT_README_DEFAULT ? '' : text }, authToken);
+      const res = await updateProject(project?.id, { readMe: text === PROJECT_README_DEFAULT ? '' : text, contactEmail: project?.contactEmail }, authToken);
       if (res.status === 200 || res.status === 201) {
         window.location.reload();
         triggerLoader(false);

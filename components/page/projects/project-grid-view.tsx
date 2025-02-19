@@ -1,7 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { getTagsLabel } from '@/services/projects.service';
+import { getRemainingTags, getTagsLabel } from '@/services/projects.service';
 import { Option } from '@/types/shared.types';
 import { DEFAULT_PROJECT_TAGS } from '@/utils/constants';
 import Image from 'next/image';
@@ -99,7 +99,7 @@ const ProjectGridView = (props: any) => {
                     <span className="projectgrid__tags__tag__text">+{tags.length - tagsCountToShow}</span>
                   </div>
                 }
-                content={`+${tags.length - tagsCountToShow}`}
+                content={getRemainingTags(tags,tagsCountToShow)}
               />
             )}
             {/* <Image alt='maintainer' loading='eager' height={36} width={36} layout='intrinsic' priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />

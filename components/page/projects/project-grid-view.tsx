@@ -5,7 +5,7 @@ import { getTagsLabel } from '@/services/projects.service';
 import { Option } from '@/types/shared.types';
 import { DEFAULT_PROJECT_TAGS } from '@/utils/constants';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 
 const ProjectGridView = (props: any) => {
   //props
@@ -56,8 +56,15 @@ const ProjectGridView = (props: any) => {
     <>
       <div className="projectgrid">
         <div className="projectgrid__profile">
-          <Image alt='profile' loading='eager' height={72} width={72} layout='intrinsic' priority={true} className="projectgrid__profile__img" src={profile} />
-          {lookingForFunding && <Tooltip side="top" asChild trigger={<img className="projectgrid__profile__fund" onClick={handleIconClick} alt="profile" src="/icons/raising-fund-indicator.svg" />} content={'Raising Funds'} />}
+          <Image alt="profile" loading="eager" height={72} width={72} layout="intrinsic" priority={true} className="projectgrid__profile__img" src={profile} />
+          {lookingForFunding && (
+            <Tooltip
+              side="top"
+              asChild
+              trigger={<img className="projectgrid__profile__fund" onClick={handleIconClick} alt="profile" src="/icons/raising-fund-indicator.svg" />}
+              content={'Raising Funds'}
+            />
+          )}
         </div>
         <div className="projectgrid__detail">
           <div className="projectgrid__detail__cn">
@@ -65,24 +72,37 @@ const ProjectGridView = (props: any) => {
             <p className="projectgrid__detail__cn__desc">{description}</p>
             <div className="projectgrid__maintainer">
               <p className="projectgrid__maintainer__cn__title">Maintainer - </p>
-              <Image alt='maintainer' loading='eager' height={14} width={14} layout='intrinsic' priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />
+              <Image alt="maintainer" loading="eager" height={14} width={14} layout="intrinsic" priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />
               <p className="projectgrid__maintainer__cn__name">{maintainerName}</p>
             </div>
           </div>
+
           <div className="projectgrid__tags">
-          {
-            tags.slice(0,tagsCountToShow).map((tag: Option, index: number) => (
-              <div key={index} className="projectgrid__tags__tag">
-                <span className="projectgrid__tags__tag__text">{tag.label}</span>
-              </div>
-            ))
-          }
-          {
-            tags.length > tagsCountToShow && <div className="projectgrid__tags__tag">
-              <span className="projectgrid__tags__tag__text">+{tags.length-tagsCountToShow}</span>
-            </div>
-          }
-          {/* <Image alt='maintainer' loading='eager' height={36} width={36} layout='intrinsic' priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />
+            {tags.slice(0, tagsCountToShow).map((tag: Option, index: number) => (
+              <Fragment key={tag.label}>
+                <Tooltip
+                  asChild
+                  trigger={
+                    <div key={index} className="projectgrid__tags__tag">
+                      <span className="projectgrid__tags__tag__text">{tag.label}</span>
+                    </div>
+                  }
+                  content={tag?.label}
+                />
+              </Fragment>
+            ))}
+            {tags.length > tagsCountToShow && (
+              <Tooltip
+                asChild
+                trigger={
+                  <div className="projectgrid__tags__tag">
+                    <span className="projectgrid__tags__tag__text">+{tags.length - tagsCountToShow}</span>
+                  </div>
+                }
+                content={`+${tags.length - tagsCountToShow}`}
+              />
+            )}
+            {/* <Image alt='maintainer' loading='eager' height={36} width={36} layout='intrinsic' priority={true} className="projectgrid__maintainer__img" src={maintainerLogo} />
             <div className="projectgrid__maintainer__cn">
               <p className="projectgrid__maintainer__cn__name">{maintainerName}</p>
               <p className="projectgrid__maintainer__cn__title">Maintainer</p>
@@ -154,7 +174,7 @@ const ProjectGridView = (props: any) => {
             text-overflow: ellipsis;
           }
 
-          .projectgrid__tags__tag{
+          .projectgrid__tags__tag {
             padding: 6px 12px 6px 12px;
             border-radius: 24px;
             background: #f1f5f9;

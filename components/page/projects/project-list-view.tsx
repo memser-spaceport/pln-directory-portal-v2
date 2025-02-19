@@ -4,6 +4,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getTagsLabel } from '@/services/projects.service';
 import { Option } from '@/types/shared.types';
 import Image from 'next/image';
+import { Fragment } from 'react';
 
 const ProjectListView = (props: any) => {
   //props
@@ -46,14 +47,29 @@ const ProjectListView = (props: any) => {
             <div className="projectlist__details__right__container">
               <div className="projectlist__details__right__container__tags">
                 {tags.slice(0, tagsCountToShow).map((tag: Option, index: number) => (
-                  <div key={index} className="projectlist__details__right__container__tags__tag">
+                  <Fragment key={tag.label}>
+                  <Tooltip
+                    asChild
+                    trigger={
+                      <div key={index} className="projectlist__details__right__container__tags__tag">
                     <span className="projectlist__details__right__container__tags__tag__text">{tag.label}</span>
                   </div>
+                    }
+                    content={tag?.label}
+                  />
+                </Fragment>
+                  
                 ))}
                 {tags.length > tagsCountToShow && (
-                  <div className="projectlist__details__right__container__tags__tag">
+                  <Tooltip
+                    asChild
+                    trigger={
+                      <div className="projectlist__details__right__container__tags__tag">
                     <span className="projectlist__details__right__container__tags__tag__text">+{tags.length - tagsCountToShow}</span>
                   </div>
+                    }
+                    content={`+${tags.length - tagsCountToShow}`}
+                  />
                 )}
               </div>
               <div className='projectlist__details__maintainer'>

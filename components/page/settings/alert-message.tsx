@@ -15,7 +15,7 @@ function AlertMessage({ isMemberTab = false, onClickClose = () => {} }: IAlertMe
         <div className="alert__message__info">
           <Image src={`${isMemberTab ? '/icons/circle-yellow.svg' : '/icons/info-yellow.svg'}`} alt="info" height={iconSize} width={iconSize} />
           <p className={`alert__message__info__text`}>
-            {isMemberTab ? 'Yellow highlights indicate unsaved changes. Make sure you click Save changes!' : "Changes aren't saved automatically. Click 'Save changes' to keep your edits."}
+            {isMemberTab ? 'Orange highlights indicate unsaved changes. Make sure you click Save changes!' : "Changes aren't saved automatically. Click 'Save changes' to keep your edits."}
           </p>
         </div>
         {isMemberTab && (

@@ -423,7 +423,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms__content">
             <div className="ms__content__cn">
               <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-                <MemberBasicInfo isAdminEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} />
+                <MemberBasicInfo isAdminEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} isVerifiedFlag={isVerifiedFlag}/>
               </div>
               <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
                 <MemberSkillsInfo isEdit={true} errors={errors.skillsErrors} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />

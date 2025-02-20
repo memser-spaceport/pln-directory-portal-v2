@@ -6,6 +6,7 @@ interface IToggle {
   isChecked: boolean;
   callback: (e:BaseSyntheticEvent) => void;
   id? :string
+  disabled?: boolean; 
 }
 
 const Toggle = (props:IToggle) => {
@@ -14,10 +15,11 @@ const Toggle = (props:IToggle) => {
     const isChecked = props?.isChecked;
     const callback = props?.callback;
     const id = props?.id;
+    const disabled = props?.disabled;
     return (
       <>
         <label className='toogle' style={{ width: width, height: height }}>
-          <input type='checkbox' checked={isChecked} onChange={(e) => callback(e)} id={`${id ? id : ''}`} />
+          <input type='checkbox' checked={isChecked} onChange={(e) => callback(e)} id={`${id ? id : ''}`} disabled={disabled}/>
           <span className='toogle__slider toogle__round'></span>
         </label>
   
@@ -61,9 +63,9 @@ const Toggle = (props:IToggle) => {
             }
   
             input:checked + .toogle__slider {
-              background-color: #156ff7;
+              background-color: ${disabled ? "#93C5FD" : "#156ff7"};
             }
-  
+            
             input:focus + .toogle__slider {
               box-shadow: 0 0 1px #2196f3;
             }

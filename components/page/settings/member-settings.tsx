@@ -24,7 +24,7 @@ import AlertMessage from './alert-message';
 
 interface MemberSettingsProps {
   memberInfo: any;
-  userInfo: IUserInfo
+  userInfo: IUserInfo;
 }
 
 function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
@@ -48,8 +48,8 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
 
   const handleTabClick = (v: string) => {
     analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
-    setActiveTab({ name: v })
-  }
+    setActiveTab({ name: v });
+  };
 
   const onModalClose = () => {
     if (errorDialogRef.current) {
@@ -65,18 +65,18 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
 
   const onResetForm = async (e: any) => {
     const isSame = onFormChange();
-    if(isSame) {
-      e.preventDefault()
-      toast.info('There are no changes to reset')
+    if (isSame) {
+      e.preventDefault();
+      toast.info('There are no changes to reset');
       return;
     }
     const proceed = confirm('Do you want to reset the changes ?');
-    if(!proceed) {
-      e.preventDefault()
+    if (!proceed) {
+      e.preventDefault();
       return;
     }
-    if(formRef.current) {
-      formRef.current.reset()
+    if (formRef.current) {
+      formRef.current.reset();
     }
     document.dispatchEvent(new CustomEvent('reset-member-register-form'));
   };
@@ -168,21 +168,21 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       e.preventDefault();
       e.stopPropagation();
       analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), 'COMPLETED');
-      if(!formRef.current) {
+      if (!formRef.current) {
         triggerLoader(false);
         return;
       }
       const isBothSame = onFormChange();
-      if(isBothSame) {
-        toast.info("There are no changes to save")
+      if (isBothSame) {
+        toast.info('There are no changes to save');
         triggerLoader(false);
         return;
       }
-     
+
       const formData = new FormData(formRef.current);
       const formValues = formInputsToMemberObj(Object.fromEntries(formData));
       const formattedForms = { ...formValues };
-      analytics.recordManageMemberSave("save-click", getAnalyticsUserInfo(userInfo), formattedForms);
+      analytics.recordManageMemberSave('save-click', getAnalyticsUserInfo(userInfo), formattedForms);
 
       const basicErrors: any[] = await checkBasicInfoForm({ ...formattedForms });
       const skillsErrors: any[] = await checkSkillInfoForm({ ...formattedForms });
@@ -200,7 +200,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       if (allFormErrors.length > 0) {
         triggerLoader(false);
         onShowErrorModal();
-        analytics.recordManageMemberSave("validation-error", getAnalyticsUserInfo(userInfo), formattedForms);
+        analytics.recordManageMemberSave('validation-error', getAnalyticsUserInfo(userInfo), formattedForms);
         return;
       }
 
@@ -219,11 +219,10 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         if (imgEle) {
           imgEle.value = image.url;
         }
-      }
-      else if (memberInfo?.image?.uid && memberInfo?.image?.url && formattedForms.imageFile === memberInfo?.image?.url) {
+      } else if (memberInfo?.image?.uid && memberInfo?.image?.url && formattedForms.imageFile === memberInfo?.image?.url) {
         formattedForms.imageUid = memberInfo?.image?.uid;
       }
-     
+
       delete formattedForms.memberProfile;
       delete formattedForms.imageFile;
 
@@ -231,33 +230,33 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         participantType: 'MEMBER',
         referenceUid: memberInfo.uid,
         uniqueIdentifier: formattedForms.email,
-        newData: { ...formattedForms},
+        newData: { ...formattedForms },
       };
 
       const rawAuthToken = Cookies.get('authToken');
-      if(!rawAuthToken) {
+      if (!rawAuthToken) {
         return;
       }
       const authToken = JSON.parse(rawAuthToken);
 
       const formResult = await updateMember(memberInfo?.uid, bodyData, authToken);
-     
+
       if (!formResult.isError) {
         /* if (actionRef.current) {
           actionRef.current.style.visibility = 'hidden';
         } */
         triggerLoader(false);
         toast.success('Profile has been updated successfully');
-        analytics.recordManageMemberSave("save-success", getAnalyticsUserInfo(userInfo), bodyData);
+        analytics.recordManageMemberSave('save-success', getAnalyticsUserInfo(userInfo), bodyData);
         router.refresh();
       } else {
         triggerLoader(false);
         toast.error('Profile updated failed. Please try again later.');
-        analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo), bodyData);
+        analytics.recordManageMemberSave('save-error', getAnalyticsUserInfo(userInfo), bodyData);
       }
     } catch (e) {
       toast.error('Failed to update profile. Something went wrong');
-      analytics.recordManageMemberSave("save-error", getAnalyticsUserInfo(userInfo));
+      analytics.recordManageMemberSave('save-error', getAnalyticsUserInfo(userInfo));
       triggerLoader(false);
     }
   };
@@ -268,8 +267,8 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       e.stopPropagation();
     }
 
-    if(!formRef.current) {
-      return
+    if (!formRef.current) {
+      return;
     }
     const formData = new FormData(formRef.current);
     const formValues = formInputsToMemberObj(Object.fromEntries(formData));
@@ -290,40 +289,47 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         }
       })
       .catch((e) => console.error(e));
-     
   }, []);
 
   useEffect(() => {
-    triggerLoader(false)
+    triggerLoader(false);
     function handleNavigate(e: any) {
       const url = e.detail.url;
       let proceed = true;
       const isSame = onFormChange();
-      if(!isSame) {
-        proceed = confirm('There are some unsaved changed. Do you want to proceed?')
+      if (!isSame) {
+        proceed = confirm('There are some unsaved changed. Do you want to proceed?');
       }
-      if(!proceed) {
+      if (!proceed) {
         return;
       }
-      triggerLoader(true)
+      triggerLoader(true);
       router.push(url);
       router.refresh();
     }
-    document.addEventListener('settings-navigate', handleNavigate)
-    return function() {
-      document.removeEventListener('settings-navigate', handleNavigate)
-    }
-  }, [initialValues])
+    document.addEventListener('settings-navigate', handleNavigate);
+    return function () {
+      document.removeEventListener('settings-navigate', handleNavigate);
+    };
+  }, [initialValues]);
 
   return (
     <>
-      <form ref={formRef} onSubmit={onFormSubmitted} onReset={onResetForm}  className="ms" noValidate>
+      <form ref={formRef} onSubmit={onFormSubmitted} onReset={onResetForm} className="ms" noValidate>
         <div className="ms__tab">
           <div className="ms__tab__desktop">
-            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps.map((v) => v.name)} />
+            <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
           </div>
           <div className="ms__tab__mobile">
-            <SingleSelect uniqueKey="name" arrowImgUrl="/icons/arrow-down.svg" onItemSelect={(item: any) => setActiveTab(item)} displayKey="name" options={steps} selectedOption={activeTab} id="settings-member-steps" />
+            <SingleSelect
+              uniqueKey="name"
+              arrowImgUrl="/icons/arrow-down.svg"
+              onItemSelect={(item: any) => setActiveTab(item)}
+              displayKey="name"
+              options={steps}
+              selectedOption={activeTab}
+              id="settings-member-steps"
+            />
           </div>
         </div>
         <div className="ms__content">
@@ -341,13 +347,13 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
           </div>
         </div>
         <AlertMessage />
-        <SettingsAction/>
+        <SettingsAction />
       </form>
       <Modal modalRef={errorDialogRef} onClose={onModalClose}>
         <div className="error">
           <h2 className="error__title">Validation Errors</h2>
-          <div className='error__info'>
-            <img width="16" height="16" src='/icons/alert-red.svg'/>
+          <div className="error__info">
+            <img width="16" height="16" src="/icons/alert-red.svg" />
             <p>Some fields require your attention. Please review the fields below & submit again.</p>
           </div>
           {errors.basicErrors.length > 0 && (
@@ -367,7 +373,9 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
               <h3 className="error__item__title">Skills Info</h3>
               <ul className="error__item__list">
                 {errors.skillsErrors.map((v: any, i: any) => (
-                  <li className="error__item__list__msg" key={`basic-error-${i}`}>{v}</li>
+                  <li className="error__item__list__msg" key={`basic-error-${i}`}>
+                    {v}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -393,11 +401,11 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
           .error {
             width: calc(100vw - 32px);
             height: auto;
-             padding: 16px;
+            padding: 16px;
           }
           .error__info {
-            color: #0F172A;
-            background: #DD2C5A1A;
+            color: #0f172a;
+            background: #dd2c5a1a;
             padding: 8px 16px;
             font-size: 14px;
             font-weight: 400;
@@ -413,14 +421,13 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
             font-size: 15px;
             font-weight: 600;
           }
-            .error__item__list {
-              padding: 8px 16px;
-            }
-            .error__item__list__msg {
+          .error__item__list {
+            padding: 8px 16px;
+          }
+          .error__item__list__msg {
             font-size: 14px;
-            color: #DD2C5A;
-            
-            }
+            color: #dd2c5a;
+          }
           .fa {
             position: sticky;
             // border-top: 2px solid #ff820e;
@@ -434,7 +441,6 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            
           }
           .fa__info {
             display: flex;
@@ -467,8 +473,6 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
             border-radius: 8px;
           }
 
-          
-
           .hidden {
             visibility: hidden;
             height: 0;
@@ -484,7 +488,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
             position: sticky;
             top: 128px;
             background: white;
-             padding-top: 10px;
+            padding-top: 10px;
             padding-bottom: 10px;
             z-index: 3;
           }
@@ -502,8 +506,8 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
             min-height: calc(100svh - 128px);
           }
           @media (min-width: 1024px) {
-           .error {
-             width: 60vw;
+            .error {
+              width: 60vw;
               padding: 24px;
             }
             .ms {
@@ -534,7 +538,6 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
               left: auto;
               justify-content: center;
               align-items: center;
-           
             }
           }
         `}

@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface TabsProps {
-  tabs: string[];
+  tabs: any[];
   activeTab: string;
   errorInfo?: any;
   onTabClick: (item: string) => void;
@@ -13,11 +13,12 @@ const Tabs: React.FC<TabsProps> = ({ tabs, errorInfo = {}, activeTab, onTabClick
       <div className="tabs__list">
         {tabs.map((tab, index) => (
           <div
-            key={`${tab}-${index}`}
-            className={`tabs__tab ${tab === activeTab ? 'tabs__tab--active' : ''} ${(errorInfo[tab] === true && tab === activeTab) ? 'tabs__tab--error': ''}`}
-            onClick={() => onTabClick(tab)}
+            key={`${tab.name}-${index}`}
+            className={`tabs__tab ${tab.name === activeTab ? 'tabs__tab--active' : ''} ${errorInfo[tab.name] === true && tab.name === activeTab ? 'tabs__tab--error' : ''}`}
+            onClick={() => onTabClick(tab.name)}
           >
-            <p className={`tabs__tab__text ${tab === activeTab ? 'tabs__tab__text--active': ''} ${errorInfo[tab] === true ? 'tabs__tab__text--error': ''}`}>{tab}</p>
+            <p className={`tabs__tab__text ${tab.name === activeTab ? 'tabs__tab__text--active' : ''} ${errorInfo[tab.name] === true ? 'tabs__tab__text--error' : ''}`}>{tab.name}</p>
+            {tab.count && <div className={`tabs__tab__count ${tab.name === activeTab ? 'tabs__tab__count--active' : ''}`}>{tab.count}</div>}
           </div>
         ))}
       </div>
@@ -35,30 +36,44 @@ const Tabs: React.FC<TabsProps> = ({ tabs, errorInfo = {}, activeTab, onTabClick
           border-bottom: 2px solid transparent;
           flex: 1;
           transition: border-bottom 0.3s ease;
+          display: flex;
+          justify-content: center;
+          gap: 5px;
         }
         .tabs__tab--active {
-          border-bottom: 2px solid #156FF7;
-          
+          border-bottom: 2px solid #156ff7;
         }
         .tabs__tab__text {
           font-size: 14px;
           font-weight: 400;
           text-transform: uppercase;
-          color: #94A3B8;
+          color: #94a3b8;
           text-align: center;
         }
         .tabs__tab__text--active {
-           font-weight: 700;
-           color: #156FF7;
+          font-weight: 700;
+          color: #156ff7;
         }
-
+        .tabs__tab__count {
+          font-size: 11px;
+          width: 28px;
+          height: 15px;
+          background-color: #94a3b8;
+          border-radius: 4px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: white;
+        }
+        .tabs__tab__count--active {
+          background-color: #156ff7;
+        }
         .tabs__tab--error {
-         border-bottom: 2px solid red;
+          border-bottom: 2px solid red;
         }
         .tabs__tab__text--error {
           color: red;
         }
-
       `}</style>
     </div>
   );

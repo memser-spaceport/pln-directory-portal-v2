@@ -403,7 +403,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           {viewType === 'profile' && (
             <div className="ms__tab">
               <div className="ms__tab__desktop">
-                <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps.map((v) => v.name)} />
+                <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
               </div>
               <div className="ms__tab__mobile">
                 <SingleSelect

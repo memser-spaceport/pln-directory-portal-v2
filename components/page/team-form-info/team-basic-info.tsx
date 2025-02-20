@@ -39,7 +39,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
    */
   const onTogglePlnFriend = () => {
     setIsPlnFriend(!isPlnFriend);
-  }; 
+  };
 
   const onDeleteImage = (e: React.MouseEvent<HTMLImageElement>) => {
     e.stopPropagation();
@@ -129,7 +129,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
                 maxLength={150}
                 isMandatory
                 id="register-team-name"
-                // label="What is your organization, company, or team name?*" 
+                // label="What is your organization, company, or team name?*"
                 name="name"
                 type="text"
                 placeholder="Enter name here"
@@ -139,7 +139,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a squared image in PNG or JPEG format with file size less than 4MB.</span>
           </p>
-         <div className="teaminfo__form__plnFriend__toggle">
+          <div className="teaminfo__form__plnFriend__toggle">
             <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
             <p className="teaminfo__form__plnFriend__toggle__label">Is your organization, company, or team friends of PL?</p>
             <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
@@ -204,7 +204,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             display: flex;
             flex-direction: column;
             gap: 20px;
-            padding: 20px 0;
+            padding: 20px 24px;
           }
           .teaminfo__form__item {
             display: flex;
@@ -307,8 +307,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             align-items: center;
             justify-content: space-between;
             padding: 8px 8px 8px 12px;
-            background-color: #DBEAFE;
-            border: 1px solid #E2E8F0;
+            background-color: #dbeafe;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
           }
           .teaminfo__form__plnFriend__toggle__label {

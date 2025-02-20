@@ -101,7 +101,7 @@ const TeamMemberCard = (props: any) => {
       <style jsx>
         {`
           .memberCard {
-            padding: 16px;
+            padding: 16px 42px;
             align-items: center;
             width: 100%;
             display: flex;

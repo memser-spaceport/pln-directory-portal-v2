@@ -18,6 +18,7 @@ interface MemberBasicInfoProps {
   isMemberSelfEdit?: boolean;
   isAdminEdit?: boolean;
   uid?: string;
+  isVerifiedFlag?: string;
 }
 
 function MemberBasicInfo(props: MemberBasicInfoProps) {
@@ -133,10 +134,16 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
-            {isAdminEdit && <div className="memberinfo__form__plnFriend__toggle">
+            {isAdminEdit && <div className={`memberinfo__form__plnFriend__toggle ${
+              props?.isVerifiedFlag === "true" ? " " : "unverified-bg"
+              }`}
+              >
               <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
               <p className="memberinfo__form__plnFriend__toggle__label">Are you friends of PL?</p>
-              <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+              {props?.isVerifiedFlag == "true" 
+                ? <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+                : <Toggle id="pl-friend" height="16px" width="28px" isChecked={true} callback={onTogglePlnFriend} disabled={true} />
+              }
             </div>}
           {!isMemberSelfEdit && !isAdminEdit && (
             <div className="memberinfo__form__item">
@@ -299,6 +306,9 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             border: 1px solid #E2E8F0;
             margin-top: 20px;
             border-radius: 8px;
+          }
+          .unverified-bg {
+            background-color: #E2E8F0;
           }
           .memberinfo__form__plnFriend__toggle__label {
             font-size: 14px;

@@ -316,6 +316,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             font-weight: 400;
             line-height: 20px;
             color: #0F172A;
+            flex: 1;
           }
         `}
       </style>

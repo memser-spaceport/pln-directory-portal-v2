@@ -273,7 +273,7 @@ const TeamMemberCard = (props: any) => {
           }
           .memberCard__confirm__changes__undo {
             color: #156ff7;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             background: none;
             border: none;

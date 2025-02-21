@@ -28,8 +28,8 @@ interface MemberSettingsProps {
 }
 
 function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
-  const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
-  const [activeTab, setActiveTab] = useState({ name: 'basic' });
+  const steps = [{ name: 'basic', label:"BASIC" }, { name: 'skills', label:"SKILLS" }, { name: 'contributions', label:"CONTRIBUTIONS" }, { name: 'social', label:"SOCIAL" }];
+  const [activeTab, setActiveTab] = useState({ name: 'basic', label:"BASIC" });
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -48,7 +48,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
 
   const handleTabClick = (v: string) => {
     analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
-    setActiveTab({ name: v });
+    setActiveTab({ name: v, label: v.toUpperCase() });
   };
 
   const onModalClose = () => {
@@ -325,7 +325,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
               uniqueKey="name"
               arrowImgUrl="/icons/arrow-down.svg"
               onItemSelect={(item: any) => setActiveTab(item)}
-              displayKey="name"
+              displayKey="label"
               options={steps}
               selectedOption={activeTab}
               id="settings-member-steps"

@@ -5,15 +5,14 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 
 type HuskyLimitStrip = {
-  onClose: () => void;
   type: 'warn' | 'info' | 'close' | 'finalRequest';
   count: number;
-  onDialogClose: any;
+  onDialogClose?: any;
   mode: 'blog' | 'chat';
   from: string
 };
 
-const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode, from }: HuskyLimitStrip) => {
+const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitStrip) => {
   const analytics = useHuskyAnalytics();
   const router = useRouter();
 
@@ -23,7 +22,9 @@ const HuskyLimitStrip = ({ onClose, type, count, onDialogClose, mode, from }: Hu
   };
 
   const onLoginClickHandler = () => {
-    onDialogClose();
+    if (onDialogClose) {
+      onDialogClose();
+    }
     analytics.trackLoginFromHuskyChat(from);
     const userInfo = Cookies.get('userInfo');
     if (userInfo) {

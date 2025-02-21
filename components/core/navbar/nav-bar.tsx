@@ -16,6 +16,7 @@ import LoginBtn from './login-btn';
 import MobileNavDrawer from './mobile-nav-drawer';
 import UserProfile from './userProfile';
 import SignUpBtn from './sign-up';
+import HuskyLink from './husky-link';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -122,6 +123,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           </div>
         </div>
         <div className="nb__right">
+          <HuskyLink/>
           {isLoggedIn && (
             <>
               {/* <div className="nb__right__team" onClick={handleSubmitTeam}>

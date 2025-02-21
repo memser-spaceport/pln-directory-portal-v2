@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import SettingsAction from './actions';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import AlertMessage from './alert-message';
 
 function MemberPrivacyForm(props: any) {
   const uid = props?.uid;
@@ -213,6 +214,7 @@ function MemberPrivacyForm(props: any) {
             </div>
           </div>
         ))}
+        <AlertMessage />
         <SettingsAction />
       </form>
       <style jsx>

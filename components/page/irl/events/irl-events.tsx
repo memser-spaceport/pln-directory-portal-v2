@@ -3,7 +3,7 @@
 import Modal from '@/components/core/modal';
 import { useRef, useState } from 'react';
 import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
-import { getFormattedDateString } from '@/utils/irl.utils';
+import { getFormattedDateString, abbreviateString } from '@/utils/irl.utils';
 import IrlUpcomingEvents from './irl-upcoming-events';
 import IrlPastEvents from './irl-past-events';
 import { triggerLoader } from '@/utils/common.utils';
@@ -50,6 +50,7 @@ const IrlEvents = (props: IIrlEvents) => {
   const irlLocation = searchParams?.location?.toLowerCase() || locationDetails?.[0]?.location?.toLowerCase();
   const scheduleEnabledLocations = process.env.SCHEDULE_ENABLED_LOCATIONS?.split(',');
   const isScheduleEnabled = scheduleEnabledLocations?.includes(irlLocation) || false;
+  const updatedIrlLocation = abbreviateString(irlLocation);
 
   const isEventAvailable = searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event);
 
@@ -93,11 +94,11 @@ const IrlEvents = (props: IIrlEvents) => {
   };
 
   const onViewScheduleClick = () => {
-    analytics.trackViewScheduleClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${irlLocation}` });
+    analytics.trackViewScheduleClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar` });
   };
 
   const onSubmitFormClick = () => {
-    analytics.trackSubmitFormClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${irlLocation}` });
+    analytics.trackSubmitFormClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar` });
   };
 
   const handleAllGathering = () => {
@@ -269,7 +270,7 @@ const IrlEvents = (props: IIrlEvents) => {
           )}
 
           {isScheduleEnabled && (
-            <Link legacyBehavior target="_blank" href={`${process.env.SCHEDULE_BASE_URL}/${irlLocation}`}>
+            <Link legacyBehavior target="_blank" href={`${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar`}>
               <a target="_blank" className="root__schedule" onClick={onViewScheduleClick}>
                 <img src="/icons/calendar-white.svg" height={16} width={16} className="root__schedule__img" alt="calendar" />
                 View Schedule
@@ -277,7 +278,7 @@ const IrlEvents = (props: IIrlEvents) => {
             </Link>
           )}
 
-          <Link href={irlLocation === 'denver' ? process.env.IRL_SUBMIT_FORM_URL ?? '' : IRL_AIRTABLE_FORM_LINK} legacyBehavior target="_blank">
+          <Link href={isScheduleEnabled ? `${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}` : IRL_AIRTABLE_FORM_LINK} legacyBehavior target="_blank">
             <a target="_blank" className="root__submit" onClick={onViewScheduleClick}>
               <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
               Submit an event

@@ -61,7 +61,7 @@ export const EVENTS = {
   UPDATE_OFFICE_HOURS: 'update-office-hours',
   OPEN_IAM_GOING_POPUP: 'open-iam-going-popup',
   UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
-  RESET_ASK_FORM_VALUES: 'reset-ask-form'
+  RESET_ASK_FORM_VALUES: 'reset-ask-form',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -91,7 +91,7 @@ export const HELPER_MENU_OPTIONS = [
     url: '/changelog',
     type: '',
     isExternal: false,
-  }
+  },
 ];
 
 export const JOIN_NETWORK_MENUS = [
@@ -141,6 +141,10 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   PR_CONRTIBUTIONS_LIST_ITEM_ADD: 'pr-contributions-list-item-add',
   PR_CONRTIBUTIONS_LIST_ITEM_DELETE: 'pr-contributions-list-item-delete',
   PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT: 'pr-contributions-list-item-addproject',
+
+  MANAGE_TEAMS_MEMBER_TEAM_LEAD_TOGGLE_CHANGE: 'manage-teams-member-team-lead-toggle-change',
+  MANAGE_TEAMS_MEMBER_REMOVE: 'manage-teams-member-remove',
+  MANAGE_TEAMS_MEMBER_UNDO: 'manage-teams-member-undo',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
@@ -332,9 +336,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS: 'member-details-on-click-irl-contributions',
 };
 
-export const IRL_ANALYTICS_EVENTS = {
-
-};
+export const IRL_ANALYTICS_EVENTS = {};
 
 export const HOME_ANALYTICS_EVENTS = {
   FOCUS_AREA_TEAMS_CLICKED: 'focus-teams-clicked',
@@ -368,7 +370,7 @@ export const PAGE_ROUTES = {
   IRL: '/irl',
   NOTIFICATIONS: '/notifications',
   ADD_TEAM: '/teams/add',
-  SIGNUP: '/sign-up'
+  SIGNUP: '/sign-up',
 };
 
 export const SORT_OPTIONS = {
@@ -408,7 +410,7 @@ export const FOCUS_AREAS_FILTER_KEYS = {
 };
 
 export const ITEMS_PER_PAGE = 50;
-export const INITIAL_ITEMS_PER_PAGE = 50
+export const INITIAL_ITEMS_PER_PAGE = 50;
 
 export const ENROLLMENT_TYPE = {
   MEMBER: 'MEMBER',
@@ -461,7 +463,7 @@ export const ROLE_FILTER_QUERY_NAME = 'memberRoles';
 export const OFFICE_HOURS_MSG = 'Schedule a one on one office hours discussion with';
 export const TEAM_OFFICE_HOURS_MSG = 'Join office hours discussion with';
 
-export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'More Details'];
+export const PROJECT_FORM_STEPS = ['General', 'Contributors', 'KPIs', 'Additional Details'];
 export const TEAM_FORM_STEPS = ['Basic', 'Project Details', 'Social'];
 
 export const EVENT_TYPE = {
@@ -472,6 +474,29 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.4 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '21, Feb 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Team Leads can promote or demote team members to Lead roles and remove members using the enhanced Settings module</li>
+    <li>Projects can now be labeled with suitable tags using the new Tagging feature</li>
+    <li>Adding year information to the Events table for improved clarity</li>
+    <li>Better visualization of the Home page's Discover section cards</li>
+    </ul>
+
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Optimized approach in handling the additional details section for Projects while editing and saving changes</li>
+    <li>Filter issue fix on the IRL Gatherings module's Attendees table</li>
+    <li>Fixed the error thrown on removing all attendees from a location on the IRL Gatherings</li>
+    </ul>
+
+    </div>`,
+  },
   {
     title: 'Version 4.1.3 - Improved Event Visualization for IRL Gatherings',
     tag: 'Improvements',
@@ -881,7 +906,7 @@ export const NOTIFICATION_REFETCH_TIME = 300000;
 
 export const HOME_PAGE_LINKS = {
   FEATURED_REQUEST_URL: 'https://airtable.com/appgb6O7eF6mBEl8t/pagZ15qnE9hcxpuP0/form',
-  FOCUSAREA_PROTOCOL_LABS_VISION_URL: 'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/'
+  FOCUSAREA_PROTOCOL_LABS_VISION_URL: 'https://protocol.ai/blog/transcription-pl-vision-driving-a-breakthroughs-in-computing-to-push-humanity-forward/',
 };
 
 export const ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS = ['DIRECTORYADMIN'];
@@ -890,160 +915,279 @@ export const IAM_GOING_POPUP_MODES = {
   ADD: 'ADD',
   EDIT: 'EDIT',
   ADMINADD: 'ADMINADD',
-}
+};
 
-export const PLN_LOCATIONS = [{
-  id: 1,
-  location: "Kyoto",
-  flag: "&#127471;&#127477;",
-  icon: "/images/irl/kyoto.svg",
-  pastEvents: 7,
-  upcomingEvents: 6,
-  isActive: true,
-},
-{
-  id: 2,
-  location: "Mumbai",
-  flag: "&#127470;&#127475;",
-  icon: "/images/irl/mumbai.svg",
-  pastEvents: 4,
-  upcomingEvents: 10,
-  isActive: false,
-},
-{
-  id: 3,
-  location: "Australia",
-  flag: "&#127462;&#127482;",
-  icon: "/images/irl/australia.svg",
-  pastEvents: 2,
-  upcomingEvents: 4,
-  isActive: false,
-},
-{
-  id: 4,
-  location: "France",
-  flag: "&#127467;&#127479;",
-  icon: "/images/irl/france.svg",
-  pastEvents: 8,
-  upcomingEvents: 2,
-  isActive: false,
-},
-{
-  id: 5,
-  location: "USA",
-  flag: "&#127482;&#127480;",
-  icon: "",
-  pastEvents: 2,
-  upcomingEvents: 3,
-  isActive: false,
-},
-{
-  id: 6,
-  location: "Bali",
-  flag: "&#127470;&#127465",
-  icon: "",
-  pastEvents: 1,
-  upcomingEvents: 6,
-  isActive: false,
-},
-{
-  id: 7,
-  location: "Brazil",
-  flag: "&#127463;&#127479;",
-  icon: "",
-  pastEvents: 3,
-  upcomingEvents: 2,
-  isActive: false,
-},
-{
-  id: 8,
-  location: "Bangalore",
-  flag: "&#127470;&#127475;",
-  icon: "",
-  pastEvents: 5,
-  upcomingEvents: 7,
-  isActive: false,
-},
-{
-  id: 9,
-  location: "Canberra",
-  flag: "&#127462;&#127482;",
-  icon: "",
-  pastEvents: 4,
-  upcomingEvents: 3,
-  isActive: false,
-},
-{
-  id: 10,
-  location: "Bangalore",
-  flag: "&#127470;&#127475;",
-  icon: "",
-  pastEvents: 5,
-  upcomingEvents: 7,
-  isActive: false,
-},
-{
-  id: 11,
-  location: "Canberra",
-  flag: "&#127462;&#127482;",
-  icon: "",
-  pastEvents: 4,
-  upcomingEvents: 3,
-  isActive: false,
-}
+export const PLN_LOCATIONS = [
+  {
+    id: 1,
+    location: 'Kyoto',
+    flag: '&#127471;&#127477;',
+    icon: '/images/irl/kyoto.svg',
+    pastEvents: 7,
+    upcomingEvents: 6,
+    isActive: true,
+  },
+  {
+    id: 2,
+    location: 'Mumbai',
+    flag: '&#127470;&#127475;',
+    icon: '/images/irl/mumbai.svg',
+    pastEvents: 4,
+    upcomingEvents: 10,
+    isActive: false,
+  },
+  {
+    id: 3,
+    location: 'Australia',
+    flag: '&#127462;&#127482;',
+    icon: '/images/irl/australia.svg',
+    pastEvents: 2,
+    upcomingEvents: 4,
+    isActive: false,
+  },
+  {
+    id: 4,
+    location: 'France',
+    flag: '&#127467;&#127479;',
+    icon: '/images/irl/france.svg',
+    pastEvents: 8,
+    upcomingEvents: 2,
+    isActive: false,
+  },
+  {
+    id: 5,
+    location: 'USA',
+    flag: '&#127482;&#127480;',
+    icon: '',
+    pastEvents: 2,
+    upcomingEvents: 3,
+    isActive: false,
+  },
+  {
+    id: 6,
+    location: 'Bali',
+    flag: '&#127470;&#127465',
+    icon: '',
+    pastEvents: 1,
+    upcomingEvents: 6,
+    isActive: false,
+  },
+  {
+    id: 7,
+    location: 'Brazil',
+    flag: '&#127463;&#127479;',
+    icon: '',
+    pastEvents: 3,
+    upcomingEvents: 2,
+    isActive: false,
+  },
+  {
+    id: 8,
+    location: 'Bangalore',
+    flag: '&#127470;&#127475;',
+    icon: '',
+    pastEvents: 5,
+    upcomingEvents: 7,
+    isActive: false,
+  },
+  {
+    id: 9,
+    location: 'Canberra',
+    flag: '&#127462;&#127482;',
+    icon: '',
+    pastEvents: 4,
+    upcomingEvents: 3,
+    isActive: false,
+  },
+  {
+    id: 10,
+    location: 'Bangalore',
+    flag: '&#127470;&#127475;',
+    icon: '',
+    pastEvents: 5,
+    upcomingEvents: 7,
+    isActive: false,
+  },
+  {
+    id: 11,
+    location: 'Canberra',
+    flag: '&#127462;&#127482;',
+    icon: '',
+    pastEvents: 4,
+    upcomingEvents: 3,
+    isActive: false,
+  },
 ];
 
 export const IRL_ATTENDEE_FORM_ERRORS = {
-  CHECKOUT_DATE_REQUIRED: "Departure date is required",
-  CHECKIN_DATE_REQUIRED: "Arrival date is required",
-  DATE_DIFFERENCE: "Departure date should be greater than or equal to the Arrival date",
-  SELECT_MEMBER: "Please select a member",
-  SELECT_GATHERING: "At least one Gathering should be selected",
+  CHECKOUT_DATE_REQUIRED: 'Departure date is required',
+  CHECKIN_DATE_REQUIRED: 'Arrival date is required',
+  DATE_DIFFERENCE: 'Departure date should be greater than or equal to the Arrival date',
+  SELECT_MEMBER: 'Please select a member',
+  SELECT_GATHERING: 'At least one Gathering should be selected',
+};
 
-}
+export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-export const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+export const IRL_SUBMIT_FORM_LINK = 'https://eventsmanagement.labweek.io/';
 
-export const IRL_SUBMIT_FORM_LINK = "https://eventsmanagement.labweek.io/"
-
-export const LOGIN_BANNER_URL = "https://plabs-assets.s3.us-west-1.amazonaws.com/images/login-banner.png"
-export const IRL_DEFAULT_TOPICS = "AI,Apps,AR/VR,Argentina,Automation,AVS,BCI,Capital Allocation,Collaboration,Compliance,Compute,Cryptography,Culture,Decentralized IP,Decentralized Compute,Decentralized AI,DeFi,DePin,DeSci,Dev Tooling,Distributed Systems,Encryption,Events,Extended Reality,Filecoin,Funding Mechanism,Fundraising,Governance,Growth,GTM,Hackathon,Hard Tech,Human Organization,Human AI-Cooperation,Incentives,InfoSec,Interoperability,IoT,Longevity & Biotech,Marketing,Networks,Neurotech,OpSec,Partnerships,Privacy,Product Market Fit,Products,Public Goods,Real World Crypto,Retrieval,RWA,Scaling,Security,SLA's,Startups,Storage,Sustainability,Tokenomics,UI/UX,Wallet,Web3,ZK Proofs"
+export const LOGIN_BANNER_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/login-banner.png';
+export const IRL_DEFAULT_TOPICS =
+  "AI,Apps,AR/VR,Argentina,Automation,AVS,BCI,Capital Allocation,Collaboration,Compliance,Compute,Cryptography,Culture,Decentralized IP,Decentralized Compute,Decentralized AI,DeFi,DePin,DeSci,Dev Tooling,Distributed Systems,Encryption,Events,Extended Reality,Filecoin,Funding Mechanism,Fundraising,Governance,Growth,GTM,Hackathon,Hard Tech,Human Organization,Human AI-Cooperation,Incentives,InfoSec,Interoperability,IoT,Longevity & Biotech,Marketing,Networks,Neurotech,OpSec,Partnerships,Privacy,Product Market Fit,Products,Public Goods,Real World Crypto,Retrieval,RWA,Scaling,Security,SLA's,Startups,Storage,Sustainability,Tokenomics,UI/UX,Wallet,Web3,ZK Proofs";
 
 export const GROUP_TYPES = {
   TEAM: 'Team',
   PROJECT: 'Project',
-}
+};
 
 export const SIGN_UP = {
   POLICY_URL: 'https://protocol.ai/legal/',
-  CAPTCHA_URL: 'https://www.google.com/recaptcha/api/siteverify'
-}
+  CAPTCHA_URL: 'https://www.google.com/recaptcha/api/siteverify',
+};
 
 export const PROJECT_NAME = 'Protocol Labs Directory';
 export const FOLLOW_ENTITY_TYPES = {
-  LOCATION: "EVENT_LOCATION",
-  EVENT: "EVENT",
-  PROJECT: "PROJECT"
-}
+  LOCATION: 'EVENT_LOCATION',
+  EVENT: 'EVENT',
+  PROJECT: 'PROJECT',
+};
 
 export const DAILY_CHAT_LIMIT = 10;
 
 export const DEFAULT_ASK_TAGS = [
-  "Funding",
-  "Mentorship",
-  "Partnerships",
-  "Hiring",
-  "Feedback",
-  "Marketing",
-  "Introductions",
-  "Community Growth",
-  "Technical Support",
-  "Legal & Compliance",
-  "Operations",
-  "Access to Resources",
-  "Market Research",
-  "Event Support",
-  "Collaboration Opportunities",
+  'User Intro',
+  'Hiring',
+  'Marketing',
+  'Investor Intro/Funding',
+  'GTM/Biz Strategy',
+  'Technical Support',
+  'General',
+  'Vendor Intro',
+  'Events/Sponsorships',
+  'Global Employment',
+  'People Management',
+  'Tokenomics',
+  'Legal & Compliance',
+  'Mentorship',
+  'Feedback',
 ];
 
 export const IRL_AIRTABLE_FORM_LINK = 'https://airtable.com/appgb6O7eF6mBEl8t/pagYqoRNnscWBQKSp/form';
+
+export const DEFAULT_PROJECT_TAGS = [
+  {
+    value: 'ai',
+    label: 'AI',
+  },
+  {
+    value: 'ai_x_crypto',
+    label: 'AI x Crypto',
+  },
+  {
+    value: 'blockchain_infrastructure',
+    label: 'Blockchain Infrastructure',
+  },
+  {
+    value: 'blockchain_security',
+    label: 'Blockchain Security',
+  },
+  {
+    value: 'collaboration',
+    label: 'Collaboration',
+  },
+  {
+    value: 'compute',
+    label: 'Compute',
+  },
+  {
+    value: 'consensus_scalability',
+    label: 'Consensus & Scalability',
+  },
+  {
+    value: 'dao_tooling',
+    label: 'DAO Tooling',
+  },
+  {
+    value: 'data_tooling',
+    label: 'Data Tooling',
+  },
+  {
+    value: 'defi_fintech',
+    label: 'DeFi/Fintech',
+  },
+  {
+    value: 'decentralized_identity',
+    label: 'Decentralized Identity',
+  },
+  {
+    value: 'decentralized_storage',
+    label: 'Decentralized Storage',
+  },
+  {
+    value: 'developer_tooling',
+    label: 'Developer Tooling',
+  },
+  {
+    value: 'digital_human_rights',
+    label: 'Digital Human Rights',
+  },
+  {
+    value: 'education',
+    label: 'Education',
+  },
+  {
+    value: 'enterprise_solutions',
+    label: 'Enterprise Solutions',
+  },
+  {
+    value: 'events_tooling',
+    label: 'Events Tooling',
+  },
+  {
+    value: 'funding_mechanisms',
+    label: 'Funding Mechanisms',
+  },
+  {
+    value: 'gaming_metaverse',
+    label: 'Gaming/Metaverse',
+  },
+  {
+    value: 'governance',
+    label: 'Governance',
+  },
+  {
+    value: 'hardware',
+    label: 'Hardware',
+  },
+  {
+    value: 'iot',
+    label: 'IoT',
+  },
+  {
+    value: 'nft',
+    label: 'NFT',
+  },
+  {
+    value: 'service_providers',
+    label: 'Service Providers',
+  },
+  {
+    value: 'social_networking',
+    label: 'Social Networking',
+  },
+  {
+    value: 'treasury_management',
+    label: 'Treasury Management',
+  },
+  {
+    value: 'verifiable_storage_privacy',
+    label: 'Verifiable Storage & Privacy',
+  },
+  {
+    value: 'zk_proofs',
+    label: 'ZK Proofs',
+  },
+];
+
+export const PROJECT_README_DEFAULT =
+  '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n';

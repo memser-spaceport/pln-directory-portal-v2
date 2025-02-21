@@ -1,16 +1,15 @@
 "use server"
+import { getHeader } from "@/utils/common.utils";
 import { getFormattedEvents, getFormattedLocations, getformattedMembers, getFormattedProjects, getFormattedTeams } from "@/utils/home.utils";
 
-export const getFeaturedData = async () => {
-    const url = `${process.env.DIRECTORY_API_URL}/v1/home/featured`;
-  
+export const getFeaturedData = async (authToken: any, isLoggedIn: boolean, isAdmin: boolean) => {
+    let url = `${process.env.DIRECTORY_API_URL}/v1/home/featured`;
+
     const response = await fetch(url, {
       method: 'GET',
       cache: 'force-cache',
       next: { tags: ['featured'] },
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeader(authToken),
     });
   
     const result = await response.json();

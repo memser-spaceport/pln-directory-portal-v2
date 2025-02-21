@@ -55,7 +55,7 @@ function TeamSocialInfo(props: ITeamSocialInfo) {
             display: flex;
             flex-direction: column;
             gap: 20px;
-            padding: 20px 0;
+            padding: 20px 24px;
           }
           .teamSocialInfo__form__item {
             display: flex;

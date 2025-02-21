@@ -467,7 +467,7 @@ export function formInputsToMemberObj(obj: any) {
   }
 
   result['openToWork'] = result.openToWork  === 'on' ? true : false;
-  // result['plnFriend'] = result.plnFriend  === 'on' ? true : false;   //Team lead config
+  result['plnFriend'] = result.plnFriend  === 'on' ? true : false;
   result.teamAndRoles = Object.values(teamAndRoles);
   result.projectContributions = Object.values(projectContributions);
   result.skills = Object.values(skills);
@@ -538,7 +538,7 @@ export const getInitialMemberFormValues = (selectedMember: any) => {
       city: selectedMember?.location?.city ?? '',
       region: selectedMember?.location?.region ?? '',
       country: selectedMember?.location?.country ?? '',
-      // plnFriend: selectedMember?.plnFriend ?? false,   //Team lead config
+      plnFriend: selectedMember?.plnFriend ?? false,
     },
     socialInfo: {
       linkedinHandler: selectedMember?.linkedinHandler ?? '',
@@ -695,6 +695,7 @@ export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: s
       id: parsedMember.uid,
       name: parsedMember.name,
       profile: parsedMember.image?.url || null,
+      isVerified: parsedMember.isVerified,
       teams,
     };
 

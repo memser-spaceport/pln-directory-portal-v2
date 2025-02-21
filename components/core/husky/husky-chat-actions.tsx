@@ -25,6 +25,7 @@ function HuskyChatActions({ actions }: HuskyChatActionsProps) {
                   {action.type?.toLowerCase() === 'member' && <img className="actions__cn__item__name__icon" src="/icons/default_profile.svg" alt="icon" />}
                   {action.type?.toLowerCase() === 'team' && <img className="actions__cn__item__name__icon" src="/icons/team-default-profile.svg" alt="icon" />}
                   {action.type?.toLowerCase() === 'project' && <img className="actions__cn__item__name__icon" src="/icons/default-project.svg" alt="icon" />}
+                  {action.type?.toLowerCase() === 'event' && <img className="actions__cn__item__name__icon" src="/icons/irl-event-default-logo.svg" alt="icon" />}
                 </div>
                 <div className="">
                   <p className="chat-actions__cn__item__name">

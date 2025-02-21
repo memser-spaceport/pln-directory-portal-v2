@@ -39,7 +39,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
                   className='root__irl__table-col__contentName__bottom__date'
                   style={gathering.eventGuests?.length > 0 ? { paddingRight: "10px", marginRight: "10px", borderRight: "1px solid #cbd5e1" } : {}}
                 >
-                  {getFormattedDateString(gathering?.startDate, gathering?.endDate)}
+                  {getFormattedDateString(gathering?.startDate, gathering?.endDate, true )}
                 </div>
 
                 {gathering.eventGuests?.length > 0 &&
@@ -140,7 +140,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
 
         .root__irl__table-col__headerName,
         .root__irl__table-col__contentName {
-          width: 193px;
+          width: 325px;
           padding: 10px;
           border-right: 1px solid #cbd5e1;
         }

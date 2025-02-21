@@ -118,7 +118,8 @@ const MemberOfficeHours = (props: any) => {
           background: #f8fafc;
           border-radius: 12px;
           gap: 8px;
-          margin: 20px;
+          // margin: 20px;
+          // margin-top: 0px;
           align-items: center;
           justify-content: space-between;
         }

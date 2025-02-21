@@ -29,8 +29,8 @@ function ManageTeamsSettings(props: any) {
   const userInfo = props?.userInfo ?? {};
   const membersDetail = useMemo(() => props?.membersDetail ?? [], [props?.membersDetail]);
   //variables
-  const steps = [{ name: 'basic' }, { name: 'team details' }, { name: 'social' }, { name: 'members', count: membersDetail.length }];
-  const [activeTab, setActiveTab] = useState({ name: 'basic' });
+  const steps = [{ name: 'basic', label:'BASIC' }, { name: 'team details', label:"TEAM DETAILS" }, { name: 'social', label:"SOCIAL" }, { name: 'members', label:"MEMBERS", count: membersDetail.length }];
+  const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], focusAreas: [], isError: false });
@@ -49,7 +49,7 @@ function ManageTeamsSettings(props: any) {
 
   const handleTabClick = (v: string) => {
     analytics.recordTeamProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
-    setActiveTab({ name: v });
+    setActiveTab({ name: v, label: v.toUpperCase() });
   };
 
   const onTeamChanged = (team: any) => {
@@ -385,7 +385,7 @@ function ManageTeamsSettings(props: any) {
                 arrowImgUrl="/icons/arrow-down.svg"
                 uniqueKey="name"
                 onItemSelect={(item: any) => setActiveTab(item)}
-                displayKey="name"
+                displayKey="label"
                 options={steps}
                 selectedOption={activeTab}
                 id="settings-teams-steps"

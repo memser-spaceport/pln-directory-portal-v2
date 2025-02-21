@@ -475,6 +475,29 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.4 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '21, Feb 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Team Leads can promote or demote team members to Lead roles and remove members using the enhanced Settings module</li>
+    <li>Projects can now be labeled with suitable tags using the new Tagging feature</li>
+    <li>Adding year information to the Events table for improved clarity</li>
+    <li>Better visualization of the Home page's Discover section cards</li>
+    </ul>
+
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Optimized approach in handling the additional details section for Projects while editing and saving changes</li>
+    <li>Filter issue fix on the IRL Gatherings module's Attendees table</li>
+    <li>Fixed the error thrown on removing all attendees from a location on the IRL Gatherings</li>
+    </ul>
+
+    </div>`,
+  },
+  {
     title: 'Version 4.1.3 - Improved Event Visualization for IRL Gatherings',
     tag: 'Improvements',
     date: '14, Feb 2025',

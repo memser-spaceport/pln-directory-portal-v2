@@ -33,11 +33,11 @@ interface ManageMembersSettingsProps {
 }
 
 function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile', userInfo, isVerifiedFlag }: ManageMembersSettingsProps) {
-  const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
-  const profileTypeOptions = [{ name: 'profile' }, { name: 'privacy' }];
+  const steps = [{ name: 'basic', label:"BASIC" }, { name: 'skills', label:"SKILLS" }, { name: 'contributions', label:"CONTRIBUTIONS" }, { name: 'social', label:"SOCIAL" }];
+  const profileTypeOptions = [{ name: 'profile', label:"Profile" }, { name: 'privacy', label:"Privacy" }];
   const membersVerificationOptions = [{ name: 'Verified', value: 'true' }, { name: 'Un-Verified', value: 'false' }];
-  const selectedProfileType = { name: viewType };
-  const [activeTab, setActiveTab] = useState({ name: 'basic' });
+  const selectedProfileType = { name: viewType, label: viewType?.charAt(0)?.toUpperCase() + viewType?.slice(1) };
+  const [activeTab, setActiveTab] = useState({ name: 'basic', label:"BASIC" });
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
@@ -55,7 +55,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
   const handleTabClick = (v: string) => {
     analytics.recordMemberProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
-    setActiveTab({ name: v })
+    setActiveTab({ name: v , label: v.toUpperCase()})
   }
 
   const onMemberChanged = (member: any) => {
@@ -390,7 +390,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             </div>
             <div className="ms__member-selection__dp">
               <SingleSelect
-                displayKey="name"
+                displayKey="label"
                 arrowImgUrl="/icons/arrow-down.svg"
                 id="manage-teams-settings-profiletype-selection"
                 onItemSelect={onProfileTypeSelected}
@@ -410,7 +410,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
                   arrowImgUrl="/icons/arrow-down.svg"
                   uniqueKey="name"
                   onItemSelect={(item: any) => setActiveTab(item)}
-                  displayKey="name"
+                  displayKey="label"
                   options={steps}
                   selectedOption={activeTab}
                   id="settings-member-steps"

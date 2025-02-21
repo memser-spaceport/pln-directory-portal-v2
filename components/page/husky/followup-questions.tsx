@@ -1,0 +1,82 @@
+// This component renders follow-up questions as suggestions in a chat interface.
+// It allows users to click on a question to trigger a follow-up action.
+
+interface FollowupQuestionsProps {
+    followupQuestions: string[];
+    onFollowupClicked?: (message: { question: string; type: string }) => void;
+    chatIndex?: number;
+    isAnswerLoading: boolean;
+    isLoadingObject: boolean;
+  }
+  
+  function FollowupQuestions({ followupQuestions = [], chatIndex = 0, onFollowupClicked, isAnswerLoading, isLoadingObject }: FollowupQuestionsProps) {
+    // Handles the click event for a follow-up question.
+    // If an answer is loading, it prevents further actions.
+    const onQuestionClicked = (question: string) => {
+      if(isAnswerLoading || isLoadingObject) {
+        return;
+      }
+      if (onFollowupClicked) {
+        onFollowupClicked({ question, type: 'followup' });
+      }
+    };
+  
+    return (
+      <>
+        <div className="followup-questions" data-testid="followup-questions">
+          <h3 className="followup-questions__title" data-testid="followup-questions-title">
+            <img width={16} height={16} src="/icons/suggestions-orange.svg" alt="follow up questions" />
+            <span>Follow up questions</span>
+          </h3>
+          <div className="followup-questions__list" data-testid="followup-questions-list">
+            {followupQuestions.map((ques: any, index: number) => (
+              <p 
+                onClick={() => onQuestionClicked(ques)} 
+                key={`${chatIndex}-follow-up-question-${index}`} 
+                className="followup-questions__list__item" 
+                data-testid={`follow-up-question-${index}`}
+              >
+                {ques}
+              </p>
+            ))}
+          </div>
+        </div>
+        <style jsx>
+          {`
+            .followup-questions {
+             width: 100%;
+            }
+            .followup-questions__title {
+              font-size: 14px;
+              font-weight: 500;
+              color: #ff820e;
+              height: 36px;
+              display: flex;
+              line-height: 20px;
+              gap: 4px;
+              align-items: center;
+            }
+            .followup-questions__list {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              margin: 12px 0;
+            }
+            .followup-questions__list__item {
+              background: #f1f5f9;
+              font-size: 14px;
+              font-weight: 400;
+              cursor: pointer;
+              padding: 8px 14px;
+              border-radius: 8px;
+              line-height: 22px;
+              color: #000;
+            }
+          `}
+        </style>
+      </>
+    );
+  }
+  
+  export default FollowupQuestions;
+  

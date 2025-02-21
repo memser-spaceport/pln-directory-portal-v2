@@ -49,13 +49,13 @@ function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowu
            width: 100%;
           }
           .chat__suggestions__title {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
             color: #ff820e;
-            text-transform: uppercase;
             border-bottom: 0.5px solid #cbd5e1;
             height: 36px;
             display: flex;
+            line-height: 20px;
             gap: 4px;
             align-items: center;
           }
@@ -72,6 +72,8 @@ function HuskyChatSuggestions({ followupQuestions = [], chatIndex = 0, onFollowu
             cursor: pointer;
             padding: 8px 14px;
             border-radius: 8px;
+            line-height: 22px;
+            color: #000;
           }
         `}
       </style>

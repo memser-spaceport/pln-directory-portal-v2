@@ -40,11 +40,15 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
     if (!trimmedValue) {
       return;
     }
-    setLimitReached(checkIsLimitReached());
-    if (!checkIsLimitReached()) {
-      document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { from: 'home', searchText: trimmedValue } }));
-      trackHuskyHomeSearch(trimmedValue);
-    }
+    localStorage.setItem('input', trimmedValue);
+    router.push('/husky');
+
+    // window.history.replaceState({}, '', `/husky`);
+    // setLimitReached(checkIsLimitReached());
+    // if (!checkIsLimitReached()) {
+    //   document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { from: 'home', searchText: trimmedValue } }));
+    //   trackHuskyHomeSearch(trimmedValue);
+    // }
 
     if (textareaRef.current && !checkIsLimitReached()) {
       textareaRef.current.value = ''; // Clear the textarea
@@ -55,7 +59,9 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
   const onExplorationPromptClicked = async (quesObj: any) => {
     trackExplorationPromptSelection(quesObj.question);
     const links = quesObj?.answerSourceLinks?.map((item: any) => item?.link);
-    document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: { ...quesObj, answerSourceLinks: links } } }));
+    localStorage.setItem('initialChat', JSON.stringify({ ...quesObj, sources: links }));
+    router.push('/husky');
+    // document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: { ...quesObj, answerSourceLinks: links } } }));
   };
 
   // Handles key down events in the textarea

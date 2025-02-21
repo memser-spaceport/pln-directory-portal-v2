@@ -5,7 +5,7 @@
 
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
-
+import { useRouter } from 'next/navigation';
 // Define the props type for the DiscoverCard component
 interface DiscoverCardProps {
   data: {
@@ -18,6 +18,7 @@ interface DiscoverCardProps {
     viewCount: number;
     shareCount: number;
     answerSourceLinks?: string[];
+    followupQuestions?: string[];
   };
   userInfo?: any; // Replace with appropriate type if known
 }
@@ -25,12 +26,15 @@ interface DiscoverCardProps {
 const DiscoverCard = (props: DiscoverCardProps) => {
   const { data, userInfo } = props;
   const analytics = useHomeAnalytics();
+  const router = useRouter();
 
   // Handle click event on the discover card
   const onDiscoverCardClick = () => {
     analytics.onDiscoverCardClicked(data, getAnalyticsUserInfo(userInfo));
     const links = data?.answerSourceLinks?.map((item:any) => item?.link);
-    document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: {...data,answerSourceLinks: links }}));
+    localStorage.setItem('initialChat', JSON.stringify({ ...data, sources: links, followUpQuestions: data?.followupQuestions }));
+    router.push('/husky');
+    // document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: {...data,answerSourceLinks: links }}));
   };
 
   return (

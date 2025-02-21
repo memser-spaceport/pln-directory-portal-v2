@@ -1075,119 +1075,49 @@ export const DEFAULT_ASK_TAGS = [
 export const IRL_AIRTABLE_FORM_LINK = 'https://airtable.com/appgb6O7eF6mBEl8t/pagYqoRNnscWBQKSp/form';
 
 export const DEFAULT_PROJECT_TAGS = [
-  {
-    value: 'ai',
-    label: 'AI',
-  },
-  {
-    value: 'ai_x_crypto',
-    label: 'AI x Crypto',
-  },
-  {
-    value: 'blockchain_infrastructure',
-    label: 'Blockchain Infrastructure',
-  },
-  {
-    value: 'blockchain_security',
-    label: 'Blockchain Security',
-  },
-  {
-    value: 'collaboration',
-    label: 'Collaboration',
-  },
-  {
-    value: 'compute',
-    label: 'Compute',
-  },
-  {
-    value: 'consensus_scalability',
-    label: 'Consensus & Scalability',
-  },
-  {
-    value: 'dao_tooling',
-    label: 'DAO Tooling',
-  },
-  {
-    value: 'data_tooling',
-    label: 'Data Tooling',
-  },
-  {
-    value: 'defi_fintech',
-    label: 'DeFi/Fintech',
-  },
-  {
-    value: 'decentralized_identity',
-    label: 'Decentralized Identity',
-  },
-  {
-    value: 'decentralized_storage',
-    label: 'Decentralized Storage',
-  },
-  {
-    value: 'developer_tooling',
-    label: 'Developer Tooling',
-  },
-  {
-    value: 'digital_human_rights',
-    label: 'Digital Human Rights',
-  },
-  {
-    value: 'education',
-    label: 'Education',
-  },
-  {
-    value: 'enterprise_solutions',
-    label: 'Enterprise Solutions',
-  },
-  {
-    value: 'events_tooling',
-    label: 'Events Tooling',
-  },
-  {
-    value: 'funding_mechanisms',
-    label: 'Funding Mechanisms',
-  },
-  {
-    value: 'gaming_metaverse',
-    label: 'Gaming/Metaverse',
-  },
-  {
-    value: 'governance',
-    label: 'Governance',
-  },
-  {
-    value: 'hardware',
-    label: 'Hardware',
-  },
-  {
-    value: 'iot',
-    label: 'IoT',
-  },
-  {
-    value: 'nft',
-    label: 'NFT',
-  },
-  {
-    value: 'service_providers',
-    label: 'Service Providers',
-  },
-  {
-    value: 'social_networking',
-    label: 'Social Networking',
-  },
-  {
-    value: 'treasury_management',
-    label: 'Treasury Management',
-  },
-  {
-    value: 'verifiable_storage_privacy',
-    label: 'Verifiable Storage & Privacy',
-  },
-  {
-    value: 'zk_proofs',
-    label: 'ZK Proofs',
-  },
+  { "value": "ai", "label": "AI" },
+  { "value": "ai_x_crypto", "label": "AI x Crypto" },
+  { "value": "bci", "label": "BCI" },
+  { "value": "blockchain_infrastructure", "label": "Blockchain Infrastructure" },
+  { "value": "blockchain_security", "label": "Blockchain Security" },
+  { "value": "capital", "label": "Capital" },
+  { "value": "collaboration", "label": "Collaboration" },
+  { "value": "compute", "label": "Compute" },
+  { "value": "consensus_scalability", "label": "Consensus & Scalability" },
+  { "value": "consultancy", "label": "Consultancy" },
+  { "value": "consumer", "label": "Consumer" },
+  { "value": "creative_services", "label": "Creative Services" },
+  { "value": "dao_tooling", "label": "DAO Tooling" },
+  { "value": "data_tooling", "label": "Data Tooling" },
+  { "value": "defi_fintech", "label": "DeFi/Fintech" },
+  { "value": "decentralized_identity", "label": "Decentralized Identity" },
+  { "value": "decentralized_storage", "label": "Decentralized Storage" },
+  { "value": "desci", "label": "DeSci" },
+  { "value": "developer_tooling", "label": "Developer Tooling" },
+  { "value": "discontinued", "label": "Discontinued" },
+  { "value": "education", "label": "Education" },
+  { "value": "enterprise_solutions", "label": "Enterprise Solutions" },
+  { "value": "events_tooling", "label": "Events Tooling" },
+  { "value": "foundation", "label": "Foundation" },
+  { "value": "frontier_tech", "label": "Frontier Tech" },
+  { "value": "funding_mechanisms", "label": "Funding Mechanisms" },
+  { "value": "gaming_metaverse", "label": "Gaming/Metaverse" },
+  { "value": "governance", "label": "Governance" },
+  { "value": "hardware", "label": "Hardware" },
+  { "value": "hrtech", "label": "HRTech" },
+  { "value": "iot", "label": "IoT" },
+  { "value": "multimedia", "label": "Multimedia" },
+  { "value": "nft", "label": "NFT" },
+  { "value": "productivity", "label": "Productivity" },
+  { "value": "service_providers", "label": "Service Providers" },
+  { "value": "social_networking", "label": "Social Networking" },
+  { "value": "sustainability", "label": "Sustainability" },
+  { "value": "treasury_management", "label": "Treasury Management" },
+  { "value": "verifiable_storage_privacy", "label": "Verifiable Storage & Privacy" },
+  { "value": "vr_ar", "label": "VR/AR" },
+  { "value": "zk_proofs", "label": "ZK Proofs" }
 ];
+
 
 export const PROJECT_README_DEFAULT =
   '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n';

@@ -127,7 +127,7 @@ const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, ma
             {
              filteredOptions.length === 0 && 
              <div className="ms__cn__options__item">
-                No search results found
+                No data available
               </div> 
             }
           </div>

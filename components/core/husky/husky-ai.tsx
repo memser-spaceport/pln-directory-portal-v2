@@ -394,7 +394,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           <div className="huskyai__footer">
             <div className="huskyai__footer__strip">
               {limitReached && limitReached !== 'close' && (
-                <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} onClose={() => setLimitReached('close')} from="husky-chat" />
+                <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} from="husky-chat" />
               )}
             </div>
             {chats.length !== 0 && (
@@ -435,7 +435,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             {isAnswerLoading && <HuskyAnswerLoader data-testid="blog-answer-loader" />}
             {limitReached && limitReached !== 'close' && (
               <div className="huskyai__cn__strip">
-                <HuskyLimitStrip mode="blog" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} onClose={() => setLimitReached('close')} onDialogClose={onClose} from="discover-blog" />
+                <HuskyLimitStrip mode="blog" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} onDialogClose={onClose} from="discover-blog" />
               </div>
             )}
           </div>

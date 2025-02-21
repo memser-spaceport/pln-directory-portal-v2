@@ -374,6 +374,7 @@ export const PAGE_ROUTES = {
   NOTIFICATIONS: '/notifications',
   ADD_TEAM: '/teams/add',
   SIGNUP: '/sign-up',
+  HUSKY: '/husky/chat',
 };
 
 export const SORT_OPTIONS = {

@@ -1,5 +1,6 @@
 import { decode } from 'jsonwebtoken';
 import { getCookiesFromHeaders } from './next-helpers';
+import { getUserCredentialsInfo } from './fetch-wrapper';
 
 export const generateOAuth2State = () => {
   const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -15,3 +16,24 @@ export const calculateExpiry = (tokenExpiry: number) => {
   return exp;
 };
 
+export const getUserCredentials = async (isLoggedIn: boolean) => {
+  if (!isLoggedIn) {
+    return {
+      authToken: null,
+      userInfo: null,
+    };
+  }
+
+  const { isLoginRequired, newAuthToken, newUserInfo } = await getUserCredentialsInfo();
+  if (isLoginRequired) {
+    return {
+      authToken: null,
+      userInfo: null,
+    };
+  }
+
+  return {
+    authToken: newAuthToken,
+    userInfo: newUserInfo,
+  };
+};

@@ -127,11 +127,11 @@ export function getFormattedDateString(startDate: string, endDate: string, showS
     const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
 
     if (startDateOnly === endDateOnly) {
-      return `${startMonthName} ${parseInt(startDay, 10)}`;
+      return `${startMonthName} ${parseInt(startDay, 10)} '${endYear.slice(2)}`;
     } else if (startMonth === endMonth && startYear === endYear) {
-      return `${startMonthName} ${parseInt(startDay, 10)}-${parseInt(endDay, 10)}`;
+      return `${startMonthName} ${parseInt(startDay, 10)}-${parseInt(endDay, 10)} '${endYear.slice(2)}`;
     } else if (startYear === endYear) {
-      return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)}`;
+      return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
     } else {
       if(showStartYear) {
         return `${startMonthName} ${parseInt(startDay, 10)} '${startYear.slice(2)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
@@ -436,4 +436,13 @@ export function mergeGuestEvents(userAlreadyGoingEvents: any, formattedEvents: a
 
   // Combine the results
   return [...mergedEvents, ...nonOverlappingFormattedEvents];
+}
+
+export function abbreviateString(inputString: string) {
+  const words = inputString.split(' ');
+  if (words.length === 1) {
+      return inputString;
+  } else {
+      return words.map((word: any) => word[0].toLowerCase()).join('');
+  }
 }

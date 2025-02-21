@@ -30,13 +30,14 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
     getMemberRolesForTeam(
       {
         'teamMemberRoles.team.uid': selectedTeamId ?? teams[0].id,
-        select: 'uid,name,image.url,teamMemberRoles.team.uid,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+        isVerified: 'all',
+        select: 'uid,name,isVerified,image.url,teamMemberRoles.team.uid,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
         pagination: false,
       },
       selectedTeamId ?? teams[0].id
     ),
   ]);
-
+  
   if (teamResult.isError || teamMembersResponse.error) {
     return {
       isError: true,
@@ -44,7 +45,7 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
   }
   selectedTeam = teamResult.data;
   membersDetail = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
-
+  
   return {
     teams,
     selectedTeam,

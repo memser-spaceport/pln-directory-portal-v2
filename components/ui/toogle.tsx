@@ -40,7 +40,7 @@ const Toggle = (props:IToggle) => {
   
             .toogle__slider {
               position: absolute;
-              cursor: pointer;
+              cursor: ${disabled ? "default" : "pointer"};
               top: 0;
               left: 0;
               right: 0;
@@ -69,7 +69,7 @@ const Toggle = (props:IToggle) => {
             input:focus + .toogle__slider {
               box-shadow: 0 0 1px #2196f3;
             }
-  
+            
             input:checked + .toogle__slider:before {
               -webkit-transform: translateX(10px);
               -ms-transform: translateX(10px);

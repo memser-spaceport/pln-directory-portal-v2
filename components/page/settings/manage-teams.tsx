@@ -266,7 +266,7 @@ function ManageTeamsSettings(props: any) {
         teams: {
           ...member.teams,
           teamLead: isTeamLead,
-          status: member.teams.status !== 'Update' ? '' : 'Update',
+          status: "Update",
         },
       };
     });
@@ -309,7 +309,7 @@ function ManageTeamsSettings(props: any) {
       formattedInputValues.teamMemberRoles = teamMembers;
       if (!formattedInputValues.teamFocusAreas) {
         formattedInputValues.teamFocusAreas = [];
-      }
+      } 
       if (!formattedInputValues.imageFile) {
         formattedInputValues.imageFile = '';
       }

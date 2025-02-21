@@ -15,12 +15,14 @@ export type IMemberListOptions = IListOptions & {
   isHost?: boolean;
   isSpeaker?: boolean;
   isHostAndSpeaker?: boolean;
+  isVerified?:string;
 };
 
 export interface IMemberResponse {
   uid: string;
   name: string;
   image: { url: string };
+  isVerified: boolean;
   skills: [{ title: string }];
   teamMemberRoles: ITeamMemberRole[];
   projectContributions: [];

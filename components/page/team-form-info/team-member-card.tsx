@@ -79,10 +79,24 @@ const TeamMemberCard = (props: any) => {
         </div> */}
         {!isMemberRemovedChanges ? (
           <div className="memberCard__btn__actions">
-            <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'}`}>
-              <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>
-              <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={member?.teams?.teamLead} />
-            </div>
+            {member.isVerified == true 
+              ? <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'}`}>
+                 <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>            
+                 <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={member?.teams?.teamLead} />
+                </div>
+              : <Tooltip
+                 side="top"
+                 asChild
+                 trigger={
+                  <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'} ${member?.isVerified ? '' : 'disabled-bg'} `}  >
+                    <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>            
+                    <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={false} disabled={true}/>
+                   </div>
+                 }
+                 content={'Member has limited access. Please contact admin'}
+                />
+            }
+
             <button className="memberCard__btn__actions__delete__btn" type="button" onClick={handleRemoveClick}>
               <Image src="/icons/delete-grey-outline.svg" alt="remove" width={16} height={16} />
               <p className="memberCard__btn__actions__delete__btn__text">Remove</p>
@@ -242,6 +256,9 @@ const TeamMemberCard = (props: any) => {
           }
           .memberCard__btn__actions__team__lead__toggle.toggle-changes {
             border: 1px solid #ff820e;
+          }
+          .disabled-bg {
+            background color: #F1F5F9;
           }
           .memberCard__btn__actions__team__lead__toggle__label,
           .memberCard__btn__actions__delete__btn__text {

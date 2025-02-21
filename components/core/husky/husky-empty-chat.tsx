@@ -9,6 +9,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { triggerLoader } from '@/utils/common.utils';
 
 interface HuskyEmptyChatProps {
   limitReached: any;
@@ -40,22 +41,28 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
     if (!trimmedValue) {
       return;
     }
-    setLimitReached(checkIsLimitReached());
+    
+    // setLimitReached(checkIsLimitReached());
     if (!checkIsLimitReached()) {
-      document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { from: 'home', searchText: trimmedValue } }));
+      // document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { from: 'home', searchText: trimmedValue } }));
+      localStorage.setItem('input', trimmedValue);
+      triggerLoader(true);
+      router.push(PAGE_ROUTES.HUSKY);
       trackHuskyHomeSearch(trimmedValue);
     }
 
-    if (textareaRef.current && !checkIsLimitReached()) {
-      textareaRef.current.value = ''; // Clear the textarea
-    }
+    // if (textareaRef.current && !checkIsLimitReached()) {
+    //   textareaRef.current.value = ''; // Clear the textarea
+    // }
   };
 
   // Handles the click event for exploration prompts
   const onExplorationPromptClicked = async (quesObj: any) => {
     trackExplorationPromptSelection(quesObj.question);
     const links = quesObj?.answerSourceLinks?.map((item: any) => item?.link);
-    document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: { ...quesObj, answerSourceLinks: links } } }));
+    localStorage.setItem('initialChat', JSON.stringify({ ...quesObj, sources: links }));
+    router.push(PAGE_ROUTES.HUSKY);
+    // document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: { ...quesObj, answerSourceLinks: links } } }));
   };
 
   // Handles key down events in the textarea

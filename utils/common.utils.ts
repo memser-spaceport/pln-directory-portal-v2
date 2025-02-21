@@ -66,10 +66,18 @@ export const getUserInfoFromLocal = () => {
 
 
 export const getUniqueId = () => {
-  const dateString = Date.now().toString(36);
-  const randomness = Math.random().toString(36).substr(2);
-  return dateString + randomness;
+  const dateString = Date.now().toString(36); // Encodes current timestamp in base 36
+  const randomness = Math.random().toString(36).slice(2); // Generates a random string
+  return dateString + randomness; // Combines both for uniqueness
 };
+
+export function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 export const getParsedValue = (value: string | undefined) => {
   try {
@@ -362,3 +370,7 @@ export function getTelegramUsername(input: string) {
   const match = input?.match(regex);
   return match ? match[1] : input;
 }
+
+export const isMobileDevice = () => {
+  return /Mobi|Android/i.test(navigator.userAgent);
+};

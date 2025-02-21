@@ -695,6 +695,7 @@ export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: s
       id: parsedMember.uid,
       name: parsedMember.name,
       profile: parsedMember.image?.url || null,
+      isVerified: parsedMember.isVerified,
       teams,
     };
 

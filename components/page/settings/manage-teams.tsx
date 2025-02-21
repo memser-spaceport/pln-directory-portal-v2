@@ -1,6 +1,6 @@
 'use client';
 import Tabs from '@/components/ui/tabs';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SingleSelect from '@/components/form/single-select';
 import TeamBasicInfo from '../team-form-info/team-basic-info';
 import TeamProjectsInfo from '../team-form-info/team-projects-info';
@@ -19,10 +19,7 @@ import SettingsAction from './actions';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
-import TeamMemberCard from '../team-form-info/team-member-card';
 import AlertMessage from './alert-message';
-import Image from 'next/image';
-import Search from '../irl/attendee-list/search';
 import TeamsMemberInfo from './teams-member-info';
 
 function ManageTeamsSettings(props: any) {
@@ -422,6 +419,7 @@ function ManageTeamsSettings(props: any) {
               handleRemoveMember={handleRemoveMember}
               membersDetail={membersDetail}
               setTeamMembers={setTeamMembers}
+              initialValues = {initialValues}
             />
           </div>
         </div>

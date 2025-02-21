@@ -228,7 +228,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
           display: flex;
           flex-direction: column;
           gap: 20px;
-          padding: 20px 0px;
+          padding: 20px 24px;
         }
         .teamProject__form__item {
           display: flex;

@@ -22,6 +22,8 @@ import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import TeamMemberCard from '../team-form-info/team-member-card';
 import AlertMessage from './alert-message';
 import Image from 'next/image';
+import Search from '../irl/attendee-list/search';
+import TeamsMemberInfo from './teams-member-info';
 
 function ManageTeamsSettings(props: any) {
   //props
@@ -29,9 +31,8 @@ function ManageTeamsSettings(props: any) {
   const selectedTeam = props.selectedTeam;
   const userInfo = props?.userInfo ?? {};
   const membersDetail = useMemo(() => props?.membersDetail ?? [], [props?.membersDetail]);
-
   //variables
-  const steps = [{ name: 'basic' }, { name: 'team details' }, { name: 'social' }, { name: 'members' }];
+  const steps = [{ name: 'basic' }, { name: 'team details' }, { name: 'social' }, { name: 'members', count: membersDetail.length }];
   const [activeTab, setActiveTab] = useState({ name: 'basic' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -369,7 +370,6 @@ function ManageTeamsSettings(props: any) {
                 name=""
                 formKey="name"
                 onClear={() => {}}
-                // onItemSelect=
                 options={teams}
                 selectedOption={selectedTeam}
                 uniqueKey="id"
@@ -381,7 +381,7 @@ function ManageTeamsSettings(props: any) {
 
           <div className="ms__tab">
             <div className="ms__tab__desktop">
-              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps.map((v) => v.name)} />
+              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
             </div>
             <div className="ms__tab__mobile">
               <SingleSelect
@@ -416,21 +416,13 @@ function ManageTeamsSettings(props: any) {
             <TeamSocialInfo initialValues={initialValues.socialInfo} errors={errors.socialErrors} />
           </div>
           <div className={`${activeTab.name !== 'members' ? 'hidden' : ''}`}>
-            {teamMembers.length > 0 ? (
-              teamMembers.map((member: any, index: number) => {
-                return (
-                  <Fragment key={index}>
-                    <TeamMemberCard member={member} handleTeamLeadToggle={handleTeamLeadToggle} handleRemoveMember={handleRemoveMember} />
-                  </Fragment>
-                );
-              })
-            ) : (
-              <div className="ms__content__no__members">
-                <Image src="/icons/search-img.svg" alt="no-members" width={200} height={178} />
-                <p className="ms__content__no__members_text">No Members</p>
-                <p className="ms__content__no__members_sec__text">There are no members in the list</p>
-              </div>
-            )}
+            <TeamsMemberInfo
+              teamMembers={teamMembers}
+              handleTeamLeadToggle={handleTeamLeadToggle}
+              handleRemoveMember={handleRemoveMember}
+              membersDetail={membersDetail}
+              setTeamMembers={setTeamMembers}
+            />
           </div>
         </div>
         {isAlertInfo && <AlertMessage isMemberTab={true} onClickClose={() => setIsAlertInfoDismissed(true)} />}
@@ -528,7 +520,6 @@ function ManageTeamsSettings(props: any) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            //visibility: hidden;
           }
           .fa__info {
             display: flex;
@@ -647,31 +638,9 @@ function ManageTeamsSettings(props: any) {
             padding-top: 10px;
           }
           .ms__content {
-            padding: 0px 24px;
             padding-bottom: 32px;
             height: fit-content;
             min-height: calc(100svh - 128px);
-          }
-          .ms__content__no__members {
-            height: 70vh;
-            justify-content: center;
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            background-color: #f8fafc;
-            margin: 20px 0;
-          }
-          .ms__content__no__members_text {
-            line-height: 40px;
-            font-size: 24px;
-            color: #0f172a;
-            font-weight: 700;
-          }
-          .ms__content__no__members_sec__text {
-            line-height: 20px;
-            font-size: 14px;
-            color: #000000;
-            font-weight: 400;
           }
           .ms :global(.fa) {
             border-top: ${activeTab.name !== 'members' ? 0 : isAlertInfo ? 0 : '2px solid #ff820e'};

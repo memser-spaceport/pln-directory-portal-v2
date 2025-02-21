@@ -2,11 +2,12 @@ const Search = (props: any) => {
   const onChange = props?.onChange;
   const placeholder = props?.placeholder;
   const searchRef = props?.searchRef
+  const onKeyDown = props?.onKeyDown
 
   return (
     <>
       <div className="search">
-        <input ref={searchRef} onChange={onChange} className="search__input" placeholder={placeholder} />
+        <input ref={searchRef} onChange={onChange} className="search__input" placeholder={placeholder} onKeyDown={onKeyDown} />
         <button className="search__btn">
           <img src="/icons/search.svg" alt="search" width={16} height={16} />
         </button>

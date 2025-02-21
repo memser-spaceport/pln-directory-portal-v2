@@ -193,7 +193,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams,
         }
 
         .root__irl__table-col__headerName {
-          width: 193px;
+          width: 325px;
           padding: 8px 11px;
           background-color: inherit;
           border-right: 1px solid #cbd5e1;
@@ -361,13 +361,11 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams,
         }
 
          @media (min-width: 1440px) {
-          .root__irl__table-col__headerName,
-          .root__irl__table-col__contentName {
+          .root__irl__table-col__headerName {
             width: 299px;
           }
 
-          .root__irl__table-col__headerDesc,
-          .root__irl__table-col__contentDesc {
+          .root__irl__table-col__headerDesc {
             width: 870px;
           }
 
@@ -377,8 +375,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams,
         }
 
         @media (min-width: 1920px) {
-          .root__irl__table-col__headerName,
-          .root__irl__table-col__contentName {
+          .root__irl__table-col__headerName {
             width: 355px;
           }
 
@@ -393,8 +390,7 @@ const IrlUpcomingEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams,
         }
 
         @media (min-width: 2560px) {
-          .root__irl__table-col__headerName,
-          .root__irl__table-col__contentName {
+          .root__irl__table-col__headerName {
             width: 502px;
           }
 

@@ -282,24 +282,24 @@ dialog {
 }
 
 .projectlist__profile__img {
-  height: 32px !important;
-  width: 32px;
-  min-width: 32px;
-  min-height: 32px !important;
+  height: 72px !important;
+  width: 72px;
+  min-width: 72px;
+  min-height: 72px !important;
   background-color: #e2e8f0;
   border-radius: 4px;
   border: 1px solid #e2e8f0;
 }
 
 .projectgrid__maintainer__img {
-  height: 28px !important;
-  width: 28px;
-  min-width: 28px;
-  min-height: 28px !important;
+  height: 20px !important;
+  width: 20px;
+  min-width: 20px;
+  min-height: 20px !important;
   border-radius: 4px;
   border: 1px solid #cbd5e1;
   background-color: #e2e8f0;
-  border-radius: 4px;
+  border-radius: 2px;
   border: 1px solid #e2e8f0;
 }
 
@@ -480,17 +480,17 @@ dialog {
   }
 
   .projectgrid__maintainer__img {
-    height: 36px !important;
-    width: 36px;
-    min-width: 36px;
-    min-height: 36px !important;
+    height: 20px !important;
+    width: 20px;
+    min-width: 20px;
+    min-height: 20px !important;
   }
 
   .projectlist__details__maintainer__img {
-    height: 36px !important;
-    width: 36px;
-    min-height: 36px !important;
-    min-width: 36px !important;
+    height: 20px !important;
+    width: 20px;
+    min-height: 20px !important;
+    min-width: 20px !important;
     border-radius: 4px;
     border: 1px solid #cbd5e1;
     background-color: #e2e8f0;

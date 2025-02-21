@@ -6,7 +6,6 @@ import IrlEventsTableView from './irl-events-table-view';
 import { useRouter } from 'next/navigation';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { IPastEvents, IUpcomingEvents } from '@/types/irl.types';
-import { getFormattedDateString } from '@/utils/irl.utils';
 import SearchGatherings from './search-gatherings';
 
 interface EventDetailsProps {
@@ -194,7 +193,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
         }
 
         .root__irl__table-col__headerName {
-          width: 193px;
+          width: 325px;
           padding: 8px 11px;
           background-color: inherit;
           border-right: 1px solid #cbd5e1;
@@ -362,8 +361,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
         }
 
          @media (min-width: 1440px) {
-          .root__irl__table-col__headerName,
-          .root__irl__table-col__contentName {
+          .root__irl__table-col__headerName {
             width: 299px;
           }
 
@@ -378,8 +376,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
         }
 
         @media (min-width: 1920px) {
-          .root__irl__table-col__headerName,
-          .root__irl__table-col__contentName {
+          .root__irl__table-col__headerName {
             width: 355px;
           }
 
@@ -394,8 +391,7 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
         }
 
         @media (min-width: 2560px) {
-          .root__irl__table-col__headerName,
-          .root__irl__table-col__contentName {
+          .root__irl__table-col__headerName {
             width: 502px;
           }
 

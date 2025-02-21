@@ -1,6 +1,6 @@
 'use client';
 import Tabs from '@/components/ui/tabs';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SingleSelect from '@/components/form/single-select';
 import TeamBasicInfo from '../team-form-info/team-basic-info';
 import TeamProjectsInfo from '../team-form-info/team-projects-info';
@@ -19,23 +19,22 @@ import SettingsAction from './actions';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
-// import TeamMemberCard from '../team-form-info/team-member-card';   //Team lead config
+import AlertMessage from './alert-message';
+import TeamsMemberInfo from './teams-member-info';
 
 function ManageTeamsSettings(props: any) {
   //props
   const teams = props.teams ?? [];
   const selectedTeam = props.selectedTeam;
   const userInfo = props?.userInfo ?? {};
-  // const membersDetail = useMemo(() => props?.membersDetail ?? [], [props?.membersDetail]);  //Team lead config
-
+  const membersDetail = useMemo(() => props?.membersDetail ?? [], [props?.membersDetail]);
   //variables
-  // const steps = [{ name: 'basic' }, { name: 'team details' }, { name: 'social' }, {name: 'members'}];  //Team lead config
-  const steps = [{ name: 'basic' }, { name: 'team details' }, { name: 'social' }];
-  const [activeTab, setActiveTab] = useState({ name: 'basic' });
+  const steps = [{ name: 'basic', label:'BASIC' }, { name: 'team details', label:"TEAM DETAILS" }, { name: 'social', label:"SOCIAL" }, { name: 'members', label:"MEMBERS", count: membersDetail.length }];
+  const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], focusAreas: [], isError: false });
-  // const [teamMembers, setTeamMembers] = useState(structuredClone(membersDetail)); //Team lead config
+  const [teamMembers, setTeamMembers] = useState(structuredClone(membersDetail));
   const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], projectErrors: [] });
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
@@ -43,15 +42,15 @@ function ManageTeamsSettings(props: any) {
     social: errors.socialErrors.length > 0,
   };
   const errorDialogRef = useRef<HTMLDialogElement>(null);
-  // const initialValues = useMemo(() => getTeamInitialValue(selectedTeam, membersDetail), [selectedTeam, membersDetail]);   //Team lead config
-  const initialValues = useMemo(() => getTeamInitialValue(selectedTeam), [selectedTeam]);
+  const initialValues = useMemo(() => getTeamInitialValue(selectedTeam, membersDetail), [selectedTeam, membersDetail]);
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
   const analytics = useSettingsAnalytics();
+  const [isAlertInfoDismissed, setIsAlertInfoDismissed] = useState(false);
 
   const handleTabClick = (v: string) => {
     analytics.recordTeamProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
-    setActiveTab({ name: v })
-  }
+    setActiveTab({ name: v, label: v.toUpperCase() });
+  };
 
   const onTeamChanged = (team: any) => {
     const uid = team?.id;
@@ -96,7 +95,7 @@ function ManageTeamsSettings(props: any) {
       return;
     }
     document.dispatchEvent(new CustomEvent('reset-team-register-form'));
-    // setTeamMembers(structuredClone(membersDetail)); //Team lead config
+    setTeamMembers(structuredClone(membersDetail));
     setErrors({ basicErrors: [], socialErrors: [], projectErrors: [] });
   };
   const validateForm = (schema: any, data: any) => {
@@ -168,7 +167,7 @@ function ManageTeamsSettings(props: any) {
       const formData = new FormData(formRef.current);
       const formValues = Object.fromEntries(formData);
       formValues.longDescription = content;
-      // formValues.teamMemberRoles=teamMembers.map((member:any)=>member.teams);  //Team lead config
+      formValues.teamMemberRoles = teamMembers.map((member: any) => member.teams);
       const formattedInputValues = transformRawInputsToFormObj(formValues);
       analytics.recordManageTeamSave('save-click', getAnalyticsUserInfo(userInfo), formattedInputValues);
       const basicInfoErrors: any = await validateBasicInfo({ ...formattedInputValues });
@@ -245,27 +244,56 @@ function ManageTeamsSettings(props: any) {
       analytics.recordManageTeamSave('save-error', getAnalyticsUserInfo(userInfo));
     }
   };
+  const numberOfChanges = teamMembers.filter((member: any) => Boolean(member.teams.status))?.length;
 
-  // const handleTeamLeadToggle = (memberUid: string) => {   //Team lead config -start
-  //   const updatedMembers = teamMembers.map((member: any) => {
-  //     if (member.id === memberUid) {
-  //       member.teams.teamLead = !member.teams.teamLead;
-  //       member.teams.status = "Update";
-  //     }
-  //     return member;
-  //   });
-  //   setTeamMembers(updatedMembers);
-  // }
+  const handleTeamLeadToggle = (memberUid: string) => {
+    setIsAlertInfoDismissed(false);
+    const updatedMembers = teamMembers.map((member: any) => {
+      if (member.id !== memberUid) return member;
+      const isTeamLead = !member.teams.teamLead;
+      const memberDetail = membersDetail.find((member: any) => member.id === memberUid);
+      const params: any = { loggedInUser: getAnalyticsUserInfo(userInfo) };
+      params.memberName = member.name;
+      params.teamName = selectedTeam.name;
+      params.isTeamLeadBefore = memberDetail?.teams?.teamLead;
+      params.isTeamLeadNow = isTeamLead;
+      analytics.recordManageTeamsMemberTeamLeadToggleChange(params);
+      return {
+        ...member,
+        teams: {
+          ...member.teams,
+          teamLead: isTeamLead,
+          status: "Update",
+        },
+      };
+    });
+    setTeamMembers(updatedMembers);
+  };
 
-  // const handleRemoveMember = (memberUid: string) => {
-  //   const updatedMembers = teamMembers.map((member: any) => {
-  //     if (member.id === memberUid) {
-  //       member.teams.status = "Delete";
-  //     }
-  //     return member;
-  //   });
-  //   setTeamMembers(updatedMembers);
-  // }     //Team lead config -end
+  const handleRemoveMember = (memberUid: string) => {
+    setIsAlertInfoDismissed(false);
+    const memberDetail = membersDetail.find((member: any) => member.id === memberUid);
+    const params: any = { loggedInUser: getAnalyticsUserInfo(userInfo) };
+    const updatedMembers = teamMembers.map((member: any) => {
+      if (member.id !== memberUid) return member;
+      const isMemberRemoved = member?.teams?.status === 'Delete';
+      params.memberName = member.name;
+      params.isMemberRemoved = isMemberRemoved;
+      params.teamName = selectedTeam.name;
+      params.teamLead = memberDetail?.teams?.teamLead;
+      const updatedMember = {
+        ...member,
+        teams: {
+          ...member.teams,
+          status: isMemberRemoved ? '' : 'Delete',
+          teamLead: member.teams?.status ? memberDetail?.teams?.teamLead : member.teams.teamLead,
+        },
+      };
+      isMemberRemoved ? analytics.recordManageTeamsMemberRemove(params) : analytics.recordManageTeamsMemberUndo(params);
+      return updatedMember;
+    });
+    setTeamMembers(updatedMembers);
+  };
 
   const onFormChange = () => {
     if (formRef.current) {
@@ -275,10 +303,10 @@ function ManageTeamsSettings(props: any) {
       const formattedInputValues = transformRawInputsToFormObj(formValues);
       // formattedInputValues.longDescription = content;
       delete formattedInputValues.teamProfile;
-      // formattedInputValues.teamMemberRoles=teamMembers;  //Team lead config
+      formattedInputValues.teamMemberRoles = teamMembers;
       if (!formattedInputValues.teamFocusAreas) {
         formattedInputValues.teamFocusAreas = [];
-      }
+      } 
       if (!formattedInputValues.imageFile) {
         formattedInputValues.imageFile = '';
       }
@@ -324,6 +352,7 @@ function ManageTeamsSettings(props: any) {
     };
   }, [initialValues]);
 
+  const isAlertInfo = isAlertInfoDismissed ? false : Boolean(numberOfChanges) ? true : false;
   return (
     <>
       <form noValidate onSubmit={onFormSubmitted} onReset={onResetForm} ref={formRef} className="ms">
@@ -338,7 +367,6 @@ function ManageTeamsSettings(props: any) {
                 name=""
                 formKey="name"
                 onClear={() => {}}
-                // onItemSelect=
                 options={teams}
                 selectedOption={selectedTeam}
                 uniqueKey="id"
@@ -350,14 +378,14 @@ function ManageTeamsSettings(props: any) {
 
           <div className="ms__tab">
             <div className="ms__tab__desktop">
-              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps.map((v) => v.name)} />
+              <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
             </div>
             <div className="ms__tab__mobile">
               <SingleSelect
                 arrowImgUrl="/icons/arrow-down.svg"
                 uniqueKey="name"
                 onItemSelect={(item: any) => setActiveTab(item)}
-                displayKey="name"
+                displayKey="label"
                 options={steps}
                 selectedOption={activeTab}
                 id="settings-teams-steps"
@@ -367,7 +395,7 @@ function ManageTeamsSettings(props: any) {
         </div>
         <div className="ms__content">
           <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-            <TeamBasicInfo isEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent}/>
+            <TeamBasicInfo isEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent} />
           </div>
           <div className={`${activeTab.name !== 'team details' ? 'hidden' : ''}`}>
             <TeamProjectsInfo
@@ -384,16 +412,19 @@ function ManageTeamsSettings(props: any) {
           <div className={`${activeTab.name !== 'social' ? 'hidden' : ''}`}>
             <TeamSocialInfo initialValues={initialValues.socialInfo} errors={errors.socialErrors} />
           </div>
-          {/* <div className={`${activeTab.name !== 'members' ? 'hidden' : ''}`}>  //Team lead config -start
-            {teamMembers.filter((member:any)=>member?.teams?.status!=='Delete')?.map((member: any, index: number) => {
-            return (
-              <Fragment key={index}>
-                <TeamMemberCard member={member} handleTeamLeadToggle={handleTeamLeadToggle} handleRemoveMember={handleRemoveMember}/>
-              </Fragment>
-            );
-          })}
-          </div>  //Team lead config -end */}
+          <div className={`${activeTab.name !== 'members' ? 'hidden' : ''}`}>
+            <TeamsMemberInfo
+              teamMembers={teamMembers}
+              handleTeamLeadToggle={handleTeamLeadToggle}
+              handleRemoveMember={handleRemoveMember}
+              membersDetail={membersDetail}
+              setTeamMembers={setTeamMembers}
+              initialValues = {initialValues}
+            />
+          </div>
         </div>
+        {isAlertInfo && <AlertMessage isMemberTab={true} onClickClose={() => setIsAlertInfoDismissed(true)} />}
+        {activeTab.name !== 'members' && <AlertMessage isMemberTab={false} />}
         <SettingsAction />
       </form>
 
@@ -476,7 +507,7 @@ function ManageTeamsSettings(props: any) {
           }
           .fa {
             position: sticky;
-            border-top: 2px solid #ff820e;
+            border-top: 2px solid #ff820e !important;
             margin: 0;
             width: 100%;
             flex-direction: column;
@@ -487,7 +518,6 @@ function ManageTeamsSettings(props: any) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            //visibility: hidden;
           }
           .fa__info {
             display: flex;
@@ -537,7 +567,7 @@ function ManageTeamsSettings(props: any) {
             display: block;
             padding: 0 24px;
           }
-            .ms__head {
+          .ms__head {
             background: white;
             position: sticky;
             top: 128px;
@@ -606,10 +636,12 @@ function ManageTeamsSettings(props: any) {
             padding-top: 10px;
           }
           .ms__content {
-            padding: 0px 24px;
             padding-bottom: 32px;
             height: fit-content;
             min-height: calc(100svh - 128px);
+          }
+          .ms :global(.fa) {
+            border-top: ${activeTab.name !== 'members' ? 0 : isAlertInfo ? 0 : '2px solid #ff820e'};
           }
           @media (min-width: 1024px) {
             .error {
@@ -620,18 +652,17 @@ function ManageTeamsSettings(props: any) {
               width: 656px;
               border: 1px solid #e2e8f0;
             }
-              .ms__tab {
-            padding-top: 0px;
-          }
+            .ms__tab {
+              padding-top: 0px;
+            }
             .ms__head {
               top: 128.5px;
               padding-bottom: 0px;
             }
             .ms__member-selection {
               padding: 8px 16px;
-              
             }
-           
+
             .ms__member-selection__dp {
               width: 250px;
             }

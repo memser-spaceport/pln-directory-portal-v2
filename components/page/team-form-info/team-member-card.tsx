@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import useClickedOutside from '@/hooks/useClickedOutside';
+import Toggle from '@/components/ui/toogle';
+import Image from 'next/image';
 
 const TeamMemberCard = (props: any) => {
   //props
@@ -15,22 +17,25 @@ const TeamMemberCard = (props: any) => {
 
   useClickedOutside({ callback: () => setIsMenuOpen(false), ref: menuRef });
   //methods
-  const handleMenuOpen = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  // const handleMenuOpen = () => {
+  //   setIsMenuOpen(!isMenuOpen);
+  // };
 
   const handleTeamLeadClick = () => {
+    // setIsMenuOpen(false);
     handleTeamLeadToggle(member.id);
-    setIsMenuOpen(false);
-  }
+  };
 
   const handleRemoveClick = () => {
     handleRemoveMember(member.id);
-  }
+  };
+
+  const isMemberRemovedChanges = member?.teams?.status === 'Delete';
+  const isMemberTeamLeadChanges = member?.teams?.status === 'Update';
 
   return (
     <>
-      <div className="memberCard">
+      <div className={`memberCard ${isMemberRemovedChanges && 'removed'}`}>
         <div className="memberCard__profile-details">
           <div className="memberCard__profile-details__profile">
             <div className="memberCard__profile-details__profile-container">
@@ -55,7 +60,7 @@ const TeamMemberCard = (props: any) => {
           </div>
         </div>
 
-        <div className="memberCard__more" ref={menuRef}>
+        {/* <div className="memberCard__more" ref={menuRef}>
           <button type="button" className="memberCard__more__btn" onClick={handleMenuOpen}>
             <img loading="lazy" alt="goto" src="/icons/menu-dots.svg" height={16} width={16} />
           </button>
@@ -71,17 +76,50 @@ const TeamMemberCard = (props: any) => {
               </button>
             </div>
           )}
-        </div>
+        </div> */}
+        {!isMemberRemovedChanges ? (
+          <div className="memberCard__btn__actions">
+            {member.isVerified == true 
+              ? <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'}`}>
+                 <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>            
+                 <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={member?.teams?.teamLead} />
+                </div>
+              : <Tooltip
+                 side="top"
+                 asChild
+                 trigger={
+                  <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'} ${member?.isVerified ? '' : 'disabled-bg'} `}  >
+                    <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>            
+                    <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={false} disabled={true}/>
+                   </div>
+                 }
+                 content={'Member has limited access. Please contact admin'}
+                />
+            }
+
+            <button className="memberCard__btn__actions__delete__btn" type="button" onClick={handleRemoveClick}>
+              <Image src="/icons/delete-grey-outline.svg" alt="remove" width={16} height={16} />
+              <p className="memberCard__btn__actions__delete__btn__text">Remove</p>
+            </button>
+          </div>
+        ) : (
+          <div className="memberCard__confirm__changes">
+            <p className="memberCard__confirm__changes__text">Save Changes to confirm remove</p>
+            <button type="button" className="memberCard__confirm__changes__undo" onClick={handleRemoveClick}>
+              Undo
+            </button>
+          </div>
+        )}
       </div>
 
       <style jsx>
         {`
           .memberCard {
-            padding: 16px;
+            padding: 16px 42px;
             align-items: center;
             width: 100%;
-            display: grid;
-            grid-template-columns: 8fr 0.5fr;
+            display: flex;
+            justify-content: space-between;
           }
 
           .memberCard__more__btn {
@@ -174,8 +212,8 @@ const TeamMemberCard = (props: any) => {
             flex-direction: column;
             gap: 4px;
           }
-        
-          .memberCard__more__menu__lead{
+
+          .memberCard__more__menu__lead {
             display: flex;
             gap: 8px;
             align-items: center;
@@ -187,7 +225,7 @@ const TeamMemberCard = (props: any) => {
             line-height: 30px;
           }
 
-        .memberCard__more__menu__remove{
+          .memberCard__more__menu__remove {
             display: flex;
             gap: 8px;
             align-items: center;
@@ -199,18 +237,73 @@ const TeamMemberCard = (props: any) => {
             line-height: 30px;
           }
 
-        .memberCard__more__menu__lead:hover,
-        .memberCard__more__menu__remove:hover {
-            background:  #F1F5F9;
+          .memberCard__more__menu__lead:hover,
+          .memberCard__more__menu__remove:hover {
+            background: #f1f5f9;
             border-radius: 4px;
-        }
-
+          }
+          .memberCard__btn__actions {
+            display: flex;
+            gap: 8px;
+          }
+          .memberCard__btn__actions__team__lead__toggle {
+            display: flex;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            border-radius: 4px;
+            gap: 4px;
+          }
+          .memberCard__btn__actions__team__lead__toggle.toggle-changes {
+            border: 1px solid #ff820e;
+          }
+          .disabled-bg {
+            background color: #F1F5F9;
+          }
+          .memberCard__btn__actions__team__lead__toggle__label,
+          .memberCard__btn__actions__delete__btn__text {
+            font-size: 14px;
+            font-weight: 400;
+            color: #0f172a;
+            line-height: 20px;
+          }
+          .memberCard__btn__actions__delete__btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            background-color: #ffffff;
+          }
+          .memberCard__confirm__changes {
+            display: flex;
+            flex-direction: column;
+            align-items: end;
+          }
+          .memberCard__confirm__changes__text,
+          .memberCard__confirm__changes__undo {
+            font-size: 13px;
+            font-weight: 400;
+            color: #0f172a;
+            line-height: 20px;
+          }
+          .memberCard__confirm__changes__undo {
+            color: #156ff7;
+            font-weight: 600;
+            cursor: pointer;
+            background: none;
+            border: none;
+            outline: none;
+          }
+          .memberCard.removed {
+            background-color: #ffb57233;
+          }
           @media (min-width: 1024px) {
             .memberCard {
-              display: grid;
-              grid-template-columns: 8fr 8fr 0.5fr;
+              display: flex;
+              justify-content: space-between;
             }
-
             .memberCard__profile-deails__skills {
               grid-row: 1;
               grid-column: 2;
@@ -231,6 +324,30 @@ const TeamMemberCard = (props: any) => {
 
             .memberCard__profile-deails__skills {
               margin-top: 0px;
+            }
+          }
+          @media (max-width: 550px) {
+            .memberCard {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              padding-bottom: 12px;
+              margin-top: 12px;
+              gap: 16px;
+              width: 100%;
+              border-bottom: 1px solid #f1f5f9;
+            }
+            .memberCard__confirm__changes {
+              background-color: #ffb57233;
+              width: 100%;
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              padding: 8px 12px;
+              border-radius: 8px;
+            }
+            .memberCard.removed {
+              background-color: #ffffff;
             }
           }
         `}

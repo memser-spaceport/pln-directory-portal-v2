@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import LinkAuthAccounts from './link-auth-accounts';
 import SelfEmailUpdate from './self-email-update';
 import AdminEmailUpdate from './admin-email-update';
-// import Toggle from '@/components/ui/toogle'; //Team lead config code
+import Toggle from '@/components/ui/toogle';
 
 interface MemberBasicInfoProps {
   errors: string[];
@@ -18,6 +18,7 @@ interface MemberBasicInfoProps {
   isMemberSelfEdit?: boolean;
   isAdminEdit?: boolean;
   uid?: string;
+  isVerifiedFlag?: string;
 }
 
 function MemberBasicInfo(props: MemberBasicInfoProps) {
@@ -28,7 +29,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const uid = props.uid;
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [savedImage, setSavedImage] = useState<string>(initialValues?.imageFile ?? '');
-  // const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false); //Team lead config code
+  const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
 
@@ -50,9 +51,9 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   /**
    * Handles PLN friend toggle.
    */
-  // const onTogglePlnFriend = () => {
-  //   setIsPlnFriend(!isPlnFriend);
-  // };   //Team lead config code
+  const onTogglePlnFriend = () => {
+    setIsPlnFriend(!isPlnFriend);
+  };
 
   /**
    * Deletes the uploaded image and resets the image state.
@@ -70,7 +71,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
 
   useEffect(() => {
     setSavedImage(initialValues?.imageFile ?? '');
-    // setIsPlnFriend(initialValues?.plnFriend ?? false); //Team lead config code
+    setIsPlnFriend(initialValues?.plnFriend ?? false);
     setProfileImage('');
     function resetHandler() {
       if (uploadImageRef.current) {
@@ -126,13 +127,24 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             </div>
             {/* {isAdminEdit && <div className="memberinfo__form__plnFriend">
               <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
-              <label className="memberinfo__form__plnFriend__label">Friends of PL</label>
-              <Toggle height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
-            </div>} //Team lead config code */}
+              <label htmlFor="pl-friend" className="memberinfo__form__plnFriend__label">Friends of PL</label>
+              <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+            </div>} */}
           </div>
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
+            {isAdminEdit && <div className={`memberinfo__form__plnFriend__toggle ${
+              props?.isVerifiedFlag === "true" ? " " : "unverified-bg"
+              }`}
+              >
+              <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
+              <p className="memberinfo__form__plnFriend__toggle__label">Are you friends of PL?</p>
+              {props?.isVerifiedFlag == "true" 
+                ? <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+                : <Toggle id="pl-friend" height="16px" width="28px" isChecked={true} callback={onTogglePlnFriend} disabled={true} />
+              }
+            </div>}
           {!isMemberSelfEdit && !isAdminEdit && (
             <div className="memberinfo__form__item">
               <TextField
@@ -284,6 +296,25 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             font-weight: 600;
             font-size: 14px;
             margin-bottom: 12px;
+          }
+          .memberinfo__form__plnFriend__toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 8px 8px 12px;
+            background-color: #DBEAFE;
+            border: 1px solid #E2E8F0;
+            margin-top: 20px;
+            border-radius: 8px;
+          }
+          .unverified-bg {
+            background-color: #E2E8F0;
+          }
+          .memberinfo__form__plnFriend__toggle__label {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+            color: #0F172A;
           }
         `}
       </style>

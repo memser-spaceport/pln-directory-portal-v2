@@ -16,7 +16,6 @@ function SettingsAction() {
         {`
          .fa {
             position: sticky;
-            border-top: 1px solid #ff820e;
             margin: 0;
             width: 100%;
             flex-direction: column;

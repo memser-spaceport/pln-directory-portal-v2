@@ -101,8 +101,8 @@ const AttendeeList = (props: IAttendeeList) => {
       await getTopicsByLocation(location?.uid, eventType),
       await getGuestEvents(location?.uid, authToken),
     ]);
-    const currentGuest = currentGuestResponse?.guests[0].memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
-    eventInfo.isUserGoing = currentGuestResponse?.guests[0].memberUid === userInfo?.uid;
+    const currentGuest = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests[0] : null;
+    eventInfo.isUserGoing = currentGuestResponse?.guests[0]?.memberUid === userInfo?.uid;
     eventInfo.topics = topics;
     eventInfo.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, eventDetails?.events, isLoggedIn, userInfo);
 

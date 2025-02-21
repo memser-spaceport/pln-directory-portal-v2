@@ -163,6 +163,18 @@ export const useSettingsAnalytics = () => {
     };
     captureEvent(SETTINGS_ANALYTICS_EVENTS.PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT, params);
   }
+
+  function recordManageTeamsMemberTeamLeadToggleChange(params:any) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.MANAGE_TEAMS_MEMBER_TEAM_LEAD_TOGGLE_CHANGE, params);
+  }
+
+  function recordManageTeamsMemberRemove(params:any) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.MANAGE_TEAMS_MEMBER_REMOVE, params);
+  }
+
+  function recordManageTeamsMemberUndo(params:any) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.MANAGE_TEAMS_MEMBER_UNDO, params);
+  }
   
   return {
     recordSettingsSideMenuClick,
@@ -180,6 +192,9 @@ export const useSettingsAnalytics = () => {
     recordTeamProfileFormEdit,
     recordMemberProjectContributionAdd,
     recordMemberProjectContributionDelete,
-    recordMemberProjectContributionAddProject
+    recordMemberProjectContributionAddProject,
+    recordManageTeamsMemberTeamLeadToggleChange,
+    recordManageTeamsMemberRemove,
+    recordManageTeamsMemberUndo
   };
 };

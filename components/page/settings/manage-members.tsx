@@ -22,6 +22,7 @@ import SettingsAction from './actions';
 import MemberPrivacyReadOnly from './member-privacy-readonly';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
+import AlertMessage from './alert-message';
 interface ManageMembersSettingsProps {
   members: any[];
   selectedMember: any;
@@ -32,11 +33,11 @@ interface ManageMembersSettingsProps {
 }
 
 function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile', userInfo, isVerifiedFlag }: ManageMembersSettingsProps) {
-  const steps = [{ name: 'basic' }, { name: 'skills' }, { name: 'contributions' }, { name: 'social' }];
-  const profileTypeOptions = [{ name: 'profile' }, { name: 'privacy' }];
+  const steps = [{ name: 'basic', label:"BASIC" }, { name: 'skills', label:"SKILLS" }, { name: 'contributions', label:"CONTRIBUTIONS" }, { name: 'social', label:"SOCIAL" }];
+  const profileTypeOptions = [{ name: 'profile', label:"Profile" }, { name: 'privacy', label:"Privacy" }];
   const membersVerificationOptions = [{ name: 'Verified', value: 'true' }, { name: 'Un-Verified', value: 'false' }];
-  const selectedProfileType = { name: viewType };
-  const [activeTab, setActiveTab] = useState({ name: 'basic' });
+  const selectedProfileType = { name: viewType, label: viewType?.charAt(0)?.toUpperCase() + viewType?.slice(1) };
+  const [activeTab, setActiveTab] = useState({ name: 'basic', label:"BASIC" });
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
@@ -54,7 +55,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
   const handleTabClick = (v: string) => {
     analytics.recordMemberProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
-    setActiveTab({ name: v })
+    setActiveTab({ name: v , label: v.toUpperCase()})
   }
 
   const onMemberChanged = (member: any) => {
@@ -389,7 +390,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
             </div>
             <div className="ms__member-selection__dp">
               <SingleSelect
-                displayKey="name"
+                displayKey="label"
                 arrowImgUrl="/icons/arrow-down.svg"
                 id="manage-teams-settings-profiletype-selection"
                 onItemSelect={onProfileTypeSelected}
@@ -402,14 +403,14 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           {viewType === 'profile' && (
             <div className="ms__tab">
               <div className="ms__tab__desktop">
-                <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps.map((v) => v.name)} />
+                <Tabs errorInfo={tabsWithError} activeTab={activeTab.name} onTabClick={(v) => handleTabClick(v)} tabs={steps} />
               </div>
               <div className="ms__tab__mobile">
                 <SingleSelect
                   arrowImgUrl="/icons/arrow-down.svg"
                   uniqueKey="name"
                   onItemSelect={(item: any) => setActiveTab(item)}
-                  displayKey="name"
+                  displayKey="label"
                   options={steps}
                   selectedOption={activeTab}
                   id="settings-member-steps"
@@ -422,7 +423,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms__content">
             <div className="ms__content__cn">
               <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-                <MemberBasicInfo isAdminEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} />
+                <MemberBasicInfo isAdminEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} isVerifiedFlag={isVerifiedFlag}/>
               </div>
               <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
                 <MemberSkillsInfo isEdit={true} errors={errors.skillsErrors} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />
@@ -434,6 +435,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
                 <MemberSocialInfo initialValues={initialValues.socialInfo} />
               </div>
             </div>
+            <AlertMessage />
             <SettingsAction />
           </form>
         )}

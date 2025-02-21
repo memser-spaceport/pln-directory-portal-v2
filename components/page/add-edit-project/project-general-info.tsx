@@ -1,8 +1,11 @@
 import CustomToggle from '@/components/form/custom-toggle';
+import MultiSelect from '@/components/form/multi-select';
+import MultiSelectWithSearch from '@/components/form/multi-select-with-search';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
 import TextEditor from '@/components/ui/text-editor';
 import { IProjectLinks, IProjectResponse } from '@/types/project.types';
+import { DEFAULT_PROJECT_TAGS } from '@/utils/constants';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 
@@ -16,6 +19,7 @@ interface ProjectBasicInfoProps {
 function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
   const errors = props.errors;
   const project = props.project;
+  
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string>(project?.logo);
 
@@ -23,6 +27,14 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
 
   const [projectLinks, setProjectLinks] = useState<any>(links);
 
+  const generateMultiSelectTags = () => {
+    return DEFAULT_PROJECT_TAGS.filter((tag) => {
+      return props.project?.tags.some((t) => t.toLowerCase() === tag.label.toLowerCase());
+    });
+  }
+
+  const tags = props.project?.tags?.length > 0 ? generateMultiSelectTags() : [];
+  
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -132,6 +144,19 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
               placeholder="Enter Your Project Tagline"
             />
           </div>
+
+          {/* Tags */}
+          <MultiSelectWithSearch 
+            label="Tags"
+            mandatory={true}
+            options={DEFAULT_PROJECT_TAGS} 
+            selectedOptions={tags} 
+            onChange={() => {}} 
+          />
+          <p className="profileInfo__web">
+            <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
+            <span className="profileInfo__web__text">Add tags to your project to help other network members & teams connect with you.</span>
+          </p>
 
           {
             <label className={`tf__label`}>

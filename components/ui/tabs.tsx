@@ -18,7 +18,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, errorInfo = {}, activeTab, onTabClick
             onClick={() => onTabClick(tab.name)}
           >
             <p className={`tabs__tab__text ${tab.name === activeTab ? 'tabs__tab__text--active' : ''} ${errorInfo[tab.name] === true ? 'tabs__tab__text--error' : ''}`}>{tab.name}</p>
-            {tab.count && <div className={`tabs__tab__count ${tab.name === activeTab ? 'tabs__tab__count--active' : ''}`}>{tab.count}</div>}
+            {tab.count > 0 && <div className={`tabs__tab__count ${tab.name === activeTab ? 'tabs__tab__count--active' : ''}`}>{tab.count}</div>}
           </div>
         ))}
       </div>

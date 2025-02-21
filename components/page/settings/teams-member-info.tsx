@@ -15,20 +15,21 @@ const TeamsMemberInfo = (props: any) => {
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
       const inputValue = (e.target as HTMLInputElement).value;
-      setSearchData(inputValue);
+      if (inputValue) setSearchData(inputValue);
+      else setSearchData('');
+      e.preventDefault();
     }
   };
 
   useEffect(() => {
     if (searchData.length) {
       searchedData = membersDetail.filter((data: any) => data.name.toLowerCase().includes(searchData.toLowerCase()));
-      if (searchedData) setTeamMembers(structuredClone(searchedData));
+      if (searchedData.length > 0) setTeamMembers(structuredClone(searchedData));
     } else {
       setTeamMembers(membersDetail);
     }
-  }, [searchData]);
+  }, [searchData, membersDetail]);
 
   return (
     <>

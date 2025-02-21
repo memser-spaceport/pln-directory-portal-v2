@@ -8,7 +8,7 @@ const Search = (props: any) => {
     <>
       <div className="search">
         <input ref={searchRef} onChange={onChange} className="search__input" placeholder={placeholder} onKeyDown={onKeyDown} />
-        <button className="search__btn">
+        <button type="button" className="search__btn">
           <img src="/icons/search.svg" alt="search" width={16} height={16} />
         </button>
       </div>

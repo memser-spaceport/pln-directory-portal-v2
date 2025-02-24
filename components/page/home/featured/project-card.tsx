@@ -1,4 +1,5 @@
 'use client';
+import { sanitize } from 'isomorphic-dompurify';
 
 const ProjectCard = (props: any) => {
   const name = props?.name;
@@ -6,6 +7,9 @@ const ProjectCard = (props: any) => {
   const contributors = props?.contributors ?? [];
   const logo = props?.logo || '/icons/project-default.svg';
   const isNew = props?.isNew;
+
+  const sanitizedDescription = sanitize(description);
+  const descriptionContent = sanitizedDescription?.replace(/<[^>]+>/g, '');
 
   return (
     <>
@@ -28,9 +32,8 @@ const ProjectCard = (props: any) => {
         </div>
         <div className="projectCard__content">
           <h3 className="projectCard__content__ttl">{name}</h3>
-          <p className="projectCard__content__desc">{description}</p>
+          <p className="projectCard__content__desc" dangerouslySetInnerHTML={{ __html: descriptionContent }}></p>
         </div>
-        {/* <div className="projectCard__footer"></div> */}
       </div>
       <style jsx>{`
         .projectCard__header__notch {

@@ -204,7 +204,7 @@ const formatToSave = (payload: any) => {
 
     objectToSave['contributingTeams'] = payload?.contributingTeams;
     objectToSave['contributions'] = payload?.contributions;
-    objectToSave['focusAreas'] = [];
+    objectToSave['focusAreas'] = payload?.projectFocusAreas ?? [];
     return objectToSave;
 }
 

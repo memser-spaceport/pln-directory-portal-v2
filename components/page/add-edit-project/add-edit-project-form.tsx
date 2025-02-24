@@ -217,6 +217,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         formattedData = {
           ...formattedData,
           contributions: [...updatedCurrentContributors, ...currentContributors],
+          projectFocusAreas: projectData?.projectFocusAreas ?? [],
         };
         const result = await updateProject(projectData?.id, formattedData, authToken);
         if (result?.error) {

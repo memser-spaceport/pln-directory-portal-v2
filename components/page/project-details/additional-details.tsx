@@ -96,7 +96,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
     try {
       const res = await updateProject(
         project?.id,
-        { readMe: text === PROJECT_README_DEFAULT ? '' : text, contactEmail: project?.contactEmail, projectFocusAreas: project?.projectFocusAreas },
+        { ...project, readMe: text === PROJECT_README_DEFAULT ? '' : text },
         authToken
       );
       if (res.status === 200 || res.status === 201) {

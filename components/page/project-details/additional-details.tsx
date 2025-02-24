@@ -94,7 +94,11 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
     triggerLoader(true);
         analytics.onProjectDetailReadMeEditSaveBtnClicked(getAnalyticsUserInfo(userInfo), project?.id);
     try {
-      const res = await updateProject(project?.id, { readMe: text === PROJECT_README_DEFAULT ? '' : text, contactEmail: project?.contactEmail }, authToken);
+      const res = await updateProject(
+        project?.id,
+        { readMe: text === PROJECT_README_DEFAULT ? '' : text, contactEmail: project?.contactEmail, projectFocusAreas: project?.projectFocusAreas },
+        authToken
+      );
       if (res.status === 200 || res.status === 201) {
         window.location.reload();
         triggerLoader(false);

@@ -29,7 +29,7 @@ function ManageTeamsSettings(props: any) {
   const userInfo = props?.userInfo ?? {};
   const membersDetail = useMemo(() => props?.membersDetail ?? [], [props?.membersDetail]);
   //variables
-  const steps = [{ name: 'basic', label:'BASIC' }, { name: 'team details', label:"TEAM DETAILS" }, { name: 'social', label:"SOCIAL" }, { name: 'members', label:"MEMBERS", count: membersDetail.length }];
+  const steps = [{ name: 'basic', label:'BASIC' }, { name: 'team details', label:"TEAM DETAILS" }, { name: 'social', label:"SOCIAL" }, { name: 'members', label:`MEMBERS (${membersDetail.length})`, count: membersDetail.length }];
   const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);

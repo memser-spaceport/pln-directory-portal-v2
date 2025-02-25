@@ -73,7 +73,8 @@ export const useIrlAnalytics = () => {
 
     IRL_ADD_EVENT_CLICKED:'irl-add-event-clicked',
     IRL_VIEW_SCHEDULE_CLICKED:'irl-view-schedule-clicked',
-    IRL_SUBMIT_FORM_CLICKED:'irl-submit-form-clicked'
+    IRL_SUBMIT_FORM_CLICKED:'irl-submit-form-clicked',
+    IRL_MANAGE_EVENTS_CLICKED: 'irl-manage-events-clicked'
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -517,8 +518,33 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_VIEW_SCHEDULE_CLICKED, {...params})
   }
 
-  function trackSubmitFormClick(params: any) {
+  function trackSubmitEventClick(params: any) {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_SUBMIT_FORM_CLICKED, {...params})
+  }
+
+  function trackManageEventsClicked(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_MANAGE_EVENTS_CLICKED, {...params})
+  }
+
+  function trackAllEventsDropdownClicked(events: any) {
+    const params = {
+      allEvents: events,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_ALL_EVENTS_BUTTON_CLICKED, {...params});
+  }
+
+  function trackPastEventsDropdownClicked(events: any) {
+    const params = {
+      pastEvents: events,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_PAST_EVENTS_BUTTON_CLICKED, {...params});
+  }
+
+  function trackUpcomingEventsDropdownClicked(resources: any) {
+    let params = { 
+      pastResource: resources,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_UPCOMING_EVENTS_BUTTON_CLICKED, {...params});
   }
 
   return {
@@ -576,6 +602,10 @@ export const useIrlAnalytics = () => {
     irlAllFollowersBtnClicked,
     irlFollowerBtnClicked,
     trackViewScheduleClick,
-    trackSubmitFormClick
+    trackSubmitEventClick,
+    trackManageEventsClicked,
+    trackAllEventsDropdownClicked,
+    trackPastEventsDropdownClicked,
+    trackUpcomingEventsDropdownClicked,
   };
 };

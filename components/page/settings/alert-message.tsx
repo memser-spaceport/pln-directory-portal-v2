@@ -36,7 +36,7 @@ function AlertMessage({ isMemberTab = false, onClickClose = () => {} }: IAlertMe
             width: 100%;
             bottom: 55px;
             animation: slideUp 0.5s ease-out forwards;
-            z-index:1000
+            z-index:5;
           }
           .alert__message__info {
             display: flex;

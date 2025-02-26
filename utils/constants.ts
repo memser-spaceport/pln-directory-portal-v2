@@ -1121,3 +1121,12 @@ export const DEFAULT_PROJECT_TAGS = [
 
 export const PROJECT_README_DEFAULT =
   '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n';
+
+
+export const EVENTS_OPTIONS = [
+    { value: 'All', label: 'All' },
+    { value: 'Upcoming', label: 'Upcoming' },
+    { value: 'Past', label: 'Past' }
+];
+
+export const IRL_EVENTS_DEFAULT_IMAGE = "https://plabs-assets.s3.us-west-1.amazonaws.com/Default+IRL+event-logo.svg";

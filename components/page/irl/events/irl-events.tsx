@@ -104,7 +104,7 @@ const IrlEvents = (props: IIrlEvents) => {
   const onSubmitEventClick = () => {
     analytics.trackSubmitEventClick({ location: irlLocation, link: `${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar` });
   };
-  
+
   const onManageEventClick = () => {
     analytics.trackManageEventsClicked({ 
       location: irlLocation, 
@@ -1048,7 +1048,7 @@ const IrlEvents = (props: IIrlEvents) => {
           display: flex;
           flex-direction: row;
           justify-content: space-between;
-          gap: 10px;
+          gap: 6px;
           // width: 50%;
         }
 

@@ -1127,4 +1127,6 @@ export const EVENTS_OPTIONS = [
     { value: 'All', label: 'All' },
     { value: 'Upcoming', label: 'Upcoming' },
     { value: 'Past', label: 'Past' }
-  ];
+];
+
+export const IRL_EVENTS_DEFAULT_IMAGE = "https://plabs-assets.s3.us-west-1.amazonaws.com/Default+IRL+event-logo.svg";

@@ -1,6 +1,7 @@
 import { getFormattedDateString } from '@/utils/irl.utils';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Image from 'next/image';
+import { IRL_EVENTS_DEFAULT_IMAGE } from '@/utils/constants';
 
 const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, handleElementClick, isEventSelected, eventType, isLoggedIn }: any) => {
   const handleRowClick = (gathering: any) => {
@@ -24,7 +25,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
             <div className="root__irl__table-col-header">
               <div className="root__irl__table-col__contentName__top">
                 <div>
-                  <img src={gathering?.logo?.url} style={{ height: '20px', width: '20px' }} alt="logo" />
+                  <img src={gathering?.logo?.url || IRL_EVENTS_DEFAULT_IMAGE} style={{ height: '20px', width: '20px' }} alt="logo" />
                 </div>
                 {website && (
                   <a onClick={(e) => e.stopPropagation()} className="root__irl__table-col__contentName__top__website" target="_blank" href={website?.link}>

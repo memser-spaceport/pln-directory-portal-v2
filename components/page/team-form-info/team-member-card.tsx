@@ -51,7 +51,7 @@ const TeamMemberCard = (props: any) => {
                   content={'Team Lead'}
                 />
               )}
-              <img loading="lazy" className="memberCard__profile-details__profile__image" alt="profile" src={member?.profile} width={40} height={40} />
+              <img loading="lazy" className="memberCard__profile-details__profile__image" alt="profile" src={member?.profile || '/icons/default-user-profile.svg'} width={40} height={40} />
             </div>
             <div className="memberCard__profile-details__profile__name-role">
               <Tooltip asChild trigger={<h2 className="memberCard__profile-details__profile__name-role__name">{member?.name}</h2>} content={member?.name} />

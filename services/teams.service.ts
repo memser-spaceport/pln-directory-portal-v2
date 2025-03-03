@@ -69,7 +69,6 @@ export const getTeamUIDByAirtableId = async (id: string) => {
 };
 
 export const updateTeam = async (payload: any, authToken: string, teamUid: string) => {
-  console.log("pay;oadd", payload);
   const result = await fetch(`${teamsAPI}/${teamUid}`, {
     cache: 'no-store',
     method: 'PUT',

@@ -35,7 +35,7 @@ const TeamMemberCard = (props: any) => {
 
   return (
     <>
-      <div className={`memberCard ${isMemberRemovedChanges && 'removed'}`}>
+      <div className={`memberCard ${isMemberRemovedChanges && 'removed'} ${member?.teams?.status == "Add" && "new__member"}`}>
         <div className="memberCard__profile-details">
           <div className="memberCard__profile-details__profile">
             <div className="memberCard__profile-details__profile-container">
@@ -253,12 +253,13 @@ const TeamMemberCard = (props: any) => {
             padding: 8px;
             border-radius: 4px;
             gap: 4px;
+            background-color: white;
           }
           .memberCard__btn__actions__team__lead__toggle.toggle-changes {
             border: 1px solid #ff820e;
           }
-          .disabled-bg {
-            background color: #F1F5F9;
+          .memberCard__btn__actions__team__lead__toggle.disabled-bg {
+            background-color: #F1F5F9 !important;
           }
           .memberCard__btn__actions__team__lead__toggle__label,
           .memberCard__btn__actions__delete__btn__text {
@@ -298,6 +299,9 @@ const TeamMemberCard = (props: any) => {
           }
           .memberCard.removed {
             background-color: #ffb57233;
+          }
+          .memberCard.new__member{
+            background-color: #FFF0E3;
           }
           @media (min-width: 1024px) {
             .memberCard {

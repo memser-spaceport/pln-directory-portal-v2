@@ -29,10 +29,6 @@
 .memberDetail__container__contact {
   box-shadow: 0px 4px 4px 0px #0f172a0a;
   background: #fff;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
 }
 
 .memberDetail__container__header {

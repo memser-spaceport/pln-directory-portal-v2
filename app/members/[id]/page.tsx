@@ -20,9 +20,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
   const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo,officeHoursFlag } = await getpageData(memberId);
 
-  const isNotMyProfile = isLoggedIn && (userInfo?.uid != memberId);
-  const canShowOH = ((!isLoggedIn && officeHoursFlag) || isNotMyProfile);
-  const canShowContactSection = canShowOH || isLoggedIn;
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
   }
@@ -44,13 +41,10 @@ const MemberDetails = async ({ params }: { params: any }) => {
             {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo}/>}
           </div>
         </div>
-        {
-          canShowContactSection && 
-              <div className={styles?.memberDetail__container__contact}>
-                {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
-                {canShowOH && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
-              </div>
-        }
+        <div className={styles?.memberDetail__container__contact}>
+          {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
+          {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
+        </div>
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
         </div>
@@ -108,7 +102,7 @@ const getpageData = async (memberId: string) => {
     ]);
     member = memberResponse?.data?.formattedData;
     teams = memberTeamsResponse?.data?.formattedData;
-    
+
     let officeHoursFlag = false;
     officeHoursFlag = member['officeHours'] ? true : false;
     if (!isLoggedIn && member['officeHours']) {

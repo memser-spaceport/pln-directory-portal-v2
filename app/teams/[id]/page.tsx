@@ -37,7 +37,6 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     isNotFound,
     officeHoursFlag,
     hasEditAsksAccess,
-    isLoggedInMemberPartOfTeam
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -47,9 +46,6 @@ async function Page({ params }: { params: ITeamDetailParams }) {
   if (isNotFound || isError) {
     return <Error />;
   }
-
-  const canShowOH = ((!isLoggedIn && officeHoursFlag) || !isLoggedInMemberPartOfTeam);
-
 
   return (
     <>
@@ -78,7 +74,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
             <ContactInfo team={team} userInfo={userInfo} />
-            {canShowOH && <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
+            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
           </div>
           {/* Funding */}
           {team?.fundingStage || team?.membershipSources?.length ? (
@@ -178,7 +174,6 @@ async function getPageData(teamId: string) {
       getFocusAreas('Team', {}),
     ]);
 
-    let isLoggedInMemberPartOfTeam = false;
     if (isLoggedIn) {
       const allTeams = await getAllTeams(
         authToken,
@@ -193,7 +188,6 @@ async function getPageData(teamId: string) {
       if (!allTeams?.error) {
         memberTeams = allTeams?.data?.formattedData ?? [];
       }
-      isLoggedInMemberPartOfTeam = memberTeams.filter((team: any) => team.id === teamId).length > 0;
     }
 
     if (teamResponse?.error || teamMembersResponse?.error || focusAreaResponse?.error) {
@@ -239,7 +233,7 @@ async function getPageData(teamId: string) {
     if (hasProjectsEditAccess) {
       team.logoUid = team.logoUid;
     }
-    return { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess, officeHoursFlag, hasEditAsksAccess, isLoggedInMemberPartOfTeam };
+    return { team, members, focusAreas, isLoggedIn, userInfo, teamProjectList, hasProjectsEditAccess, officeHoursFlag, hasEditAsksAccess };
   } catch (error: any) {
     console.error(error);
     isNotFound = true;

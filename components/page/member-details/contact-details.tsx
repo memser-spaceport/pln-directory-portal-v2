@@ -101,8 +101,8 @@ const ContactDetails = (props: IContactDetails) => {
       </div>
       <style jsx>
         {`
-          .contact-details {                        
-          // padding:20px 20px 20px 20px;
+          .contact-details {
+          padding:20px 20px 0px 20px;
           }
 
           .contact-details__title {

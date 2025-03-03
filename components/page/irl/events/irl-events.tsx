@@ -302,8 +302,8 @@ const IrlEvents = (props: IIrlEvents) => {
             </>
           )}
 
-          <div className='root__events'>
-            {isScheduleEnabled && (
+          {isScheduleEnabled && (
+            <div className='root__events'>
               <div className={`root__irl__events__toggleSection`}>
                 <div className='root__submit__list__view'>
                   List View
@@ -315,27 +315,24 @@ const IrlEvents = (props: IIrlEvents) => {
                   </a>
                 </Link>
               </div>
-            )}
 
-            <div className='root__manage__events'>
-              <Link href={isScheduleEnabled ? `${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}` : IRL_AIRTABLE_FORM_LINK} legacyBehavior target="_blank">
-                <a target="_blank" className="root__submit" onClick={onSubmitEventClick}>
-                  <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
-                  Submit an event
-                </a>
-              </Link>
+              <div className='root__manage__events'>
+                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}`} legacyBehavior target="_blank">
+                  <a target="_blank" className="root__submit" onClick={onSubmitEventClick}>
+                    <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
+                    Submit an event
+                  </a>
+                </Link>
 
-              {isScheduleEnabled &&
-                <Link href={isScheduleEnabled ? `${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage` : IRL_AIRTABLE_FORM_LINK} legacyBehavior target="_blank">
+                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage`} legacyBehavior target="_blank">
                   <a target="_blank" className="root__submit" onClick={onManageEventClick}>
                     <img src="/icons/settings-blue.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
                     Manage
                   </a>
                 </Link>
-              }
+              </div>
             </div>
-
-          </div>
+          )}
 
           {/* TODO - To be used later*/}
           {/* {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length > 0 && (

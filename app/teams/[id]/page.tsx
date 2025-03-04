@@ -48,9 +48,6 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     return <Error />;
   }
 
-  const canShowOH = ((!isLoggedIn && officeHoursFlag) || !isLoggedInMemberPartOfTeam);
-
-
   return (
     <>
       <div className={styles?.teamDetail}>
@@ -78,7 +75,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
             <ContactInfo team={team} userInfo={userInfo} />
-            {canShowOH && <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
+            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam}/>}
           </div>
           {/* Funding */}
           {team?.fundingStage || team?.membershipSources?.length ? (

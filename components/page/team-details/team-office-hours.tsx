@@ -7,12 +7,14 @@ import { TEAM_OFFICE_HOURS_MSG, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 const TeamOfficeHours = (props: any) => {
   const team = props?.team;
   const officeHours = team?.officeHours;
   const isLoggedIn = props?.isLoggedIn;
   const userInfo = props?.userInfo;
+  const isLoggedInMemberPartOfTeam = props?.isLoggedInMemberPartOfTeam ?? false;
 
   const teamAnalytics = useTeamAnalytics();
   const router = useRouter();
@@ -28,8 +30,12 @@ const TeamOfficeHours = (props: any) => {
     }
   };
 
-  const onScheduleMeeting = () => {
-    teamAnalytics.onScheduleMeetingClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
+  const onScheduleMeeting = (event: any) => {
+    if(!isLoggedInMemberPartOfTeam){
+      teamAnalytics.onScheduleMeetingClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
+    }else{
+      event.preventDefault();
+    }
   };
 
   // const onLearnMoreBtnClick = () => {
@@ -59,9 +65,15 @@ const TeamOfficeHours = (props: any) => {
             </button>
           </a> */}
           {isLoggedIn && officeHours && (
-            <a href={officeHours} target="blank" onClick={onScheduleMeeting}>
-              <button className="office-hours__right__meeting">Schedule Meeting</button>
-            </a>
+            <Tooltip
+              asChild
+              trigger={
+                <a href={officeHours} target="blank" onClick={onScheduleMeeting}>
+                  <button className={`office-hours__right__meeting ${isLoggedInMemberPartOfTeam? 'disabled': ''}`}>Schedule Meeting</button>
+                </a>
+              }
+              content={isLoggedInMemberPartOfTeam?'You cannot schedule meeting with your own team!':''}
+            />
           )}
 
           {isLoggedIn && !officeHours && (

@@ -9,6 +9,11 @@ export const basicInfoSchema = z.object({
     .string({ errorMap: () => ({ message: 'Please provide valid email' }) })
     .trim()
     .email(),
+  bio: z
+    .string({ errorMap: () => ({ message: 'Please provide valid bio' }) })
+    .trim()
+    .min(2)
+    .max(64),
 });
 
 const skill = z.object({

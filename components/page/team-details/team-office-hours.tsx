@@ -69,7 +69,7 @@ const TeamOfficeHours = (props: any) => {
               asChild
               trigger={
                 <a href={officeHours} target="blank" onClick={onScheduleMeeting}>
-                  <button className={`office-hours__right__meeting ${isLoggedInMemberPartOfTeam? 'disabled': ''}`}>Schedule Meeting</button>
+                  <button className={`office-hours__right__meeting ${isLoggedInMemberPartOfTeam? 'disabled cursor-default': ''}`}>Schedule Meeting</button>
                 </a>
               }
               content={isLoggedInMemberPartOfTeam?'You cannot schedule meeting with your own team!':''}

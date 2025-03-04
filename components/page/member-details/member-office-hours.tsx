@@ -103,8 +103,8 @@ const MemberOfficeHours = (props: any) => {
             </button>
           </a>
           {isLoggedIn && officeHours && (
-            <div onClick={onScheduleMeeting}>
-              {!isLoggedInUser && <button className="office-hours__right__meeting">Schedule Meeting</button>}
+            <div>
+              {!isLoggedInUser && <button className="office-hours__right__meeting" onClick={onScheduleMeeting}>Schedule Meeting</button>}
               {isLoggedInUser && <button className="office-hours__right__meeting" onClick={onEditOH}>Edit Office Hours</button>}
             </div>
           )}

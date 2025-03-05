@@ -1,3 +1,4 @@
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Toggle from '@/components/ui/toogle';
 import { Fragment, useState } from 'react';
 
@@ -49,7 +50,7 @@ const AddTeamMemberDetail = (props: any) => {
         <div className="cpc__cnt">
           {selectedMembers?.length > 0 ? (
             selectedMembers
-              .filter((member: any) => member.name.toLowerCase().includes(searchData))
+              .filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase()))
               .map((member: any) => {
                 return (
                   <Fragment key={member.id}>
@@ -60,10 +61,28 @@ const AddTeamMemberDetail = (props: any) => {
                         </div>
                         <div className="cpt__cnt__cptr__dtls">
                           <div className="cpt__cnt__cptr__dtls__name">{member?.name}</div>
-                          <div className="cpt__cnt__cptr__team__lead__toggle">
-                            <p className="cpt__cnt__cptr__team__lead__toggle__label">Team Lead</p>
-                            <Toggle height="16px" width="28px" callback={() => handleTeamLeadClick(member.id)} isChecked={member?.teams?.teamLead} />
-                          </div>
+                          {member.isVerified ? (
+                            <div className="cpt__cnt__cptr__team__lead__toggle">
+                              <p className="cpt__cnt__cptr__team__lead__toggle__label">Team Lead</p>
+                              <div className="cpt__cnt__cptr__team__lead__toggle__wrapper"> 
+                                <Toggle height="16px" width="28px" callback={() => handleTeamLeadClick(member.id)} isChecked={member?.teams?.teamLead} />
+                              </div>
+                            </div>
+                          ) : (
+                            <Tooltip
+                              side="top"
+                              asChild
+                              trigger={
+                                <div className="cpt__cnt__cptr__team__lead__toggle">
+                                  <p className="cpt__cnt__cptr__team__lead__toggle__label">Team Lead</p>
+                                  <div className="cpt__cnt__cptr__team__lead__toggle__wrapper"> 
+                                    <Toggle height="16px" width="28px" callback={() => handleTeamLeadClick(member.id)} isChecked={false} disabled={true} />
+                                  </div>
+                                </div>
+                              }
+                              content={'Member has limited access. Please contact admin'}
+                            />
+                          )}
                         </div>
                       </div>
                       <div>
@@ -76,7 +95,7 @@ const AddTeamMemberDetail = (props: any) => {
           ) : (
             <div className="cpc__cnt__nrf">No Members available.</div>
           )}
-          {selectedMembers.length > 0 && selectedMembers.filter((member: any) => member.name.toLowerCase().includes(searchData)).length === 0 && (
+          {selectedMembers.length > 0 && selectedMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase())).length === 0 && (
             <div className="cpc__cnt__nrf">No matching members found.</div>
           )}
         </div>
@@ -85,7 +104,7 @@ const AddTeamMemberDetail = (props: any) => {
         <button type="button" className="cpc__back__btn" onClick={handleBackClick}>
           Back
         </button>
-        <button className="cpc__add__btn" type="button" onClick={handleAddMember}>
+        <button className={`cpc__add__btn ${selectedMembers.length === 0 && 'disabled-bg'}`}  type="button" onClick={handleAddMember}>
           Add
         </button>
       </div>
@@ -122,7 +141,7 @@ const AddTeamMemberDetail = (props: any) => {
           }
 
           .cpc {
-            height: 80vh;
+            height: 75vh;
             width: 80vw;
             display: flex;
             padding: 24px 10px 0 24px;
@@ -207,7 +226,7 @@ const AddTeamMemberDetail = (props: any) => {
           }
 
           .cpc__header__info__new__role {
-            padding-right: 14px;
+            width: 198px;
           }
 
           .cpc__cnt {
@@ -251,14 +270,20 @@ const AddTeamMemberDetail = (props: any) => {
 
           .cpt__cnt__cptr__team__lead__toggle {
             display: flex;
+            align-items: center;
             gap: 4px;
             font-size: 14px;
             font-weight: 400;
           }
 
+          .cpt__cnt__cptr__team__lead__toggle__wrapper{
+            margin-top: 1px;
+          }
+
           .cpt__cnt__cptr__dtls {
             display: flex;
             flex-direction: column;
+            gap: 5px;
           }
 
           .cpt__cnt__cptr__roles {
@@ -298,6 +323,12 @@ const AddTeamMemberDetail = (props: any) => {
             background-color: #156ff7;
             color: White;
             padding: 10px 24px;
+          }
+
+          .cpc__add__btn.disabled-bg {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+            pointer-events: none;
           }
 
           @media (min-width: 1024px) {

@@ -28,6 +28,7 @@ const AddTeamMemberPopUp = (props: any) => {
 
   const handleClearMember = () => {
     setSelectedMembers([]);
+    setSearchData('');
   };
 
   const handleNextPage = () => {
@@ -137,7 +138,7 @@ const AddTeamMemberPopUp = (props: any) => {
             <div className="cpc__cnt">
               {allMembers?.length > 0 ? (
                 allMembers
-                  .filter((member: any) => member.name.toLowerCase().includes(searchData))
+                  .filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase()))
                   .map((member: any) => {
                     return (
                       <Fragment key={member.uid}>
@@ -164,11 +165,11 @@ const AddTeamMemberPopUp = (props: any) => {
                 <div className="cpc__cnt__nrf">No Members available.</div>
               )}
 
-              {allMembers.filter((member: any) => member.name.toLowerCase().includes(searchData)).length === 0 && <div className="cpc__cnt__nrf">No matching members found.</div>}
+              {allMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase())).length === 0 && <div className="cpc__cnt__nrf">No matching members found.</div>}
             </div>
           </div>
           <div className="cpc__add">
-            <button className="cpc__add__btn" type="button" onClick={handleNextPage}>
+            <button className={`cpc__add__btn ${selectedMembers.length === 0 && 'disabled-bg'}`} type="button" onClick={handleNextPage}>
               Next
             </button>
           </div>
@@ -182,7 +183,7 @@ const AddTeamMemberPopUp = (props: any) => {
           }
 
           .cpc {
-            height: 80vh;
+            height: 75vh;
             width: 80vw;
             display: flex;
             padding: 24px 10px 0 24px;
@@ -328,6 +329,12 @@ const AddTeamMemberPopUp = (props: any) => {
             background-color: #156ff7;
             color: White;
             padding: 10px 24px;
+          }
+
+          .cpc__add__btn.disabled-bg {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+            pointer-events: none;
           }
 
           @media (min-width: 1024px) {

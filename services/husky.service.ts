@@ -163,3 +163,78 @@ function fetchItemsFromArrays(arr1: Item[], arr2: Item[], arr3: Item[]): Item[] 
 
   return items;
 }
+
+
+export const getHuskyHistory = async (authToken: string, email: string) => {
+  const historyResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${email}`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!historyResponse.ok) {
+    return {
+      isError: true,
+      status: historyResponse.status
+    };
+  }
+  const history = await historyResponse.json();
+  return history;
+};
+
+export const createHuskyThread = async (authToken: string, email: string, threadUid: string, question: string) => {
+  const threadResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads`, {
+    cache: 'no-store',
+    method: 'POST',
+    body: JSON.stringify({ email, threadUid, question }),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+
+  if (!threadResponse.ok) {
+    return {
+      isError: true,
+      status: threadResponse.status
+    };
+  }
+
+  const thread = await threadResponse.json();
+  return thread;
+};
+
+export const getHuskyThreadById = async (id: string, authToken: string) => {
+  const threadResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/chat/${id}`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+
+  if (!threadResponse.ok) {
+    return {
+      isError: true,
+      status: threadResponse.status
+    };
+  }
+
+  const thread = await threadResponse.json();
+  const formattedThread = thread?.map((item: any) => {
+    return {
+      id: item?._id,
+      question: item?.prompt,
+      answer: item?.response,
+      sources: item?.sources,
+      actions: item?.actions,
+      followUpQuestions: item?.followUpQuestions,
+      sql: item?.sqlData,
+    };
+  });
+  return formattedThread;
+};
+

@@ -65,7 +65,7 @@ const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitS
             ) : (
               <span className="husky-limit-strip__text__huskyMsg">Husky is done fetching for the day!</span>
             )}{' '}
-            <p>
+            <span>
               <span onClick={onLoginClickHandler} role="a" className="link">
                 Log in
               </span>{' '}
@@ -74,7 +74,7 @@ const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitS
                 Sign up
               </span>{' '}
               to get unlimited requests
-            </p>
+            </span>
           </p>
         </div>
         {/* {type === 'info' && (

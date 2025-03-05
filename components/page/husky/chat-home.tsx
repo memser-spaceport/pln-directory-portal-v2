@@ -8,7 +8,13 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { getChatCount } from '@/utils/husky.utlils';
 
-const ChatHome = ({ onSubmit, setMessages }: { onSubmit: (query: string) => void; setMessages: (messages: any[]) => void }) => {
+interface ChatHomeProps {
+  onSubmit: (query: string) => void;
+  setMessages: (messages: any[]) => void;
+  setType: (type: string) => void;
+}
+
+const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [initialPrompts, setInitialPrompts] = useState<any[]>([]);
   const [limitReached, setLimitReached] = useState<boolean>(false); // daily limit check
@@ -78,7 +84,8 @@ const ChatHome = ({ onSubmit, setMessages }: { onSubmit: (query: string) => void
   const onExplorationPromptClicked = async (quesObj: any) => {
     // trackExplorationPromptSelection(quesObj.question);
     const links = quesObj?.answerSourceLinks?.map((item: any) => item?.link);
-    setMessages([{ ...quesObj, sources: links }]);
+    setMessages([{ ...quesObj, sources: links, followUpQuestions: quesObj?.followupQuestions }]);
+    setType('blog');
     // document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: { ...quesObj, answerSourceLinks: links } } }));
   };
 

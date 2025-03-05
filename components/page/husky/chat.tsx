@@ -6,7 +6,7 @@ import Messages from './messages';
 import ChatFeedback from './chat-feedback';
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
 import { DAILY_CHAT_LIMIT } from '@/utils/constants';
-import { getUniqueId, isMobileDevice } from '@/utils/common.utils';
+import { generateUUID, getUniqueId, isMobileDevice } from '@/utils/common.utils';
 import ChatHome from './chat-home';
 import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { useMessages } from '@/hooks/useMessages';
@@ -14,30 +14,37 @@ import { getUserCredentials } from '@/utils/auth.utils';
 import RegisterFormLoader from '@/components/core/register/register-form-loader';
 import { getChatCount, updateLimitType, updateChatCount, checkRefreshToken } from '@/utils/husky.utlils';
 import ChatInput from './chat-input';
+import { createHuskyThread } from '@/services/husky.service';
+import { useSidebar } from './sidebar';
 
 interface ChatProps {
   isLoggedIn: boolean;
   userInfo: IAnalyticsUserInfo;
   initialMessages: any;
+  threadUid?: string;
+  setThreadUid: (threadUid: string) => void;
+  from: string;
+  setType: (type: string) => void;
 }
 
-const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages }) => {
-  // const [input, setInput] = React.useState('');
+const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, threadUid, setThreadUid, from, setType }) => {
   const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>(); // daily limit
   const feedbackPopupRef = useRef<HTMLDialogElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const threadIdRef = useRef<string>(''); // thread ID
-
-  const { messages, setMessages, isAnswerLoading, addMessage, chatIsLoading, submitChat, stopChat, submitSql } = useMessages(initialMessages, threadIdRef.current);
+  const { state } = useSidebar();
+  const { messages, setMessages, isAnswerLoading, addMessage, chatIsLoading, submitChat, stopChat, submitSql } = useMessages(initialMessages, threadUid, userInfo);
 
   // Checks and sets the thread ID for the current chat session
-  const checkAndSetThreadId = () => {
-    if (threadIdRef.current && messages.length > 0) return threadIdRef.current;
-    threadIdRef.current = getUniqueId();
-    return threadIdRef.current;
-  };
+  const checkAndSetThreadId = useCallback(() => {
+    if (threadUid && messages.length > 0) {
+      return threadUid;
+    }
+    const newThreadUid = getUniqueId();
+    setThreadUid(newThreadUid);
+    return newThreadUid;
+  }, [messages, threadUid, setThreadUid]);
 
   // handle all chat submission
   const handleChatSubmission = async ({ question, type }: { question: string; type: 'prompt' | 'followup' | 'user-input'; previousContext?: { question: string; answer: string } | null }) => {
@@ -54,23 +61,49 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages }) =>
           return;
         }
         if (countResponse) {
-          setLimitReached(countResponse); 
+          setLimitReached(countResponse);
         }
       }
 
-      const chatUid = checkAndSetThreadId();  // check and set the thread ID for the current chat session
+      const threadUid = checkAndSetThreadId();
+      const chatUid = generateUUID(); // check and set the thread ID for the current chat session
       addMessage(question); // add new chat message
 
       const submitParams = {
-        uid: chatUid,
+        uid: threadUid,
+        threadUid,
+        chatUid,
         question,
         ...(userInfo?.name && { name: userInfo?.name }),
         ...(userInfo?.email && { email: userInfo?.email }),
         ...(userInfo?.uid && { directoryId: userInfo?.uid }),
       };
 
-      submitChat(submitParams);
-      submitSql({ uid: chatUid, question });
+      if (from === 'blog' && messages.length === 1) {
+        const message = messages[messages.length - 1];
+        const chatUid = generateUUID(); // check and set the thread ID for the current chat session
+        submitParams.chatSummary = {
+          user: message.question,
+          system: message.answer,
+          threadUid: threadUid,
+          chatUid: chatUid,
+          sources: message.sources,
+          actions: [],
+          followUpQuestions: message.followUpQuestions,
+        };
+      }
+
+      Promise.all([submitChat(submitParams), submitSql({ uid: threadUid, threadUid, chatUid, question })]); // submit chat and sql
+
+      // create new thread
+      if (hasRefreshToken && (messages.length === 0 || (from === 'blog' && messages.length === 1))) {
+        const threadResponse = await createHuskyThread(userInfo.authToken, userInfo.email, threadUid, question);
+        if (threadResponse.isError) {
+          console.error('Error creating thread:', threadResponse.status);
+        } else {
+          document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+        }
+      }
     } catch (error) {
       console.error(`Error in ${type} submission:`, error);
     }
@@ -147,14 +180,32 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages }) =>
     }
   }, [isAnswerLoading]);
 
+  if (messages.length === 0) {
+    return (
+      <>
+        <div className="chat__home">
+          <ChatHome onSubmit={onHuskyInput} setMessages={setMessages} setType={setType} />
+        </div>
+        <style jsx>{`
+          .chat__home {
+            min-height: inherit;
+            display: flex;
+            justify-content: center;
+            position: relative;
+          }
+
+          @media (min-width: 768px) {
+            .chat__home {
+              padding-top: 12vh;
+            }
+          }
+        `}</style>
+      </>
+    );
+  }
+
   return (
     <>
-      {messages?.length === 0 && (
-        <div className="chat__home">
-          <ChatHome onSubmit={onHuskyInput} setMessages={setMessages} />
-        </div>
-      )}
-
       {messages?.length > 0 && (
         <div className="chat" ref={chatContainerRef}>
           <div className="chat__messages-wrapper">
@@ -169,7 +220,7 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages }) =>
             />
           </div>
 
-          <div className="chat__form-wrapper">
+          <div data-state={isLoggedIn ? state : ''} className="chat__form-wrapper">
             <form className="chat__form">
               {limitReached && <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} from="husky-chat" />}
               <ChatInput
@@ -241,19 +292,6 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages }) =>
           overflow: hidden;
         }
 
-        .chat__home {
-          min-height: inherit;
-          display: flex;
-          justify-content: center;
-          position: relative;
-        }
-
-        @media (min-width: 768px) {
-          .chat__home {
-            padding-top: 12%;
-          }
-        }
-
         @media (min-width: 1024px) {
           .chat__form-wrapper {
             width: 989px;
@@ -261,6 +299,14 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages }) =>
 
           .chat__form {
             padding: 20px;
+          }
+
+          .chat__form-wrapper[data-state='expanded'] {
+            left: calc(50% + 150px);
+          }
+
+          .chat__form-wrapper[data-state='collapsed'] {
+            left: calc(50% + 32px);
           }
         }
       `}</style>

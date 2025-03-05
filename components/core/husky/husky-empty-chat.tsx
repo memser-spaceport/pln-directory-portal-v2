@@ -60,7 +60,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
   const onExplorationPromptClicked = async (quesObj: any) => {
     trackExplorationPromptSelection(quesObj.question);
     const links = quesObj?.answerSourceLinks?.map((item: any) => item?.link);
-    localStorage.setItem('initialChat', JSON.stringify({ ...quesObj, sources: links }));
+    localStorage.setItem('initialChat', JSON.stringify({message: { ...quesObj, sources: links }, type: 'blog'}));
     router.push(PAGE_ROUTES.HUSKY);
     // document.dispatchEvent(new CustomEvent('open-husky-dialog', { detail: { initialChat: { ...quesObj, answerSourceLinks: links } } }));
   };

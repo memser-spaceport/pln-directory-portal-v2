@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 
-export const useMessages = (initialMessages: any[] = [], threadId: string) => {
+export const useMessages = (initialMessages: any[] = [], threadUid: string | undefined, userInfo: any) => {
   const [messages, setMessages] = useState<any[]>(initialMessages ?? []);
   const [isAnswerLoading, setIsAnswerLoading] = useState(false);
 
@@ -31,7 +31,7 @@ export const useMessages = (initialMessages: any[] = [], threadId: string) => {
         )
         .optional(),
     }),
-    onFinish: () => {
+    onFinish: async () => {
       setIsAnswerLoading(false);
     },
     onError: (error) => {
@@ -43,6 +43,7 @@ export const useMessages = (initialMessages: any[] = [], threadId: string) => {
   const {
     object: sqlObject,
     error: sqlError,
+    isLoading: sqlIsLoading,
     submit: submitSql,
   } = useObject({
     api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/analytical`,
@@ -57,14 +58,14 @@ export const useMessages = (initialMessages: any[] = [], threadId: string) => {
   });
 
   useEffect(() => {
-    if (chatError || sqlError) {
+    if (chatError) {
       setMessages((prev) => {
         if (prev.length === 0) return prev;
         return prev.map((msg, index) => (index === prev.length - 1 ? { ...msg, answer: '', isError: true } : msg));
       });
     }
 
-    if ((chatObject?.content && chatIsLoading) || sqlObject) {
+    if (chatObject?.content && chatIsLoading) {
       setIsAnswerLoading(false);
       setMessages((prev) => {
         const newMessages = [...prev];
@@ -81,7 +82,7 @@ export const useMessages = (initialMessages: any[] = [], threadId: string) => {
         return newMessages;
       });
     }
-  }, [chatObject, sqlObject, chatIsLoading, chatError]);
+  }, [chatObject, chatIsLoading, chatError]);
 
   const addMessage = (question: string) => {
     setMessages((prev) => [
@@ -99,11 +100,8 @@ export const useMessages = (initialMessages: any[] = [], threadId: string) => {
   };
 
   useEffect(() => {
-    if (initialMessages.length && messages !== initialMessages) {
-      setMessages(initialMessages);
-    }
+    setMessages(initialMessages);
   }, [initialMessages]);
-  
 
   return {
     messages,

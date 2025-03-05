@@ -13,17 +13,17 @@ interface HuskyLinkProps {
 const HuskyLink = () => {
   const router = useRouter();
   const pathName = usePathname();
-  const [isVisible, setIsVisible] = useState(false);
+  // const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(() => {
-    // Show the chat box after 5 seconds
-    const timeout = setTimeout(() => {
-      setIsVisible(true);
-    }, 5000);
+  // useEffect(() => {
+  //   // Show the chat box after 5 seconds
+  //   const timeout = setTimeout(() => {
+  //     setIsVisible(true);
+  //   }, 5000);
 
-    // Clean up the timeout if component unmounts
-    return () => clearTimeout(timeout);
-  }, []);
+  //   // Clean up the timeout if component unmounts
+  //   return () => clearTimeout(timeout);
+  // }, []);
 
   const onHuskyClickHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -32,14 +32,13 @@ const HuskyLink = () => {
       triggerLoader(true);
     }
     router.push(PAGE_ROUTES.HUSKY);
-    setIsVisible(false);
-    document.dispatchEvent(new CustomEvent('new-chat-box'));
+    // setIsVisible(false);
   };
 
   const handleCloseClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsVisible(false);
+    // setIsVisible(false);
   };
 
   return (
@@ -50,7 +49,7 @@ const HuskyLink = () => {
         aria-label="Chat with Husky assistant"
       >
         <img width={48} height={48} src="/images/husky/husky-logo.svg" alt="husky" />
-        {isVisible && (
+        {/* {isVisible && (
           <div className="chat-box" onClick={(e) => e.stopPropagation()}>
             <div className="chat-header">
               <h3 className="chat-header__title">Woof Woof!</h3>
@@ -62,7 +61,7 @@ const HuskyLink = () => {
               Need help? I fetch answers on teams, projects & more! Click to chat!
             </p>
           </div>
-        )}
+        )} */}
       </button>
 
       <style jsx>{`

@@ -20,6 +20,8 @@ function DirectoryResults({ actions }: RelatedResultsProps) {
 
   const memoizedActions = useMemo(() => actions, [actions]);
 
+  console.log('memoizedActions', memoizedActions);
+
   const handleActionCardClick = (action: ActionItem) => {
     trackHuskyActionCardClicked(action);
   };
@@ -39,6 +41,7 @@ function DirectoryResults({ actions }: RelatedResultsProps) {
 
   // Reusable ActionCard component to avoid duplication
   const ActionCard = ({ action, index }: { action: ActionItem; index: number }) => (
+    
     <>
       <a target="_blank" href={action.source} onClick={() => handleActionCardClick(action)} className="action-card" key={index} tabIndex={0} aria-label={`${action.name} - ${action.type}`}>
         <div className="action-card__wrapper">
@@ -188,7 +191,7 @@ function DirectoryResults({ actions }: RelatedResultsProps) {
           <div className="directoryResults-popup__header">
             <h3 className="directoryResults-popup__header__title">
               <span className="directoryResults-popup__header__title__count">{`${memoizedActions.length}`}</span>
-              <h3 className="directoryResults-popup__header__title__text">Results from the directory</h3>
+              <span role='heading' className="directoryResults-popup__header__title__text">Results from the directory</span>
             </h3>
             <button onClick={handleCloseDirectoryResultsPopup} className="directoryResults-popup__header__close" tabIndex={0} aria-label="Close directory results popup">
               <img src="/icons/close-blue.svg" alt="close" />

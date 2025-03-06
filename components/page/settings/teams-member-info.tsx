@@ -11,6 +11,8 @@ import AddTeamMemberPopUp from './add-team-member-pop-up';
 const TeamsMemberInfo = (props: any) => {
   const [searchData, setSearchData] = useState<string>('');
   const [showAssignRolesPopup, setShowAssignRolesPopup] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<typeof allMembers>([]);
+  const [allMemberSearch, setAllMemberSearch] = useState<string>('');
 
   const contributorsPopupRef = useRef<HTMLDialogElement>(null);
 
@@ -26,6 +28,8 @@ const TeamsMemberInfo = (props: any) => {
     document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_SELECTED_CONTRIBUTORS));
     contributorsPopupRef.current?.showModal();
     setSearchData("");
+    setAllMemberSearch('');
+    setSelectedMembers([]);
   };
 
   const onClose = () => {
@@ -87,6 +91,10 @@ const TeamsMemberInfo = (props: any) => {
           setTeamMembers={setTeamMembers}
           showAssignRolesPopup={showAssignRolesPopup}
           setShowAssignRolesPopup={setShowAssignRolesPopup}
+          selectedMembers={selectedMembers}
+          setSelectedMembers={setSelectedMembers}
+          allMemberSearch={allMemberSearch}
+          setAllMemberSearch={setAllMemberSearch}
         />
         <RegsiterFormLoader />
       </Modal>

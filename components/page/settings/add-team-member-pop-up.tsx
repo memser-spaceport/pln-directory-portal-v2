@@ -8,8 +8,10 @@ const AddTeamMemberPopUp = (props: any) => {
   const setTeamMembers = props?.setTeamMembers;
   const showAssignRolesPopup = props?.showAssignRolesPopup;
   const setShowAssignRolesPopup = props?.setShowAssignRolesPopup;
-  const [selectedMembers, setSelectedMembers] = useState<typeof allMembers>([]);
-  const [searchData, setSearchData] = useState<string>('');
+  const selectedMembers = props?.selectedMembers;
+  const setSelectedMembers = props?.setSelectedMembers;
+  const allMemberSearch = props?.allMemberSearch;
+  const setAllMemberSearch = props?.setAllMemberSearch;
 
   /**
    * Merge newly selected members with existing team members.
@@ -21,14 +23,14 @@ const AddTeamMemberPopUp = (props: any) => {
       const mergedMembers = [...selectedMembers, ...prevMembers];
       return mergedMembers;
     });
-    setSearchData('');
+    setAllMemberSearch('');
     setSelectedMembers([]);
     onClose();
   };
 
   const handleClearMember = () => {
     setSelectedMembers([]);
-    setSearchData('');
+    setAllMemberSearch('');
   };
 
   const handleNextPage = () => {
@@ -115,8 +117,8 @@ const AddTeamMemberPopUp = (props: any) => {
                 <div className="cpc__header__flts__searchc">
                   <img height={15} width={15} src="/icons/search-gray.svg"></img>
                   <input
-                    value={searchData}
-                    onChange={(e) => setSearchData(e.target.value.toLowerCase())}
+                    value={allMemberSearch}
+                    onChange={(e) => setAllMemberSearch(e.target.value.toLowerCase())}
                     onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                     className="cpc__header__flts__searchc__input"
                     placeholder="Search"
@@ -130,7 +132,7 @@ const AddTeamMemberPopUp = (props: any) => {
                 </div>
                 <div className="cpc__header__info__clear" onClick={handleClearMember}>
                   <img loading="lazy" className="cpt__cnt__cptr__profile" alt="clear" src={'/icons/close-blue.svg'} />
-                  <div>CLEAR</div>
+                  <div className="cpt__cnt__cptr__clear__word">CLEAR</div>
                 </div>
               </div>
             </div>
@@ -138,7 +140,7 @@ const AddTeamMemberPopUp = (props: any) => {
             <div className="cpc__cnt">
               {allMembers?.length > 0 ? (
                 allMembers
-                  .filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase()))
+                  .filter((member: any) => member.name.toLowerCase().includes(allMemberSearch.trim().toLowerCase()))
                   .map((member: any) => {
                     return (
                       <Fragment key={member.uid}>
@@ -165,7 +167,7 @@ const AddTeamMemberPopUp = (props: any) => {
                 <div className="cpc__cnt__nrf">No Members available.</div>
               )}
 
-              {allMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase())).length === 0 && <div className="cpc__cnt__nrf">No matching members found.</div>}
+              {allMembers.filter((member: any) => member.name.toLowerCase().includes(allMemberSearch.trim().toLowerCase())).length === 0 && <div className="cpc__cnt__nrf">No matching members found.</div>}
             </div>
           </div>
           <div className="cpc__add">
@@ -278,6 +280,10 @@ const AddTeamMemberPopUp = (props: any) => {
 
           .cpt__cnt__cptr__profile {
             border-radius: 50%;
+          }
+          
+          .cpt__cnt__cptr__clear__word {
+            // font-size: 14px;
           }
 
           .cpt__cnt__cptr__chbox {

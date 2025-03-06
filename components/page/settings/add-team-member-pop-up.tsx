@@ -148,7 +148,14 @@ const AddTeamMemberPopUp = (props: any) => {
                           <div className="cpt__cnt__cptr__pflctr">
                             <img loading="lazy" className="cpt__cnt__cptr__profile" alt="profile" src={member?.profile || '/icons/default-user-profile.svg'} width={40} height={40} />
                             {member?.teamMemberRoles?.some((role: any) => role.teamLead) && (
-                              <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />
+                              <Tooltip
+                              side="top"
+                              asChild
+                              trigger={
+                                <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />
+                              }
+                              content={'Team Lead'}
+                            />
                             )}
                           </div>
                           <div className="cpt__cnt__cptr__dtls">
@@ -157,7 +164,6 @@ const AddTeamMemberPopUp = (props: any) => {
                               <div>{member.teamMemberRoles?.[0]?.role || '--'}</div>
                               {member.teamMemberRoles?.length > 1 && (
                                 <Tooltip
-                                  side="top"
                                   asChild
                                   trigger={<div className="cpt__cnt__cptr__roles__count">+{member.teamMemberRoles?.length - 1}</div>}
                                   content={member.teamMemberRoles

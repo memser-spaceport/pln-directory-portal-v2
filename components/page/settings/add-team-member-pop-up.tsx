@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import AddTeamMemberDetail from './add-team-member-detail';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 const AddTeamMemberPopUp = (props: any) => {
   const allMembers = props?.allMembers;
@@ -129,7 +130,7 @@ const AddTeamMemberPopUp = (props: any) => {
                   <div>{selectedMembers.length} SELECTED</div>
                 </div>
                 <div className="cpc__header__info__clear" onClick={handleClearMember}>
-                  <img loading="lazy" className="cpt__cnt__cptr__profile" alt="clear" src={'/icons/close-blue.svg'} />
+                  <img loading="lazy" className="cpc__header__info__clear__img" alt="clear" src={'/icons/clear.svg'} />
                   <div>CLEAR</div>
                 </div>
               </div>
@@ -154,7 +155,17 @@ const AddTeamMemberPopUp = (props: any) => {
                             <div className="cpt__cnt__cptr__dtls__name">{member?.name}</div>
                             <div className="cpt__cnt__cptr__roles">
                               <div>{member.teamMemberRoles?.[0]?.role || '--'}</div>
-                              {member.teamMemberRoles?.length > 1 && <div className="cpt__cnt__cptr__roles__count">+{member.teamMemberRoles?.length - 1}</div>}
+                              {member.teamMemberRoles?.length > 1 && (
+                                <Tooltip
+                                  side="top"
+                                  asChild
+                                  trigger={<div className="cpt__cnt__cptr__roles__count">+{member.teamMemberRoles?.length - 1}</div>}
+                                  content={member.teamMemberRoles
+                                    ?.slice(1)
+                                    .map((role: any) => role.role)
+                                    .join(', ')}
+                                />
+                              )}
                             </div>
                           </div>
                         </div>
@@ -214,6 +225,7 @@ const AddTeamMemberPopUp = (props: any) => {
             padding: 2px 8px;
             display: flex;
             align-items: center;
+            cursor: default;
           }
 
           .cpc__header__flts {
@@ -251,14 +263,15 @@ const AddTeamMemberPopUp = (props: any) => {
             font-weight: 600;
           }
 
-          .cpc__header__info__count {
-          }
-
           .cpc__header__info__clear {
             display: flex;
             gap: 2px;
             color: #156ff7;
             cursor: pointer;
+          }
+
+          .cpc__header__info__clear__img {
+            border-radius: 2px;
           }
 
           .cpc__cnt {
@@ -278,6 +291,10 @@ const AddTeamMemberPopUp = (props: any) => {
 
           .cpt__cnt__cptr__profile {
             border-radius: 50%;
+          }
+
+          .cpt__cnt__cptr__clear__word {
+            // font-size: 14px;
           }
 
           .cpt__cnt__cptr__chbox {

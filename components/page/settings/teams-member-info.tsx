@@ -11,6 +11,7 @@ import AddTeamMemberPopUp from './add-team-member-pop-up';
 const TeamsMemberInfo = (props: any) => {
   const [searchData, setSearchData] = useState<string>('');
   const [showAssignRolesPopup, setShowAssignRolesPopup] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const contributorsPopupRef = useRef<HTMLDialogElement>(null);
 
@@ -25,12 +26,14 @@ const TeamsMemberInfo = (props: any) => {
     setShowAssignRolesPopup(false);
     document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_SELECTED_CONTRIBUTORS));
     contributorsPopupRef.current?.showModal();
-    setSearchData("");
+    setShowPopup(true);
+    setSearchData('');
   };
 
   const onClose = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_ADD_MODAL_CLOSE_EVENT));
     contributorsPopupRef.current?.close();
+    setShowPopup(false);
   };
 
   const onSaveClickHandler = () => {
@@ -78,21 +81,26 @@ const TeamsMemberInfo = (props: any) => {
       )}
 
       <Modal modalRef={contributorsPopupRef} onClose={onClose}>
-        <AddTeamMemberPopUp
-          allMembers={allMembers}
-          onSaveClicked={onSaveClickHandler}
-          onClose={onClose}
-          selectedTeam={selectedTeam}
-          teamMembers={teamMembers}
-          setTeamMembers={setTeamMembers}
-          showAssignRolesPopup={showAssignRolesPopup}
-          setShowAssignRolesPopup={setShowAssignRolesPopup}
-        />
-        <RegsiterFormLoader />
+        {showPopup && (
+          <>
+            <AddTeamMemberPopUp
+              allMembers={allMembers}
+              onSaveClicked={onSaveClickHandler}
+              onClose={onClose}
+              selectedTeam={selectedTeam}
+              teamMembers={teamMembers}
+              setTeamMembers={setTeamMembers}
+              showAssignRolesPopup={showAssignRolesPopup}
+              setShowAssignRolesPopup={setShowAssignRolesPopup}
+            />
+            <RegsiterFormLoader />
+          </>
+        )}
       </Modal>
 
-      {teamMembers.length > 0 && teamMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase())).length === 0 &&
-        <div className="ms__content__nmf">No matching members found.</div>}
+      {teamMembers.length > 0 && teamMembers.filter((member: any) => member.name.toLowerCase().includes(searchData.trim().toLowerCase())).length === 0 && (
+        <div className="ms__content__nmf">No matching members found.</div>
+      )}
 
       <style jsx>
         {`
@@ -163,7 +171,7 @@ const TeamsMemberInfo = (props: any) => {
             color: #000000;
             font-weight: 400;
           }
-          
+
           .ms__content__nmf {
             text-align: center;
             font-size: 14px;

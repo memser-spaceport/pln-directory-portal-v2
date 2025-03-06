@@ -9,7 +9,6 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
       handleElementClick(gathering);
     }
   };
-
   const website = gathering?.resources?.find((resource: any) => resource?.name?.toLowerCase() === 'website');
 
   return (
@@ -37,14 +36,14 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
               </div>
               <div className="root__irl__table-col__contentName__bottom">
                 <div
-                  className='root__irl__table-col__contentName__bottom__date'
-                  style={gathering.eventGuests?.length > 0 ? { paddingRight: "10px", marginRight: "10px", borderRight: "1px solid #cbd5e1" } : {}}
+                  className="root__irl__table-col__contentName__bottom__date"
+                  style={gathering.eventGuests?.length > 0 ? { paddingRight: '10px', marginRight: '10px', borderRight: '1px solid #cbd5e1' } : {}}
                 >
-                  {getFormattedDateString(gathering?.startDate, gathering?.endDate, true )}
+                  {getFormattedDateString(gathering?.startDate, gathering?.endDate, true)}
                 </div>
 
-                {gathering.eventGuests?.length > 0 &&
-                  <div className='root__irl__table-col__contentName__attendee__list'>
+                {gathering.eventGuests?.length > 0 && (
+                  <div className="root__irl__table-col__contentName__attendee__list">
                     <span className="root__irl__imgsec__images">
                       {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -59,14 +58,16 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
                         />
                       ))}
                     </span>
-                    <span className=''>{gathering.eventGuests?.length > 0 ? gathering.eventGuests?.length : ''} {gathering?.eventGuests.length > 1 ? "Attendees" : "Attendee"}</span>
+                    <span className="">
+                      {gathering.eventGuests?.length > 0 ? gathering.eventGuests?.length : ''} {gathering?.eventGuests.length > 1 ? 'Attendees' : 'Attendee'}
+                    </span>
                   </div>
-                }
+                )}
               </div>
-              <div className='root__irl__table-col__contentName__resSection'>
+              <div className="root__irl__table-col__contentName__resSection">
                 {gathering?.resources?.length > 0 && (
                   <div className="root__irl__table-col__contentRes__viewCnt" onClick={(event) => gathering?.resources?.length > 0 && handleClick(gathering?.resources, event)}>
-                    <div  style={{ display: 'flex' }}>
+                    <div style={{ display: 'flex' }}>
                       <img src="/images/irl/elements.svg" alt="view" />
                     </div>
                     <div>View Resources</div>
@@ -175,9 +176,8 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
         }
 
         .root__irl__table-col__headerName,
-        .root__irl__table-col__headerDesc
-        .root__irl__table-col__contentName,
-        .root__irl__table-col__contentDesc{
+        .root__irl__table-col__headerDesc .root__irl__table-col__contentName,
+        .root__irl__table-col__contentDesc {
           padding: 10px;
         }
 
@@ -232,7 +232,6 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           font-size: 10px;
           font-weight: 400;
           line-height: 20px;
-         
         }
         .root__irl__table-col__inviteOnlyIcon {
           padding-left: 4px;
@@ -255,7 +254,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           color: #156ff7;
         }
 
-         @media (min-width: 1440px) {
+        @media (min-width: 1440px) {
           .root__irl__table-col__headerName,
           .root__irl__table-col__contentName {
             width: 299px;
@@ -265,8 +264,6 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           .root__irl__table-col__contentDesc {
             width: 727px;
           }
-
-       
         }
 
         @media (min-width: 1920px) {
@@ -293,10 +290,8 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
 
           .root__irl__table-col__headerDesc,
           .root__irl__table-col__contentDesc {
-            width: 1411px; 
+            width: 1411px;
           }
-
-
         }
       `}</style>
     </>

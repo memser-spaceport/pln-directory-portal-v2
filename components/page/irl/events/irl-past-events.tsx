@@ -228,15 +228,16 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                     <div>
                       <img src={selectedEvent?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" />
                     </div>
-                    <div className="root__irl__mobileView__top__cnt__title">{selectedEvent?.name}
+                    <div className="root__irl__mobileView__top__cnt__title">
+                      {selectedEvent?.name}
                       <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(selectedEvent?.startDate, selectedEvent?.endDate)}</span>
                       <span className="root__irl__mobileView__top__cnt__eventDate--count">
-                        <span className="root__irl__imgsec__images" style={{ paddingLeft: "5px" }}>
+                        <span className="root__irl__imgsec__images" style={{ paddingLeft: '5px' }}>
                           {selectedEvent.eventGuests?.slice(0, 3).map((member: any, index: number) => (
                             // eslint-disable-next-line @next/next/no-img-element
                             <Image
                               key={index}
-                              style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: "3px" }}
+                              style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: '3px' }}
                               className="root__irl__imgsec__images__img__mob"
                               src={member?.member?.image?.url || '/icons/default_profile.svg'}
                               alt="attendee"
@@ -245,9 +246,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                             />
                           ))}
                         </span>
-                        <span style={{ paddingLeft: "5px" }}>
-                          {selectedEvent?.eventGuests?.length}
-                        </span>
+                        <span style={{ paddingLeft: '5px' }}>{selectedEvent?.eventGuests?.length}</span>
                       </span>
                     </div>
                   </div>
@@ -308,16 +307,17 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                                 <div>
                                   <img src={gathering?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" />
                                 </div>
-                                <div className="root__irl__mobileView__top__cnt__title">{gathering?.name}
+                                <div className="root__irl__mobileView__top__cnt__title">
+                                  {gathering?.name}
                                   <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</span>
-                                  {gathering?.eventGuests?.length > 0 &&
+                                  {gathering?.eventGuests?.length > 0 && (
                                     <span className="root__irl__mobileView__top__cnt__eventDate--count">
-                                      <span className="root__irl__imgsec__images" style={{ paddingLeft: "5px" }}>
+                                      <span className="root__irl__imgsec__images" style={{ paddingLeft: '5px' }}>
                                         {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => (
                                           // eslint-disable-next-line @next/next/no-img-element
                                           <Image
                                             key={index}
-                                            style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: "3px" }}
+                                            style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: '3px' }}
                                             className="root__irl__imgsec__images__img__mob"
                                             src={member?.member?.image?.url || '/icons/default_profile.svg'}
                                             alt="attendee"
@@ -326,11 +326,9 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                                           />
                                         ))}
                                       </span>
-                                      <span style={{ paddingLeft: "5px" }}>
-                                        {gathering?.eventGuests?.length}
-                                      </span>
+                                      <span style={{ paddingLeft: '5px' }}>{gathering?.eventGuests?.length}</span>
                                     </span>
-                                  }
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -500,9 +498,9 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
 
         .root__irl__imgsec__images {
           align-items: center;
-          min-height: ${selectedEvent?.eventGuests?.length > 0 ? "25px" : ""}
+          min-height: ${selectedEvent?.eventGuests?.length > 0 ? '25px' : ''};
         }
-          
+
         .root__irl__addRes,
         .root__irl__addRes__loggedOut {
           display: flex;
@@ -651,8 +649,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           font-weight: 400;
           line-height: 20px;
           text-align: left;
-          padding: 0px 0px 0px  8px;
-          margin: 0px 0px 0px  8px;
+          padding: 0px 0px 0px 8px;
+          margin: 0px 0px 0px 8px;
           border-left: 1px solid #cbd5e1;
         }
 
@@ -661,8 +659,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           font-weight: 400;
           line-height: 20px;
           text-align: left;
-          padding: 0px 0px 0px  8px;
-          margin: 0px 0px 0px  8px;
+          padding: 0px 0px 0px 8px;
+          margin: 0px 0px 0px 8px;
           border-left: 1px solid #cbd5e1;
         }
 

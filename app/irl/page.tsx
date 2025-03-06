@@ -15,7 +15,7 @@ import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
 
 export default async function Page({ searchParams }: any) {
-  const { isError, userInfo, isLoggedIn, followers, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(
+  const { isError, userInfo, isLoggedIn, followers, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames, searchParams:newSearchParams } = await getPageData(
     searchParams
   );
 
@@ -30,7 +30,7 @@ export default async function Page({ searchParams }: any) {
       <div className={styles.irlGatherings__cn}>
         {/* Header */}
         <section className={styles.irlGatherings__header}>
-          <IrlHeader />
+          <IrlHeader/>
         </section>
         {/* Locations */}
         <section className={styles.irlGatheings__locations}>
@@ -57,6 +57,7 @@ export default async function Page({ searchParams }: any) {
             currentEventNames={currentEventNames}
             locationEvents={eventDetails}
             followers={followers}
+            newSearchParams={newSearchParams}
           />
         </section>
       </div>
@@ -138,7 +139,6 @@ const getPageData = async (searchParams: any) => {
       getGuestEvents(uid, authToken),
       getFollowersByLocation(uid, authToken),
     ]);
-
     if (events?.isError) {
       return { isError: true };
     }
@@ -171,7 +171,6 @@ const getPageData = async (searchParams: any) => {
       }
       showTelegram = memberPreferencesResponse.memberPreferences?.telegram ?? true;
     }
-
     return {
       isError,
       isLocationError,
@@ -184,7 +183,8 @@ const getPageData = async (searchParams: any) => {
       eventLocationSummary,
       locationDetails,
       currentEventNames,
-      followers
+      followers,
+      searchParams
     };
   } catch (e) {
     console.error('Error fetching IRL data', e);

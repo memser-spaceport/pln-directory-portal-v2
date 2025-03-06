@@ -25,7 +25,8 @@ interface IGuestTableRow {
   selectedGuests: string[];
   isLoggedIn: boolean;
   onLogin: () => void;
-  isAdminInAllEvents:any;
+  isAdminInAllEvents: any;
+  newSearchParams: any;
 }
 
 const GuestTableRow = (props: IGuestTableRow) => {
@@ -34,8 +35,8 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const showTelegram = props?.showTelegram;
   const onchangeSelectionStatus = props?.onchangeSelectionStatus;
   const selectedGuests = props?.selectedGuests;
-  const isAdminInAllEvents= props?.isAdminInAllEvents;
-
+  const isAdminInAllEvents = props?.isAdminInAllEvents;
+  const newSearchParams = props?.newSearchParams;
 
   const guestUid = guest?.memberUid;
   const guestName = guest?.memberName ?? '';
@@ -57,7 +58,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
-
+  const eventURL = searchParams.get('event');
   const isUserGoing = guestUid === userInfo?.uid;
   const topicsNeedToShow = 2;
   const remainingTopics = topics?.slice(topicsNeedToShow, topics?.length)?.map((topic: string) => topic);
@@ -66,21 +67,19 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const isLoggedIn = props.isLoggedIn;
   const onLogin = props.onLogin;
-
+  const isEventAvailable = guest.events.filter((event: IIrlEvent) => event.slugURL === newSearchParams.event);
   const onTeamClick = (teamUid: string, teamName: string) => {
     analytics.trackGuestListTableTeamClicked(location, {
       teamUid,
       teamName,
     });
   };
-
   const onMemberClick = (memberUid: string, memberName: string) => {
     analytics.trackGuestListTableMemberClicked(location, {
       memberUid,
       memberName,
     });
   };
-
   const onTelegramClick = (telegramUrl: string, memberUid: string, memberName: string) => {
     analytics.trackGuestListTableTelegramLinkClicked(location, { telegramUrl, memberUid, memberName });
   };
@@ -147,7 +146,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT, scrollTo: 'officehours-section' } }));
     analytics.trackGuestListTableAddOfficeHoursClicked(location);
   };
-
   const onSpeakerEventClick = (event: { name: string; link: string }) => {
     analytics.trackSpeakerEventClicked(location, { eventName: event?.name, eventLink: event?.link });
   };
@@ -160,7 +158,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
     analytics.trackLoginToRespondBtnClick(location);
     onLogin();
   };
-
   return (
     <>
       <div className={`gtr ${isUserGoing ? 'user__going' : ''}`}>
@@ -179,130 +176,136 @@ const GuestTableRow = (props: IGuestTableRow) => {
           <Link passHref legacyBehavior href={`/members/${guestUid}`}>
             <a target="_blank" className="gtr__guestName__li" onClick={() => onMemberClick(guestUid, guestName)}>
               <div className="gtr__guestName__li__imgWrpr">
-                <Image alt="profile" loading='eager' height={32} width={32} layout='intrinsic' priority={true} className="gtr__guestName__li__img" src={guestLogo}   />
+                <Image alt="profile" loading="eager" height={32} width={32} layout="intrinsic" priority={true} className="gtr__guestName__li__img" src={guestLogo} />
               </div>
               <div className="gtr__guestName__li__txtWrpr">
                 <div title={guestName} className="gtr__guestName__li__txt ">
                   {guestName}
                 </div>
-                <div className="gtr__guestName__li__info">
-                  {speakerEvents?.length > 0 && (
-                    <div className="gtr__guestName__li__info__spkr">
-                      <Popover
-                        asChild
-                        align="start"
-                        content={
-                          <div className="gtr__guestName__li__info__spkr__list">
-                            {speakerEvents?.map((event: { link: string; name: string }, index: number) => {
-                              const isLinkAvailable = !!event?.link;
-                              const displayName = event?.name || `Link${index + 1}`;
+                {isEventAvailable && (
+                  <div className="gtr__guestName__li__info">
+                    {isEventAvailable[0]?.isSpeaker === true && (
+                      <div className="gtr__guestName__li__info__spkr">
+                        <Popover
+                          asChild
+                          align="start"
+                          content={
+                            <div className="gtr__guestName__li__info__spkr__list">
+                              {speakerEvents?.map((event: { link: string; name: string }, index: number) => {
+                                const isLinkAvailable = !!event?.link;
+                                const displayName = event?.name || `Link${index + 1}`;
 
-                              const Element = isLinkAvailable ? 'a' : 'span';
-                              const elementProps = isLinkAvailable
-                                ? {
-                                    href: event.link,
-                                    target: '_blank',
-                                    onClick: () => onSpeakerEventClick(event),
-                                  }
-                                : {
-                                    onClick: (e: SyntheticEvent) => e.preventDefault(),
-                                  };
+                                const Element = isLinkAvailable ? 'a' : 'span';
+                                const elementProps = isLinkAvailable
+                                  ? {
+                                      href: event.link,
+                                      target: '_blank',
+                                      onClick: () => onSpeakerEventClick(event),
+                                    }
+                                  : {
+                                      onClick: (e: SyntheticEvent) => e.preventDefault(),
+                                    };
 
-                              return (
-                                <Element key={index} {...elementProps} className={`gtr__guestName__li__info__spkr__list__item ${speakerEvents?.length !== index + 1 ? 'border-bottom' : ''}`}>
-                                  {displayName}
-                                  {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
-                                </Element>
-                              );
-                            })}
-                          </div>
-                        }
-                        trigger={
-                          <button
-                            onClick={(e: SyntheticEvent) => {
-                              e.preventDefault();
-                            }}
-                            className="gtr__guestName__li__info__spkr__btn"
-                          >
-                            Speaker <img src="/icons/down-arrow-white.svg" alt="arrow" />
-                          </button>
-                        }
-                      />
-                    </div>
-                  )}
-                  {hostEvents?.length > 0 && (
-                    <div className="gtr__guestName__li__info__host">
-                      <Popover
-                        asChild
-                        align="start"
-                        content={
-                          <div className="gtr__guestName__li__info__host__list">
-                            {hostEvents?.map((event: { link: string; name: string }, index: number) => {
-                              const isLinkAvailable = !!event?.link;
-                              const displayName = event?.name || `Link${index + 1}`;
+                                return (
+                                  <Element key={index} {...elementProps} className={`gtr__guestName__li__info__spkr__list__item ${speakerEvents?.length !== index + 1 ? 'border-bottom' : ''}`}>
+                                    {displayName}
+                                    {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
+                                  </Element>
+                                );
+                              })}
+                            </div>
+                          }
+                          trigger={
+                            <button
+                              onClick={(e: SyntheticEvent) => {
+                                e.preventDefault();
+                              }}
+                              className="gtr__guestName__li__info__spkr__btn"
+                            >
+                              Speaker <img src="/icons/down-arrow-white.svg" alt="arrow" />
+                            </button>
+                          }
+                        />
+                      </div>
+                    )}
+                    {isEventAvailable?.[0].isHost === true && (
+                      <div className="gtr__guestName__li__info__host">
+                        <Popover
+                          asChild
+                          align="start"
+                          content={
+                            <div className="gtr__guestName__li__info__host__list">
+                              {hostEvents?.map((event: { link: string; name: string }, index: number) => {
+                                const isLinkAvailable = !!event?.link;
+                                const displayName = event?.name || `Link${index + 1}`;
 
-                              const Element = isLinkAvailable ? 'a' : 'span';
-                              const elementProps = isLinkAvailable
-                                ? {
-                                    href: event.link,
-                                    target: '_blank',
-                                    onClick: () => onHostEventClick(event),
-                                  }
-                                : {
-                                    onClick: (e: SyntheticEvent) => e.preventDefault(),
-                                  };
+                                const Element = isLinkAvailable ? 'a' : 'span';
+                                const elementProps = isLinkAvailable
+                                  ? {
+                                      href: event.link,
+                                      target: '_blank',
+                                      onClick: () => onHostEventClick(event),
+                                    }
+                                  : {
+                                      onClick: (e: SyntheticEvent) => e.preventDefault(),
+                                    };
 
-                              return (
-                                <Element key={index} {...elementProps} className={`gtr__guestName__li__info__host__list__item ${hostEvents?.length !== index + 1 ? 'border-bottom' : ''}`}>
-                                  {displayName}
-                                  {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
-                                </Element>
-                              );
-                            })}
-                          </div>
-                        }
-                        trigger={
-                          <button
-                            onClick={(e: SyntheticEvent) => {
-                              e.preventDefault();
-                            }}
-                            className="gtr__guestName__li__info__host__btn"
-                          >
-                            Host <img src="/icons/down-arrow-white.svg" alt="arrow" />
-                          </button>
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
+                                return (
+                                  <Element key={index} {...elementProps} className={`gtr__guestName__li__info__host__list__item ${hostEvents?.length !== index + 1 ? 'border-bottom' : ''}`}>
+                                    {displayName}
+                                    {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
+                                  </Element>
+                                );
+                              })}
+                            </div>
+                          }
+                          trigger={
+                            <button
+                              onClick={(e: SyntheticEvent) => {
+                                e.preventDefault();
+                              }}
+                              className="gtr__guestName__li__info__host__btn"
+                            >
+                              Host <img src="/icons/down-arrow-white.svg" alt="arrow" />
+                            </button>
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </a>
           </Link>
         </div>
         {/* Team */}
         <div className="gtr__team">
-          {teamUid ? <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
-            <a target="_blank" className="gtr__team__link" onClick={() => onTeamClick(teamUid, teamName)}>
-              <div className="gtr__team__link__imgWrpr">
-                <Image alt="profile" loading='eager' height={32} width={32} layout='intrinsic' priority={true} className="gtr__team__link__img" src={teamLogo}   />
-              </div>
-              <div>
-                <div title={teamName} className="break-word">
-                  {teamName}
+          {teamUid ? (
+            <Link passHref legacyBehavior href={`/teams/${teamUid}`}>
+              <a target="_blank" className="gtr__team__link" onClick={() => onTeamClick(teamUid, teamName)}>
+                <div className="gtr__team__link__imgWrpr">
+                  <Image alt="profile" loading="eager" height={32} width={32} layout="intrinsic" priority={true} className="gtr__team__link__img" src={teamLogo} />
                 </div>
-                {hostEvents?.length > 0 && (
-                  <button
-                    onClick={(e: SyntheticEvent) => {
-                      e.preventDefault();
-                    }}
-                    className="gtr__team__host__btn"
-                  >
-                    Host
-                  </button>
-                )}
-              </div>
-            </a>
-          </Link>: ''}
+                <div>
+                  <div title={teamName} className="break-word">
+                    {teamName}
+                  </div>
+                  {hostEvents?.length > 0 && (
+                    <button
+                      onClick={(e: SyntheticEvent) => {
+                        e.preventDefault();
+                      }}
+                      className="gtr__team__host__btn"
+                    >
+                      Host
+                    </button>
+                  )}
+                </div>
+              </a>
+            </Link>
+          ) : (
+            ''
+          )}
         </div>
 
         {/* Connect */}
@@ -475,7 +478,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
           width: 32px;
           border-radius: 58px;
         }
-
 
         .gtr__guestName__li__txtWrpr {
           display: flex;
@@ -896,15 +898,16 @@ const GuestTableRow = (props: IGuestTableRow) => {
           }
 
           .gtr__team {
-             width: 188px;
+            width: 188px;
           }
 
-          .gtr__connect , .gtr__connect__loggedOut {
-             width: 188px;
+          .gtr__connect,
+          .gtr__connect__loggedOut {
+            width: 188px;
           }
 
           .gtr__attending {
-             width: 216px;
+            width: 216px;
           }
 
           .gtr__topic {
@@ -923,10 +926,11 @@ const GuestTableRow = (props: IGuestTableRow) => {
           }
 
           .gtr__team {
-            width: 278px;  
+            width: 278px;
           }
 
-          .gtr__connect, .gtr__connect__loggedOut {
+          .gtr__connect,
+          .gtr__connect__loggedOut {
             width: 335px;
           }
 
@@ -940,13 +944,16 @@ const GuestTableRow = (props: IGuestTableRow) => {
             width: 2240px;
           }
 
-          .gtr__guestName, .gtr__team, .gtr__connect, .gtr__connect__loggedOut {
-              width: 439.67px;
-            }
+          .gtr__guestName,
+          .gtr__team,
+          .gtr__connect,
+          .gtr__connect__loggedOut {
+            width: 439.67px;
+          }
 
-            .gtr__attending {
-              width: 370px;
-            }
+          .gtr__attending {
+            width: 370px;
+          }
         }
       `}</style>
     </>

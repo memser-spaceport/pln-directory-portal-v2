@@ -58,13 +58,21 @@ const AddTeamMemberDetail = (props: any) => {
                       <div className="cpt__cnt__cptr__img">
                         <div className="cpt__cnt__cptr__pflctr">
                           <img loading="lazy" className="cpt__cnt__cptr__profile" alt="profile" src={member?.profile || '/icons/default-user-profile.svg'} width={40} height={40} />
+                          {member?.teams?.teamLead && (
+                            <Tooltip
+                              side="top"
+                              asChild
+                              trigger={<img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />}
+                              content={'Team Lead'}
+                            />
+                          )}
                         </div>
                         <div className="cpt__cnt__cptr__dtls">
                           <div className="cpt__cnt__cptr__dtls__name">{member?.name}</div>
                           {member.isVerified ? (
                             <div className="cpt__cnt__cptr__team__lead__toggle">
                               <p className="cpt__cnt__cptr__team__lead__toggle__label">Team Lead</p>
-                              <div className="cpt__cnt__cptr__team__lead__toggle__wrapper"> 
+                              <div className="cpt__cnt__cptr__team__lead__toggle__wrapper">
                                 <Toggle height="16px" width="28px" callback={() => handleTeamLeadClick(member.id)} isChecked={member?.teams?.teamLead} />
                               </div>
                             </div>
@@ -75,7 +83,7 @@ const AddTeamMemberDetail = (props: any) => {
                               trigger={
                                 <div className="cpt__cnt__cptr__team__lead__toggle">
                                   <p className="cpt__cnt__cptr__team__lead__toggle__label">Team Lead</p>
-                                  <div className="cpt__cnt__cptr__team__lead__toggle__wrapper"> 
+                                  <div className="cpt__cnt__cptr__team__lead__toggle__wrapper">
                                     <Toggle height="16px" width="28px" callback={() => handleTeamLeadClick(member.id)} isChecked={false} disabled={true} />
                                   </div>
                                 </div>
@@ -104,7 +112,7 @@ const AddTeamMemberDetail = (props: any) => {
         <button type="button" className="cpc__back__btn" onClick={handleBackClick}>
           Back
         </button>
-        <button className={`cpc__add__btn ${selectedMembers.length === 0 && 'disabled-bg'}`}  type="button" onClick={handleAddMember}>
+        <button className={`cpc__add__btn ${selectedMembers.length === 0 && 'disabled-bg'}`} type="button" onClick={handleAddMember}>
           Add
         </button>
       </div>
@@ -276,7 +284,7 @@ const AddTeamMemberDetail = (props: any) => {
             font-weight: 400;
           }
 
-          .cpt__cnt__cptr__team__lead__toggle__wrapper{
+          .cpt__cnt__cptr__team__lead__toggle__wrapper {
             margin-top: 1px;
           }
 

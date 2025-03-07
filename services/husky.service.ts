@@ -211,15 +211,10 @@ export const createThreadTitle = async (authToken: string, threadId: string, que
     },
   });
 
-  if (!threadResponse.ok) {
-    return {
-      isError: true,
-      status: threadResponse.status,
-    };
+  if (threadResponse.ok) {
+    return true;
   }
-
-  const thread = await threadResponse.json();
-  return thread;
+  return false;
 };
 
 export const getHuskyThreadById = async (id: string, authToken: string) => {

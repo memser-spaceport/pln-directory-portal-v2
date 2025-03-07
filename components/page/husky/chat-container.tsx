@@ -16,7 +16,7 @@ interface ChatContainerProps {
 const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   const [initialMessages, setInitialMessages] = useState<any>([]);
   const [threadUid, setThreadUid] = useState<any>(null);
-  const [type, setType] = useState<string>('chat');
+  const [type, setType] = useState<string>('');
   const { toggleSidebar } = useSidebar();
   const analytics = useHuskyAnalytics();
 
@@ -27,8 +27,9 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
 
   const resetChat = useCallback(() => {
     setInitialMessages([]);
-    setType('chat');
+    setType('');
     setThreadUid(null);
+    document.dispatchEvent(new CustomEvent('empty-thread'));
     analytics.trackMobileHeaderNewConversationClicked();
   }, []);
 
@@ -49,12 +50,9 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
     const updateMessages = (e: any) => {
       const { threadId } = e.detail;
       setThreadUid(threadId);
-      console.log('threadId', threadId);
-
       const fetchThread = async () => {
         const { authToken } = await getUserCredentials(isLoggedIn);
         const thread = await getHuskyThreadById(threadId, authToken);
-        console.log('thread', thread);
         setInitialMessages(thread);
         triggerLoader(false);
         const scrollableElement = document.querySelector('body');

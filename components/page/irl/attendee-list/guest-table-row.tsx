@@ -184,10 +184,10 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   {guestName}
                 </div>
                 <div className="gtr__guestName__li__info">
-                  {type === 'past'
+                  {newSearchParams.type === 'past'
                     ? isEventAvailable[0]?.isSpeaker && <IrlSpeakerTag speakerEvents={speakerEvents} onSpeakerEventClick={onSpeakerEventClick} />
                     : speakerEvents?.length > 0 && <IrlSpeakerTag speakerEvents={speakerEvents} onSpeakerEventClick={onSpeakerEventClick} />}
-                  {type === 'past'
+                  {newSearchParams.type === 'past'
                     ? isEventAvailable[0]?.isHost && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
                     : hostEvents?.length > 0 && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />}
                 </div>
@@ -207,7 +207,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   <div title={teamName} className="break-word">
                     {teamName}
                   </div>
-                  {type === 'past'
+                  {newSearchParams.type === 'past'
                     ? isEventAvailable[0]?.isHost && (
                         <button
                           onClick={(e: SyntheticEvent) => {

@@ -21,7 +21,7 @@ const Husky = () => {
 
   useEffect(() => {
     setLimitReached(checkIsLimitReached());
-  });
+  }, []);
 
   useEffect(() => {
     const element = document.getElementById('husky-home');

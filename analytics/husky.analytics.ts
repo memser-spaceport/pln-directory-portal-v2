@@ -29,8 +29,16 @@ export const useHuskyAnalytics = () => {
     husky_home_search_clicked: 'husky_home_search_clicked',
     husky_chat_info_strip_login_clicked: 'husky_chat_info_strip_login_clicked',
     husky_chat_info_strip_signup_clicked: 'husky_chat_info_strip_signup_clicked',
-    husky_chat_stop_response_clicked : 'husky_chat_stop_response_clicked',
-    husky_discover_questions_stop_response_clicked: 'husky_discover_questions_stop_response_clicked'
+    husky_chat_stop_response_clicked: 'husky_chat_stop_response_clicked',
+    husky_discover_questions_stop_response_clicked: 'husky_discover_questions_stop_response_clicked',
+
+    husky_page_clicked: 'husky_page_clicked',
+    husky_sidebar_toggle_clicked: 'husky_sidebar_toggle_clicked',
+    husky_sidebar_newConversation_clicked: 'husky_sidebar_newConversation_clicked',
+    husky_mobile_header_newConversation_clicked: 'husky_mobile_header_newConversation_clicked',
+    husky_mobile_header_toggle_clicked: 'husky_mobile_header_toggle_clicked',
+    husky_history_list_conversation_clicked: 'husky_history_list_conversation_clicked',
+    husky_directory_results_card_clicked: 'husky_directory_results_card_clicked',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -41,7 +49,7 @@ export const useHuskyAnalytics = () => {
         const loggedInUserUid = userInfo?.uid;
         const loggedInUserEmail = userInfo?.email;
         const loggedInUserName = userInfo?.name;
-        postHogProps.capture(eventName, { ...allParams, ...(loggedInUserEmail && {loggedInUserUid, loggedInUserEmail, loggedInUserName}) });
+        postHogProps.capture(eventName, { ...allParams, ...(loggedInUserEmail && { loggedInUserUid, loggedInUserEmail, loggedInUserName }) });
       }
     } catch (e) {
       console.error(e);
@@ -49,23 +57,23 @@ export const useHuskyAnalytics = () => {
   };
 
   function trackHuskyLogin() {
-    captureEvent(events.husky_login_clicked)
+    captureEvent(events.husky_login_clicked);
   }
 
   function trackUploadData() {
-    captureEvent(events.husky_ask_upload_data_clicked)
+    captureEvent(events.husky_ask_upload_data_clicked);
   }
 
   function trackHuskySourceLinkClicked(link: string) {
-    captureEvent(events.husky_source_link_clicked, {link});
+    captureEvent(events.husky_source_link_clicked, { link });
   }
 
   function trackHuskyActionCardClicked(action: any) {
-    captureEvent(events.husky_action_card_clicked, {...action})
+    captureEvent(events.husky_action_card_clicked, { ...action });
   }
 
   function trackSharedBlog(blogId: string, mode: string, question: string) {
-    captureEvent(events.husky_open_shared_blog, {blogId, mode, question });
+    captureEvent(events.husky_open_shared_blog, { blogId, mode, question });
   }
 
   function trackFollowupQuestionClick(mode: string, question: string, blogId?: string | null) {
@@ -76,11 +84,11 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_blog_url_copied, { blogId });
   }
 
-  function trackFeedbackClick( question: string, answer: string) {
+  function trackFeedbackClick(question: string, answer: string) {
     captureEvent(events.husky_user_feedback_clicked, { question, answer });
   }
 
-  function trackFeedbackStatus( status: string, rating: string, question: string) {
+  function trackFeedbackStatus(status: string, rating: string, question: string) {
     captureEvent(events.husky_user_feedback_status, { feedbackStatus: status, rating, question });
   }
 
@@ -108,7 +116,7 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_user_prompt_source_changed, { sourceSelected });
   }
 
-  function trackTabSelection( tabSelected: string) {
+  function trackTabSelection(tabSelected: string) {
     captureEvent(events.husky_dialog_tab_clicked, { tabSelected });
   }
 
@@ -117,34 +125,92 @@ export const useHuskyAnalytics = () => {
   }
 
   function trackPromptSelection(prompt: string) {
-    captureEvent(events.husky_ask_prompt_clicked, {prompt });
+    captureEvent(events.husky_ask_prompt_clicked, { prompt });
   }
 
-  function trackExplorationPromptSelection( prompt: string) {
-    captureEvent(events.husky_exploration_prompt_clicked, { prompt })
+  function trackExplorationPromptSelection(prompt: string, from: string) {
+    captureEvent(events.husky_exploration_prompt_clicked, { prompt, from });
   }
 
-  function trackHuskyHomeSearch( prompt: string) {
-    captureEvent(events.husky_home_search_clicked, { prompt })
+  function trackHuskyHomeSearch(prompt: string, from: string) {
+    captureEvent(events.husky_home_search_clicked, { prompt, from });
   }
 
   function trackLoginFromHuskyChat(from: string) {
-    captureEvent(events.husky_chat_info_strip_login_clicked, { from })
+    captureEvent(events.husky_chat_info_strip_login_clicked, { from });
   }
 
   function trackSignupFromHuskyChat(from: string) {
-    captureEvent(events.husky_chat_info_strip_signup_clicked, { from })
+    captureEvent(events.husky_chat_info_strip_signup_clicked, { from });
   }
 
   function trackHuskyChatStopBtnClicked(question: string) {
-    captureEvent(events.husky_chat_stop_response_clicked, { question })
+    captureEvent(events.husky_chat_stop_response_clicked, { question });
   }
 
   function trackDisoverHuskyChatStopBtnClicked(question: string) {
-    captureEvent(events.husky_discover_questions_stop_response_clicked, { question })
+    captureEvent(events.husky_discover_questions_stop_response_clicked, { question });
   }
 
-  return { trackSharedBlog, trackHuskyLogin, trackUploadData, trackHuskySourceLinkClicked, trackHuskyActionCardClicked, trackTabSelection, trackPromptSelection, trackExplorationPromptSelection, trackPromptTypeSelection, trackSourceChange, trackAnswerCopy, trackUserPrompt, trackQuestionEdit, trackAiResponse, trackRegenerate, trackFollowupQuestionClick, trackCopyUrl, trackFeedbackClick, trackFeedbackStatus, trackHuskyHomeSearch, trackLoginFromHuskyChat, trackSignupFromHuskyChat, trackHuskyChatStopBtnClicked, trackDisoverHuskyChatStopBtnClicked };
+  function trackPageClicked() {
+    captureEvent(events.husky_page_clicked);
+  }
+
+  function trackSidebarNewConversationClicked() {
+    captureEvent(events.husky_sidebar_newConversation_clicked);
+  }
+
+  function trackSidebarToggleClicked() {
+    captureEvent(events.husky_sidebar_toggle_clicked);
+  }
+
+  function trackMobileHeaderNewConversationClicked() {
+    captureEvent(events.husky_mobile_header_newConversation_clicked);
+  }
+
+  function trackMobileHeaderToggleClicked() {
+    captureEvent(events.husky_mobile_header_toggle_clicked);
+  }
+
+  function trackHistoryListItemClicked({ threadId, title }: { threadId: string; title: string }) {
+    captureEvent(events.husky_history_list_conversation_clicked, { threadId, title });
+  }
+
+  function trackDirectoryResultsCardClicked(action: any) {
+    captureEvent(events.husky_directory_results_card_clicked, { ...action });
+  }
+
+  return {
+    trackSharedBlog,
+    trackHuskyLogin,
+    trackUploadData,
+    trackHuskySourceLinkClicked,
+    trackHuskyActionCardClicked,
+    trackTabSelection,
+    trackPromptSelection,
+    trackExplorationPromptSelection,
+    trackPromptTypeSelection,
+    trackSourceChange,
+    trackAnswerCopy,
+    trackUserPrompt,
+    trackQuestionEdit,
+    trackAiResponse,
+    trackRegenerate,
+    trackFollowupQuestionClick,
+    trackCopyUrl,
+    trackFeedbackClick,
+    trackFeedbackStatus,
+    trackHuskyHomeSearch,
+    trackLoginFromHuskyChat,
+    trackSignupFromHuskyChat,
+    trackHuskyChatStopBtnClicked,
+    trackDisoverHuskyChatStopBtnClicked,
+    trackSidebarNewConversationClicked,
+    trackSidebarToggleClicked,
+    trackMobileHeaderNewConversationClicked,
+    trackMobileHeaderToggleClicked,
+    trackHistoryListItemClicked,
+    trackPageClicked,
+    trackDirectoryResultsCardClicked
+  };
 };
-
-

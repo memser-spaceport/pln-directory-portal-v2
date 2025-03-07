@@ -1,18 +1,18 @@
-export const saveFeedback = async (authToken: string,payload: any) => {
+export const saveFeedback = async (authToken: string, payload: any) => {
   const saveResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/chat/feedback`, {
     cache: 'no-store',
     method: 'POST',
     body: JSON.stringify(payload),
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${authToken}`,
+      Authorization: `Bearer ${authToken}`,
     },
   });
 
   if (!saveResponse.ok) {
     return {
       isError: true,
-      status: saveResponse.status
+      status: saveResponse.status,
     };
   }
 
@@ -34,7 +34,7 @@ export const getHuskyAugmentedInfo = async (authToken: string, query: string, an
       }),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
+        Authorization: `Bearer ${authToken}`,
       },
     });
 
@@ -56,7 +56,7 @@ export const getHuskyAugmentedInfo = async (authToken: string, query: string, an
             link: v.directory_link,
             type: 'team',
             desc: v.about,
-            icon: '/icons/users-black.svg'
+            icon: '/icons/users-black.svg',
           };
         })
         .slice(0, 2),
@@ -67,7 +67,7 @@ export const getHuskyAugmentedInfo = async (authToken: string, query: string, an
             link: v.directory_link,
             type: 'member',
             desc: `Part of ${v.organization}`,
-            icon: '/icons/member-black.svg'
+            icon: '/icons/member-black.svg',
           };
         })
         .slice(0, 2),
@@ -78,7 +78,7 @@ export const getHuskyAugmentedInfo = async (authToken: string, query: string, an
             link: v.directory_link,
             type: 'project',
             desc: v.tagline,
-            icon: '/icons/projects-black.svg'
+            icon: '/icons/projects-black.svg',
           };
         })
         .slice(0, 2),
@@ -90,7 +90,7 @@ export const getHuskyAugmentedInfo = async (authToken: string, query: string, an
   }
 };
 
-export const getHuskyResponse = async (userInfo: any,authToken: string, query: string, source: string, chatUid: string, previousQues?: string | null, previousAns?: string | null, isBlog = false) => {
+export const getHuskyResponse = async (userInfo: any, authToken: string, query: string, source: string, chatUid: string, previousQues?: string | null, previousAns?: string | null, isBlog = false) => {
   const payload = {
     query,
     UID: chatUid,
@@ -98,7 +98,7 @@ export const getHuskyResponse = async (userInfo: any,authToken: string, query: s
     ...(previousQues && { promptHistory: previousQues }),
     ...(previousAns && { answerHistory: previousAns }),
     ...(userInfo?.name && { name: userInfo?.name }),
-    ...(userInfo?.email && { email: userInfo?.email }), 
+    ...(userInfo?.email && { email: userInfo?.email }),
     ...(userInfo?.uid && { directoryId: userInfo?.uid }),
   };
   const queryResponse = await fetch(`${process.env.HUSKY_API_URL}/retrieve`, {
@@ -107,14 +107,14 @@ export const getHuskyResponse = async (userInfo: any,authToken: string, query: s
     body: JSON.stringify(payload),
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${authToken}`,
+      Authorization: `Bearer ${authToken}`,
     },
   });
 
   if (!queryResponse.ok) {
     return {
       isError: true,
-      status: queryResponse.status
+      status: queryResponse.status,
     };
   }
 
@@ -163,3 +163,93 @@ function fetchItemsFromArrays(arr1: Item[], arr2: Item[], arr3: Item[]): Item[] 
 
   return items;
 }
+
+export const getHuskyHistory = async (authToken: string) => {
+  const historyResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+  if (!historyResponse.ok) {
+    return {
+      isError: true,
+      status: historyResponse.status,
+    };
+  }
+  const history = await historyResponse.json();
+  return history;
+};
+
+export const createHuskyThread = async (authToken: string, threadId: string) => {
+  const threadResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads`, {
+    cache: 'no-store',
+    method: 'POST',
+    body: JSON.stringify({ threadId }),
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (threadResponse.ok) {
+    return true;
+  }
+  return false;
+};
+
+export const createThreadTitle = async (authToken: string, threadId: string, question: string) => {
+  const threadResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${threadId}/title`, {
+    cache: 'no-store',
+    method: 'POST',
+    body: JSON.stringify({ question }),
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!threadResponse.ok) {
+    return {
+      isError: true,
+      status: threadResponse.status,
+    };
+  }
+
+  const thread = await threadResponse.json();
+  return thread;
+};
+
+export const getHuskyThreadById = async (id: string, authToken: string) => {
+  const threadResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${id}/chats`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!threadResponse.ok) {
+    return {
+      isError: true,
+      status: threadResponse.status,
+    };
+  }
+
+  const thread = await threadResponse.json();
+  const formattedThread = thread?.map((item: any) => {
+    return {
+      id: item?.questionId,
+      question: item?.question,
+      answer: item?.response,
+      sources: item?.sources,
+      actions: item?.actions,
+      followUpQuestions: item?.followUpQuestions,
+      sql: item?.sqlData,
+    };
+  });
+  return formattedThread;
+};

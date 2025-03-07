@@ -14,6 +14,7 @@ const MemberOfficeHours = (props: any) => {
   const officeHours = member?.officeHours;
   const isLoggedIn = props?.isLoggedIn;
   const userInfo = props?.userInfo;
+  const isLoggedInUser = userInfo?.uid === member?.id;
 
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
@@ -23,6 +24,16 @@ const MemberOfficeHours = (props: any) => {
     authAnalytics.onLoginBtnClicked();
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
+
+  const onAddOH = () => {
+    memberAnalytics.onAddOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+    router.push('/settings/profile');
+  }
+
+  const onEditOH = () => {
+    memberAnalytics.onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+    router.push('/settings/profile');
+  }
 
   const onScheduleMeeting = async () => {
     const isLoggedInUser = userInfo?.uid === member?.id;
@@ -92,15 +103,27 @@ const MemberOfficeHours = (props: any) => {
             </button>
           </a>
           {isLoggedIn && officeHours && (
-            <div onClick={onScheduleMeeting}>
-              <button className="office-hours__right__meeting">Schedule Meeting</button>
+            <div>
+              {!isLoggedInUser && <button className="office-hours__right__meeting" onClick={onScheduleMeeting}>Schedule Meeting</button>}
+              {isLoggedInUser && <button className="office-hours__right__meeting" onClick={onEditOH}>Edit Office Hours</button>}
             </div>
           )}
 
           {isLoggedIn && !officeHours && (
-            <button disabled className="office-hours__right__meeting cursor-default disabled">
-              Not Available
-            </button>
+            <>
+              {!isLoggedInUser && (
+                <button disabled className="office-hours__right__meeting cursor-default disabled">
+                  Not Available
+                </button>
+              )}
+              {
+                isLoggedInUser && (
+                  <button className="office-hours__right__meeting" onClick={onAddOH}>
+                  Add Office Hours
+                </button>
+                )
+              }
+            </>
           )}
 
           {!isLoggedIn && (

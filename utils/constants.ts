@@ -163,6 +163,7 @@ export const SIGN_UP_ANALYTICS_EVENTS = {
   SIGN_UP_FORM_CANCEL: 'sign-up-form-cancel',
   SIGN_UP_POLICY_URL_CLICK: 'sign-up-policy-url-click',
   SIGN_UP_HOME_CLICK_AFTER_SUCCESS: 'sign-up-home-click-after-success',
+  SIGN_UP_MEMBER_CLICK_BY_ADMIN_OR_LEAD: 'sign-up-member-click-by-admin-or-lead',
 };
 
 export const PROJECT_ANALYTICS_EVENTS = {
@@ -311,6 +312,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_LIST_CLOSE_FILTER_PANEL_CLICKED: 'member-list-close-filter-panel-clicked',
 
   MEMBER_DETAIL_OFFICEHOURS_CLICKED: 'member-officehours-clicked',
+  MEMBER_DETAIL_ADD_OFFICEHOURS_CLICKED: 'member-add-officehours-clicked',
+  MEMBER_DETAIL_EDIT_OFFICEHOURS_CLICKED: 'member-edit-officehours-clicked',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_EDIT: 'member-pr-contributions-edit',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_ADD: 'member-pr-contributions-add',
   MEMBER_DETAIL_GITHUB_PROJECT_VIEW_ALL_CLICKED: 'member-github-project-view-all-clicked',
@@ -371,6 +374,7 @@ export const PAGE_ROUTES = {
   NOTIFICATIONS: '/notifications',
   ADD_TEAM: '/teams/add',
   SIGNUP: '/sign-up',
+  HUSKY: '/husky/chat',
 };
 
 export const SORT_OPTIONS = {

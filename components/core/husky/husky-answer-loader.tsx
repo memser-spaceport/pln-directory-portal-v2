@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 function HuskyAnswerLoader() {
   return (
     <>
@@ -138,4 +140,4 @@ function HuskyAnswerLoader() {
   );
 }
 
-export default HuskyAnswerLoader;
+export default memo(HuskyAnswerLoader);

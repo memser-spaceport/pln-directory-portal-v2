@@ -12,7 +12,6 @@ const CopyText = ({ textToCopy, children, onCopyCallback }: CopyTextProps) => {
     // Copy text to clipboard
     await navigator.clipboard.writeText(textToCopy);
     setCopied(true);
-    console.log(typeof onCopyCallback)
     if(onCopyCallback) {
       await onCopyCallback(textToCopy);
     }

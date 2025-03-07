@@ -29,12 +29,20 @@ function ManageTeamsSettings(props: any) {
   const userInfo = props?.userInfo ?? {};
   const membersDetail = useMemo(() => props?.membersDetail ?? [], [props?.membersDetail]);
   //variables
-  const steps = [{ name: 'basic', label:'BASIC' }, { name: 'team details', label:"TEAM DETAILS" }, { name: 'social', label:"SOCIAL" }, { name: 'members', label:`MEMBERS (${membersDetail.length})`, count: membersDetail.length }];
+  const steps = [
+    { name: 'basic', label: 'BASIC' },
+    { name: 'team details', label: 'TEAM DETAILS' },
+    { name: 'social', label: 'SOCIAL' },
+    { name: 'members', label: `MEMBERS (${membersDetail.length})`, count: membersDetail.length },
+  ];
   const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], focusAreas: [], isError: false });
   const [teamMembers, setTeamMembers] = useState(structuredClone(membersDetail));
+
+  const [allMembers, setAllMembers] = useState(() => (props?.allMembers || []).filter((member: any) => !membersDetail.some((m: any) => m.id === member.uid)));
+
   const [errors, setErrors] = useState({ basicErrors: [], socialErrors: [], projectErrors: [] });
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
@@ -248,6 +256,26 @@ function ManageTeamsSettings(props: any) {
 
   const handleTeamLeadToggle = (memberUid: string) => {
     setIsAlertInfoDismissed(false);
+
+    const member = teamMembers.find((m: any) => m.id === memberUid);
+
+    if (member?.teams?.status === "Add") {
+      const updatedMembers = teamMembers.map((m: any) => {
+        if (m.id === member.id) {
+          return {
+            ...m,
+            teams: {
+              ...m.teams,
+              teamLead: !m.teams.teamLead, // Toggle teamLead status for new members
+            },
+          };
+        }
+        return m; 
+      });
+      setTeamMembers(updatedMembers);
+      return;
+    }
+
     const updatedMembers = teamMembers.map((member: any) => {
       if (member.id !== memberUid) return member;
       const isTeamLead = !member.teams.teamLead;
@@ -272,6 +300,15 @@ function ManageTeamsSettings(props: any) {
 
   const handleRemoveMember = (memberUid: string) => {
     setIsAlertInfoDismissed(false);
+
+    const member = teamMembers.find((m: any) => m.id === memberUid);
+
+    if (member?.teams?.status == 'Add') {
+      setTeamMembers((prevMembers: any) => prevMembers.filter((m: any) => m.id !== memberUid)); //Removing the newly added member from the team
+      toast.success(`New member ${member.name} removed.`);
+      return;
+    }
+
     const memberDetail = membersDetail.find((member: any) => member.id === memberUid);
     const params: any = { loggedInUser: getAnalyticsUserInfo(userInfo) };
     const updatedMembers = teamMembers.map((member: any) => {
@@ -352,6 +389,10 @@ function ManageTeamsSettings(props: any) {
     };
   }, [initialValues]);
 
+  useEffect(() => {
+    setAllMembers((props?.allMembers || []).filter((member: any) => !teamMembers.some((teamMember: any) => teamMember.id === member.uid)));
+  }, [teamMembers]);
+
   const isAlertInfo = isAlertInfoDismissed ? false : Boolean(numberOfChanges) ? true : false;
   return (
     <>
@@ -419,7 +460,9 @@ function ManageTeamsSettings(props: any) {
               handleRemoveMember={handleRemoveMember}
               membersDetail={membersDetail}
               setTeamMembers={setTeamMembers}
-              initialValues = {initialValues}
+              initialValues={initialValues}
+              allMembers={allMembers}
+              selectedTeam={selectedTeam}
             />
           </div>
         </div>

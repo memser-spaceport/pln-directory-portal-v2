@@ -31,6 +31,22 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_OFFICEHOURS_CLICKED, params);
   }
 
+  function onAddOfficeHourClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
+    const params = {
+      user,
+      ...member,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_OFFICEHOURS_CLICKED, params);
+  }
+
+  function onEditOfficeHourClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
+    const params = {
+      user,
+      ...member,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_OFFICEHOURS_CLICKED, params);
+  }
+
   function onProjectContributionEditClicked(member: IMember) {
     const params = {
       ...member,
@@ -366,5 +382,7 @@ export const useMemberAnalytics = () => {
     recordBioSave,
     onClickSeeMoreIrlContribution,
     onClickEventIrlContribution,
+    onAddOfficeHourClicked,
+    onEditOfficeHourClicked
   };
 };

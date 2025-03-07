@@ -491,6 +491,9 @@ export function formInputsToMemberObj(obj: any) {
     result['plnStartDate'] = null;
   }
 
+  // if(result['rich-text-editor']) {
+  //   result['bio'] = result['rich-text-editor'].trim();
+  // }
   return result;
 }
 
@@ -509,6 +512,7 @@ export const memberRegistrationDefaults = {
     city: '',
     region: '',
     country: '',
+    // bio: '',
   },
   socialInfo: {
     linkedinHandler: '',
@@ -539,6 +543,7 @@ export const getInitialMemberFormValues = (selectedMember: any) => {
       region: selectedMember?.location?.region ?? '',
       country: selectedMember?.location?.country ?? '',
       plnFriend: selectedMember?.plnFriend ?? false,
+      // bio: selectedMember?.bio ?? '',
     },
     socialInfo: {
       linkedinHandler: selectedMember?.linkedinHandler ?? '',

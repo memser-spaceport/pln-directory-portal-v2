@@ -233,6 +233,7 @@ export const transformMembers = (result: any, currentEvents: string[]) => {
       })),
       eventNames: validEvents.map((event: any) => event?.name),
       events: validEvents.map((event: any) => ({
+        slugURL: event?.slugURL || '',
         uid: event?.uid || '',
         name: event?.name || '',
         startDate: event?.startDate || '',
@@ -361,27 +362,27 @@ export const transformGuestDetail = (result: any, gatherings:any) => {
     })),
     eventNames: result?.map((item: any) => item?.event?.name),
     events: gatheringsToShow?.map((item: any) => ({
-      uid: item?.event?.uid,
-      name: item?.event?.name,
-      startDate: item?.event?.startDate,
-      endDate: item?.event?.endDate,
-      logo: item?.event?.logo?.url,
-      isHost: item?.isHost,
-      isSpeaker: item?.isSpeaker,
-      hostSubEvents: item?.additionalInfo?.hostSubEvents,
-      speakerSubEvents: item?.additionalInfo?.speakerSubEvents,
-      type: item?.event?.type,
-      resources: item?.event?.resources,
+      slugURL: item?.slugURL || '',
+      uid: item?.event?.uid || '',
+      name: item?.event?.name || '',
+      startDate: item?.event?.startDate || '',
+      endDate: item?.event?.endDate || '',
+      logo: item?.event?.logo?.url || '',
+      isHost: item?.isHost || false,
+      isSpeaker: item?.isSpeaker || false,
+      hostSubEvents: item?.additionalInfo?.hostSubEvents || [],
+      speakerSubEvents: item?.additionalInfo?.speakerSubEvents || [],
+      type: item?.event?.type || '',
+      resources: item?.event?.resources || [],
     })),
-    topics: detail?.topics,
-    officeHours: detail?.member?.officeHours,
+    topics: detail?.topics || []  ,
+    officeHours: detail?.member?.officeHours || '',
     telegramId: detail?.member?.telegramHandler || '',
-    reason: detail?.reason,
-    additionalInfo: detail?.additionalInfo,
-    count: detail?.count,
+    reason: detail?.reason || '',
+    additionalInfo: detail?.additionalInfo || {},
+    count: detail?.count || 0,
   };
 };
-
 export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, pastEvents: any) {
   if (searchType === 'upcoming' || (upcomingEvents && upcomingEvents.length > 0 && pastEvents && pastEvents.length === 0)) {
     return true;

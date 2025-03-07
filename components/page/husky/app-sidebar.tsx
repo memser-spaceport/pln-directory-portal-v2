@@ -6,7 +6,7 @@ import { getYear, isYesterday, isToday, subMonths, subWeeks } from 'date-fns';
 import { getHuskyHistory } from '@/services/husky.service';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { triggerLoader } from '@/utils/common.utils';
-
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 interface IThread {
   _id: string;
   title: string;
@@ -23,6 +23,8 @@ interface ThreadItemProps {
 }
 
 const ThreadItem = ({ thread, isActive, setThreadUid, isMobile, toggleSidebar }: ThreadItemProps) => {
+  const analytics = useHuskyAnalytics();
+
   const handleClick = (thread: any) => {
     if (!isActive) {
       triggerLoader(true);
@@ -32,6 +34,7 @@ const ThreadItem = ({ thread, isActive, setThreadUid, isMobile, toggleSidebar }:
       if (isMobile) {
         toggleSidebar();
       }
+      analytics.trackHistoryListItemClicked({ threadId: thread.threadUid, title: thread.title });
     }
   };
 
@@ -69,9 +72,9 @@ const ThreadItem = ({ thread, isActive, setThreadUid, isMobile, toggleSidebar }:
 const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const { toggleSidebar, state, isMobile } = useSidebar();
   const [history, setHistory] = useState<IThread[]>([]);
-  // const [isCollapsed, setIsCollapsed] = useState(true);
   const [threadUid, setThreadUid] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const analytics = useHuskyAnalytics();
 
   const fetchHistory = async (showLoading = true) => {
     try {
@@ -97,12 +100,24 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     }
   };
 
+  const handleSidebarToggle = () => {
+    toggleSidebar();
+    analytics.trackSidebarToggleClicked();
+  };
+
   const handleNewConversation = () => {
     if (isMobile) {
-      toggleSidebar();
+      handleSidebarToggle();
     }
     setThreadUid(null);
     document.dispatchEvent(new CustomEvent('new-chat'));
+    analytics.trackSidebarNewConversationClicked();
+  };
+
+  const handleOpenSidebar = () => {
+    if (state === 'collapsed') {
+      handleSidebarToggle();
+    }
   };
 
   const groupChatsByDate = (chats: IThread[]): any => {
@@ -150,11 +165,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       }
     );
   };
-
-  // const handleCollapse = () => {
-  //   setIsCollapsed(!isCollapsed);
-  // };
-
+  
   useEffect(() => {
     fetchHistory(true); // Show loading on initial fetch
 
@@ -174,7 +185,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           <div className="sidebar__header__logo-container">
             <img className="sidebar__header__logo" src="/images/husky-logo.svg" alt="logo" />
             <img className="sidebar__header__logo-icon" src="/icons/husky-face.svg" alt="logo" />
-            <button className="sidebar__header__logo-icon-button" onClick={toggleSidebar}>
+            <button className="sidebar__header__logo-icon-button" onClick={handleSidebarToggle}>
               <img src="/icons/sidenav-close.svg" alt="toggle sidebar" />
             </button>
           </div>
@@ -185,10 +196,10 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         </div>
         <div data-state={state} className="sidebar__body">
           <div className="sidebar__body__history">
-            <div className="sidebar__body__history__header">
+            <div onClick={handleOpenSidebar} className="sidebar__body__history__header">
               <div className="sidebar__body__history__header__title">
                 <img width={22} height={22} src="/icons/history.svg" alt="history" />
-                <span className="sidebar__body__history__header__title__text">History</span>
+                <span className="sidebar__body__history__header__title__text">Threads</span>
               </div>
               {/* <div className="sidebar__body__history__header__actions">
                 <button onClick={handleCollapse} className="sidebar__body__history__header__actions__button">
@@ -207,7 +218,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                   ))}
                 </>
               ) : history.length === 0 ? (
-                <div className="sidebar__body__history__list__empty">No history found</div>
+                <div className="sidebar__body__history__list__empty">Your conversations will appear here once you start chatting!</div>
               ) : (
                 <ul className="sidebar__body__history__list__ul">
                   {history &&
@@ -233,7 +244,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             {groupedChats[key]
                               .sort((a: IThread, b: IThread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by createdAt (newest first)
                               .map((chat: IThread) => (
-                                <ThreadItem isActive={chat.threadUid === threadUid} key={chat._id} thread={chat} setThreadUid={setThreadUid} isMobile={isMobile} toggleSidebar={toggleSidebar} />
+                                <ThreadItem isActive={chat.threadUid === threadUid} key={chat._id} thread={chat} setThreadUid={setThreadUid} isMobile={isMobile} toggleSidebar={handleSidebarToggle} />
                               ))}
                           </React.Fragment>
                         ) : null
@@ -246,7 +257,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           </div>
         </div>
         <div data-state={state} className="sidebar__footer">
-          <button className="sidebar__footer__toggleSidebar" onClick={toggleSidebar}>
+          <button className="sidebar__footer__toggleSidebar" onClick={handleSidebarToggle}>
             <img src="/icons/sidenav-close.svg" alt="toggle sidebar" />
           </button>
         </div>
@@ -281,6 +292,11 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           // border-radius: 4px;
         }
 
+        .sidebar__body[data-state='collapsed'] .sidebar__body__history__header:hover {
+          background-color: #f1f5f9;
+          cursor: pointer;
+        }
+
         .sidebar__header__newConversation__text {
           font-weight: 500;
           font-size: 13px;
@@ -296,6 +312,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           flex: 1;
           padding: 0px 8px 10px 18px;
           overflow-y: auto;
+          overflow-x: hidden;
         }
 
         .sidebar__body__history__list__empty {
@@ -304,7 +321,8 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           justify-content: center;
           height: 100%;
           color: #64748b;
-          padding-top: 90px;
+          font-size: 14px;
+          line-height: 22px;
         }
 
         .sidebar__body__history {
@@ -316,6 +334,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         .sidebar__body__history__list {
           flex: 1;
           overflow-y: auto;
+          overflow-x: hidden;
           padding: 10px 10px 0px 0px;
         }
 
@@ -401,6 +420,17 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           height: 1rem;
           border-radius: 0.375rem;
           background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar__footer__toggleSidebar {
+          display: flex;
+          align-items: center;
+          padding: 8px;
+        }
+
+        .sidebar__footer__toggleSidebar:hover {
+          background-color: #f1f5f9;
+          border-radius: 4px;
         }
 
         @media (min-width: 768px) {

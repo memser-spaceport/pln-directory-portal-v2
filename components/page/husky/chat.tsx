@@ -16,6 +16,7 @@ import { getChatCount, updateLimitType, updateChatCount, checkRefreshToken } fro
 import ChatInput from './chat-input';
 import { createHuskyThread } from '@/services/husky.service';
 import { useSidebar } from './sidebar';
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
 interface ChatProps {
   isLoggedIn: boolean;
@@ -35,6 +36,8 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const { state } = useSidebar();
   const { messages, setMessages, isAnswerLoading, addMessage, chatIsLoading, submitChat, stopChat, submitSql } = useMessages(initialMessages, threadUid, userInfo);
+  const [question, setQuestion] = useState('');
+  const analytics = useHuskyAnalytics();
 
   // Checks and sets the thread ID for the current chat session
   const checkAndSetThreadId = useCallback(() => {
@@ -67,8 +70,10 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
 
       const threadUid = checkAndSetThreadId();
       const chatUid = generateUUID(); // check and set the thread ID for the current chat session
+      setQuestion(question);
       addMessage(question); // add new chat message
 
+      //
       const submitParams = {
         uid: threadUid,
         threadUid,
@@ -93,7 +98,9 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
         };
       }
 
-      Promise.all([submitChat(submitParams), submitSql({ uid: threadUid, threadUid, chatUid, question })]); // submit chat and sql
+      analytics.trackAiResponse('initiated', type, false, question);
+      // Promise.all([submitChat(submitParams), submitSql({ uid: threadUid, threadUid, chatUid, question })]); // submit chat and sql
+      submitChat(submitParams);
 
       // create new thread
       if (hasRefreshToken && (messages.length === 0 || (from === 'blog' && messages.length === 1))) {
@@ -104,8 +111,10 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
           document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
         }
       }
+      analytics.trackAiResponse('success', type, false, question);
     } catch (error) {
       console.error(`Error in ${type} submission:`, error);
+      analytics.trackAiResponse('error', type, false, question);
     }
   };
 
@@ -124,20 +133,21 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
       if (!chatIsLoading) {
         onHuskyInput(query);
       }
+      analytics.trackRegenerate();
     },
     [chatIsLoading]
   );
 
   // handle question edit by clicking the edit button
   const onQuestionEdit = useCallback((question: string) => {
-    // setInput(question);
+    analytics.trackQuestionEdit(question);
     textareaRef.current!.value = question;
     textareaRef.current!.focus();
   }, []);
 
   // handle copy answer by clicking the copy button
-  const onCopyAnswer = (answer: string) => {
-    return Promise.resolve();
+  const onCopyAnswer = async(answer: string) => {
+    analytics.trackAnswerCopy(answer);
   };
 
   // handle submit by clicking the send button
@@ -153,6 +163,7 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
 
   // handle feedback submission
   const onFeedback = async (question: string, answer: string) => {
+    analytics.trackFeedbackClick(question, answer);
     feedbackPopupRef.current?.showModal();
     setFeedbackQandA({ question, answer });
   };
@@ -164,6 +175,11 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
       submitForm();
     }
   };
+
+  const onStopStreaming = useCallback(() => {
+    analytics.trackHuskyChatStopBtnClicked(question);
+    stopChat();
+  }, [question]);
 
   useEffect(() => {
     const storedInput = localStorage.getItem('input');
@@ -230,7 +246,7 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
                 autoFocus
                 onKeyDown={handleKeyDown}
                 onTextSubmit={submitForm}
-                onStopStreaming={stopChat}
+                onStopStreaming={onStopStreaming}
                 isAnswerLoading={isAnswerLoading}
                 isLoadingObject={chatIsLoading}
                 isLimitReached={limitReached === 'warn' || limitReached === 'finalRequest'}

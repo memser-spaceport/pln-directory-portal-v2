@@ -3,27 +3,12 @@
 import { triggerLoader } from '@/utils/common.utils';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { useRouter, usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
-
-interface HuskyLinkProps {
-  href: string;
-  children: React.ReactNode;
-}
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
 const HuskyLink = () => {
   const router = useRouter();
   const pathName = usePathname();
-  // const [isVisible, setIsVisible] = useState(false);
-
-  // useEffect(() => {
-  //   // Show the chat box after 5 seconds
-  //   const timeout = setTimeout(() => {
-  //     setIsVisible(true);
-  //   }, 5000);
-
-  //   // Clean up the timeout if component unmounts
-  //   return () => clearTimeout(timeout);
-  // }, []);
+  const analytics = useHuskyAnalytics();
 
   const onHuskyClickHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -32,36 +17,13 @@ const HuskyLink = () => {
       triggerLoader(true);
     }
     router.push(PAGE_ROUTES.HUSKY);
-    // setIsVisible(false);
-  };
-
-  const handleCloseClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // setIsVisible(false);
+    analytics.trackPageClicked();
   };
 
   return (
     <>
-      <button
-        onClick={onHuskyClickHandler}
-        className="nb__right__husky"
-        aria-label="Chat with Husky assistant"
-      >
+      <button onClick={onHuskyClickHandler} className="nb__right__husky" aria-label="Chat with Husky assistant">
         <img width={48} height={48} src="/images/husky/husky-logo.svg" alt="husky" />
-        {/* {isVisible && (
-          <div className="chat-box" onClick={(e) => e.stopPropagation()}>
-            <div className="chat-header">
-              <h3 className="chat-header__title">Woof Woof!</h3>
-              <span role='button' onClick={handleCloseClick}>
-                <img src="/icons/close.svg" alt="close" />
-              </span>
-            </div>
-            <p className="chat-text">
-              Need help? I fetch answers on teams, projects & more! Click to chat!
-            </p>
-          </div>
-        )} */}
       </button>
 
       <style jsx>{`
@@ -137,7 +99,7 @@ const HuskyLink = () => {
           }
         }
 
-        @media(min-width: 1024px) {
+        @media (min-width: 1024px) {
           .chat-box {
             width: 270px;
             bottom: -110px;

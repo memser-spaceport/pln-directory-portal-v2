@@ -71,10 +71,15 @@ export const useSignUpAnalytics = () => {
     captureEvent(SIGN_UP_ANALYTICS_EVENTS.SIGN_UP_HOME_CLICK_AFTER_SUCCESS);
   }
 
+  function trackSignupAMemberClick(){
+    captureEvent(SIGN_UP_ANALYTICS_EVENTS.SIGN_UP_MEMBER_CLICK_BY_ADMIN_OR_LEAD);
+  }
+
   return {
     recordSignUpSave,
     recordSignUpCancel,
     recordURLClick,
     recordHomeClickAfterSuccess,
+    trackSignupAMemberClick
   };
 };

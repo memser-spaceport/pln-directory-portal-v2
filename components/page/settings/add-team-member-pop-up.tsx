@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useState } from 'react';
 import AddTeamMemberDetail from './add-team-member-detail';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 
 const AddTeamMemberPopUp = (props: any) => {
   const allMembers = props?.allMembers;
@@ -11,6 +13,7 @@ const AddTeamMemberPopUp = (props: any) => {
   const setShowAssignRolesPopup = props?.setShowAssignRolesPopup;
   const [selectedMembers, setSelectedMembers] = useState<typeof allMembers>([]);
   const [searchData, setSearchData] = useState<string>('');
+  const analytics = useSignUpAnalytics();
 
   /**
    * Merge newly selected members with existing team members.
@@ -39,6 +42,10 @@ const AddTeamMemberPopUp = (props: any) => {
   const handleBackClick = () => {
     setShowAssignRolesPopup(false);
   };
+
+  const onSignupAMemberClick = () => {
+    analytics.trackSignupAMemberClick();
+  }
 
   const handleNewMemberTeamLeadToggle = (memberUid: string) => {
     const updatedMembers = selectedMembers.map((member: any) =>
@@ -134,6 +141,12 @@ const AddTeamMemberPopUp = (props: any) => {
                   <div>CLEAR</div>
                 </div>
               </div>
+
+              <div className="cpc__header__info__sign-up">
+                <a href={PAGE_ROUTES.SIGNUP}  className="cpc__header__info__sign-up__link">
+                  <p>User not listed here? <span  className="cpc__header__info__sign-up__link__action" onClick={onSignupAMemberClick}>Sign them up</span> first to add them to your team</p>
+                </a>
+              </div>
             </div>
 
             <div className="cpc__cnt">
@@ -149,13 +162,11 @@ const AddTeamMemberPopUp = (props: any) => {
                             <img loading="lazy" className="cpt__cnt__cptr__profile" alt="profile" src={member?.profile || '/icons/default-user-profile.svg'} width={40} height={40} />
                             {member?.teamMemberRoles?.some((role: any) => role.teamLead) && (
                               <Tooltip
-                              side="top"
-                              asChild
-                              trigger={
-                                <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />
-                              }
-                              content={'Team Lead'}
-                            />
+                                side="top"
+                                asChild
+                                trigger={<img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />}
+                                content={'Team Lead'}
+                              />
                             )}
                           </div>
                           <div className="cpt__cnt__cptr__dtls">
@@ -242,6 +253,11 @@ const AddTeamMemberPopUp = (props: any) => {
             flex-direction: column;
           }
 
+          .cpc__header__info__count {
+            display: flex;
+            gap: 10px;
+          }
+
           .cpc__header__flts__searchc {
             border: 1px solid #cbd5e1;
             border-radius: 8px;
@@ -251,6 +267,26 @@ const AddTeamMemberPopUp = (props: any) => {
             width: 100%;
             align-items: center;
           }
+
+          .cpc__header__info__sign-up {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 14px;
+            letter-spacing: 0%;
+            padding-block: 10px;
+            border-bottom: 1px solid #e2e8f0;
+          }
+
+          .cpc__header__info__sign-up__link {
+            display: flex;
+          }
+
+          .cpc__header__info__sign-up__link__action{
+            color: #156ff7;
+            }
 
           .cpc__header__flts__searchc__input {
             width: 100%;

@@ -19,6 +19,7 @@ interface IFollowSectionProps {
   isLoggedIn: any;
   isAdminInAllEvents: any;
   guestDetails: any;
+  topicsAndReason: any;
 }
 
 const FollowSection = (props: IFollowSectionProps) => {
@@ -44,6 +45,9 @@ const FollowSection = (props: IFollowSectionProps) => {
   const isAdminInAllEvents = props?.isAdminInAllEvents;
   const roles = userInfo?.roles ?? [];
   const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const topicsAndReason = props?.topicsAndReason;
+
+  
 
   function getFollowProperties(followers: any) {
     return {
@@ -86,7 +90,9 @@ const FollowSection = (props: IFollowSectionProps) => {
   };
 
   const onIAmGoingClick = () => {
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: { member: userInfo }, mode: IAM_GOING_POPUP_MODES.ADD } }));
+    let formData: any = { member: userInfo };
+    formData['pastTopicsAndReason'] = topicsAndReason;
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: { ...formData }, mode: IAM_GOING_POPUP_MODES.ADD } }));
     analytics.trackImGoingBtnClick(location);
   };
 

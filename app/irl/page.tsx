@@ -3,7 +3,7 @@ import AttendeeList from '@/components/page/irl/attendee-list/attendees-list';
 import IrlEvents from '@/components/page/irl/events/irl-events';
 import IrlHeader from '@/components/page/irl/irl-header';
 import IrlLocation from '@/components/page/irl/locations/irl-location';
-import { getAllLocations, getFollowersByLocation, getGuestEvents, getGuestsByLocation, getTopicsByLocation } from '@/services/irl.service';
+import { getAllLocations, getFollowersByLocation, getGuestEvents, getGuestsByLocation, getPastTopicsAndReasonForUser, getTopicsByLocation } from '@/services/irl.service';
 import { getMemberPreferences } from '@/services/preferences.service';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -15,9 +15,21 @@ import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
 
 export default async function Page({ searchParams }: any) {
-  const { isError, userInfo, isLoggedIn, followers, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames } = await getPageData(
-    searchParams
-  );
+  const {
+    isError,
+    userInfo,
+    isLoggedIn,
+    followers,
+    locationDetails,
+    eventDetails,
+    showTelegram,
+    eventLocationSummary,
+    guestDetails,
+    isUserGoing,
+    isLocationError,
+    currentEventNames,
+    topicsAndReasonResponse,
+  } = await getPageData(searchParams);
 
   if (isLocationError) {
     return <IrlErrorPage />;
@@ -42,7 +54,7 @@ export default async function Page({ searchParams }: any) {
         </section>
         {/* Follow Gathering */}
         <section className={styles.irlGatheings__follow}>
-          <IrlFollowGathering eventLocationSummary={eventLocationSummary} followers={followers ?? []} userInfo={userInfo} isLoggedIn={isLoggedIn} searchParams={searchParams} eventDetails={eventDetails} guestDetails={guestDetails}/>
+          <IrlFollowGathering topicsAndReasonResponse= {topicsAndReasonResponse} eventLocationSummary={eventLocationSummary} followers={followers ?? []} userInfo={userInfo} isLoggedIn={isLoggedIn} searchParams={searchParams} eventDetails={eventDetails} guestDetails={guestDetails}/>
         </section>
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
@@ -172,6 +184,11 @@ const getPageData = async (searchParams: any) => {
       showTelegram = memberPreferencesResponse.memberPreferences?.telegram ?? true;
     }
 
+    let topicsAndReasonResponse = null;
+    if (!guestDetails.isUserGoing) {
+      topicsAndReasonResponse = await getPastTopicsAndReasonForUser(uid, userInfo.uid, authToken);
+    }
+
     return {
       isError,
       isLocationError,
@@ -184,7 +201,8 @@ const getPageData = async (searchParams: any) => {
       eventLocationSummary,
       locationDetails,
       currentEventNames,
-      followers
+      followers,
+      topicsAndReasonResponse
     };
   } catch (e) {
     console.error('Error fetching IRL data', e);

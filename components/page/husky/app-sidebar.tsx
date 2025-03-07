@@ -8,10 +8,10 @@ import { getUserCredentials } from '@/utils/auth.utils';
 import { triggerLoader } from '@/utils/common.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 interface IThread {
-  _id: string;
   title: string;
+  threadId: string;
   createdAt: string;
-  threadUid: string;
+  updatedAt: string;
 }
 
 interface ThreadItemProps {
@@ -29,17 +29,18 @@ const ThreadItem = ({ thread, isActive, setThreadUid, isMobile, toggleSidebar }:
     if (!isActive) {
       triggerLoader(true);
 
-      setThreadUid(thread.threadUid);
+
+      setThreadUid(thread.threadId);
       document.dispatchEvent(new CustomEvent('update-messages', { detail: thread }));
       if (isMobile) {
         toggleSidebar();
       }
-      analytics.trackHistoryListItemClicked({ threadId: thread.threadUid, title: thread.title });
+      analytics.trackHistoryListItemClicked({ threadId: thread.threadId, title: thread.title });
     }
   };
 
   return (
-    <li key={thread._id} data-active={isActive} className="sidebar__body__history__list__ul__li" onClick={() => handleClick(thread)}>
+    <li key={thread.threadId} data-active={isActive} className="sidebar__body__history__list__ul__li" onClick={() => handleClick(thread)}>
       <span className="sidebar__body__history__list__ul__li__text">{thread.title}</span>
       <style jsx>{`
         .sidebar__body__history__list__ul__li {
@@ -82,8 +83,8 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         setIsLoading(true);
       }
 
-      const { userInfo, authToken } = await getUserCredentials(isLoggedIn);
-      const res = await getHuskyHistory(authToken, userInfo.email);
+      const { authToken } = await getUserCredentials(isLoggedIn);
+      const res = await getHuskyHistory(authToken);
 
       if (res.isError) {
         setHistory([]);
@@ -244,7 +245,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             {groupedChats[key]
                               .sort((a: IThread, b: IThread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by createdAt (newest first)
                               .map((chat: IThread) => (
-                                <ThreadItem isActive={chat.threadUid === threadUid} key={chat._id} thread={chat} setThreadUid={setThreadUid} isMobile={isMobile} toggleSidebar={handleSidebarToggle} />
+                                <ThreadItem isActive={chat.threadId === threadUid} key={chat.threadId} thread={chat} setThreadUid={setThreadUid} isMobile={isMobile} toggleSidebar={handleSidebarToggle} />
                               ))}
                           </React.Fragment>
                         ) : null

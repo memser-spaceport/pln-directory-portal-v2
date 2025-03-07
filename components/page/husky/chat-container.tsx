@@ -47,12 +47,14 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
     }
 
     const updateMessages = (e: any) => {
-      const { threadUid } = e.detail;
-      setThreadUid(threadUid);
+      const { threadId } = e.detail;
+      setThreadUid(threadId);
+      console.log('threadId', threadId);
 
       const fetchThread = async () => {
         const { authToken } = await getUserCredentials(isLoggedIn);
-        const thread = await getHuskyThreadById(threadUid, authToken);
+        const thread = await getHuskyThreadById(threadId, authToken);
+        console.log('thread', thread);
         setInitialMessages(thread);
         triggerLoader(false);
         const scrollableElement = document.querySelector('body');
@@ -63,7 +65,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
         });
       };
 
-      if (threadUid) {
+      if (threadId) {
         fetchThread();
       }
     };

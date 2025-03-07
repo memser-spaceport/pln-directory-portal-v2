@@ -13,7 +13,7 @@ export const useMessages = (initialMessages: any[] = [], threadUid: string | und
     error: chatError,
     stop: stopChat,
   } = useObject({
-    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/assistant`,
+    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/contextual`,
     headers: {
       'Content-Type': 'application/json',
     },

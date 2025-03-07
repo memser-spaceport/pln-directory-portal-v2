@@ -143,7 +143,7 @@ const AddTeamMemberPopUp = (props: any) => {
               </div>
 
               <div className="cpc__header__info__sign-up">
-                <a href={PAGE_ROUTES.SIGNUP}  className="cpc__header__info__sign-up__link">
+                <a href={PAGE_ROUTES.SIGNUP}  className="cpc__header__info__sign-up__link" target='_blank'>
                   <p>User not listed here? <span  className="cpc__header__info__sign-up__link__action" onClick={onSignupAMemberClick}>Sign them up</span> first to add them to your team</p>
                 </a>
               </div>

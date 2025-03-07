@@ -11,13 +11,14 @@ const getPageData = async () => {
   const memberInfo = await getSkillsData();
   const { isLoggedIn, userInfo } = getCookiesFromHeaders();
   let canAccess = false;
-
+  let isLoggedInAndHaveAccess = false;
   if(userInfo) {
     const roles = userInfo.roles ?? [];
     const isAdmin = roles.includes('DIRECTORYADMIN')
     const isTeamLead = (userInfo.leadingTeams ?? []).length > 0;
-    canAccess = isAdmin || isTeamLead || !isLoggedIn;
+    isLoggedInAndHaveAccess = isAdmin || isTeamLead;
   }
+  canAccess = isLoggedInAndHaveAccess || !isLoggedIn;
 
   if (memberInfo.isError) {
     return {

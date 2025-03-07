@@ -184,7 +184,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                 </div>
                 {isEventAvailable && (
                   <div className="gtr__guestName__li__info">
-                    {isEventAvailable[0]?.isSpeaker === true && (
+                    {isEventAvailable[0]?.isSpeaker && (
                       <div className="gtr__guestName__li__info__spkr">
                         <Popover
                           asChild
@@ -228,7 +228,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                         />
                       </div>
                     )}
-                    {isEventAvailable?.[0].isHost === true && (
+                    {isEventAvailable[0]?.isHost && (
                       <div className="gtr__guestName__li__info__host">
                         <Popover
                           asChild
@@ -290,7 +290,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   <div title={teamName} className="break-word">
                     {teamName}
                   </div>
-                  {hostEvents?.length > 0 && (
+                  {isEventAvailable[0]?.isHost && hostEvents?.length > 0 && (
                     <button
                       onClick={(e: SyntheticEvent) => {
                         e.preventDefault();

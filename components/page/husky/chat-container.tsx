@@ -29,6 +29,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
     setInitialMessages([]);
     setType('chat');
     setThreadUid(null);
+    document.dispatchEvent(new CustomEvent('empty-thread'));
     analytics.trackMobileHeaderNewConversationClicked();
   }, []);
 
@@ -49,12 +50,9 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
     const updateMessages = (e: any) => {
       const { threadId } = e.detail;
       setThreadUid(threadId);
-      console.log('threadId', threadId);
-
       const fetchThread = async () => {
         const { authToken } = await getUserCredentials(isLoggedIn);
         const thread = await getHuskyThreadById(threadId, authToken);
-        console.log('thread', thread);
         setInitialMessages(thread);
         triggerLoader(false);
         const scrollableElement = document.querySelector('body');

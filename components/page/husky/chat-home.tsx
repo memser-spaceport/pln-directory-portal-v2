@@ -78,7 +78,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
   };
 
   const handleSignUpClick = () => {
-    // analytics.trackSignupFromHuskyChat('home-search');
+    analytics.trackSignupFromHuskyChat('husky-home-search');
     window.location.href = PAGE_ROUTES.SIGNUP;
   };
 
@@ -92,7 +92,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
   };
 
   const onLoginClickHandler = () => {
-    // analytics.trackSignupFromHuskyChat('home-search');
+    analytics.trackLoginFromHuskyChat('husky-home-search');
     const userInfo = Cookies.get('userInfo');
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);

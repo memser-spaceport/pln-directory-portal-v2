@@ -19,9 +19,10 @@ interface MessagesProps {
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   onChatSubmission: any;
+  isLoadingObject: boolean;
 }
 
-const Messages: React.FC<MessagesProps> = ({ messages, onChatSubmission, isAnswerLoading, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer }) => {
+const Messages: React.FC<MessagesProps> = ({ messages, onChatSubmission, isAnswerLoading, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject }) => {
   return (
     <>
       <div className="chat__messages">
@@ -35,6 +36,8 @@ const Messages: React.FC<MessagesProps> = ({ messages, onChatSubmission, isAnswe
             onRegenerate={onRegenerate}
             onQuestionEdit={onQuestionEdit}
             onCopyAnswer={onCopyAnswer}
+            isLoadingObject={isLoadingObject}
+            isAnswerLoading={isAnswerLoading}
           />
         ))}
         {isAnswerLoading && <HuskyAnswerLoader data-testid="chat-answer-loader" />}

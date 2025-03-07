@@ -39,6 +39,8 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
   const { state } = useSidebar();
   const [messages, setMessages] = useState<any[]>(initialMessages ?? []);
   const messagesRef = useRef<any[]>(initialMessages ?? []);
+  const fromRef = useRef<string>(from);
+  const threadUidRef = useRef<string | undefined>(threadUid);
   const [isAnswerLoading, setIsAnswerLoading] = useState(false);
   const [question, setQuestion] = useState('');
   const analytics = useHuskyAnalytics();
@@ -96,22 +98,31 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
     setIsAnswerLoading(true);
   };
 
-  console.log('out-messages', messages, threadUid);
-
   // Update messagesRef whenever messages state changes
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
 
+  // Update fromRef whenever from prop changes
+  useEffect(() => {
+    fromRef.current = from;
+  }, [from]);
+
+  // Update threadUidRef whenever threadUid prop changes
+  useEffect(() => {
+    threadUidRef.current = threadUid;
+  }, [threadUid]);
+
   // Checks and sets the thread ID for the current chat session
   const checkAndSetThreadId = useCallback(() => {
-    if (threadUid && messages.length > 0) {
-      return threadUid;
+    if (threadUidRef.current && messagesRef.current.length > 0) {
+      return threadUidRef.current;
     }
     const newThreadUid = getUniqueId();
     setThreadUid(newThreadUid);
+    threadUidRef.current = newThreadUid;
     return newThreadUid;
-  }, [messages, threadUid, setThreadUid]);
+  }, [setThreadUid]);
 
   useEffect(() => {
     if (chatError) {
@@ -178,7 +189,7 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
         ...(userInfo?.uid && { directoryId: userInfo?.uid }),
       };
 
-      if (from === 'blog' && messagesRef.current.length === 1) {
+      if (fromRef.current === 'blog' && messagesRef.current.length === 1) {
         const message = messagesRef.current[messagesRef.current.length - 1];
         const chatUid = generateUUID(); // check and set the thread ID for the current chat session
         submitParams.chatSummary = {
@@ -198,11 +209,10 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
         submitChat(submitParams);
       }
 
-      if ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && from === 'blog' && messagesRef.current.length === 1)) {
+      if ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1)) {
         const threadResponse = await createHuskyThread(authToken, threadId); // create new thread
         if (threadResponse) {
           const [titleResponse] = await Promise.all([createThreadTitle(authToken, threadId, question), submitChat(submitParams)]); //create thread title
-          console.log('titleResponse', titleResponse);
           if (titleResponse) {
             document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
           }

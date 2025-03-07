@@ -16,7 +16,7 @@ interface ChatContainerProps {
 const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   const [initialMessages, setInitialMessages] = useState<any>([]);
   const [threadUid, setThreadUid] = useState<any>(null);
-  const [type, setType] = useState<string>('chat');
+  const [type, setType] = useState<string>('');
   const { toggleSidebar } = useSidebar();
   const analytics = useHuskyAnalytics();
 
@@ -27,7 +27,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
 
   const resetChat = useCallback(() => {
     setInitialMessages([]);
-    setType('chat');
+    setType('');
     setThreadUid(null);
     document.dispatchEvent(new CustomEvent('empty-thread'));
     analytics.trackMobileHeaderNewConversationClicked();

@@ -1,12 +1,25 @@
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata } from 'next';
 import styles from './page.module.css';
 import { getSkillsData } from '@/services/sign-up.service';
 import SignUp from '@/components/page/sign-up/sign-up';
 import Script from 'next/script';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { redirect, RedirectType } from 'next/navigation';
 
 const getPageData = async () => {
   const memberInfo = await getSkillsData();
+  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  let canAccess = false;
+  let isLoggedInAndHaveAccess = false;
+  if(userInfo) {
+    const roles = userInfo.roles ?? [];
+    const isAdmin = roles.includes('DIRECTORYADMIN')
+    const isTeamLead = (userInfo.leadingTeams ?? []).length > 0;
+    isLoggedInAndHaveAccess = isAdmin || isTeamLead;
+  }
+  canAccess = isLoggedInAndHaveAccess || !isLoggedIn;
+
   if (memberInfo.isError) {
     return {
       isError: true,
@@ -15,11 +28,18 @@ const getPageData = async () => {
 
   return {
     skillsInfo: memberInfo.skills,
+    canAccess
   };
 };
 
 export default async function Page() {
-  const { skillsInfo } = await getPageData();
+
+  const { skillsInfo, canAccess } = await getPageData();
+
+  if(!canAccess) {
+        redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
+  }
+
   return (
     <>
     <Script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} strategy="lazyOnload"></Script>

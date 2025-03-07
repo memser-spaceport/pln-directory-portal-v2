@@ -10,7 +10,7 @@ export interface IIrlCard {
   type: string;
   attendees: number;
   userInfo?: any;
-  timezone: string
+  timezone: string;
 }
 export interface IIrlLocationCard {
   id: number;
@@ -30,11 +30,11 @@ export interface IIrlGuestTeam {
 }
 
 export interface IIrlEvent {
+  slugURL: string;
   uid: string;
   name: string;
   isHost: boolean;
   isSpeaker: boolean;
-  slugURL: string;
   hostSubEvents: {
     link: string;
     name: string;
@@ -61,7 +61,7 @@ export interface IGuest {
   reason: string;
   telegramId: string;
   officeHours: string;
-  additionalInfo: any
+  additionalInfo: any;
   eventNames: string[];
 }
 
@@ -126,10 +126,11 @@ export interface IIrlGuest {
   teamUid: string;
   teamName: string;
   teamLogo: string;
-  teams: { name: string; id: string; logo: string; }[];
+  teams: { name: string; id: string; logo: string }[];
   projectContributions: any[];
   eventNames: string[];
   events: {
+    slugURL: string;
     uid: string;
     name: string;
     startDate: string;
@@ -153,15 +154,15 @@ export interface IIrlGuest {
 }
 
 export interface IIrlAttendeeFormErrors {
-  gatheringErrors: string[],
-  participationErrors: string[],
-  dateErrors: string[],
+  gatheringErrors: string[];
+  participationErrors: string[];
+  dateErrors: string[];
 }
 
 export interface IIrlParticipationEvent {
   uid: string;
   name: string;
-  link: string
+  link: string;
 }
 
 export interface AdditionalResource {

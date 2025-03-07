@@ -5,7 +5,7 @@
 
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
-
+import { useRouter } from 'next/navigation';
 // Define the props type for the DiscoverCard component
 interface DiscoverCardProps {
   data: {
@@ -25,6 +25,7 @@ interface DiscoverCardProps {
 const DiscoverCard = (props: DiscoverCardProps) => {
   const { data, userInfo } = props;
   const analytics = useHomeAnalytics();
+  const router = useRouter();
 
   // Handle click event on the discover card
   const onDiscoverCardClick = () => {

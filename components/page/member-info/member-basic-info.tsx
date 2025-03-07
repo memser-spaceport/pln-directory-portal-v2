@@ -11,6 +11,7 @@ import LinkAuthAccounts from './link-auth-accounts';
 import SelfEmailUpdate from './self-email-update';
 import AdminEmailUpdate from './admin-email-update';
 import Toggle from '@/components/ui/toogle';
+// import TextEditor from '@/components/ui/text-editor';
 
 interface MemberBasicInfoProps {
   errors: string[];
@@ -32,6 +33,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
+  // const [bio, setBio] = useState(initialValues.bio ?? '');
 
   /**
    * Handles image upload and sets the profile image state.
@@ -134,17 +136,16 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" /> <span className="info__text">Please upload a image in PNG or JPEG format with file size less than 4MB</span>
           </p>
-            {isAdminEdit && <div className={`memberinfo__form__plnFriend__toggle ${
-              props?.isVerifiedFlag === "true" ? " " : "unverified-bg"
-              }`}
-              >
-              <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
-              <p className="memberinfo__form__plnFriend__toggle__label">Are you friends of PL?</p>
-              {props?.isVerifiedFlag == "true" 
-                ? <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
-                : <Toggle id="pl-friend" height="16px" width="28px" isChecked={true} callback={onTogglePlnFriend} disabled={true} />
-              }
-            </div>}
+          {isAdminEdit && <div className={`memberinfo__form__plnFriend__toggle ${props?.isVerifiedFlag === "true" ? " " : "unverified-bg"
+            }`}
+          >
+            <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
+            <p className="memberinfo__form__plnFriend__toggle__label">Are you friends of PL?</p>
+            {props?.isVerifiedFlag == "true"
+              ? <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+              : <Toggle id="pl-friend" height="16px" width="28px" isChecked={true} callback={onTogglePlnFriend} disabled={true} />
+            }
+          </div>}
           {!isMemberSelfEdit && !isAdminEdit && (
             <div className="memberinfo__form__item">
               <TextField
@@ -167,6 +168,13 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
               <LinkAuthAccounts />
             </div>
           )}
+          {/* <div className="memberinfo__form__item">
+            <label className={`memberinfo__form__bio__label`}>Bio*</label>
+            <div className='memberinfo__form__bio__editor'>
+              <TextEditor text={bio} setContent={setBio} id='members-bio' maxLength={200} />
+            </div>
+          </div> */}
+
           <div className="memberinfo__form__item">
             <TextField
               defaultValue={initialValues.plnStartDate}
@@ -297,6 +305,17 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             font-size: 14px;
             margin-bottom: 12px;
           }
+
+          .memberinfo__form__bio__editor {
+            padding-top: 12px;          
+          }
+
+          .memberinfo__form__bio__label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+          }
+            
           .memberinfo__form__plnFriend__toggle {
             display: flex;
             align-items: center;

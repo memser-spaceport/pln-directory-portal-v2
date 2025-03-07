@@ -6,7 +6,7 @@ import HuskyChat from './husky-chat';
 import PageLoader from '../page-loader';
 import HuskyAnswerLoader from './husky-answer-loader';
 import HuskyFeedback from './husky-feedback';
-import { getParsedValue, getUniqueId } from '@/utils/common.utils';
+import { generateUUID, getParsedValue, getUniqueId } from '@/utils/common.utils';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { incrementHuskyShareCount } from '@/services/discovery.service';
@@ -32,6 +32,8 @@ interface Chat {
   question: string;
   answer: string;
   isError: boolean;
+  sources?: string[];
+  followUpQuestions?: string[];
 }
 
 // This component represents the Husky AI interface, allowing users to interact with the AI in chat or blog modes.
@@ -93,7 +95,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     error,
     stop,
   } = experimental_useObject({
-    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/assistant`,
+    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/contextual`,
     headers: {
       'Content-Type': 'application/json',
     },
@@ -206,7 +208,8 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         }
       }
       setQuestion(question);
-      const chatUid = checkAndSetPromptId();
+      const threadId = checkAndSetPromptId();
+      const chatId = generateUUID();
       setAnswerLoadingStatus(true);
 
       // Update chat state
@@ -231,7 +234,8 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
       // Prepare submission parameters
       const submitParams: any = {
-        uid: chatUid,
+        threadId,
+        chatId,
         question,
         source: selectedSource,
         ...(userInfo?.name && { name: userInfo?.name }),
@@ -241,9 +245,15 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
       // Add chat summary for blog mode followup questions
       if (mode === 'blog' && previousContext) {
+        const message = chats[chats.length - 1];
         submitParams.chatSummary = {
           user: previousContext.question,
           system: previousContext.answer,
+          threadId,
+          chatId,
+          sources: message.sources,
+          actions: [],
+          followUpQuestions: message.followUpQuestions,
         };
       }
 
@@ -394,7 +404,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
           <div className="huskyai__footer">
             <div className="huskyai__footer__strip">
               {limitReached && limitReached !== 'close' && (
-                <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} onClose={() => setLimitReached('close')} from="husky-chat" />
+                <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} from="husky-chat" />
               )}
             </div>
             {chats.length !== 0 && (
@@ -435,7 +445,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             {isAnswerLoading && <HuskyAnswerLoader data-testid="blog-answer-loader" />}
             {limitReached && limitReached !== 'close' && (
               <div className="huskyai__cn__strip">
-                <HuskyLimitStrip mode="blog" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} onClose={() => setLimitReached('close')} onDialogClose={onClose} from="discover-blog" />
+                <HuskyLimitStrip mode="blog" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} onDialogClose={onClose} from="discover-blog" />
               </div>
             )}
           </div>

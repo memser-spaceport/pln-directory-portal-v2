@@ -9,13 +9,14 @@ import { redirect } from 'next/navigation';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
-import { getMemberRolesForTeam } from '@/services/members.service';
+import { getMemberRolesForTeam, getMembersWithRoles } from '@/services/members.service';
 import { sortMemberByRole } from '@/utils/common.utils';
 
 const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean) => {
   const dpResult = await getTeamsInfoForDp();
   let selectedTeam;
   let membersDetail;
+  let allMembers;
   if (dpResult.error) {
     return { isError: true };
   }
@@ -25,7 +26,7 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
     teams = [...structuredClone(teams)].filter((v) => leadingTeams.includes(v.id));
   }
   // const teamResult = await getTeamInfo(selectedTeamId ?? teams[0].id);
-  const [teamResult, teamMembersResponse] = await Promise.all([
+  const [teamResult, teamMembersResponse, allMembersResponse] = await Promise.all([
     getTeamInfo(selectedTeamId ?? teams[0].id),
     getMemberRolesForTeam(
       {
@@ -36,20 +37,22 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
       },
       selectedTeamId ?? teams[0].id
     ),
+    getMembersWithRoles()
   ]);
   
-  if (teamResult.isError || teamMembersResponse.error) {
+  if (teamResult.isError || teamMembersResponse.error || allMembersResponse.error) {
     return {
       isError: true,
     };
   }
   selectedTeam = teamResult.data;
   membersDetail = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
-  
+  allMembers = allMembersResponse.data
   return {
     teams,
     selectedTeam,
     membersDetail,
+    allMembers
   };
 };
 
@@ -72,7 +75,7 @@ export default async function ManageTeams(props: any) {
     redirect(PAGE_ROUTES.HOME);
   }
 
-  const { teams, isError, selectedTeam, membersDetail } = await getPageData(selectedTeamId, leadingTeams, isTeamLead);
+  const { teams, isError, selectedTeam, membersDetail, allMembers } = await getPageData(selectedTeamId, leadingTeams, isTeamLead);
   if (isError) {
     return 'Error';
   }
@@ -99,7 +102,7 @@ export default async function ManageTeams(props: any) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage teams" userInfo={userInfo} />
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageTeamsSettings selectedTeam={selectedTeam} membersDetail={membersDetail} teams={teams} userInfo={userInfo} />
+            <ManageTeamsSettings selectedTeam={selectedTeam} membersDetail={membersDetail} teams={teams} userInfo={userInfo} allMembers={allMembers}/>
           </div>
         </div>
       </div>

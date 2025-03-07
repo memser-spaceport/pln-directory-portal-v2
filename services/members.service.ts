@@ -432,3 +432,24 @@ export const getMemberRolesForTeam = async (options: IMemberListOptions, teamId:
   const formattedData: any = parseMemberDetailsForTeams(result.members, teamId);
   return { data: { formattedData, status: response?.status } };
 };
+
+// Fetches member role information for adding a new member to the team
+export const getMembersWithRoles = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,teamMemberRoles,isVerified,&&pagination=false&orderBy=name,asc&isVerified=all`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+  if (!response?.ok) {
+    return { error: { status: response?.status, statusText: response?.statusText } };
+  }
+  const result = await response?.json();
+  const formattedData = result?.members?.map((member: any) => ({
+    uid: member.uid,
+    name: member.name,
+    profile: member.image?.url, 
+    teamMemberRoles: member.teamMemberRoles,
+    isVerified: member.isVerified,
+  }));
+  return { data: formattedData };
+};

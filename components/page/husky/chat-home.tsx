@@ -7,6 +7,7 @@ import TextArea from './chat-input';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { getChatCount } from '@/utils/husky.utlils';
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
 interface ChatHomeProps {
   onSubmit: (query: string) => void;
@@ -20,6 +21,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
   const [limitReached, setLimitReached] = useState<boolean>(false); // daily limit check
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
+  const analytics = useHuskyAnalytics();
 
   useEffect(() => {
     getChatQuestions().then((res) => {
@@ -55,7 +57,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
     }
     setLimitReached(checkIsLimitReached());
     if (!checkIsLimitReached()) {
-      //   trackHuskyHomeSearch(trimmedValue);
+      analytics.trackHuskyHomeSearch(trimmedValue, 'husky-page');
       onSubmit(trimmedValue);
     }
 
@@ -82,7 +84,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
 
   // Handles the click event for exploration prompts
   const onExplorationPromptClicked = async (quesObj: any) => {
-    // trackExplorationPromptSelection(quesObj.question);
+    analytics.trackExplorationPromptSelection(quesObj.question, 'husky-page');
     const links = quesObj?.answerSourceLinks?.map((item: any) => item?.link);
     setMessages([{ ...quesObj, sources: links, followUpQuestions: quesObj?.followupQuestions }]);
     setType('blog');

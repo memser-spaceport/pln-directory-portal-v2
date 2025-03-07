@@ -22,7 +22,7 @@ function RelatedResults({ actions }: RelatedResultsProps) {
         <div className="related-results__header">
           <h3 className="related-results__title">
             <img width={16} height={16} src="/icons/husky-brain.svg" />
-            <span>Related results based on sources</span>
+            <span>Related results</span>
           </h3>
         </div>
         <div className="related-results__cn">

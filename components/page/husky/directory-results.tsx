@@ -14,16 +14,14 @@ interface RelatedResultsProps {
 }
 
 function DirectoryResults({ actions }: RelatedResultsProps) {
-  const { trackHuskyActionCardClicked } = useHuskyAnalytics();
+  const { trackDirectoryResultsCardClicked } = useHuskyAnalytics();
   const directoryResultsPopupRef = useRef<HTMLDialogElement>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const memoizedActions = useMemo(() => actions, [actions]);
-
-  console.log('memoizedActions', memoizedActions);
-
+  
   const handleActionCardClick = (action: ActionItem) => {
-    trackHuskyActionCardClicked(action);
+    trackDirectoryResultsCardClicked(action);
   };
 
   const noOfItemsToShowDesktop = 6;
@@ -40,8 +38,7 @@ function DirectoryResults({ actions }: RelatedResultsProps) {
   };
 
   // Reusable ActionCard component to avoid duplication
-  const ActionCard = ({ action, index }: { action: ActionItem; index: number }) => (
-    
+  const ActionCard = ({ action, index }: { action: ActionItem; index: number }) => ( 
     <>
       <a target="_blank" href={action.source} onClick={() => handleActionCardClick(action)} className="action-card" key={index} tabIndex={0} aria-label={`${action.name} - ${action.type}`}>
         <div className="action-card__wrapper">

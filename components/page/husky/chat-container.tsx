@@ -6,6 +6,7 @@ import { useSidebar } from './sidebar';
 import { getHuskyThreadById } from '@/services/husky.service';
 import { triggerLoader } from '@/utils/common.utils';
 import { getUserCredentials } from '@/utils/auth.utils';
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
 interface ChatContainerProps {
   isLoggedIn: boolean;
@@ -17,11 +18,18 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   const [threadUid, setThreadUid] = useState<any>(null);
   const [type, setType] = useState<string>('chat');
   const { toggleSidebar } = useSidebar();
+  const analytics = useHuskyAnalytics();
+
+  const handleToggleSidebar = () => {
+    toggleSidebar();
+    analytics.trackMobileHeaderToggleClicked();
+  };
 
   const resetChat = useCallback(() => {
     setInitialMessages([]);
     setType('chat');
     setThreadUid(null);
+    analytics.trackMobileHeaderNewConversationClicked();
   }, []);
 
   useEffect(() => {
@@ -71,16 +79,18 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   return (
     <>
       <div className="chat-container">
-        <div className="chat-container__header">
-          <button onClick={toggleSidebar} className="chat-container__header__thread-list-button">
-            <img src="/icons/message-blue-v2.svg" alt="thread-list" />
+        {isLoggedIn && (
+          <div className="chat-container__header">
+            <button onClick={handleToggleSidebar} className="chat-container__header__thread-list-button">
+              <img src="/icons/message-blue-v2.svg" alt="thread-list" />
             <span className="chat-container__header__thread-list-button__text">Threads</span>
           </button>
           <button onClick={resetChat} className="chat-container__header__new-conversation-button">
             <img src="/icons/add-blue.svg" alt="new-conversation" />
             <span className="chat-container__header__new-conversation-button__text">New Conversation</span>
-          </button>
-        </div>
+            </button>
+          </div>
+        )}
         <div className="chat-container__body">
           <Chat threadUid={threadUid} setThreadUid={setThreadUid} isLoggedIn={isLoggedIn} userInfo={userInfo} initialMessages={initialMessages} from={type} setType={setType} />
         </div>

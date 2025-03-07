@@ -48,7 +48,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
       localStorage.setItem('input', trimmedValue);
       triggerLoader(true);
       router.push(PAGE_ROUTES.HUSKY);
-      trackHuskyHomeSearch(trimmedValue);
+      trackHuskyHomeSearch(trimmedValue, 'home');
     }
 
     // if (textareaRef.current && !checkIsLimitReached()) {
@@ -58,7 +58,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
 
   // Handles the click event for exploration prompts
   const onExplorationPromptClicked = async (quesObj: any) => {
-    trackExplorationPromptSelection(quesObj.question);
+    trackExplorationPromptSelection(quesObj.question, 'home-page');
     const links = quesObj?.answerSourceLinks?.map((item: any) => item?.link);
     localStorage.setItem('initialChat', JSON.stringify({message: { ...quesObj, sources: links }, type: 'blog'}));
     router.push(PAGE_ROUTES.HUSKY);

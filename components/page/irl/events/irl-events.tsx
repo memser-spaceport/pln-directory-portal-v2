@@ -41,7 +41,6 @@ const IrlEvents = (props: IIrlEvents) => {
   const isUserLoggedIn = props?.isLoggedIn;
   const [isEdit, seIsEdit] = useState(false);
 
-
   const searchParam = useSearchParams();
   const type = searchParam.get('type');
 
@@ -106,12 +105,11 @@ const IrlEvents = (props: IIrlEvents) => {
   };
 
   const onManageEventClick = () => {
-    analytics.trackManageEventsClicked({ 
-      location: irlLocation, 
-      link: isScheduleEnabled ? `${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage` : IRL_AIRTABLE_FORM_LINK
+    analytics.trackManageEventsClicked({
+      location: irlLocation,
+      link: isScheduleEnabled ? `${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage` : IRL_AIRTABLE_FORM_LINK,
     });
   };
-
   const handleAllGathering = () => {
     const currentParams = new URLSearchParams(searchParams);
     const allowedParams = ['type', 'location'];
@@ -197,7 +195,6 @@ const IrlEvents = (props: IIrlEvents) => {
         leastStartDate = startDate;
       }
     });
-
     endDateList?.map((endDate: string) => {
       const date = new Date(endDate);
       if (date > new Date(highestEndDate)) {
@@ -243,7 +240,7 @@ const IrlEvents = (props: IIrlEvents) => {
         handleUpcomingGathering();
         break;
       case 'Past':
-        handlePastGathering({ stopPropagation: () => { } });
+        handlePastGathering({ stopPropagation: () => {} });
         break;
       default:
         handleAllGathering();
@@ -256,29 +253,19 @@ const IrlEvents = (props: IIrlEvents) => {
       <div className="root">
         <div className="root__irl">
           {eventDetails.upcomingEvents.length !== 0 && eventDetails.pastEvents.length !== 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) ? (
-            <div className='root__dropdown__events'>
+            <div className="root__dropdown__events">
               <Dropdown
                 arrowImgUrl="/icons/arrow-down.svg"
-                options={EVENTS_OPTIONS.map(option => ({
+                options={EVENTS_OPTIONS.map((option) => ({
                   ...option,
-                  count: option.value === 'All' 
-                    ? eventDetails?.events?.length
-                    : option.value === 'Upcoming'
-                      ? eventDetails?.upcomingEvents?.length 
-                      : eventDetails?.pastEvents?.length
+                  count: option.value === 'All' ? eventDetails?.events?.length : option.value === 'Upcoming' ? eventDetails?.upcomingEvents?.length : eventDetails?.pastEvents?.length,
                 }))}
                 selectedOption={{ value: selectedEventsOption, label: selectedEventsOption }}
                 onItemSelect={(option) => handleEventsDropdownChange(option?.value)}
                 uniqueKey="value"
                 displayKey="label"
                 id="events-options-filter"
-                count={
-                  selectedEventsOption === 'All' 
-                    ? eventDetails?.events?.length
-                    : selectedEventsOption === 'Upcoming'
-                      ? eventDetails?.upcomingEvents?.length
-                      : eventDetails?.pastEvents?.length
-                }
+                count={selectedEventsOption === 'All' ? eventDetails?.events?.length : selectedEventsOption === 'Upcoming' ? eventDetails?.upcomingEvents?.length : eventDetails?.pastEvents?.length}
               />
             </div>
           ) : (
@@ -303,11 +290,9 @@ const IrlEvents = (props: IIrlEvents) => {
           )}
 
           {isScheduleEnabled && (
-            <div className='root__events'>
+            <div className="root__events">
               <div className={`root__irl__events__toggleSection`}>
-                <div className='root__submit__list__view'>
-                  List View
-                </div>
+                <div className="root__submit__list__view">List View</div>
                 <Link legacyBehavior target="_blank" href={`${process.env.SCHEDULE_BASE_URL}/${updatedIrlLocation}/calendar`}>
                   <a target="_blank" className="root__schedule" onClick={onViewScheduleClick}>
                     {/* <img src="/icons/calendar-white.svg" height={16} width={16} className="root__schedule__img" alt="calendar" /> */}
@@ -316,7 +301,7 @@ const IrlEvents = (props: IIrlEvents) => {
                 </Link>
               </div>
 
-              <div className='root__manage__events'>
+              <div className="root__manage__events">
                 <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}`} legacyBehavior target="_blank">
                   <a target="_blank" className="root__submit" onClick={onSubmitEventClick}>
                     <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
@@ -367,7 +352,7 @@ const IrlEvents = (props: IIrlEvents) => {
         </div>
         <div className="mob">
           {((searchParams?.type === 'past' && eventDetails?.upcomingEvents?.length > 0) || (searchParams?.type === 'upcoming' && eventDetails?.pastEvents?.length > 0)) &&
-            !(eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length !== 0) ? (
+          !(eventDetails?.upcomingEvents?.length !== 0 && eventDetails?.pastEvents?.length !== 0) ? (
             <div className="root__irl__table__no-data">
               <div>
                 <img src="/icons/no-calender.svg" alt="calendar" />
@@ -566,9 +551,9 @@ const IrlEvents = (props: IIrlEvents) => {
           align-items: center;
         }
 
-        .root__schedule{
+        .root__schedule {
           // background-color: inherit;
-          color: #0F172A;
+          color: #0f172a;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -598,18 +583,18 @@ const IrlEvents = (props: IIrlEvents) => {
 
         .root__submit__list__view {
           background-color: #ffffff;
-          color: #156FF7;
+          color: #156ff7;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
           padding: 10px 15px;
           border-radius: 5px;
-          border: 1px solid #156FF7;
+          border: 1px solid #156ff7;
           font-weight: 500;
           font-size: 14px;
           line-height: 20px;
-          width:100%;
+          width: 100%;
         }
 
         .root__irl__events {
@@ -1040,7 +1025,7 @@ const IrlEvents = (props: IIrlEvents) => {
           gap: 16px;
           width: 100%;
         }
-        
+
         .root__manage__events {
           display: flex;
           flex-direction: row;
@@ -1178,7 +1163,7 @@ const IrlEvents = (props: IIrlEvents) => {
 
           .root__events {
             flex-direction: row;
-            width:${isScheduleEnabled ? "67%" : "unset"};
+            width: ${isScheduleEnabled ? '67%' : 'unset'};
           }
 
           .root__dropdown__events {
@@ -1247,7 +1232,6 @@ const IrlEvents = (props: IIrlEvents) => {
             // width: 45%;
             gap: 5px;
           }
-            
         }
 
         @media (min-width: 1440px) {
@@ -1272,7 +1256,7 @@ const IrlEvents = (props: IIrlEvents) => {
           }
 
           .root__events {
-            width:${isScheduleEnabled ? "60%" : "unset"};
+            width: ${isScheduleEnabled ? '60%' : 'unset'};
           }
 
           .root__irl__events__toggleSection {
@@ -1302,7 +1286,7 @@ const IrlEvents = (props: IIrlEvents) => {
           }
 
           .root__events {
-            width: ${isScheduleEnabled ? "55%" : "unset"};
+            width: ${isScheduleEnabled ? '55%' : 'unset'};
           }
         }
 

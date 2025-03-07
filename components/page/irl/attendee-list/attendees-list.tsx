@@ -32,6 +32,7 @@ interface IAttendeeList {
   currentEventNames: string[];
   locationEvents: any;
   followers: any;
+  newSearchParams: URLSearchParams;
 }
 
 const AttendeeList = (props: IAttendeeList) => {
@@ -40,6 +41,7 @@ const AttendeeList = (props: IAttendeeList) => {
   const eventDetails = props.eventDetails;
   const showTelegram = props.showTelegram;
   const location = props.location;
+  const newSearchParams = props.newSearchParams;
   const searchParams = props?.searchParams;
   const currentEventNames = props?.currentEventNames;
   const locationEvents = props?.locationEvents;
@@ -65,12 +67,11 @@ const AttendeeList = (props: IAttendeeList) => {
     totalItems: updatedEventDetails?.totalGuests,
     totalCurrentItems: updatedEventDetails?.guests?.length,
   });
-
   const onCloseFloatingBar = useCallback(() => {
     setSelectedGuests([]);
     setShowFloatingBar(false);
   }, []);
-
+ 
   const onCloseDeleteModal = () => {
     deleteRef.current?.close();
     setDeleteModalOpen((prev) => ({ ...prev, isOpen: false }));
@@ -216,6 +217,7 @@ const AttendeeList = (props: IAttendeeList) => {
                 onLogin={onLogin}
                 searchParams={searchParams}
                 isAdminInAllEvents={isAdminInAllEvents}
+                newSearchParams={newSearchParams}
               />
               {isAttendeeLoading && <TableLoader />}
               <div ref={observerRef} className="scroll-observer"></div>

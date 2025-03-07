@@ -20,11 +20,13 @@ interface IGuestList {
   onLogin: () => void;
   searchParams: any;
   isAdminInAllEvents: any;
+  newSearchParams: URLSearchParams;
 }
 
 const GuestList = (props: IGuestList) => {
   const userInfo = props?.userInfo;
   const eventDetails = props?.eventDetails;
+  const newSearchParams = props?.newSearchParams;
   const showTelegram = props?.showTelegram;
   const filteredList = props?.items;
   const selectedGuests = props?.selectedGuests;
@@ -34,7 +36,6 @@ const GuestList = (props: IGuestList) => {
   const onLogin = props.onLogin;
   const searchParams = props?.searchParams;
   const isAdminInAllEvents = props?.isAdminInAllEvents;
-
   const analytics = useIrlAnalytics();
   const router = useRouter();
 
@@ -95,6 +96,7 @@ const GuestList = (props: IGuestList) => {
                   isLoggedIn={isLoggedIn}
                   onLogin={onLogin}
                   isAdminInAllEvents={isAdminInAllEvents}
+                  newSearchParams={newSearchParams}
                 />
               </div>
             );

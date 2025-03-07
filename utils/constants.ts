@@ -163,6 +163,7 @@ export const SIGN_UP_ANALYTICS_EVENTS = {
   SIGN_UP_FORM_CANCEL: 'sign-up-form-cancel',
   SIGN_UP_POLICY_URL_CLICK: 'sign-up-policy-url-click',
   SIGN_UP_HOME_CLICK_AFTER_SUCCESS: 'sign-up-home-click-after-success',
+  SIGN_UP_MEMBER_CLICK_BY_ADMIN_OR_LEAD: 'sign-up-member-click-by-admin-or-lead',
 };
 
 export const PROJECT_ANALYTICS_EVENTS = {

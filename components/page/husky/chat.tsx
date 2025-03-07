@@ -9,7 +9,6 @@ import { DAILY_CHAT_LIMIT, TOAST_MESSAGES } from '@/utils/constants';
 import { generateUUID, getUniqueId, isMobileDevice } from '@/utils/common.utils';
 import ChatHome from './chat-home';
 import { IAnalyticsUserInfo } from '@/types/shared.types';
-import { useMessages } from '@/hooks/useMessages';
 import { getUserCredentials } from '@/utils/auth.utils';
 import RegisterFormLoader from '@/components/core/register/register-form-loader';
 import { getChatCount, updateLimitType, updateChatCount, checkRefreshToken } from '@/utils/husky.utlils';
@@ -18,6 +17,8 @@ import { createHuskyThread, createThreadTitle } from '@/services/husky.service';
 import { useSidebar } from './sidebar';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { toast } from 'react-toastify';
+import { experimental_useObject as useObject } from '@ai-sdk/react';
+import { z } from 'zod';
 
 interface ChatProps {
   isLoggedIn: boolean;
@@ -36,19 +37,123 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const { state } = useSidebar();
-  const { messages, setMessages, isAnswerLoading, addMessage, chatIsLoading, submitChat, stopChat, submitSql } = useMessages(initialMessages, threadUid, userInfo);
+  const [messages, setMessages] = useState<any[]>(initialMessages ?? []);
+  const messagesRef = useRef<any[]>(initialMessages ?? []);
+  const fromRef = useRef<string>(from);
+  const threadUidRef = useRef<string | undefined>(threadUid);
+  const [isAnswerLoading, setIsAnswerLoading] = useState(false);
   const [question, setQuestion] = useState('');
   const analytics = useHuskyAnalytics();
 
+  const {
+    object: chatObject,
+    isLoading: chatIsLoading,
+    submit: submitChat,
+    error: chatError,
+    stop: stopChat,
+  } = useObject({
+    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/contextual`,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    schema: z.object({
+      content: z.string(),
+      followUpQuestions: z.array(z.string()),
+      sources: z.array(z.string()).optional(),
+      actions: z
+        .array(
+          z.object({
+            name: z.string(),
+            directoryLink: z.string(),
+            type: z.string(),
+          })
+        )
+        .optional(),
+    }),
+    onFinish: async () => {
+      setIsAnswerLoading(false);
+    },
+    onError: (error) => {
+      console.error('chatError', error);
+      setIsAnswerLoading(false);
+    },
+  });
+
+  const addMessage = (question: string) => {
+    setMessages((prev) => {
+      const newMessages = [
+        ...prev,
+        {
+          question,
+          answer: '',
+          followUpQuestions: [],
+          sources: [],
+          actions: [],
+          sql: [],
+        },
+      ];
+      messagesRef.current = newMessages;
+      return newMessages;
+    });
+    setIsAnswerLoading(true);
+  };
+
+  // Update messagesRef whenever messages state changes
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Update fromRef whenever from prop changes
+  useEffect(() => {
+    fromRef.current = from;
+  }, [from]);
+
+  // Update threadUidRef whenever threadUid prop changes
+  useEffect(() => {
+    threadUidRef.current = threadUid;
+  }, [threadUid]);
+
   // Checks and sets the thread ID for the current chat session
   const checkAndSetThreadId = useCallback(() => {
-    if (threadUid && messages.length > 0) {
-      return threadUid;
+    if (threadUidRef.current && messagesRef.current.length > 0) {
+      return threadUidRef.current;
     }
     const newThreadUid = getUniqueId();
     setThreadUid(newThreadUid);
+    threadUidRef.current = newThreadUid;
     return newThreadUid;
-  }, [messages, threadUid, setThreadUid]);
+  }, [setThreadUid]);
+
+  useEffect(() => {
+    if (chatError) {
+      setMessages((prev) => {
+        if (prev.length === 0) return prev;
+        return prev.map((msg, index) => (index === prev.length - 1 ? { ...msg, answer: '', isError: true } : msg));
+      });
+    }
+
+    if (chatObject?.content && chatIsLoading) {
+      setIsAnswerLoading(false);
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const lastIndex = newMessages.length - 1;
+        newMessages[lastIndex] = {
+          ...newMessages[lastIndex],
+          answer: chatObject?.content || newMessages[lastIndex]?.answer || '',
+          followUpQuestions: chatObject?.followUpQuestions || newMessages[lastIndex]?.followUpQuestions || [],
+          sources: chatObject?.sources || newMessages[lastIndex]?.sources || [],
+          actions: chatObject?.actions || newMessages[lastIndex]?.actions || [],
+          sql: [],
+        };
+
+        return newMessages;
+      });
+    }
+  }, [chatObject, chatIsLoading, chatError]);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
 
   // handle all chat submission
   const handleChatSubmission = useCallback(async ({ question, type }: { question: string; type: 'prompt' | 'followup' | 'user-input'; previousContext?: { question: string; answer: string } | null }) => {
@@ -84,8 +189,8 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
         ...(userInfo?.uid && { directoryId: userInfo?.uid }),
       };
 
-      if (from === 'blog' && messages.length === 1) {
-        const message = messages[messages.length - 1];
+      if (fromRef.current === 'blog' && messagesRef.current.length === 1) {
+        const message = messagesRef.current[messagesRef.current.length - 1];
         const chatUid = generateUUID(); // check and set the thread ID for the current chat session
         submitParams.chatSummary = {
           user: message.question,
@@ -100,28 +205,21 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
 
       analytics.trackAiResponse('initiated', type, false, question);
 
-      if (hasRefreshToken) {
-        if (threadUid && from !== 'blog') {
-          submitChat(submitParams); // submit chat from blog
-        } else {
-          if (messages.length === 0 || (from === 'blog' && messages.length === 1)) {
-            const threadResponse = await createHuskyThread(authToken, threadId); // create new thread
-            if (threadResponse) {
-            const titleResponse = await createThreadTitle(authToken, threadId, question); //create thread title
-            submitChat(submitParams);
-            if (titleResponse.isError) {
-              console.error('Error creating thread title:', titleResponse.status);
-            } else {
-              document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
-            }
-          }
-        } else {
-          submitChat(submitParams);
-          document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+      if (!hasRefreshToken) {
+        submitChat(submitParams);
+      }
+
+      if ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1)) {
+        const threadResponse = await createHuskyThread(authToken, threadId); // create new thread
+        if (threadResponse) {
+          const [titleResponse] = await Promise.all([createThreadTitle(authToken, threadId, question), submitChat(submitParams)]); //create thread title
+          if (titleResponse) {
+            document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
           }
         }
       } else {
         submitChat(submitParams);
+        document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
       }
       analytics.trackAiResponse('success', type, false, question);
     } catch (error) {
@@ -129,7 +227,7 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       analytics.trackAiResponse('error', type, false, question);
     }
-  }, [messages, threadUid]);
+  }, [messages, threadUid, setThreadUid, from, isLoggedIn, userInfo, initialMessages, chatError, chatObject, chatIsLoading, checkAndSetThreadId, addMessage, submitChat, analytics]);
 
   // handle husky input submission
   const onHuskyInput = (query: string) => handleChatSubmission({ question: query, type: 'user-input' });
@@ -242,6 +340,7 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
               messages={messages}
               onChatSubmission={handleChatSubmission}
               isAnswerLoading={isAnswerLoading}
+              isLoadingObject={chatIsLoading}
               onFeedback={onFeedback}
               onRegenerate={onRegenerate}
               onCopyAnswer={onCopyAnswer}

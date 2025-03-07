@@ -174,9 +174,15 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       fetchHistory(false); // Don't show loading when called via event listener
     };
 
+    const handleEmptyThread = () => {
+      setThreadUid(null);
+    };
+
     document.addEventListener('refresh-husky-history', handleRefreshHistory);
+    document.addEventListener('empty-thread', handleEmptyThread);
     return () => {
       document.removeEventListener('refresh-husky-history', handleRefreshHistory);
+      document.removeEventListener('empty-thread', handleEmptyThread);
     };
   }, []);
   return (

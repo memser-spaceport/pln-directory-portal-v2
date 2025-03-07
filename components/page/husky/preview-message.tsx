@@ -25,9 +25,11 @@ interface PreviewMessageProps {
   onRegenerate: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
+  isLoadingObject: boolean;
+  isAnswerLoading: boolean;
 }
 
-const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onChatSubmission, isLastIndex, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer }) => {
+const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onChatSubmission, isLastIndex, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject, isAnswerLoading }) => {
   return (
     <div className={`preview-message`}>
       {/* question */}
@@ -72,7 +74,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onChatSubmissi
 
               {/* follow up questions */}
               {message.followUpQuestions?.length > 0 && (
-                <FollowupQuestions isLoadingObject={false} isAnswerLoading={false} chatIndex={0} onFollowupClicked={onChatSubmission} followupQuestions={message.followUpQuestions} />
+                <FollowupQuestions isLoadingObject={isLoadingObject} isAnswerLoading={isAnswerLoading} chatIndex={0} onFollowupClicked={onChatSubmission} followupQuestions={message.followUpQuestions} />
               )}
 
               {/* related results */}

@@ -38,7 +38,6 @@ const GuestList = (props: IGuestList) => {
   const isAdminInAllEvents = props?.isAdminInAllEvents;
   const analytics = useIrlAnalytics();
   const router = useRouter();
-
   const onchangeSelectionStatus = (uid: string) => {
     setSelectedGuests((prevSelectedIds: string[]) => {
       if (prevSelectedIds.includes(uid)) {
@@ -52,7 +51,7 @@ const GuestList = (props: IGuestList) => {
   const onClearFilters = () => {
     let isTriggerLoader = false;
     const currentParams = new URLSearchParams(searchParams);
-    const allowedParams = ['event', 'type', 'location']; 
+    const allowedParams = ['event', 'type', 'location'];
 
     // Remove parameters not in the allowed list
     for (const [key, value] of Object.entries(searchParams)) {
@@ -63,8 +62,7 @@ const GuestList = (props: IGuestList) => {
     }
     triggerLoader(isTriggerLoader);
     router.push(`${window.location.pathname}?${currentParams.toString()}`);
-
-  }
+  };
 
   useEffect(() => {
     document.dispatchEvent(
@@ -103,7 +101,10 @@ const GuestList = (props: IGuestList) => {
           })}
         {filteredList.length === 0 && (
           <div className="guestList__empty">
-            No results found for the applied input <span role='button' onClick={onClearFilters} className="guestList__empty__reset">Reset to default</span>
+            No results found for the applied input{' '}
+            <span role="button" onClick={onClearFilters} className="guestList__empty__reset">
+              Reset to default
+            </span>
           </div>
         )}
       </div>

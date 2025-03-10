@@ -46,7 +46,6 @@ const AttendeeList = (props: IAttendeeList) => {
   const currentEventNames = props?.currentEventNames;
   const locationEvents = props?.locationEvents;
   const isAdminInAllEvents = checkAdminInAllEvents(searchParams?.type, locationEvents?.upcomingEvents, locationEvents?.pastEvents);
-
   const defaultTopics = IRL_DEFAULT_TOPICS?.split(',') ?? [];
 
   const [updatedEventDetails, setUpdatedEventDetails] = useState({ ...eventDetails });

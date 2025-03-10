@@ -210,15 +210,21 @@ export function sortPastEvents(events: any[]) {
 
   return events; // Return the sorted array if needed
 }
-
 export const transformMembers = (result: any, currentEvents: string[]) => {
   if (!Array.isArray(result)) return []; // Return empty array if result is not iterable
 
   return result.map((guest: any) => {
     const { member, team, events } = guest || {};
     const memberTeams = member?.teamMemberRoles || [];
-    const validEvents = events?.filter((event: any) => currentEvents.includes(event?.name));
+    const validEvents = events?.filter((event: any) => currentEvents.includes(event?.name)) || [];
 
+    const eventSet = new Set();
+    const uniqueEvents = validEvents.filter((event: any) => {
+      if(eventSet.has(event?.uid)) return false;
+      eventSet.add(event?.uid);
+      return true;
+    })
+    
     return {
       memberUid: guest?.memberUid,
       memberName: member?.name,
@@ -231,8 +237,8 @@ export const transformMembers = (result: any, currentEvents: string[]) => {
         id: tm?.team?.uid || '',
         logo: tm?.team?.logo?.url || '',
       })),
-      eventNames: validEvents.map((event: any) => event?.name),
-      events: validEvents.map((event: any) => ({
+      eventNames: uniqueEvents.map((event: any) => event?.name),
+      events: uniqueEvents.map((event: any) => ({
         slugURL: event?.slugURL || '',
         uid: event?.uid || '',
         name: event?.name || '',
@@ -241,20 +247,21 @@ export const transformMembers = (result: any, currentEvents: string[]) => {
         logo: event?.logo?.url || '',
         isHost: event?.isHost || false,
         isSpeaker: event?.isSpeaker || false,
+        topics: event?.topics || [],
+        reason: event?.reason || '',
         hostSubEvents: event?.additionalInfo?.hostSubEvents || [],
         speakerSubEvents: event?.additionalInfo?.speakerSubEvents || [],
         type: event?.type || '',
         resources: event?.resources || [],
       })),
-      topics: guest?.topics || [],
       officeHours: member?.officeHours || '',
       telegramId: member?.telegramHandler || '',
-      reason: guest?.reason || '',
       additionalInfo: guest?.additionalInfo || {},
       count: guest?.count || 0,
     };
   });
 };
+
 
 export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
   const { type, sortDirection, sortBy, search, attending, attendees, topics, event } = searchParams;
@@ -374,11 +381,11 @@ export const transformGuestDetail = (result: any, gatherings:any) => {
       speakerSubEvents: item?.additionalInfo?.speakerSubEvents || [],
       type: item?.event?.type || '',
       resources: item?.event?.resources || [],
+      topics: item?.event?.topics || [],
+      reason: item?.event?.reason || '',
     })),
-    topics: detail?.topics || []  ,
     officeHours: detail?.member?.officeHours || '',
     telegramId: detail?.member?.telegramHandler || '',
-    reason: detail?.reason || '',
     additionalInfo: detail?.additionalInfo || {},
     count: detail?.count || 0,
   };

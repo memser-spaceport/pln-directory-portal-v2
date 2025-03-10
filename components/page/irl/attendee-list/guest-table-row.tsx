@@ -46,8 +46,8 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const teamUid = guest?.teamUid ?? '';
   const teamName = guest?.teamName ?? '';
   const teamLogo = guest?.teamLogo || '/icons/team-default-profile.svg';
-  const reason = guest?.reason;
-  const topics = guest?.topics ?? [];
+  const reason = guest?.events?.[0]?.reason || '';
+  const topics = guest?.events[0]?.topics ?? [];
   const checkInDate = guest?.additionalInfo?.checkInDate;
   const checkOutDate = guest?.additionalInfo?.checkOutDate;
   const telegramId = guest?.telegramId;
@@ -138,8 +138,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
       }),
       memberUid: guest?.memberUid,
       additionalInfo: { checkInDate: guest?.additionalInfo?.checkInDate || '', checkOutDate: guest?.additionalInfo?.checkOutDate ?? '' },
-      topics: guest?.topics,
-      reason: guest?.reason,
       telegramId: guest?.telegramId,
       officeHours: guest?.officeHours ?? '',
     };

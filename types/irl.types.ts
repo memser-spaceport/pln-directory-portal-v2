@@ -35,6 +35,8 @@ export interface IIrlEvent {
   name: string;
   isHost: boolean;
   isSpeaker: boolean;
+  reason: string;
+  topics: string[];
   hostSubEvents: {
     link: string;
     name: string;
@@ -57,8 +59,6 @@ export interface IGuest {
   memberLogo: string;
   events: IIrlEvent[];
   teams: IIrlGuestTeam[];
-  topics: string[];
-  reason: string;
   telegramId: string;
   officeHours: string;
   additionalInfo: any;

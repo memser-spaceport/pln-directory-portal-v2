@@ -15,10 +15,21 @@ import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
 
 export default async function Page({ searchParams }: any) {
-  const { isError, userInfo, isLoggedIn, followers, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames, searchParams:newSearchParams } = await getPageData(
-    searchParams
-  );
-
+  const {
+    isError,
+    userInfo,
+    isLoggedIn,
+    followers,
+    locationDetails,
+    eventDetails,
+    showTelegram,
+    eventLocationSummary,
+    guestDetails,
+    isUserGoing,
+    isLocationError,
+    currentEventNames,
+    searchParams: newSearchParams,
+  } = await getPageData(searchParams);
   if (isLocationError) {
     return <IrlErrorPage />;
   } else if (isError) {
@@ -30,7 +41,7 @@ export default async function Page({ searchParams }: any) {
       <div className={styles.irlGatherings__cn}>
         {/* Header */}
         <section className={styles.irlGatherings__header}>
-          <IrlHeader/>
+          <IrlHeader />
         </section>
         {/* Locations */}
         <section className={styles.irlGatheings__locations}>
@@ -38,11 +49,27 @@ export default async function Page({ searchParams }: any) {
         </section>
         {/* Events */}
         <section className={styles.irlGatherings__events}>
-          <IrlEvents isUserGoing={isUserGoing as boolean} userInfo={userInfo} isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} guestDetails={guestDetails} locationDetails={locationDetails}/>
+          <IrlEvents
+            isUserGoing={isUserGoing as boolean}
+            userInfo={userInfo}
+            isLoggedIn={isLoggedIn}
+            eventDetails={eventDetails}
+            searchParams={searchParams}
+            guestDetails={guestDetails}
+            locationDetails={locationDetails}
+          />
         </section>
         {/* Follow Gathering */}
         <section className={styles.irlGatheings__follow}>
-          <IrlFollowGathering eventLocationSummary={eventLocationSummary} followers={followers ?? []} userInfo={userInfo} isLoggedIn={isLoggedIn} searchParams={searchParams} eventDetails={eventDetails} guestDetails={guestDetails}/>
+          <IrlFollowGathering
+            eventLocationSummary={eventLocationSummary}
+            followers={followers ?? []}
+            userInfo={userInfo}
+            isLoggedIn={isLoggedIn}
+            searchParams={searchParams}
+            eventDetails={eventDetails}
+            guestDetails={guestDetails}
+          />
         </section>
         {/* Guests */}
         <section className={styles.irlGatheings__guests}>
@@ -139,6 +166,7 @@ const getPageData = async (searchParams: any) => {
       getGuestEvents(uid, authToken),
       getFollowersByLocation(uid, authToken),
     ]);
+
     if (events?.isError) {
       return { isError: true };
     }
@@ -147,15 +175,15 @@ const getPageData = async (searchParams: any) => {
     }
 
     followers = followersResponse?.data ?? [];
-    if(followers?.length>0){
-      followers = followers?.sort((a:any, b:any) => {
-        if (!a.logo && b.logo) return 1; 
-        if (a.logo && !b.logo) return -1; 
-        return a.name.localeCompare(b.name); 
+    if (followers?.length > 0) {
+      followers = followers?.sort((a: any, b: any) => {
+        if (!a.logo && b.logo) return 1;
+        if (a.logo && !b.logo) return -1;
+        return a.name.localeCompare(b.name);
       });
     }
     let guestDetails = events as any;
-    const selectedTypeEvents = (eventType === 'past' || eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) ? eventDetails.pastEvents : eventDetails.upcomingEvents;
+    const selectedTypeEvents = eventType === 'past' || (eventDetails?.upcomingEvents?.length === 0 && eventDetails?.pastEvents?.length > 0) ? eventDetails.pastEvents : eventDetails.upcomingEvents;
 
     guestDetails.events = selectedTypeEvents;
     guestDetails.currentGuest = currentGuestResponse?.guests?.[0]?.memberUid === userInfo?.uid ? currentGuestResponse?.guests?.[0] : null;
@@ -184,7 +212,7 @@ const getPageData = async (searchParams: any) => {
       locationDetails,
       currentEventNames,
       followers,
-      searchParams
+      searchParams,
     };
   } catch (e) {
     console.error('Error fetching IRL data', e);

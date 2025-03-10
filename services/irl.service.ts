@@ -19,10 +19,7 @@ export const getAllLocations = async () => {
   const result = await response.json();
   result.sort((a: { priority: number }, b: { priority: number }) => a.priority - b.priority);
 
-  const filteredResult = result.filter(
-    (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[]; }) =>
-      item.pastEvents.length > 0 || item.upcomingEvents.length > 0
-  );
+  const filteredResult = result.filter((item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[] }) => item.pastEvents.length > 0 || item.upcomingEvents.length > 0);
 
   return filteredResult;
 };
@@ -54,10 +51,11 @@ export const getGuestsByLocation = async (location: string, searchParams: any, a
   const url = `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${location}/guests?&page=${currentPage}&limit=${limit}&${urlParams.toString()}`;
 
   let result = await fetchGuests(url, authToken);
+
   if (result.isError) return { isError: true };
 
   const transformedMembers = transformMembers(result, currentEventNames);
-
+  
   return { guests: transformedMembers, totalGuests: transformedMembers[0]?.count ?? 0 };
 };
 
@@ -123,7 +121,7 @@ export const editEventGuest = async (locationId: string, guestUid: string, paylo
   return { data: response };
 };
 
-export const getGuestEvents = async (locationId: string, authToken: string,) => {
+export const getGuestEvents = async (locationId: string, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/me/events`, {
     cache: 'force-cache',
     next: { tags: ['irl-guest-events'] },
@@ -163,44 +161,45 @@ export const getGuestDetail = async (guestId: string, locationId: string, authTo
   return await response.json();
 };
 
-
 export const getFollowersByLocation = async (locationId: string, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&pagination=false&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url,member.name,member.teamMemberRoles.team,member.teamMemberRoles.role,member.teamMemberRoles.mainTeam`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(''),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&pagination=false&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url,member.name,member.teamMemberRoles.team,member.teamMemberRoles.role,member.teamMemberRoles.mainTeam`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(''),
+    }
+  );
 
-  
   if (!response.ok) {
     return {
       isError: true,
     };
   }
-  
+
   const result = await response.json();
 
-
   const formattedData = result?.map((follower: any) => {
-    const teams = follower?.member?.teamMemberRoles?.map((teamMemberRole: any) => ({
-      id: teamMemberRole.team?.uid || '',
-      name: teamMemberRole.team?.name || '',
-      role: teamMemberRole.role || 'Contributor',
-      teamLead: !!teamMemberRole.teamLead,
-      mainTeam: !!teamMemberRole.mainTeam,
-      logo: teamMemberRole?.team?.logo?.url || '',
-    })) || [];
-  
+    const teams =
+      follower?.member?.teamMemberRoles?.map((teamMemberRole: any) => ({
+        id: teamMemberRole.team?.uid || '',
+        name: teamMemberRole.team?.name || '',
+        role: teamMemberRole.role || 'Contributor',
+        teamLead: !!teamMemberRole.teamLead,
+        mainTeam: !!teamMemberRole.mainTeam,
+        logo: teamMemberRole?.team?.logo?.url || '',
+      })) || [];
+
     const teamAndRoles = teams.map((team: any) => ({
       teamTitle: team.name,
       role: team.role,
       teamUid: team.id,
     }));
-  
+
     const teamLead = teams.some((team: any) => team.teamLead);
     // const roles = Array.from(new Set(teams.map((team: any) => team.role)));
     const roles = teams.filter((team: any) => team.mainTeam).map((team: any) => team.role);
-  
+
     return {
       uid: follower?.uid,
       name: follower?.member?.name,
@@ -214,8 +213,8 @@ export const getFollowersByLocation = async (locationId: string, authToken: stri
       roles: Array.isArray(roles) ? roles : [],
     };
   });
-  
+
   return {
     data: formattedData,
-  }
-}
+  };
+};

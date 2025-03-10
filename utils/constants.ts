@@ -478,6 +478,24 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+    {
+        title: 'Version 4.1.5 - Directory Enhancements',
+        tag: 'Improvements',
+        date: '07, Mar 2025',
+        shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li>Team Leads can now add members to their teams and submit sign up requests for new users using the enhanced Settings module</li>
+        <li>Enhanced Husky's chat functionality with support for chat history and threaded conversations</li>
+        </ul>
+
+        <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li>Filter issue fix on the IRL Gatherings module's Attendees table</li>
+        </ul>
+        </div>`,
+      },
   {
     title: 'Version 4.1.4 - Directory Enhancements',
     tag: 'Improvements',

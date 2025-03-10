@@ -53,6 +53,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
       const fetchThread = async () => {
         const { authToken } = await getUserCredentials(isLoggedIn);
         const thread = await getHuskyThreadById(threadId, authToken);
+        setType('')
         setInitialMessages(thread);
         triggerLoader(false);
         const scrollableElement = document.querySelector('body');

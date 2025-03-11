@@ -478,6 +478,19 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.6 - Protocol Labs Events Enhancements',
+    tag: 'Improvements',
+    date: '11, Mar 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Redesigned PL Events Interface: An upgraded user interface for Protocol Labs Events, providing a modernized and more intuitive user experience</li>
+    <li>Frontend Event Management: Introducing the capability to submit and manage events directly through the frontend, enhancing usability and optimizing workflows</li>
+    </ul>
+    </div>`,
+  },
     {
         title: 'Version 4.1.5 - Directory Enhancements',
         tag: 'Improvements',

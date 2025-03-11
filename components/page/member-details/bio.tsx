@@ -8,7 +8,7 @@ import clip from 'text-clipper';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { updateMember, updateMemberBio } from '@/services/members.service';
-import { ADMIN_ROLE } from '@/utils/constants';
+import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -123,6 +123,10 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
     }
   };
 
+  const onMemberBioDisclaimerClickHandler = () => {
+    analytics.onMemberBioDisclaimerClickHandler(getAnalyticsMemberInfo(member));
+  }
+
   return (
     <>
       <div className="bioCn">
@@ -164,6 +168,16 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
                     </span>
               </button>
             )}
+            <div className='bioCn__content__disclaimercon' onClick={onMemberBioDisclaimerClickHandler}>
+              <a href={PAGE_ROUTES.HUSKY}  target='_blank' className='bioCn__content__disclaimercon__link'>
+                  <img src='/icons/husky/husky-logo-small.svg' height={14} width={14} alt='Husky Logo' />
+                  <span className='bioCn__content__disclaimercon__link__text'>Generated with Husky AI </span>
+              </a>
+              <span className='bioCn__content__disclaimercon__text'>
+              (may contain inaccuracies)
+              </span>
+            </div>
+
           </div>
         )}
         {showEditor && (
@@ -238,6 +252,38 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
             height: 12px;
             display: inline-block;
             margin-left: 4px;
+          }
+
+          .bioCn__content__disclaimercon {
+          margin-top: 12px;}
+
+          .bioCn__content__disclaimercon {
+          display: flex;
+          gap: 4px;
+          align-items: center;}
+
+          .bioCn__content__disclaimercon__link {
+          background: inherit;
+          padding: 4px 6px;
+          display: flex;
+          gap: 4px;
+          align-items: center;
+          border: 1px solid #CBD5E1;
+          border-radius: 4px;
+          }
+
+          .bioCn__content__disclaimercon__link__text {
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 16px;
+          color:  #156FF7;;
+          }
+
+          .bioCn__content__disclaimercon__text {
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 16px;
+          color: #475569;
           }
 
         @media (min-width: 1024px) {

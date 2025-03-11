@@ -343,6 +343,13 @@ export const useMemberAnalytics = () => {
       user,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS, params);
+  } 
+
+  function onMemberBioDisclaimerClickHandler(member: IAnalyticsMemberInfo | null){
+    const params = {
+      member,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_BIO_DISCLAIMER_CLICKED, params);
   }
 
   return {
@@ -383,6 +390,7 @@ export const useMemberAnalytics = () => {
     onClickSeeMoreIrlContribution,
     onClickEventIrlContribution,
     onAddOfficeHourClicked,
-    onEditOfficeHourClicked
+    onEditOfficeHourClicked,
+    onMemberBioDisclaimerClickHandler,
   };
 };

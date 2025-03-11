@@ -207,6 +207,8 @@ const Chat: React.FC<ChatProps> = ({ isLoggedIn, userInfo, initialMessages, thre
 
       if (!hasRefreshToken) {
         submitChat(submitParams);
+        analytics.trackAiResponse('success', type, false, question);
+        return;
       }
 
       if ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1)) {

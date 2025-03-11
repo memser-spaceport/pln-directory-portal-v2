@@ -149,6 +149,21 @@ export const getTopicsByLocation = async (locationId: string, type: string) => {
   return await response.json();
 };
 
+export const getPastTopicsAndReasonForUser = async (locationId: string, userId: string, authToken: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${userId}/topics`, {
+    cache: 'force-cache',
+    next: { tags: ['irl-locations-topic'] },
+    method: 'GET',
+    headers: getHeader(authToken),
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  return await response.json();
+};
+
 export const getGuestDetail = async (guestId: string, locationId: string, authToken: string, type: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestId}?type=${type}`, {
     cache: 'no-store',

@@ -53,6 +53,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   const analytics = useIrlAnalytics();
 
   const [formInitialValues, setFormInitialValues] = useState<any>(props?.formData);
+  const [pastTopicsAndReason,setPastTopicsAndReason]= useState(props?.formData?.pastTopicsAndReason ?? null);
   const isAllowedToManageGuests = canUserPerformEditAction(userInfo?.roles ?? [], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const [isVerifiedMember, setIsVerifiedMember] = useState();
   const [guestGoingEvents, setGuestGoingEvents] = useState([]);
@@ -71,6 +72,12 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       ref.current.showModal();
     }
   }, []);
+
+  useEffect(()=>{
+    if(formInitialValues?.pastTopicsAndReason){
+      setPastTopicsAndReason(formInitialValues.pastTopicsAndReason)
+    }
+  },[formInitialValues])
 
   function getGatherings(): IIrlEvent[] {
     if (searchParams?.type === 'past') {
@@ -369,10 +376,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
           </div>
           <div>
-            <Topics defaultTags={defaultTags} selectedItems={formInitialValues?.topics ?? []} />
+            <Topics defaultTags={defaultTags} selectedItems={(mode === IAM_GOING_POPUP_MODES.ADD || (mode === IAM_GOING_POPUP_MODES.ADMINADD && pastTopicsAndReason) )? pastTopicsAndReason?.topics: (formInitialValues?.topics ?? [])} />
           </div>
           <div>
-            <TopicsDescription initialValue={formInitialValues?.reason} />
+            <TopicsDescription initialValue={ (mode === IAM_GOING_POPUP_MODES.ADD  || (mode === IAM_GOING_POPUP_MODES.ADMINADD && pastTopicsAndReason) ) ? pastTopicsAndReason?.reason : (formInitialValues?.reason ?? []) } />
           </div>
 
           <div id="telegram-section">

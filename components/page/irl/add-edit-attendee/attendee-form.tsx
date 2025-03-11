@@ -73,15 +73,15 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   }, []);
 
   function getGatherings(): IIrlEvent[] {
-    if (searchParams?.type === 'past') {
-      if (searchParams?.event) {
-        const filteredList = props?.allGatherings.filter((gathering: IIrlEvent) => gathering?.slugURL === searchParams?.event);
-        if (filteredList?.length > 0) {
-          return filteredList;
-        }
-      }
-      return [];
-    }
+    // if (searchParams?.type === 'past') {
+    //   if (searchParams?.event) {
+    //     const filteredList = props?.allGatherings.filter((gathering: IIrlEvent) => gathering?.slugURL === searchParams?.event);
+    //     if (filteredList?.length > 0) {
+    //       return filteredList;
+    //     }
+    //   }
+    //   return [];
+    // }
     return props?.allGatherings ?? [];
   }
 
@@ -363,6 +363,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               userInfo={userInfo}
               guests={allGuests}
               isVerifiedMember={isVerifiedMember}
+              eventType={eventType}
             />
           </div>
           <div>

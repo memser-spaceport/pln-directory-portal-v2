@@ -19,6 +19,7 @@ interface IGatherings {
   setErrors: SetStateAction<any>;
   loggedInUserInfo: IUserInfo | null;
   isVerifiedMember: any;
+  eventType: string;
 }
 
 const Gatherings = (props: IGatherings) => {
@@ -30,13 +31,13 @@ const Gatherings = (props: IGatherings) => {
   const initialValues = props?.initialValues;
   const guests = props?.guests;
   const isVerifiedMember = props?.isVerifiedMember;
+  const eventType = props?.eventType;
 
   const isAdmin = Array.isArray(loggedInUserInfo?.roles) && loggedInUserInfo?.roles.includes(ADMIN_ROLE);
 
   const isGatheringsError = errors?.gatheringErrors?.length > 0 ? true : false;
 
   const [selectedGatherings, setSelectedGatherings] = useState<any[]>([]);
-
   function getIsAlreadyBooked(gathering: any) {
     return initialValues?.events?.some((selectedGathering: any) => selectedGathering?.uid === gathering?.uid);
   }
@@ -80,9 +81,16 @@ const Gatherings = (props: IGatherings) => {
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && !isBooked && isAdmin && (
                       <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
                     )}
-                    {gathering?.type != EVENT_TYPE.INVITE_ONLY && (
-                      <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
-                    )}
+
+                    {eventType === 'past'
+                      ? gathering?.type != EVENT_TYPE.INVITE_ONLY && (
+                        <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} />
+                      )
+                      : gathering?.type != EVENT_TYPE.INVITE_ONLY && (
+                        <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
+                      )
+                    }
+
                   </div>
                   <div className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}>
                     <div className="gatrs__all__gatr__dteandname__dat">{getFormattedDateString(gathering.startDate, gathering.endDate)}</div>

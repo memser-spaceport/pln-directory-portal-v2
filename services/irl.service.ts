@@ -151,14 +151,13 @@ export const getTopicsByLocation = async (locationId: string, type: string) => {
 
 export const getPastTopicsAndReasonForUser = async (locationId: string, userId: string, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${userId}/topics`, {
-    cache: 'force-cache',
-    next: { tags: ['irl-locations-topic'] },
+    cache: 'no-store',
     method: 'GET',
     headers: getHeader(authToken),
   });
 
   if (!response.ok) {
-    return [];
+    return { isError: true };
   }
 
   return await response.json();

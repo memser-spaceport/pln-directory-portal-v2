@@ -74,7 +74,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   }, []);
 
   useEffect(()=>{
-    if(formInitialValues?.pastTopicsAndReason){
+    if(formInitialValues?.pastTopicsAndReason && formInitialValues?.pastTopicsAndReason?.topics && formInitialValues?.pastTopicsAndReason?.reason){
       setPastTopicsAndReason(formInitialValues.pastTopicsAndReason)
     }
   },[formInitialValues])

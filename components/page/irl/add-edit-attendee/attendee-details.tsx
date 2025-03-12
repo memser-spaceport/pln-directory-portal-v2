@@ -114,7 +114,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
             const formData: any = {};
             if(selectedMember.uid){
               const response = await getPastTopicsAndReasonForUser(location.uid,selectedMember.uid,authToken);
-              if(response){
+              if(!response.isError){
                 formData['pastTopicsAndReason'] = response;
               }
             }

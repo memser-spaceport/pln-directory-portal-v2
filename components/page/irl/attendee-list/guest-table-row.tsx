@@ -6,8 +6,8 @@ import { toast } from 'react-toastify';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
-import { getParsedValue } from '@/utils/common.utils';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, TOAST_MESSAGES } from '@/utils/constants';
+import { getAnalyticsMemberInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import { canUserPerformEditAction, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
 import { Tooltip as Popover } from './attendee-popover';
 import EventSummary from './event-summary';
@@ -159,6 +159,16 @@ const GuestTableRow = (props: IGuestTableRow) => {
     analytics.trackLoginToRespondBtnClick(location);
     onLogin();
   };
+
+  const onHuskyRedirectClickHandler = (e: any, guestName: string, memberUid: string) => {
+    const question = `Tell me about Anuj and list of events that he attending`;
+    e.stopPropagation();
+    e.preventDefault();
+    localStorage.setItem('input', question);
+    triggerLoader(true);
+    analytics.trackGuestListTableMemberHuskyRedirect({ id: memberUid, name: guestName });
+    router.push(PAGE_ROUTES.HUSKY);
+  };
   return (
     <>
       <div className={`gtr ${isUserGoing ? 'user__going' : ''}`}>
@@ -180,8 +190,20 @@ const GuestTableRow = (props: IGuestTableRow) => {
                 <Image alt="profile" loading="eager" height={32} width={32} layout="intrinsic" priority={true} className="gtr__guestName__li__img" src={guestLogo} />
               </div>
               <div className="gtr__guestName__li__txtWrpr">
-                <div title={guestName} className="gtr__guestName__li__txt ">
-                  {guestName}
+                <div className="gtr__guestName__li__txtcnt ">
+                  <span title={guestName} className="gtr__guestName__li__txtcnt__txt">
+                    {guestName}
+                  </span>
+
+                  <Tooltip
+                    trigger={
+                      <button onClick={(e) => onHuskyRedirectClickHandler(e, guestName, guestUid)} className="gtr__guestName__li__txtcnt__txt__discnt">
+                        <img src="/icons/husky/husky-logo-small.svg" height={12} width={12} alt="Husky Logo" />
+                      </button>
+                    }
+                    content={'Know more with Husky AI'}
+                    asChild
+                  />
                 </div>
                 <div className="gtr__guestName__li__info">
                   {newSearchParams.type === 'past'
@@ -376,6 +398,9 @@ const GuestTableRow = (props: IGuestTableRow) => {
         </div>
       </div>
       <style jsx>{`
+        button {
+          background: none;
+        }
         .gtr {
           display: flex;
           width: fit-content;
@@ -415,14 +440,34 @@ const GuestTableRow = (props: IGuestTableRow) => {
           gap: 2px;
         }
 
-        .gtr__guestName__li__txt {
+        .gtr__guestName__li__txtcnt {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .gtr__guestName__li__txtcnt__txt__discnt {
+          border-radius: 50%;
+          border: 1px solid #156ff7;
+          padding: 3px;
+          height: 17px;
+          width: 17px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .gtr__guestName__li__txtcnt__txt__discnt__link {
+          height: 12px;
+        }
+        .gtr__guestName__li__txtcnt__txt {
           font-size: 13px;
           line-height: 20px;
           color: #000000;
           display: -webkit-box;
           -webkit-box-orient: vertical;
           overflow: hidden;
-          -webkit-line-clamp: 2;
+          -webkit-line-clamp: 1;
         }
 
         .gtr__guestName__li__info {
@@ -435,7 +480,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
         .border-bottom {
           border-bottom: 0.5px solid #cbd5e1;
         }
-
 
         .gtr__team {
           display: flex;

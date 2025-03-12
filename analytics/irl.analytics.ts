@@ -18,6 +18,7 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_TABLE_FILTER_APPLY_BTN_CLICKED: 'irl-guest-list-table-filter-apply-btn-clicked',
     IRL_GUEST_LIST_TABLE_TEAM_CLICKED: 'irl-guest-list-table-team-clicked',
     IRL_GUEST_LIST_TABLE_MEMBER_CLICKED: 'irl-guest-list-table-member-clicked',
+    IRL_GUEST_LIST_TABLE_MEMBER_HUSKY_REDIRECT: 'irl-guest-list-table-member-husky-redirect',
     IRL_GUEST_LIST_TABLE_TELEGRAM_LINK_CLICKED: 'irl-guest-list-table-telegram-link-clicked',
     IRL_GUEST_LIST_TABLE_OFFICE_HOURS_LINK_CLICKED: 'irl-guest-list-table-office-hours-link-clicked',
     IRL_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED: 'irl-guest-list-table-add-office-hours-clicked',
@@ -547,6 +548,10 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_UPCOMING_EVENTS_BUTTON_CLICKED, {...params});
   }
 
+  function trackGuestListTableMemberHuskyRedirect(params: any) {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_TABLE_MEMBER_HUSKY_REDIRECT, {...params});
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -607,5 +612,6 @@ export const useIrlAnalytics = () => {
     trackAllEventsDropdownClicked,
     trackPastEventsDropdownClicked,
     trackUpcomingEventsDropdownClicked,
+    trackGuestListTableMemberHuskyRedirect,
   };
 };

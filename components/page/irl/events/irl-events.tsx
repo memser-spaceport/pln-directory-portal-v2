@@ -73,8 +73,8 @@ const IrlEvents = (props: IIrlEvents) => {
   }
 
   let eventType = getEventType(searchType, eventDetails);
-  const defaultEventType = eventType || 'All';
-  const [selectedEventsOption, setSelectedEventsOption] = useState(defaultEventType.charAt(0).toUpperCase() + defaultEventType.slice(1));
+  const selectedEventType = eventType || 'All';
+  const formattedEventType = selectedEventType.charAt(0).toUpperCase() + selectedEventType.slice(1);
 
   const handleUpcomingGathering = () => {
     const currentParams = new URLSearchParams(searchParams);
@@ -233,7 +233,6 @@ const IrlEvents = (props: IIrlEvents) => {
   }
 
   const handleEventsDropdownChange = (value: string) => {
-    setSelectedEventsOption(value);
 
     switch (value) {
       case 'Upcoming':
@@ -260,12 +259,12 @@ const IrlEvents = (props: IIrlEvents) => {
                   ...option,
                   count: option.value === 'All' ? eventDetails?.events?.length : option.value === 'Upcoming' ? eventDetails?.upcomingEvents?.length : eventDetails?.pastEvents?.length,
                 }))}
-                selectedOption={{ value: selectedEventsOption, label: selectedEventsOption }}
+                selectedOption={{ value: selectedEventType, label: formattedEventType }}
                 onItemSelect={(option) => handleEventsDropdownChange(option?.value)}
                 uniqueKey="value"
                 displayKey="label"
                 id="events-options-filter"
-                count={selectedEventsOption === 'All' ? eventDetails?.events?.length : selectedEventsOption === 'Upcoming' ? eventDetails?.upcomingEvents?.length : eventDetails?.pastEvents?.length}
+                count={formattedEventType === 'All' ? eventDetails?.events?.length : formattedEventType === 'Upcoming' ? eventDetails?.upcomingEvents?.length : eventDetails?.pastEvents?.length}
               />
             </div>
           ) : (

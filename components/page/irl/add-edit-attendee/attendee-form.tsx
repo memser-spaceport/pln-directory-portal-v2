@@ -32,6 +32,7 @@ interface IAttendeeForm {
   formData: any;
   getEventDetails: any;
   searchParams: any;
+  from?: string;
 }
 
 const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
@@ -51,6 +52,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
 
   const eventType = searchParams?.type === 'past' ? 'past' : 'upcoming';
   const analytics = useIrlAnalytics();
+  const from = props?.from ?? '';
 
   const [formInitialValues, setFormInitialValues] = useState<any>(props?.formData);
   const isAllowedToManageGuests = canUserPerformEditAction(userInfo?.roles ?? [], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
@@ -101,10 +103,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       const formData = new FormData(attendeeFormRef.current);
       const formattedData = transformObject(Object.fromEntries(formData));
 
-      if(eventType === 'past' && (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate)) {
-        const finalResult = mergeGuestEvents([...guestGoingEvents], [...formattedData.events]);
-        formattedData.events = finalResult;
-      }
+      // if(eventType === 'past' && (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate)) {
+      //   const finalResult = mergeGuestEvents([...guestGoingEvents], [...formattedData.events]);
+      //   formattedData.events = finalResult;
+      // }
 
       formattedData?.events?.map((event: any) => {    
         // Process both hostSubEvents and speakerSubEvents
@@ -291,7 +293,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER) }));
     }
 
-    if (formattedData.events.length === 0) {
+    if (formattedData.events.length === 0 && !(eventType === 'past' && from === 'list')) {
       isError = true;
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
     } else {
@@ -364,6 +366,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               guests={allGuests}
               isVerifiedMember={isVerifiedMember}
               eventType={eventType}
+              from={from}
             />
           </div>
           <div>

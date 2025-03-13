@@ -20,6 +20,7 @@ interface IGatherings {
   loggedInUserInfo: IUserInfo | null;
   isVerifiedMember: any;
   eventType: string;
+  from?: string;
 }
 
 const Gatherings = (props: IGatherings) => {
@@ -32,6 +33,7 @@ const Gatherings = (props: IGatherings) => {
   const guests = props?.guests;
   const isVerifiedMember = props?.isVerifiedMember;
   const eventType = props?.eventType;
+  const from = props?.from ?? '';
 
   const isAdmin = Array.isArray(loggedInUserInfo?.roles) && loggedInUserInfo?.roles.includes(ADMIN_ROLE);
 
@@ -71,11 +73,14 @@ const Gatherings = (props: IGatherings) => {
           <div className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length ? 'error' : ''}`}>
             {gatherings?.map((gathering: any, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
+              const isAllEventEditable = eventType === 'past' && from === 'list';
+              const isEventDisabled = isAllEventEditable?!isAllEventEditable:isBooked;
               return (
-                <div key={`${gathering.uid} - ${index}`} className={`gatrs__all__gatr  ${isBooked ? 'disable' : ''}`}>
+                <div key={`${gathering.uid} - ${index}`} className={`gatrs__all__gatr  ${isEventDisabled ? 'disable' : ''}`}>
                   <div className={`gatrs__all__gatr__ckbox`}>
-                    {gathering?.type === EVENT_TYPE.INVITE_ONLY && isBooked && (
-                      <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
+                    <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isEventDisabled} />
+                    {/* {gathering?.type === EVENT_TYPE.INVITE_ONLY && isBooked && (
+                    <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
                     )}
 
                     {gathering?.type === EVENT_TYPE.INVITE_ONLY && !isBooked && isAdmin && (
@@ -89,7 +94,7 @@ const Gatherings = (props: IGatherings) => {
                       : gathering?.type != EVENT_TYPE.INVITE_ONLY && (
                         <CustomCheckbox onSelect={() => onGatheringSelectClickHandler(gathering)} name={`events${index}-uid`} value={gathering.uid} initialValue={isBooked} disabled={isBooked} />
                       )
-                    }
+                    } */}
 
                   </div>
                   <div className={`${index + 1 < gatherings.length ? 'gatrs__all__gatr__bb' : ''} gatrs__all__gatr__dteandname`}>
@@ -97,16 +102,16 @@ const Gatherings = (props: IGatherings) => {
                     <div className="gatrs__all__gatr__dteandname__nmesec">
                       <img className="gatrs__all__gatr__dteandname__nmesec__logo" height={20} width={20} src={gathering?.logo?.url ? gathering?.logo?.url : '/icons/irl-event-default-logo.svg'} />
                       <span className="gatrs__all__gatr__dteandname__nmesec__name">{gathering?.name}</span>
-                
+
                       {gathering?.type === EVENT_TYPE.INVITE_ONLY && (
-                      <Tooltip
-                        content={'This is an invite only event'}
+                        <Tooltip
+                          content={'This is an invite only event'}
                         trigger={
                           <img className='gatrs__all__gatr__dteandname__nmesec__invite-only' src="/icons/invite-only-circle.svg" height={16} width={16} />
                         }
-                        asChild
-                      />
-                    )}
+                          asChild
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

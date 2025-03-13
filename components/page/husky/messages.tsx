@@ -18,11 +18,11 @@ interface MessagesProps {
   onRegenerate: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
-  onChatSubmission: any;
+  onFollowupClicked: (question: string) => void;
   isLoadingObject: boolean;
 }
 
-const Messages: React.FC<MessagesProps> = ({ messages, onChatSubmission, isAnswerLoading, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject }) => {
+const Messages: React.FC<MessagesProps> = ({ messages, onFollowupClicked, isAnswerLoading, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject }) => {
   return (
     <>
       <div className="chat__messages">
@@ -31,7 +31,7 @@ const Messages: React.FC<MessagesProps> = ({ messages, onChatSubmission, isAnswe
             key={`message-${index}`}
             message={message}
             isLastIndex={index === messages.length - 1}
-            onChatSubmission={onChatSubmission}
+            onFollowupClicked={onFollowupClicked}
             onFeedback={onFeedback}
             onRegenerate={onRegenerate}
             onQuestionEdit={onQuestionEdit}

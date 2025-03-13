@@ -20,7 +20,7 @@ interface PreviewMessageProps {
     sql: Array<{ name: string; type: string; source: string }>;
   };
   isLastIndex: boolean;
-  onChatSubmission: (message: { question: string; type: string }) => void;
+  onFollowupClicked: (question: string) => void;
   onFeedback: (question: string, answer: string) => Promise<void>;
   onRegenerate: (question: string) => void;
   onQuestionEdit: (question: string) => void;
@@ -29,7 +29,7 @@ interface PreviewMessageProps {
   isAnswerLoading: boolean;
 }
 
-const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onChatSubmission, isLastIndex, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject, isAnswerLoading }) => {
+const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClicked, isLastIndex, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject, isAnswerLoading }) => {
   return (
     <div className={`preview-message`}>
       {/* question */}
@@ -74,7 +74,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onChatSubmissi
 
               {/* follow up questions */}
               {message.followUpQuestions?.length > 0 && (
-                <FollowupQuestions isLoadingObject={isLoadingObject} isAnswerLoading={isAnswerLoading} chatIndex={0} onFollowupClicked={onChatSubmission} followupQuestions={message.followUpQuestions} />
+                <FollowupQuestions isLoadingObject={isLoadingObject} isAnswerLoading={isAnswerLoading} chatIndex={0} onFollowupClicked={onFollowupClicked} followupQuestions={message.followUpQuestions} />
               )}
 
               {/* related results */}

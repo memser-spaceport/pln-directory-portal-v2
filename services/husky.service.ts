@@ -201,7 +201,7 @@ export const createHuskyThread = async (authToken: string, threadId: string) => 
 };
 
 export const createThreadTitle = async (authToken: string, threadId: string, question: string) => {
-  const threadResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${threadId}/title`, {
+  const threadResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${threadId}/basic-info`, {
     cache: 'no-store',
     method: 'POST',
     body: JSON.stringify({ question }),
@@ -218,7 +218,7 @@ export const createThreadTitle = async (authToken: string, threadId: string, que
 };
 
 export const getHuskyThreadById = async (id: string, authToken: string) => {
-  const threadResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${id}/chats`, {
+  const threadResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${id}`, {
     cache: 'no-store',
     method: 'GET',
     headers: {
@@ -235,7 +235,7 @@ export const getHuskyThreadById = async (id: string, authToken: string) => {
   }
 
   const thread = await threadResponse.json();
-  const formattedThread = thread?.map((item: any) => {
+  const formattedThread = thread?.chats?.map((item: any) => {
     return {
       id: item?.questionId,
       question: item?.question,
@@ -246,5 +246,36 @@ export const getHuskyThreadById = async (id: string, authToken: string) => {
       sql: item?.sqlData,
     };
   });
-  return formattedThread;
+  return { threadId: thread?.threadId, chats: formattedThread, isOwner: thread?.isOwner, name: thread?.memberName, image: thread?.memberImage };
+};
+
+export const deleteThread = async (authToken: string, threadId: string): Promise<boolean> => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${threadId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  return response.ok;
+};
+
+export const duplicateThread = async (authToken: string, threadId: string): Promise<any> => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${threadId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authToken && { Authorization: `Bearer ${authToken}` }),
+    },
+  });
+
+  if (!response.ok) {
+    return {
+      isError: true,
+      status: response.status,
+    };
+  }
+
+  return await response.json();
 };

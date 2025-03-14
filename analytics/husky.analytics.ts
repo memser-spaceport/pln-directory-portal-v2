@@ -31,6 +31,7 @@ export const useHuskyAnalytics = () => {
     husky_chat_info_strip_signup_clicked: 'husky_chat_info_strip_signup_clicked',
     husky_chat_stop_response_clicked: 'husky_chat_stop_response_clicked',
     husky_discover_questions_stop_response_clicked: 'husky_discover_questions_stop_response_clicked',
+    husky_continue_conversation_clicked: 'husky_continue_conversation_clicked',
 
     husky_page_clicked: 'husky_page_clicked',
     husky_sidebar_toggle_clicked: 'husky_sidebar_toggle_clicked',
@@ -39,6 +40,7 @@ export const useHuskyAnalytics = () => {
     husky_mobile_header_toggle_clicked: 'husky_mobile_header_toggle_clicked',
     husky_history_list_conversation_clicked: 'husky_history_list_conversation_clicked',
     husky_directory_results_card_clicked: 'husky_directory_results_card_clicked',
+    husky_thread_share_clicked: 'husky_thread_share_clicked',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -176,8 +178,16 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_history_list_conversation_clicked, { threadId, title });
   }
 
+  function trackThreadShareClicked({ threadId, title }: { threadId: string; title: string }) {
+    captureEvent(events.husky_thread_share_clicked, { threadId, title });
+  }
+
   function trackDirectoryResultsCardClicked(action: any) {
-    captureEvent(events.husky_directory_results_card_clicked, { ...action });
+    captureEvent(events.husky_directory_results_card_clicked, { action });
+  }
+
+  function trackContinueConversation(threadId: string) {
+    captureEvent(events.husky_continue_conversation_clicked, { threadId });
   }
 
   return {
@@ -211,6 +221,8 @@ export const useHuskyAnalytics = () => {
     trackMobileHeaderToggleClicked,
     trackHistoryListItemClicked,
     trackPageClicked,
-    trackDirectoryResultsCardClicked
+    trackDirectoryResultsCardClicked,
+    trackContinueConversation,
+    trackThreadShareClicked,
   };
 };

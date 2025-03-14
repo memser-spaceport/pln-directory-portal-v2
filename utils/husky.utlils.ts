@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 const COOKIE_NAME = 'dailyChats';
 
 export const checkRefreshToken = (): boolean => {
-  const refreshToken = getParsedValue(Cookies.get('refreshToken'));
+  const refreshToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`));
   if (refreshToken) return true;
   return false;
 };
@@ -17,7 +17,7 @@ export const updateChatCount = (): number => {
   const currentCount = getChatCount() + 1;
   const midnight = new Date();
   midnight.setHours(23, 59, 59, 999);
-  Cookies.set(COOKIE_NAME, currentCount.toString(), { expires: midnight });
+  Cookies.set(`${process.env.COOKIE_PREFIX}-${COOKIE_NAME}`, currentCount.toString(), { expires: midnight });
   return currentCount;
 };
 
@@ -33,5 +33,5 @@ export const updateLimitType = () => {
 };
 
 export const getChatCount = (): number => {
-  return parseInt(Cookies.get(COOKIE_NAME) || '0', 10);
+  return parseInt(Cookies.get(`${process.env.COOKIE_PREFIX}-${COOKIE_NAME}`) || '0', 10);
 };

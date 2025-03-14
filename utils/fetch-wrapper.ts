@@ -8,9 +8,9 @@ import { clearAllAuthCookies } from './third-party.helper';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 
 const getAuthInfoFromCookie = () => {
-  const userInfo = getParsedValue(Cookies.get('userInfo'));
-  const authToken = getParsedValue(Cookies.get('authToken'));
-  const refreshToken = getParsedValue(Cookies.get('refreshToken'));
+  const userInfo = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`));
+  const authToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`));
+  const refreshToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`));
   return { userInfo, authToken, refreshToken };
 };
 
@@ -69,18 +69,17 @@ export const setNewTokenAndUserInfoAtClientSide = (details: any) => {
   const refreshTokenExpiry = decodeToken(refreshToken) as any;
 
   if (refreshToken && accessToken && userInfo) {
-    Cookies.set('authToken', JSON.stringify(accessToken), {
+    Cookies.set(`${process.env.COOKIE_PREFIX}-authToken`, JSON.stringify(accessToken), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',
     });
-
-    Cookies.set('refreshToken', JSON.stringify(refreshToken), {
+    Cookies.set(`${process.env.COOKIE_PREFIX}-refreshToken`, JSON.stringify(refreshToken), {
       expires: new Date(refreshTokenExpiry.exp * 1000),
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',
     });
-    Cookies.set('userInfo', JSON.stringify(userInfo), {
+    Cookies.set(`${process.env.COOKIE_PREFIX}-userInfo`, JSON.stringify(userInfo), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',

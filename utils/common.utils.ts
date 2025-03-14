@@ -53,7 +53,7 @@ export function compareObjsIfSame(obj1: any, obj2: any) {
 }
 export const getUserInfoFromLocal = () => {
   try {
-    const rawUserInfo = Cookies.get('userInfo');
+    const rawUserInfo = Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`);
     if (rawUserInfo) {
       return JSON.parse(rawUserInfo);
     }

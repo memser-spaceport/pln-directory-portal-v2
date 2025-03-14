@@ -54,7 +54,7 @@ function PrivyModals() {
     const showSuccessMessage = () => {
       setLinkAccountKey('');
       toast.success(TOAST_MESSAGES.LOGIN_MSG);
-      Cookies.set('showNotificationPopup', JSON.stringify(true));
+      Cookies.set(`${process.env.COOKIE_PREFIX}-showNotificationPopup`, JSON.stringify(true));
       document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
     };
   
@@ -79,24 +79,24 @@ function PrivyModals() {
     const accessTokenExpiry = decodeToken(output.accessToken);
     const refreshTokenExpiry = decodeToken(output.refreshToken);
     localStorage.removeItem('stateUid');
-    Cookies.set('authToken', JSON.stringify(output.accessToken), {
+    Cookies.set(`${process.env.COOKIE_PREFIX}-authToken`, JSON.stringify(output.accessToken), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       domain: process.env.COOKIE_DOMAIN || '',
     });
 
-    Cookies.set('refreshToken', JSON.stringify(output.refreshToken), {
+    Cookies.set(`${process.env.COOKIE_PREFIX}-refreshToken`, JSON.stringify(output.refreshToken), {
       expires: new Date(refreshTokenExpiry.exp * 1000),
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',
     });
 
-    Cookies.set('userInfo', JSON.stringify(output.userInfo), {
+    Cookies.set(`${process.env.COOKIE_PREFIX}-userInfo`, JSON.stringify(output.userInfo), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',
     });
 
-    Cookies.set('authLinkedAccounts', JSON.stringify(authLinkedAccounts), {
+    Cookies.set(`${process.env.COOKIE_PREFIX}-authLinkedAccounts`, JSON.stringify(authLinkedAccounts), {
       expires: new Date(refreshTokenExpiry.exp * 1000),
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',
@@ -211,9 +211,9 @@ function PrivyModals() {
       const authLinkedAccounts = getLinkedAccounts(e.detail.user);
       analytics.onPrivyLinkSuccess({ linkMethod, linkedAccount, authLinkedAccounts });
       if (linkMethod === 'email') {
-        const userInfo = Cookies.get('userInfo');
-        const accessToken = Cookies.get('accessToken');
-        const refreshToken = Cookies.get('refreshToken');
+        const userInfo = Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`);
+        const accessToken = Cookies.get(`${process.env.COOKIE_PREFIX}-accessToken`);
+        const refreshToken = Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`);
         if (!userInfo && !accessToken && !refreshToken) {
           // Initiate Directory Login to validate email and login user
           const stateUid = localStorage.getItem('stateUid');
@@ -242,9 +242,9 @@ function PrivyModals() {
     }
 
     async function handlePrivyLinkError(e: any) {
-      const userInfo = Cookies.get('userInfo');
-      const accessToken = Cookies.get('accessToken');
-      const refreshToken = Cookies.get('refreshToken');
+      const userInfo = Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`);
+      const accessToken = Cookies.get(`${process.env.COOKIE_PREFIX}-accessToken`);
+      const refreshToken = Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`);
 
       if (!userInfo && !accessToken && !refreshToken) {
         analytics.onAccountLinkError({ type: 'loggedout', error: e?.detail?.error });
@@ -276,7 +276,7 @@ function PrivyModals() {
       setLinkAccountKey(e.detail);
     }
     async function handlePrivyLogout() {
-      Cookies.remove('authLinkedAccounts');
+      Cookies.remove(`${process.env.COOKIE_PREFIX}-authLinkedAccounts`);
       await logout();
     }
 

@@ -79,7 +79,7 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const onLogin = useCallback(async () => {
     const toast = (await import('react-toastify')).toast;
-    if (Cookies.get('refreshToken')) {
+    if (Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`)) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       window.location.reload();
     } else {
@@ -88,7 +88,7 @@ const AttendeeList = (props: IAttendeeList) => {
   }, [router]);
 
   const getEventDetails = async () => {
-    const authToken = getParsedValue(Cookies.get('authToken'));
+    const authToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`));
     const eventType = searchParams?.type === 'past' ? 'past' : searchParams?.type === 'upcoming' ? 'upcoming' : '';
 
     if (tableRef.current) {
@@ -154,7 +154,7 @@ const AttendeeList = (props: IAttendeeList) => {
     if (currentPage !== 1) {
       setIsAttendeeLoading(true);
       const getEventDetails = async () => {
-        const authToken = getParsedValue(Cookies.get('authToken'));
+        const authToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`));
         const eventInfo: any = await getGuestsByLocation(location?.uid, parseSearchParams(searchParams, eventDetails?.events), authToken, currentEventNames, currentPage, limit);
         if (eventInfo.totalGuests > 0) {
           setUpdatedEventDetails((prev) => ({ ...prev, guests: [...prev.guests, ...eventInfo.guests], totalGuests: eventInfo.totalGuests }));

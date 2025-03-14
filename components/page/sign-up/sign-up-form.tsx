@@ -81,9 +81,9 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
       analytics.recordSignUpSave('submit-clicked', Object.fromEntries(formData.entries()));
 
       // const formDataObj = Object.fromEntries(formData.entries());
-      const campaign = Cookies.get('utm_campaign') ?? '';
-      const source = Cookies.get('utm_source') ?? '';
-      const medium = Cookies.get('utm_medium') ?? '';
+      const campaign = Cookies.get(`${process.env.COOKIE_PREFIX}-utm_campaign`) ?? '';
+      const source = Cookies.get(`${process.env.COOKIE_PREFIX}-utm_source`) ?? '';
+      const medium = Cookies.get(`${process.env.COOKIE_PREFIX}-utm_medium`) ?? '';
       const cookiesValue = {
         signUpMedium: medium,
         signUpCampaign: campaign,

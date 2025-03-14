@@ -43,7 +43,7 @@ function HuskyDiscover(props: any) {
   }
 
   const getUserInfoFromCookie = () => {
-      const rawUserInfo = cookies.get('userInfo');
+      const rawUserInfo = cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`);
       if(rawUserInfo) {
         const parsedUserInfo = JSON.parse(rawUserInfo)
         return parsedUserInfo

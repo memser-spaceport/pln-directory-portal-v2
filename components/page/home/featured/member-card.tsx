@@ -34,7 +34,7 @@ const MemberCard = (props: any) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const userInfo = Cookies.get('userInfo') as IUserInfo;
+    const userInfo = Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`) as IUserInfo;
     analytics.onMemberBioSeeMoreClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_MEMBER_BIO_POPUP, {

@@ -61,7 +61,7 @@ const About = (props: IAbout) => {
     }
     setEditor(false);
     analytics.onTeamDetailAboutEditSaveClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
-    const authToken = Cookies.get('authToken');
+    const authToken = Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`);
     if (!authToken) {
       return;
     }

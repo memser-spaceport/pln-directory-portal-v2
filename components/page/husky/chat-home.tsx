@@ -30,7 +30,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
   }, []);
 
   const checkIsLimitReached = () => {
-    const refreshToken = getParsedValue(Cookies.get('refreshToken'));
+    const refreshToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`));
     if (!refreshToken) {
       const chatCount = getChatCount();
       return DAILY_CHAT_LIMIT <= chatCount;
@@ -93,7 +93,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
 
   const onLoginClickHandler = () => {
     analytics.trackLoginFromHuskyChat('husky-home-search');
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`);
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

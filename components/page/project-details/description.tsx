@@ -73,7 +73,7 @@ const Description = (props: IDescription) => {
     triggerLoader(true);
     analytics.onProjectDetailDescEditSaveClicked(getAnalyticsUserInfo(props?.user), project?.id);
     try {
-      const authToken = getParsedValue(Cookies.get('authToken') ?? '');
+      const authToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`) ?? '');
       if (!authToken) {
         return;
       }

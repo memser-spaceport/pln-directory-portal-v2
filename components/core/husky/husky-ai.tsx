@@ -114,7 +114,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
         .optional(),
     }),
     onFinish: (data) => {
-      const userInfo = getParsedValue(Cookies.get('userInfo'));
+      const userInfo = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`));
 
       setAnswerLoadingStatus(false);
     },
@@ -135,11 +135,11 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
   };
 
   const getChatCount = (): number => {
-    return parseInt(Cookies.get(COOKIE_NAME) || '0', 10);
+    return parseInt(Cookies.get(`${process.env.COOKIE_PREFIX}-${COOKIE_NAME}`) || '0', 10);
   };
 
   const checkChatLimit = (userInfo: any): boolean => {
-    const refreshToken = getParsedValue(Cookies.get('refreshToken'));
+    const refreshToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`));
     if (refreshToken) return true;
     return false;
   };
@@ -151,7 +151,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
     const currentCount = getChatCount() + 1;
     const midnight = new Date();
     midnight.setHours(23, 59, 59, 999);
-    Cookies.set(COOKIE_NAME, currentCount.toString(), { expires: midnight });
+    Cookies.set(`${process.env.COOKIE_PREFIX}-${COOKIE_NAME}`, currentCount.toString(), { expires: midnight });
     return currentCount;
   };
 
@@ -403,9 +403,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
           <div className="huskyai__footer">
             <div className="huskyai__footer__strip">
-              {limitReached && limitReached !== 'close' && (
-                <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} from="husky-chat" />
-              )}
+              {limitReached && limitReached !== 'close' && <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} onDialogClose={onClose} type={limitReached} from="husky-chat" />}
             </div>
             {chats.length !== 0 && (
               <div className="huskyai__input" data-testid="input-box">
@@ -462,11 +460,11 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
 
       {/* stop streaming */}
       {isLoadingObject && !isAnswerLoading && mode === 'blog' && (
-        <button onClick={onStopStreaming} title="Stop" className='huskyai_pauseBtn'>
+        <button onClick={onStopStreaming} title="Stop" className="huskyai_pauseBtn">
           <div className="huskyai__pauseStreaming">
             <div className="huskyai__pauseStreaming__loadingCn" />
           </div>
-          <span className='huskyai_pauseBtn__txt'>Stop</span>
+          <span className="huskyai_pauseBtn__txt">Stop</span>
         </button>
       )}
 
@@ -575,15 +573,15 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0px 2.4px 4.8px 0px #5661F640;
+            box-shadow: 0px 2.4px 4.8px 0px #5661f640;
             background-color: #dbeafe;
             border: 1.5px solid #93c5fd;
           }
 
           .huskyai_pauseBtn {
-            outline: 1px solid #156FF7;
+            outline: 1px solid #156ff7;
             box-shadow: 0px 0px 8px 0px #00000040;
-            background: #FFFFFF;
+            background: #ffffff;
             border-radius: 4px;
             cursor: pointer;
             position: absolute;
@@ -602,7 +600,7 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
             font-size: 10px;
             font-weight: 500;
             line-height: 14px;
-            color: #156FF7;
+            color: #156ff7;
           }
 
           @media (min-width: 1024px) {
@@ -638,7 +636,6 @@ function HuskyAi({ mode = 'chat', initialChats = [], isLoggedIn, blogId, onClose
               line-height: 22px;
               margin-top: 1.5px;
             }
-
           }
         `}
       </style>

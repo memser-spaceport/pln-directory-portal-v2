@@ -233,7 +233,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         newData: { ...formattedForms },
       };
 
-      const rawAuthToken = Cookies.get('authToken');
+      const rawAuthToken = Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`);
       if (!rawAuthToken) {
         return;
       }

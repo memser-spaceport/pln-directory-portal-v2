@@ -6,13 +6,13 @@ export const clearAllAuthCookies = () => {
   Cookies.remove('directory_idToken');
   Cookies.remove('verified', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
   Cookies.remove('directory_isEmailVerification');
-  Cookies.remove('authToken', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
-  Cookies.remove('refreshToken', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
-  Cookies.remove('userInfo', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
+  Cookies.remove(`${process.env.COOKIE_PREFIX}-authToken`, { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
+  Cookies.remove(`${process.env.COOKIE_PREFIX}-refreshToken`, { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
+  Cookies.remove(`${process.env.COOKIE_PREFIX}-userInfo`, { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
   Cookies.remove('page_params', { path: '/', domain: process.env.COOKIE_DOMAIN || '' });
   Cookies.remove('privy-token');
   Cookies.remove('privy-session');
-  Cookies.remove('authLinkedAccounts');
+  Cookies.remove(`${process.env.COOKIE_PREFIX}-authLinkedAccounts`);
   Cookies.remove('lastNotificationCall');
   Cookies.remove('privy-refresh-token');
   localStorage.clear();
@@ -22,7 +22,7 @@ export const getUserInfo = () => {
   try {
     let userInfo;
     if (typeof window !== 'undefined') {
-      const rawUserInfo = Cookies.get('userInfo');
+      const rawUserInfo = Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`);
       if (rawUserInfo) {
         userInfo = getParsedValue(rawUserInfo);
       }
@@ -45,8 +45,8 @@ export const isLink = (text: string): boolean => {
 };
 
 export const getCookiesFromClient = () => {
-  const authToken = Cookies.get('authToken')?.replace(/"/g, '');
-  const refreshToken = Cookies.get('refreshToken')?.replace(/"/g, '');
+  const authToken = Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`)?.replace(/"/g, '');
+  const refreshToken = Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`)?.replace(/"/g, '');
   const userInfo = getUserInfo();
   return { authToken, refreshToken, userInfo };
 }

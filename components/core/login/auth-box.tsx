@@ -17,7 +17,7 @@ function AuthBox() {
 
   useEffect(() => {
     //restrict the user to manually open the login modal when authendicated state
-    if (Cookies.get('refreshToken')) {
+    if (Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`)) {
       router.push(`${window.location.pathname}${window.location.search}`);
     }
   }, []);

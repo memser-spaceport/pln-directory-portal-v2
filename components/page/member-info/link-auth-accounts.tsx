@@ -23,7 +23,7 @@ function LinkAuthAccounts() {
   };
 
   useEffect(() => {
-    const rawLinkedAccounts = Cookies.get('authLinkedAccounts');
+    const rawLinkedAccounts = Cookies.get(`${process.env.COOKIE_PREFIX}-authLinkedAccounts`);
     if (rawLinkedAccounts) {
       const parsedLinkedAccounts = JSON.parse(rawLinkedAccounts);
       setUserLinkedAccounts(parsedLinkedAccounts.split(','));
@@ -31,10 +31,10 @@ function LinkAuthAccounts() {
       setUserLinkedAccounts([]);
     }
     function authAccountsHandler(e: any) {
-      const refreshToken = Cookies.get('refreshToken');
+      const refreshToken = Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`);
       if (refreshToken) {
         const refreshTokenExpiry = decodeToken(JSON.parse(refreshToken));
-        Cookies.set('authLinkedAccounts', JSON.stringify(e.detail), {
+        Cookies.set(`${process.env.COOKIE_PREFIX}-authLinkedAccounts`, JSON.stringify(e.detail), {
           expires: new Date(refreshTokenExpiry.exp * 1000),
           path: '/',
           domain: process.env.COOKIE_DOMAIN || '',

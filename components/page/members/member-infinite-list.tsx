@@ -44,7 +44,7 @@ const MemberInfiniteList = (props: any) => {
     const toast = (await import('react-toastify')).toast;
     try {
       // setIsLoading(true);
-      const authToken = cookies.get('authToken');
+      const authToken = cookies.get(`${process.env.COOKIE_PREFIX}-authToken`);
       const optionsFromQuery = getMembersOptionsFromQuery(searchParams);
       const listOptions: IMemberListOptions = getMembersListOptions(optionsFromQuery);
       const teamsRes = await getMemberListForQuery(listOptions, currentPage, ITEMS_PER_PAGE, authToken);

@@ -165,7 +165,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         formattedData.logoUid = null;
       }
 
-      const authToken = getParsedValue(Cookies.get('authToken'));
+      const authToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`));
 
       if (!authToken) {
         toast.success(TOAST_MESSAGES.LOGOUT_MSG);

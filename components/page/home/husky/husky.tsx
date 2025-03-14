@@ -11,9 +11,9 @@ const Husky = () => {
   const [isShrunk, setIsShrunk] = useState(false); // Track whether header is shrunk
 
   const checkIsLimitReached = () => {
-    const refreshToken = getParsedValue(Cookies.get('refreshToken'));
+    const refreshToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`));
     if (!refreshToken) {
-      const chatCount = parseInt(Cookies.get('dailyChats') || '0', 10);
+      const chatCount = parseInt(Cookies.get(`${process.env.COOKIE_PREFIX}-dailyChats`) || '0', 10);
       return DAILY_CHAT_LIMIT <= chatCount;
     }
     return false;

@@ -118,7 +118,7 @@ const Featured = (props: any) => {
   const [featuredData, setfeaturedData] = useState(props.featuredData ?? []);
 
   const getFeaturedDataa = async () => {
-    const authToken = getParsedValue(Cookies.get('authToken'));
+    const authToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`));
     const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin);
     setfeaturedData(formatFeaturedData(featData.data));
     router.refresh();

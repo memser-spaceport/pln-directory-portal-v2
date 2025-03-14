@@ -22,7 +22,7 @@ function SelfEmailUpdate(props: any) {
     e.preventDefault();
 
     analytics.onUpdateEmailClicked(getAnalyticsUserInfo(userInfo));
-    const authToken = Cookies.get('authToken');
+    const authToken = Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`);
     if (!authToken) {
       return;
     }
@@ -38,7 +38,7 @@ function SelfEmailUpdate(props: any) {
     async function updateUserEmail(e: any) {
       try {
         const newEmail = e.detail.newEmail;
-        const oldAccessToken = Cookies.get('authToken');
+        const oldAccessToken = Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`);
         if (!oldAccessToken) {
           return;
         }
@@ -58,15 +58,15 @@ function SelfEmailUpdate(props: any) {
         if (refreshToken && accessToken) {
           const accessTokenExpiry = decodeToken(accessToken);
           const refreshTokenExpiry = decodeToken(refreshToken);
-          Cookies.set('authToken', JSON.stringify(accessToken), {
+          Cookies.set(`${process.env.COOKIE_PREFIX}-accessToken`, JSON.stringify(accessToken), {
             expires: new Date(accessTokenExpiry.exp * 1000),
             domain: process.env.COOKIE_DOMAIN || '',
           });
-          Cookies.set('refreshToken', JSON.stringify(refreshToken), {
+          Cookies.set(`${process.env.COOKIE_PREFIX}-refreshToken`, JSON.stringify(refreshToken), {
             expires: new Date(refreshTokenExpiry.exp * 1000),
             domain: process.env.COOKIE_DOMAIN || '',
           });
-          Cookies.set('userInfo', JSON.stringify(newUserInfo), {
+          Cookies.set(`${process.env.COOKIE_PREFIX}-userInfo`, JSON.stringify(newUserInfo), {
             expires: new Date(refreshTokenExpiry.exp * 1000),
             domain: process.env.COOKIE_DOMAIN || '',
           });

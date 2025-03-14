@@ -39,7 +39,7 @@ const MemberOfficeHours = (props: any) => {
     const isLoggedInUser = userInfo?.uid === member?.id;
     try {
       triggerLoader(true);
-      const authToken = Cookies.get('authToken') || '';
+      const authToken = Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`) || '';
       const response: any = await createFollowUp(userInfo.uid, getParsedValue(authToken), {
         data: {},
         hasFollowUp: true,

@@ -229,7 +229,7 @@ function ManageTeamsSettings(props: any) {
         newData: { ...formattedInputValues },
       };
 
-      const authToken = Cookies.get('authToken');
+      const authToken = Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`);
       if (!authToken) {
         return;
       }

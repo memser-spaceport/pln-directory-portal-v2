@@ -30,19 +30,19 @@ const SignUp = ({ skillsInfo }: any) => {
     const utmSource = searchParams.get('utm_source');
     const utmMedium = searchParams.get('utm_medium');
     
-    if (utmMedium && Cookies.get('utm_medium') !== utmMedium) {
-      Cookies.set('utm_medium', utmMedium, { expires: 7 });
+    if (utmMedium && Cookies.get(`${process.env.COOKIE_PREFIX}-utm_medium`) !== utmMedium) {
+      Cookies.set(`${process.env.COOKIE_PREFIX}-utm_medium`, utmMedium, { expires: 7 });
     }
 
-    if (utmCampaign && Cookies.get('utm_campaign') !== utmCampaign) {
-      Cookies.set('utm_campaign', utmCampaign, { expires: 7 });
+    if (utmCampaign && Cookies.get(`${process.env.COOKIE_PREFIX}-utm_campaign`) !== utmCampaign) {
+      Cookies.set(`${process.env.COOKIE_PREFIX}-utm_campaign`, utmCampaign, { expires: 7 });
     }
 
-    if (utmSource && Cookies.get('utm_source') !== utmSource) {
-      Cookies.set('utm_source', utmSource, { expires: 7 });
+    if (utmSource && Cookies.get(`${process.env.COOKIE_PREFIX}-utm_source`) !== utmSource) {
+      Cookies.set(`${process.env.COOKIE_PREFIX}-utm_source`, utmSource, { expires: 7 });
     }
 
-    if(Cookies.get('authToken')){
+    if(Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`)){
       router.push('/');
     }
   }, []);

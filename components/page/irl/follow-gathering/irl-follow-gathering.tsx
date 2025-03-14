@@ -30,7 +30,7 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   const isAdminInAllEvents = checkAdminInAllEvents(searchParams?.type, locationEvents?.upcomingEvents, locationEvents?.pastEvents);
   const onLogin = useCallback(async () => {
     const toast = (await import('react-toastify')).toast;
-    if (Cookies.get('refreshToken')) {
+    if (Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`)) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       window.location.reload();
     } else {

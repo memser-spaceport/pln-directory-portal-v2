@@ -16,7 +16,7 @@ export default function JoinNetwork() {
   useClickedOutside({ callback: () => setIsOpen(false), ref: joinNetworkRef });
 
   const onJoinNetworkClick = () => {
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`);
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

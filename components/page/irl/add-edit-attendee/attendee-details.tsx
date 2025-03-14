@@ -43,7 +43,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const [initialTeams, setInitialTeams] = useState(initialValues?.teams ?? []);
 
   //variables
-  const authToken = getParsedValue(Cookies.get('authToken'));
+  const authToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`));
 
   const [selectedTeam, setSelectedTeam] = useState(initialValues?.team ?? { name: '', logo: '', uid: '' });
   const [selectedMember, setSelectedMember] = useState<IUserInfo>(member || { name: '', uid: '' });

@@ -20,7 +20,7 @@ const TeamOfficeHours = (props: any) => {
   const router = useRouter();
 
   const onLoginClickHandler = () => {
-    const userInfo = Cookies.get('userInfo');
+    const userInfo = Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`);
     if (userInfo) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();

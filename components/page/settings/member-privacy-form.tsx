@@ -102,7 +102,7 @@ function MemberPrivacyForm(props: any) {
       delete payload.newsLetter;
      
 
-      const authToken: any = Cookies.get('authToken');
+      const authToken: any = Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`);
       if (!authToken) {
         analytics.recordMemberPreferenceChange('error', getAnalyticsUserInfo(userInfo), payload);
         return;

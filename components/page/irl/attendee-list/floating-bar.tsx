@@ -25,7 +25,7 @@ const FloatingBar = (props: IFloatingBar) => {
   const searchParams = props.searchParams;
 
   //variables
-  const authToken = getParsedValue(Cookies.get('authToken'));
+  const authToken = getParsedValue(Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`));
   const eventType = searchParams?.type === 'past' ? '' : 'upcoming';
 
   //hooks

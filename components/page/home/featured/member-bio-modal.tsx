@@ -28,7 +28,7 @@ const MemberBioModal = () => {
   };
 
   const onMemberClick = (e: any) => {
-    const userInfo = Cookies.get('userInfo') as IUserInfo;
+    const userInfo = Cookies.get(`${process.env.COOKIE_PREFIX}-userInfo`) as IUserInfo;
     analytics.onMmeberBioPopupViewProfileBtnClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
     window.open(`${PAGE_ROUTES.MEMBERS}/${member?.id}`);
     onCloseModal();

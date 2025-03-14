@@ -48,11 +48,11 @@ const RatingContainer = (props: IRatingContainer) => {
   };
 
   const getRecentBooking = async () => {
-    const isShow = getParsedValue(cookies.get("showNotificationPopup") ?? '');
+    const isShow = getParsedValue(cookies.get(`${process.env.COOKIE_PREFIX}-showNotificationPopup`) ?? '');
     if(isShow) {
       const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING');
       const result = response?.data ?? [];
-      cookies.remove('showNotificationPopup');
+      cookies.remove(`${process.env.COOKIE_PREFIX}-showNotificationPopup`);
       if (result?.length) {
       const filtereNotifications = result?.filter((notification: IFollowUp) => notification?.type === "MEETING_SCHEDULED");
         let currentFollowup = result[0];

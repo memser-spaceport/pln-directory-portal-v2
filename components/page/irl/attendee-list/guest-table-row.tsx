@@ -90,7 +90,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
     const isLoggedInUser = userInfo?.uid === memberUid;
     try {
-      const authToken = cookies.get('authToken') || '';
+      const authToken = cookies.get(`${process.env.COOKIE_PREFIX}-authToken`) || '';
       const response = await createFollowUp(userInfo?.uid as string, getParsedValue(authToken), {
         data: {},
         hasFollowUp: true,

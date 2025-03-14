@@ -167,7 +167,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
         newData: { ...formattedInputValues },
       };
 
-      const rawToken = Cookies.get('authToken');
+      const rawToken = Cookies.get(`${process.env.COOKIE_PREFIX}-authToken`);
       if (!rawToken) {
         return;
       }

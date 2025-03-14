@@ -33,7 +33,7 @@ const CookieChecker = (props: ICookieChecker) => {
 
   useEffect(() => {
     const checkCookieExpiry = () => {
-      const cookie = Cookies.get('refreshToken');
+      const cookie = Cookies.get(`${process.env.COOKIE_PREFIX}-refreshToken`);
       if (isUserLoggedIn && !cookie) {
         if (dialogRef.current) {
           dialogRef.current.showModal();

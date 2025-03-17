@@ -185,6 +185,7 @@ const AttendeeList = (props: IAttendeeList) => {
         <AttendeeForm
           onClose={onIamGoingPopupClose}
           formData={iamGoingPopupProps?.formdata}
+          from={iamGoingPopupProps?.from ?? ''}
           selectedLocation={location}
           userInfo={userInfo}
           allGatherings={eventDetails?.events}

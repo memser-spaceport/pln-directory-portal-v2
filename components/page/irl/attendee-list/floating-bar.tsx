@@ -74,7 +74,7 @@ const FloatingBar = (props: IFloatingBar) => {
         officeHours: guestDetails?.officeHours ?? '',
       };
 
-      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT } }));
+      document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: formData, mode: IAM_GOING_POPUP_MODES.EDIT, from: 'list' } }));
       analytics.trackFloatingBarEditBtnClicked(location, { selectedGuests: selectedGuestIds });
     }
   };

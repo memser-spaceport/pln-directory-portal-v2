@@ -421,22 +421,23 @@ export function sortEventsByDate(member:any) {
 
 // combine guest going events and new events(if any event matches with the new events will replace the events in going events)
 export function mergeGuestEvents(userAlreadyGoingEvents: any, formattedEvents: any) {
+  return formattedEvents;
   // Create a Map for `formattedEvents` for quick lookup by `uid`
-  const formattedEventsMap = new Map(formattedEvents.map((event:any) => [event.uid, event]));
+  // const formattedEventsMap = new Map(formattedEvents.map((event:any) => [event.uid, event]));
 
-  // Replace events in `userAlreadyGoingEvents` if there's a match in `formattedEvents`
-  const mergedEvents = userAlreadyGoingEvents.map((event:any) => {
-    return formattedEventsMap.get(event.uid) || event;
-  });
+  // // Replace events in `userAlreadyGoingEvents` if there's a match in `formattedEvents`
+  // const mergedEvents = userAlreadyGoingEvents.map((event:any) => {
+  //   return formattedEventsMap.get(event.uid) || event;
+  // });
 
-  // Add non-matching events from `formattedEvents` to the result
-  const userAlreadyGoingUids = new Set(userAlreadyGoingEvents.map((event:any) => event.uid));
-  const nonOverlappingFormattedEvents = formattedEvents.filter(
-    (event:any) => !userAlreadyGoingUids.has(event.uid)
-  );
+  // // Add non-matching events from `formattedEvents` to the result
+  // const userAlreadyGoingUids = new Set(userAlreadyGoingEvents.map((event:any) => event.uid));
+  // const nonOverlappingFormattedEvents = formattedEvents.filter(
+  //   (event:any) => !userAlreadyGoingUids.has(event.uid)
+  // );
 
-  // Combine the results
-  return [...mergedEvents, ...nonOverlappingFormattedEvents];
+  // // Combine the results
+  // return [...mergedEvents, ...nonOverlappingFormattedEvents];
 }
 
 export function abbreviateString(inputString: string) {

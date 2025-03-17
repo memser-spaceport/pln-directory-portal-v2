@@ -9,7 +9,6 @@ interface IrlHuskyIntegrationProps {
 const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
   const analytics = useIrlAnalytics();
   const onChatWithHusky = () => {
-    window.open(PAGE_ROUTES.HUSKY, '_blank');
     analytics.trackIrlToHuskyRedirectClicked(currentLocation);
   };
 
@@ -18,14 +17,16 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
       <div className="root__irlhusky">
         <div className="root__irlhusky__text">
           Got questions? Chat with
-          <span className="root__irlhusky__text--highlighted">Husky AI</span>
+          <a href={PAGE_ROUTES.HUSKY} target="_blank" rel="noopener noreferrer" className="root__irlhusky__text--highlighted" onClick={onChatWithHusky}>
+            Husky AI
+          </a>
           for quick answers
         </div>
-        <div className="root__irlhusky__btn" onClick={onChatWithHusky}>
+        <a href={PAGE_ROUTES.HUSKY} target="_blank" rel="noopener noreferrer" className="root__irlhusky__btn" onClick={onChatWithHusky}>
           <img src="/icons/irl/irl-husky.svg" alt="husky" />
           <div className="root__irlhusky__btn__text">Launch Husky</div>
           <img src="/icons/irl/arrow-white.svg" alt="arrow" />
-        </div>
+        </a>
       </div>
       <style jsx>{`
         .root {
@@ -69,6 +70,7 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
           color: #156ff7;
           margin: 0px 5px;
           font-weight: 600;
+          cursor: pointer;
         }
         .root__irlhusky__btn {
           width: 175px;

@@ -246,7 +246,7 @@ export const getHuskyThreadById = async (id: string, authToken: string) => {
       sql: item?.sqlData,
     };
   });
-  return { threadId: thread?.threadId, chats: formattedThread, isOwner: thread?.isOwner, name: thread?.memberName, image: thread?.memberImage };
+  return { threadId: thread?.threadId, title: thread?.title, chats: formattedThread, isOwner: thread?.isOwner, name: thread?.memberName, image: thread?.memberImage, guestUserId: thread?.guestUserId };
 };
 
 export const deleteThread = async (authToken: string, threadId: string): Promise<boolean> => {
@@ -261,13 +261,16 @@ export const deleteThread = async (authToken: string, threadId: string): Promise
   return response.ok;
 };
 
-export const duplicateThread = async (authToken: string, threadId: string): Promise<any> => {
+export const duplicateThread = async (authToken: string, threadId: string, guestUserId?: string): Promise<any> => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/threads/${threadId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(authToken && { Authorization: `Bearer ${authToken}` }),
     },
+    body: JSON.stringify({
+      ...(guestUserId && { guestUserId })
+    }),
   });
 
   if (!response.ok) {

@@ -45,6 +45,7 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
   const handleDeleteClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      analytics.trackDeleteThread(thread.threadId, thread.title);
       handleDeleteModalOpen(thread);
     },
     [thread, handleDeleteModalOpen]
@@ -235,10 +236,10 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
   const handleDeleteThread = useCallback(async () => {
     if (!deleteId) return;
-
+    const toast = (await import('react-toastify')).toast;
+    analytics.trackThreadDeleteConfirmationStatus(deleteId, 'initiated');
     triggerLoader(true);
     const { authToken } = await getUserCredentials(isLoggedIn);
-    const toast = (await import('react-toastify')).toast;
     handleDeleteModalClose();
     // Create a loading toast
     const toastId = toast.loading('Deleting thread...');
@@ -254,6 +255,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           isLoading: false,
           autoClose: 3000,
         });
+        analytics.trackThreadDeleteConfirmationStatus(deleteId, 'failed');
         return;
       }
       // Refresh history
@@ -266,14 +268,14 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         isLoading: false,
         autoClose: 3000,
       });
-
+      analytics.trackThreadDeleteConfirmationStatus(deleteId, 'success');
       // Redirect to home if the deleted thread is the current one
       if (deleteId === id) {
         router.push('/husky/chat');
       }
     } catch (error) {
       console.error('Error deleting thread:', error);
-
+      analytics.trackThreadDeleteConfirmationStatus(deleteId, 'failed');
       // Update toast to error
       toast.update(toastId, {
         render: 'Failed to delete thread. Please try again.',

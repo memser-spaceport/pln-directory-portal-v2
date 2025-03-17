@@ -4,6 +4,7 @@ import { getHuskyThreadById } from '@/services/husky.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import ChatHeader from '@/components/page/husky/chat-header';
 import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -15,7 +16,11 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     return notFound();
   }
 
-  const isOwnThread = thread?.isOwner;
+  const guestUserId = thread?.guestUserId;
+  const cookieStore = await cookies();
+  const guestIdCookie = cookieStore.get('guestId')?.value;
+  const isOwnThread = thread?.isOwner || (guestIdCookie && guestIdCookie === guestUserId);
+
   const threadOwner = {
     name: thread?.name,
     image: thread?.image,
@@ -23,8 +28,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   return (
     <div className={styles.husky}>
-      {isLoggedIn && <ChatHeader showActions={isOwnThread} />}
-      <Chat id={id} isLoggedIn={isLoggedIn} userInfo={userInfo} initialMessages={thread?.chats ?? []} isOwnThread={isOwnThread} threadOwner={threadOwner} from="detail"/>
+      {isLoggedIn && <ChatHeader showActions={isOwnThread} title={thread?.title} />}
+      <Chat id={id} isLoggedIn={isLoggedIn} userInfo={userInfo} initialMessages={thread?.chats ?? []} isOwnThread={isOwnThread} threadOwner={threadOwner} from="detail" />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Cookies from 'js-cookie';
 
 import Messages from './messages';
 import ChatFeedback from './chat-feedback';
@@ -20,7 +21,6 @@ import { toast } from 'react-toastify';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
-
 interface ChatProps {
   id?: string;
   isLoggedIn: boolean;
@@ -253,7 +253,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
   // handle regenerate by clicking the regenerate button
   const onRegenerate = useCallback(
     (query: string) => {
-      if (chatIsLoading || (!isOwnThread && fromRef.current === 'detail' && threadOwner?.name)) {
+      if (chatIsLoading || (!isOwnThread && fromRef.current === 'detail')) {
         return;
       }
       onHuskyInput(query);
@@ -263,7 +263,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
   );
 
   const onFollowupClicked = (question: string) => {
-    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail' && threadOwner?.name)) {
+    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
       return;
     }
     handleChatSubmission({ question, type: 'followup' });
@@ -271,7 +271,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
 
   // handle question edit by clicking the edit button
   const onQuestionEdit = useCallback((question: string) => {
-    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail' && threadOwner?.name)) {
+    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
       return;
     }
     analytics.trackQuestionEdit(question);
@@ -296,7 +296,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
 
   // handle feedback submission
   const onFeedback = async (question: string, answer: string) => {
-    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail' && threadOwner?.name)) {
+    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
       return;
     }
     analytics.trackFeedbackClick(question, answer);
@@ -321,21 +321,46 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
   // handle continue conversation button click for shared conversation
   const handleContinueConversation = useCallback(async () => {
     try {
+      analytics.trackContinueConversation(id ?? '');
       triggerLoader(true);
+
+      let guestUserId;
+      if (!isLoggedIn) {
+        // Get guestId from cookie or create a new one if it doesn't exist
+        guestUserId = Cookies.get('guestId');
+
+        if (!guestUserId) {
+          guestUserId = generateUUID();
+
+          // Set cookie with expiration at midnight
+          const midnight = new Date();
+          midnight.setHours(23, 59, 59, 999);
+
+          Cookies.set('guestId', guestUserId, {
+            expires: midnight,
+            path: '/',
+          });
+        }
+      }
+
       const { authToken } = await getUserCredentials(isLoggedIn);
 
       if (!isOwnThread && fromRef.current === 'detail') {
-        const duplicateThreadResponse = await duplicateThread(authToken, id ?? '');
+        analytics.trackThreadDuplicateStatus(id ?? '', 'initiated');
+        const duplicateThreadResponse = await duplicateThread(authToken, id ?? '', guestUserId);
         if (duplicateThreadResponse.isError) {
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          analytics.trackThreadDuplicateStatus(id ?? '', 'failed');
           return;
         }
         router.push(`/husky/chat/${duplicateThreadResponse.threadId}`);
         document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+        analytics.trackThreadDuplicateStatus(id ?? '', 'success');
       }
     } catch (error) {
       console.error('Error duplicating thread:', error);
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      analytics.trackThreadDuplicateStatus(id ?? '', 'failed');
     } finally {
       triggerLoader(false);
     }

@@ -9,9 +9,10 @@ interface ChatHeaderProps {
   resetChat?: () => void;
   showActions?: boolean;
   isOwnThread?: boolean;
+  title?: string;
 }
 
-const ChatHeader = ({ resetChat, showActions }: ChatHeaderProps) => {
+const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -33,6 +34,7 @@ const ChatHeader = ({ resetChat, showActions }: ChatHeaderProps) => {
     // Implement delete functionality
     setShowMenu(false);
     document.dispatchEvent(new CustomEvent('delete-thread', { detail: { threadId: id } }));
+    analytics.trackMobileDeleteThread(id as string, title ?? '');
   };
 
   const handleShare = () => {
@@ -40,16 +42,14 @@ const ChatHeader = ({ resetChat, showActions }: ChatHeaderProps) => {
     navigator.clipboard.writeText(`${window.location.origin}/husky/chat/${id}`);
     setCopied(true);
     setShowMenu(false);
-    
+
     // Reset copied state after 1.5 seconds
     setTimeout(() => {
       setCopied(false);
     }, 1500);
-    
+
     // Track analytics event if available
-    if (analytics.trackThreadShareClicked) {
-      analytics.trackThreadShareClicked({ threadId: id as string, title: 'Current Chat' });
-    }
+    analytics.trackMobileThreadShareClicked({ threadId: id as string, title: title ?? '' });
   };
 
   const handleNewConversation = () => {

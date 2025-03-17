@@ -13,6 +13,7 @@ import { IAnalyticsGuestLocation } from '@/types/irl.types';
 import IrlErrorPage from '@/components/core/irl-error-page';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
+import IrlHuskyIntegration from '@/components/page/irl/irl-husky/irl-husky-integration';
 
 export default async function Page({ searchParams }: any) {
   const { isError, userInfo, isLoggedIn, followers, locationDetails, eventDetails, showTelegram, eventLocationSummary, guestDetails, isUserGoing, isLocationError, currentEventNames, searchParams:newSearchParams } = await getPageData(
@@ -24,7 +25,6 @@ export default async function Page({ searchParams }: any) {
   } else if (isError) {
     return <Error />;
   }
-
   return (
     <div className={styles.irlGatherings}>
       <div className={styles.irlGatherings__cn}>
@@ -39,6 +39,9 @@ export default async function Page({ searchParams }: any) {
         {/* Events */}
         <section className={styles.irlGatherings__events}>
           <IrlEvents isUserGoing={isUserGoing as boolean} userInfo={userInfo} isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} guestDetails={guestDetails} locationDetails={locationDetails}/>
+        </section>
+        <section className={styles.irlGatheings__follow}>
+          <IrlHuskyIntegration currentLocation={eventLocationSummary} />
         </section>
         {/* Follow Gathering */}
         <section className={styles.irlGatheings__follow}>

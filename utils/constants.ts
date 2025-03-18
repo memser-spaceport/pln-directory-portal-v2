@@ -1,25 +1,41 @@
+import { EventLocation } from "@/types/events.types";
+
+export const PAGE_ROUTES = {
+  HOME: '/',
+  MEMBERS: '/members',
+  TEAMS: '/teams',
+  SETTINGS: '/settings',
+  PROJECTS: '/projects',
+  IRL: '/irl',
+  NOTIFICATIONS: '/notifications',
+  ADD_TEAM: '/teams/add',
+  SIGNUP: '/sign-up',
+  HUSKY: '/husky/chat',
+  EVENTS: '/events',
+};
+
 export const NAV_OPTIONS = [
   {
     name: 'Home',
-    url: '/',
+    url: PAGE_ROUTES.HOME,
     selectedLogo: '/icons/home.svg',
     unSelectedLogo: '/icons/home-deselected.svg',
   },
   {
     name: 'Teams',
-    url: '/teams',
+    url: PAGE_ROUTES.TEAMS,
     selectedLogo: '/icons/teams--selected.svg',
     unSelectedLogo: '/icons/team.svg',
   },
   {
     name: 'Members',
-    url: '/members',
+    url: PAGE_ROUTES.MEMBERS,
     selectedLogo: '/icons/members--selected.svg',
     unSelectedLogo: '/icons/members.svg',
   },
   {
     name: 'Projects',
-    url: '/projects',
+    url: PAGE_ROUTES.PROJECTS,
     selectedLogo: '/icons/projects--selected.svg',
     unSelectedLogo: '/icons/projects.svg',
   },
@@ -28,6 +44,12 @@ export const NAV_OPTIONS = [
     url: '/irl',
     selectedLogo: '/icons/nav-calendar--selected.svg',
     unSelectedLogo: '/icons/nav-calendar.svg',
+  },
+  {
+    name: 'Events',
+    url: PAGE_ROUTES.EVENTS,
+    selectedLogo: '/icons/events-selected.svg',
+    unSelectedLogo: '/icons/events-unselected.svg',
   },
 ];
 
@@ -364,19 +386,6 @@ export const HOME = {
   TRIGGER_FOCUS_AREA_DIALOG: 'trigger-focus-area-dialog',
 };
 
-export const PAGE_ROUTES = {
-  HOME: '/',
-  MEMBERS: '/members',
-  TEAMS: '/teams',
-  SETTINGS: '/settings',
-  PROJECTS: '/projects',
-  IRL: '/irl',
-  NOTIFICATIONS: '/notifications',
-  ADD_TEAM: '/teams/add',
-  SIGNUP: '/sign-up',
-  HUSKY: '/husky/chat',
-};
-
 export const SORT_OPTIONS = {
   ASCENDING: 'Name,asc',
   DESCENDING: 'Name,desc',
@@ -597,7 +606,7 @@ export const ChangeLogList = [
 
     <span style="font-size: 14px;line-height:23px; font-weight: 600">Enhancements</span><br/>
     <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that’s a good fit, feel free to recommend it to the network.</li>
+    <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that's a good fit, feel free to recommend it to the network.</li>
     <li>To provide more insights into event information, we have now added the attendee count for every event in the <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/irl" target="_blank">IRL Gatherings page</a>, allowing users to see the number of attendees along with the resources for each event at a quick glance.</li>
     </ul>
 
@@ -617,13 +626,13 @@ export const ChangeLogList = [
     <div style="font-size: 14px; line-height:23px;">
     <p>We are excited to announce a complete overhaul of our IRL Gatherings platform! This revamp brings several key updates designed to make discovering, attending, and engaging with events and their organizers easier.</p>
     <br/>
-    <p>This new layout is designed to be intuitive, ensuring you can quickly find the events that matter most to you based on your location. Whether you’re searching for upcoming events or reflecting on past ones, you will be able to move through the platform with ease.</p>
+    <p>This new layout is designed to be intuitive, ensuring you can quickly find the events that matter most to you based on your location. Whether you're searching for upcoming events or reflecting on past ones, you will be able to move through the platform with ease.</p>
     <br/>
-    <p>Here’s what’s new:</p>
+    <p>Here's what's new:</p>
     <br/>
     <p><b>Location-Centric Event Grouping</b>: In this new version, all events are now grouped by their respective locations, making it simpler to explore gatherings happening in your area. You can now view a comprehensive list of events happening at any given location, with an easy-to-use interface that allows you to toggle between upcoming and past events. Whether you are looking forward to the next big gathering or want to revisit an event that took place earlier, all the details are at your fingertips.</p>
     <br/>
-    <p><b>Comprehensive Event Insights</b>: Each event listing now comes with expanded details, including information on the speakers and hosts for specific events. This gives you a better understanding of who will be leading the event, offering insights into their expertise and the topics they will cover. With this update, you will know exactly who’s shaping the conversation and experience, allowing you to make more informed decisions about which gatherings to attend.</p>
+    <p><b>Comprehensive Event Insights</b>: Each event listing now comes with expanded details, including information on the speakers and hosts for specific events. This gives you a better understanding of who will be leading the event, offering insights into their expertise and the topics they will cover. With this update, you will know exactly who's shaping the conversation and experience, allowing you to make more informed decisions about which gatherings to attend.</p>
     <br/>
     <p>This revamp transforms the way you explore and engage with IRL gatherings, helping you stay connected with the right events and the right people.</p>
     <br/>
@@ -654,11 +663,11 @@ export const ChangeLogList = [
     </br>
     <li>
      <p  style="padding-bottom:8px"><b>Discover Section:</b></p>
-    <p style="padding-bottom:8px">This section offers a curated feed of all the latest network happenings. Whether it’s breaking news, upcoming events, or project updates-with Husky, you can always go beyond the surface and explore more about -
+    <p style="padding-bottom:8px">This section offers a curated feed of all the latest network happenings. Whether it's breaking news, upcoming events, or project updates-with Husky, you can always go beyond the surface and explore more about -
     </p>
     <p style="padding-bottom:8px"><b>Teams:</b> Get insights into the teams that are driving innovation in the network. Explore their roles, contributions, and impact on various projects.</p>
     <p style="padding-bottom:8px"><b>Projects:</b> Get insights into cutting-edge projects across the network. Track their progress, understand their goals, and find opportunities to contribute.</p>
-    <p><b>IRL Events:</b> Explore various events and whether it’s key takeaways, event highlights, or notable discussions, you’ll get the scoop on everything that went down so you can stay up to speed, even if you weren’t there.</p>
+    <p><b>IRL Events:</b> Explore various events and whether it's key takeaways, event highlights, or notable discussions, you'll get the scoop on everything that went down so you can stay up to speed, even if you weren't there.</p>
     </li>
     </br>
     <li>
@@ -876,7 +885,7 @@ export const OFFICE_HOURS_STEPS = {
 
 export const TROUBLES_INFO = {
   didntHappened: {
-    name: 'Meeting didn’t happen',
+    name: "Meeting didn't happen",
     reasons: [],
   },
   technicalIssues: {
@@ -1182,7 +1191,7 @@ export const DEFAULT_PROJECT_TAGS = [
 
 
 export const PROJECT_README_DEFAULT =
-  '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n';
+  "## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it's goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n";
 
 
 export const EVENTS_OPTIONS = [
@@ -1192,3 +1201,82 @@ export const EVENTS_OPTIONS = [
 ];
 
 export const IRL_EVENTS_DEFAULT_IMAGE = "https://plabs-assets.s3.us-west-1.amazonaws.com/Default+IRL+event-logo.svg";
+
+export const EVENT_LOCATIONS: EventLocation[] = [
+  {
+    id: "1",
+    name: "Bangkok, Thailand",
+    flag: "🇹🇭",
+    icon: "🏯",
+    upcomingEventsCount: 6,
+    events: [
+      { id: "101", name: "LabWeek Web3" },
+      { id: "102", name: "Web3 Evolution Summit" },
+      { id: "103", name: "Arbiverse Bangkok Conference" },
+      { id: "104", name: "Public Goods Hackathon" },
+      { id: "105", name: "ETH Bangkok" },
+      { id: "106", name: "DeFi Summit" },
+    ],
+    attendingCount: 200,
+    followingCount: 340,
+  },
+  {
+    id: "2",
+    name: "Bangalore, India",
+    flag: "🇮🇳",
+    icon: "🏛️",
+    upcomingEventsCount: 2,
+    events: [
+      { id: "201", name: "ETH India" },
+      { id: "202", name: "FIL Bangalore" },
+    ],
+    attendingCount: 200,
+    followingCount: 340,
+  },
+  {
+    id: "3",
+    name: "San Francisco, USA",
+    flag: "🇺🇸",
+    icon: "🌉",
+    upcomingEventsCount: 0,
+    isCurrent: true,
+    description: "As AI transforms industries and societies at an unprecedented pace, how can we ensure...",
+    venue: "Internet Archive",
+    dates: "Mar 15-16' 25",
+    events: [],
+    attendingCount: 200,
+    followingCount: 0,
+  },
+  {
+    id: "4",
+    name: "The Gathering, Global",
+    flag: "🌐",
+    icon: "🌐",
+    upcomingEventsCount: 0,
+    isCurrent: true,
+    description:
+      "A global conference series, where the crypto ecosystem's decision-makers connect to exchange ideas, network, and shape the industry.",
+    venue: "PL EngRes",
+    dates: "Apr 10-16' 25",
+    events: [],
+    attendingCount: 200,
+    followingCount: 0,
+  },
+  {
+    id: "5",
+    name: "Paris, France",
+    flag: "🇫🇷",
+    icon: "🗼",
+    upcomingEventsCount: 4,
+    events: [
+      { id: "501", name: "ETH Paris" },
+      { id: "502", name: "Paris Blockchain Week" },
+      { id: "503", name: "NFT Paris" },
+      { id: "504", name: "DeFi Summit Paris" },
+    ],
+    description: "Explore the vibrant blockchain scene in the City of Light.",
+    attendingCount: 180,
+    followingCount: 290,
+  },
+]
+

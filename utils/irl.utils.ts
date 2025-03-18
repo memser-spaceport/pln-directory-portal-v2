@@ -184,6 +184,24 @@ export function formatDateRangeForDescription(startDate: any, endDate: any) {
     return '';
   }
 }
+export const getAttendingStartAndEndDate = (events: any) => {
+  if (events.length === 0) {
+    return { checkInDate: null, checkOutDate: null };
+  }
+  
+  const checkInDate = events.reduce(
+    (earliest: string | number | Date, event: { checkInDate: string | number | Date; }) => (!earliest || new Date(event.checkInDate) < new Date(earliest) ? event.checkInDate : earliest),
+    events[0].checkInDate
+  );
+  
+  const checkOutDate = events.reduce(
+    (latest: string | number | Date, event: { checkOutDate: string | number | Date; }) => (!latest || new Date(event.checkOutDate) > new Date(latest) ? event.checkOutDate : latest),
+    events[0].checkOutDate
+  );
+  
+  return { checkInDate, checkOutDate };
+  
+};
 
 export function sortPastEvents(events: any[]) {
   // Sort the events array

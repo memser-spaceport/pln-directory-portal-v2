@@ -165,7 +165,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
       <div className={`gtr ${isUserGoing ? 'user__going' : ''}`}>
         {/* Name */}
         <div className="gtr__guestName">
-          {(canUserAddAttendees || (isUserGoing && newSearchParams.type === 'past')) && (
+          {(canUserAddAttendees) && (
             <div className="gtr__guestName__checkbox">
               {selectedGuests.includes(guest?.memberUid) && (
                 <button onClick={() => onchangeSelectionStatus(guest?.memberUid)} className="notHappenedCtr__bdy__optnCtr__optn__sltd">
@@ -210,24 +210,10 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   </div>
                   {newSearchParams.type === 'past'
                     ? isEventAvailable[0]?.isHost && (
-                        <button
-                          onClick={(e: SyntheticEvent) => {
-                            e.preventDefault();
-                          }}
-                          className="gtr__team__host__btn"
-                        >
-                          Host
-                        </button>
+                      <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
                       )
                     : hostEvents?.length > 0 && (
-                        <button
-                          onClick={(e: SyntheticEvent) => {
-                            e.preventDefault();
-                          }}
-                          className="gtr__team__host__btn"
-                        >
-                          Host
-                        </button>
+                      <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
                       )}
                 </div>
               </a>

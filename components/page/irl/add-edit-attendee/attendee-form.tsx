@@ -293,7 +293,8 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER) }));
     }
 
-    if (formattedData.events.length === 0 && !(eventType === 'past' && from === 'list')) {
+    const canSkipGateringsValidation = formInitialValues && formInitialValues?.events?.length != 0 && eventType === 'past';
+    if (formattedData.events.length === 0 && !canSkipGateringsValidation) {
       isError = true;
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
     } else {

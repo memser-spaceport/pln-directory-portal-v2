@@ -39,6 +39,7 @@ const FollowSection = (props: IFollowSectionProps) => {
   const pastEvents = locationEvents?.pastEvents;
   const upcomingEvents = locationEvents?.upcomingEvents;
   const inPastEvents = type ? type === 'past' : (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0);
+  const inPastEventsAndHaveEvents = inPastEvents && pastEvents && pastEvents.length > 0;
   const onLogin = props.onLogin;
   const isUserLoggedIn = props?.isLoggedIn;
   const isAdminInAllEvents = props?.isAdminInAllEvents;
@@ -222,7 +223,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             </button>
           )}
 
-          {isUserGoing && isUserLoggedIn && !inPastEvents && (
+          {isUserGoing && isUserLoggedIn && (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) && (
             <div className="toolbar__actionCn__edit__wrpr">
               <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
                 <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />

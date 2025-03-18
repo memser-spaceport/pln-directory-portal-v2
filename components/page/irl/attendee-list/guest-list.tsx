@@ -24,6 +24,8 @@ interface IGuestList {
 }
 
 const GuestList = (props: IGuestList) => {
+  console.log(props?.items);
+  
   const userInfo = props?.userInfo;
   const eventDetails = props?.eventDetails;
   const newSearchParams = props?.newSearchParams;

@@ -74,7 +74,9 @@ const Gatherings = (props: IGatherings) => {
           <div className={`gatrs__all__gths ${errors?.gatheringErrors?.includes(IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING) && !selectedGatherings?.length ? 'error' : ''}`}>
             {gatherings?.map((gathering: any, index: number) => {
               const isBooked = getIsAlreadyBooked(gathering);
-              const isAllEventEditable = eventType === 'past' && from === 'list' && (isAdmin || isLoggedInUserEventDetails);
+              // 
+              // const isAllEventEditable = eventType === 'past' && from === 'list' && (isAdmin || isLoggedInUserEventDetails);
+              const isAllEventEditable = eventType === 'past' && (isAdmin || isLoggedInUserEventDetails);
               const isEventDisabled = isAllEventEditable?!isAllEventEditable:isBooked;
               return (
                 <div key={`${gathering.uid} - ${index}`} className={`gatrs__all__gatr  ${isEventDisabled ? 'disable' : ''}`}>

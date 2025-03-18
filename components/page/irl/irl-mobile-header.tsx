@@ -94,7 +94,7 @@ const IrlMobileHeader = (props: IIrlHeaderProps) => {
   };
 
   const inPastEvents = type ? type === 'past' : guestDetails?.pastEvents && guestDetails?.pastEvents.length > 0 && guestDetails.upcomingEvents && guestDetails?.upcomingEvents?.length === 0;
-
+  const inPastEventsAndHaveEvents = inPastEvents && guestDetails?.pastEvents && guestDetails?.pastEvents.length > 0;
   const onLoginClick = () => {
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
@@ -117,7 +117,7 @@ const IrlMobileHeader = (props: IIrlHeaderProps) => {
     <>
       <div className="irlMobileHeader">
         <FollowButton eventLocationSummary={eventLocationSummary} userInfo={userInfo} followProperties={followProperties} />
-        {isUserGoing && isUserLoggedIn && !inPastEvents && (
+        {isUserGoing && isUserLoggedIn && (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents))&& (
           <IrlEditResponse isEdit={isEdit} onEditResponseClick={onEditResponseClick} onEditDetailsClicked={onEditDetailsClicked} onRemoveFromGatherings={onRemoveFromGatherings} />
         )}
         {!isUserLoggedIn && !inPastEvents && (

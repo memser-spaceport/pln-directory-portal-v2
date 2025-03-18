@@ -1,6 +1,6 @@
 interface FollowupQuestionsProps {
     followupQuestions: string[];
-    onFollowupClicked?: (message: { question: string; type: string }) => void;
+    onFollowupClicked?: (question: string) => void;
     chatIndex?: number;
     isAnswerLoading: boolean;
     isLoadingObject: boolean;
@@ -9,11 +9,8 @@ interface FollowupQuestionsProps {
   function FollowupQuestions({ followupQuestions = [], chatIndex = 0, onFollowupClicked, isAnswerLoading, isLoadingObject }: FollowupQuestionsProps) {
 
     const onQuestionClicked = (question: string) => {
-      if(isAnswerLoading || isLoadingObject) {
-        return;
-      }
       if (onFollowupClicked) {
-        onFollowupClicked({ question, type: 'followup' });
+        onFollowupClicked(question);
       }
     };
   

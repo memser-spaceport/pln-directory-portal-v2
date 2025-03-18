@@ -20,6 +20,7 @@ export const config = {
     '/irl/:path',
     '/settings/:path',
     '/changelog',
+    '/husky/chat/:path',
   ],
 };
 

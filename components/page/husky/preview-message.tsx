@@ -64,6 +64,18 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClic
                 </div>
               )}
 
+              {/* actions */}
+              <ChatMessageActions
+                isLastIndex={isLastIndex}
+                onCopyAnswer={onCopyAnswer || (async () => {})}
+                onRegenerate={onRegenerate}
+                onQuestionEdit={onQuestionEdit || (() => {})}
+                onFeedback={onFeedback}
+                question={message.question || ''}
+                answer={message.answer || ''}
+                hideActions={message.isError || false}
+              />
+
               {/* answer */}
               <div className="preview-message__content">
                 <Markdown>{message.answer}</Markdown>
@@ -74,14 +86,20 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClic
 
               {/* follow up questions */}
               {message.followUpQuestions?.length > 0 && (
-                <FollowupQuestions isLoadingObject={isLoadingObject} isAnswerLoading={isAnswerLoading} chatIndex={0} onFollowupClicked={onFollowupClicked} followupQuestions={message.followUpQuestions} />
+                <FollowupQuestions
+                  isLoadingObject={isLoadingObject}
+                  isAnswerLoading={isAnswerLoading}
+                  chatIndex={0}
+                  onFollowupClicked={onFollowupClicked}
+                  followupQuestions={message.followUpQuestions}
+                />
               )}
 
               {/* related results */}
               {message.actions?.length > 0 && <RelatedResults actions={message.actions} />}
             </>
           )}
-          
+
           {/* actions */}
           <ChatMessageActions
             isLastIndex={isLastIndex}

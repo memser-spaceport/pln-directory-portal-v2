@@ -433,6 +433,10 @@ dialog {
   pointer-events: none;
 }
 
+.button-link {
+  color: #0f172a;
+}
+
 @media (min-width: 1024px) {
   .team-grid__profile-container__profile {
     height: 72px !important;

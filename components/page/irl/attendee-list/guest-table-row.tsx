@@ -48,15 +48,15 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const teamLogo = guest?.teamLogo || '/icons/team-default-profile.svg';
   const reason = guest?.reason;
   const topics = guest?.topics ?? [];
-  const checkInDate = guest?.additionalInfo?.checkInDate;
-  const checkOutDate = guest?.additionalInfo?.checkOutDate;
+  const checkInDate = guest?.events?.[0]?.checkInDate;
+  const checkOutDate = guest?.events?.[0]?.checkOutDate;
   const telegramId = guest?.telegramId;
   const officeHours = guest?.officeHours;
   const eventNames = guest?.eventNames ?? [];
   const events = guest?.events ?? [];
   const hostEvents = events?.flatMap((event: IIrlEvent) => event?.hostSubEvents || []);
   const speakerEvents = events?.flatMap((event: IIrlEvent) => event?.speakerSubEvents || []);
-  const formattedEventRange = getFormattedDateString(checkInDate, checkOutDate);
+  const formattedEventRange = checkInDate && checkOutDate ? getFormattedDateString(checkInDate, checkOutDate) : '';
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
@@ -81,6 +81,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
       memberName,
     });
   };
+
   const onTelegramClick = (telegramUrl: string, memberUid: string, memberName: string) => {
     analytics.trackGuestListTableTelegramLinkClicked(location, { telegramUrl, memberUid, memberName });
   };
@@ -330,7 +331,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         {/* Attending */}
         <div className="gtr__attending">
           <div className="gtr__attending__cn">
-            <div className="gtr__attending__cn__date">{formattedEventRange}</div>
+            {newSearchParams.type === 'past' ? '' : <div className="gtr__attending__cn__date">{formattedEventRange}</div>}
             <div className="gtr__attending__cn__evnt">
               <EventSummary events={eventNames} />
             </div>
@@ -435,7 +436,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
         .border-bottom {
           border-bottom: 0.5px solid #cbd5e1;
         }
-
 
         .gtr__team {
           display: flex;

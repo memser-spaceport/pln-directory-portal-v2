@@ -35,6 +35,8 @@ export interface IIrlEvent {
   name: string;
   isHost: boolean;
   isSpeaker: boolean;
+  checkInDate: string;
+  checkOutDate: string;
   hostSubEvents: {
     link: string;
     name: string;

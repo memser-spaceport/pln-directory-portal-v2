@@ -8,7 +8,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { getParsedValue } from '@/utils/common.utils';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, TOAST_MESSAGES } from '@/utils/constants';
-import { canUserPerformEditAction, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
+import { canUserPerformEditAction, getAttendingStartAndEndDate, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
 import { Tooltip as Popover } from './attendee-popover';
 import EventSummary from './event-summary';
 import GuestDescription from './guest-description';
@@ -48,8 +48,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const teamLogo = guest?.teamLogo || '/icons/team-default-profile.svg';
   const reason = guest?.reason;
   const topics = guest?.topics ?? [];
-  const checkInDate = guest?.events?.[0]?.checkInDate;
-  const checkOutDate = guest?.events?.[0]?.checkOutDate;
+  const { checkInDate, checkOutDate } = getAttendingStartAndEndDate(guest?.events ?? []);
   const telegramId = guest?.telegramId;
   const officeHours = guest?.officeHours;
   const eventNames = guest?.eventNames ?? [];

@@ -172,7 +172,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const updateMemberDetails = async (updateAll: boolean) => {
     try {
       triggerLoader(true);
-      const memberResult = await getMember(selectedMember.uid ?? '', { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false);
+      const memberResult = await getMember(selectedMember.uid ?? '', { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false,true);
       const memberPreferencesResponse = await getMemberPreferences(selectedMember.uid ?? '', authToken);
       if (memberPreferencesResponse.isError) {
         return { isError: true };

@@ -66,6 +66,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClic
 
               {/* actions */}
               <ChatMessageActions
+                isLoadingObject={isLoadingObject}
                 isLastIndex={isLastIndex}
                 onCopyAnswer={onCopyAnswer || (async () => {})}
                 onRegenerate={onRegenerate}
@@ -102,6 +103,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClic
 
           {/* actions */}
           <ChatMessageActions
+            isLoadingObject={isLoadingObject}
             isLastIndex={isLastIndex}
             onCopyAnswer={onCopyAnswer || (async () => {})}
             onRegenerate={onRegenerate}

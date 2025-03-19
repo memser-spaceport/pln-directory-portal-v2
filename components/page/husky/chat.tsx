@@ -422,7 +422,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
               messages={messages}
               onFollowupClicked={onFollowupClicked}
               isAnswerLoading={isAnswerLoading}
-              isLoadingObject={chatIsLoading}
+              isLoadingObject={chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')}
               onFeedback={onFeedback}
               onRegenerate={onRegenerate}
               onCopyAnswer={onCopyAnswer}

@@ -10,16 +10,17 @@ type ChatMessageActions = {
   isLastIndex: boolean;
   question: string;
   hideActions: boolean;
+  isLoadingObject: boolean;
 };
 
-const ChatMessageActions = ({ onQuestionEdit, onFeedback, onRegenerate, onCopyAnswer, answer, isLastIndex, question, hideActions }: ChatMessageActions) => {
+const ChatMessageActions = ({ onQuestionEdit, onFeedback, onRegenerate, onCopyAnswer, answer, isLastIndex, question, hideActions, isLoadingObject }: ChatMessageActions) => {
   const handleFeedbackClick = async () => {
     await onFeedback(question, answer);
   };
   return (
     <>
       <div className="chat-message-actions">
-        <div className={`chat-message-actions__container`}>
+        <div data-state={isLoadingObject ? 'loading' : ''} className={`chat-message-actions__container`}>
           {isLastIndex && <img onClick={async () => await onRegenerate(question)} className="chat-message-actions__item" title="Regenerate response" src="/icons/refresh-circle.svg" />}
           {isLastIndex && <img onClick={() => onQuestionEdit(question)} className="chat-message-actions__item" title="Edit question" src="/icons/edit-chat.svg" />}
           {!hideActions && (
@@ -50,6 +51,11 @@ const ChatMessageActions = ({ onQuestionEdit, onFeedback, onRegenerate, onCopyAn
 
         .chat-message-actions__item--copy {
           margin-top: 4px;
+        }
+
+        .chat-message-actions__container[data-state='loading'] .chat-message-actions__item {
+          cursor: default;
+          pointer-events: none;
         }
       `}</style>
     </>

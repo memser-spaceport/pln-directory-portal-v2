@@ -270,6 +270,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       });
       analytics.trackThreadDeleteConfirmationStatus(deleteId, 'success');
       // Redirect to home if the deleted thread is the current one
+      document.dispatchEvent(new CustomEvent('new-chat'));
       if (deleteId === id) {
         router.push('/husky/chat');
       }

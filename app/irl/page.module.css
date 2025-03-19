@@ -16,7 +16,6 @@
 .irlGatherings__events {
   display: flex;
   flex-direction: column;
-  /* gap: 16px; */
   margin-top: 20px;
 }
 
@@ -37,12 +36,14 @@
     display: flex;
     flex-direction: column;
     position: sticky;
+    margin-top: 20px;
     top: 78px;
     gap: 0px;
     z-index: 3;
   }
   .irlGatheings__huskyIntegration {
     max-width: 900px;
+    margin-top: 20px;
     overflow: unset;
     display: flex;
     flex-direction: column;
@@ -78,7 +79,10 @@
     gap: unset;
     z-index: unset;
   }
-
+  .irlGatheings__huskyIntegration {
+    width: 900px;
+    margin-top: 20px;
+  }
   .irlGatherings {
     width: 900px;
     margin: auto;

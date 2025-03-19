@@ -83,8 +83,14 @@ export const getMemberRepositories = async (id: string) => {
   return result;
 };
 
-export const getMember = async (id: string, query: any, isLoggedIn?: boolean, userInfo?: any, isHidePref: boolean = true) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['member-detail']} };
+export const getMember = async (id: string, query: any, isLoggedIn?: boolean, userInfo?: any, isHidePref: boolean = true,fetchNew?: boolean) => {
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader('') };
+  if(fetchNew){
+    requestOPtions.cache = 'no-store';
+  }else{
+    requestOPtions.cache = 'force-cache';
+    requestOPtions.next = { tags: ['member-detail'] };
+  }
   const memberResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}?${new URLSearchParams(query)}`, requestOPtions);
   // let memberRepository;
   let member;

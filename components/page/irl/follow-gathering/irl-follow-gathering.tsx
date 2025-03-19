@@ -18,6 +18,7 @@ interface IrlFollowGatheringProps {
   eventLocationSummary: any;
   eventDetails: ILocationDetails;
   guestDetails: any;
+  topicsAndReasonResponse: any;
 }
 
 const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
@@ -26,6 +27,7 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   const locationEvents = props.eventDetails;
   const router = useRouter();
   const isLoggedIn = props.isLoggedIn;
+  const topicsAndReason = props.topicsAndReasonResponse;
 
   const isAdminInAllEvents = checkAdminInAllEvents(searchParams?.type, locationEvents?.upcomingEvents, locationEvents?.pastEvents);
   const onLogin = useCallback(async () => {
@@ -41,7 +43,7 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
   return (
     <>
       <div className="root">
-          <FollowSection searchParams={props.searchParams} userInfo={props.userInfo} followers={props.followers} eventLocationSummary={props.eventLocationSummary} locationEvents={eventDetails} eventDetails={eventDetails} onLogin={onLogin} isLoggedIn={isLoggedIn} isAdminInAllEvents={isAdminInAllEvents} guestDetails={props.guestDetails} />
+          <FollowSection topicsAndReason={topicsAndReason} searchParams={props.searchParams} userInfo={props.userInfo} followers={props.followers} eventLocationSummary={props.eventLocationSummary} locationEvents={eventDetails} eventDetails={eventDetails} onLogin={onLogin} isLoggedIn={isLoggedIn} isAdminInAllEvents={isAdminInAllEvents} guestDetails={props.guestDetails} />
       </div>
 
       <style jsx>{`

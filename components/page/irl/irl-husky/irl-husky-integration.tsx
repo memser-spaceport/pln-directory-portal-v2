@@ -89,6 +89,9 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
           font-size: 14px;
           font-weight: 600;
         }
+        .root__irlhusky__btn:hover {
+          background: #1d4ed8;
+        }
         @media (max-width: 768px) {
           .root {
             background-image: url('/icons/irl/irl-husky-bg-mobile.svg');

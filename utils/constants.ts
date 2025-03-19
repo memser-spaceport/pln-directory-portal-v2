@@ -479,6 +479,20 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.7 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '20, Mar 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Introduced a new feature allowing users to explore more on the IRL Gatherings page using the capabilities of Husky AI</li>
+    <li>IRL Gatherings - Enabling attendees to log their participation in past events</li>
+    <li>Introduced a feature that allows users to effortlessly share conversation threads within the Husky platform</li>
+    </ul>
+    </div>`,
+  },
+  {
     title: 'Version 4.1.6 - Protocol Labs Events Enhancements',
     tag: 'Improvements',
     date: '11, Mar 2025',
@@ -491,24 +505,24 @@ export const ChangeLogList = [
     </ul>
     </div>`,
   },
-    {
-        title: 'Version 4.1.5 - Directory Enhancements',
-        tag: 'Improvements',
-        date: '07, Mar 2025',
-        shortContent: `
-        <div style="font-size: 14px; line-height:23px;">
-        <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li>Team Leads can now add members to their teams and submit sign up requests for new users using the enhanced Settings module</li>
-        <li>Enhanced Husky's chat functionality with support for chat history and threaded conversations</li>
-        </ul>
+  {
+    title: 'Version 4.1.5 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '07, Mar 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Team Leads can now add members to their teams and submit sign up requests for new users using the enhanced Settings module</li>
+    <li>Enhanced Husky's chat functionality with support for chat history and threaded conversations</li>
+    </ul>
 
-        <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
-        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li>Filter issue fix on the IRL Gatherings module's Attendees table</li>
-        </ul>
-        </div>`,
-      },
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Filter issue fix on the IRL Gatherings module's Attendees table</li>
+    </ul>
+    </div>`,
+  },
   {
     title: 'Version 4.1.4 - Directory Enhancements',
     tag: 'Improvements',

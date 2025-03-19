@@ -96,7 +96,7 @@ export function transformTeamApiToFormObj(obj: any){
 
 export function transformRawInputsToFormObj(obj: any) {
   const result: any = {};
-  const fundingStage: any = {};
+  let fundingStage: any = null;
   const technologies: any = {};
   const membershipSources: any = {};
   const industryTags: any = {};
@@ -105,6 +105,9 @@ export function transformRawInputsToFormObj(obj: any) {
   for (const key in obj) {
     if (key.startsWith('fundingStage')) {
       const subKey = key.split('-')[1];
+      if (!fundingStage) {
+        fundingStage = {};
+      }
       fundingStage[subKey] = obj[key];
     } else if (key.startsWith('technology')) {
       const [technology, subKey] = key.split('-');

@@ -15,10 +15,6 @@ export const basicInfoSchema = z.object({
     .trim()
     .min(1)
     .max(1000),
-  longDescription: z
-    .string({ errorMap: () => ({ message: 'Please add a Long Description' }) })
-    .trim()
-    .min(1)
 });
 
 const industryTag = z.object({
@@ -32,18 +28,10 @@ const fundingStage = z.object({
 });
 
 export const projectDetailsSchema = z.object({
-  fundingStage: fundingStage.refine((obj) => obj.title && obj.uid, {
-    message: 'Please add Funding Stage',
-  }),
-  industryTags: z.array(industryTag).nonempty({ message: 'Please add Industry Tags' })
+  industryTags: z.array(industryTag).nonempty({ message: 'Please add Industry Tags' }),
 });
 
 export const socialSchema = z.object({
-  contactMethod: z
-    .string({ errorMap: () => ({ message: 'Please add Preferred method of contact' }) })
-    .trim()
-    .min(1)
-    .max(200),
   website: z
     .string({ errorMap: () => ({ message: 'Please add website' }) })
     .trim()

@@ -21,13 +21,13 @@
 }
 
 .irlGatherings__irlsubHeader {
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 20px;
-    letter-spacing: 0.01em;
-    text-align: left;
-    padding: 10px 20px 0px 20px;
-    background-color: #DBEAFE;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0.01em;
+  text-align: left;
+  padding: 10px 20px 0px 20px;
+  background-color: #dbeafe;
 }
 
 @media (min-width: 360px) {
@@ -41,13 +41,18 @@
     gap: 0px;
     z-index: 3;
   }
-  
+  .irlGatheings__huskyIntegration {
+    max-width: 900px;
+    overflow: unset;
+    display: flex;
+    flex-direction: column;
+  }
   .irlGatheings__locations {
     overflow-x: auto;
     scroll-behavior: smooth;
     scrollbar-width: none;
     margin: unset;
-    background-color: #F1F5F9;
+    background-color: #f1f5f9;
     height: 122px;
     padding: 10px;
     border-radius: unset;
@@ -95,12 +100,11 @@
     overflow-x: unset;
     border-radius: 16px;
   }
-  
+
   .irlGatheings__guests {
     padding-top: 42px;
   }
 }
-
 
 @media (min-width: 1440px) {
   .irlGatherings {

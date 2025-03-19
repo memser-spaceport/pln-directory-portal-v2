@@ -21,7 +21,7 @@ interface FollowupQuestionsProps {
             <img width={16} height={16} src="/icons/suggestions-orange.svg" alt="follow up questions" />
             <span>Follow up questions</span>
           </h3>
-          <div className="followup-questions__list" data-testid="followup-questions-list">
+          <div data-state={isLoadingObject ? 'loading' : ''} className="followup-questions__list" data-testid="followup-questions-list">
             {followupQuestions.map((ques: any, index: number) => (
               <p 
                 onClick={() => onQuestionClicked(ques)} 
@@ -64,6 +64,11 @@ interface FollowupQuestionsProps {
               border-radius: 8px;
               line-height: 22px;
               color: #000;
+            }
+
+            .followup-questions__list[data-state="loading"] .followup-questions__list__item {
+              pointer-events: none;
+              cursor: default;
             }
           `}
         </style>

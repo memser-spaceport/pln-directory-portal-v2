@@ -11,12 +11,16 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import { getMemberRolesForTeam, getMembersWithRoles } from '@/services/members.service';
 import { sortMemberByRole } from '@/utils/common.utils';
+import ClosedRequest from '@/components/ui/closed-request';
+import { getBackOffice } from '@/services/back-office.service';
+import TeamInfo from '@/components/ui/team-info';
 
 const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean) => {
   const dpResult = await getTeamsInfoForDp();
   let selectedTeam;
   let membersDetail;
   let allMembers;
+  let backOfficedata;
   if (dpResult.error) {
     return { isError: true };
   }
@@ -26,7 +30,7 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
     teams = [...structuredClone(teams)].filter((v) => leadingTeams.includes(v.id));
   }
   // const teamResult = await getTeamInfo(selectedTeamId ?? teams[0].id);
-  const [teamResult, teamMembersResponse, allMembersResponse] = await Promise.all([
+  const [teamResult, teamMembersResponse, allMembersResponse, backOfficeResponse] = await Promise.all([
     getTeamInfo(selectedTeamId ?? teams[0].id),
     getMemberRolesForTeam(
       {
@@ -37,22 +41,25 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
       },
       selectedTeamId ?? teams[0].id
     ),
-    getMembersWithRoles()
+    getMembersWithRoles(),
+    getBackOffice()
   ]);
   
-  if (teamResult.isError || teamMembersResponse.error || allMembersResponse.error) {
+  if (teamResult.isError || teamMembersResponse.error || allMembersResponse.error || backOfficeResponse.error) {
     return {
       isError: true,
     };
   }
   selectedTeam = teamResult.data;
   membersDetail = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
-  allMembers = allMembersResponse.data
+  allMembers = allMembersResponse.data;
+  backOfficedata = backOfficeResponse.data;  
   return {
     teams,
     selectedTeam,
     membersDetail,
-    allMembers
+    allMembers,
+    backOfficedata
   };
 };
 
@@ -75,7 +82,7 @@ export default async function ManageTeams(props: any) {
     redirect(PAGE_ROUTES.HOME);
   }
 
-  const { teams, isError, selectedTeam, membersDetail, allMembers } = await getPageData(selectedTeamId, leadingTeams, isTeamLead);
+  const { teams, isError, selectedTeam, membersDetail, allMembers, backOfficedata } = await getPageData(selectedTeamId, leadingTeams, isTeamLead);
   if (isError) {
     return 'Error';
   }
@@ -102,7 +109,9 @@ export default async function ManageTeams(props: any) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage teams" userInfo={userInfo} />
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageTeamsSettings selectedTeam={selectedTeam} membersDetail={membersDetail} teams={teams} userInfo={userInfo} allMembers={allMembers}/>
+            <TeamInfo />
+            {/* <ClosedRequest backOfficedata={backOfficedata}/> */}
+            {/* <ManageTeamsSettings selectedTeam={selectedTeam} membersDetail={membersDetail} teams={teams} userInfo={userInfo} allMembers={allMembers}/> */}
           </div>
         </div>
       </div>

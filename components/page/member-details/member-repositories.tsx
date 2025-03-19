@@ -54,9 +54,13 @@ const MemberRepositories = (props: IMemberRepositories) => {
           )}
 
           {!Array.isArray(repositories) && repositories?.statusCode == 500 && (
+            <div className="member-repo__header">
+            <h2 className="member-repo__title">Repositories (0)</h2>
             <div className="member-repo__unable-to-load">
               <p>Unable to load repositories</p>
             </div>
+          </div>
+            
           )}
 
           {Array.isArray(repositories) &&

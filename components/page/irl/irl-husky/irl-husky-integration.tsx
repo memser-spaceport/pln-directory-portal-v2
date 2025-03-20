@@ -16,7 +16,7 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
     <div className="root">
       <div className="root__irlhusky">
         <div className="root__irlhusky__text">
-          Got questions? Chat with
+          Got questions about gatherings? Chat with
           <a href={PAGE_ROUTES.HUSKY} target="_blank" rel="noopener noreferrer" className="root__irlhusky__text--highlighted" onClick={onChatWithHusky}>
             Husky AI
           </a>

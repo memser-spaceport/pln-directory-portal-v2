@@ -133,7 +133,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'> & {
           .sidebar-content {
             position: fixed;
             bottom: 0;
-            z-index: 10;
+            z-index: 4;
             height: calc(100vh - 82px);
             width: var(--sidebar-width, 250px);
             transition: left 0.2s ease-in-out, right 0.2s ease-in-out, width 0.2s linear;

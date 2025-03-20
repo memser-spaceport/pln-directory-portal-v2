@@ -82,9 +82,9 @@ export const deleteEventGuestByLocation = async (location: string, payload: any)
   return true;
 };
 
-export const createEventGuest = async (locationId: string, payload: any) => {
+export const createEventGuest = async (locationId: string, payload: any, type: string) => {
   const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests`,
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests?type=${type}`,
     {
       method: 'POST',
       cache: 'no-store',
@@ -144,6 +144,20 @@ export const getTopicsByLocation = async (locationId: string, type: string) => {
 
   if (!response.ok) {
     return [];
+  }
+
+  return await response.json();
+};
+
+export const getTopicsAndReasonForUser = async (locationId: string, userId: string, authToken: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${userId}/topics`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(authToken),
+  });
+
+  if (!response.ok) {
+    return { isError: true };
   }
 
   return await response.json();

@@ -32,6 +32,7 @@ interface IAttendeeForm {
   formData: any;
   getEventDetails: any;
   searchParams: any;
+  from?: string;
 }
 
 const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
@@ -51,8 +52,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
 
   const eventType = searchParams?.type === 'past' ? 'past' : 'upcoming';
   const analytics = useIrlAnalytics();
+  const from = props?.from ?? '';
 
   const [formInitialValues, setFormInitialValues] = useState<any>(props?.formData);
+  const [topicsAndReason,setTopicsAndReason]= useState(props?.formData?.topicsAndReason ?? null);
   const isAllowedToManageGuests = canUserPerformEditAction(userInfo?.roles ?? [], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const [isVerifiedMember, setIsVerifiedMember] = useState();
   const [guestGoingEvents, setGuestGoingEvents] = useState([]);
@@ -72,16 +75,22 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     }
   }, []);
 
-  function getGatherings(): IIrlEvent[] {
-    if (searchParams?.type === 'past') {
-      if (searchParams?.event) {
-        const filteredList = props?.allGatherings.filter((gathering: IIrlEvent) => gathering?.slugURL === searchParams?.event);
-        if (filteredList?.length > 0) {
-          return filteredList;
-        }
-      }
-      return [];
+  useEffect(()=>{
+    if(typeof formInitialValues?.topicsAndReason === 'object' && formInitialValues?.topicsAndReason !== null) {
+      setTopicsAndReason(formInitialValues.topicsAndReason)
     }
+  },[formInitialValues])
+
+  function getGatherings(): IIrlEvent[] {
+    // if (searchParams?.type === 'past') {
+    //   if (searchParams?.event) {
+    //     const filteredList = props?.allGatherings.filter((gathering: IIrlEvent) => gathering?.slugURL === searchParams?.event);
+    //     if (filteredList?.length > 0) {
+    //       return filteredList;
+    //     }
+    //   }
+    //   return [];
+    // }
     return props?.allGatherings ?? [];
   }
 
@@ -101,10 +110,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       const formData = new FormData(attendeeFormRef.current);
       const formattedData = transformObject(Object.fromEntries(formData));
 
-      if(eventType === 'past' && (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate)) {
-        const finalResult = mergeGuestEvents([...guestGoingEvents], [...formattedData.events]);
-        formattedData.events = finalResult;
-      }
+      // if(eventType === 'past' && (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate)) {
+      //   const finalResult = mergeGuestEvents([...guestGoingEvents], [...formattedData.events]);
+      //   formattedData.events = finalResult;
+      // }
 
       formattedData?.events?.map((event: any) => {    
         // Process both hostSubEvents and speakerSubEvents
@@ -122,7 +131,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
 
       if ((mode === IAM_GOING_POPUP_MODES.ADMINADD || mode === IAM_GOING_POPUP_MODES.ADD) && !isUpdate) {
         analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
-        const result = await createEventGuest(selectedLocation.uid, formattedData);
+        const result = await createEventGuest(selectedLocation.uid, formattedData, eventType);
         if (result?.error) {
           triggerLoader(false);
           onClose();
@@ -291,7 +300,8 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER) }));
     }
 
-    if (formattedData.events.length === 0) {
+    const canSkipGateringsValidation = formInitialValues && formInitialValues?.events?.length != 0 && eventType === 'past';
+    if (formattedData.events.length === 0 && !canSkipGateringsValidation) {
       isError = true;
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
     } else {
@@ -363,16 +373,25 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               userInfo={userInfo}
               guests={allGuests}
               isVerifiedMember={isVerifiedMember}
+              eventType={eventType}
+              from={from}
             />
           </div>
           <div>
             <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
           </div>
           <div>
-            <Topics defaultTags={defaultTags} selectedItems={formInitialValues?.topics ?? []} />
+            <Topics defaultTags={defaultTags} selectedItems=
+            {
+              formInitialValues?.topicsAndReason ?  (formInitialValues?.topicsAndReason?.topics ?? []) : []
+              } />
           </div>
           <div>
-            <TopicsDescription initialValue={formInitialValues?.reason} />
+            <TopicsDescription initialValue={ formInitialValues?.topicsAndReason ?  (formInitialValues?.topicsAndReason?.reason) : '' } />
+          </div>
+          <div className='interest-note'>
+            <div className='interest-note__icon'><Image src="/icons/info-blue.svg" alt="info" width={16} height={16} /></div>
+            <p className='interest-note__text'>Modifications to these fields (Select topics of interest and Describe your interests) will affect all events at this location, including past events</p>
           </div>
 
           <div id="telegram-section">
@@ -424,6 +443,21 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             display: flex;
             flex-direction: column;
             gap: 20px;
+          }
+
+          .interest-note{
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 24px;
+            background-color: #DBEAFE;
+            padding: 12px;
+            border-radius: 8px;
+            display:flex;
+            gap: 8px;
+          }
+
+          .interest-note__icon{
+            padding-top:2px;
           }
 
           .atndform__bdy__ttl {

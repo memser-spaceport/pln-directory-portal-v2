@@ -54,8 +54,11 @@ const MemberRepositories = (props: IMemberRepositories) => {
           )}
 
           {!Array.isArray(repositories) && repositories?.statusCode == 500 && (
-            <div className="member-repo__unable-to-load">
-              <p>Unable to load repositories</p>
+            <div className="member-repo__header-unable">
+              <h2 className="member-repo__title">Repositories (0)</h2>
+              <div className="member-repo__unable-to-load">
+                <p>Unable to fetch {member?.name}&#39;s repositories at the time.</p>
+              </div>
             </div>
           )}
 
@@ -109,6 +112,10 @@ const MemberRepositories = (props: IMemberRepositories) => {
           .member-repo__header {
             display: flex;
             justify-content: space-between;
+          }
+          
+          .member-repo__header-unable > h2 {
+            margin-bottom: 8px;
           }
 
           .member-repo__header__seeall-btn {

@@ -28,6 +28,10 @@ export const Markdown: FC<MarkdownProps> = ({ children, className = '' }) => {
             ol: { props: { style: { marginLeft: '16px' } } },
             ul: { props: { style: { marginLeft: '16px' } } },
             code: { component: HuskyCodeBlock },
+            table: { props: { style: { borderCollapse: 'collapse', width: '100%', marginBottom: '16px' } } },
+            thead: { props: { style: { backgroundColor: '#f5f5f5' } } },
+            th: { props: { style: { border: '1px solid #ddd', padding: '8px', textAlign: 'left' } } },
+            td: { props: { style: { border: '1px solid #ddd', padding: '8px' } } },
           },
         }}
       >

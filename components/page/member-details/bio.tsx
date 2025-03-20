@@ -168,7 +168,7 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         )}
         {showEditor && (
           <div className="bioCn__content">
-            <TextEditor text={content} setContent={setContent} />
+            <TextEditor maxLength={2500} text={content} setContent={setContent} />
           </div>
         )}
       </div>

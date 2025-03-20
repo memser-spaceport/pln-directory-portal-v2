@@ -13,7 +13,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
-  const contentLength = 347;
+  const contentLength = 1000;
   
   const [content, setContent] = useState(member?.bio ?? '');
   const isOwner = userInfo?.uid === member.id;
@@ -168,7 +168,7 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         )}
         {showEditor && (
           <div className="bioCn__content">
-            <TextEditor maxLength={2500} text={content} setContent={setContent} />
+            <TextEditor text={content} setContent={setContent} />
           </div>
         )}
       </div>

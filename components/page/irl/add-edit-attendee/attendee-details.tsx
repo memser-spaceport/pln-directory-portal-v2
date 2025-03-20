@@ -9,7 +9,7 @@ import { getParsedValue, getUserInfoFromLocal, triggerLoader } from '@/utils/com
 import { EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { SetStateAction, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import { getGuestDetail } from '@/services/irl.service';
+import { getGuestDetail, getTopicsAndReasonForUser } from '@/services/irl.service';
 import { transformGuestDetail } from '@/utils/irl.utils';
 
 interface IAttendeeForm {
@@ -101,19 +101,30 @@ const AttendeeDetails = (props: IAttendeeForm) => {
             }))
             
             setGuestGoingEvents(userGoingEvents)
-
+            let topicsAndReasonResponse;
+            if(selectedMember.uid){
+              topicsAndReasonResponse = await getTopicsAndReasonForUser(location.uid,selectedMember.uid,authToken);
+            }
           if (result.length>0) {
-            const formData = transformGuestDetail(result, gatherings);
-
+            const formData: any = transformGuestDetail(result, gatherings);
             updateMemberDetails(false);
             setSelectedTeam({name: formData?.teamName,
               uid: formData?.teamUid,
               logo: formData?.teamLogo ?? '',});
             setInitialTeams(formData.teams);
+            
+            if(!topicsAndReasonResponse.isError){
+              formData['topicsAndReason'] = topicsAndReasonResponse;
+            }
+            
             setFormInitialValues(formData);
           } else {
+            const formData: any = {};
+            if(!topicsAndReasonResponse.isError){
+              formData['topicsAndReason'] = topicsAndReasonResponse;
+            }
             updateMemberDetails(true);
-            setFormInitialValues(null);
+            setFormInitialValues(formData);
             return;
           }
         } catch (error) {

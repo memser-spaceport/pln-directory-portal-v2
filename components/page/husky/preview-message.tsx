@@ -64,19 +64,6 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClic
                 </div>
               )}
 
-              {/* actions */}
-              <ChatMessageActions
-                isLoadingObject={isLoadingObject}
-                isLastIndex={isLastIndex}
-                onCopyAnswer={onCopyAnswer || (async () => {})}
-                onRegenerate={onRegenerate}
-                onQuestionEdit={onQuestionEdit || (() => {})}
-                onFeedback={onFeedback}
-                question={message.question || ''}
-                answer={message.answer || ''}
-                hideActions={message.isError || false}
-              />
-
               {/* answer */}
               <div className="preview-message__content">
                 <Markdown>{message.answer}</Markdown>

@@ -8,7 +8,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { getParsedValue } from '@/utils/common.utils';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES, TOAST_MESSAGES } from '@/utils/constants';
-import { canUserPerformEditAction, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
+import { canUserPerformEditAction, getAttendingStartAndEndDate, getFormattedDateString, getTelegramUsername, removeAt } from '@/utils/irl.utils';
 import { Tooltip as Popover } from './attendee-popover';
 import EventSummary from './event-summary';
 import GuestDescription from './guest-description';
@@ -48,15 +48,14 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const teamLogo = guest?.teamLogo || '/icons/team-default-profile.svg';
   const reason = guest?.reason;
   const topics = guest?.topics ?? [];
-  const checkInDate = guest?.additionalInfo?.checkInDate;
-  const checkOutDate = guest?.additionalInfo?.checkOutDate;
+  const { checkInDate, checkOutDate } = getAttendingStartAndEndDate(guest?.events ?? []);
   const telegramId = guest?.telegramId;
   const officeHours = guest?.officeHours;
   const eventNames = guest?.eventNames ?? [];
   const events = guest?.events ?? [];
   const hostEvents = events?.flatMap((event: IIrlEvent) => event?.hostSubEvents || []);
   const speakerEvents = events?.flatMap((event: IIrlEvent) => event?.speakerSubEvents || []);
-  const formattedEventRange = getFormattedDateString(checkInDate, checkOutDate);
+  const formattedEventRange = checkInDate && checkOutDate ? getFormattedDateString(checkInDate, checkOutDate) : '';
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
@@ -81,6 +80,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
       memberName,
     });
   };
+
   const onTelegramClick = (telegramUrl: string, memberUid: string, memberName: string) => {
     analytics.trackGuestListTableTelegramLinkClicked(location, { telegramUrl, memberUid, memberName });
   };
@@ -164,7 +164,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
       <div className={`gtr ${isUserGoing ? 'user__going' : ''}`}>
         {/* Name */}
         <div className="gtr__guestName">
-          {canUserAddAttendees && (
+          {(canUserAddAttendees) && (
             <div className="gtr__guestName__checkbox">
               {selectedGuests.includes(guest?.memberUid) && (
                 <button onClick={() => onchangeSelectionStatus(guest?.memberUid)} className="notHappenedCtr__bdy__optnCtr__optn__sltd">
@@ -209,24 +209,10 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   </div>
                   {newSearchParams.type === 'past'
                     ? isEventAvailable[0]?.isHost && (
-                        <button
-                          onClick={(e: SyntheticEvent) => {
-                            e.preventDefault();
-                          }}
-                          className="gtr__team__host__btn"
-                        >
-                          Host
-                        </button>
+                      <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
                       )
                     : hostEvents?.length > 0 && (
-                        <button
-                          onClick={(e: SyntheticEvent) => {
-                            e.preventDefault();
-                          }}
-                          className="gtr__team__host__btn"
-                        >
-                          Host
-                        </button>
+                      <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
                       )}
                 </div>
               </a>
@@ -330,7 +316,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         {/* Attending */}
         <div className="gtr__attending">
           <div className="gtr__attending__cn">
-            <div className="gtr__attending__cn__date">{formattedEventRange}</div>
+            {newSearchParams.type === 'past' ? '' : <div className="gtr__attending__cn__date">{formattedEventRange}</div>}
             <div className="gtr__attending__cn__evnt">
               <EventSummary events={eventNames} />
             </div>
@@ -435,7 +421,6 @@ const GuestTableRow = (props: IGuestTableRow) => {
         .border-bottom {
           border-bottom: 0.5px solid #cbd5e1;
         }
-
 
         .gtr__team {
           display: flex;

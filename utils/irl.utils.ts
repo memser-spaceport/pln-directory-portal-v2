@@ -133,10 +133,10 @@ export function getFormattedDateString(startDate: string, endDate: string, showS
     } else if (startYear === endYear) {
       return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
     } else {
-      if(showStartYear) {
+      if (showStartYear) {
         return `${startMonthName} ${parseInt(startDay, 10)} '${startYear.slice(2)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
       } else {
-        return `${startMonthName} ${parseInt(startDay, 10)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
+        return `${startMonthName} ${parseInt(startDay, 10)} '${startYear.slice(2)} - ${endMonthName} ${parseInt(endDay, 10)} '${endYear.slice(2)}`;
       }
     }
   } catch {
@@ -184,6 +184,24 @@ export function formatDateRangeForDescription(startDate: any, endDate: any) {
     return '';
   }
 }
+export const getAttendingStartAndEndDate = (events: any) => {
+  if (events.length === 0) {
+    return { checkInDate: null, checkOutDate: null };
+  }
+  
+  const checkInDate = events.reduce(
+    (earliest: string | number | Date, event: { checkInDate: string | number | Date; }) => (!earliest || new Date(event.checkInDate) < new Date(earliest) ? event.checkInDate : earliest),
+    events[0].checkInDate
+  );
+  
+  const checkOutDate = events.reduce(
+    (latest: string | number | Date, event: { checkOutDate: string | number | Date; }) => (!latest || new Date(event.checkOutDate) > new Date(latest) ? event.checkOutDate : latest),
+    events[0].checkOutDate
+  );
+  
+  return { checkInDate, checkOutDate };
+  
+};
 
 export function sortPastEvents(events: any[]) {
   // Sort the events array
@@ -243,6 +261,8 @@ export const transformMembers = (result: any, currentEvents: string[]) => {
         isSpeaker: event?.isSpeaker || false,
         hostSubEvents: event?.additionalInfo?.hostSubEvents || [],
         speakerSubEvents: event?.additionalInfo?.speakerSubEvents || [],
+        checkInDate: event?.additionalInfo?.checkInDate || '',
+        checkOutDate: event?.additionalInfo?.checkOutDate || '',
         type: event?.type || '',
         resources: event?.resources || [],
       })),
@@ -345,9 +365,9 @@ export const getFilteredEventsForUser = (loggedInUserEvents: any, currentEvents:
   return filteredEvents;
 };
 
-export const transformGuestDetail = (result: any, gatherings:any) => {
+export const transformGuestDetail = (result: any, gatherings: any) => {
   const detail = result[0] || {};
-  const gatheringsToShow = result?.filter((gathering:any) => (gatherings?.some((guest: any) => guest?.slugURL === gathering.event?.slugURL)));
+  const gatheringsToShow = result?.filter((gathering: any) => gatherings?.some((guest: any) => guest?.slugURL === gathering.event?.slugURL));
   return {
     memberUid: detail?.memberUid,
     memberName: detail?.member?.name,
@@ -372,10 +392,12 @@ export const transformGuestDetail = (result: any, gatherings:any) => {
       isSpeaker: item?.isSpeaker || false,
       hostSubEvents: item?.additionalInfo?.hostSubEvents || [],
       speakerSubEvents: item?.additionalInfo?.speakerSubEvents || [],
+      checkInDate: item?.additionalInfo?.checkInDate || '',
+      checkOutDate: item?.additionalInfo?.checkOutDate || '',
       type: item?.event?.type || '',
       resources: item?.event?.resources || [],
     })),
-    topics: detail?.topics || []  ,
+    topics: detail?.topics || [],
     officeHours: detail?.member?.officeHours || '',
     telegramId: detail?.member?.telegramHandler || '',
     reason: detail?.reason || '',
@@ -392,7 +414,7 @@ export function checkAdminInAllEvents(searchType: any, upcomingEvents: any, past
   return false;
 }
 
-export function sortEventsByDate(member:any) {
+export function sortEventsByDate(member: any) {
   const now = new Date().toISOString(); // Current time in UTC ISO format
 
   return [...member]?.sort((a, b) => {
@@ -402,9 +424,9 @@ export function sortEventsByDate(member:any) {
     const endB = b.event.endDate;
 
     // Determine category for event A
-    const categoryA = startA > now ? 0 : (startA <= now && endA >= now) ? 1 : 2;
+    const categoryA = startA > now ? 0 : startA <= now && endA >= now ? 1 : 2;
     // Determine category for event B
-    const categoryB = startB > now ? 0 : (startB <= now && endB >= now) ? 1 : 2;
+    const categoryB = startB > now ? 0 : startB <= now && endB >= now ? 1 : 2;
 
     // Sort by category first (0: upcoming, 1: ongoing, 2: completed)
     if (categoryA !== categoryB) return categoryA - categoryB;
@@ -421,29 +443,30 @@ export function sortEventsByDate(member:any) {
 
 // combine guest going events and new events(if any event matches with the new events will replace the events in going events)
 export function mergeGuestEvents(userAlreadyGoingEvents: any, formattedEvents: any) {
+  return formattedEvents;
   // Create a Map for `formattedEvents` for quick lookup by `uid`
-  const formattedEventsMap = new Map(formattedEvents.map((event:any) => [event.uid, event]));
+  // const formattedEventsMap = new Map(formattedEvents.map((event:any) => [event.uid, event]));
 
-  // Replace events in `userAlreadyGoingEvents` if there's a match in `formattedEvents`
-  const mergedEvents = userAlreadyGoingEvents.map((event:any) => {
-    return formattedEventsMap.get(event.uid) || event;
-  });
+  // // Replace events in `userAlreadyGoingEvents` if there's a match in `formattedEvents`
+  // const mergedEvents = userAlreadyGoingEvents.map((event:any) => {
+  //   return formattedEventsMap.get(event.uid) || event;
+  // });
 
-  // Add non-matching events from `formattedEvents` to the result
-  const userAlreadyGoingUids = new Set(userAlreadyGoingEvents.map((event:any) => event.uid));
-  const nonOverlappingFormattedEvents = formattedEvents.filter(
-    (event:any) => !userAlreadyGoingUids.has(event.uid)
-  );
+  // // Add non-matching events from `formattedEvents` to the result
+  // const userAlreadyGoingUids = new Set(userAlreadyGoingEvents.map((event:any) => event.uid));
+  // const nonOverlappingFormattedEvents = formattedEvents.filter(
+  //   (event:any) => !userAlreadyGoingUids.has(event.uid)
+  // );
 
-  // Combine the results
-  return [...mergedEvents, ...nonOverlappingFormattedEvents];
+  // // Combine the results
+  // return [...mergedEvents, ...nonOverlappingFormattedEvents];
 }
 
 export function abbreviateString(inputString: string) {
   const words = inputString.split(' ');
   if (words.length === 1) {
-      return inputString;
+    return inputString;
   } else {
-      return words.map((word: any) => word[0].toLowerCase()).join('');
+    return words.map((word: any) => word[0].toLowerCase()).join('');
   }
 }

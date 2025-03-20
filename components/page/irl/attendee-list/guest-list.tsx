@@ -23,7 +23,7 @@ interface IGuestList {
   newSearchParams: URLSearchParams;
 }
 
-const GuestList = (props: IGuestList) => {
+const GuestList = (props: IGuestList) => {  
   const userInfo = props?.userInfo;
   const eventDetails = props?.eventDetails;
   const newSearchParams = props?.newSearchParams;

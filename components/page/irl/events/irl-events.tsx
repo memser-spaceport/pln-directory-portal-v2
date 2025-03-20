@@ -233,7 +233,6 @@ const IrlEvents = (props: IIrlEvents) => {
   }
 
   const handleEventsDropdownChange = (value: string) => {
-
     switch (value) {
       case 'Upcoming':
         handleUpcomingGathering();
@@ -1036,6 +1035,9 @@ const IrlEvents = (props: IIrlEvents) => {
         @media (min-width: 360px) {
           .root__irl__submit__event {
             margin-bottom: 10px;
+          }
+          .root__irl__addRes__loggedOut {
+            padding: 12px;
           }
         }
         @media (min-width: 450px) {

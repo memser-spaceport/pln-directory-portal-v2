@@ -2,21 +2,46 @@
 
 import { useEffect, useState } from "react"
 import useEmblaCarousel from "embla-carousel-react"
-// import type { EventLocation } from "@/types/events.types"
-// import EventCard from "./event-card"
-
+import IrlCard from "../home/featured/irl-card"
+import LocationCard from "../home/featured/location-card"
+import { ADMIN_ROLE, PAGE_ROUTES } from "@/utils/constants"
+import { getParsedValue } from "@/utils/common.utils"
+import { getFeaturedData } from "@/services/featured.service"
+import { formatFeaturedData } from "@/utils/home.utils"
+import { useRouter } from "next/navigation"
+import Cookies from 'js-cookie';
+import { mockEvents } from "@/utils/constants/events-constants"
+import CurrentEventCard from "./current-events-card"
 interface EventsSectionProps {
-  // eventLocations: EventLocation[]
+  eventLocations: any;
+  userInfo?: any
+  isLoggedIn?: boolean
+  getFeaturedDataa?: any
+  onEventClicked?: (item: any) => void
+  onIrlLocationClicked?: (item: any) => void
 }
+
+/**
+ * Helper function to determine event location URL
+ */
+// const getEventLocation = (item: any) => {
+//   // Implementation based on your routing logic
+//   return `${PAGE_ROUTES.IRL}/${item.id}`
+// }
 
 /**
  * Main component for displaying the events section with carousel
  * Uses Embla Carousel for desktop and simple overflow scrolling for mobile
  */
-export default function EventsSection({ eventLocations }: any) {
+export default function EventsSection({ 
+  eventLocations,
+  userInfo,
+  isLoggedIn,
+}: EventsSectionProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" })
   const [canScrollPrev, setCanScrollPrev] = useState(false)
-  const [canScrollNext, setCanScrollNext] = useState(true)
+  const [canScrollNext, setCanScrollNext] = useState(true);
+  const [featuredData, setfeaturedData] = useState(eventLocations ?? []);
 
   // Update scroll buttons state
   useEffect(() => {
@@ -39,6 +64,55 @@ export default function EventsSection({ eventLocations }: any) {
 
   const scrollPrev = () => emblaApi?.scrollPrev()
   const scrollNext = () => emblaApi?.scrollNext()
+  
+  const router = useRouter();
+  // const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  
+  const getFeaturedDataa = async () => {
+    const authToken = getParsedValue(Cookies.get('authToken'));
+    // const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin);
+    const featData = mockEvents;
+    setfeaturedData(formatFeaturedData(featData));
+    router.refresh();
+  };
+
+  /**
+   * Renders the appropriate card component based on the item category
+   */
+  const renderCardByCategory = (item: any) => {
+    const category = item?.category; // Default to location if not specified
+    
+    console.log(category, 'category');
+    // console.log(item, 'item');
+    switch (category) {
+      case 'event':
+        return (
+          <a 
+            target="_blank" 
+            // href={getEventLocation(item)} 
+            // onClick={() => onEventClicked(item)}
+          >
+            <CurrentEventCard eventData={item} />
+          </a>
+        );
+
+      case 'location':
+      default:
+        return (
+          <a
+            target="_blank"
+            // href={`${PAGE_ROUTES.IRL}?location=${item?.location?.split(',')[0].trim()}`}
+            // onClick={(e: any) => {
+            //   onIrlLocationClicked(item);
+            //   if (e.defaultPrevented) return;
+            // }}
+          >
+            <LocationCard {...item} userInfo={userInfo} getFeaturedDataa={getFeaturedDataa} />
+          </a>
+        );
+    }
+  };
+
 
   return (
     <div className="events-section">
@@ -65,23 +139,23 @@ export default function EventsSection({ eventLocations }: any) {
         </div>
       </div>
 
-      {/* Mobile view - simple horizontal scrolling */}
       <div className="mobile-container">
         <div className="mobile-scroll-container">
           {eventLocations.map((location: any) => (
-            // <EventCard key={location.id} eventData={location} />
-            <div key={location.id}>{location.name}</div>
+            <div key={location.uid} className="card-wrapper">
+              {renderCardByCategory(location)}
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Desktop view - Embla carousel */}
       <div className="desktop-container">
         <div className="carousel-viewport" ref={emblaRef}>
           <div className="carousel-container-inner">
             {eventLocations.map((location: any) => (
-              // <EventCard key={location.id} eventData={location} />
-              <div key={location.id}>{location.name}</div>
+              <div key={location.uid} className="card-wrapper">
+                {renderCardByCategory(location)}
+              </div>
             ))}
           </div>
         </div>
@@ -134,7 +208,18 @@ export default function EventsSection({ eventLocations }: any) {
           cursor: not-allowed;
         }
 
-        /* Mobile view (360px to 1023px) */
+        .card-wrapper {
+          flex-shrink: 0;
+          width: calc(100% - 2rem);
+          margin-right: 1rem;
+        }
+
+        :global(.card-link) {
+          text-decoration: none;
+          color: inherit;
+          display: block;
+        }
+
         .mobile-container {
           display: block;
           width: 100%;
@@ -151,16 +236,14 @@ export default function EventsSection({ eventLocations }: any) {
           width: 100%;
         }
 
-        .mobile-scroll-container > :global(*) {
+        .mobile-scroll-container > .card-wrapper {
           scroll-snap-align: start;
         }
 
-        /* Desktop view (hidden on mobile) */
         .desktop-container {
           display: none;
         }
 
-        /* Mobile styles */
         @media (min-width: 360px) and (max-width: 1023px) {
           .events-section {
             padding: 1rem 0;
@@ -173,9 +256,12 @@ export default function EventsSection({ eventLocations }: any) {
           .navigation-buttons {
             display: none;
           }
+
+          .card-wrapper {
+            width: 300px;
+          }
         }
 
-        /* Desktop styles */
         @media (min-width: 1024px) {
           .events-section {
             padding: 2rem 0;
@@ -198,6 +284,7 @@ export default function EventsSection({ eventLocations }: any) {
             display: block;
             overflow: hidden;
             width: 100%;
+            margin: 0px 20px;
           }
           
           .carousel-viewport {
@@ -209,8 +296,14 @@ export default function EventsSection({ eventLocations }: any) {
             display: flex;
             backface-visibility: hidden;
             touch-action: pan-y;
-            margin-left: -2rem;
-            padding-left: 2rem;
+            padding: 10px 10px 10px 15px;
+          }
+
+          .card-wrapper {
+            flex: 0 0 auto;
+            width: 289px;
+            height: 290px;
+            margin-right: 1.5rem;
           }
         }
       `}</style>

@@ -14,7 +14,7 @@ export const Tooltip = RechartsTooltip
 // Custom treemap content component
 export const TreemapCustomContent = (props: any) => {
   const { x, y, width, height, index, name, depth, colors, root, activeIndex } = props
-
+  
   return (
     <g>
       <Rectangle
@@ -23,17 +23,26 @@ export const TreemapCustomContent = (props: any) => {
         width={width}
         height={height}
         style={{
-          fill: index === activeIndex ? "#B3E7FF" : "#E5F7FF",
-          stroke: "#fff",
-          strokeWidth: 2,
+          // fill: index === activeIndex ? "#B3E7FF" : "#E5F7FF",
+          stroke: "#ffffff",
+          strokeWidth: 1,
           cursor: "pointer",
         }}
       />
-      {width > 30 && height > 30 && (
-        <text x={x + 8} y={y + 20} fill="#0F172A" fontSize={12} fontFamily="Inter" textAnchor="start">
+      <foreignObject x={x} y={y} width={width} height={height}>
+        <div
+          style={{
+            padding: '8px',
+            color: '#000000', // Text color
+            fontSize: '12px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
           {name}
-        </text>
-      )}
+        </div>
+      </foreignObject>
     </g>
   )
 }

@@ -176,7 +176,7 @@ const LocationCard = (props: any) => {
           </div>
           <div className="LocationCard__content__eventCntr__events ">
             <div className="Location__content__eventCntr__events__cntr">
-              {visibleEvents.map((event: any, index: number) => (
+              {visibleEvents?.map((event: any, index: number) => (
                 <Tooltip key={index} asChild align="start" trigger={<div className="eventsList">{event.name}</div>} content={<div className="eventName">{event.name}</div>} />
               ))}
               {hiddenEventCount > 0 && (
@@ -185,10 +185,9 @@ const LocationCard = (props: any) => {
                   align="start"
                   content={
                     <div className="allEvents">
-                      {remainingEvents.map((event: any, index: number) => (
+                      {remainingEvents?.map((event: any, index: number) => (
                         <div className="eventName" key={index}>
                           {event.name}
-                          {}
                           {index < remainingEvents?.length - 1 ? ',' : ''}
                         </div>
                       ))}

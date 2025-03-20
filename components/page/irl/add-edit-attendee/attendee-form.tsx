@@ -131,7 +131,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
 
       if ((mode === IAM_GOING_POPUP_MODES.ADMINADD || mode === IAM_GOING_POPUP_MODES.ADD) && !isUpdate) {
         analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
-        const result = await createEventGuest(selectedLocation.uid, formattedData);
+        const result = await createEventGuest(selectedLocation.uid, formattedData, eventType);
         if (result?.error) {
           triggerLoader(false);
           onClose();

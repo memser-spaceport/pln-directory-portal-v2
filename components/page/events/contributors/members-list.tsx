@@ -69,11 +69,13 @@ export default function MembersList({
           .member-avatar {
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: white;
           }
 
           .member-avatar.hovered {
             transform: translateY(-4px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: white;
           }
 
           .image-container {
@@ -81,7 +83,6 @@ export default function MembersList({
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
-            background-color: #f0f4f8;
           }
 
           .fallback-avatar {
@@ -93,7 +94,6 @@ export default function MembersList({
             font-size: 18px;
             font-weight: 500;
             color: #64748b;
-            background-color: #f1f5f9;
           }
 
           :global(.member-image) {
@@ -101,7 +101,7 @@ export default function MembersList({
           }
 
           .more-members {
-            background-color: #f0f4f8;
+            // background-color: #f0f4f8;
           }
 
           .no-members {
@@ -150,7 +150,7 @@ export default function MembersList({
             content={<p>{member.name}</p>}
           />
         ))}
-        <Tooltip
+        {/* <Tooltip
           trigger={
             <div className="member-avatar more-members">
               <div className="image-container fallback-avatar">
@@ -168,7 +168,7 @@ export default function MembersList({
               ))}
             </div>
           }
-        />
+        /> */}
       </div>
 
       <style jsx>{`
@@ -181,11 +181,15 @@ export default function MembersList({
         .member-avatar {
           cursor: pointer;
           transition: transform 0.2s ease, box-shadow 0.2s ease;
+          background: white;
+          height: 40px;
+          width: 40px;
         }
 
         .member-avatar.hovered {
           transform: translateY(-4px);
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          background: white;
         }
 
         .image-container {
@@ -193,7 +197,6 @@ export default function MembersList({
           height: 40px;
           border-radius: 50%;
           overflow: hidden;
-          background-color: #f0f4f8;
         }
 
         .fallback-avatar {
@@ -205,7 +208,6 @@ export default function MembersList({
           font-size: 18px;
           font-weight: 500;
           color: #64748b;
-          background-color: #f1f5f9;
         }
 
         :global(.member-image) {
@@ -213,7 +215,6 @@ export default function MembersList({
         }
 
         .more-members {
-          background-color: #f0f4f8;
         }
 
         .no-members {

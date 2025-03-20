@@ -6,6 +6,7 @@ import { ResponsiveContainer } from "@/components/core/events/treemap"
 import { Tooltip } from "@/components/core/events/treemap"
 import { ChartTooltip } from "@/components/core/events/treemap"
 import type { Member, Team } from "@/utils/constants/events-constants"
+import { TreemapCustomContent } from "@/components/core/events/treemap"
 
 interface ContributorsSectionProps {
   members?: Member[]
@@ -70,7 +71,7 @@ export default function ContributorsSection({
                 hosts: team.hosts.length
               }))}
               dataKey="size"
-              stroke={treemapConfig.borderColor}
+              content={<TreemapCustomContent />}
               fill={treemapConfig.backgroundColor}
             >
               <Tooltip content={ChartTooltip} />

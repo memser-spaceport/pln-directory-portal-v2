@@ -32,8 +32,9 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
         .root {
           position: relative;
           border-radius: 8px;
-          background: url('/icons/irl/irl-husky-bg.svg');
+          background: url('/icons/irl/husky-banner.svg');
           background-position: center;
+          background-size: cover;
           background-repeat: no-repeat;
         }
 
@@ -94,8 +95,7 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
         }
         @media (max-width: 768px) {
           .root {
-            background-image: url('/icons/irl/irl-husky-bg-mobile.svg');
-            background-size: cover;
+            background-image: url('/icons/irl/husky-banner-mobile.svg');
             border-radius: 0px;
           }
           .root::before {

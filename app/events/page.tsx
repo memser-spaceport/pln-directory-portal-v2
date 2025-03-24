@@ -9,6 +9,7 @@ import { ADMIN_ROLE } from '@/utils/constants'
 import { getCookiesFromHeaders } from '@/utils/next-helpers'
 import { getAggregatedEventsData, getEventContributors } from '@/services/events.service'
 import Error from '@/components/core/error';
+import ScheduleSection from '@/components/page/events/schedule-section'
 
 export const metadata: Metadata = {
   title: 'Events | Protocol Labs Directory',
@@ -48,9 +49,7 @@ export default async function EventsPage() {
         />
       </div>
       <div className={styles.container}>
-        <div>
-          <h2>Events</h2>
-        </div>
+        <ScheduleSection />
       </div>
 
     </>

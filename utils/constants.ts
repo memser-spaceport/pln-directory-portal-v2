@@ -4,7 +4,7 @@ export const PAGE_ROUTES = {
   TEAMS: '/teams',
   SETTINGS: '/settings',
   PROJECTS: '/projects',
-  IRL: '/irl',
+  IRL: '/events/irl',
   NOTIFICATIONS: '/notifications',
   ADD_TEAM: '/teams/add',
   SIGNUP: '/sign-up',
@@ -37,17 +37,17 @@ export const NAV_OPTIONS = [
     selectedLogo: '/icons/projects--selected.svg',
     unSelectedLogo: '/icons/projects.svg',
   },
-  {
-    name: 'IRL Gatherings',
-    url: '/irl',
-    selectedLogo: '/icons/nav-calendar--selected.svg',
-    unSelectedLogo: '/icons/nav-calendar.svg',
-  },
+  // {
+  //   name: 'IRL Gatherings',
+  //   url: '/irl',
+  //   selectedLogo: '/icons/nav-calendar--selected.svg',
+  //   unSelectedLogo: '/icons/nav-calendar.svg',
+  // },
   {
     name: 'Events',
     url: PAGE_ROUTES.EVENTS,
-    selectedLogo: '/icons/events-selected.svg',
-    unSelectedLogo: '/icons/events-unselected.svg',
+    selectedLogo: '/icons/nav-calendar--selected.svg',
+    unSelectedLogo: '/icons/nav-calendar.svg',
   },
 ];
 

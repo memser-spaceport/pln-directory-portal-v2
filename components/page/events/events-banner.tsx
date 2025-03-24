@@ -1,26 +1,52 @@
 "use client"
 
-import Link from "next/link"
+import ShadowButton from "@/components/ui/ShadowButton"
+import { PAGE_ROUTES } from "@/utils/constants"
 
 export default function EventsBanner() {
   return (
     <section className="banner">
+      <div className="banner-image-container">
+        <img 
+          src="/images/events/events-banner.svg" 
+          alt="Events Banner" 
+          className="banner-image" 
+          loading="eager"
+        />
+      </div>
+      
       <div className="content-container">
         <div className="text-content">
-          <h1>Welcome to Protocol Labs Network Events</h1>
-          <p>Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem.</p>
+          <div className="text-content-title">Welcome to Protocol Labs Events</div>
+          <div className="text-content-description">Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem.</div>
         </div>
         <div className="buttons-container">
-          <button className="button gatherings-button">
-            <Link href="#">
+          <ShadowButton
+            buttonColor="#156FF7"
+            shadowColor="#3DFEB1"
+            buttonHeight="48px"
+            buttonWidth="172px"
+          >
+            <a href={PAGE_ROUTES.IRL} target="_blank">
               See all Gatherings
-            </Link>
-          </button>
-          <button className="button events-button">
-            <Link href="#" className="button-link">
-              See all Events <img src="/icons/open-link.svg" alt="Open link" width={16} height={16} className="icon" />
-            </Link>
-          </button>
+            </a>
+          </ShadowButton>
+          <ShadowButton
+            buttonColor="#3DFEB1"
+            shadowColor="#156FF7"
+            iconPosition="right"
+            iconSrc="/icons/open-link.svg"
+            iconAlt="Open link"
+            iconWidth={16}
+            iconHeight={16}
+            buttonHeight="48px"
+            buttonWidth="172px"
+            textColor="#0F172A"
+          > 
+            <a href={`https://events.plnetwork.io/program/`} target="_blank" className="button-link">
+              See all Events
+            </a>
+          </ShadowButton>
         </div>
       </div>
 
@@ -29,13 +55,27 @@ export default function EventsBanner() {
           position: relative;
           width: 100%;
           min-height: 400px;
-          background-image: url('/images/events/events-banner.svg');
-          background-size: cover;
-          background-position: center;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 2rem 1rem;
+          overflow: hidden;
+        }
+        
+        .banner-image-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 0;
+        }
+        
+        .banner-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
         }
 
         .button-link {
@@ -43,22 +83,22 @@ export default function EventsBanner() {
         }
 
         .content-container {
-          // background-image: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Events_Exploration-T1nu4FADYiF1RVhiK7sA3JCFGEnarL.png');
-          background-size: cover;
-          background-position: center;
-          background-blend-mode: overlay;
-          background-color: rgba(0, 0, 0, 0.2);
           background: linear-gradient(180deg, rgba(2, 88, 137, 0.6) 22%, rgba(0, 36, 68, 0.6) 79.5%);
           backdrop-filter: blur(4px);
           border-radius: 16px;
-          max-width: 800px;
-          width: 100%;
+          max-width: 617px;
           padding: 2.5rem 2rem;
           text-align: center;
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: 2rem;
+          position: relative;
+          z-index: 1;
+          border: 1px solid transparent;
+          border-image: linear-gradient(180deg, #70ECFF 0%, #5EE3B5 100%);
+          border-image-slice: 1;
+          overflow: hidden;
         }
 
         .text-content {
@@ -67,20 +107,22 @@ export default function EventsBanner() {
           gap: 1rem;
         }
 
-        h1 {
+        .text-content-description {
           color: #ffffff;
-          font-size: 2.5rem;
-          font-weight: 700;
-          line-height: 1.2;
-          margin: 0;
+          font-weight: 400;
+          font-size: 14px;
+          line-height: 24px;
+          letter-spacing: 0%;
+          text-align: center;
         }
 
-        p {
+        .text-content-title {
+          font-weight: 800;
+          font-size: 40px;
+          line-height: 48px;
+          letter-spacing: 0%;
+          text-align: center;
           color: #ffffff;
-          font-size: 1.125rem;
-          line-height: 1.5;
-          margin: 0;
-          opacity: 0.9;
         }
 
         .buttons-container {
@@ -90,63 +132,26 @@ export default function EventsBanner() {
           justify-content: center;
         }
 
-        .button {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          padding: 0.75rem 1.5rem;
-          border-radius: 8px;
-          font-weight: 600;
-          font-size: 1rem;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .button:hover {
-          transform: translateY(-2px);
-          box-shadow: 7px 7px 0px rgba(61, 254, 177, 0.8);
-        }
-
-        .gatherings-button {
-          background-color: #156ff7;
-          color: #ffffff;
-          box-shadow: 5px 5px 0px rgba(61, 254, 177, 0.8);
-          border: 1px solid #000000;
-        }
-
-        .events-button {
-          background-color: #3dfeb1;
-          color: #0f172a;
-          box-shadow: 5px 5px 0px rgba(21, 111, 247, 0.8);
-          border: 1px solid #000000;
-        }
-
-        .events-button:hover {
-          box-shadow: 7px 7px 0px rgba(21, 111, 247, 0.8);
-        }
-
-        .icon {
-          width: 16px;
-          height: 16px;
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 508px) {
           .content-container {
-            padding: 2rem 1.5rem;
+            padding: 24px;
           }
 
-          h1 {
-            font-size: 2rem;
+          .text-content-title {
+            font-size: 22px;
+            line-height: 30px;
           }
 
-          p {
-            font-size: 1rem;
+          .text-content-description {
+            font-size: 14px;
+            line-height: 18px;
           }
 
           .buttons-container {
             flex-direction: column;
             width: 100%;
             max-width: 300px;
+            align-items: center;
           }
 
           .button {

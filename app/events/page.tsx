@@ -4,10 +4,11 @@ import styles from './page.module.css'
 import EventsBanner from '@/components/page/events/events-banner'
 import EventsSection from '@/components/page/events/events-section'
 import ContributorsSection from '@/components/page/events/contributors/contributors-section'
-import { mockMembers, mockTeams, mockEvents } from '@/utils/constants/events-constants'
 import HuskyBanner from '@/components/page/events/husky-banner'
 import { ADMIN_ROLE } from '@/utils/constants'
 import { getCookiesFromHeaders } from '@/utils/next-helpers'
+import { getAggregatedEventsData, getEventContributors } from '@/services/events.service'
+import Error from '@/components/core/error';
 
 export const metadata: Metadata = {
   title: 'Events | Protocol Labs Directory',
@@ -15,14 +16,19 @@ export const metadata: Metadata = {
 }
 
 export default async function EventsPage() {
-  const { featuredData, isLoggedIn, userInfo } = await getPageData();
+  const { aggregatedEventsData, isLoggedIn, userInfo, contributorsData, isError } = await getPageData();
+
+  if (isError) {
+    return <Error />;
+  }
+
   return (
     <>
       <div className={styles.eventsPage}>
         <EventsBanner />
       </div>
       
-      <EventsSection eventLocations={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
+      <EventsSection eventLocations={aggregatedEventsData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
       
       <div className={styles.huskyBannerContainer}>
         <HuskyBanner />
@@ -30,22 +36,24 @@ export default async function EventsPage() {
 
       <div className={styles.contributorsSection}> 
         <ContributorsSection
-          members={mockMembers}
-          teams={mockTeams}
+          members={contributorsData?.members}
+          teams={contributorsData?.teams}
           title="Contributors"
           subtitle="Speaker & Host Participation"
           treemapConfig={{
-            backgroundColor: "#81E7FF", // Light blue background
+            backgroundColor: "#81E7FF", 
             borderColor: "#00000033",
             textColor: "#0F172A",
             height: 400,
           }}
         />
       </div>
-      {/*  calendar section */}
       <div className={styles.container}>
-
+        <div>
+          <h2>Events</h2>
+        </div>
       </div>
+
     </>
   )
 } 
@@ -53,10 +61,22 @@ export default async function EventsPage() {
 const getPageData = async () => {
   const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
   const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
-  const featuredData = mockEvents;
+  let isError = false;
+
+  let [aggregatedEventsresponse, contributorsData] = await Promise.all([
+    getAggregatedEventsData(authToken, isLoggedIn, isAdmin),
+    getEventContributors(),
+  ]);
+
+  if (aggregatedEventsresponse?.error || contributorsData?.error) {
+    isError = true;
+  }
+
   return {
     userInfo,
     isLoggedIn,
-    featuredData,
-}
+    aggregatedEventsData: aggregatedEventsresponse?.data,
+    contributorsData,
+    isError,
+  }
 };

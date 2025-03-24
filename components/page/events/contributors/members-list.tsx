@@ -11,46 +11,41 @@ interface MembersListProps {
   hiddenCount?: number
 }
 
-export default function MembersList({
+const MembersList: React.FC<MembersListProps> = ({
   members = [],
-  maxVisible = 59, // Maximum number of members to show before truncating
-  hiddenCount = 3, // Number of members to hide and show in the "+X" avatar
-}: MembersListProps) {
+  maxVisible = 59,
+  hiddenCount = 3,
+}) => {
   const [hoveredMember, setHoveredMember] = useState<number | null>(null)
 
   if (!members || members.length === 0) {
     return <div className="no-members">No members available</div>
   }
 
-  // Calculate how many members to show based on maxVisible and total count
-  const totalToShow = Math.min(members.length, maxVisible)
+  const visibleMembers = members.slice(0, members.length - hiddenCount)
+  const hiddenMembers = members.slice(members.length - hiddenCount)
 
-  // If we have fewer members than the hiddenCount, show all of them
-  if (members.length <= hiddenCount) {
-    return (
+  return (
+    <>
       <div className="members-grid">
-        {members.map((member) => (
+        {visibleMembers.map((member) => (
           <Tooltip
-            key={member.id}
+            key={member.uid}
             trigger={
               <div
-                className={`member-avatar ${hoveredMember === member.id ? "hovered" : ""}`}
-                onMouseEnter={() => setHoveredMember(member.id)}
+                className={`member-avatar ${hoveredMember === member.uid ? "hovered" : ""}`}
+                onMouseEnter={() => setHoveredMember(member.uid)}
                 onMouseLeave={() => setHoveredMember(null)}
               >
                 <div className="image-container">
-                  {member.image ? (
+                  {member.image && (
                     <Image
-                      src={member.image || "/icons/default-user-profile.svg"}
+                      src={typeof member.image === 'string' ? member.image : (member.image as { url: string }).url || "/icons/default-user-profile.svg"}
                       alt={member.name}
                       width={40}
                       height={40}
                       className="member-image"
                     />
-                  ) : (
-                    <div className="fallback-avatar">
-                      {member.name.charAt(0)}
-                    </div>
                   )}
                 </div>
               </div>
@@ -58,9 +53,30 @@ export default function MembersList({
             content={<p>{member.name}</p>}
           />
         ))}
-
-        <style jsx>{`
-          .members-grid {
+        {members.length > hiddenCount && (
+          <Tooltip
+          trigger={
+            <div className="member-avatar more-members">
+              <div className="image-container fallback-avatar">
+                +{hiddenCount}
+              </div>
+            </div>
+          }
+          content={
+            <div>
+              <p className="font-medium mb-1">Remaining members:</p>
+              {hiddenMembers.map((member) => (
+                <p key={member.uid} className="text-sm">
+                  {member.name}
+                </p>
+              ))}
+            </div>
+          }
+          />
+        )}
+      </div>
+      <style jsx>{`
+        .members-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -69,13 +85,14 @@ export default function MembersList({
           .member-avatar {
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            background: white;
+            border-radius: 50%;
+            height: 40px;
+            width: 40px;
           }
 
           .member-avatar.hovered {
             transform: translateY(-4px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            background: white;
           }
 
           .image-container {
@@ -83,6 +100,7 @@ export default function MembersList({
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
+            background: white;
           }
 
           .fallback-avatar {
@@ -98,10 +116,11 @@ export default function MembersList({
 
           :global(.member-image) {
             object-fit: cover;
+            border-radius: 50%;
           }
-
-          .more-members {
-            // background-color: #f0f4f8;
+          
+          :global(.image-container) {
+            background: white;
           }
 
           .no-members {
@@ -110,120 +129,8 @@ export default function MembersList({
             font-style: italic;
           }
         `}</style>
-      </div>
-    )
-  }
-
-  // Otherwise, show visible members and the "+X" avatar
-  const visibleMembers = members.slice(0, members.length - hiddenCount)
-  const hiddenMembers = members.slice(members.length - hiddenCount)
-
-  return (
-    <div>
-      <div className="members-grid">
-        {visibleMembers.map((member) => (
-          <Tooltip
-            key={member.id}
-            trigger={
-              <div
-                className={`member-avatar ${hoveredMember === member.id ? "hovered" : ""}`}
-                onMouseEnter={() => setHoveredMember(member.id)}
-                onMouseLeave={() => setHoveredMember(null)}
-              >
-                <div className="image-container">
-                  {member.image ? (
-                    <Image
-                      src={member.image}
-                      alt={member.name}
-                      width={40}
-                      height={40}
-                      className="member-image"
-                    />
-                  ) : (
-                    <div className="fallback-avatar">
-                      {member.name.charAt(0)}
-                    </div>
-                  )}
-                </div>
-              </div>
-            }
-            content={<p>{member.name}</p>}
-          />
-        ))}
-        {/* <Tooltip
-          trigger={
-            <div className="member-avatar more-members">
-              <div className="image-container fallback-avatar">
-                +{hiddenCount}
-              </div>
-            </div>
-          }
-          content={
-            <div>
-              <p className="font-medium mb-1">Remaining members:</p>
-              {hiddenMembers.map((member) => (
-                <p key={member.id} className="text-sm">
-                  {member.name}
-                </p>
-              ))}
-            </div>
-          }
-        /> */}
-      </div>
-
-      <style jsx>{`
-        .members-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-
-        .member-avatar {
-          cursor: pointer;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-          background: white;
-          height: 40px;
-          width: 40px;
-        }
-
-        .member-avatar.hovered {
-          transform: translateY(-4px);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          background: white;
-        }
-
-        .image-container {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          overflow: hidden;
-        }
-
-        .fallback-avatar {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-          font-weight: 500;
-          color: #64748b;
-        }
-
-        :global(.member-image) {
-          object-fit: cover;
-        }
-
-        .more-members {
-        }
-
-        .no-members {
-          padding: 16px;
-          color: #666;
-          font-style: italic;
-        }
-      `}</style>
-    </div>
+      </>
   )
 }
 
+export default MembersList

@@ -38,6 +38,7 @@ export default async function Page({ searchParams }: any) {
   } else if (isError) {
     return <Error />;
   }
+
   return (
     <div className={styles.irlGatherings}>
       <div className={styles.irlGatherings__cn}>

@@ -74,7 +74,7 @@ export const getFormattedLocations = (location: any) => {
       location: loc.location,
       flag: loc.flag,
       icon: loc.icon, 
-      resources: loc.resources ?? [],
+      resources: loc.resources,
       priority: loc.priority,
       pastEvents: loc.pastEvents,
       upcomingEvents: loc.upcomingEvents,

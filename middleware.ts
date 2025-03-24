@@ -17,10 +17,11 @@ export const config = {
     '/teams/:path',
     '/members/:path',
     '/projects/:path',
-    '/irl/:path',
+    '/events/irl/:path',
     '/settings/:path',
     '/changelog',
     '/husky/chat/:path',
+    '/events/:path',
   ],
 };
 

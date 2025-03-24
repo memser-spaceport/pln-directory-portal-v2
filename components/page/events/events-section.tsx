@@ -2,16 +2,12 @@
 
 import { useEffect, useState } from "react"
 import useEmblaCarousel from "embla-carousel-react"
-import IrlCard from "../home/featured/irl-card"
 import LocationCard from "../home/featured/location-card"
-import { ADMIN_ROLE, PAGE_ROUTES } from "@/utils/constants"
 import { getParsedValue } from "@/utils/common.utils"
-import { getFeaturedData } from "@/services/featured.service"
-import { formatFeaturedData } from "@/utils/home.utils"
 import { useRouter } from "next/navigation"
 import Cookies from 'js-cookie';
-import { mockEvents } from "@/utils/constants/events-constants"
 import CurrentEventCard from "./current-events-card"
+import { getAggregatedEventsData } from "@/services/events.service"
 interface EventsSectionProps {
   eventLocations: any;
   userInfo?: any
@@ -66,13 +62,10 @@ export default function EventsSection({
   const scrollNext = () => emblaApi?.scrollNext()
   
   const router = useRouter();
-  // const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
-  
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
-    // const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin);
-    const featData = mockEvents;
-    setfeaturedData(formatFeaturedData(featData));
+    const featData = await getAggregatedEventsData(authToken, isLoggedIn);
+    setfeaturedData(featData.data);
     router.refresh();
   };
 
@@ -82,8 +75,6 @@ export default function EventsSection({
   const renderCardByCategory = (item: any) => {
     const category = item?.category; // Default to location if not specified
     
-    console.log(category, 'category');
-    // console.log(item, 'item');
     switch (category) {
       case 'event':
         return (
@@ -141,8 +132,8 @@ export default function EventsSection({
 
       <div className="mobile-container">
         <div className="mobile-scroll-container">
-          {eventLocations.map((location: any) => (
-            <div key={location.uid} className="card-wrapper">
+          {featuredData.map((location: any) => (
+            <div  className="card-wrapper">
               {renderCardByCategory(location)}
             </div>
           ))}
@@ -152,8 +143,8 @@ export default function EventsSection({
       <div className="desktop-container">
         <div className="carousel-viewport" ref={emblaRef}>
           <div className="carousel-container-inner">
-            {eventLocations.map((location: any) => (
-              <div key={location.uid} className="card-wrapper">
+            {featuredData.map((location: any) => (
+              <div className="card-wrapper">
                 {renderCardByCategory(location)}
               </div>
             ))}

@@ -5,15 +5,18 @@ import { Treemap as TeamsTreemap } from "@/components/core/events/treemap"
 import { ResponsiveContainer } from "@/components/core/events/treemap"
 import { Tooltip } from "@/components/core/events/treemap"
 import { ChartTooltip } from "@/components/core/events/treemap"
-import type { Member, Team } from "@/utils/constants/events-constants"
 import { TreemapCustomContent } from "@/components/core/events/treemap"
+import ShadowButton from "@/components/ui/ShadowButton"
+import Link from "next/link"
+import { useRef } from "react"
+import { useScrollToSection } from "@/hooks/useScrollToSection"
 
 interface ContributorsSectionProps {
-  members?: Member[]
-  teams?: Team[]
+  members?: any[]
+  teams?: any[]  
   title?: string
   subtitle?: string
-  onCollaborate?: () => void
+  guestImg?: string
   treemapConfig?: {
     backgroundColor?: string
     borderColor?: string
@@ -27,7 +30,7 @@ export default function ContributorsSection({
   teams = [],
   title = "Contributors",
   subtitle = "Speaker & Host Participation",
-  onCollaborate = () => console.log("Collaborate clicked"),
+  guestImg = "",
   treemapConfig = {
     backgroundColor: "#E5F7FF",
     borderColor: "#ffffff",
@@ -35,25 +38,39 @@ export default function ContributorsSection({
     height: 400,
   },
 }: ContributorsSectionProps) {
+  // const contributorsSectionRef = useRef<HTMLDivElement>(null)
+  // const scrollStyle = useScrollToSection(contributorsSectionRef, "contributors")
+
   return (
-    <div className="contributors-container">
+    <div 
+      // ref={contributorsSectionRef} 
+      id="contributors" 
+      className="contributors-container"
+      // style={scrollStyle}
+    >
       <div className="contributors-header">
         <div>
           <h1 className="contributors-title">{title}</h1>
           <p className="contributors-subtitle">{subtitle}</p>
         </div>
-        <button className="collaborate-button" onClick={onCollaborate}>
-          Contribute
-        </button>
+          <ShadowButton
+            buttonColor="#156FF7"
+            shadowColor="#3DFEB1"
+            buttonWidth="121px"
+          >
+            <Link href="#">
+              Contribute
+            </Link>
+          </ShadowButton>
       </div>
 
       <div className="section-container">
-        <h2 className="section-title">Contributing members</h2>
+        <h2 className="section-title section-title-members">Contributing members</h2>
         <MembersList members={members} />
       </div>
 
       <div className="section-container">
-        <h2 className="section-title">Contributing teams</h2>
+        <h2 className="section-title section-title-teams">Contributing teams</h2>
         <div style={{ 
           height: treemapConfig.height, 
           backgroundColor: treemapConfig.backgroundColor,
@@ -66,9 +83,10 @@ export default function ContributorsSection({
             <TeamsTreemap
               data={teams.map(team => ({
                 name: team.name,
-                size: team.hosts.length + team.speakers.length,
-                speakers: team.speakers.length,
-                hosts: team.hosts.length
+                size: team.hosts + team.speakers,
+                speakers: team.speakers,
+                hosts: team.hosts,
+                guestImg: guestImg
               }))}
               dataKey="size"
               content={<TreemapCustomContent />}
@@ -100,6 +118,14 @@ export default function ContributorsSection({
           margin: 0;
         }
 
+        .section-title-members {
+          background-color: #E8F2FF;
+        }
+
+        .section-title-teams {
+          background-color: #E0FFF3;
+        }
+
         .contributors-subtitle {
           font-size: 16px;
           margin: 4px 0 0 0;
@@ -129,7 +155,6 @@ export default function ContributorsSection({
 
         .section-title {
           display: inline-block;
-          background-color: #f0f4f8;
           border-radius: 20px;
           padding: 8px 16px;
           font-size: 16px;
@@ -145,9 +170,17 @@ export default function ContributorsSection({
 
         @media (max-width: 768px) {
           .contributors-header {
-            flex-direction: column;
+            flex-direction: row;
             align-items: flex-start;
             gap: 16px;
+          }
+
+          .contributors-title {
+            font-size: 24px;
+          }
+
+          .contributors-subtitle {
+            font-size: 14px;
           }
 
           .collaborate-button {

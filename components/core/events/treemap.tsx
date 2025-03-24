@@ -29,20 +29,22 @@ export const TreemapCustomContent = (props: any) => {
           cursor: "pointer",
         }}
       />
-      <foreignObject x={x} y={y} width={width} height={height}>
-        <div
-          style={{
-            padding: '8px',
-            color: '#000000', // Text color
-            fontSize: '12px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {name}
-        </div>
-      </foreignObject>
+      {width > 50 && height > 50 && (
+        <foreignObject x={x} y={y} width={width} height={height}>
+          <div
+            style={{
+              padding: '8px',
+              color: '#000000', 
+              fontSize: '12px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {name}
+          </div>
+        </foreignObject>
+      )}
     </g>
   )
 }

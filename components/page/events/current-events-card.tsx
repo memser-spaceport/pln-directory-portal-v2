@@ -2,51 +2,47 @@
 
 import { getFormattedDateString } from "@/utils/irl.utils"
 
-export default function CurrentEventCard({ eventData }: any) {
-  const {
-    name,
-    description = "",
-    venue = "",
-    startDate = "",
-    endDate = "",
-    bannerUrl,
-    attendees = 0,
-  } = eventData
-
-  const cityName = name.split(",")[0].trim()
-
+export default function CurrentEventCard(props: any) {
+ 
+  const name = props.eventData.name;
+  const description = props.eventData.description;
+  const bannerUrl = props.eventData.bannerUrl;
+  const attendees = props.eventData.attendees;
+  const location = props.eventData.location;
+  const startDate = props.eventData.startDate;
+  const endDate = props.eventData.endDate;
+  
   return (
     <div className="current-event-card">
-          <div className="event-header-image">
-            <img
-              src={`${bannerUrl}`}
-              alt={`${name} event`}
-              className="event-image"
-            />
-          </div>
+      <div className="event-header-image">
+        <img
+          src={`${bannerUrl}`}
+          alt={`${name} event`}
+          className="event-image"
+        />
+      </div>
 
-          <div className="event-body-container">
-          <div className="event-body">
-            <h2 className="event-title">{venue ? `${venue} ${cityName}` : name}</h2>
-            <p className="event-description">{description.length > 100 ? `${description.substring(0, 100)}...` : description}</p>
+      <div className="event-body-container">
+        <div className="event-body">
+          <h2 className="event-title">{name}</h2>
+          <p className="event-description">{description.length > 100 ? `${description.substring(0, 90)}...` : description}</p>
+        </div>
+        
+        <div className="event-footer">
+          <div className="date-info">
+            <span className="calendar-icon">
+              <img src="/icons/calendar-outline.svg" alt="calendar" />
+            </span>
+            <span>{getFormattedDateString(startDate, endDate)}</span>
           </div>
-
-            <div className="event-footer">
-              <div className="date-info">
-                <span className="calendar-icon">
-                  <img src="/icons/calendar-outline.svg" alt="calendar" />
-                </span>
-                <span>{getFormattedDateString(startDate, endDate)}</span>
-              </div>
-
-              {attendees > 0 && (
-                <div className="attending-info">
-                  <span className="thumbs-icon">👍</span>
-                  <span>{attendees} Attending</span>
-                </div>
-              )}
-            </div>      
-          </div>
+          {attendees > 0 && (
+            <div className="attending-info">
+              <span className="thumbs-icon">👍</span>
+              <span>{attendees} Attending</span>
+            </div>
+          )}
+        </div>      
+      </div>
       <style jsx>{`
         .current-event-card {
           width: 289px;

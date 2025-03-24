@@ -9,7 +9,7 @@ const nextConfig = {
       },
       {
         source: '/irl/lw24-web3',
-        destination: '/irl?location=Thailand',
+        destination: '/events/irl',
         permanent: true,
       }
     ];

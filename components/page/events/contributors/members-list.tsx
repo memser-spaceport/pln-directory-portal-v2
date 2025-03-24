@@ -3,133 +3,219 @@
 import { useState } from "react"
 import Image from "next/image"
 import { Tooltip } from "@/components/core/tooltip/tooltip"
-import type { Member } from "@/utils/constants/events-constants"
+import { Tooltip as Popover } from "@/components/page/irl/attendee-list/attendee-popover"
 
 interface MembersListProps {
-  members?: Member[]
-  maxVisible?: number
-  hiddenCount?: number
+  members?: any[]
 }
 
 const MembersList: React.FC<MembersListProps> = ({
   members = [],
-  maxVisible = 59,
-  hiddenCount = 3,
 }) => {
   const [hoveredMember, setHoveredMember] = useState<number | null>(null)
-
+  
   if (!members || members.length === 0) {
     return <div className="no-members">No members available</div>
   }
 
-  const visibleMembers = members.slice(0, members.length - hiddenCount)
-  const hiddenMembers = members.slice(members.length - hiddenCount)
+  // Filter members to only include those with valid images
+  const membersWithImages = members.filter(member => member?.image?.url);
+  
+  // Get the visible members for each view
+  const mobileVisibleMembers = membersWithImages.slice(0, 39)
+  const webVisibleMembers = membersWithImages.slice(0, 59)
 
+  console.log(webVisibleMembers, 'webVisibleMembers')
+  
   return (
     <>
-      <div className="members-grid">
-        {visibleMembers.map((member) => (
-          <Tooltip
-            key={member.uid}
-            trigger={
-              <div
-                className={`member-avatar ${hoveredMember === member.uid ? "hovered" : ""}`}
-                onMouseEnter={() => setHoveredMember(member.uid)}
-                onMouseLeave={() => setHoveredMember(null)}
-              >
-                <div className="image-container">
-                  {member.image && (
+      <div className="members-container">
+        <div className="members-grid mobile-grid">
+          {mobileVisibleMembers.map((member) => (
+            <Tooltip
+              key={`mobile-${member.uid}`}
+              trigger={
+                <div
+                  className={`member-avatar ${hoveredMember === member.uid ? "hovered" : ""}`}
+                  onMouseEnter={() => setHoveredMember(member.uid)}
+                  onMouseLeave={() => setHoveredMember(null)}
+                >
+                  <div className="image-container">
                     <Image
-                      src={typeof member.image === 'string' ? member.image : (member.image as { url: string }).url || "/icons/default-user-profile.svg"}
+                      src={member.image.url}
                       alt={member.name}
-                      width={40}
-                      height={40}
+                      width={36}
+                      height={36}
                       className="member-image"
                     />
-                  )}
+                  </div>
                 </div>
-              </div>
-            }
-            content={<p>{member.name}</p>}
-          />
-        ))}
-        {members.length > hiddenCount && (
-          <Tooltip
-          trigger={
-            <div className="member-avatar more-members">
-              <div className="image-container fallback-avatar">
-                +{hiddenCount}
-              </div>
-            </div>
-          }
-          content={
-            <div>
-              <p className="font-medium mb-1">Remaining members:</p>
-              {hiddenMembers.map((member) => (
-                <p key={member.uid} className="text-sm">
-                  {member.name}
-                </p>
-              ))}
-            </div>
-          }
-          />
-        )}
+              }
+              content={<p>{member.name}</p>}
+            />
+          ))}
+          {membersWithImages.length > 39 && (
+            <Tooltip
+              trigger={
+                <div className="member-avatar more-members">
+                  <div className="image-container fallback-avatar">
+                    +{membersWithImages.length - 39}
+                  </div>
+                </div>
+              }
+              content={
+                <div style={{ overflow: 'auto', backgroundColor: 'white' }}>
+                  <p className="remaining-title">Remaining members:</p>
+                  {membersWithImages.slice(39).map((member) => (
+                    <p key={member.uid} className="member-name">
+                      {member.name}
+                    </p>
+                  ))}
+                </div>
+              }
+            />
+          )}
+        </div>
+
+        <div className="members-grid web-grid">
+          {webVisibleMembers.map((member) => (
+            <Tooltip
+              key={`web-${member.uid}`}
+              trigger={
+                <div
+                  className={`member-avatar ${hoveredMember === member.uid ? "hovered" : ""}`}
+                  onMouseEnter={() => setHoveredMember(member.uid)}
+                  onMouseLeave={() => setHoveredMember(null)}
+                >
+                  <div className="image-container">
+                    <Image
+                      src={member.image.url}
+                      alt={member.name}
+                      width={36}
+                      height={36}
+                      className="member-image"
+                    />
+                  </div>
+                </div>
+              }
+              content={<p>{member.name}</p>}
+            />
+          ))}
+          {membersWithImages.length > 59 && (
+            <Popover
+              trigger={
+                <div className="member-avatar more-members">
+                  <div className="image-container fallback-avatar">
+                    +{membersWithImages.length - 59}
+                  </div>
+                </div>
+              }
+              content={
+                <div style={{ overflow: 'auto', backgroundColor: 'white' }}>
+                  <p className="remaining-title">Remaining members:</p>
+                  {membersWithImages.slice(59).map((member) => (
+                    <p key={member.uid} className="member-name">
+                      {member.name}
+                    </p>
+                  ))}
+                </div>
+              }
+            />
+          )}
+        </div>
       </div>
       <style jsx>{`
+        .members-container {
+          width: 100%;
+        }
+
         .members-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-          }
+          display: grid;
+          grid-template-columns: repeat(auto-fill, 36px);
+          grid-gap: 8px;
+          justify-content: flex-start;
+          width: 100%;
+        }
 
-          .member-avatar {
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border-radius: 50%;
-            height: 40px;
-            width: 40px;
-          }
+        .web-grid {
+          display: none;
+        }
 
-          .member-avatar.hovered {
-            transform: translateY(-4px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          }
+        .mobile-grid {
+          display: grid;
+        }
 
-          .image-container {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            overflow: hidden;
-            background: white;
-          }
+        .member-avatar {
+          cursor: pointer;
+          transition: transform 0.2s ease;
+          width: 36px;
+          height: 36px;
+        }
 
-          .fallback-avatar {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: 500;
-            color: #64748b;
-          }
+        .member-avatar.hovered {
+          transform: scale(1.1);
+          z-index: 2;
+        }
 
-          :global(.member-image) {
-            object-fit: cover;
-            border-radius: 50%;
+        .image-container {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .fallback-avatar {
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          font-weight: 500;
+          color: #FFFFFF;
+          background-color: #156FF7;
+        }
+
+        .no-members {
+          padding: 16px;
+          color: #666;
+          font-style: italic;
+        }
+
+        .member-name {
+          font-size: 0.875rem;
+          background-color: #ffffff;
+          color: #0F172A;
+        }
+
+        .remaining-title {
+          font-weight: 500;
+          margin-bottom: 0.25rem;
+        }
+
+        /* Mobile styles - optimize for smaller screens */
+        @media (max-width: 480px) {
+          .members-grid {
+            grid-template-columns: repeat(auto-fill, 36px);
+            grid-gap: 6px;
+          }
+        }
+
+        /* Web styles */
+        @media (min-width: 1024px) {
+          .mobile-grid {
+            display: none;
           }
           
-          :global(.image-container) {
-            background: white;
+          .web-grid {
+            display: grid;
           }
-
-          .no-members {
-            padding: 16px;
-            color: #666;
-            font-style: italic;
-          }
-        `}</style>
-      </>
+        }
+      `}</style>
+    </>
   )
 }
 

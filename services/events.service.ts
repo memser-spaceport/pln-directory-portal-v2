@@ -71,14 +71,10 @@ export const getEventContributors = async () => {
     const formattedTeams = result?.map((event: any) => {
       let hostCount = 0;
       let speakerCount = 0;
-      let guestImg = "";
 
       event.eventGuests.forEach((guest: any) => {
         if (guest.isHost) hostCount++;
         if (guest.isSpeaker) speakerCount++;
-        if (guest.member && guest.member.image && guest.member.image.url) {
-          guestImg = guest.member.image.url;
-        }
       });
 
       return {
@@ -87,7 +83,7 @@ export const getEventContributors = async () => {
         hosts: hostCount,
         speakers: speakerCount,
         total: hostCount + speakerCount,
-        guestImg: guestImg,
+        logo: event.logo?.url,
       };
     }).sort((a: any, b: any) => b.total - a.total);
 

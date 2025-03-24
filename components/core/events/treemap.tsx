@@ -13,39 +13,52 @@ export const Tooltip = RechartsTooltip
 
 // Custom treemap content component
 export const TreemapCustomContent = (props: any) => {
-  const { x, y, width, height, index, name, depth, colors, root, activeIndex } = props
+  const { x, y, width, height, index, name, depth, colors, root, activeIndex, logo } = props
   
   return (
-    <g>
-      <Rectangle
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        style={{
-          // fill: index === activeIndex ? "#B3E7FF" : "#E5F7FF",
-          stroke: "#ffffff",
-          strokeWidth: 1,
-          cursor: "pointer",
-        }}
-      />
-      {width > 50 && height > 50 && (
-        <foreignObject x={x} y={y} width={width} height={height}>
-          <div
-            style={{
-              padding: '8px',
-              color: '#000000', 
-              fontSize: '12px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {name}
-          </div>
-        </foreignObject>
-      )}
-    </g>
+    <>
+      <g>
+        <Rectangle
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          style={{
+            // fill: index === activeIndex ? "#B3E7FF" : "#E5F7FF",
+            stroke: "#ffffff",
+            strokeWidth: 1,
+            cursor: "pointer",
+          }} />
+        {width > 50 && height > 50 && (
+          <foreignObject x={x} y={y} width={width} height={height}>
+
+            <div className="treemap-content">
+              {logo && (width > 118 || height > 118) && <img src={logo} alt={name} height={20} width={20} />}
+              <div
+                style={{
+                  padding: '8px',
+                  color: '#000000',
+                  fontSize: '12px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {name}
+              </div>
+            </div>
+          </foreignObject>
+        )}
+      </g>
+      <style jsx>{`
+        .treemap-content {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          padding: 8px;
+        }
+      `}</style>
+    </>
   )
 }
 

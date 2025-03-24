@@ -1,18 +1,16 @@
 "use client"
 
-import { Team } from "@/utils/constants/events-constants"
 import { useState } from "react"
 import { Treemap, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts"
 
 interface TeamsTreemapProps {
-  teams?: Team[]
+  teams?: any[]
   backgroundColor?: string
   borderColor?: string
   textColor?: string
   height?: number
 }
 
-// Define a proper type for the custom content props
 interface CustomContentProps {
   root?: any
   depth?: number
@@ -31,20 +29,17 @@ export default function TeamsTreemap({
   teams = [],
   backgroundColor = "#E5F7FF",
   borderColor = "#ffffff",
-  textColor = "#0F172A",
-  height = 400,
 }: TeamsTreemapProps) {
   const [activeIndex, setActiveIndex] = useState(-1)
 
-  // Transform the teams data to the format expected by Recharts
   const transformedData = teams.map((team) => ({
     name: team.name,
     size: team.hosts.length + team.speakers.length,
     speakers: team.speakers.length,
     hosts: team.hosts.length,
+    logo: team.logo,
   }))
 
-  // Custom content component
   const CustomizedContent = (props: CustomContentProps) => {
     const { x = 0, y = 0, width = 0, height = 0, index = 0, name = "" } = props
 
@@ -95,7 +90,6 @@ export default function TeamsTreemap({
     )
   }
 
-  // Custom tooltip component
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload

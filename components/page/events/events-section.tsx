@@ -18,14 +18,6 @@ interface EventsSectionProps {
 }
 
 /**
- * Helper function to determine event location URL
- */
-// const getEventLocation = (item: any) => {
-//   // Implementation based on your routing logic
-//   return `${PAGE_ROUTES.IRL}/${item.id}`
-// }
-
-/**
  * Main component for displaying the events section with carousel
  * Uses Embla Carousel for desktop and simple overflow scrolling for mobile
  */
@@ -107,6 +99,7 @@ export default function EventsSection({
 
   return (
     <div className="events-section">
+
       <div className="header">
         <h1>Current & Upcoming</h1>
 
@@ -130,6 +123,13 @@ export default function EventsSection({
         </div>
       </div>
 
+      {featuredData.length === 0 && 
+        <div className="no-events-container">
+          <div className="no-events-text">
+            <p>No events found</p>
+          </div>
+        </div>
+      }
       <div className="mobile-container">
         <div className="mobile-scroll-container">
           {featuredData.map((location: any) => (
@@ -156,6 +156,21 @@ export default function EventsSection({
         .events-section {
           padding: 1rem 0;
           width: 100%;
+        }
+
+         .no-events-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100%;
+        }
+
+        .no-events-text {
+          text-align: center;
+        }
+
+        .no-events-text p {
+          color: #6B7280; /* Tailwind's text-gray-500 */
         }
 
         .header {

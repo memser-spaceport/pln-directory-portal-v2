@@ -101,6 +101,7 @@ a {
 button {
   cursor: pointer;
   border: unset;
+  background: unset;
 }
 
 ::backdrop {

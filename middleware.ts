@@ -21,7 +21,7 @@ export const config = {
     '/settings/:path',
     '/changelog',
     '/husky/chat/:path',
-    '/events/:path',
+    '/events',
   ],
 };
 

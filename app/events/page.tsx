@@ -43,7 +43,6 @@ export default async function EventsPage() {
           treemapConfig={{
             backgroundColor: "#81E7FF", 
             borderColor: "#00000033",
-            textColor: "#0F172A",
             height: 400,
           }}
         />

@@ -96,8 +96,8 @@ export default function EventsBanner() {
           position: relative;
           z-index: 1;
           border: 1px solid transparent;
-          border-image: linear-gradient(180deg, #70ECFF 0%, #5EE3B5 100%);
-          border-image-slice: 1;
+          // border-image: linear-gradient(180deg, #70ECFF 0%, #5EE3B5 100%);
+          // border-image-slice: 1;
           overflow: hidden;
         }
 

@@ -20,7 +20,6 @@ interface ContributorsSectionProps {
   treemapConfig?: {
     backgroundColor?: string
     borderColor?: string
-    textColor?: string
     height?: number
   }
 }
@@ -34,7 +33,6 @@ export default function ContributorsSection({
   treemapConfig = {
     backgroundColor: "#E5F7FF",
     borderColor: "#ffffff",
-    textColor: "#0F172A",
     height: 400,
   },
 }: ContributorsSectionProps) {
@@ -86,7 +84,7 @@ export default function ContributorsSection({
                 size: team.hosts + team.speakers,
                 speakers: team.speakers,
                 hosts: team.hosts,
-                guestImg: guestImg
+                logo: team.logo
               }))}
               dataKey="size"
               content={<TreemapCustomContent />}
@@ -102,7 +100,6 @@ export default function ContributorsSection({
         .contributors-container {
           width: 100%;
           padding: 20px;
-          font-family: system-ui, -apple-system, sans-serif;
         }
 
         .contributors-header {

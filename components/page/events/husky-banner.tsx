@@ -1,10 +1,13 @@
 "use client"
 
 import ShadowButton from "@/components/ui/ShadowButton"
+import { getAnalyticsUserInfo } from "@/utils/common.utils"
 import { PAGE_ROUTES } from "@/utils/constants"
 import Link from "next/link"
+import { useEventsAnalytics } from "@/analytics/events.analytics"
 
-export default function HuskyBanner() {
+export default function HuskyBanner(props: any) {
+  const analytics = useEventsAnalytics();
 
   return (
     <div 
@@ -13,13 +16,13 @@ export default function HuskyBanner() {
     >
         <div className="image-container">
           <img 
-            src="/images/events/husky-eventsbanner-web.svg" 
+            src="/images/events/banner-bg-husky-web.jpg" 
             alt="Husky Banner Web" 
             className="web-image"
             style={{ objectFit: "cover", width: "100%", height: "100%" }}
           />
           <img 
-            src="/images/events/husky-eventsbanner-mob.svg" 
+            src="/images/events/banner-bg-husky-mob.jpg" 
             alt="Husky Banner Mobile" 
             className="mobile-image"
             style={{ objectFit: "cover", width: "100%", height: "100%" }}
@@ -30,21 +33,21 @@ export default function HuskyBanner() {
         <h2 className="banner-title">Have questions about events or contributors?</h2>
 
         <div className="button-container">
-          <ShadowButton
-            buttonColor="#ffffff"
-            shadowColor="#156FF7"
-            iconSrc="/images/husky/husky.svg"
-            iconAlt="husky"
-            iconWidth={24}
-            iconHeight={24}
-            buttonHeight="48px"
-            buttonWidth="172px"
-            textColor="#156FF7"
-          >
-            <a href={PAGE_ROUTES.HUSKY} target="_blank">
-              Ask Husky
-            </a>
-          </ShadowButton>
+          <a href={PAGE_ROUTES.HUSKY} target="_blank" onClick={() => analytics.onAskHuskyButtonClicked(getAnalyticsUserInfo(props.userInfo), {})}>
+            <ShadowButton
+              buttonColor="#ffffff"
+              shadowColor="#156FF7"
+              iconSrc="/images/husky/husky.svg"
+              iconAlt="husky"
+              iconWidth={24}
+              iconHeight={24}
+              buttonHeight="48px"
+              buttonWidth="172px"
+              textColor="#156FF7"
+            >
+                Ask Husky
+            </ShadowButton>
+          </a>
         </div>
       </div>
 
@@ -113,7 +116,7 @@ export default function HuskyBanner() {
         .banner-title {
           font-size: 1.25rem;
           font-weight: 500;
-          color: black;
+          color: #FFFFFF;
         }
 
         .button-container {

@@ -10,6 +10,8 @@ import ShadowButton from "@/components/ui/ShadowButton"
 import Link from "next/link"
 import { useRef } from "react"
 import { useScrollToSection } from "@/hooks/useScrollToSection"
+import { useEventsAnalytics } from "@/analytics/events.analytics"
+import { getAnalyticsUserInfo } from "@/utils/common.utils"
 
 interface ContributorsSectionProps {
   members?: any[]
@@ -22,40 +24,41 @@ interface ContributorsSectionProps {
     borderColor?: string
     height?: number
   }
+  userInfo?: any
 }
 
 export default function ContributorsSection({
   members = [],
   teams = [],
   title = "Contributors",
-  subtitle = "Speaker & Host Participation",
-  guestImg = "",
   treemapConfig = {
     backgroundColor: "#E5F7FF",
     borderColor: "#ffffff",
     height: 400,
   },
+  userInfo,
 }: ContributorsSectionProps) {
   const contributorsSectionRef = useRef<HTMLDivElement>(null)
-  const scrollStyle = useScrollToSection(contributorsSectionRef, "contributors")
+  const { scrollMarginTop } = useScrollToSection(contributorsSectionRef, "contributors", 80)
+  const { onContributorListOpenClicked } = useEventsAnalytics();
 
   return (
     <div 
       ref={contributorsSectionRef} 
       id="contributors" 
-      className="contributors-container"
-      style={scrollStyle}
+      className={`contributors-container`}
+      style={{ scrollMarginTop }}
     >
       <div className="contributors-section-container">
         <div className="contributors-header">
           <div>
             <h1 className="contributors-title">{title}</h1>
-            <p className="contributors-subtitle">{subtitle}</p>
           </div>
             <ShadowButton
               buttonColor="#156FF7"
               shadowColor="#3DFEB1"
               buttonWidth="121px"
+              onClick={() => onContributorListOpenClicked(getAnalyticsUserInfo(userInfo), {})}
               >
               <Link href="#">
                 Contribute
@@ -64,13 +67,13 @@ export default function ContributorsSection({
         </div>
 
         <div className="section-container">
-          <h2 className="section-title section-title-members">Contributing members</h2>
-          <MembersList members={members} />
+          <h2 className="section-title section-title-members">Members, Speakers & Hosts</h2>
+          <MembersList members={members} userInfo={userInfo} />
         </div>
       </div>
 
       <div className="section-container teams-section-container">
-        <h2 className="section-title section-title-teams">Contributing teams</h2>
+        <h2 className="section-title section-title-teams">Teams</h2>
         <div style={{ 
           height: treemapConfig.height, 
           backgroundColor: treemapConfig.backgroundColor,
@@ -101,7 +104,6 @@ export default function ContributorsSection({
       <style jsx>{`
         .contributors-container {
           width: 100%;
-          // padding: 20px;
         }
 
         .contributors-section-container {

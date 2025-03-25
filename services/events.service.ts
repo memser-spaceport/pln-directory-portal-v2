@@ -3,7 +3,7 @@ import { getHeader } from "@/utils/common.utils";
 import { getFormattedEvents, getFormattedLocations } from "@/utils/home.utils";
 
 export const getAggregatedEventsData = async (authToken?: any, isLoggedIn?: boolean, isAdmin?: boolean) => {
-    let url = `${process.env.DIRECTORY_API_URL}/v1/aggregate`;
+    let url = `${process.env.DIRECTORY_API_URL}/v1/irl/aggregated-data`;
 
     try {
       const response = await fetch(url, {
@@ -50,7 +50,7 @@ export const getAggregatedEventsData = async (authToken?: any, isLoggedIn?: bool
 };
 
 export const getEventContributors = async () => {
-  let url = `${process.env.DIRECTORY_API_URL}/v1/aggregated/events/contributors`;
+  let url = `${process.env.DIRECTORY_API_URL}/v1/irl/events/contributors`;
 
   try {
     const response = await fetch(url, {

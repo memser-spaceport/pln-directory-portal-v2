@@ -2,8 +2,12 @@
 
 import ShadowButton from "@/components/ui/ShadowButton"
 import { PAGE_ROUTES } from "@/utils/constants"
+import { useEventsAnalytics } from "@/analytics/events.analytics"
+import { getAnalyticsUserInfo } from "@/utils/common.utils";
 
-export default function EventsBanner() {
+export default function EventsBanner(props: any) {
+  const { onViewAllGatheringsClicked, onViewAllEventsClicked } = useEventsAnalytics();
+
   return (
     <section className="banner">
       <div className="banner-image-container">
@@ -21,32 +25,32 @@ export default function EventsBanner() {
           <div className="text-content-description">Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem.</div>
         </div>
         <div className="buttons-container">
-          <ShadowButton
-            buttonColor="#156FF7"
-            shadowColor="#3DFEB1"
-            buttonHeight="48px"
-            buttonWidth="172px"
-          >
-            <a href={PAGE_ROUTES.IRL} target="_blank">
-              See all Gatherings
-            </a>
-          </ShadowButton>
-          <ShadowButton
-            buttonColor="#3DFEB1"
-            shadowColor="#156FF7"
-            iconPosition="right"
-            iconSrc="/icons/open-link.svg"
-            iconAlt="Open link"
-            iconWidth={16}
-            iconHeight={16}
-            buttonHeight="48px"
-            buttonWidth="172px"
-            textColor="#0F172A"
-          > 
-            <a href={`https://events.plnetwork.io/program/`} target="_blank" className="button-link">
-              See all Events
-            </a>
-          </ShadowButton>
+          <a href={PAGE_ROUTES.IRL} target="_blank" onClick={() => onViewAllGatheringsClicked(getAnalyticsUserInfo(props.userInfo))}>
+            <ShadowButton
+              buttonColor="#156FF7"
+              shadowColor="#3DFEB1"
+              buttonHeight="48px"
+              buttonWidth="172px"
+            >
+              View Gatherings
+            </ShadowButton>
+          </a>
+          <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" className="button-link" onClick={() => onViewAllEventsClicked(getAnalyticsUserInfo(props.userInfo))}>
+            <ShadowButton
+              buttonColor="#3DFEB1"
+              shadowColor="#156FF7"
+              iconPosition="right"
+              iconSrc="/icons/black-link-up-arrow.svg"
+              iconAlt="Open link"
+              iconWidth={16}
+              iconHeight={16}
+              buttonHeight="48px"
+              buttonWidth="172px"
+              textColor="#0F172A"
+            > 
+              View all Events
+            </ShadowButton>
+          </a>
         </div>
       </div>
 
@@ -86,13 +90,13 @@ export default function EventsBanner() {
           background: linear-gradient(180deg, rgba(2, 88, 137, 0.6) 22%, rgba(0, 36, 68, 0.6) 79.5%);
           backdrop-filter: blur(4px);
           border-radius: 16px;
-          max-width: 617px;
+          max-width: 715px;
           padding: 2.5rem 2rem;
           text-align: center;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 2rem;
+          gap: 1rem;
           position: relative;
           z-index: 1;
           border: 1px solid transparent;
@@ -104,16 +108,17 @@ export default function EventsBanner() {
         .text-content {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 5px;
         }
 
         .text-content-description {
           color: #ffffff;
           font-weight: 400;
-          font-size: 14px;
+          font-size: 16px;
           line-height: 24px;
           letter-spacing: 0%;
           text-align: center;
+          width: 75%;
         }
 
         .text-content-title {
@@ -145,6 +150,7 @@ export default function EventsBanner() {
           .text-content-description {
             font-size: 14px;
             line-height: 18px;
+            width: 100%;
           }
 
           .buttons-container {

@@ -10,6 +10,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers'
 import { getAggregatedEventsData, getEventContributors } from '@/services/events.service'
 import Error from '@/components/core/error';
 import ScheduleSection from '@/components/page/events/schedule-section'
+import { formatFeaturedData } from '@/utils/home.utils'
 
 export const metadata: Metadata = {
   title: 'Events | Protocol Labs Directory',
@@ -26,13 +27,13 @@ export default async function EventsPage() {
   return (
     <>
       <div className={styles.eventsPage}>
-        <EventsBanner />
+        <EventsBanner userInfo={userInfo} />
       </div>
       
       <EventsSection eventLocations={aggregatedEventsData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
       
       <div className={styles.huskyBannerContainer}>
-        <HuskyBanner />
+        <HuskyBanner userInfo={userInfo} />
       </div>
 
       <div className={styles.contributorsSection}> 
@@ -40,16 +41,16 @@ export default async function EventsPage() {
           members={contributorsData?.members}
           teams={contributorsData?.teams}
           title="Contributors"
-          subtitle="Speaker & Host Participation"
           treemapConfig={{
             backgroundColor: "#81E7FF", 
             borderColor: "#00000033",
             height: 400,
           }}
+          userInfo={userInfo}
         />
       </div>
       <div className={styles.container}>
-        <ScheduleSection />
+        <ScheduleSection userInfo={userInfo}/>
       </div>
 
     </>
@@ -60,6 +61,7 @@ const getPageData = async () => {
   const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
   const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   let isError = false;
+  let aggregatedEventsData = [];
 
   let [aggregatedEventsresponse, contributorsData] = await Promise.all([
     getAggregatedEventsData(authToken, isLoggedIn, isAdmin),
@@ -70,10 +72,11 @@ const getPageData = async () => {
     isError = true;
   }
 
+  aggregatedEventsData = formatFeaturedData(aggregatedEventsresponse?.data);
   return {
     userInfo,
     isLoggedIn,
-    aggregatedEventsData: aggregatedEventsresponse?.data,
+    aggregatedEventsData,
     contributorsData,
     isError,
   }

@@ -1,4 +1,4 @@
-import { useEffect, RefObject } from 'react';
+import { useEffect, RefObject, useState } from 'react';
 
 /**
  * Custom hook for handling section-based URL hash navigation
@@ -11,6 +11,9 @@ export function useScrollToSection(
   sectionId: string,
   offset: number = 80
 ) {
+  // Add state to track if section is in view
+  const [isInView, setIsInView] = useState(false);
+
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.substring(1);
@@ -30,12 +33,48 @@ export function useScrollToSection(
     
     window.addEventListener("hashchange", handleHashChange);
     
+    // Create intersection observer to detect when section is visible
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // If section is at least 40% visible
+        if (entry.isIntersecting && entry.intersectionRatio > 0.4) {
+          setIsInView(true);
+          
+          // Update URL without causing a page refresh
+          const currentHash = window.location.hash.substring(1);
+          if (currentHash !== sectionId) {
+            // Use history.replaceState to update URL without triggering navigation
+            window.history.replaceState(
+              null, 
+              '', 
+              window.location.pathname + (sectionId ? `#${sectionId}` : '')
+            );
+          }
+        } else {
+          setIsInView(false);
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: `-${offset}px 0px 0px 0px`,
+        threshold: [0.4, 0.8] // trigger at 40% and 80% visibility
+      }
+    );
+    
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
     };
-  }, [ref, sectionId]);
+  }, [ref, sectionId, offset]);
 
   return {
-    scrollMarginTop: `${offset}px`
+    scrollMarginTop: `${offset}px`,
+    isInView
   };
 } 

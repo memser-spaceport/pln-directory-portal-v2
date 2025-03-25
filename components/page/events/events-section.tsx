@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import useEmblaCarousel from "embla-carousel-react"
 import LocationCard from "../home/featured/location-card"
 import { getAnalyticsLocationCardInfo, getAnalyticsUserInfo, getParsedValue } from "@/utils/common.utils"
@@ -11,6 +11,9 @@ import { getAggregatedEventsData } from "@/services/events.service"
 import { useEventsAnalytics } from "@/analytics/events.analytics";
 import { PAGE_ROUTES } from "@/utils/constants";
 import { isPastDate } from "@/utils/irl.utils"
+import { useScrollToSection } from "@/hooks/useScrollToSection"
+import { formatFeaturedData } from "@/utils/home.utils"
+
 interface EventsSectionProps {
   eventLocations: any;
   userInfo?: any
@@ -29,6 +32,10 @@ export default function EventsSection({
   userInfo,
   isLoggedIn,
 }: EventsSectionProps) {
+
+  const eventsSectionRef = useRef<HTMLDivElement>(null)
+  const { scrollMarginTop } = useScrollToSection(eventsSectionRef, "upcoming-events", 80)
+  
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" })
   const [canScrollPrev, setCanScrollPrev] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(true);
@@ -62,7 +69,7 @@ export default function EventsSection({
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
     const featData = await getAggregatedEventsData(authToken, isLoggedIn);
-    setfeaturedData(featData.data);
+    setfeaturedData(formatFeaturedData(featData.data));
     router.refresh();
   };
 
@@ -119,29 +126,32 @@ export default function EventsSection({
     }
   };
 
-
   return (
-    <div className="events-section">
-
+    <div 
+      className={`events-section`}
+      id="events"
+      ref={eventsSectionRef} 
+      style={{ scrollMarginTop }}
+    >
       <div className="header">
         <h1>Current & Upcoming</h1>
 
         <div className="navigation-buttons">
           <button
-            onClick={scrollPrev}
+            onClick={() => {scrollPrev(); analytics.onCarouselLeftClicked(getAnalyticsUserInfo(userInfo), {});}}
             disabled={!canScrollPrev}
             className={`nav-button ${!canScrollPrev ? "disabled" : ""}`}
             aria-label="Previous"
           >
-            <img src="/icons/arrow-left-blue.svg" alt="Previous" width={24} height={24} />
+            <img src="/icons/arrow-left-blue.svg" alt="Previous" width={20} height={20} />
           </button>
           <button
-            onClick={scrollNext}
+            onClick={() => {scrollNext(); analytics.onCarouselRightClicked(getAnalyticsUserInfo(userInfo), {});}}
             disabled={!canScrollNext}
             className={`nav-button ${!canScrollNext ? "disabled" : ""}`}
             aria-label="Next"
           >
-            <img src="/icons/arrow-right-blue.svg" alt="Next" width={24} height={24} />
+            <img src="/icons/arrow-right-blue.svg" alt="Next" width={20} height={20} />
           </button>
         </div>
       </div>
@@ -200,7 +210,6 @@ export default function EventsSection({
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.5rem;
           padding: 0 1rem;
         }
 
@@ -219,8 +228,8 @@ export default function EventsSection({
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 2.5rem;
-          height: 2.5rem;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           border: 1px solid #e2e8f0;
           background-color: #ffffff;
@@ -252,16 +261,19 @@ export default function EventsSection({
         .mobile-container {
           display: block;
           width: 100%;
+          padding-left: 20px;
         }
 
         .mobile-scroll-container {
           display: flex;
           overflow-x: auto;
+          scrollbar-width: none;
           scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
-          padding-left: 1rem;
-          padding-bottom: 1rem;
-          gap: 1rem;
+          padding-left: 32px;
+          padding-bottom: 32px;
+          padding-top: 20px;
+          gap: 32px;
           width: 100%;
         }
 
@@ -293,11 +305,11 @@ export default function EventsSection({
 
         @media (min-width: 1024px) {
           .events-section {
-            padding: 2rem 0;
+            padding: 32px 0 0 0;
           }
 
           .header {
-            padding: 0 2rem;
+            padding: 0 20px;
           }
           
           .navigation-buttons {
@@ -325,14 +337,13 @@ export default function EventsSection({
             display: flex;
             backface-visibility: hidden;
             touch-action: pan-y;
-            padding: 10px 10px 10px 15px;
+            padding: 10px 10px 30px 0px;
           }
 
           .card-wrapper {
             flex: 0 0 auto;
             width: 289px;
             height: 290px;
-            margin-right: 1.5rem;
           }
         }
       `}</style>

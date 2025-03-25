@@ -1,37 +1,46 @@
 'use client';
 
+import { useEventsAnalytics } from '@/analytics/events.analytics';
 import ShadowButton from '@/components/ui/ShadowButton';
 import { useScrollToSection } from '@/hooks/useScrollToSection';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { EVENTS_SUBSCRIPTION_URL } from '@/utils/constants';
 import { useRef } from 'react';
 
-export default function ScheduleSection() {
-  const contributorsSectionRef = useRef<HTMLDivElement>(null)
-  const scrollStyle = useScrollToSection(contributorsSectionRef, "schedule")
+export default function ScheduleSection(props: any) {
+  const scheduleSectionRef = useRef<HTMLDivElement>(null)
+  const { scrollMarginTop } = useScrollToSection(scheduleSectionRef, "schedule", 80)
+  const { onSubmitEventButtonClicked, onGoToEventsButtonClicked, onSubscribeForUpdatesButtonClicked } = useEventsAnalytics();
 
   return (
     <>
       <div 
-      className="schedule" 
-       ref={contributorsSectionRef} 
-       id="schedule" 
-       style={scrollStyle}
-       >
+        className={`schedule`}
+        ref={scheduleSectionRef} 
+        id="schedule" 
+        style={{ scrollMarginTop }}
+      >
         <div className="schedule__hdr">
           <h2>Event Calendar</h2>
           <div className="schedule__hdr__btn">
-            <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor='#0F172A'>
-              <a href="https://submit.events.plnetwork.io/signin" target="_blank">
+          <a href={`${EVENTS_SUBSCRIPTION_URL}`} target="_blank" onClick={() => onSubscribeForUpdatesButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
+              <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor='#0F172A'>
+                Subscribe for updates
+              </ShadowButton>
+            </a>
+            <a href={`${process.env.PL_EVENTS_SUBMISSION_URL}`} target="_blank" onClick={() => onSubmitEventButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
+              <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor='#0F172A'>
                 Submit an Event
-              </a>
-            </ShadowButton>
-            <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonHeight="48px" buttonWidth="172px">
-              <a href="https://events.plnetwork.com" target="_blank">
+              </ShadowButton>
+            </a>
+            <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" onClick={() => onGoToEventsButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
+              <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonHeight="48px" buttonWidth="172px">
                 Go to Events
-              </a>
-            </ShadowButton>
+              </ShadowButton>
+            </a>
           </div>
-        </div>
-        <iframe src="https://pln-events-git-develop-protocol-labs-spaceport.vercel.app/embed/program/" className="schedule__iframe" title="Event Calendar"></iframe>
+        </div> 
+        <iframe src={`${process.env.PL_EVENTS_BASE_URL}/embed/program/`} className="schedule__iframe" title="Event Calendar"></iframe>
       </div>
       <style jsx>{`
         .schedule {
@@ -42,9 +51,12 @@ export default function ScheduleSection() {
         }
         .schedule__hdr {
           display: flex;
+          flex-direction: column;
           justify-content: space-between;
           align-items: center;
           background-color: #ffffff;
+          padding: 10px;
+          width: 100%;
         }
         .schedule__hdr__btn {
           display: flex;
@@ -54,6 +66,12 @@ export default function ScheduleSection() {
           width: 100%;
           height: 800px;
           border: none;
+        }
+        
+        @media (min-width: 768px) {
+          .schedule__hdr {
+            flex-direction: row;
+          }
         }
       `}</style>
     </>

@@ -4,24 +4,45 @@ import { useState } from "react"
 import Image from "next/image"
 import { Tooltip } from "@/components/core/tooltip/tooltip"
 import { Tooltip as Popover } from "@/components/page/irl/attendee-list/attendee-popover"
+import { EVENTS } from "@/utils/constants"
+import HostSpeakersList from "../hosts-speakers-list"
+import { getAnalyticsUserInfo } from "@/utils/common.utils"
+import { useEventsAnalytics } from "@/analytics/events.analytics"
 
 interface MembersListProps {
   members?: any[]
+  userInfo?: any
 }
 
 const MembersList: React.FC<MembersListProps> = ({
   members = [],
+  userInfo,
 }) => {
   const [hoveredMember, setHoveredMember] = useState<number | null>(null)
-  
+  const analytics = useEventsAnalytics();
   if (!members || members.length === 0) {
     return <div className="no-members">No members available</div>
   }
 
   const membersWithImages = members.filter(member => member?.image?.url);
   
-  const mobileVisibleMembers = membersWithImages.slice(0, 39)
-  const webVisibleMembers = membersWithImages.slice(0, 59)
+  const mobileVisibleMembers = membersWithImages.slice(0, 31)
+  const webVisibleMembers = membersWithImages.slice(0, 154)
+
+  const onCloseContributorsModal = () => {
+    analytics.onContributorListCloseClicked(getAnalyticsUserInfo(userInfo), {});
+    document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: false }));
+  };
+
+  const onOpenContributorsModal = () => {
+    analytics.onContributorListOpenClicked(getAnalyticsUserInfo(userInfo), {});
+    document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: true }));
+  };
+
+  const onContributorClick = (contributor: any) => {
+    analytics.onContributorClicked(getAnalyticsUserInfo(userInfo), contributor);
+    window.open('/members/' + contributor?.uid, '_blank');
+  };
 
   return (
     <>
@@ -40,8 +61,8 @@ const MembersList: React.FC<MembersListProps> = ({
                     <Image
                       src={member.image.url}
                       alt={member.name}
-                      width={36}
-                      height={36}
+                      width={34}
+                      height={34}
                       className="member-image"
                     />
                   </div>
@@ -50,26 +71,15 @@ const MembersList: React.FC<MembersListProps> = ({
               content={<p>{member.name}</p>}
             />
           ))}
-          {membersWithImages.length > 39 && (
-            <Tooltip
-              trigger={
-                <div className="member-avatar more-members">
-                  <div className="image-container fallback-avatar">
-                    +{membersWithImages.length - 39}
-                  </div>
+          {membersWithImages.length > 31 && (
+            <>
+              <div className="member-avatar more-members" onClick={() => onOpenContributorsModal()}>
+                <div className="image-container fallback-avatar-mobile">
+                  +{membersWithImages.length - 31}
                 </div>
-              }
-              content={
-                <div style={{ overflow: 'auto', backgroundColor: 'white' }}>
-                  <p className="remaining-title">Remaining members:</p>
-                  {membersWithImages.slice(39).map((member) => (
-                    <p key={member.uid} className="member-name">
-                      {member.name}
-                    </p>
-                  ))}
-                </div>
-              }
-            />
+              </div>
+              <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={members} />  
+            </>
           )}
         </div>
 
@@ -97,32 +107,29 @@ const MembersList: React.FC<MembersListProps> = ({
               content={<p>{member.name}</p>}
             />
           ))}
-          {membersWithImages.length > 59 && (
-            <Popover
-              trigger={
-                <div className="member-avatar more-members">
-                  <div className="image-container fallback-avatar">
-                    +{membersWithImages.length - 59}
-                  </div>
+          {membersWithImages.length > 154 && (
+            <>
+              <div className="member-avatar more-members">
+                <div className="image-container fallback-avatar-web" onClick={() => onOpenContributorsModal()}>
+                  +{membersWithImages.length - 154}
                 </div>
-              }
-              content={
-                <div style={{ overflow: 'auto', backgroundColor: 'white' }}>
-                  <p className="remaining-title">Remaining members:</p>
-                  {membersWithImages.slice(59).map((member) => (
-                    <p key={member.uid} className="member-name">
-                      {member.name}
-                    </p>
-                  ))}
-                </div>
-              }
-            />
+              </div>
+              <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={members} />
+            </>
           )}
         </div>
       </div>
       <style jsx>{`
         .members-container {
           width: 100%;
+        }
+
+        .popover-content {
+          padding: 10px;
+          border-radius: 10px;
+          background-color: #F1F5F9;
+          max-height: 200px;
+          overflow-y: auto;
         }
 
         .members-grid {
@@ -163,13 +170,25 @@ const MembersList: React.FC<MembersListProps> = ({
           justify-content: center;
         }
 
-        .fallback-avatar {
+        .fallback-avatar-mobile {
+          width: 34px;
+          height: 34px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: 500;
+          color: #FFFFFF;
+          background-color: #156FF7;
+        }
+
+        .fallback-avatar-web {
           width: 36px;
           height: 36px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 18px;
+          font-size: 14px;
           font-weight: 500;
           color: #FFFFFF;
           background-color: #156FF7;
@@ -183,13 +202,14 @@ const MembersList: React.FC<MembersListProps> = ({
 
         .member-name {
           font-size: 0.875rem;
-          background-color: #ffffff;
           color: #0F172A;
         }
 
         .remaining-title {
           font-weight: 500;
+          font-size: 16px;
           margin-bottom: 0.25rem;
+          color: #0F172A;
         }
 
         :global(.member-image) {
@@ -205,7 +225,7 @@ const MembersList: React.FC<MembersListProps> = ({
         /* Mobile styles - optimize for smaller screens */
         @media (max-width: 480px) {
           .members-grid {
-            grid-template-columns: repeat(auto-fill, 36px);
+            grid-template-columns: repeat(auto-fill, 34px);
             grid-gap: 6px;
           }
         }

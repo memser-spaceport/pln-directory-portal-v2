@@ -383,6 +383,19 @@ export const HOME_ANALYTICS_EVENTS = {
 export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_IRL_CARD_CLICKED: 'events-page-irl-card-clicked',
   EVENTS_PAGE_EVENT_CARD_CLICKED: 'events-page-event-card-clicked',
+  EVENTS_PAGE_GO_TO_EVENTS_BUTTON_CLICKED: 'events-page-go-to-events-button-clicked',
+  EVENTS_PAGE_SUBMIT_EVENT_BUTTON_CLICKED: 'events-page-submit-event-button-clicked',
+  EVENTS_PAGE_SCHEDULE_BUTTON_CLICKED: 'events-page-schedule-button-clicked',
+  EVENTS_PAGE_VIEW_ALL_EVENTS_CLICKED: 'events-page-view-all-events-clicked',
+  EVENTS_PAGE_CAROUSEL_LEFT_CLICKED: 'events-page-carousel-left-clicked',
+  EVENTS_PAGE_CAROUSEL_RIGHT_CLICKED: 'events-page-carousel-right-clicked',
+  EVENTS_PAGE_CONTRIBUTOR_LIST_CLICKED: 'events-page-contributor-list-clicked',
+  EVENTS_PAGE_CONTRIBUTOR_LIST_CLOSE_CLICKED: 'events-page-contributor-list-close-clicked',
+  EVENTS_PAGE_CONTRIBUTOR_LIST_OPEN_CLICKED: 'events-page-contributor-list-open-clicked',
+  EVENTS_PAGE_VIEW_ALL_GATHERINGS_CLICKED: 'events-page-view-all-gatherings-clicked',
+  EVENTS_PAGE_CONTRIBUTOR_CLICKED: 'events-page-contributor-clicked',
+  EVENTS_PAGE_ASK_HUSKY_BUTTON_CLICKED: 'events-page-ask-husky-button-clicked',
+  EVENTS_PAGE_SUBSCRIBE_FOR_UPDATES_BUTTON_CLICKED: 'events-page-subscribe-for-updates-button-clicked',
 };
 
 export const HOME = {
@@ -1204,3 +1217,5 @@ export const EVENTS_OPTIONS = [
 ];
 
 export const IRL_EVENTS_DEFAULT_IMAGE = "https://plabs-assets.s3.us-west-1.amazonaws.com/Default+IRL+event-logo.svg";
+
+export const EVENTS_SUBSCRIPTION_URL = "https://plnnews.substack.com/subscribe?utm_source=menu&simple=true&next=https%3A%2F%2Fplnnews.substack.com%2F";

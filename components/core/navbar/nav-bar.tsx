@@ -177,7 +177,11 @@ export default function Navbar(props: Readonly<INavbar>) {
             <button className="nb__right__drawerandprofile__drawerbtn">
               <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
             </button>
-            {/* {isLoggedIn && <UserProfile userInfo={userInfo} />} */}
+            {isLoggedIn && (
+              <div className="nb__right__drawerandprofilesec__userprofile">
+                <UserProfile userInfo={userInfo} />
+              </div>
+            )}
           </div>
           {!isLoggedIn && (
             <div className="nb__right__lgandjoin">
@@ -445,6 +449,10 @@ export default function Navbar(props: Readonly<INavbar>) {
             animation: shake 1s ease-in-out;
           }
 
+          .nb__right__drawerandprofilesec__userprofile {
+            display: none;
+          }
+
           @media (min-width: 1024px) {
             .nb {
               padding: 0 48px 0 48px;
@@ -496,6 +504,9 @@ export default function Navbar(props: Readonly<INavbar>) {
               right: 10px;
               top: 30px;
               width: 300px;
+            }
+            .nb__right__drawerandprofilesec__userprofile {
+              display: unset;
             }
           }
         `}

@@ -135,11 +135,22 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
               )}
             </div>
           </div>
+
+          {/* {isLoggedIn && (
+            <div className="md__container__bdy__feedback">
+              <button id="directory-feedback-btn" className="md__container__bdy__feedback__btn">
+                Feedback
+              </button>
+            </div>
+          )} */}
           {/* Footer */}
 
           <div className="md__container__bdy__footer">
             {!isLoggedIn && (
               <div className="md__container__bdy__footer__lgnop">
+                {/* <button id="directory-feedback-btn" className="md__container__bdy__footer__feedback">
+                  Feedback
+                </button> */}
                 <LoginBtn />
               </div>
             )}
@@ -292,6 +303,24 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             gap: 8px;
           }
 
+          .md__container__bdy__feedback {
+            padding: 10px;
+          }
+
+          .md__container__bdy__feedback__btn {
+            position: absolute;
+            bottom: 60px;
+            padding: 8px 12px;
+            border: 1px solid #156ff7;
+            border-radius: 100px;
+            background-color: #ffffff;
+            color: #156ff7;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 24px;
+            width: 93%;
+          }
+
           .md__container__bdy__footer {
             position: absolute;
             bottom: 0;
@@ -306,7 +335,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             display: flex;
             align-items: center;
             // justify-content: space-between;
-            gap: 20px;
+            gap: 10px;
             width: 100%;
           }
 
@@ -358,6 +387,17 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             line-height: 20px;
             font-weight: 400;
             color: #475569;
+          }
+
+          .md__container__bdy__footer__feedback {
+            padding: 8px 12px;
+            border: 1px solid #156ff7;
+            border-radius: 100px;
+            background-color: #ffffff;
+            color: #156ff7;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 24px;
           }
 
           @media (min-width: 1024px) {

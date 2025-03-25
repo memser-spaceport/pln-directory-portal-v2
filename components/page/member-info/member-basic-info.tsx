@@ -122,7 +122,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 label="Name*"
                 defaultValue={initialValues?.name}
                 name="name"
-                type="text"
+                type="text" 
                 placeholder="Enter your full name"
                 data-testid="member-name-input"
               />
@@ -171,7 +171,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
           <div className="memberinfo__form__item">
             <label className={`memberinfo__form__bio__label`}>Bio</label>
             <div className='memberinfo__form__bio__editor'>
-              <TextEditor text={bio} setContent={setBio} id='members-bio' maxLength={200} />
+              <TextEditor text={bio} setContent={setBio} id='members-bio' maxLength={2000} isToolbarSticky={false}/>
             </div>
           </div>
 

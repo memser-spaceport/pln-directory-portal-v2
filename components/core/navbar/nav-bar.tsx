@@ -124,6 +124,9 @@ export default function Navbar(props: Readonly<INavbar>) {
         </div>
         <div className="nb__right">
           <HuskyLink />
+          <button id="directory-feedback-btn" className="nb__right__feedback">
+            <Image src="/icons/nav-feedback.svg" alt="nav-feedback" height={48} width={48} />
+          </button>
           {isLoggedIn && (
             <>
               {/* <div className="nb__right__team" onClick={handleSubmitTeam}>
@@ -170,9 +173,6 @@ export default function Navbar(props: Readonly<INavbar>) {
               </div>
             )}
           </div>
-          <button id="directory-feedback-btn" className="nb__right__feedback">
-            Feedback
-          </button>
           <div className="nb__right__drawerandprofilesec" onClick={onNavDrawerIconClickHandler}>
             <button className="nb__right__drawerandprofile__drawerbtn">
               <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
@@ -212,17 +212,6 @@ export default function Navbar(props: Readonly<INavbar>) {
 
           .nb__left__web-optns {
             display: none;
-          }
-
-          .nb__right__feedback {
-            padding: 8px 12px;
-            border: 1px solid #156ff7;
-            border-radius: 100px;
-            background-color: #ffffff;
-            color: #156ff7;
-            font-size: 15px;
-            font-weight: 600;
-            line-height: 23px;
           }
 
           .nb__left__web-optns__optn {
@@ -463,10 +452,6 @@ export default function Navbar(props: Readonly<INavbar>) {
 
             .nb__right__ntc__allntn {
               width: 400px;
-            }
-
-            .nb__right__feedback {
-              padding: 8px 15px;
             }
 
             .nb__right__helpc {

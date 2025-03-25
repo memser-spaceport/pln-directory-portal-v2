@@ -136,21 +136,21 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             </div>
           </div>
 
-          {isLoggedIn && (
+          {/* {isLoggedIn && (
             <div className="md__container__bdy__feedback">
               <button id="directory-feedback-btn" className="md__container__bdy__feedback__btn">
                 Feedback
               </button>
             </div>
-          )}
+          )} */}
           {/* Footer */}
 
           <div className="md__container__bdy__footer">
             {!isLoggedIn && (
               <div className="md__container__bdy__footer__lgnop">
-                                <button id="directory-feedback-btn" className="md__container__bdy__footer__feedback">
+                {/* <button id="directory-feedback-btn" className="md__container__bdy__footer__feedback">
                   Feedback
-                </button>
+                </button> */}
                 <LoginBtn />
               </div>
             )}
@@ -302,8 +302,8 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             align-items: center;
             gap: 8px;
           }
-          
-          .md__container__bdy__feedback{
+
+          .md__container__bdy__feedback {
             padding: 10px;
           }
 

@@ -215,7 +215,14 @@ export default function Navbar(props: Readonly<INavbar>) {
           }
 
           .nb__right__feedback {
-            display: none;
+            padding: 8px 12px;
+            border: 1px solid #156ff7;
+            border-radius: 100px;
+            background-color: #ffffff;
+            color: #156ff7;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 23px;
           }
 
           .nb__left__web-optns__optn {
@@ -459,15 +466,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             }
 
             .nb__right__feedback {
-              display: unset;
               padding: 8px 15px;
-              border: 1px solid #156ff7;
-              border-radius: 100px;
-              background-color: #ffffff;
-              color: #156ff7;
-              font-size: 15px;
-              font-weight: 600;
-              line-height: 23px;
             }
 
             .nb__right__helpc {

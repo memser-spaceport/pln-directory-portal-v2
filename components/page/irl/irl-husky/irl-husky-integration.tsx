@@ -31,9 +31,10 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
       <style jsx>{`
         .root {
           position: relative;
-          background: url('/icons/irl/irl-husky-bg.svg');
-          background-size: cover;
+          border-radius: 8px;
+          background: url('/icons/irl/husky-banner.svg');
           background-position: center;
+          background-size: cover;
           background-repeat: no-repeat;
         }
 
@@ -63,13 +64,13 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
           justify-content: center;
           align-items: center;
           display: flex;
-          font-weight: 600;
+          font-weight: 500;
           z-index: 3;
         }
         .root__irlhusky__text--highlighted {
           color: #156ff7;
           margin: 0px 5px;
-          font-weight: 600;
+          font-weight: 500;
           cursor: pointer;
         }
         .root__irlhusky__btn {
@@ -94,7 +95,8 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
         }
         @media (max-width: 768px) {
           .root {
-            background-image: url('/icons/irl/irl-husky-bg-mobile.svg');
+            background-image: url('/icons/irl/husky-banner-mobile.svg');
+            border-radius: 0px;
           }
           .root::before {
             border-radius: 0px;

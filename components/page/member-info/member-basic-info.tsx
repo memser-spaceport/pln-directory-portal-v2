@@ -11,7 +11,7 @@ import LinkAuthAccounts from './link-auth-accounts';
 import SelfEmailUpdate from './self-email-update';
 import AdminEmailUpdate from './admin-email-update';
 import Toggle from '@/components/ui/toogle';
-// import TextEditor from '@/components/ui/text-editor';
+import TextEditor from '@/components/ui/text-editor';
 
 interface MemberBasicInfoProps {
   errors: string[];
@@ -33,7 +33,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
-  // const [bio, setBio] = useState(initialValues.bio ?? '');
+  const [bio, setBio] = useState(initialValues.bio ?? '');
 
   /**
    * Handles image upload and sets the profile image state.
@@ -122,7 +122,7 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
                 label="Name*"
                 defaultValue={initialValues?.name}
                 name="name"
-                type="text"
+                type="text" 
                 placeholder="Enter your full name"
                 data-testid="member-name-input"
               />
@@ -168,12 +168,12 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
               <LinkAuthAccounts />
             </div>
           )}
-          {/* <div className="memberinfo__form__item">
-            <label className={`memberinfo__form__bio__label`}>Bio*</label>
+          <div className="memberinfo__form__item">
+            <label className={`memberinfo__form__bio__label`}>Bio</label>
             <div className='memberinfo__form__bio__editor'>
-              <TextEditor text={bio} setContent={setBio} id='members-bio' maxLength={200} />
+              <TextEditor text={bio} setContent={setBio} id='members-bio' maxLength={2000} isToolbarSticky={false}/>
             </div>
-          </div> */}
+          </div>
 
           <div className="memberinfo__form__item">
             <TextField

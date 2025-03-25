@@ -80,7 +80,7 @@
     z-index: unset;
   }
   .irlGatheings__huskyIntegration {
-    width: 900px;
+    width: 900px !important;
     margin-top: 20px;
   }
   .irlGatherings {

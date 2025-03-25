@@ -36,38 +36,40 @@ export default function ContributorsSection({
     height: 400,
   },
 }: ContributorsSectionProps) {
-  // const contributorsSectionRef = useRef<HTMLDivElement>(null)
-  // const scrollStyle = useScrollToSection(contributorsSectionRef, "contributors")
+  const contributorsSectionRef = useRef<HTMLDivElement>(null)
+  const scrollStyle = useScrollToSection(contributorsSectionRef, "contributors")
 
   return (
     <div 
-      // ref={contributorsSectionRef} 
+      ref={contributorsSectionRef} 
       id="contributors" 
       className="contributors-container"
-      // style={scrollStyle}
+      style={scrollStyle}
     >
-      <div className="contributors-header">
-        <div>
-          <h1 className="contributors-title">{title}</h1>
-          <p className="contributors-subtitle">{subtitle}</p>
+      <div className="contributors-section-container">
+        <div className="contributors-header">
+          <div>
+            <h1 className="contributors-title">{title}</h1>
+            <p className="contributors-subtitle">{subtitle}</p>
+          </div>
+            <ShadowButton
+              buttonColor="#156FF7"
+              shadowColor="#3DFEB1"
+              buttonWidth="121px"
+              >
+              <Link href="#">
+                Contribute
+              </Link>
+            </ShadowButton>
         </div>
-          <ShadowButton
-            buttonColor="#156FF7"
-            shadowColor="#3DFEB1"
-            buttonWidth="121px"
-          >
-            <Link href="#">
-              Contribute
-            </Link>
-          </ShadowButton>
+
+        <div className="section-container">
+          <h2 className="section-title section-title-members">Contributing members</h2>
+          <MembersList members={members} />
+        </div>
       </div>
 
-      <div className="section-container">
-        <h2 className="section-title section-title-members">Contributing members</h2>
-        <MembersList members={members} />
-      </div>
-
-      <div className="section-container">
+      <div className="section-container teams-section-container">
         <h2 className="section-title section-title-teams">Contributing teams</h2>
         <div style={{ 
           height: treemapConfig.height, 
@@ -99,7 +101,12 @@ export default function ContributorsSection({
       <style jsx>{`
         .contributors-container {
           width: 100%;
+          // padding: 20px;
+        }
+
+        .contributors-section-container {
           padding: 20px;
+          background: #ffffff;
         }
 
         .contributors-header {
@@ -121,6 +128,13 @@ export default function ContributorsSection({
 
         .section-title-teams {
           background-color: #E0FFF3;
+        }
+
+        .teams-section-container {
+          padding: 20px;
+          border-top: 1px solid #E2E8F0;
+          background: #ffffff;
+          margin-top: 20px;
         }
 
         .contributors-subtitle {
@@ -147,7 +161,7 @@ export default function ContributorsSection({
         }
 
         .section-container {
-          margin-bottom: 32px;
+          margin-bottom: 10px;
         }
 
         .section-title {
@@ -156,15 +170,9 @@ export default function ContributorsSection({
           padding: 8px 16px;
           font-size: 16px;
           font-weight: 500;
-          margin-bottom: 8px;
+          margin-bottom: 20px;
         }
         
-        .section-description {
-          font-size: 14px;
-          color: #666;
-          margin-bottom: 16px;
-        }
-
         @media (max-width: 768px) {
           .contributors-header {
             flex-direction: row;
@@ -182,6 +190,12 @@ export default function ContributorsSection({
 
           .collaborate-button {
             align-self: flex-start;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .teams-section-container {
+            margin-top: unset;
           }
         }
       `}</style>

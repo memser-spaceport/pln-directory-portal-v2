@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react"
 import useEmblaCarousel from "embla-carousel-react"
 import LocationCard from "../home/featured/location-card"
-import { getParsedValue } from "@/utils/common.utils"
+import { getAnalyticsLocationCardInfo, getAnalyticsUserInfo, getParsedValue } from "@/utils/common.utils"
 import { useRouter } from "next/navigation"
 import Cookies from 'js-cookie';
 import CurrentEventCard from "./current-events-card"
 import { getAggregatedEventsData } from "@/services/events.service"
+import { useEventsAnalytics } from "@/analytics/events.analytics";
+import { PAGE_ROUTES } from "@/utils/constants";
+import { isPastDate } from "@/utils/irl.utils"
 interface EventsSectionProps {
   eventLocations: any;
   userInfo?: any
@@ -54,11 +57,31 @@ export default function EventsSection({
   const scrollNext = () => emblaApi?.scrollNext()
   
   const router = useRouter();
+  const analytics = useEventsAnalytics();
+
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
     const featData = await getAggregatedEventsData(authToken, isLoggedIn);
     setfeaturedData(featData.data);
     router.refresh();
+  };
+
+  const getEventLocation = (event: any) => {
+    try {
+      const isPast = isPastDate(event.endDate);
+      const country = event?.location?.split(',')[0].trim();
+      return `${PAGE_ROUTES.IRL}/?location=${country}&type=${isPast ? 'past' : 'upcoming'}&${isPast ? `event=${event?.slugUrl}` : ''}`;
+    } catch (error) {
+      return '';
+    }
+  };
+
+  const onIrlLocationClicked = (location: any) => {
+    analytics.onIrlLocationClicked(getAnalyticsUserInfo(userInfo), getAnalyticsLocationCardInfo(location));
+  };
+
+  const onEventClicked = (event: any) => {
+    analytics.onEventCardClicked(getAnalyticsUserInfo(userInfo), event);
   };
 
   /**
@@ -72,8 +95,8 @@ export default function EventsSection({
         return (
           <a 
             target="_blank" 
-            // href={getEventLocation(item)} 
-            // onClick={() => onEventClicked(item)}
+            href={getEventLocation(item)} 
+            onClick={() => onEventClicked(item)}
           >
             <CurrentEventCard eventData={item} />
           </a>
@@ -84,11 +107,11 @@ export default function EventsSection({
         return (
           <a
             target="_blank"
-            // href={`${PAGE_ROUTES.IRL}?location=${item?.location?.split(',')[0].trim()}`}
-            // onClick={(e: any) => {
-            //   onIrlLocationClicked(item);
-            //   if (e.defaultPrevented) return;
-            // }}
+            href={`${PAGE_ROUTES.IRL}?location=${item?.location?.split(',')[0].trim()}`}
+            onClick={(e: any) => {
+              onIrlLocationClicked(item);
+              if (e.defaultPrevented) return;
+            }}
           >
             <LocationCard {...item} userInfo={userInfo} getFeaturedDataa={getFeaturedDataa} />
           </a>

@@ -380,6 +380,11 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
 };
 
+export const EVENTS_ANALYTICS = {
+  EVENTS_PAGE_IRL_CARD_CLICKED: 'events-page-irl-card-clicked',
+  EVENTS_PAGE_EVENT_CARD_CLICKED: 'events-page-event-card-clicked',
+};
+
 export const HOME = {
   TRIGGER_FOCUS_AREA_DIALOG: 'trigger-focus-area-dialog',
 };

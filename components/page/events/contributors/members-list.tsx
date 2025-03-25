@@ -18,15 +18,11 @@ const MembersList: React.FC<MembersListProps> = ({
     return <div className="no-members">No members available</div>
   }
 
-  // Filter members to only include those with valid images
   const membersWithImages = members.filter(member => member?.image?.url);
   
-  // Get the visible members for each view
   const mobileVisibleMembers = membersWithImages.slice(0, 39)
   const webVisibleMembers = membersWithImages.slice(0, 59)
 
-  console.log(webVisibleMembers, 'webVisibleMembers')
-  
   return (
     <>
       <div className="members-container">
@@ -194,6 +190,16 @@ const MembersList: React.FC<MembersListProps> = ({
         .remaining-title {
           font-weight: 500;
           margin-bottom: 0.25rem;
+        }
+
+        :global(.member-image) {
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid transparent;        
+        }
+
+        :global(.member-image:hover) {
+          border: 1.5px solid #4EF286;
         }
 
         /* Mobile styles - optimize for smaller screens */

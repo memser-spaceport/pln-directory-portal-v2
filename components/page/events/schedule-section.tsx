@@ -1,15 +1,25 @@
 'use client';
 
 import ShadowButton from '@/components/ui/ShadowButton';
+import { useScrollToSection } from '@/hooks/useScrollToSection';
+import { useRef } from 'react';
 
 export default function ScheduleSection() {
+  const contributorsSectionRef = useRef<HTMLDivElement>(null)
+  const scrollStyle = useScrollToSection(contributorsSectionRef, "schedule")
+
   return (
     <>
-      <div className="schedule">
+      <div 
+      className="schedule" 
+       ref={contributorsSectionRef} 
+       id="schedule" 
+       style={scrollStyle}
+       >
         <div className="schedule__hdr">
           <h2>Event Calendar</h2>
           <div className="schedule__hdr__btn">
-            <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonHeight="48px" buttonWidth="172px">
+            <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor='#0F172A'>
               <a href="https://submit.events.plnetwork.io/signin" target="_blank">
                 Submit an Event
               </a>

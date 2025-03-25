@@ -8,8 +8,8 @@ import { ChartTooltip } from "@/components/core/events/treemap"
 import { TreemapCustomContent } from "@/components/core/events/treemap"
 import ShadowButton from "@/components/ui/ShadowButton"
 import Link from "next/link"
-import { useRef } from "react"
-import { useScrollToSection } from "@/hooks/useScrollToSection"
+// import { useRef } from "react"
+// import { useScrollToSection } from "@/hooks/useScrollToSection" 
 import { useEventsAnalytics } from "@/analytics/events.analytics"
 import { getAnalyticsUserInfo } from "@/utils/common.utils"
 
@@ -38,16 +38,16 @@ export default function ContributorsSection({
   },
   userInfo,
 }: ContributorsSectionProps) {
-  const contributorsSectionRef = useRef<HTMLDivElement>(null)
-  const { scrollMarginTop } = useScrollToSection(contributorsSectionRef, "contributors", 80)
+  // const contributorsSectionRef = useRef<HTMLDivElement>(null)
+  // const { scrollMarginTop } = useScrollToSection(contributorsSectionRef, "contributors", 80)
   const { onContributorListOpenClicked } = useEventsAnalytics();
 
   return (
     <div 
-      ref={contributorsSectionRef} 
+      // ref={contributorsSectionRef} 
       id="contributors" 
       className={`contributors-container`}
-      style={{ scrollMarginTop }}
+      // style={{ scrollMarginTop }}
     >
       <div className="contributors-section-container">
         <div className="contributors-header">

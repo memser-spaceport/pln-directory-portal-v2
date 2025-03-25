@@ -2,23 +2,23 @@
 
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import ShadowButton from '@/components/ui/ShadowButton';
-import { useScrollToSection } from '@/hooks/useScrollToSection';
+// import { useScrollToSection } from '@/hooks/useScrollToSection';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS_SUBSCRIPTION_URL } from '@/utils/constants';
-import { useRef } from 'react';
+// import { useRef } from 'react';
 
 export default function ScheduleSection(props: any) {
-  const scheduleSectionRef = useRef<HTMLDivElement>(null)
-  const { scrollMarginTop } = useScrollToSection(scheduleSectionRef, "schedule", 80)
+    // const scheduleSectionRef = useRef<HTMLDivElement>(null)
+    // const { scrollMarginTop } = useScrollToSection(scheduleSectionRef, "schedule", 80)
   const { onSubmitEventButtonClicked, onGoToEventsButtonClicked, onSubscribeForUpdatesButtonClicked } = useEventsAnalytics();
 
   return (
     <>
       <div 
         className={`schedule`}
-        ref={scheduleSectionRef} 
+        // ref={scheduleSectionRef} 
         id="schedule" 
-        style={{ scrollMarginTop }}
+        // style={{ scrollMarginTop }}
       >
         <div className="schedule__hdr">
           <h2>Event Calendar</h2>

@@ -11,7 +11,7 @@ import { getAggregatedEventsData } from "@/services/events.service"
 import { useEventsAnalytics } from "@/analytics/events.analytics";
 import { PAGE_ROUTES } from "@/utils/constants";
 import { isPastDate } from "@/utils/irl.utils"
-import { useScrollToSection } from "@/hooks/useScrollToSection"
+// import { useScrollToSection } from "@/hooks/useScrollToSection"
 import { formatFeaturedData } from "@/utils/home.utils"
 
 interface EventsSectionProps {
@@ -33,8 +33,8 @@ export default function EventsSection({
   isLoggedIn,
 }: EventsSectionProps) {
 
-  const eventsSectionRef = useRef<HTMLDivElement>(null)
-  const { scrollMarginTop } = useScrollToSection(eventsSectionRef, "upcoming-events", 80)
+  // const eventsSectionRef = useRef<HTMLDivElement>(null)
+  // const { scrollMarginTop } = useScrollToSection(eventsSectionRef, "upcoming-events", 80)
   
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" })
   const [canScrollPrev, setCanScrollPrev] = useState(false)
@@ -130,8 +130,8 @@ export default function EventsSection({
     <div 
       className={`events-section`}
       id="events"
-      ref={eventsSectionRef} 
-      style={{ scrollMarginTop }}
+      // ref={eventsSectionRef} 
+      // style={{ scrollMarginTop }}
     >
       <div className="header">
         <h1>Current & Upcoming</h1>
@@ -166,7 +166,7 @@ export default function EventsSection({
       <div className="mobile-container">
         <div className="mobile-scroll-container">
           {featuredData.map((location: any) => (
-            <div  className="card-wrapper">
+            <div key={location?.uid || location?.id} className="card-wrapper">
               {renderCardByCategory(location)}
             </div>
           ))}
@@ -177,7 +177,7 @@ export default function EventsSection({
         <div className="carousel-viewport" ref={emblaRef}>
           <div className="carousel-container-inner">
             {featuredData.map((location: any) => (
-              <div className="card-wrapper">
+              <div className="card-wrapper" key={location?.uid}>
                 {renderCardByCategory(location)}
               </div>
             ))}

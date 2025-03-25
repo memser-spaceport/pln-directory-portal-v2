@@ -34,8 +34,8 @@ const Error = () => {
                 projects
               </a>
               &nbsp;or&nbsp;
-              <a href={PAGE_ROUTES.IRL} className="error-container__content__message__desc__link">
-                irl-gatherings
+              <a href={PAGE_ROUTES.EVENTS} className="error-container__content__message__desc__link">
+                events
               </a>{" "}
               pages.
             </p>

@@ -109,7 +109,7 @@ export default function Navbar(props: Readonly<INavbar>) {
         {isMobileDrawerOpen && <MobileNavDrawer userInfo={userInfo} isLoggedIn={isLoggedIn} onNavMenuClick={onNavDrawerIconClickHandler} />}
         <div className="nb__left">
           <Link href="/" onClick={onNavbarApplogoClicked}>
-            <img quality={60} priority src="/icons/app-logo.svg" alt="app-logo" className="nb__left__app-logo" />
+            <img src="/icons/app-logo.svg" alt="app-logo" className="nb__left__app-logo" />
           </Link>
           <div className="nb__left__web-optns">
             {NAV_OPTIONS.map((option, index) => (

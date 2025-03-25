@@ -479,6 +479,19 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.8 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '25, Mar 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Introduced the feedback feature for users to share their thoughts and suggestions</li>
+    <li>Members can now update their bios through the Settings module</li>
+    </ul>
+    </div>`,
+  },
+  {
     title: 'Version 4.1.7 - Directory Enhancements',
     tag: 'Improvements',
     date: '20, Mar 2025',

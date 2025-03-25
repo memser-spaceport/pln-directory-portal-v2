@@ -177,7 +177,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             <button className="nb__right__drawerandprofile__drawerbtn">
               <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
             </button>
-            {isLoggedIn && <UserProfile userInfo={userInfo} />}
+            {/* {isLoggedIn && <UserProfile userInfo={userInfo} />} */}
           </div>
           {!isLoggedIn && (
             <div className="nb__right__lgandjoin">

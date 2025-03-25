@@ -491,9 +491,8 @@ export function formInputsToMemberObj(obj: any) {
     result['plnStartDate'] = null;
   }
 
-  if(result['rich-text-editor']) {
-    result['bio'] = result['rich-text-editor'].trim();
-  }
+    result['bio'] = result['rich-text-editor']?.trim() || '';
+    delete result['rich-text-editor'];
   return result;
 }
 

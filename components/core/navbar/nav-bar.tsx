@@ -109,7 +109,7 @@ export default function Navbar(props: Readonly<INavbar>) {
         {isMobileDrawerOpen && <MobileNavDrawer userInfo={userInfo} isLoggedIn={isLoggedIn} onNavMenuClick={onNavDrawerIconClickHandler} />}
         <div className="nb__left">
           <Link href="/" onClick={onNavbarApplogoClicked}>
-            <Image quality={60} priority src="/icons/app-logo.svg" height={35} width={157} alt="app-logo" />
+            <img src="/icons/app-logo.svg" alt="app-logo" className="nb__left__app-logo" />
           </Link>
           <div className="nb__left__web-optns">
             {NAV_OPTIONS.map((option, index) => (
@@ -362,6 +362,11 @@ export default function Navbar(props: Readonly<INavbar>) {
             position: relative;
           }
 
+          .nb__left__app-logo {
+            height: 33px;
+            width: 144px;
+          }
+
           .nb__right__ntc__new {
             border-radius: 50%;
             background: #ff820e;
@@ -448,6 +453,11 @@ export default function Navbar(props: Readonly<INavbar>) {
               display: flex;
               gap: 48px;
               align-items: center;
+            }
+
+            .nb__left__app-logo {
+              height: 35px;
+              width: 157px;
             }
 
             .nb__right__ntc__allntn {

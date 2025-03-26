@@ -183,8 +183,8 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_history_list_conversation_clicked, { threadId, title });
   }
 
-  function trackThreadShareClicked({ threadId, title }: { threadId: string; title: string }) {
-    captureEvent(events.husky_thread_share_clicked, { threadId, title });
+  function trackThreadShareClicked({ threadId, title, from }: { threadId: string; title: string; from?: string }) {
+    captureEvent(events.husky_thread_share_clicked, { threadId, title, ...(from && { from }) });
   }
 
   function trackMobileThreadShareClicked({ threadId, title }: { threadId: string; title: string }) {

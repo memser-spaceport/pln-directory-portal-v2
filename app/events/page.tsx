@@ -11,6 +11,7 @@ import { getAggregatedEventsData, getEventContributors } from '@/services/events
 import Error from '@/components/core/error';
 import ScheduleSection from '@/components/page/events/schedule-section'
 import { formatFeaturedData } from '@/utils/home.utils'
+import ScrollObserver from '@/components/page/events/scroll-observer'
 
 export const metadata: Metadata = {
   title: 'Events | Protocol Labs Directory',
@@ -26,17 +27,19 @@ export default async function EventsPage() {
 
   return (
     <>
-      <div className={styles.eventsPage}>
+      <div  className={styles.eventsPage}>
         <EventsBanner userInfo={userInfo} />
       </div>
       
-      <EventsSection eventLocations={aggregatedEventsData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
+      <div id="events">
+        <EventsSection eventLocations={aggregatedEventsData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
+      </div>
       
-      <div className={styles.huskyBannerContainer}>
+      <div id="ask-husky" className={styles.huskyBannerContainer}>
         <HuskyBanner userInfo={userInfo} />
       </div>
 
-      <div className={styles.contributorsSection}> 
+      <div id="contributors" className={styles.contributorsSection}> 
         <ContributorsSection
           members={contributorsData?.members}
           teams={contributorsData?.teams}
@@ -49,10 +52,12 @@ export default async function EventsPage() {
           userInfo={userInfo}
         />
       </div>
-      <div className={styles.container}>
+
+      <div id="schedule" className={styles.container}>
         <ScheduleSection userInfo={userInfo}/>
       </div>
 
+      <ScrollObserver />
     </>
   )
 } 

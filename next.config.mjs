@@ -9,7 +9,12 @@ const nextConfig = {
       },
       {
         source: '/irl/lw24-web3',
-        destination: '/events/irl',
+        destination: 'events/irl?location=Thailand',
+        permanent: true,
+      },
+      {
+        source: '/irl',
+        destination: 'events/irl',
         permanent: true,
       }
     ];
@@ -33,7 +38,7 @@ const nextConfig = {
     SCHEDULE_ENABLED_LOCATIONS: process.env.SCHEDULE_ENABLED_LOCATIONS,
     SCHEDULE_BASE_URL: process.env.SCHEDULE_BASE_URL,
     IRL_SUBMIT_FORM_URL: process.env.IRL_SUBMIT_FORM_URL,
-    PL_EVENTS_SCHEDULE_URL: process.env.PL_EVENTS_SCHEDULE_URL,
+    PL_EVENTS_BASE_URL: process.env.PL_EVENTS_BASE_URL,
     PL_EVENTS_SUBMISSION_URL: process.env.PL_EVENTS_SUBMISSION_URL,
   },
   images: {

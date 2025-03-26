@@ -1,7 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { sanitize } from 'isomorphic-dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
@@ -24,7 +24,7 @@ const MemberCard = (props: any) => {
   const isNew = member?.isNew;
   const bio = member?.bio;
 
-  const sanitizedBio = sanitize(bio);
+  const sanitizedBio = DOMPurify.sanitize(bio);
   const bioContent = sanitizedBio?.replace(/<[^>]+>/g, '');
   const shortBio = bioContent?.slice(0, 80);
 

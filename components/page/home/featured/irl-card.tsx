@@ -2,7 +2,7 @@
 
 import { IIrlCard } from '@/types/irl.types';
 import { formatIrlEventDate, isPastDate } from '@/utils/irl.utils';
-import { sanitize } from 'isomorphic-dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import clip from 'text-clipper';
 
 export default function IrlCard(props: IIrlCard) {
@@ -22,7 +22,7 @@ export default function IrlCard(props: IIrlCard) {
   const isPastEvent = isPastDate(endDate);
   const isLongName = name?.length > 25;
 
-  const sanitizedDesc = sanitize(description);
+  const sanitizedDesc = DOMPurify.sanitize(description || '');
   
   const clippedDesc = clip(sanitizedDesc, 250, { html: true, maxLines: isLongName ? 2 : 3 });
 

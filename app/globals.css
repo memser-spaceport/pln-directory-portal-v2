@@ -101,6 +101,7 @@ a {
 button {
   cursor: pointer;
   border: unset;
+  background: unset;
 }
 
 ::backdrop {
@@ -431,6 +432,10 @@ dialog {
   -webkit-mask-composite: destination-out;
   mask-composite: exclude;
   pointer-events: none;
+}
+
+.button-link {
+  color: #0f172a;
 }
 
 @media (min-width: 1024px) {

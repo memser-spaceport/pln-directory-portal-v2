@@ -1,0 +1,20 @@
+.eventsPage {
+  width: 100%;
+  padding: 20px;
+  background: #BFEAFF;
+}
+
+.huskyBannerContainer {
+  width: 100%;
+  padding: 0 20px 30px 20px;
+}
+
+.contributorsSection {
+  width: 100%;
+}
+
+.container {
+  padding: 20px;
+  width: 100%;
+  height: auto;
+}

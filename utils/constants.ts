@@ -1,31 +1,51 @@
+export const PAGE_ROUTES = {
+  HOME: '/',
+  MEMBERS: '/members',
+  TEAMS: '/teams',
+  SETTINGS: '/settings',
+  PROJECTS: '/projects',
+  IRL: '/events/irl',
+  NOTIFICATIONS: '/notifications',
+  ADD_TEAM: '/teams/add',
+  SIGNUP: '/sign-up',
+  HUSKY: '/husky/chat',
+  EVENTS: '/events',
+};
+
 export const NAV_OPTIONS = [
   {
     name: 'Home',
-    url: '/',
+    url: PAGE_ROUTES.HOME,
     selectedLogo: '/icons/home.svg',
     unSelectedLogo: '/icons/home-deselected.svg',
   },
   {
     name: 'Teams',
-    url: '/teams',
+    url: PAGE_ROUTES.TEAMS,
     selectedLogo: '/icons/teams--selected.svg',
     unSelectedLogo: '/icons/team.svg',
   },
   {
     name: 'Members',
-    url: '/members',
+    url: PAGE_ROUTES.MEMBERS,
     selectedLogo: '/icons/members--selected.svg',
     unSelectedLogo: '/icons/members.svg',
   },
   {
     name: 'Projects',
-    url: '/projects',
+    url: PAGE_ROUTES.PROJECTS,
     selectedLogo: '/icons/projects--selected.svg',
     unSelectedLogo: '/icons/projects.svg',
   },
+  // {
+  //   name: 'IRL Gatherings',
+  //   url: '/irl',
+  //   selectedLogo: '/icons/nav-calendar--selected.svg',
+  //   unSelectedLogo: '/icons/nav-calendar.svg',
+  // },
   {
-    name: 'IRL Gatherings',
-    url: '/irl',
+    name: 'Events',
+    url: PAGE_ROUTES.EVENTS,
     selectedLogo: '/icons/nav-calendar--selected.svg',
     unSelectedLogo: '/icons/nav-calendar.svg',
   },
@@ -360,21 +380,26 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
 };
 
-export const HOME = {
-  TRIGGER_FOCUS_AREA_DIALOG: 'trigger-focus-area-dialog',
+export const EVENTS_ANALYTICS = {
+  EVENTS_PAGE_IRL_CARD_CLICKED: 'events-page-irl-card-clicked',
+  EVENTS_PAGE_EVENT_CARD_CLICKED: 'events-page-event-card-clicked',
+  EVENTS_PAGE_GO_TO_EVENTS_BUTTON_CLICKED: 'events-page-go-to-events-button-clicked',
+  EVENTS_PAGE_SUBMIT_EVENT_BUTTON_CLICKED: 'events-page-submit-event-button-clicked',
+  EVENTS_PAGE_SCHEDULE_BUTTON_CLICKED: 'events-page-schedule-button-clicked',
+  EVENTS_PAGE_VIEW_ALL_EVENTS_CLICKED: 'events-page-view-all-events-clicked',
+  EVENTS_PAGE_CAROUSEL_LEFT_CLICKED: 'events-page-carousel-left-clicked',
+  EVENTS_PAGE_CAROUSEL_RIGHT_CLICKED: 'events-page-carousel-right-clicked',
+  EVENTS_PAGE_CONTRIBUTOR_LIST_CLICKED: 'events-page-contributor-list-clicked',
+  EVENTS_PAGE_CONTRIBUTOR_LIST_CLOSE_CLICKED: 'events-page-contributor-list-close-clicked',
+  EVENTS_PAGE_CONTRIBUTOR_LIST_OPEN_CLICKED: 'events-page-contributor-list-open-clicked',
+  EVENTS_PAGE_VIEW_ALL_GATHERINGS_CLICKED: 'events-page-view-all-gatherings-clicked',
+  EVENTS_PAGE_CONTRIBUTOR_CLICKED: 'events-page-contributor-clicked',
+  EVENTS_PAGE_ASK_HUSKY_BUTTON_CLICKED: 'events-page-ask-husky-button-clicked',
+  EVENTS_PAGE_SUBSCRIBE_FOR_UPDATES_BUTTON_CLICKED: 'events-page-subscribe-for-updates-button-clicked',
 };
 
-export const PAGE_ROUTES = {
-  HOME: '/',
-  MEMBERS: '/members',
-  TEAMS: '/teams',
-  SETTINGS: '/settings',
-  PROJECTS: '/projects',
-  IRL: '/irl',
-  NOTIFICATIONS: '/notifications',
-  ADD_TEAM: '/teams/add',
-  SIGNUP: '/sign-up',
-  HUSKY: '/husky/chat',
+export const HOME = {
+  TRIGGER_FOCUS_AREA_DIALOG: 'trigger-focus-area-dialog',
 };
 
 export const SORT_OPTIONS = {
@@ -597,7 +622,7 @@ export const ChangeLogList = [
 
     <span style="font-size: 14px;line-height:23px; font-weight: 600">Enhancements</span><br/>
     <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that’s a good fit, feel free to recommend it to the network.</li>
+    <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that's a good fit, feel free to recommend it to the network.</li>
     <li>To provide more insights into event information, we have now added the attendee count for every event in the <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/irl" target="_blank">IRL Gatherings page</a>, allowing users to see the number of attendees along with the resources for each event at a quick glance.</li>
     </ul>
 
@@ -617,13 +642,13 @@ export const ChangeLogList = [
     <div style="font-size: 14px; line-height:23px;">
     <p>We are excited to announce a complete overhaul of our IRL Gatherings platform! This revamp brings several key updates designed to make discovering, attending, and engaging with events and their organizers easier.</p>
     <br/>
-    <p>This new layout is designed to be intuitive, ensuring you can quickly find the events that matter most to you based on your location. Whether you’re searching for upcoming events or reflecting on past ones, you will be able to move through the platform with ease.</p>
+    <p>This new layout is designed to be intuitive, ensuring you can quickly find the events that matter most to you based on your location. Whether you're searching for upcoming events or reflecting on past ones, you will be able to move through the platform with ease.</p>
     <br/>
-    <p>Here’s what’s new:</p>
+    <p>Here's what's new:</p>
     <br/>
     <p><b>Location-Centric Event Grouping</b>: In this new version, all events are now grouped by their respective locations, making it simpler to explore gatherings happening in your area. You can now view a comprehensive list of events happening at any given location, with an easy-to-use interface that allows you to toggle between upcoming and past events. Whether you are looking forward to the next big gathering or want to revisit an event that took place earlier, all the details are at your fingertips.</p>
     <br/>
-    <p><b>Comprehensive Event Insights</b>: Each event listing now comes with expanded details, including information on the speakers and hosts for specific events. This gives you a better understanding of who will be leading the event, offering insights into their expertise and the topics they will cover. With this update, you will know exactly who’s shaping the conversation and experience, allowing you to make more informed decisions about which gatherings to attend.</p>
+    <p><b>Comprehensive Event Insights</b>: Each event listing now comes with expanded details, including information on the speakers and hosts for specific events. This gives you a better understanding of who will be leading the event, offering insights into their expertise and the topics they will cover. With this update, you will know exactly who's shaping the conversation and experience, allowing you to make more informed decisions about which gatherings to attend.</p>
     <br/>
     <p>This revamp transforms the way you explore and engage with IRL gatherings, helping you stay connected with the right events and the right people.</p>
     <br/>
@@ -654,11 +679,11 @@ export const ChangeLogList = [
     </br>
     <li>
      <p  style="padding-bottom:8px"><b>Discover Section:</b></p>
-    <p style="padding-bottom:8px">This section offers a curated feed of all the latest network happenings. Whether it’s breaking news, upcoming events, or project updates-with Husky, you can always go beyond the surface and explore more about -
+    <p style="padding-bottom:8px">This section offers a curated feed of all the latest network happenings. Whether it's breaking news, upcoming events, or project updates-with Husky, you can always go beyond the surface and explore more about -
     </p>
     <p style="padding-bottom:8px"><b>Teams:</b> Get insights into the teams that are driving innovation in the network. Explore their roles, contributions, and impact on various projects.</p>
     <p style="padding-bottom:8px"><b>Projects:</b> Get insights into cutting-edge projects across the network. Track their progress, understand their goals, and find opportunities to contribute.</p>
-    <p><b>IRL Events:</b> Explore various events and whether it’s key takeaways, event highlights, or notable discussions, you’ll get the scoop on everything that went down so you can stay up to speed, even if you weren’t there.</p>
+    <p><b>IRL Events:</b> Explore various events and whether it's key takeaways, event highlights, or notable discussions, you'll get the scoop on everything that went down so you can stay up to speed, even if you weren't there.</p>
     </li>
     </br>
     <li>
@@ -876,7 +901,7 @@ export const OFFICE_HOURS_STEPS = {
 
 export const TROUBLES_INFO = {
   didntHappened: {
-    name: 'Meeting didn’t happen',
+    name: "Meeting didn't happen",
     reasons: [],
   },
   technicalIssues: {
@@ -1182,7 +1207,7 @@ export const DEFAULT_PROJECT_TAGS = [
 
 
 export const PROJECT_README_DEFAULT =
-  '## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it’s goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n';
+  "## Sample Template\n### Goals \nExplain the problems, use case or user goals this project focuses on\n### Proposed Solution\nHow will this project solve the user problems & achieve it's goals\n### Milestones\n| Milestone | Milestone Description | When |\n| - | - | - |\n| content | content | content |\n| content | content | content |\n                \n### Contributing Members\n| Member Name | Member Role | GH Handle | Twitter/Telegram |\n| - | - | - | - |\n| content | content | content | content |\n| content | content | content | content |\n\n### Reference Documents\n- [Reference Document](https://plsummit23.labweek.io/)\n\n";
 
 
 export const EVENTS_OPTIONS = [
@@ -1192,3 +1217,5 @@ export const EVENTS_OPTIONS = [
 ];
 
 export const IRL_EVENTS_DEFAULT_IMAGE = "https://plabs-assets.s3.us-west-1.amazonaws.com/Default+IRL+event-logo.svg";
+
+export const EVENTS_SUBSCRIPTION_URL = "https://plnnews.substack.com/subscribe?utm_source=menu&simple=true&next=https%3A%2F%2Fplnnews.substack.com%2F";

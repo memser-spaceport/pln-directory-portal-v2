@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import MemberExperienceDescription from '@/components/page/member-details/member-experience-item';
-import { sanitize } from 'isomorphic-dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import clip from 'text-clipper';
 import '@testing-library/jest-dom';
 
@@ -25,7 +25,7 @@ describe('MemberExperienceDescription Component', () => {
 
   it('renders the full description if it is short', () => {
     const shortDesc = '<p>This is a short description.</p>';
-    (sanitize as jest.Mock).mockReturnValue(shortDesc); // Correct usage of mockReturnValue
+    (DOMPurify.sanitize as jest.Mock).mockReturnValue(shortDesc); // Correct usage of mockReturnValue
     render(<MemberExperienceDescription desc={shortDesc} />);
 
     expect(screen.getByText('This is a short description.')).toBeInTheDocument();

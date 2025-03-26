@@ -1,5 +1,5 @@
 'use client';
-import { sanitize } from 'isomorphic-dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 const ProjectCard = (props: any) => {
   const name = props?.name;
@@ -8,7 +8,7 @@ const ProjectCard = (props: any) => {
   const logo = props?.logo || '/icons/project-default.svg';
   const isNew = props?.isNew;
 
-  const sanitizedDescription = sanitize(description);
+  const sanitizedDescription = DOMPurify.sanitize(description);
   const descriptionContent = sanitizedDescription?.replace(/<[^>]+>/g, '');
 
   return (

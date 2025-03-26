@@ -8,38 +8,53 @@ import { EVENTS_SUBSCRIPTION_URL } from '@/utils/constants';
 // import { useRef } from 'react';
 
 export default function ScheduleSection(props: any) {
-    // const scheduleSectionRef = useRef<HTMLDivElement>(null)
-    // const { scrollMarginTop } = useScrollToSection(scheduleSectionRef, "schedule", 80)
+  // const scheduleSectionRef = useRef<HTMLDivElement>(null)
+  // const { scrollMarginTop } = useScrollToSection(scheduleSectionRef, "schedule", 80)
   const { onSubmitEventButtonClicked, onGoToEventsButtonClicked, onSubscribeForUpdatesButtonClicked } = useEventsAnalytics();
 
   return (
     <>
-      <div 
+      <div
         className={`schedule`}
-        // ref={scheduleSectionRef} 
-        id="schedule" 
+        // ref={scheduleSectionRef}
+        id="schedule"
         // style={{ scrollMarginTop }}
       >
         <div className="schedule__hdr">
           <h2>Event Calendar</h2>
           <div className="schedule__hdr__btn">
-          <a href={`${EVENTS_SUBSCRIPTION_URL}`} target="_blank" onClick={() => onSubscribeForUpdatesButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
-              <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor='#0F172A'>
+            <a href={`${EVENTS_SUBSCRIPTION_URL}`} target="_blank" onClick={() => onSubscribeForUpdatesButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
+              <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor="#0F172A">
                 Subscribe for updates
               </ShadowButton>
             </a>
             <a href={`${process.env.PL_EVENTS_SUBMISSION_URL}`} target="_blank" onClick={() => onSubmitEventButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
-              <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor='#0F172A'>
+              <ShadowButton
+                buttonColor="#ffffff"
+                shadowColor="#156FF7"
+                buttonHeight="48px" buttonWidth="172px"
+                textColor="#0F172A"
+                iconSrc="/icons/doc.svg"
+              >
                 Submit an Event
               </ShadowButton>
             </a>
             <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" onClick={() => onGoToEventsButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
-              <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonHeight="48px" buttonWidth="172px">
-                Go to Events
+              <ShadowButton
+                buttonColor="#3DFEB1"
+                shadowColor="#156FF7"
+             buttonHeight="48px" buttonWidth="172px"
+                textColor="#0F172A"
+                iconPosition="right"
+                iconWidth={12}
+                iconHeight={12}
+                iconSrc="/icons/black-link-up-arrow.svg"
+              >
+                Go to PL Events
               </ShadowButton>
             </a>
           </div>
-        </div> 
+        </div>
         <iframe src={`${process.env.PL_EVENTS_BASE_URL}/embed/program/`} className="schedule__iframe" title="Event Calendar"></iframe>
       </div>
       <style jsx>{`
@@ -52,8 +67,8 @@ export default function ScheduleSection(props: any) {
         .schedule__hdr {
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
-          align-items: center;
+          justify-content: flex-start;
+          gap: 12px;
           background-color: #ffffff;
           padding: 10px;
           width: 100%;
@@ -61,16 +76,20 @@ export default function ScheduleSection(props: any) {
         .schedule__hdr__btn {
           display: flex;
           gap: 16px;
+          align-items: center;
+          flex-wrap: wrap;
         }
         .schedule__iframe {
           width: 100%;
           height: 800px;
           border: none;
         }
-        
+
         @media (min-width: 768px) {
           .schedule__hdr {
+            align-items: center;
             flex-direction: row;
+            justify-content: space-between;
           }
         }
       `}</style>

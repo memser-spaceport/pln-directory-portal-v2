@@ -22,7 +22,7 @@ export default function EventsBanner(props: any) {
       <div className="content-container">
         <div className="text-content">
           <div className="text-content-title">Welcome to Protocol Labs Events</div>
-          <div className="text-content-description">Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem.</div>
+          <div className="text-content-description">Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem</div>
         </div>
         <div className="buttons-container">
           <a href={PAGE_ROUTES.IRL} target="_blank" onClick={() => onViewAllGatheringsClicked(getAnalyticsUserInfo(props.userInfo))}>

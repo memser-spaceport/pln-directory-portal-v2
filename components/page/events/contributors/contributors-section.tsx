@@ -1,39 +1,39 @@
-"use client"
+'use client';
 
-import MembersList from "@/components/page/events/contributors/members-list"
-import { Treemap as TeamsTreemap } from "@/components/core/events/treemap"
-import { ResponsiveContainer } from "@/components/core/events/treemap"
-import { Tooltip } from "@/components/core/events/treemap"
-import { ChartTooltip } from "@/components/core/events/treemap"
-import { TreemapCustomContent } from "@/components/core/events/treemap"
-import ShadowButton from "@/components/ui/ShadowButton"
-import Link from "next/link"
+import MembersList from '@/components/page/events/contributors/members-list';
+import { Treemap as TeamsTreemap } from '@/components/core/events/treemap';
+import { ResponsiveContainer } from '@/components/core/events/treemap';
+import { Tooltip } from '@/components/core/events/treemap';
+import { ChartTooltip } from '@/components/core/events/treemap';
+import { TreemapCustomContent } from '@/components/core/events/treemap';
+import ShadowButton from '@/components/ui/ShadowButton';
+import Link from 'next/link';
 // import { useRef } from "react"
-// import { useScrollToSection } from "@/hooks/useScrollToSection" 
-import { useEventsAnalytics } from "@/analytics/events.analytics"
-import { getAnalyticsUserInfo } from "@/utils/common.utils"
+// import { useScrollToSection } from "@/hooks/useScrollToSection"
+import { useEventsAnalytics } from '@/analytics/events.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface ContributorsSectionProps {
-  members?: any[]
-  teams?: any[]  
-  title?: string
-  subtitle?: string
-  guestImg?: string
+  members?: any[];
+  teams?: any[];
+  title?: string;
+  subtitle?: string;
+  guestImg?: string;
   treemapConfig?: {
-    backgroundColor?: string
-    borderColor?: string
-    height?: number
-  }
-  userInfo?: any
+    backgroundColor?: string;
+    borderColor?: string;
+    height?: number;
+  };
+  userInfo?: any;
 }
 
 export default function ContributorsSection({
   members = [],
   teams = [],
-  title = "Contributors",
+  title = 'Contributors',
   treemapConfig = {
-    backgroundColor: "#E5F7FF",
-    borderColor: "#ffffff",
+    backgroundColor: '#E5F7FF',
+    borderColor: '#ffffff',
     height: 400,
   },
   userInfo,
@@ -43,9 +43,9 @@ export default function ContributorsSection({
   const { onContributorListOpenClicked } = useEventsAnalytics();
 
   return (
-    <div 
-      // ref={contributorsSectionRef} 
-      id="contributors" 
+    <div
+      // ref={contributorsSectionRef}
+      id="contributors"
       className={`contributors-container`}
       // style={{ scrollMarginTop }}
     >
@@ -54,16 +54,9 @@ export default function ContributorsSection({
           <div>
             <h1 className="contributors-title">{title}</h1>
           </div>
-            <ShadowButton
-              buttonColor="#156FF7"
-              shadowColor="#3DFEB1"
-              buttonWidth="121px"
-              onClick={() => onContributorListOpenClicked(getAnalyticsUserInfo(userInfo), {})}
-              >
-              <Link href="#">
-                Contribute
-              </Link>
-            </ShadowButton>
+          {/* <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonWidth="121px" onClick={() => onContributorListOpenClicked(getAnalyticsUserInfo(userInfo), {})}>
+            <Link href="#">Contribute</Link>
+          </ShadowButton> */}
         </div>
 
         <div className="section-container">
@@ -74,22 +67,24 @@ export default function ContributorsSection({
 
       <div className="section-container teams-section-container">
         <h2 className="section-title section-title-teams">Teams</h2>
-        <div style={{ 
-          height: treemapConfig.height, 
-          backgroundColor: treemapConfig.backgroundColor,
-          width: "100%",
-          borderRadius: "8px",
-          border: "1px solid #e2e8f0",
-          overflow: "hidden"
-        }}>
+        <div
+          style={{
+            height: treemapConfig.height,
+            backgroundColor: treemapConfig.backgroundColor,
+            width: '100%',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden',
+          }}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <TeamsTreemap
-              data={teams.map(team => ({
+              data={teams.map((team) => ({
                 name: team.name,
                 size: team.hosts + team.speakers,
                 speakers: team.speakers,
                 hosts: team.hosts,
-                logo: team.logo
+                logo: team.logo,
               }))}
               dataKey="size"
               content={<TreemapCustomContent />}
@@ -125,16 +120,16 @@ export default function ContributorsSection({
         }
 
         .section-title-members {
-          background-color: #E8F2FF;
+          background-color: #e8f2ff;
         }
 
         .section-title-teams {
-          background-color: #E0FFF3;
+          background-color: #e0fff3;
         }
 
         .teams-section-container {
           padding: 20px;
-          border-top: 1px solid #E2E8F0;
+          border-top: 1px solid #e2e8f0;
           background: #ffffff;
           margin-top: 20px;
         }
@@ -154,7 +149,7 @@ export default function ContributorsSection({
           font-size: 16px;
           font-weight: 500;
           cursor: pointer;
-          box-shadow: 0 5px 0 #3DFEB1;
+          box-shadow: 0 5px 0 #3dfeb1;
           transition: all 0.2s ease;
         }
 
@@ -174,7 +169,7 @@ export default function ContributorsSection({
           font-weight: 500;
           margin-bottom: 20px;
         }
-        
+
         @media (max-width: 768px) {
           .contributors-header {
             flex-direction: row;
@@ -202,6 +197,5 @@ export default function ContributorsSection({
         }
       `}</style>
     </div>
-  )
+  );
 }
-

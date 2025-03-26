@@ -174,7 +174,9 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
             .map(([role, events]) => (
               <>
                 <div className="root__irl__modalHeader">
-                  <div className="root__irl__modalHeader__title">Contributions - {role} ({events.length})</div>
+                  <div className="root__irl__modalHeader__title">
+                    Contributions - {role} ({events.length})
+                  </div>
                 </div>
                 <div className="root__irl__popupCntr">
                   {events.map((resource: { link: any; name: any }, index: number) => (
@@ -325,7 +327,7 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
             display: flex;
           }
 
-          .root__irlCrbts__row__border__btm {
+          .root__irlCrbts__row__border__btm:not(:last-child) {
             border-bottom: 1px solid #e2e8f0;
           }
 

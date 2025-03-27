@@ -35,11 +35,19 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
   }, []);
 
   const onInputchangeHandler = (event: any) => {
-    const searchTerm = event?.target.value.toLowerCase();
-    setSearchTerm(event.target.value);
-      const filteredMembers = contributorsList?.filter((member: any) => member?.name?.toLowerCase()?.includes(searchTerm));
-      setFilteredContriList(filteredMembers);
-
+    const searchValue = event?.target.value;
+    setSearchTerm(searchValue);
+    
+    if (!searchValue.trim()) {
+      setFilteredContriList(contributorsList);
+      return;
+    }
+    
+    const searchTermLower = searchValue.toLowerCase();
+    const filteredMembers = contributorsList?.filter((member: any) => 
+      member?.member?.name?.toLowerCase()?.includes(searchTermLower)
+    );
+    setFilteredContriList(filteredMembers);
   };
 
   const onModalCloseClickHandler = () => {
@@ -58,7 +66,28 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
               <div className="cm__body__search__icon">
                 <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
               </div>
-              <input value={searchTerm} type="search" className="cm__body__search__input" placeholder="Search" onChange={onInputchangeHandler} />
+              <input 
+                value={searchTerm} 
+                className="cm__body__search__input" 
+                placeholder="Search" 
+                onChange={onInputchangeHandler} 
+              />
+              {searchTerm && (
+                <div 
+                  className="cm__body__search__clear-icon" 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setFilteredContriList(contributorsList);
+                  }}
+                >
+                  <Image 
+                    src="/icons/close.svg" 
+                    alt="Clear search" 
+                    width={14} 
+                    height={14} 
+                  />
+                </div>
+              )}
             </div>
           </div>
           <div className="cm__body__contributors">
@@ -200,6 +229,19 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
           color: #0f172a;
           text-align: center;
           font-size: 14px;
+        }
+
+        .cm__body__search__clear-icon {
+          position: absolute;
+          top: 50%;
+          right: 10px;
+          transform: translateY(-50%);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 16px;
+          height: 16px;
         }
 
         @media (min-width: 1024px) {

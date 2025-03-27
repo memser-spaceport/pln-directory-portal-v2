@@ -23,19 +23,13 @@ export default function ScheduleSection(props: any) {
         <div className="schedule__hdr">
           <h2>Event Calendar</h2>
           <div className="schedule__hdr__btn">
-            <a href={`${EVENTS_SUBSCRIPTION_URL}`} target="_blank" onClick={() => onSubscribeForUpdatesButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
+            {/* <a href={`${EVENTS_SUBSCRIPTION_URL}`} target="_blank" onClick={() => onSubscribeForUpdatesButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
               <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor="#0F172A">
                 Subscribe for updates
               </ShadowButton>
-            </a>
+            </a> */}
             <a href={`${process.env.PL_EVENTS_SUBMISSION_URL}`} target="_blank" onClick={() => onSubmitEventButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
-              <ShadowButton
-                buttonColor="#ffffff"
-                shadowColor="#156FF7"
-                buttonHeight="48px" buttonWidth="172px"
-                textColor="#0F172A"
-                iconSrc="/icons/doc.svg"
-              >
+              <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor="#0F172A" iconSrc="/icons/doc.svg">
                 Submit an Event
               </ShadowButton>
             </a>
@@ -43,14 +37,15 @@ export default function ScheduleSection(props: any) {
               <ShadowButton
                 buttonColor="#3DFEB1"
                 shadowColor="#156FF7"
-             buttonHeight="48px" buttonWidth="172px"
+                buttonHeight="48px"
+                buttonWidth="172px"
                 textColor="#0F172A"
                 iconPosition="right"
                 iconWidth={12}
                 iconHeight={12}
                 iconSrc="/icons/black-link-up-arrow.svg"
               >
-                Go to PL Events
+                View all Events
               </ShadowButton>
             </a>
           </div>

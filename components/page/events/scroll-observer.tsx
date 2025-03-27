@@ -8,15 +8,27 @@ export default function ScrollObserver() {
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            const id = entry.target.id;
-            window.history.replaceState(null, '', `#${id}`);
+            const element = entry.target as HTMLElement;
+            const id = element.id;
+            
+            // Skip elements with data-exclude-from-url attribute
+            // or elements outside the events container
+            if (!element.hasAttribute('data-exclude-from-url')) {
+              window.history.replaceState(null, '', `#${id}`);
+            }
           }
         });
       },
       { threshold: 0.5 }
     );
 
-    const sections = document.querySelectorAll('[id]');
+    // Only observe elements within the events container
+    // Or you can use a more specific selector like '[id]:not([data-exclude-from-url])'
+    const eventsContainer = document.getElementById('events-container');
+    const sections = eventsContainer 
+      ? eventsContainer.querySelectorAll('[id]')
+      : document.querySelectorAll('[id]:not([data-exclude-from-url])');
+    
     sections.forEach(section => observer.observe(section));
 
     return () => observer.disconnect();

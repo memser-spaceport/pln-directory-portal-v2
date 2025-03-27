@@ -129,7 +129,6 @@ export default function EventsSection({
   return (
     <div 
       className={`events-section`}
-      id="events"
       // ref={eventsSectionRef} 
       // style={{ scrollMarginTop }}
     >

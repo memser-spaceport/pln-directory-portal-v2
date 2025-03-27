@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import Image from "next/image"
 import { Tooltip } from "@/components/core/tooltip/tooltip"
 import { Tooltip as Popover } from "@/components/page/irl/attendee-list/attendee-popover"
@@ -25,16 +25,21 @@ const MembersList: React.FC<MembersListProps> = ({
     return <div className="no-members">No members available</div>
   }
 
-  const uniqueMembers = members.filter((value, index, self) =>
-    index === self.findIndex((t) => (
-      t.uid === value.uid
-    ))
+  const contributorMembers = members.filter(item => 
+    item.isHost || item.isSpeaker || 
+    (item.events && item.events.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker))
   );
 
-  const reorderedMembers = [...uniqueMembers].sort((a, b) => {
-    if (a?.image?.url && !b?.image?.url) return -1;
-    if (!a?.image?.url && b?.image?.url) return 1;
-    return 0;
+  const reorderedMembers = [...contributorMembers].sort((a, b) => {
+    const aHasImage = Boolean(a.member?.image?.url);
+    const bHasImage = Boolean(b.member?.image?.url);
+    
+    if (aHasImage && !bHasImage) return -1;
+    if (!aHasImage && bHasImage) return 1;
+    
+    const aName = a.member?.name || '';
+    const bName = b.member?.name || '';
+    return aName.localeCompare(bName);
   });
   
   const mobileVisibleMembers = reorderedMembers.slice(0, 31)
@@ -52,36 +57,54 @@ const MembersList: React.FC<MembersListProps> = ({
 
   const onContributorClick = (contributor: any) => {
     analytics.onContributorClicked(getAnalyticsUserInfo(userInfo), contributor);
-    window.open('/members/' + contributor?.uid, '_blank');
+    // window.open('/members/' + contributor.member?.uid || contributor.memberUid, '_blank');
+  };
+
+  const countRoleEvents = (member: { events: any[] }) => {
+    const hostEvents = member.events.filter((event: any) => event.isHost).length;
+    const speakerEvents = member.events.filter((event: any) => event.isSpeaker).length;
+    return { hostEvents, speakerEvents };
   };
 
   return (
     <>
       <div className="members-container">
         <div className="members-grid mobile-grid">
-          {mobileVisibleMembers?.map((member) => (
-            <Tooltip
-              key={`mobile-${member.uid}`}
-              trigger={
-                <div
-                  className={`member-avatar ${hoveredMember === member.uid ? "hovered" : ""}`}
-                  onMouseEnter={() => setHoveredMember(member.uid)}
-                  onMouseLeave={() => setHoveredMember(null)}
-                >
-                  <div className="image-container">
-                    <Image
-                      src={member?.image?.url || '/icons/default-user-profile.svg'}
-                      alt={member.name}
-                      width={34}
-                      height={34}
-                      className="member-image"
-                    />
+          {mobileVisibleMembers?.map((member) => {
+            const { hostEvents, speakerEvents } = countRoleEvents(member);
+            return (
+              <Tooltip
+                key={`mobile-${member.memberUid}`}
+                trigger={
+                  <div
+                    className={`member-avatar ${hoveredMember === member.memberUid ? "hovered" : ""}`}
+                    onMouseEnter={() => setHoveredMember(member.memberUid)}
+                    onMouseLeave={() => setHoveredMember(null)}
+                    onClick={() => onContributorClick(member)}
+                  >
+                    <div className="image-container">
+                      <Image
+                        src={member.member?.image?.url || '/icons/default-user-profile.svg'}
+                        alt={member.member?.name || 'Unknown'}
+                        width={34}
+                        height={34}
+                        className="member-image"
+                      />
+                    </div>
                   </div>
-                </div>
-              }
-              content={<p>{member.name}</p>}
-            />
-          ))}
+                }
+                content={
+                  <div className="tooltip-content">
+                    <div>{member.member?.name}</div>
+                      {member.isHost || hostEvents > 0 ? 
+                        <div>As Host {hostEvents > 0 ? `(${hostEvents})` : ''}</div> : null}
+                      {member.isSpeaker || speakerEvents > 0 ? 
+                        <div>As Speaker {speakerEvents > 0 ? `(${speakerEvents})` : ''}</div> : null}
+                  </div>
+                }
+              />
+            );
+          })}
           {reorderedMembers.length > 31 && (
             <>
               <div className="member-avatar more-members" onClick={() => onOpenContributorsModal()}>
@@ -89,35 +112,46 @@ const MembersList: React.FC<MembersListProps> = ({
                   +{reorderedMembers.length - 31}
                 </div>
               </div>
-              <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={reorderedMembers} />  
             </>
           )}
         </div>
 
         <div className="members-grid web-grid">
-          {webVisibleMembers?.map((member) => (
-            <Tooltip
-              key={`web-${member.uid}`}
-              trigger={
-                <div
-                  className={`member-avatar ${hoveredMember === member.uid ? "hovered" : ""}`}
-                  onMouseEnter={() => setHoveredMember(member.uid)}
-                  onMouseLeave={() => setHoveredMember(null)}
-                >
-                  <div className="image-container">
-                    <Image
-                      src={member?.image?.url || '/icons/default-user-profile.svg'}
-                      alt={member.name}
-                      width={36}
-                      height={36}
-                      className="member-image"
-                    />
+          {webVisibleMembers?.map((member) => {
+            const { hostEvents, speakerEvents } = countRoleEvents(member);
+            return (
+              <Tooltip
+                key={`web-${member.memberUid}`}
+                trigger={
+                  <div
+                    className={`member-avatar ${hoveredMember === member.memberUid ? "hovered" : ""}`}
+                    onMouseEnter={() => setHoveredMember(member.memberUid)}
+                    onMouseLeave={() => setHoveredMember(null)}
+                    onClick={() => onContributorClick(member)}
+                  >
+                    <div className="image-container">
+                      <Image
+                        src={member.member?.image?.url || '/icons/default-user-profile.svg'}
+                        alt={member.member?.name || 'Unknown'}
+                        width={36}
+                        height={36}
+                        className="member-image"
+                      />
+                    </div>
                   </div>
-                </div>
-              }
-              content={<p>{member.name}</p>}
-            />
-          ))}
+                }
+                content={
+                  <div className="tooltip-content">
+                    <div>{member.member?.name}</div>
+                      {member.isHost || hostEvents > 0 ? 
+                        <div>As Host {hostEvents > 0 ? `(${hostEvents})` : ''}</div> : null}
+                      {member.isSpeaker || speakerEvents > 0 ? 
+                        <div>As Speaker {speakerEvents > 0 ? `(${speakerEvents})` : ''}</div> : null}
+                  </div>
+                }
+              />
+            );
+          })}
           {reorderedMembers.length > 154 && (
             <>
               <div className="member-avatar more-members">
@@ -125,14 +159,18 @@ const MembersList: React.FC<MembersListProps> = ({
                   +{reorderedMembers.length - 154}
                 </div>
               </div>
-              <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={reorderedMembers} />
             </>
           )}
         </div>
+        <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={reorderedMembers} />
       </div>
       <style jsx>{`
         .members-container {
           width: 100%;
+        }
+
+        .tooltip-content {
+          padding: 4px;
         }
 
         .popover-content {
@@ -214,6 +252,8 @@ const MembersList: React.FC<MembersListProps> = ({
         .member-name {
           font-size: 0.875rem;
           color: #0F172A;
+          font-weight: 500;
+          margin: 0;
         }
 
         .remaining-title {

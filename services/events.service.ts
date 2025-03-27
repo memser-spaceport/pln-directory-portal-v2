@@ -71,9 +71,9 @@ export const getEventContributors = async () => {
       item?.eventGuests?.map((guest: any) => {
         return {
           ...guest.member,
-          isHost: guest.isHost ? 1 : 0,
-          isSpeaker: guest.isSpeaker ? 1 : 0,
-          isHostAndSpeaker: (guest.isHost && guest.isSpeaker) ? 1 : 0
+          // isHost: guest.isHost ? 1 : 0,
+          // isSpeaker: guest.isSpeaker ? 1 : 0,
+          // isHostAndSpeaker: (guest.isHost && guest.isSpeaker) ? 1 : 0
         }
       })
     );
@@ -104,5 +104,61 @@ export const getEventContributors = async () => {
   } catch (error) {
     console.error('Error fetching event contributors:', error);
     return { error: { message: 'Failed to fetch event contributors' } };
+  }
+}
+
+export const getGuestDetail = async () => {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/irl/guests`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getHeader(""),
+    });
+
+    if (!response?.ok) {
+      return { error: { statusText: response?.statusText } };
+    }
+
+    const result = await response.json();
+    const memberMap = new Map();
+    result.forEach((item: any) => {
+      if (!item.memberUid || !item.member) return;
+      
+      const isContributor = item.isHost || item.isSpeaker || 
+        (item.events?.some((event: { isHost: any; isSpeaker: any; }) => event.isHost || event.isSpeaker));
+      
+      if (!isContributor) return;
+      
+      const memberUid = item.memberUid;
+      const member = memberMap.get(memberUid);
+      
+      if (!member) {
+        memberMap.set(memberUid, {
+          memberUid,
+          member: {
+            name: item.member.name,
+            image: item.member.image,
+            uid: item.member.uid || memberUid
+          },
+          isHost: !!item.isHost,
+          isSpeaker: !!item.isSpeaker,
+          events: item.events || []
+        });
+      } else {
+        member.isHost = member.isHost || !!item.isHost;
+        member.isSpeaker = member.isSpeaker || !!item.isSpeaker;
+        
+        if (item.events?.length) {
+          const existingEventIds = new Set(member.events.map((e: any) => e.uid));
+          member.events.push(...item.events.filter((e: any) => !existingEventIds.has(e.uid)));
+        }
+      }
+    });
+    
+    return { data: Array.from(memberMap.values()) };
+  } catch (error) {
+    console.error('Error fetching guest detail:', error);
+    return { error: { message: 'Failed to fetch guest detail' } };
   }
 }

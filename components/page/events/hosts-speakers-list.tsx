@@ -20,16 +20,16 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
   const onContributorClickHandler = props?.onContributorClickHandler
   const analytics = useEventsAnalytics();
   const [searchTerm, setSearchTerm] = useState('');
-  const allContributorsRef = useRef<HTMLDialogElement>(null);
+  const contributorsListRef = useRef<HTMLDialogElement>(null);
   const [filteredContriList, setFilteredContriList] = useState(contributorsList);
 
   useEffect(() => {
     document.addEventListener(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, (e: any) => {
       if (e.detail) {
-        allContributorsRef?.current?.showModal();
+        contributorsListRef?.current?.showModal();
         return;
       }
-      allContributorsRef?.current?.close();
+      contributorsListRef?.current?.close();
       return;
     });
   }, []);
@@ -37,7 +37,7 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
   const onInputchangeHandler = (event: any) => {
     const searchTerm = event?.target.value.toLowerCase();
     setSearchTerm(event.target.value);
-      const filteredMembers = contributorsList?.filter((member: IMember) => member?.name?.toLowerCase()?.includes(searchTerm));
+      const filteredMembers = contributorsList?.filter((member: any) => member?.name?.toLowerCase()?.includes(searchTerm));
       setFilteredContriList(filteredMembers);
 
   };
@@ -50,7 +50,7 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
 
   return (
     <>
-      <Modal modalRef={allContributorsRef} onClose={onModalCloseClickHandler}>
+      <Modal modalRef={contributorsListRef} onClose={onModalCloseClickHandler}>
         <div className="cm">
           <div className="cm__hdr">Contributors ({contributorsList.length})</div>
           <div>
@@ -72,9 +72,9 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                   <div className="contributor">
                     <div className="contributor__info">
                       <div className="contributor__info__imgWrpr">
-                        <Image alt="profile" width={40} height={40} loading='eager' priority={true}  className="contributor__info__img" src={contributor?.image?.url || '/icons/default_profile.svg'}  />
+                        <Image alt="profile" width={40} height={40} loading='eager' priority={true}  className="contributor__info__img" src={contributor?.member?.image?.url || '/icons/default_profile.svg'}  />
                       </div>
-                      <div className="contributor__info__name">{contributor?.name}</div>
+                      <div className="contributor__info__name">{contributor?.member?.name}</div>
                     </div>
                     {/* <div className="contributor__nav">
                       <img src="/icons/right-arrow-gray.svg" alt="icon" />

@@ -13,7 +13,8 @@ export const Tooltip = RechartsTooltip
 
 // Custom treemap content component
 export const TreemapCustomContent = (props: any) => {
-  const { x, y, width, height, index, name, depth, colors, root, activeIndex, logo } = props
+  const { x, y, width, height, index, name, depth, colors, root, activeIndex, logo } = props;
+
   
   const colorSets = {
     // primary: ['#E5F7FF', '#C2EEFF', '#99DFFF', '#66CFFF', '#33C0FF', '#00A3FF'],
@@ -45,11 +46,31 @@ export const TreemapCustomContent = (props: any) => {
           }} />
           <foreignObject x={x} y={y} width={width} height={height}>
             <div className="treemap-content">
-              {width > 30 && height > 30 && <img src={logo || "/icons/team-default-profile.svg"} alt={name} height={20} width={20} />}
-                {width > 50 && height > 50 && (
+              {width > 15 && height > 15 && (
+                <img 
+                  src={logo || "/icons/team-default-profile.svg"} 
+                  alt={name} 
+                  style={{
+                    height: (() => {
+                      if (width && height > 30) return '20px';
+                      if (width && height > 20) return '12px';
+                      if (width && height > 15) return '8px';
+                      return '0px';
+                    })(),
+                    width: (() => {
+                      if (width && height > 30) return '20px';
+                      if (width && height > 20) return '12px';
+                      if (width && height > 15) return '8px';
+                      return '0px';
+                    })(),
+                    objectFit: 'contain'
+                  }}
+                />
+              )}
+                {width > 20 && height > 20 && (
                 <div
                   style={{
-                    padding: '8px',
+                    padding: '0px 0px 0px 4px',
                     color: '#000000',
                     fontSize: '12px',
                     overflow: 'hidden',
@@ -68,7 +89,7 @@ export const TreemapCustomContent = (props: any) => {
           display: flex;
           align-items: center;
           justify-content: flex-start;
-          padding: 8px;
+          padding: 4px 0px 0px 6px;
         }
       `}</style>
     </>

@@ -7,7 +7,7 @@ import ContributorsSection from '@/components/page/events/contributors/contribut
 import HuskyBanner from '@/components/page/events/husky-banner'
 import { ADMIN_ROLE } from '@/utils/constants'
 import { getCookiesFromHeaders } from '@/utils/next-helpers'
-import { getAggregatedEventsData, getEventContributors } from '@/services/events.service'
+import { getAggregatedEventsData, getEventContributors, getGuestDetail } from '@/services/events.service'
 import Error from '@/components/core/error';
 import ScheduleSection from '@/components/page/events/schedule-section'
 import { formatFeaturedData } from '@/utils/home.utils'
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 }
 
 export default async function EventsPage() {
-  const { aggregatedEventsData, isLoggedIn, userInfo, contributorsData, isError } = await getPageData();
+  const { aggregatedEventsData, isLoggedIn, userInfo, contributorsData, isError, membersDetail } = await getPageData();
 
   if (isError) {
     return <Error />;
@@ -41,7 +41,7 @@ export default async function EventsPage() {
 
       <div id="contributors" className={styles.contributorsSection}> 
         <ContributorsSection
-          members={contributorsData?.members}
+          members={membersDetail}
           teams={contributorsData?.teams}
           treemapConfig={{
             backgroundColor: "#81E7FF", 
@@ -67,21 +67,22 @@ const getPageData = async () => {
   let isError = false;
   let aggregatedEventsData = [];
 
-  let [aggregatedEventsresponse, contributorsData] = await Promise.all([
+  let [aggregatedEventsresponse, contributorsData, membersDetail] = await Promise.all([
     getAggregatedEventsData(authToken, isLoggedIn, isAdmin),
     getEventContributors(),
+    getGuestDetail()
   ]);
 
-  if (aggregatedEventsresponse?.error || contributorsData?.error) {
+  if (aggregatedEventsresponse?.error || contributorsData?.error || membersDetail?.error) {
     isError = true;
   }
-
   aggregatedEventsData = formatFeaturedData(aggregatedEventsresponse?.data);
   return {
     userInfo,
     isLoggedIn,
     aggregatedEventsData,
     contributorsData,
+    membersDetail: membersDetail?.data,
     isError,
   }
 };

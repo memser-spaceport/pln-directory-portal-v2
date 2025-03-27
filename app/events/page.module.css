@@ -1,7 +1,5 @@
 .eventsPage {
   width: 100%;
-  padding: 20px;
-  background: #BFEAFF;
 }
 
 .huskyBannerContainer {
@@ -18,12 +16,6 @@
   height: auto;
 }
 
-@media (min-width: 768px) {
-  .container {
-    padding: 20px;
-  }
-}
-
 .shedule__hdr__btn {
   display: flex;
   gap: 1rem;
@@ -36,5 +28,16 @@
   .shedule__hdr__btn {
     justify-content: flex-end;
     margin-top: 0;
+  }
+
+  .container {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .eventsPage {
+    padding: 20px;
+    background: #BFEAFF;
   }
 }

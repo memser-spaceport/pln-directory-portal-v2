@@ -544,3 +544,7 @@ dialog {
     display: none;
   }
 }
+
+[id]:not([data-exclude-from-url]) {
+  scroll-margin-top: var(--scroll-margin-top, 80px);
+}

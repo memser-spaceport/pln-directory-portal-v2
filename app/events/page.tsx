@@ -35,7 +35,7 @@ export default async function EventsPage() {
         <EventsSection eventLocations={aggregatedEventsData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
       </div>
       
-      <div id="ask-husky" className={styles.huskyBannerContainer}>
+      <div className={styles.huskyBannerContainer}>
         <HuskyBanner userInfo={userInfo} />
       </div>
 

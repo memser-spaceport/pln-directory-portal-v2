@@ -173,6 +173,10 @@ const MembersList: React.FC<MembersListProps> = ({
           padding: 4px;
         }
 
+        .more-members {
+          cursor:pointer;
+        }
+
         .popover-content {
           padding: 10px;
           border-radius: 10px;
@@ -198,7 +202,6 @@ const MembersList: React.FC<MembersListProps> = ({
         }
 
         .member-avatar {
-          cursor: pointer;
           transition: transform 0.2s ease;
           width: 36px;
           height: 36px;
@@ -271,6 +274,10 @@ const MembersList: React.FC<MembersListProps> = ({
 
         :global(.member-image:hover) {
           border: 1.5px solid #4EF286;
+        }
+
+        :global(button .member-avatar) {
+          cursor: default !important;
         }
 
         /* Mobile styles - optimize for smaller screens */

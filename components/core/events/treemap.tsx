@@ -46,7 +46,7 @@ export const TreemapCustomContent = (props: any) => {
           }} />
           <foreignObject x={x} y={y} width={width} height={height}>
             <div className="treemap-content">
-              {width > 15 && height > 15 && (
+              {width > 10 && height > 10 && (
                 <img 
                   src={logo || "/icons/team-default-profile.svg"} 
                   alt={name} 
@@ -55,13 +55,15 @@ export const TreemapCustomContent = (props: any) => {
                       if (width && height > 30) return '20px';
                       if (width && height > 20) return '12px';
                       if (width && height > 15) return '8px';
-                      return '0px';
+                      if (width && height > 10) return '6px';
+                      return '4px';
                     })(),
                     width: (() => {
-                      if (width && height > 30) return '20px';
-                      if (width && height > 20) return '12px';
-                      if (width && height > 15) return '8px';
-                      return '0px';
+                      if (height > 30 && width > 30) return '20px';
+                      if (height > 20 && width > 20) return '12px';
+                      if (height > 15 && width > 15) return '8px';
+                      if (height > 10 && width > 10) return '6px';
+                      return '4px';
                     })(),
                     objectFit: 'contain'
                   }}

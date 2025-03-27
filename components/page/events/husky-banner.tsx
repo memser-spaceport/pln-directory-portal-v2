@@ -11,7 +11,6 @@ export default function HuskyBanner(props: any) {
 
   return (
     <div 
-      id="husky" 
       className="husky-banner"
     >
         <div className="image-container">

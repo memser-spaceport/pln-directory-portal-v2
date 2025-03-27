@@ -65,7 +65,14 @@ export const getEventContributors = async () => {
     const result = await response.json();
 
     const formattedMembers = result?.flatMap((item: any) => 
-      item?.eventGuests?.map((guest: any) => guest.member)
+      item?.eventGuests?.map((guest: any) => {
+        return {
+          ...guest.member,
+          isHost: guest.isHost ? 1 : 0,
+          isSpeaker: guest.isSpeaker ? 1 : 0,
+          isHostAndSpeaker: (guest.isHost && guest.isSpeaker) ? 1 : 0
+        }
+      })
     );
 
     const formattedTeams = result?.map((event: any) => {

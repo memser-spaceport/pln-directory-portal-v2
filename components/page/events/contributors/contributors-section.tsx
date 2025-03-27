@@ -30,7 +30,6 @@ interface ContributorsSectionProps {
 export default function ContributorsSection({
   members = [],
   teams = [],
-  title = 'Contributors',
   treemapConfig = {
     backgroundColor: '#E5F7FF',
     borderColor: '#ffffff',
@@ -52,7 +51,8 @@ export default function ContributorsSection({
       <div className="contributors-section-container">
         <div className="contributors-header">
           <div>
-            <h1 className="contributors-title">{title}</h1>
+            <h1 className="contributors-title"> Contributors</h1>
+            <p className="contributors-subtitle">Hosts & Speakers</p>
           </div>
           {/* <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonWidth="121px" onClick={() => onContributorListOpenClicked(getAnalyticsUserInfo(userInfo), {})}>
             <Link href="#">Contribute</Link>
@@ -60,13 +60,11 @@ export default function ContributorsSection({
         </div>
 
         <div className="section-container">
-          <h2 className="section-title section-title-members">Members, Speakers & Hosts</h2>
           <MembersList members={members} userInfo={userInfo} />
         </div>
       </div>
 
       <div className="section-container teams-section-container">
-        <h2 className="section-title section-title-teams">Teams</h2>
         <div
           style={{
             height: treemapConfig.height,

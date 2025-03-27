@@ -43,7 +43,6 @@ export default async function EventsPage() {
         <ContributorsSection
           members={contributorsData?.members}
           teams={contributorsData?.teams}
-          title="Contributors"
           treemapConfig={{
             backgroundColor: "#81E7FF", 
             borderColor: "#00000033",

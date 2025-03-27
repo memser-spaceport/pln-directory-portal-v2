@@ -248,7 +248,8 @@ export default function EventsSection({
         .card-wrapper {
           flex-shrink: 0;
           width: calc(100% - 2rem);
-          margin-right: 1rem;
+          margin-right: 12px;
+          padding-left: 4px;
         }
 
         :global(.card-link) {

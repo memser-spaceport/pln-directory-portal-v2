@@ -17,11 +17,9 @@ interface IHostSpeakersList {
 const HostSpeakersList = (props: IHostSpeakersList) => {
   const onClose = props?.onClose;
   const contributorsList = props?.contributorsList ?? [];
-
   const onContributorClickHandler = props?.onContributorClickHandler
-
   const analytics = useEventsAnalytics();
-
+  const [searchTerm, setSearchTerm] = useState('');
   const allContributorsRef = useRef<HTMLDialogElement>(null);
   const [filteredContriList, setFilteredContriList] = useState(contributorsList);
 
@@ -36,8 +34,16 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
     });
   }, []);
 
+  const onInputchangeHandler = (event: any) => {
+    const searchTerm = event?.target.value.toLowerCase();
+    setSearchTerm(event.target.value);
+      const filteredMembers = contributorsList?.filter((member: IMember) => member?.name?.toLowerCase()?.includes(searchTerm));
+      setFilteredContriList(filteredMembers);
+
+  };
 
   const onModalCloseClickHandler = () => {
+    setSearchTerm("");
     setFilteredContriList(contributorsList);
     onClose();
   }
@@ -47,6 +53,14 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
       <Modal modalRef={allContributorsRef} onClose={onModalCloseClickHandler}>
         <div className="cm">
           <div className="cm__hdr">Contributors ({contributorsList.length})</div>
+          <div>
+            <div className="cm__body__search">
+              <div className="cm__body__search__icon">
+                <Image loading="lazy" alt="search" src="/icons/search-gray.svg" height={20} width={20} />
+              </div>
+              <input value={searchTerm} type="search" className="cm__body__search__input" placeholder="Search" onChange={onInputchangeHandler} />
+            </div>
+          </div>
           <div className="cm__body__contributors">
             {filteredContriList?.map((contributor: any) => {
               return (
@@ -141,12 +155,12 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
         .contributor__wrpr {
           padding: 16px;
           border-bottom: 1px solid #e2e8f0;
-          cursor: pointer;
+          // cursor: pointer;
         }
 
-        .contributor__wrpr:hover {
-          background-color: #f1f5f9;
-        }
+        // .contributor__wrpr:hover {
+        //   background-color: #f1f5f9;
+        // }
 
         .contributor {
           display: flex;

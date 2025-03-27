@@ -88,7 +88,6 @@ export default function EventsBanner(props: any) {
 
         .content-container {
           background: linear-gradient(180deg, rgba(2, 88, 137, 0.6) 22%, rgba(0, 36, 68, 0.6) 79.5%);
-          backdrop-filter: blur(4px);
           border-radius: 16px;
           max-width: 715px;
           padding: 2.5rem 2rem;
@@ -99,10 +98,24 @@ export default function EventsBanner(props: any) {
           gap: 1rem;
           position: relative;
           z-index: 1;
-          border: 1px solid transparent;
-          // border-image: linear-gradient(180deg, #70ECFF 0%, #5EE3B5 100%);
-          // border-image-slice: 1;
           overflow: hidden;
+        }
+
+        .content-container::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          border-radius: 16px; 
+          border: 1px solid transparent;
+          background: linear-gradient(180deg, #70ECFF 0%, #5EE3B5 100%) border-box;
+          -webkit-mask:
+            linear-gradient(#fff 0 0) padding-box, 
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: destination-out;
+          mask-composite: exclude;
         }
 
         .text-content {

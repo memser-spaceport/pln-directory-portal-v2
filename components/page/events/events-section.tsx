@@ -337,7 +337,7 @@ export default function EventsSection({
             display: flex;
             backface-visibility: hidden;
             touch-action: pan-y;
-            padding: 10px 10px 30px 0px;
+            padding: 10px 10px 30px 5px;
           }
 
           .card-wrapper {

@@ -54,6 +54,9 @@ export default function CurrentEventCard(props: any) {
           flex-direction: column;
         }
 
+        .current-event-card:hover {
+          box-shadow: 0px 0px 0px 2px #156ff740;
+        }
         .event-header-image {
           position: relative;
           width: 100%;

@@ -20,14 +20,25 @@ const MembersList: React.FC<MembersListProps> = ({
 }) => {
   const [hoveredMember, setHoveredMember] = useState<number | null>(null)
   const analytics = useEventsAnalytics();
+
   if (!members || members.length === 0) {
     return <div className="no-members">No members available</div>
   }
 
-  const membersWithImages = members.filter(member => member?.image?.url);
+  const uniqueMembers = members.filter((value, index, self) =>
+    index === self.findIndex((t) => (
+      t.uid === value.uid
+    ))
+  );
+
+  const reorderedMembers = [...uniqueMembers].sort((a, b) => {
+    if (a?.image?.url && !b?.image?.url) return -1;
+    if (!a?.image?.url && b?.image?.url) return 1;
+    return 0;
+  });
   
-  const mobileVisibleMembers = membersWithImages.slice(0, 31)
-  const webVisibleMembers = membersWithImages.slice(0, 154)
+  const mobileVisibleMembers = reorderedMembers.slice(0, 31)
+  const webVisibleMembers = reorderedMembers.slice(0, 154)
 
   const onCloseContributorsModal = () => {
     analytics.onContributorListCloseClicked(getAnalyticsUserInfo(userInfo), {});
@@ -48,7 +59,7 @@ const MembersList: React.FC<MembersListProps> = ({
     <>
       <div className="members-container">
         <div className="members-grid mobile-grid">
-          {mobileVisibleMembers.map((member) => (
+          {mobileVisibleMembers?.map((member) => (
             <Tooltip
               key={`mobile-${member.uid}`}
               trigger={
@@ -59,7 +70,7 @@ const MembersList: React.FC<MembersListProps> = ({
                 >
                   <div className="image-container">
                     <Image
-                      src={member.image.url}
+                      src={member?.image?.url || '/icons/default-user-profile.svg'}
                       alt={member.name}
                       width={34}
                       height={34}
@@ -71,20 +82,20 @@ const MembersList: React.FC<MembersListProps> = ({
               content={<p>{member.name}</p>}
             />
           ))}
-          {membersWithImages.length > 31 && (
+          {reorderedMembers.length > 31 && (
             <>
               <div className="member-avatar more-members" onClick={() => onOpenContributorsModal()}>
                 <div className="image-container fallback-avatar-mobile">
-                  +{membersWithImages.length - 31}
+                  +{reorderedMembers.length - 31}
                 </div>
               </div>
-              <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={members} />  
+              <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={reorderedMembers} />  
             </>
           )}
         </div>
 
         <div className="members-grid web-grid">
-          {webVisibleMembers.map((member) => (
+          {webVisibleMembers?.map((member) => (
             <Tooltip
               key={`web-${member.uid}`}
               trigger={
@@ -95,7 +106,7 @@ const MembersList: React.FC<MembersListProps> = ({
                 >
                   <div className="image-container">
                     <Image
-                      src={member.image.url}
+                      src={member?.image?.url || '/icons/default-user-profile.svg'}
                       alt={member.name}
                       width={36}
                       height={36}
@@ -107,14 +118,14 @@ const MembersList: React.FC<MembersListProps> = ({
               content={<p>{member.name}</p>}
             />
           ))}
-          {membersWithImages.length > 154 && (
+          {reorderedMembers.length > 154 && (
             <>
               <div className="member-avatar more-members">
                 <div className="image-container fallback-avatar-web" onClick={() => onOpenContributorsModal()}>
-                  +{membersWithImages.length - 154}
+                  +{reorderedMembers.length - 154}
                 </div>
               </div>
-              <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={members} />
+              <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={reorderedMembers} />
             </>
           )}
         </div>

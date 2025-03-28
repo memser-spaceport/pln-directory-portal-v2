@@ -505,7 +505,7 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 export const ChangeLogList = [
   {
     title: 'Version 4.1.9 - Aggregated Events',
-    tag: 'New Features',
+    tag: 'New Feature',
     date: '28, Mar 2025',
     shortContent: `
     <div style="font-size: 14px; line-height:23px;">

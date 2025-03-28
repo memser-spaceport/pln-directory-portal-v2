@@ -25,25 +25,13 @@ const MembersList: React.FC<MembersListProps> = ({
     return <div className="no-members">No members available</div>
   }
 
-  const contributorMembers = members.filter(item => 
+  const contributors = members.filter(item => 
     item.isHost || item.isSpeaker || 
     (item.events && item.events.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker))
   );
 
-  const reorderedMembers = [...contributorMembers].sort((a, b) => {
-    const aHasImage = Boolean(a.member?.image?.url);
-    const bHasImage = Boolean(b.member?.image?.url);
-    
-    if (aHasImage && !bHasImage) return -1;
-    if (!aHasImage && bHasImage) return 1;
-    
-    const aName = a.member?.name || '';
-    const bName = b.member?.name || '';
-    return aName.localeCompare(bName);
-  });
-  
-  const mobileVisibleMembers = reorderedMembers.slice(0, 31)
-  const webVisibleMembers = reorderedMembers.slice(0, 154)
+  const mobileVisibleMembers = contributors.slice(0, 31)
+  const webVisibleMembers = contributors.slice(0, 154)
 
   const onCloseContributorsModal = () => {
     analytics.onContributorListCloseClicked(getAnalyticsUserInfo(userInfo), {});
@@ -105,11 +93,11 @@ const MembersList: React.FC<MembersListProps> = ({
               />
             );
           })}
-          {reorderedMembers.length > 31 && (
+          {contributors.length > 31 && (
             <>
               <div className="member-avatar more-members" onClick={() => onOpenContributorsModal()}>
                 <div className="image-container fallback-avatar-mobile">
-                  +{reorderedMembers.length - 31}
+                  +{contributors.length - 31}
                 </div>
               </div>
             </>
@@ -152,17 +140,17 @@ const MembersList: React.FC<MembersListProps> = ({
               />
             );
           })}
-          {reorderedMembers.length > 154 && (
+          {contributors.length > 154 && (
             <>
               <div className="member-avatar more-members">
                 <div className="image-container fallback-avatar-web" onClick={() => onOpenContributorsModal()}>
-                  +{reorderedMembers.length - 154}
+                  +{contributors.length - 154}
                 </div>
               </div>
             </>
           )}
         </div>
-        <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={reorderedMembers} />
+        <HostSpeakersList onContributorClickHandler={onContributorClick} onClose={onCloseContributorsModal} contributorsList={contributors} />
       </div>
       <style jsx>{`
         .members-container {

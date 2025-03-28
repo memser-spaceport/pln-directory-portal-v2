@@ -1219,3 +1219,5 @@ export const EVENTS_OPTIONS = [
 export const IRL_EVENTS_DEFAULT_IMAGE = "https://plabs-assets.s3.us-west-1.amazonaws.com/Default+IRL+event-logo.svg";
 
 export const EVENTS_SUBSCRIPTION_URL = "https://plnnews.substack.com/subscribe?utm_source=menu&simple=true&next=https%3A%2F%2Fplnnews.substack.com%2F";
+
+export const EVENTS_TEAM_UID = 'cleeky1re000202tx3kex3knn';

@@ -104,8 +104,8 @@ export const ChartTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="custom-tooltip">
         <p className="tooltip-title">{payload[0].payload.name}</p>
-        <p className="tooltip-text">{payload[0].payload.speakers} Speakers</p>
-        <p className="tooltip-text">{payload[0].payload.hosts} Hosts</p>
+        {payload[0].payload.speakers > 0 && <p className="tooltip-text">{payload[0].payload.speakers} Speaker(s)</p>}
+        {payload[0].payload.hosts > 0 && <p className="tooltip-text">{payload[0].payload.hosts} Host(s)</p>}
         <style jsx>{`
           .custom-tooltip {
             background-color: rgba(0, 0, 0, 0.9);

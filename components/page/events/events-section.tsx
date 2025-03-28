@@ -11,7 +11,6 @@ import { getAggregatedEventsData } from "@/services/events.service"
 import { useEventsAnalytics } from "@/analytics/events.analytics";
 import { PAGE_ROUTES } from "@/utils/constants";
 import { isPastDate } from "@/utils/irl.utils"
-// import { useScrollToSection } from "@/hooks/useScrollToSection"
 import { formatFeaturedData } from "@/utils/home.utils"
 
 interface EventsSectionProps {
@@ -33,9 +32,6 @@ export default function EventsSection({
   isLoggedIn,
 }: EventsSectionProps) {
 
-  // const eventsSectionRef = useRef<HTMLDivElement>(null)
-  // const { scrollMarginTop } = useScrollToSection(eventsSectionRef, "upcoming-events", 80)
-  
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" })
   const [canScrollPrev, setCanScrollPrev] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(true);
@@ -95,7 +91,7 @@ export default function EventsSection({
    * Renders the appropriate card component based on the item category
    */
   const renderCardByCategory = (item: any) => {
-    const category = item?.category; // Default to location if not specified
+    const category = item?.category;
     
     switch (category) {
       case 'event':
@@ -127,11 +123,7 @@ export default function EventsSection({
   };
 
   return (
-    <div 
-      className={`events-section`}
-      // ref={eventsSectionRef} 
-      // style={{ scrollMarginTop }}
-    >
+    <div className={`events-section`}>
       <div className="header">
         <h1>Current & Upcoming</h1>
 
@@ -273,7 +265,7 @@ export default function EventsSection({
           padding-left: 32px;
           padding-bottom: 32px;
           padding-top: 20px;
-          gap: 32px;
+          gap: 8px;
           width: 100%;
         }
 

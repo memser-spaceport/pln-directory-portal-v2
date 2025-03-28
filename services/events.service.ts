@@ -1,5 +1,6 @@
 "use server"
 import { getHeader } from "@/utils/common.utils";
+import { EVENTS_TEAM_UID } from "@/utils/constants";
 import { getFormattedEvents, getFormattedLocations } from "@/utils/home.utils";
 
 export const getAggregatedEventsData = async (authToken?: any, isLoggedIn?: boolean, isAdmin?: boolean) => {
@@ -67,17 +68,6 @@ export const getEventContributors = async () => {
 
     const result = await response.json();
 
-    const formattedMembers = result?.flatMap((item: any) => 
-      item?.eventGuests?.map((guest: any) => {
-        return {
-          ...guest.member,
-          // isHost: guest.isHost ? 1 : 0,
-          // isSpeaker: guest.isSpeaker ? 1 : 0,
-          // isHostAndSpeaker: (guest.isHost && guest.isSpeaker) ? 1 : 0
-        }
-      })
-    );
-
     const formattedTeams = result?.map((event: any) => {
       let hostCount = 0;
       let speakerCount = 0;
@@ -97,9 +87,9 @@ export const getEventContributors = async () => {
       };
     }).sort((a: any, b: any) => b.total - a.total);
 
+    const filteredTeams = formattedTeams.filter((item: any) => item.uid !== EVENTS_TEAM_UID);    
     return {
-      members: formattedMembers,
-      teams: formattedTeams,
+      teams: filteredTeams,
     };
   } catch (error) {
     console.error('Error fetching event contributors:', error);
@@ -124,7 +114,7 @@ export const getGuestDetail = async () => {
     const memberMap = new Map();
     result.forEach((item: any) => {
       if (!item.memberUid || !item.member) return;
-      
+
       const isContributor = item.isHost || item.isSpeaker || 
         (item.events?.some((event: { isHost: any; isSpeaker: any; }) => event.isHost || event.isSpeaker));
       
@@ -156,7 +146,20 @@ export const getGuestDetail = async () => {
       }
     });
     
-    return { data: Array.from(memberMap.values()) };
+    const sortedMembers = Array.from(memberMap.values()).sort((a: any, b: any) => {
+      const aHasImage = Boolean(a.member?.image?.url);
+      const bHasImage = Boolean(b.member?.image?.url);
+      
+      if (aHasImage && !bHasImage) return -1;
+      if (!aHasImage && bHasImage) return 1;
+    
+      const aName = a.member?.name || '';
+      const bName = b.member?.name || '';
+      return aName.localeCompare(bName);
+    });
+    
+    
+    return { data: sortedMembers };
   } catch (error) {
     console.error('Error fetching guest detail:', error);
     return { error: { message: 'Failed to fetch guest detail' } };

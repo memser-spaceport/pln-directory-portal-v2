@@ -32,7 +32,7 @@ export default function HuskyBanner(props: any) {
         <h2 className="banner-title">Have questions about events or contributors?</h2>
 
         <div className="button-container">
-          <a href={PAGE_ROUTES.HUSKY} target="_blank" onClick={() => analytics.onAskHuskyButtonClicked(getAnalyticsUserInfo(props.userInfo), {})}>
+          <a href={PAGE_ROUTES.HUSKY} target="_blank" onClick={() => analytics.onAskHuskyButtonClicked()}>
             <ShadowButton
               buttonColor="#ffffff"
               shadowColor="#156FF7"

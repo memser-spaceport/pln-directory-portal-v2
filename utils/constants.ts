@@ -383,8 +383,8 @@ export const HOME_ANALYTICS_EVENTS = {
 export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_IRL_CARD_CLICKED: 'events-page-irl-card-clicked',
   EVENTS_PAGE_EVENT_CARD_CLICKED: 'events-page-event-card-clicked',
-  EVENTS_PAGE_GO_TO_EVENTS_BUTTON_CLICKED: 'events-page-go-to-events-button-clicked',
-  EVENTS_PAGE_SUBMIT_EVENT_BUTTON_CLICKED: 'events-page-submit-event-button-clicked',
+  EVENTS_PAGE_SCHEDULE_SECTION_VIEW_EVENTS_BUTTON_CLICKED: 'events-page-schedule-section-view-events-button-clicked',
+  EVENTS_PAGE_SCHEDULE_SECTION_SUBMIT_EVENT_BUTTON_CLICKED: 'events-page-schedule-section-submit-event-button-clicked',
   EVENTS_PAGE_SCHEDULE_BUTTON_CLICKED: 'events-page-schedule-button-clicked',
   EVENTS_PAGE_VIEW_ALL_EVENTS_CLICKED: 'events-page-view-all-events-clicked',
   EVENTS_PAGE_CAROUSEL_LEFT_CLICKED: 'events-page-carousel-left-clicked',
@@ -503,6 +503,18 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.9 - Aggregated Events',
+    tag: 'New Features',
+    date: '28, Mar 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Introduced a new Aggregated Events Page displaying consolidated information from both IRL Gatherings and PL Events, including details about Hosts, Speakers, and their related teamss</li>
+    </ul>
+    </div>`,
+  },
   {
     title: 'Version 4.1.8 - Directory Enhancements',
     tag: 'Improvements',

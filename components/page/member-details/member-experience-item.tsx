@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { sanitize } from 'isomorphic-dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import clip from 'text-clipper';
 
 interface IMemberExperienceDescription {
@@ -19,10 +19,9 @@ function MemberExperienceDescription(props: IMemberExperienceDescription) {
   const onShowLess = () => {
     showMoreStatus(false);
   };
-
   // Function to truncate HTML content without breaking tags
-  const truncateHTML = (html: string, maxLength: number) => {
-    const sanitizedHTML = sanitize(html); // Sanitize the HTML for security
+  const truncateHTML = (html: string, maxLength: number): string => {
+    const sanitizedHTML = DOMPurify.sanitize(html); // Sanitize the HTML for security
     const clippedHtml = clip(sanitizedHTML, maxLength, { html: true, maxLines: 5 });
     return clippedHtml;
   };

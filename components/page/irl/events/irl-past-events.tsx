@@ -11,7 +11,7 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import IrlEventsTableView from './irl-events-table-view';
 import clip from 'text-clipper';
-import { sanitize } from 'isomorphic-dompurify';
+import { DOMPurify } from 'isomorphic-dompurify';
 import SearchGatherings from './search-gatherings';
 import Image from 'next/image';
 
@@ -142,8 +142,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
       setSearchText('');
     },
   });
-
-  const sanitizedDesc = sanitize(selectedEvent?.description);
+  // Use a safe approach to handle HTML content
+  const sanitizedDesc = selectedEvent?.description || '';
   const clippedDesc = clip(sanitizedDesc, 80, { html: true, maxLines: 2 });
 
   const isEventAvailable = searchParams?.type ? searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event) : true;

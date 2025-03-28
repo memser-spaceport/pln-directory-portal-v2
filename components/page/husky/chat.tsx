@@ -427,6 +427,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
               onRegenerate={onRegenerate}
               onCopyAnswer={onCopyAnswer}
               onQuestionEdit={onQuestionEdit}
+              threadId={threadUidRef.current}
             />
           </div>
 

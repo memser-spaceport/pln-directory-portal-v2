@@ -27,9 +27,10 @@ interface PreviewMessageProps {
   onCopyAnswer: (answer: string) => Promise<void>;
   isLoadingObject: boolean;
   isAnswerLoading: boolean;
+  threadId?: string;
 }
 
-const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClicked, isLastIndex, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject, isAnswerLoading }) => {
+const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClicked, isLastIndex, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject, isAnswerLoading, threadId }) => {
   return (
     <div className={`preview-message`}>
       {/* question */}
@@ -99,6 +100,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClic
             question={message.question || ''}
             answer={message.answer || ''}
             hideActions={message.isError || false}
+            threadId={threadId}
           />
         </div>
       )}

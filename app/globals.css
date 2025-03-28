@@ -101,6 +101,7 @@ a {
 button {
   cursor: pointer;
   border: unset;
+  background: unset;
 }
 
 ::backdrop {
@@ -433,6 +434,10 @@ dialog {
   pointer-events: none;
 }
 
+.button-link {
+  color: #0f172a;
+}
+
 @media (min-width: 1024px) {
   .team-grid__profile-container__profile {
     height: 72px !important;
@@ -538,4 +543,8 @@ dialog {
   .hec__content__box__search__input:not(:placeholder-shown) + .hec__content__box__search__instruction {
     display: none;
   }
+}
+
+[id]:not([data-exclude-from-url]) {
+  scroll-margin-top: var(--scroll-margin-top, 80px);
 }

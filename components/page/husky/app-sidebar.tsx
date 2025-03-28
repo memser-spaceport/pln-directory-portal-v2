@@ -110,7 +110,8 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
           transition: opacity 0.2s ease;
         }
 
-        .sidebar__body__history__list__ul__li:hover .sidebar__body__history__list__ul__li__actions {
+        .sidebar__body__history__list__ul__li:hover .sidebar__body__history__list__ul__li__actions,
+        .sidebar__body__history__list__ul__li[data-active='true'] .sidebar__body__history__list__ul__li__actions {
           opacity: 1;
         }
 
@@ -174,6 +175,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const deleteModalRef = useRef<HTMLDialogElement>(null);
+  const [isMac, setIsMac] = useState(false);
 
   const fetchHistory = async (showLoading = true) => {
     try {
@@ -366,6 +368,13 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       }
     };
 
+     // Detect if the user is on macOS
+     const detectMac = () => {
+       setIsMac(/Mac/i.test(navigator.userAgent));
+     };
+     
+     detectMac();
+
     document.addEventListener('refresh-husky-history', handleRefreshHistory as EventListener);
     document.addEventListener('delete-thread', handleDeleteThread as EventListener);
 
@@ -433,6 +442,18 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           </div>
         </div>
         <div data-state={state} className="sidebar__footer">
+          <div className="sidebar__footer__shortcut">
+            <div className="sidebar__footer__shortcut__key">
+              {isMac ? '⌘' : 'Ctrl'}
+            </div>
+            <span className="sidebar__footer__shortcut__plus">+</span>
+            <div className="sidebar__footer__shortcut__key">
+              B
+            </div>
+            <span className="sidebar__footer__shortcut__text">
+              to expand/collapse
+            </span>
+          </div>
           <button className="sidebar__footer__toggleSidebar" onClick={handleSidebarToggle}>
             <img src="/icons/sidenav-close.svg" alt="toggle sidebar" />
           </button>
@@ -569,9 +590,54 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           display: none;
           height: 64px;
           align-items: center;
-          justify-content: end;
+          justify-content: space-between;
           border-top: 0.5px solid #cbd5e1;
-          padding-right: 20px;
+          padding: 0 20px 0 20px;
+        }
+
+        .sidebar__footer__shortcut {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        
+        .sidebar__footer__shortcut__key {
+          border: 0.5px solid #CBD5E1;
+          border-radius: 3px;
+          padding: 0 4px;
+          font-size: 10px;
+          font-weight: 400;
+          line-height: 20px;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .sidebar__footer__shortcut__key:first-of-type {
+          line-height: 16px;
+          height: 16px;
+          padding: 0 4px;
+        }
+        
+        .sidebar__footer__shortcut__key:last-of-type {
+          width: 16px;
+          height: 16px;
+          padding: 0;
+        }
+        
+        .sidebar__footer__shortcut__text {
+          font-size: 10px;
+          color: #64748b;
+          font-weight: 400;
+          line-height: 20px;
+        }
+
+        .sidebar__footer__shortcut__plus {
+          font-size: 10px;
+          color: #64748b;
+          font-weight: 400;
+          line-height: 20px;
         }
 
         button {
@@ -640,7 +706,11 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
           .sidebar__footer[data-state='collapsed'] {
             justify-content: center;
-            padding-right: unset;
+            padding: 0;
+          }
+          
+          .sidebar__footer[data-state='collapsed'] .sidebar__footer__shortcut {
+            display: none;
           }
 
           .sidebar__footer[data-state='collapsed'] .sidebar__footer__toggleSidebar {

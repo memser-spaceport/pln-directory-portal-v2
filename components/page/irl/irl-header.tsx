@@ -1,12 +1,19 @@
 "use client"
 
+import { PAGE_ROUTES } from "@/utils/constants";
+
 const IrlHeader = () => {
 
     return (
         <>
             <div className="irlheaderCnt">
+              <div className="irlHeaderCntr">
+                <a href={PAGE_ROUTES.EVENTS}>
+                  <img src="/icons/rounded-left-arrow.svg" alt="Back To Events" />
+                </a>
                 <div className="irlHeader">IRL Gatherings</div>
-                <div className="irlsubHeader">Choose a destination to view upcoming gatherings, attendees, resources & let the network know about your presence</div>
+              </div>
+              <div className="irlsubHeader">Choose a destination to view upcoming gatherings, attendees, resources & let the network know about your presence</div>
             </div>
             <style jsx> {`
                 .irlHeader {
@@ -19,6 +26,12 @@ const IrlHeader = () => {
                 .irlsubHeader {
                   font-size: 14px;
                   font-weight: 400;
+                }
+
+                .irlHeaderCntr {
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
                 }
 
                 .irlheaderCnt{

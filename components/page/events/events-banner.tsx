@@ -25,7 +25,7 @@ export default function EventsBanner(props: any) {
           <div className="text-content-description">Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem</div>
         </div>
         <div className="buttons-container">
-          <a href={PAGE_ROUTES.IRL} target="_blank" onClick={() => onViewAllGatheringsClicked(getAnalyticsUserInfo(props.userInfo))}>
+          <a href={PAGE_ROUTES.IRL} target="_blank" onClick={() => onViewAllGatheringsClicked()}>
             <ShadowButton
               buttonColor="#156FF7"
               shadowColor="#3DFEB1"
@@ -35,7 +35,7 @@ export default function EventsBanner(props: any) {
               View Gatherings
             </ShadowButton>
           </a>
-          <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" className="button-link" onClick={() => onViewAllEventsClicked(getAnalyticsUserInfo(props.userInfo))}>
+          <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" className="button-link" onClick={() => onViewAllEventsClicked()}>
             <ShadowButton
               buttonColor="#3DFEB1"
               shadowColor="#156FF7"

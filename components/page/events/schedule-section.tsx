@@ -22,12 +22,12 @@ export default function ScheduleSection(props: any) {
                 Subscribe for updates
               </ShadowButton>
             </a> */}
-            <a href={`${process.env.PL_EVENTS_SUBMISSION_URL}`} target="_blank" onClick={() => onSubmitEventButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
+            <a href={`${process.env.PL_EVENTS_SUBMISSION_URL}`} target="_blank" onClick={() => onSubmitEventButtonClicked()}>
               <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor="#0F172A" iconSrc="/icons/doc.svg">
                 Submit an Event
               </ShadowButton>
             </a>
-            <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" onClick={() => onGoToEventsButtonClicked(getAnalyticsUserInfo(props.userInfo), null)}>
+            <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" onClick={() => onGoToEventsButtonClicked()}>
               <ShadowButton
                 buttonColor="#3DFEB1"
                 shadowColor="#156FF7"

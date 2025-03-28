@@ -34,17 +34,17 @@ const MembersList: React.FC<MembersListProps> = ({
   const webVisibleMembers = contributors.slice(0, 154)
 
   const onCloseContributorsModal = () => {
-    analytics.onContributorListCloseClicked(getAnalyticsUserInfo(userInfo), {});
+    analytics.onContributorListCloseClicked();
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: false }));
   };
 
   const onOpenContributorsModal = () => {
-    analytics.onContributorListOpenClicked(getAnalyticsUserInfo(userInfo), {});
+    analytics.onContributorListOpenClicked();
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: true }));
   };
 
   const onContributorClick = (contributor: any) => {
-    analytics.onContributorClicked(getAnalyticsUserInfo(userInfo), contributor);
+    analytics.onContributorClicked();
     // window.open('/members/' + contributor.member?.uid || contributor.memberUid, '_blank');
   };
 

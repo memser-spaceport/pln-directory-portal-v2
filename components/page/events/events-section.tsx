@@ -80,11 +80,11 @@ export default function EventsSection({
   };
 
   const onIrlLocationClicked = (location: any) => {
-    analytics.onIrlLocationClicked(getAnalyticsUserInfo(userInfo), getAnalyticsLocationCardInfo(location));
+    analytics.onIrlLocationClicked(getAnalyticsLocationCardInfo(location));
   };
 
   const onEventClicked = (event: any) => {
-    analytics.onEventCardClicked(getAnalyticsUserInfo(userInfo), event);
+    analytics.onEventCardClicked(event);
   };
 
   /**
@@ -129,7 +129,7 @@ export default function EventsSection({
 
         <div className="navigation-buttons">
           <button
-            onClick={() => {scrollPrev(); analytics.onCarouselLeftClicked(getAnalyticsUserInfo(userInfo), {});}}
+            onClick={() => {scrollPrev(); analytics.onCarouselLeftClicked();}}
             disabled={!canScrollPrev}
             className={`nav-button ${!canScrollPrev ? "disabled" : ""}`}
             aria-label="Previous"
@@ -137,7 +137,7 @@ export default function EventsSection({
             <img src="/icons/arrow-left-blue.svg" alt="Previous" width={20} height={20} />
           </button>
           <button
-            onClick={() => {scrollNext(); analytics.onCarouselRightClicked(getAnalyticsUserInfo(userInfo), {});}}
+            onClick={() => {scrollNext(); analytics.onCarouselRightClicked();}}
             disabled={!canScrollNext}
             className={`nav-button ${!canScrollNext ? "disabled" : ""}`}
             aria-label="Next"

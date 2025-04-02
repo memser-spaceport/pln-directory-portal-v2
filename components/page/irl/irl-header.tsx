@@ -28,7 +28,7 @@ const IrlHeader = () => {
               Looking for all events across the network?
             </div>
             <a
-              href={process.env.NEXT_PUBLIC_EVENTS_URL}
+              href={process.env.NEXT_PUBLIC_PL_EVENTS_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="irlHeaderCntrRight__link"
@@ -85,6 +85,7 @@ const IrlHeader = () => {
           }
 
           .irlHeaderCntrRight__link {
+            cursor: pointer;
             font-weight: 600;
             font-size: 12px;
             color: #156FF7;

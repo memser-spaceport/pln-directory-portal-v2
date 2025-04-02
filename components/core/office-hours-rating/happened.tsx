@@ -60,7 +60,7 @@ const Happened = (props: IHappened) => {
       filteredTroubles = [...troubles, trouble];
     }
     setTroubles(filteredTroubles);
-    if (filteredTroubles.includes('Meeting didn’t happen')) {
+    if (filteredTroubles.includes(TROUBLES_INFO.didntHappened.name)) {
       setRatingInfo((prev: IRatingInfo) => ({ ...prev, rating: 0 }));
       setIsDisable(true);
       return;

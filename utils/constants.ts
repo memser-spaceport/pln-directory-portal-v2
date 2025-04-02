@@ -504,6 +504,24 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.10 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '02, Apr 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Dubai" target="_blank">IRL Dubai</a>, allowing users to register and manage event entries</li>
+    <li>Enhanced user experience by enabling cross-module event visibility between PL Events and IRL Gatherings</li>
+    </ul>
+
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Office Hours feedback issue fix where users were required to provide a rating even if they indicated that their meeting did not happen</li>
+    </ul>
+    </div>`,
+  },
+  {
     title: 'Version 4.1.9 - Aggregated Events',
     tag: 'New Feature',
     date: '28, Mar 2025',
@@ -511,7 +529,7 @@ export const ChangeLogList = [
     <div style="font-size: 14px; line-height:23px;">
     <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
     <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Introduced a new Aggregated Events Page displaying consolidated information from both IRL Gatherings and PL Events, including details about Hosts, Speakers, and their related teamss</li>
+    <li>Introduced a new Aggregated Events Page displaying consolidated information from both IRL Gatherings and PL Events, including details about Hosts, Speakers, and their related teams</li>
     </ul>
     </div>`,
   },

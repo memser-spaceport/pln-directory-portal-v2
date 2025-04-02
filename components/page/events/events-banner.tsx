@@ -25,7 +25,7 @@ export default function EventsBanner(props: any) {
           <div className="text-content-description">Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem</div>
         </div>
         <div className="buttons-container">
-          <a href={PAGE_ROUTES.IRL} target="_blank" onClick={() => onViewAllGatheringsClicked()}>
+          <a href={PAGE_ROUTES.IRL} onClick={() => onViewAllGatheringsClicked()}>
             <ShadowButton
               buttonColor="#156FF7"
               shadowColor="#3DFEB1"

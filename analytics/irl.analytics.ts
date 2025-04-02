@@ -76,6 +76,7 @@ export const useIrlAnalytics = () => {
     IRL_VIEW_SCHEDULE_CLICKED: 'irl-view-schedule-clicked',
     IRL_SUBMIT_FORM_CLICKED: 'irl-submit-form-clicked',
     IRL_MANAGE_EVENTS_CLICKED: 'irl-manage-events-clicked',
+    IRL_VIEW_PL_EVENTS_CLICKED: 'irl-view-pl-events-clicked',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -554,6 +555,10 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_UPCOMING_EVENTS_BUTTON_CLICKED, { ...params });
   }
 
+  function trackViewPLEventsClick() {
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_VIEW_PL_EVENTS_CLICKED);
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -615,5 +620,6 @@ export const useIrlAnalytics = () => {
     trackAllEventsDropdownClicked,
     trackPastEventsDropdownClicked,
     trackUpcomingEventsDropdownClicked,
+    trackViewPLEventsClick
   };
 };

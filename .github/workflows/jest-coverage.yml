@@ -46,3 +46,12 @@ jobs:
       with:
         name: coverage-report
         path: coverage
+        retention-days: 14  # Keep artifacts for 14 days
+        if-no-files-found: warn # Warn if no files are found to upload
+
+    - name: Download coverage report
+      if: env.CHANGED_FILES != ''
+      uses: actions/download-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage-download

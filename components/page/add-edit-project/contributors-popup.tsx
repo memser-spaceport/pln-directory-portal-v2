@@ -9,6 +9,9 @@ export default function ContributorsPopup(props: any) {
 
   const getAllContributors = props?.getAllContributors;
 
+  console.log(props, 'props-------------------------------------->');
+  
+
   const allTeams = props?.allTeams;
 
   const [tempContributors, setTempContributors] = useState<any>([...selectedContributors]);

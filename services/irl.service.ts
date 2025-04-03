@@ -102,6 +102,27 @@ export const createEventGuest = async (locationId: string, payload: any, type: s
   return { data: response };
 };
 
+export const markMyPresence = async (locationId: string, payload: any, type: string) => {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/me/presence-request?type=${type}`,
+    {
+      method: 'POST',
+      cache: 'no-store',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+    true
+  );
+
+  if (!response?.ok) {
+    return { error: response };
+  }
+  return { data: response };
+};
+
+
 export const editEventGuest = async (locationId: string, guestUid: string, payload: any, eventType: string) => {
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/guests/${guestUid}?type=${eventType}`,

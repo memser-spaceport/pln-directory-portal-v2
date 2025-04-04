@@ -38,6 +38,12 @@ const config: Config = {
       lines: 2,
       statements: 2,
     },
+    './**/*.{ts,tsx}': {
+      branches: 30,
+      functions: 30,
+      lines: 30,
+      statements: 30
+    }
   },
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
     prefix: '<rootDir>/',

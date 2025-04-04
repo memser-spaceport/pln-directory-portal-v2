@@ -138,7 +138,6 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         }else{
           result = await createEventGuest(selectedLocation.uid, formattedData, eventType);
         }
-        triggerLoader(false);
         if (result?.error) {
           onClose();
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
@@ -146,6 +145,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         }
         onClose();
         await getEventDetails();
+        triggerLoader(false);
         if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
           document.dispatchEvent(new Event(EVENTS.MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP));
         }else{

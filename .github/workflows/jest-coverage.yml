@@ -51,10 +51,6 @@ jobs:
           echo "Coverage Report for Changed Files:"
           echo "================================"
           
-          # Debug: Show coverage file contents
-          echo "Coverage file contents:"
-          cat coverage/coverage-final.json
-          
           # Process each changed file
           for file in $CHANGED_FILES; do
             echo "Processing coverage for: $file"

@@ -53,13 +53,17 @@ jobs:
           # Extract and display coverage for changed files only
           echo "Coverage for changed files:"
           for file in $CHANGED_FILES; do
-            if [ -f "coverage/coverage-final.json" ]; then
+            if [ -f "coverage/coverage-summary.json" ]; then
               echo "Coverage for $file:"
-              jq -r --arg file "$file" '.[$file] | 
-                "Statements: \(.statementMap | length - .s | length)/\(.statementMap | length) (\(.s | length * 100 / .statementMap | length | floor)%)\n
-                Branches: \(.branchMap | length - .b | length)/\(.branchMap | length) (\(.b | length * 100 / .branchMap | length | floor)%)\n
-                Functions: \(.fnMap | length - .f | length)/\(.fnMap | length) (\(.f | length * 100 / .fnMap | length | floor)%)\n
-                Lines: \(.lineMap | length - .l | length)/\(.lineMap | length) (\(.l | length * 100 / .lineMap | length | floor)%)"' coverage/coverage-final.json || echo "No coverage data for $file"
+              jq -r --arg file "$file" \
+                'to_entries[] | 
+                select(.key == $file) | 
+                .value | 
+                "Statements: \(.statements.pct)%\n
+                Branches: \(.branches.pct)%\n
+                Functions: \(.functions.pct)%\n
+                Lines: \(.lines.pct)%"' \
+                coverage/coverage-summary.json || echo "No coverage data for $file"
               echo "-------------------"
             fi
           done

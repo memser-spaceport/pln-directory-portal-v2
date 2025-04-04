@@ -20,7 +20,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0  # Fetch all history for accurate file changes
+        fetch-depth: 0
 
     - name: Set up Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
@@ -34,10 +34,8 @@ jobs:
       id: changed-files
       run: |
         if [ "${{ github.event_name }}" = "pull_request" ]; then
-          # For pull requests, compare with base branch
           CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E '\.(js|ts|tsx)$' || true)
         else
-          # For pushes, get files changed in the last commit
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E '\.(js|ts|tsx)$' || true)
         fi
         echo "Changed files: $CHANGED_FILES"
@@ -49,32 +47,42 @@ jobs:
         if [ ! -z "$CHANGED_FILES" ]; then
           echo "Running tests for: $CHANGED_FILES"
           npm test -- --coverage --findRelatedTests $CHANGED_FILES
-          echo "Coverage for changed files:------------------------"
           
-          # Create a temporary file with the list of changed files
-          echo "$CHANGED_FILES" | tr ' ' '\n' > changed_files.txt
+          echo "Coverage Report for Changed Files:"
+          echo "================================"
           
-          # Extract and display coverage for changed files only
-          echo "Coverage for changed files:"
-          while IFS= read -r file; do
+          # Debug: Show coverage file contents
+          echo "Coverage file contents:"
+          cat coverage/coverage-summary.json
+          
+          # Process each changed file
+          for file in $CHANGED_FILES; do
+            echo "Processing coverage for: $file"
+            
             if [ -f "coverage/coverage-summary.json" ]; then
+              # Try to get coverage data using full path
               coverage_data=$(jq -r --arg file "$file" \
-                'select(.[$file] != null) | .[$file] | 
-                "Coverage for '"$file"':\n
-                Statements: \(.statements.pct)%\n
-                Branches: \(.branches.pct)%\n
-                Functions: \(.functions.pct)%\n
-                Lines: \(.lines.pct)%\n
-                -------------------"' \
-                coverage/coverage-summary.json)
+                'if has($file) then
+                  .[$file] | 
+                  "File: \($file)\n" +
+                  "Statements: \(.statements.pct)%\n" +
+                  "Branches: \(.branches.pct)%\n" +
+                  "Functions: \(.functions.pct)%\n" +
+                  "Lines: \(.lines.pct)%"
+                else
+                  empty
+                end' coverage/coverage-summary.json)
+              
               if [ ! -z "$coverage_data" ]; then
                 echo "$coverage_data"
+                echo "--------------------------------"
+              else
+                echo "No coverage data found for: $file"
               fi
+            else
+              echo "Coverage file not found!"
             fi
-          done < changed_files.txt
-          
-          # Clean up
-          rm changed_files.txt
+          done
         else
           echo "No relevant files changed"
         fi

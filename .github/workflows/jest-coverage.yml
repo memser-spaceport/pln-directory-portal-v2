@@ -53,13 +53,13 @@ jobs:
           
           # Debug: Show coverage file contents
           echo "Coverage file contents:"
-          cat coverage/coverage-summary.json
+          cat coverage/coverage-final.json
           
           # Process each changed file
           for file in $CHANGED_FILES; do
             echo "Processing coverage for: $file"
             
-            if [ -f "coverage/coverage-summary.json" ]; then
+            if [ -f "coverage/coverage-final.json" ]; then
               # Try to get coverage data using full path
               coverage_data=$(jq -r --arg file "$file" \
                 'if has($file) then
@@ -71,7 +71,7 @@ jobs:
                   "Lines: \(.lines.pct)%"
                 else
                   empty
-                end' coverage/coverage-summary.json)
+                end' coverage/coverage-final.json)
               
               if [ ! -z "$coverage_data" ]; then
                 echo "$coverage_data"

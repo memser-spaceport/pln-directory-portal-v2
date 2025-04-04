@@ -46,39 +46,5 @@ jobs:
       run: |
         if [ ! -z "$CHANGED_FILES" ]; then
           echo "Running tests for: $CHANGED_FILES"
-          npm test -- --coverage --findRelatedTests $CHANGED_FILES
-          
-          echo "Coverage Report for Changed Files:"
-          echo "================================"
-          
-          # Process each changed file
-          for file in $CHANGED_FILES; do
-            echo "Processing coverage for: $file"
-            
-            if [ -f "coverage/coverage-final.json" ]; then
-              # Try to get coverage data using full path
-              coverage_data=$(jq -r --arg file "$file" \
-                'if has($file) then
-                  .[$file] | 
-                  "File: \($file)\n" +
-                  "Statements: \(.statements.pct)%\n" +
-                  "Branches: \(.branches.pct)%\n" +
-                  "Functions: \(.functions.pct)%\n" +
-                  "Lines: \(.lines.pct)%"
-                else
-                  empty
-                end' coverage/coverage-final.json)
-              
-              if [ ! -z "$coverage_data" ]; then
-                echo "$coverage_data"
-                echo "--------------------------------"
-              else
-                echo "No coverage data found for: $file"
-              fi
-            else
-              echo "Coverage file not found!"
-            fi
-          done
-        else
-          echo "No relevant files changed"
-        fi
+          #npm test -- --coverage --findRelatedTests $CHANGED_FILES
+          npx jest --coverage --collectCoverageFrom=$CHANGED_FILES --coverageReporters=text-summary

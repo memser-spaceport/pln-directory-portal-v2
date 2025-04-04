@@ -46,5 +46,8 @@ jobs:
       run: |
         if [ ! -z "$CHANGED_FILES" ]; then
           echo "Running tests for: $CHANGED_FILES"
-          #npm test -- --coverage --findRelatedTests $CHANGED_FILES
-          npx jest --coverage --collectCoverageFrom=$CHANGED_FILES --coverageReporters=text-summary
+          #npx jest --coverage --collectCoverageFrom=$CHANGED_FILES --coverageReporters=text-summary
+          npx jest --coverage --findRelatedTests $CHANGED_FILES --coverageReporters=text-summary
+        else
+          echo "No relevant files changed"
+        fi

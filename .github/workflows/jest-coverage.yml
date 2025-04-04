@@ -20,7 +20,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0
+        fetch-depth: 0  # Fetch all history for accurate file changes
 
     - name: Set up Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
@@ -34,8 +34,10 @@ jobs:
       id: changed-files
       run: |
         if [ "${{ github.event_name }}" = "pull_request" ]; then
+          # For pull requests, compare with base branch
           CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E '\.(js|ts|tsx)$' || true)
         else
+          # For pushes, get files changed in the last commit
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E '\.(js|ts|tsx)$' || true)
         fi
         echo "Changed files: $CHANGED_FILES"
@@ -46,8 +48,7 @@ jobs:
       run: |
         if [ ! -z "$CHANGED_FILES" ]; then
           echo "Running tests for: $CHANGED_FILES"
-          #npx jest --coverage --collectCoverageFrom=$CHANGED_FILES --coverageReporters=text-summary
-          npx jest --coverage --findRelatedTests $CHANGED_FILES --coverageReporters=text-summary
+          npm test -- --coverage --findRelatedTests $CHANGED_FILES
         else
           echo "No relevant files changed"
         fi

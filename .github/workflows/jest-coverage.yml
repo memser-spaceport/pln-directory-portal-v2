@@ -49,6 +49,20 @@ jobs:
         if [ ! -z "$CHANGED_FILES" ]; then
           echo "Running tests for: $CHANGED_FILES"
           npm test -- --coverage --findRelatedTests $CHANGED_FILES
+          
+          # Extract and display coverage for changed files only
+          echo "Coverage for changed files:"
+          for file in $CHANGED_FILES; do
+            if [ -f "coverage/coverage-final.json" ]; then
+              echo "Coverage for $file:"
+              jq -r --arg file "$file" '.[$file] | 
+                "Statements: \(.statementMap | length - .s | length)/\(.statementMap | length) (\(.s | length * 100 / .statementMap | length | floor)%)\n
+                Branches: \(.branchMap | length - .b | length)/\(.branchMap | length) (\(.b | length * 100 / .branchMap | length | floor)%)\n
+                Functions: \(.fnMap | length - .f | length)/\(.fnMap | length) (\(.f | length * 100 / .fnMap | length | floor)%)\n
+                Lines: \(.lineMap | length - .l | length)/\(.lineMap | length) (\(.l | length * 100 / .lineMap | length | floor)%)"' coverage/coverage-final.json || echo "No coverage data for $file"
+              echo "-------------------"
+            fi
+          done
         else
           echo "No relevant files changed"
         fi

@@ -9,7 +9,7 @@ export default function ContributorsPopup(props: any) {
 
   const getAllContributors = props?.getAllContributors;
 
-  console.log(props?.allTeams, 'allTeams------------------------------>');
+  console.log(props?.allTeams, 'allTeams------------------->');
 
   const allTeams = props?.allTeams;
 

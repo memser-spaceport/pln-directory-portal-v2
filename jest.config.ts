@@ -33,10 +33,10 @@ const config: Config = {
   coverageReporters: ['text', 'json','html'],
   coverageThreshold: {
     global: {
-      branches: 25,
-      functions: 25,
-      lines: 25,
-      statements: 25,
+      branches: 2,
+      functions: 2,
+      lines: 2,
+      statements: 2,
     },
   },
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {

@@ -49,6 +49,7 @@ jobs:
         if [ ! -z "$CHANGED_FILES" ]; then
           echo "Running tests for: $CHANGED_FILES"
           npm test -- --coverage --findRelatedTests $CHANGED_FILES
+          echo "Coverage for changed files:------------------------"
           
           # Create a temporary file with the list of changed files
           echo "$CHANGED_FILES" | tr ' ' '\n' > changed_files.txt

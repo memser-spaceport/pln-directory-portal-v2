@@ -49,6 +49,14 @@ jobs:
         if [ ! -z "$CHANGED_FILES" ]; then
           echo "Running tests for: $CHANGED_FILES"
           npm test -- --coverage --findRelatedTests $CHANGED_FILES
+
+          # Process each changed file individually
+          for file in $CHANGED_FILES; do
+            echo "Coverage for $file:"
+            echo "-------------------"
+            npx jest --coverage --collectCoverageFrom="$file" --coverageReporters=text-summary $file
+            echo "-------------------"
+          done
         else
           echo "No relevant files changed"
         fi

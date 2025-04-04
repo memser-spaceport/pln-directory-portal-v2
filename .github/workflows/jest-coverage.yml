@@ -45,19 +45,9 @@ jobs:
       if: env.CHANGED_FILES != ''
       run: |
         if [ ! -z "$CHANGED_FILES" ]; then
-          echo "Running tests for changed files..."
-          echo "================================"
-          
-          # Run tests first to generate coverage
-          npx jest --coverage --findRelatedTests $CHANGED_FILES
-          
-          # Process each changed file individually
-          for file in $CHANGED_FILES; do
-            echo "Coverage for $file:"
-            echo "-------------------"
-            npx jest --coverage --collectCoverageFrom="$file" --coverageReporters=text-summary $file
-            echo "-------------------"
-          done
+          echo "Running tests for: $CHANGED_FILES"
+          #npx jest --coverage --collectCoverageFrom=$CHANGED_FILES --coverageReporters=text-summary
+          npx jest --coverage --findRelatedTests $CHANGED_FILES --coverageReporters=text-summary
         else
           echo "No relevant files changed"
         fi

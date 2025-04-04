@@ -11,6 +11,7 @@ import { ILocationDetails } from "@/types/irl.types";
 import useClickedOutside from "@/hooks/useClickedOutside";
 import IrlLocationPopupView from "./irl-location-popupView";
 import IrlSeeMoreLocationCard from "./irl-see-more-location-card";
+import PlEventCard from "./pl-button-card";
 
 interface IrlLocation {
     locationDetails: ILocationDetails[];
@@ -26,7 +27,7 @@ const IrlLocation = (props: IrlLocation) => {
     const analytics = useIrlAnalytics();
     const router = useRouter();
     const locationRef = useRef<HTMLDivElement>(null);
-    const [cardLimit, setCardLimit] = useState(4);
+    const [cardLimit, setCardLimit] = useState(3);
 
     const onCloseModal = () => {
         if (dialogRef.current) {
@@ -34,9 +35,13 @@ const IrlLocation = (props: IrlLocation) => {
         }
     };
 
+    const onViewPlEventsClick = () => {
+        analytics.trackViewPLEventsClick();
+    };
+
     useEffect(() => {
         const updateCardLimit = () => {
-            setCardLimit(window.innerWidth < 1440 ? 4 : 6);
+            setCardLimit(window.innerWidth < 1440 ? 3 : 5);
         };
 
         updateCardLimit();
@@ -183,7 +188,7 @@ const IrlLocation = (props: IrlLocation) => {
         <>
             <div className="root">
                 <div className="root__card">
-                    {locations?.slice(0, 4).map((location: any, index: any) => (
+                    {locations?.slice(0, 3).map((location: any, index: any) => (
                         <IrlLocationCard
                             key={location.uid}
                             {...location}
@@ -194,7 +199,7 @@ const IrlLocation = (props: IrlLocation) => {
                 </div>
 
                 <div className="root__card__desktop-sm">
-                    {locations?.slice(0, 6).map((location: any, index: any) => (
+                    {locations?.slice(0, 5).map((location: any, index: any) => (
                         <IrlLocationCard
                             key={location.uid}
                             {...location}
@@ -205,9 +210,9 @@ const IrlLocation = (props: IrlLocation) => {
                 </div>
 
                 <div className="root__irl__seeMoreCard__desktop--sm">
-                    {locations?.length > 4 &&
+                    {locations?.length > 3 &&
                         <IrlSeeMoreLocationCard
-                            count={4}
+                            count={3}
                             handleClick={handleClick}
                             locations={locations}
                             locationRef={locationRef} />
@@ -222,7 +227,11 @@ const IrlLocation = (props: IrlLocation) => {
                             locationRef={locationRef} />
                     }
                 </div>
-
+              
+                <a href={process.env.NEXT_PUBLIC_PL_EVENTS_URL} target="_blank" rel="noopener noreferrer" onClick={onViewPlEventsClick} className="root__irl__event__card">
+                    <PlEventCard />
+                </a>
+                    
                 {/* {showMore &&
                     <div className="root__irl__seeMoreCard__desktop--sm">
                         <div className="root__irl__overlay">
@@ -448,6 +457,11 @@ const IrlLocation = (props: IrlLocation) => {
                 .root__irl__seeMoreCard__desktop--sm {
                     display: flex;
                 }
+                
+                .root__irl__event__card {
+                    display: flex;
+              }
+
 
                 @media (min-width: 360px) {
                     .root {

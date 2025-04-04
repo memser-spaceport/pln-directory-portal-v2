@@ -20,23 +20,6 @@ const IrlHeader = () => {
             </a>
             <div className="irlHeader">IRL Gatherings</div>
           </div>
-          <div className="irlHeaderCntrRight">
-            <div className="irlHeaderCntrRightText__mobile">
-              Looking for all network events?
-            </div>
-            <div className="irlHeaderCntrRightText__desktop">
-              Looking for all events across the network?
-            </div>
-            <a
-              href={process.env.NEXT_PUBLIC_PL_EVENTS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="irlHeaderCntrRight__link"
-              onClick={onViewPlEventsClick}
-            >
-              View all Events
-            </a>
-          </div>
         </div>
         <div className="irlsubHeader">Choose a destination to view upcoming gatherings, attendees, resources & let the network know about your presence</div>
       </div>
@@ -65,30 +48,6 @@ const IrlHeader = () => {
             display: flex;
             align-items: center;
             gap: 10px;
-          }
-
-          .irlHeaderCntrRight {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            border: 0.5px solid #156ff7;
-            border-radius: 21px;
-            background-color: #dbeafe;
-            padding: 2px 8px 2px 10px;
-          }
-
-          .irlHeaderCntrRightText__mobile,
-          .irlHeaderCntrRightText__desktop {
-            font-weight: 400;
-            font-size: 12px;
-            color: #000000;
-          }
-
-          .irlHeaderCntrRight__link {
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-            color: #156FF7;
           }
 
           .irlheaderCnt {

@@ -397,6 +397,11 @@ export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_CONTRIBUTOR_CLICKED: 'events-page-contributor-clicked',
   EVENTS_PAGE_ASK_HUSKY_BUTTON_CLICKED: 'events-page-ask-husky-button-clicked',
   EVENTS_PAGE_SUBSCRIBE_FOR_UPDATES_BUTTON_CLICKED: 'events-page-subscribe-for-updates-button-clicked',
+  EVENTS_PAGE_CONTRIBUTE_BUTTON_CLICKED: 'events-page-contribute-button-clicked',
+  EVENTS_PAGE_CONTRIBUTE_MODAL_CLOSE_BUTTON_CLICKED: 'events-page-contribute-modal-close-button-clicked',
+  EVENTS_PAGE_CONTRIBUTE_MODAL_IRL_PROCEED_BUTTON_CLICKED: 'events-page-contribute-modal-irl-proceed-button-clicked',
+  EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED: 'events-page-contributing-team-clicked',
+  EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED: 'events-page-contributing-members-clicked',
 };
 
 export const HOME = {

@@ -11,6 +11,8 @@ import { IMember } from '@/types/members.types';
 export function ContributingTeamPopup(props: any) {
   const onClose = props?.onClose;
 
+  console.log("----------------");
+  
   const selectedTeams = [...props?.selectedTeams];
 
   const selectedContributingTeams = [...props?.selectedContributingTeams];

@@ -10,6 +10,9 @@ import ShadowButton from '@/components/ui/ShadowButton';
 import Link from 'next/link';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import Modal from '@/components/core/modal';
+import { useRef } from 'react';
+import { PAGE_ROUTES } from '@/utils/constants';
 
 interface ContributorsSectionProps {
   members?: any[];
@@ -35,8 +38,21 @@ export default function ContributorsSection({
   },
   userInfo,
 }: ContributorsSectionProps) {
-  const { onContributorListOpenClicked } = useEventsAnalytics();
+  const { onContributeButtonClicked, onContributtonModalCloseClicked, onContributeModalIRLProceedButtonClicked } = useEventsAnalytics();
+  const contributeRef = useRef<HTMLDialogElement>(null);
+  const onCloseModal = () => {
+    if (contributeRef.current) {
+        contributeRef.current.close();
+    }
+    onContributtonModalCloseClicked();
+  };
 
+  const openContributeModal = () => {
+    if (contributeRef.current) {
+        contributeRef.current.showModal();
+    }
+    onContributeButtonClicked();
+  }
   return (
     <div
       id="contributors"
@@ -48,9 +64,9 @@ export default function ContributorsSection({
             <h1 className="contributors-title"> Contributors</h1>
             <p className="contributors-subtitle">Hosts & Speakers</p>
           </div>
-          {/* <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonWidth="121px" onClick={() => onContributorListOpenClicked(getAnalyticsUserInfo(userInfo), {})}>
-            <Link href="#">Contribute</Link>
-          </ShadowButton> */}
+          <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonWidth="121px" onClick={() =>  { openContributeModal(); }}>
+            Contribute
+          </ShadowButton>
         </div>
 
         <div className="section-container">
@@ -77,6 +93,7 @@ export default function ContributorsSection({
                 speakers: team.speakers,
                 hosts: team.hosts,
                 logo: team.logo,
+                uid: team.uid,
               }))}
               dataKey="size"
               content={<TreemapCustomContent />}
@@ -87,6 +104,75 @@ export default function ContributorsSection({
           </ResponsiveContainer>
         </div>
       </div>
+
+      <Modal modalRef={contributeRef} onClose={onCloseModal}>
+        <div className="contribute-modal-container">
+          <div className="contribute-modal-header">
+            Contribute to a <span className="mobile-view">event</span><span className="desktop-view">gathering</span>
+          </div>
+          <div className="contribute-modal-gif-container">
+            <video
+              autoPlay
+              loop
+              muted
+              style={{ width: '100%', height: 'auto' }}
+            >
+              <source src="https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+guide+video.webm" type="video/webm" />
+                Your browser does not support the video tag.
+              </video>
+          </div>
+          <div className="contribute-modal-content">
+            <div className="contribute-modal-content-description">
+            IRL Gatherings thrive when community members contribute in different ways! Here&apos;s how you can be a part of it.
+            </div>
+            <div className="contribute-modal-content-list">
+              <div className="contribute-modal-content-list-item attendee">
+                <span className="contribute-modal-content-list-item-icon">
+                  <img src="/icons/attendee_icon.svg" alt="Contribute to a gathering" />
+                  <span>Attendee <span className="desktop-view"> -</span></span>
+                </span>
+                <div className="contribute-modal-content-list-item-title">
+                  Be part of the experience and engage with others.
+                </div>
+              </div>
+
+              <div className="contribute-modal-content-list-item speaker">
+                <span className="contribute-modal-content-list-item-icon">
+                  <img src="/icons/speaker_icon.svg" alt="Contribute to a gathering" />
+                  <span>Host <span className="desktop-view"> -</span></span>
+                </span>
+                <div className="contribute-modal-content-list-item-title">
+                  Plan or organize a gathering for the community.
+                </div>
+              </div>
+
+              <div className="contribute-modal-content-list-item host">
+                <span className="contribute-modal-content-list-item-icon">
+                  <img src="/icons/host_icon.svg" alt="Contribute to a gathering" />
+                  <span>Speaker <span className="desktop-view"> -</span></span>
+                </span>
+                <div className="contribute-modal-content-list-item-title">
+                Share insights and expertise by speaking at an event.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="contribute-modal-content-description">
+            Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you'd like to contribute and help make these gatherings valuable for everyone!
+          </div>
+          <div className="contribute-modal-content-button">
+            <button className="contribute-modal-content-button-cancel" onClick={onCloseModal}>
+              Cancel
+            </button>
+            <button className="contribute-modal-content-button-proceed" onClick={() => {
+              onContributeModalIRLProceedButtonClicked();
+              window.open(PAGE_ROUTES.IRL);
+            }}>
+              Proceed to IRL Gatherings
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <style jsx>{`
         .contributors-container {
@@ -119,6 +205,12 @@ export default function ContributorsSection({
           background-color: #e0fff3;
         }
 
+        .contribute-modal-content-list-item-icon {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
         .teams-section-container {
           padding: 20px;
           border-top: 1px solid #e2e8f0;
@@ -130,6 +222,92 @@ export default function ContributorsSection({
           font-size: 16px;
           margin: 4px 0 0 0;
           color: #666;
+        }
+
+        .contribute-modal-content {
+          // width: 100%;
+          // height: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .contribute-modal-content-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          // flex-wrap: wrap;
+          font-weight: 600;
+          font-size: 15px;
+          line-height: 20px;
+        }
+
+        .contribute-modal-content-list-item {
+          display: flex;
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 10px;
+          padding: 8px;
+          border-radius: 10px;
+          font-weight: 400;
+          font-size: 14px;
+          line-height: 20px;
+        }
+
+        .contribute-modal-content-description {
+          font-weight: 400;
+          font-size: 14px;
+          line-height: 20px;
+          letter-spacing: 0px;
+        }
+        .host {
+          border: 1px solid #48B8BD;
+        }
+
+        .speaker {
+          border: 1px solid #D18AFF;
+        }
+
+        .attendee {
+          border: 1px solid #438DEE;
+        }
+
+        .contribute-modal-content-title{
+          font-weight: 600;
+          font-size: 15px;
+          line-height: 20px;
+        }
+
+        .contribute-modal-content-button {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: flex-end;
+          flex-direction: column-reverse;
+        }
+
+        .contribute-modal-content-button-cancel {
+          background-color: #ffffff;
+          color: #000000;
+          border: 1px solid #000000;
+          border-radius: 8px;
+          padding: 12px 24px;
+          font-size: 16px;
+          font-weight: 500;
+          width: 100%;
+          cursor: pointer;
+        }
+
+        .contribute-modal-content-button-proceed {
+          background-color: #0070f3;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 12px 24px;
+          font-size: 16px;
+          font-weight: 500;
+          width: 100%;
+          cursor: pointer;
         }
 
         .collaborate-button {
@@ -162,6 +340,29 @@ export default function ContributorsSection({
           margin-bottom: 20px;
         }
 
+        .contribute-modal-container {
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          width: 85vw;
+          min-height: 30vh;
+          overflow-y: auto;
+          padding: 15px;
+          gap: 10px;
+        }
+
+        .contribute-modal-header {
+          font-weight: 700;
+          font-size: 24px;
+          line-height: 32px;
+          display: flex;
+          gap: 8px;
+        }
+
+        .desktop-view {
+          display: none;
+        }
+
         @media (max-width: 768px) {
           .contributors-header {
             flex-direction: row;
@@ -185,6 +386,34 @@ export default function ContributorsSection({
         @media (min-width: 1024px) {
           .teams-section-container {
             margin-top: unset;
+          }
+
+          .contribute-modal-container {
+            width: 537px;
+            padding: 24px;
+            gap: 20px;
+          }
+
+           .contribute-modal-content-list-item {
+              flex-direction: row;
+              align-items: flex-start;
+          }
+
+
+          .contribute-modal-content-button-proceed, .contribute-modal-content-button-cancel {
+            width: unset;
+          }
+
+          .contribute-modal-content-button {
+            flex-direction: row;
+          }
+
+          .mobile-view {
+            display: none;
+          }
+
+          .desktop-view {
+            display: inline;
           }
         }
       `}</style>

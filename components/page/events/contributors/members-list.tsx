@@ -3,10 +3,8 @@
 import React, { useState } from "react"
 import Image from "next/image"
 import { Tooltip } from "@/components/core/tooltip/tooltip"
-import { Tooltip as Popover } from "@/components/page/irl/attendee-list/attendee-popover"
 import { EVENTS } from "@/utils/constants"
 import HostSpeakersList from "../hosts-speakers-list"
-import { getAnalyticsUserInfo } from "@/utils/common.utils"
 import { useEventsAnalytics } from "@/analytics/events.analytics"
 
 interface MembersListProps {
@@ -34,18 +32,18 @@ const MembersList: React.FC<MembersListProps> = ({
   const webVisibleMembers = contributors.slice(0, 154)
 
   const onCloseContributorsModal = () => {
-    analytics.onContributorListCloseClicked();
+    analytics.onContributtonModalCloseClicked();
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: false }));
   };
 
   const onOpenContributorsModal = () => {
-    analytics.onContributorListOpenClicked();
+    analytics.onContributtonModalOpenClicked();
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: true }));
   };
 
   const onContributorClick = (contributor: any) => {
-    analytics.onContributorClicked();
-    // window.open('/members/' + contributor.member?.uid || contributor.memberUid, '_blank');
+    analytics.onContributingMembersClicked(contributor);
+    window.open('/members/' + contributor.member?.uid || contributor.memberUid, '_blank');
   };
 
   const countRoleEvents = (member: { events: any[] }) => {
@@ -264,9 +262,9 @@ const MembersList: React.FC<MembersListProps> = ({
           border: 1.5px solid #4EF286;
         }
 
-        :global(button .member-avatar) {
-          cursor: default !important;
-        }
+        // :global(button .member-avatar) {
+        //   cursor: default !important;
+        // }
 
         /* Mobile styles - optimize for smaller screens */
         @media (max-width: 480px) {

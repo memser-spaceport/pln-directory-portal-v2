@@ -6,6 +6,7 @@ import {
   Tooltip as RechartsTooltip,
   Rectangle,
 } from "recharts"
+import { useEventsAnalytics } from "@/analytics/events.analytics"
 
 export const Treemap = RechartsTreemap
 export const ResponsiveContainer = RechartsResponsiveContainer
@@ -13,9 +14,9 @@ export const Tooltip = RechartsTooltip
 
 // Custom treemap content component
 export const TreemapCustomContent = (props: any) => {
-  const { x, y, width, height, index, name, depth, colors, root, activeIndex, logo } = props;
+  const { x, y, width, height, index, name, depth, colors, root, activeIndex, logo, uid } = props;
 
-  
+  const analytics = useEventsAnalytics();
   const colorSets = {
     // primary: ['#E5F7FF', '#C2EEFF', '#99DFFF', '#66CFFF', '#33C0FF', '#00A3FF'],
     primary: ['#E5F7FF', '#C2EEFF', '#99DFFF', '#66CFFF', '#33C0FF', '#00A3FF'],
@@ -31,6 +32,11 @@ export const TreemapCustomContent = (props: any) => {
     width > 30 ? colorSet[1] :
     colorSet[0];
 
+    const onContributorClick = (contributor: any) => {
+      analytics.onContributingTeamClicked(contributor);
+      window.open('/teams/' + contributor, '_blank');
+    };
+
   return (
     <>
       <g>
@@ -44,7 +50,7 @@ export const TreemapCustomContent = (props: any) => {
             stroke: "#ffffff",
             strokeWidth: 1,
           }} />
-          <foreignObject x={x} y={y} width={width} height={height}>
+          <foreignObject x={x} y={y} width={width} height={height} onClick={() => onContributorClick(uid)} style={{ cursor: 'pointer' }}>
             <div className="treemap-content">
               {width > 10 && height > 10 && (
                 <img 

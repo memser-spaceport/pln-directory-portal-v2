@@ -50,23 +50,30 @@ jobs:
           echo "Running tests for: $CHANGED_FILES"
           npm test -- --coverage --findRelatedTests $CHANGED_FILES
           
+          # Create a temporary file with the list of changed files
+          echo "$CHANGED_FILES" | tr ' ' '\n' > changed_files.txt
+          
           # Extract and display coverage for changed files only
           echo "Coverage for changed files:"
-          for file in $CHANGED_FILES; do
+          while IFS= read -r file; do
             if [ -f "coverage/coverage-summary.json" ]; then
-              echo "Coverage for $file:"
-              jq -r --arg file "$file" \
-                'to_entries[] | 
-                select(.key == $file) | 
-                .value | 
-                "Statements: \(.statements.pct)%\n
+              coverage_data=$(jq -r --arg file "$file" \
+                'select(.[$file] != null) | .[$file] | 
+                "Coverage for '"$file"':\n
+                Statements: \(.statements.pct)%\n
                 Branches: \(.branches.pct)%\n
                 Functions: \(.functions.pct)%\n
-                Lines: \(.lines.pct)%"' \
-                coverage/coverage-summary.json || echo "No coverage data for $file"
-              echo "-------------------"
+                Lines: \(.lines.pct)%\n
+                -------------------"' \
+                coverage/coverage-summary.json)
+              if [ ! -z "$coverage_data" ]; then
+                echo "$coverage_data"
+              fi
             fi
-          done
+          done < changed_files.txt
+          
+          # Clean up
+          rm changed_files.txt
         else
           echo "No relevant files changed"
         fi

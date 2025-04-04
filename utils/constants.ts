@@ -82,6 +82,7 @@ export const EVENTS = {
   OPEN_IAM_GOING_POPUP: 'open-iam-going-popup',
   UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
   RESET_ASK_FORM_VALUES: 'reset-ask-form',
+  MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP: 'open-mark-my-presence-success',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -1251,3 +1252,12 @@ export const IRL_EVENTS_DEFAULT_IMAGE = "https://plabs-assets.s3.us-west-1.amazo
 export const EVENTS_SUBSCRIPTION_URL = "https://plnnews.substack.com/subscribe?utm_source=menu&simple=true&next=https%3A%2F%2Fplnnews.substack.com%2F";
 
 export const EVENTS_TEAM_UID = 'cleeky1re000202tx3kex3knn';
+
+
+export const EVENTS_SUBMIT_FORM_TYPES = {
+  MARK_PRESENCE: 'mark-presence',
+  UPCOMING: 'upcoming',
+  PAST: 'past',
+  ALL: 'all',
+};
+

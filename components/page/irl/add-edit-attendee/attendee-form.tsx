@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { toast } from 'react-toastify';
 import { IIrlAttendeeFormErrors, IIrlEvent, IIrlGathering, IIrlGuest, IIrlLocation, IIrlParticipationEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, EVENTS_SUBMIT_FORM_TYPES, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';
 import { canUserPerformEditAction, mergeGuestEvents } from '@/utils/irl.utils';
 import { isLink } from '@/utils/third-party.helper';
 import AttendeeDetails from './attendee-details';
@@ -14,7 +14,7 @@ import OfficeHours from './office-hours';
 import TelegramHandle from './telegram-handle';
 import Topics from './topics';
 import TopicsDescription from './topics-description';
-import { createEventGuest, editEventGuest } from '@/services/irl.service';
+import { createEventGuest, editEventGuest, markMyPresence } from '@/services/irl.service';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { getAnalyticsLocationInfo, getAnalyticsUserInfo, getTelegramUsername, removeAtSymbol, triggerLoader } from '@/utils/common.utils';
 import { useSearchParams } from 'next/navigation';
@@ -131,20 +131,30 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
 
       if ((mode === IAM_GOING_POPUP_MODES.ADMINADD || mode === IAM_GOING_POPUP_MODES.ADD) && !isUpdate) {
         analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
-        const result = await createEventGuest(selectedLocation.uid, formattedData, eventType);
+        let result;
+        if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
+          formattedData['memberName'] = userInfo?.name;
+          result = await markMyPresence(selectedLocation.uid, formattedData, eventType);
+        }else{
+          result = await createEventGuest(selectedLocation.uid, formattedData, eventType);
+        }
         if (result?.error) {
-          triggerLoader(false);
           onClose();
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           return;
         }
-        analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_success', formattedData);
         onClose();
         await getEventDetails();
-        if (isAllowedToManageGuests) {
-          toast.success(TOAST_MESSAGES.ATTENDEE_ADDED_SUCCESSFULLY);
-        } else {
-          toast.success(TOAST_MESSAGES.DETAILS_ADDED_SUCCESSFULLY);
+        triggerLoader(false);
+        if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
+          document.dispatchEvent(new Event(EVENTS.MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP));
+        }else{
+          analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_success', formattedData);
+          if (isAllowedToManageGuests) {
+            toast.success(TOAST_MESSAGES.ATTENDEE_ADDED_SUCCESSFULLY);
+          } else {
+            toast.success(TOAST_MESSAGES.DETAILS_ADDED_SUCCESSFULLY);
+          }
         }
       } else if (mode === IAM_GOING_POPUP_MODES.EDIT || isUpdate) {
         analytics.irlGuestDetailEditBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_initiated', formattedData);
@@ -202,6 +212,9 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             events[eventIndex]['isSpeaker'] = false;
             events[eventIndex]['hostSubEvents'] = [];
             events[eventIndex]['speakerSubEvents'] = [];
+            if(from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
+              events[eventIndex]['eventName'] = props?.allGatherings?.find((gathering: IIrlEvent) => gathering?.uid === formValues[key])?.name;
+            }
           }
         }
       } else if (key.startsWith('isHost')) {
@@ -263,7 +276,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       }
     }
 
-    result = { ...result, events: [...events].filter((g) => g), additionalInfo, topics };
+    result = { ...result, events: [...events].filter((g) => g), additionalInfo, topics, locationName: selectedLocation?.name };
 
     return result;
   }
@@ -300,7 +313,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER) }));
     }
 
-    const canSkipGateringsValidation = formInitialValues && formInitialValues?.events?.length != 0 && eventType === 'past';
+    const canSkipGateringsValidation = formInitialValues && formInitialValues?.events?.length != 0 && (eventType === 'past' && from != EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) && mode !== IAM_GOING_POPUP_MODES.ADMINADD;
     if (formattedData.events.length === 0 && !canSkipGateringsValidation) {
       isError = true;
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
@@ -357,7 +370,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
         </button> */}
         <div className="atndform__bdy" ref={formBodyRef}>
-          <h2 className="atndform__bdy__ttl">Enter Attendee Details</h2>
+          <h2 className="atndform__bdy__ttl">{from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE ? 'Request to mark your attendance' : 'Enter Attendee Details'}</h2>
           <AttendeeFormErrors errors={errors} />
           <div>
             <AttendeeDetails setGuestGoingEvents={setGuestGoingEvents} setIsVerifiedMember={setIsVerifiedMember} gatherings={gatherings} setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {eventType}/>
@@ -377,7 +390,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               from={from}
             />
           </div>
-          <div>
+          {
+            from !== EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE && (
+              <div>
+                <div>
             <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
           </div>
           <div>
@@ -400,6 +416,9 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           <div id="officehours-section">
             <OfficeHours location={selectedLocation} userInfo={props?.userInfo} initialValues={formInitialValues} scrollTo={scrollTo} />
           </div>
+              </div>
+            )
+          }
         </div>
 
         <div className="atndform__optns">
@@ -427,7 +446,8 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           .atndform {
             padding: 20px 0 0 0;
             width: 90vw;
-            height: 90vh;
+            height: auto;
+            max-height: 90vh;
             display: flex;
             flex-direction: column;
             justify-content: space-between;

@@ -228,7 +228,7 @@ const FollowSection = (props: IFollowSectionProps) => {
           {
             isUserLoggedIn && !canUserAddAttendees && type === 'past' && !isUserGoing && (
               <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
-               Mark My Presence
+               Claim Attendance
             </button>
             )
           }

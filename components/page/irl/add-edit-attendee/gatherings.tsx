@@ -130,7 +130,7 @@ const Gatherings = (props: IGatherings) => {
 
         {/* Host and speaker details */}
 
-        {from !== EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE && selectedGatherings.length > 0 && (
+        {selectedGatherings.length > 0 && (
           <div>
             <ParticipationDetails isVerifiedMember={isVerifiedMember} errors={errors} selectedGatherings={selectedGatherings} setSelectedGatherings={setSelectedGatherings} />
           </div>

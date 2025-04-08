@@ -141,6 +141,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         if (result?.error) {
           onClose();
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          triggerLoader(false);
           return;
         }
         onClose();
@@ -370,7 +371,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
         </button> */}
         <div className="atndform__bdy" ref={formBodyRef}>
-          <h2 className="atndform__bdy__ttl">{from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE ? 'Request to mark your attendance' : 'Enter Attendee Details'}</h2>
+          <h2 className="atndform__bdy__ttl">{from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE ? 'Request to claim your attendance' : 'Enter Attendee Details'}</h2>
           <AttendeeFormErrors errors={errors} />
           <div>
             <AttendeeDetails setGuestGoingEvents={setGuestGoingEvents} setIsVerifiedMember={setIsVerifiedMember} gatherings={gatherings} setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {eventType}/>

@@ -81,6 +81,12 @@ const PlEventCard = () => {
             height: 150px;
             padding-bottom: 12px;
           }
+
+          .pl-event-card__top-image,
+          .pl-event-card__bottom-image {
+            height: 100px;
+          }
+            
           .pl-event-card__text {
             margin-top: 15px;
           }
@@ -98,12 +104,24 @@ const PlEventCard = () => {
             width: 223px;
             height: 150px;
           }
+
+          .pl-event-card__image {
+            width: 200px;
+          }
+
+          .pl-event-card__bottom-image > img {
+            width: 300px;
+          }
         }
 
         @media (min-width: 2560px) {
           .pl-event-card {
             width: 304px;
             height: 150px;
+          }
+
+          .pl-event-card__bottom-image > img {
+            width: 450px;
           }
         }
       `}</style>

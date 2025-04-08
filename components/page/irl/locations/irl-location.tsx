@@ -523,6 +523,7 @@ const IrlLocation = (props: IrlLocation) => {
 
                     .root__irl__overlay {
                         overflow-y: auto;
+                        margin-right: 180px;
                     }
                     .root__irl__expanded {
                         width: 161px;
@@ -598,6 +599,7 @@ const IrlLocation = (props: IrlLocation) => {
 
                     .root__irl__overlay {
                         width: 174px;
+                        margin-right: 175px;
                     }
                 }
 
@@ -612,6 +614,7 @@ const IrlLocation = (props: IrlLocation) => {
                     .root__irl__overlay {
                         width: 232px;
                         right: 9px;
+                        margin-right: 239px;
                     }
                 }
 
@@ -622,6 +625,7 @@ const IrlLocation = (props: IrlLocation) => {
                     }
                     .root__irl__overlay {
                         width: 306px;
+                        margin-right: 320px;
                     }
                 }
             `}

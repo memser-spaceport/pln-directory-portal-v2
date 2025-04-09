@@ -9,6 +9,7 @@ export const PAGE_ROUTES = {
   ADD_TEAM: '/teams/add',
   SIGNUP: '/sign-up',
   HUSKY: '/husky/chat',
+  INROS_AI: 'husky/intros-ai',
   EVENTS: '/events',
 };
 

@@ -12,6 +12,7 @@ import { Metadata } from 'next';
 import { INITIAL_ITEMS_PER_PAGE, ITEMS_PER_PAGE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import MemberInfiniteList from '@/components/page/members/member-infinite-list';
 import { getMemberListForQuery } from '../actions/members.actions';
+import IntrosBanner from '@/components/page/members/intros-banner';
 
 async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
   const { userInfo } = getCookiesFromHeaders();
@@ -32,8 +33,14 @@ async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
       {/* Teams */}
       <div className={styles.members__right}>
         <div className={styles.members__right__content}>
-          <div className={styles.members__right__toolbar}>
+          <div className={styles.members__right__toolbar__container}>
+            <div className={styles.members__right__toolbar__container__intros}>
+              <IntrosBanner />
+            </div>
+            <div className={styles.members__right__toolbar}>
             <MembersToolbar searchParams={searchParams} totalTeams={totalMembers} userInfo={parsedUserDetails} />
+
+            </div>
           </div>
           <div className={styles.members__right__membersList} style={{ flex: 1 }}>
             {members?.length > 0 && <MemberInfiniteList isUserLoggedIn={isLoggedIn} members={members} totalItems={totalMembers} userInfo={parsedUserDetails} searchParams={searchParams} />}
@@ -65,13 +72,13 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
 
     if (memberList?.isError || rawFilterValues?.isError || availableFilters?.isError || memberRoles?.isError) {
       return { isError: true, error: memberList?.error || rawFilterValues?.error || availableFilters?.error || memberRoles?.error };
-    } 
+    }
 
     filters = getFormattedFilters(searchParams, rawFilterValues, availableFilters, isLoggedIn);
     filters.memberRoles = getRoleTagsFromValues(memberRoles, searchParams.memberRoles);
     members = memberList?.items;
     totalMembers = memberList?.total;
-    
+
     return { isError, members, filters, totalMembers, isLoggedIn };
   } catch (error) {
     console.error(error);

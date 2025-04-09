@@ -17,6 +17,7 @@ import MobileNavDrawer from './mobile-nav-drawer';
 import UserProfile from './userProfile';
 import SignUpBtn from './sign-up';
 import HuskyLink from './husky-link';
+import IntrosAi from './intros-ai';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -123,6 +124,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           </div>
         </div>
         <div className="nb__right">
+          <IntrosAi />
           <HuskyLink />
           <button id="directory-feedback-btn" className="nb__right__feedback" data-exclude-from-url="true">
             <Image src="/icons/nav-feedback.svg" alt="nav-feedback" height={48} width={48} />

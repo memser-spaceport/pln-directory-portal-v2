@@ -64,6 +64,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
           </div>
         )}
       </div>
+      
     </div>
   );
 };

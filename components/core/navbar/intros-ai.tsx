@@ -5,25 +5,25 @@ import { PAGE_ROUTES } from '@/utils/constants';
 import { useRouter, usePathname } from 'next/navigation';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
-const HuskyLink = () => {
+const IntrosAi = () => {
   const router = useRouter();
   const pathName = usePathname();
-  const analytics = useHuskyAnalytics();
+//   const analytics = useHuskyAnalytics();
 
   const onHuskyClickHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    if (pathName !== PAGE_ROUTES.HUSKY) {
+    if (pathName !== PAGE_ROUTES.INROS_AI) {
       triggerLoader(true);
     }
-    router.push(PAGE_ROUTES.HUSKY);
-    analytics.trackPageClicked();
+    router.push(PAGE_ROUTES.INROS_AI);
+    // analytics.trackPageClicked();
   };
 
   return (
     <>
       <button onClick={onHuskyClickHandler} className="nb__right__husky" aria-label="Chat with Husky assistant">
-        <img width={48} height={53} src="/images/husky/husky-logo.svg" alt="husky" />
+        <img width={48} height={48} src="/icons/intro-ai.svg" alt="intro" />
       </button>
 
       <style jsx>{`
@@ -110,4 +110,4 @@ const HuskyLink = () => {
   );
 };
 
-export default HuskyLink;
+export default IntrosAi;

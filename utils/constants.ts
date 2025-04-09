@@ -82,6 +82,7 @@ export const EVENTS = {
   OPEN_IAM_GOING_POPUP: 'open-iam-going-popup',
   UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
   RESET_ASK_FORM_VALUES: 'reset-ask-form',
+  MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP: 'open-mark-my-presence-success',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -396,6 +397,11 @@ export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_CONTRIBUTOR_CLICKED: 'events-page-contributor-clicked',
   EVENTS_PAGE_ASK_HUSKY_BUTTON_CLICKED: 'events-page-ask-husky-button-clicked',
   EVENTS_PAGE_SUBSCRIBE_FOR_UPDATES_BUTTON_CLICKED: 'events-page-subscribe-for-updates-button-clicked',
+  EVENTS_PAGE_CONTRIBUTE_BUTTON_CLICKED: 'events-page-contribute-button-clicked',
+  EVENTS_PAGE_CONTRIBUTE_MODAL_CLOSE_BUTTON_CLICKED: 'events-page-contribute-modal-close-button-clicked',
+  EVENTS_PAGE_CONTRIBUTE_MODAL_IRL_PROCEED_BUTTON_CLICKED: 'events-page-contribute-modal-irl-proceed-button-clicked',
+  EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED: 'events-page-contributing-team-clicked',
+  EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED: 'events-page-contributing-members-clicked',
 };
 
 export const HOME = {
@@ -503,6 +509,21 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.11 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '09, Apr 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Toronto" target="_blank">IRL Toronto</a>, allowing users to register and manage event entries</li>
+    <li>Enhanced user experience by enabling seamless navigation between PL Events and IRL Gatherings allowing access to both event details and attendee information</li>
+    <li>Ability for the event participants to claim their attendance for the past events</li>
+    <li>Ability for IRL Admins to perform user management for related events</li>
+    </ul>
+    </div>`,
+  },
   {
     title: 'Version 4.1.10 - Directory Enhancements',
     tag: 'Improvements',
@@ -1251,3 +1272,13 @@ export const IRL_EVENTS_DEFAULT_IMAGE = "https://plabs-assets.s3.us-west-1.amazo
 export const EVENTS_SUBSCRIPTION_URL = "https://plnnews.substack.com/subscribe?utm_source=menu&simple=true&next=https%3A%2F%2Fplnnews.substack.com%2F";
 
 export const EVENTS_TEAM_UID = 'cleeky1re000202tx3kex3knn';
+
+
+export const EVENTS_SUBMIT_FORM_TYPES = {
+  MARK_PRESENCE: 'mark-presence',
+  UPCOMING: 'upcoming',
+  PAST: 'past',
+  ALL: 'all',
+};
+
+export const CONTRIBUTE_MODAL_VIDEO_URL = "https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+video-Updated.webm";

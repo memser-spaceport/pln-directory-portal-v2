@@ -1,7 +1,7 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import CustomCheckbox from '@/components/form/custom-checkbox';
 import { IUserInfo } from '@/types/shared.types';
-import { ADMIN_ROLE, EVENT_TYPE, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
+import { ADMIN_ROLE, EVENT_TYPE, EVENTS_SUBMIT_FORM_TYPES, IRL_ATTENDEE_FORM_ERRORS } from '@/utils/constants';
 import { getFormattedDateString } from '@/utils/irl.utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import ParticipationDetails from './participation-details';

@@ -96,7 +96,7 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                 <div
                   className="contributor__wrpr"
                   key={(contributor?.uid)}
-                //   onClick={() => onContributorClickHandler(contributor)}
+                  onClick={() => onContributorClickHandler(contributor)}
                 >
                   <div className="contributor">
                     <div className="contributor__info">
@@ -105,9 +105,9 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                       </div>
                       <div className="contributor__info__name">{contributor?.member?.name}</div>
                     </div>
-                    {/* <div className="contributor__nav">
+                    <div className="contributor__nav">
                       <img src="/icons/right-arrow-gray.svg" alt="icon" />
-                    </div> */}
+                    </div>
                   </div>
                 </div>
               );
@@ -184,12 +184,12 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
         .contributor__wrpr {
           padding: 16px;
           border-bottom: 1px solid #e2e8f0;
-          // cursor: pointer;
+          cursor: pointer;
         }
 
-        // .contributor__wrpr:hover {
-        //   background-color: #f1f5f9;
-        // }
+        .contributor__wrpr:hover {
+          background-color: #f1f5f9;
+        }
 
         .contributor {
           display: flex;

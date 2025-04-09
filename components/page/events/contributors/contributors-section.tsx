@@ -12,7 +12,7 @@ import { useEventsAnalytics } from '@/analytics/events.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import Modal from '@/components/core/modal';
 import { useRef } from 'react';
-import { PAGE_ROUTES } from '@/utils/constants';
+import { PAGE_ROUTES, CONTRIBUTE_MODAL_VIDEO_URL } from '@/utils/constants';
 
 interface ContributorsSectionProps {
   members?: any[];
@@ -110,15 +110,18 @@ export default function ContributorsSection({
           <div className="contribute-modal-header">
             Ways to contribute
           </div>
-          <div className="contribute-modal-gif-container">
+          <div className="contribute-modal-video-container">
             <video
               autoPlay
               loop
               muted
-              style={{ width: '100%', height: 'auto' }}
+              playsInline
+              style={{ width: '100%', height: 'auto', pointerEvents: 'none', borderRadius: '10px' }}
+              className="contribute-modal-video"
+              controls={false}
             >
-              <source src="https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+guide+video.webm" type="video/webm" />
-                Your browser does not support the video tag.
+              <source src={CONTRIBUTE_MODAL_VIDEO_URL} type="video/webm" />
+                Your browser does not support this video.
               </video>
           </div>
           <div className="contribute-modal-content">
@@ -166,7 +169,7 @@ export default function ContributorsSection({
               onContributeModalIRLProceedButtonClicked();
               window.open(PAGE_ROUTES.IRL);
             }}>
-              Proceed to IRL Gatherings
+              Continue to IRL Gatherings
             </button>
           </div>
         </div>
@@ -195,6 +198,10 @@ export default function ContributorsSection({
           margin: 0;
         }
 
+        .contribute-modal-video {
+          outline: 1px solid #e1e3e6;
+          border-radius: 10px;
+        }
         .section-title-members {
           background-color: #e8f2ff;
         }

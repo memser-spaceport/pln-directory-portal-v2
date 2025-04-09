@@ -1281,3 +1281,4 @@ export const EVENTS_SUBMIT_FORM_TYPES = {
   ALL: 'all',
 };
 
+export const CONTRIBUTE_MODAL_VIDEO_URL = "https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+video-Updated.webm";

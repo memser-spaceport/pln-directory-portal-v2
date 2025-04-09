@@ -27,7 +27,7 @@ const IrlLocation = (props: IrlLocation) => {
     const analytics = useIrlAnalytics();
     const router = useRouter();
     const locationRef = useRef<HTMLDivElement>(null);
-    const [cardLimit, setCardLimit] = useState(3);
+    const [cardLimit, setCardLimit] = useState(2);
 
     const onCloseModal = () => {
         if (dialogRef.current) {
@@ -41,7 +41,7 @@ const IrlLocation = (props: IrlLocation) => {
 
     useEffect(() => {
         const updateCardLimit = () => {
-            setCardLimit(window.innerWidth < 1440 ? 3 : 5);
+            setCardLimit(window.innerWidth < 1440 ? 2 : 4);
         };
 
         updateCardLimit();
@@ -51,7 +51,7 @@ const IrlLocation = (props: IrlLocation) => {
     }, []);
 
     useEffect(() => {
-        const showCardLimit = window.innerWidth < 1440 ? 3 : 5;
+        const showCardLimit = window.innerWidth < 1440 ? 2 : 4;
         if (searchParams?.location) {
             const locationName = searchParams.location;
             const locationDataIndex = locations.findIndex(
@@ -214,7 +214,7 @@ const IrlLocation = (props: IrlLocation) => {
                         <IrlSeeMoreLocationCard
                             count={3}
                             handleClick={handleClick}
-                            locations={locations}
+                            locations={locations.slice(1)}
                             locationRef={locationRef} />
                     }
                 </div>
@@ -223,7 +223,7 @@ const IrlLocation = (props: IrlLocation) => {
                         <IrlSeeMoreLocationCard
                             count={cardLimit}
                             handleClick={handleClick}
-                            locations={locations}
+                            locations={locations.slice(1)}
                             locationRef={locationRef} />
                     }
                 </div>
@@ -248,7 +248,7 @@ const IrlLocation = (props: IrlLocation) => {
                 {showMore &&
                     <div className="root__irl__seeMoreCard__desktop--lg">
                         <div className="root__irl__overlay">
-                            {locations?.slice(cardLimit).map((location: ILocationDetails, index: React.Key | null | undefined) => (
+                            {locations?.slice(cardLimit + 1).map((location: ILocationDetails, index: React.Key | null | undefined) => (
                                 <IrlLocationPopupView
                                     key={location.location}
                                     location={location}

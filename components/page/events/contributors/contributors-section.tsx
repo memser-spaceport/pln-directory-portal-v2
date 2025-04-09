@@ -108,7 +108,7 @@ export default function ContributorsSection({
       <Modal modalRef={contributeRef} onClose={onCloseModal}>
         <div className="contribute-modal-container">
           <div className="contribute-modal-header">
-            Contribute to a <span className="mobile-view">event</span><span className="desktop-view">gathering</span>
+            Ways to contribute
           </div>
           <div className="contribute-modal-gif-container">
             <video
@@ -126,6 +126,24 @@ export default function ContributorsSection({
             IRL Gatherings thrive when community members contribute in different ways! Here&apos;s how you can be a part of it.
             </div>
             <div className="contribute-modal-content-list">
+              <div className="contribute-modal-content-list-item speaker">
+                <span className="contribute-modal-content-list-item-icon">
+                  <img src="/icons/host_icon.svg" alt="Contribute to a gathering" />
+                  <span>Host <span className="desktop-view"> -</span></span>
+                </span>
+                <div className="contribute-modal-content-list-item-title">
+                  Plan or organize a gathering for the community.
+                </div>
+              </div>
+              <div className="contribute-modal-content-list-item host">
+                <span className="contribute-modal-content-list-item-icon">
+                  <img src="/icons/speaker_icon.svg" alt="Contribute to a gathering" />
+                  <span>Speaker <span className="desktop-view"> -</span></span>
+                </span>
+                <div className="contribute-modal-content-list-item-title">
+                Share insights and expertise by speaking at an event.
+                </div>
+              </div>
               <div className="contribute-modal-content-list-item attendee">
                 <span className="contribute-modal-content-list-item-icon">
                   <img src="/icons/attendee_icon.svg" alt="Contribute to a gathering" />
@@ -135,30 +153,10 @@ export default function ContributorsSection({
                   Be part of the experience and engage with others.
                 </div>
               </div>
-
-              <div className="contribute-modal-content-list-item speaker">
-                <span className="contribute-modal-content-list-item-icon">
-                  <img src="/icons/speaker_icon.svg" alt="Contribute to a gathering" />
-                  <span>Host <span className="desktop-view"> -</span></span>
-                </span>
-                <div className="contribute-modal-content-list-item-title">
-                  Plan or organize a gathering for the community.
-                </div>
-              </div>
-
-              <div className="contribute-modal-content-list-item host">
-                <span className="contribute-modal-content-list-item-icon">
-                  <img src="/icons/host_icon.svg" alt="Contribute to a gathering" />
-                  <span>Speaker <span className="desktop-view"> -</span></span>
-                </span>
-                <div className="contribute-modal-content-list-item-title">
-                Share insights and expertise by speaking at an event.
-                </div>
-              </div>
             </div>
           </div>
           <div className="contribute-modal-content-description">
-            Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you'd like to contribute and help make these gatherings valuable for everyone!
+            Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you&apos;d like to contribute and help make these gatherings valuable for everyone!
           </div>
           <div className="contribute-modal-content-button">
             <button className="contribute-modal-content-button-cancel" onClick={onCloseModal}>

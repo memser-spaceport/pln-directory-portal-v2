@@ -91,6 +91,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
     if (selectedMember.uid) {
       const fetchGuestDetails = async () => {
         try {
+          triggerLoader(true);
           let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, eventType);
           const userGoingEvents =  result?.map((e:any)=>({
             uid: e?.event?.uid,
@@ -130,6 +131,8 @@ const AttendeeDetails = (props: IAttendeeForm) => {
         } catch (error) {
           console.error("Error fetching guest details:", error);
           // Optionally handle error
+        } finally {
+          triggerLoader(false);
         }
       };
   

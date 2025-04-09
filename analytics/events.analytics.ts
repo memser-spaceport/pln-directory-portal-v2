@@ -47,11 +47,11 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTOR_LIST_CLICKED, params);
   }
 
-  function onContributorListCloseClicked() {
+  function onContributtonModalCloseClicked() {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTOR_LIST_CLOSE_CLICKED);
   }
 
-  function onContributorListOpenClicked() {
+  function onContributtonModalOpenClicked() {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTOR_LIST_OPEN_CLICKED);
   }
 
@@ -90,13 +90,29 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_ASK_HUSKY_BUTTON_CLICKED);
   }
 
+  function onContributeButtonClicked() {
+    captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTE_BUTTON_CLICKED);
+  }
+
+  function onContributeModalIRLProceedButtonClicked() {
+    captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTE_MODAL_IRL_PROCEED_BUTTON_CLICKED);
+  }
+
+  function onContributingTeamClicked(contributor: any) {
+    captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED, contributor);
+  }
+
+  function onContributingMembersClicked(contributor: any) {
+    captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED, contributor);
+  }
+
   return {
     onIrlLocationClicked,
     onEventCardClicked,
     onContributorClicked,
     onContributorListClicked,
-    onContributorListCloseClicked,
-    onContributorListOpenClicked,
+    onContributtonModalCloseClicked,
+    onContributtonModalOpenClicked,
     onViewAllGatheringsClicked,
     onViewAllEventsClicked,
     onCarouselLeftClicked,
@@ -105,5 +121,9 @@ export const useEventsAnalytics = () => {
     onGoToEventsButtonClicked,
     onAskHuskyButtonClicked,
     onSubscribeForUpdatesButtonClicked,
+    onContributeButtonClicked,
+    onContributeModalIRLProceedButtonClicked,
+    onContributingTeamClicked,
+    onContributingMembersClicked,
   };
 };

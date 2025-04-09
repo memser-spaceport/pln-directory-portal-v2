@@ -1,13 +1,13 @@
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useState, useEffect, useRef } from 'react';
-import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, EVENTS_SUBMIT_FORM_TYPES, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import AllFollowers from './all-followers';
 import Image from 'next/image';
 import FollowButton from './follow-button';
 import { useSearchParams } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { canUserPerformEditAction } from '@/utils/irl.utils';
-
+import PresenceRequestSuccess from './presence-request-success';
 interface IFollowSectionProps {
   userInfo: any;
   eventLocationSummary: any;
@@ -90,11 +90,17 @@ const FollowSection = (props: IFollowSectionProps) => {
     document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: null, mode: IAM_GOING_POPUP_MODES.ADMINADD } }));
   };
 
-  const onIAmGoingClick = () => {
-    let formData: any = { member: userInfo };if(typeof topicsAndReason === 'object' && topicsAndReason !== null) {
+  const onIAmGoingClick = (from?: string) => {
+    let formData: any = { member: userInfo };
+    if(typeof topicsAndReason === 'object' && topicsAndReason !== null) {
       formData['topicsAndReason'] = topicsAndReason;
     }
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, { detail: { isOpen: true, formdata: { ...formData }, mode: IAM_GOING_POPUP_MODES.ADD } }));
+   
+    let props:any = { detail: { isOpen: true, formdata: { ...formData }, mode: IAM_GOING_POPUP_MODES.ADD } }
+    if(from === 'mark-presence') {
+      props['detail']['from'] = EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE;
+    }
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP,props ));
     analytics.trackImGoingBtnClick(location);
   };
 
@@ -219,8 +225,16 @@ const FollowSection = (props: IFollowSectionProps) => {
             </div>
           )}
 
+          {
+            isUserLoggedIn && !canUserAddAttendees && type === 'past' && !isUserGoing && (
+              <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
+               Claim Attendance
+            </button>
+            )
+          }
+
           {!isUserGoing && isUserLoggedIn && !inPastEvents && (
-            <button onClick={onIAmGoingClick} className="toolbar__actionCn__imGoingBtn">
+            <button onClick={() => onIAmGoingClick('upcoming')} className="toolbar__actionCn__imGoingBtn">
               I&apos;m Going
             </button>
           )}
@@ -254,7 +268,7 @@ const FollowSection = (props: IFollowSectionProps) => {
 
         <div className={`root__irl__follcnt__update__mob ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>Planning to attend? Enroll yourselves & follow to get event updates & reminders.</div>
       </div>
-
+      <PresenceRequestSuccess />
       <style jsx>
         {`
           .root__irl__follwcnt {
@@ -669,7 +683,8 @@ const FollowSection = (props: IFollowSectionProps) => {
             }
 
             .toolbar__actionCn__imGoingBtn {
-              width: 132px !important;
+              //width: 132px !important;
+              width: auto !important;
             }
 
             .toolbar__actionCn__edit {

@@ -510,6 +510,21 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.11 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '09, Apr 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Toronto" target="_blank">IRL Toronto</a>, allowing users to register and manage event entries</li>
+    <li>Enhanced user experience by enabling seamless navigation between PL Events and IRL Gatherings allowing access to both event details and attendee information</li>
+    <li>Ability for the event participants to claim their attendance for the past events</li>
+    <li>Ability for IRL Admins to perform user management for related events</li>
+    </ul>
+    </div>`,
+  },
+  {
     title: 'Version 4.1.10 - Directory Enhancements',
     tag: 'Improvements',
     date: '02, Apr 2025',

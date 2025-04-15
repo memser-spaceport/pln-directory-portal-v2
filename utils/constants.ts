@@ -83,6 +83,9 @@ export const EVENTS = {
   UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
   RESET_ASK_FORM_VALUES: 'reset-ask-form',
   MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP: 'open-mark-my-presence-success',
+  ADD_EDIT_RULE_MODAL: 'add-edit-rule-modal',
+  ADD_EDIT_TOPIC_MODAL: 'add-edit-topic-modal',
+  ADD_EDIT_TAG_MODAL: 'add-edit-tag-modal',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -1279,6 +1282,19 @@ export const EVENTS_SUBMIT_FORM_TYPES = {
   UPCOMING: 'upcoming',
   PAST: 'past',
   ALL: 'all',
+};
+
+export const API_ROUTES = {
+  INTRO_RULES: '/api/intro-rules',
+  INTRO_TOPICS: '/api/intro-topics',
+  INTRO_TAGS: '/api/intro-tags'
+};
+
+export const API_URLS = {
+  INTRO_RULES: `${process.env.APPLICATION_BASE_URL}${API_ROUTES.INTRO_RULES}`,
+  INTRO_TOPICS: `${process.env.APPLICATION_BASE_URL}${API_ROUTES.INTRO_TOPICS}`,
+  INTRO_TAGS: `${process.env.APPLICATION_BASE_URL}${API_ROUTES.INTRO_TAGS}`
+  // Add other API URLs here
 };
 
 export const CONTRIBUTE_MODAL_VIDEO_URL = "https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+video-Updated.webm";

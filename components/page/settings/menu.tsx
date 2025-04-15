@@ -6,7 +6,7 @@ import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 
 interface SettingsMenuProps {
-  activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams';
+  activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams' | 'manage intro rules';
   isAdmin?:boolean
   isTeamLead?: boolean
   userInfo: IUserInfo;
@@ -24,6 +24,10 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
   const appAdminSettings = [
     { name: 'manage members', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
   ];
+
+  const adminSettings = [
+    { name: 'manage intro rules', url: '/settings/intro-rules', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' }
+  ]
 
   const onItemClicked = (url: string, name: string) => {
     if(window.innerWidth < 1024) {
@@ -72,6 +76,15 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
                   <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
                 </div>
               ))}
+              {isAdmin && adminSettings.map((pref) => (
+                <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url, pref.name)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
+                  {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
+                  {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
+                  <p className="sm__group__list__item__text">{pref.name}</p>
+                </div>
+              ))}
+              
+
           </div>
         </div>}
       </div>

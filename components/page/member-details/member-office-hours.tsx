@@ -59,7 +59,10 @@ const MemberOfficeHours = (props: any) => {
         return;
       }
       triggerLoader(false);
-      window.open(officeHours, '_blank');
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.location.href = officeHours;
+      }
       const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), "PENDING,CLOSED");
       if (!allFollowups?.error) {
         const result = allFollowups?.data ?? [];

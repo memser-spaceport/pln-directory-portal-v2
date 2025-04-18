@@ -9,11 +9,12 @@ interface RulesTabProps {
   rules: Rule[];
   topics: Topic[];
   tags: Tag[];
+  members: any[];
   onEditRule: (ruleId: string) => void;
   onAddRule: () => void;
 }
 
-export default function RulesTab({ rules, topics, tags, onEditRule, onAddRule }: RulesTabProps) {
+export default function RulesTab({ rules, topics, tags, members, onEditRule, onAddRule }: RulesTabProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleAddRule = (data: any) => {
@@ -63,21 +64,22 @@ export default function RulesTab({ rules, topics, tags, onEditRule, onAddRule }:
                 
               </div>
               <div className="rules__item__tags">
-                {rule.tags.map((tag, index) => (
+                {rule.tags.length > 0 && rule.tags.slice(0, 4).map((tag, index) => (
                   <span key={index} className="rules__item__tag">
-                    {tag}
+                    {tag.name}
                   </span>
                 ))}
-                <span className="rules__item__tag">+3</span>
+                {rule.tags.length > 4 && <span className="rules__item__tag">+{rule.tags.length - 4}</span>}
               </div>
             </div>
-          </div>
+          </div>  
         ))}
       </div>
 
       <AddEditRuleModal 
         topics={topics}
         tags={tags}
+        members={members}
         onSubmit={handleAddRule}
       />
       
@@ -151,8 +153,10 @@ export default function RulesTab({ rules, topics, tags, onEditRule, onAddRule }:
           display: flex;
           align-items: center;
           gap: 4px;
-          font-size: 14px;
-          color: #64748B;
+          font-size: 12px;
+          line-height: 14px;
+          font-weight: 500;
+          color: #0F172A;
           border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
             border-radius: 4px;
             padding-top: 6px;
@@ -186,7 +190,9 @@ export default function RulesTab({ rules, topics, tags, onEditRule, onAddRule }:
           border: 1px solid #E2E8F0;
           border-radius: 24px;
           font-size: 12px;
-          color: #64748B;
+          line-height: 14px;
+          font-weight: 500;
+          color: #0F172A;
         }
 
         .rules__item__tag--more {

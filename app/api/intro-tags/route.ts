@@ -2,16 +2,15 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 
 const mockTags = [
-  { id: '1', name: 'Network' },
-  { id: '2', name: 'Protocol' },
-  { id: '3', name: 'Labs' },
-  { id: '4', name: 'Technology' },
-  { id: '5', name: 'Storage' },
-  { id: '6', name: 'Blockchain' },
-  { id: '7', name: 'Web3' },
-  { id: '8', name: 'Development' },
-  { id: '9', name: 'P2P' },
-  { id: '10', name: 'Research' }
+  { uid: '1', name: 'Network' },
+  { uid: '3', name: 'Labs' },
+  { uid: '4', name: 'Technology' },
+  { uid: '5', name: 'Storage' },
+  { uid: '6', name: 'Blockchain' },
+  { uid: '7', name: 'Web3' },
+  { uid: '8', name: 'Development' },
+  { uid: '9', name: 'P2P' },
+  { uid: '10', name: 'Research' }
 ];
 
 export async function GET(request: Request) {

@@ -1,65 +1,52 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { Rule } from '@/types/intro-rules';
 
-const mockRules: Rule[] = [
+const mockRules = [
   {
     id: '1',
-    name: 'Protocol Labs Network',
-    tags: ['Network', 'Protocol', 'Labs', 'Technology'],
+    topic: { uid: '5', name: 'Research' },
+    tags: [{ uid: '1', name: 'Network' },
+      { uid: '3', name: 'Labs' },
+      { uid: '4', name: 'Technology' },],
     leads: [
-      { id: '1', name: 'John Doe', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '2', name: 'Jane Smith', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '3', name: 'Alice Johnson', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '4', name: 'Bob Brown', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '5', name: 'Charlie Davis', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },    
+      { id: '1', name: 'John Doe', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '2', name: 'Jane Smith', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '3', name: 'Alice Johnson', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '4', name: 'Bob Brown', avatar: '/icons/default_profile.svg', role: 'Lead' }, 
     ]
   },
   {
     id: '2',
-    name: 'Filecoin Network',
-    tags: ['Storage', 'Blockchain', 'Web3', 'Decentralized'],
+    topic: { uid: '1', name: 'Protocol Labs' },
+    tags: [
+      { uid: '5', name: 'Storage' },
+      { uid: '6', name: 'Blockchain' },
+      { uid: '7', name: 'Web3' },
+    ],
     leads: [
-      { id: '1', name: 'John Doe', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '2', name: 'Jane Smith', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '3', name: 'Alice Johnson', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '4', name: 'Bob Brown', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '5', name: 'Charlie Davis', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
+      { id: '1', name: 'John Doe', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '2', name: 'Jane Smith', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '3', name: 'Alice Johnson', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '4', name: 'Bob Brown', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '5', name: 'Charlie Davis', avatar: '/icons/default_profile.svg', role: 'Lead' },
     ]
   },
   {
     id: '3',
-    name: 'IPFS Development',
-    tags: ['Development', 'P2P', 'Storage', 'Protocol'],
+    topic: { uid: '3', name: 'IPFS' },
+    tags: [
+      { uid: '8', name: 'Development' },
+      { uid: '9', name: 'P2P' },
+      { uid: '10', name: 'Research' },
+      { uid: '1', name: 'Network' }],
     leads: [
-      { id: '1', name: 'John Doe', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '2', name: 'Jane Smith', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '3', name: 'Alice Johnson', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '4', name: 'Bob Brown', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
-      { id: '5', name: 'Charlie Davis', avatar: '/icons/avatar-placeholder.svg', role: 'Lead' },
+      { id: '1', name: 'John Doe', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '2', name: 'Jane Smith', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '3', name: 'Alice Johnson', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '4', name: 'Bob Brown', avatar: '/icons/default_profile.svg', role: 'Lead' },
+      { id: '5', name: 'Charlie Davis', avatar: '/icons/default_profile.svg', role: 'Lead' },
     ]
   }
-];
-
-const mockTopics = [
-  { id: '1', name: 'Protocol Labs' },
-  { id: '2', name: 'Filecoin' },
-  { id: '3', name: 'IPFS' },
-  { id: '4', name: 'Libp2p' },
-  { id: '5', name: 'Research' }
-];
-
-const mockTags = [
-  { id: '1', name: 'Network' },
-  { id: '2', name: 'Protocol' },
-  { id: '3', name: 'Labs' },
-  { id: '4', name: 'Technology' },
-  { id: '5', name: 'Storage' },
-  { id: '6', name: 'Blockchain' },
-  { id: '7', name: 'Web3' },
-  { id: '8', name: 'Development' },
-  { id: '9', name: 'P2P' },
-  { id: '10', name: 'Research' }
 ];
 
 export async function GET(request: Request) {

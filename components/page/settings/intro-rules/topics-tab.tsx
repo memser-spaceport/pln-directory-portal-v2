@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AddEditTopicModal from './add-edit-topic-modal';
 import { EVENTS } from '@/utils/constants';
 
@@ -17,6 +17,8 @@ interface TopicsTabProps {
 
 export default function TopicsTab({ topics, onEditTopic, onAddTopic }: TopicsTabProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredTopics, setFilteredTopics] = useState(topics);
 
   const handleAddTopic = () => {
     onAddTopic();
@@ -31,12 +33,16 @@ export default function TopicsTab({ topics, onEditTopic, onAddTopic }: TopicsTab
     document.dispatchEvent(new CustomEvent(EVENTS.ADD_EDIT_TOPIC_MODAL, { detail: { mode: 'edit', topic } }));
   };
 
+  useEffect(() => {
+    setFilteredTopics(topics.filter((topic) => topic.name.toLowerCase().includes(searchQuery.toLowerCase())));
+  }, [searchQuery]);
+
   return (
     <div className="topics">
       <div className="topics__search">
         <div className="topics__search__input">
           <img src="/icons/search-gray.svg" alt="search" width={16} height={16} />
-          <input type="text" placeholder="Search" />
+          <input type="text" placeholder="Search" onChange={(e) => setSearchQuery(e.target.value)}/>
         </div>
         <button onClick={handleAddTopicBtnClick} className="topics__add-btn">
           Add Topic
@@ -44,7 +50,7 @@ export default function TopicsTab({ topics, onEditTopic, onAddTopic }: TopicsTab
       </div>
 
       <div className="topics__list">
-        {topics.map((topic) => (
+        {filteredTopics.map((topic) => (
           <div key={topic.id} className="topics__item">
             <span className="topics__item__name">{topic.name}</span>
             <div className="topics__item__actions">

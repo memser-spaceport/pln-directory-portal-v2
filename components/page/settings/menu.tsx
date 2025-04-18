@@ -30,12 +30,14 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
   ]
 
   const onItemClicked = (url: string, name: string) => {
-    if(window.innerWidth < 1024) {
-      triggerLoader(true)
+    // if(window.innerWidth < 1024) {
+    //   triggerLoader(true)
+    //   router.push(url);
+    // } else {
+    //   document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: url}}))
+    // }
+    triggerLoader(true)
       router.push(url);
-    } else {
-      document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: url}}))
-    }
     analytics.recordSettingsSideMenuClick(name, url, getAnalyticsUserInfo(userInfo))
   };
   return (

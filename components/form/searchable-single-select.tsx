@@ -196,6 +196,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
                   key={option[uniqueKey]}
                   onMouseDown={(e) => {
                     e.preventDefault();
+                    console.log('option', option);
                     handleOptionClick(option);
                   }}
                   className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}

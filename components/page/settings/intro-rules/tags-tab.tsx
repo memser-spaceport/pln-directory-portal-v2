@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AddEditTagModal from './add-edit-tag-modal';
 import { EVENTS } from '@/utils/constants';
 
@@ -16,9 +16,16 @@ interface TagsTabProps {
 }
 
 export default function TagsTab({ tags, onEditTag, onAddTag }: TagsTabProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredTags, setFilteredTags] = useState(tags);
+
   const handleAddTag = () => {
     onAddTag();
   };
+
+  useEffect(() => {
+    setFilteredTags(tags.filter((tag) => tag.name.toLowerCase().includes(searchQuery.toLowerCase())));
+  }, [searchQuery]);
 
   const handleAddTagBtnClick = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.ADD_EDIT_TAG_MODAL, { detail: { mode: 'add' } }));
@@ -33,7 +40,7 @@ export default function TagsTab({ tags, onEditTag, onAddTag }: TagsTabProps) {
       <div className="tags__search">
         <div className="tags__search__input">
           <img src="/icons/search-gray.svg" alt="search" width={16} height={16} />
-          <input type="text" placeholder="Search" />
+          <input type="text" placeholder="Search" onChange={(e) => setSearchQuery(e.target.value)}/>
         </div>
         <button onClick={handleAddTagBtnClick} className="tags__add-btn">
           Add Tag
@@ -41,7 +48,7 @@ export default function TagsTab({ tags, onEditTag, onAddTag }: TagsTabProps) {
       </div>
 
       <div className="tags__list">
-        {tags.map((tag) => (
+        {filteredTags.map((tag) => (
           <div key={tag.id} className="tags__item">
             <span className="tags__item__name">{tag.name}</span>
             <div className="tags__item__actions">

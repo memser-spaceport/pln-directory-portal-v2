@@ -2,6 +2,7 @@ import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types'
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
 import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpeaker, parseMemberDetailsForTeams } from '@/utils/member.utils';
+import { Lead } from '@/types/intro-rules';
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
   handleHostAndSpeaker(options);
@@ -12,7 +13,7 @@ export const getFilterValuesForQuery = async (options?: IMemberListOptions | nul
     headers: getHeader(authToken?? ''),
   });
   
-  if(!response.ok){
+  if(!response.ok){ 
     return  { isError: true, error: { status: response.status, statusText: response.statusText } };
   }
   const result = await response.json();
@@ -457,5 +458,28 @@ export const getMembersWithRoles = async () => {
     teamMemberRoles: member.teamMemberRoles,
     isVerified: member.isVerified,
   }));
+  return { data: formattedData };
+};
+
+// Fetches member role information for adding a new member to the team
+export const getMembersWithRolesForIntroRules = async () => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,teamMemberRoles,isVerified,&&pagination=false&orderBy=name,asc&isVerified=all`, {
+    cache: 'no-store',
+    method: 'GET',
+    headers: getHeader(''),
+  });
+  if (!response?.ok) {
+    return { error: { status: response?.status, statusText: response?.statusText } };
+  }
+  const result = await response?.json();
+  const formattedData = result?.members?.map((member: any): Lead => {
+    const mainTeam = member?.teamMemberRoles?.find((team: any) => team?.mainTeam);
+    return {
+      id: member.uid,
+      name: member.name,
+      avatar: member.image?.url, 
+      role: mainTeam?.role || 'Contributor',
+    }
+  });
   return { data: formattedData };
 };

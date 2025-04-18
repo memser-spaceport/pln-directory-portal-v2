@@ -7,62 +7,95 @@ import { EVENTS } from '@/utils/constants';
 import { Lead, Rule, Topic, Tag } from '@/types/intro-rules';
 import { useEffect, useRef, useState } from 'react';
 import LeadItem from './lead-item';
+import LeadSelector from './lead-selector';
 
 interface AddEditRuleModalProps {
   onSubmit: (data: Rule) => void;
   initialData?: Rule;
   topics: Topic[];
   tags: Tag[];
+  members: any[];
 }
 
 export default function AddEditRuleModal({ 
   onSubmit, 
   initialData,
   topics,
-  tags 
+  tags,
+  members
 }: AddEditRuleModalProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
-  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>({id: '', name: ''});
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [mode, setMode] = useState<'add' | 'edit'>('add');
   const [rule, setRule] = useState<Rule | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQueryLead, setSearchQueryLead] = useState('');
+  const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
+  const [showLeadSelector, setShowLeadSelector] = useState(true);
+  const [errors, setErrors] = useState<any>({});
+  const leadSelectorRef = useRef<HTMLDivElement>(null);
+
 
   const onClose = () => {
     if (modalRef.current) {
       modalRef.current.close();
-      setSelectedTopic(null);
+      setSelectedTopic({id: '', name: ''});
       setSelectedTags([]);
       setLeads([]);
     }
   };
 
   useEffect(() => {
-    document.addEventListener(EVENTS.ADD_EDIT_RULE_MODAL, (event: any) => {
+    setFilteredLeads(leads.filter(lead => 
+      lead.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ));
+  }, [searchQuery, leads]);
+
+  useEffect(() => {
+    const handleModalEvent = (event: CustomEvent<{ mode: 'add' | 'edit'; rule?: Rule }>) => {
+      setErrors({});
       setMode(event.detail.mode);
+      
       if (event.detail.rule) {
-        setRule(event.detail.rule);
-        // Set initial values for edit mode
-        const topic = topics.find(t => t.name === event.detail.rule.name);
-        setSelectedTopic(topic || null);
-        setSelectedTags(event.detail.rule.tags.map((tagName: string) => 
-          tags.find(t => t.name === tagName)
-        ).filter(Boolean));
-        setLeads(event.detail.rule.leads);
+        // Edit mode
+        const { rule } = event.detail;
+        setRule(rule);
+        setSelectedTopic(rule.topic);
+        setSelectedTags(rule.tags);
+        setLeads(rule.leads);
       } else {
+        // Add mode
         setRule(null);
-        setSelectedTopic(null);
+        setSelectedTopic({id: '', name: ''});
         setSelectedTags([]);
         setLeads([]);
       }
-      if (modalRef.current) {
-        modalRef.current.showModal();
-      }
-    });
-    return () => {
-      document.removeEventListener(EVENTS.ADD_EDIT_RULE_MODAL, () => {});
+
+      modalRef.current?.showModal();
     };
-  }, [topics, tags]);
+
+    // Type assertion for CustomEvent
+    document.addEventListener(EVENTS.ADD_EDIT_RULE_MODAL, handleModalEvent as EventListener);
+    
+    return () => {
+      document.removeEventListener(EVENTS.ADD_EDIT_RULE_MODAL, handleModalEvent as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (leadSelectorRef.current && !leadSelectorRef.current.contains(event.target as Node)) {
+        setShowLeadSelector(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleTopicChange = (topic: Topic | null) => {
     setSelectedTopic(topic);
@@ -72,8 +105,34 @@ export default function AddEditRuleModal({
     setLeads(leads.filter(lead => lead.id !== id));
   };
 
+  const handleSelectLead = (lead: any) => {
+    if (!leads.some(l => l.id === lead.id)) {
+      setLeads([...leads, { ...lead }]);
+    }
+  };
+
+  const validateForm = () => {
+    let errors = {};
+    if (!selectedTopic || selectedTopic.id === '') {
+      errors = { ...errors, topic: 'Please select a topic' };
+    }
+    if (selectedTags && selectedTags.length === 0) {
+      errors = { ...errors, tags: 'Please select at least one tag' };
+    }
+    return errors;
+  };
+
   const handleSubmit = () => {
-    if (!selectedTopic) return;
+    console.log(selectedTopic);
+    console.log(selectedTags);
+    console.log(leads);
+
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      console.log(errors);
+      return;
+    }
     
     onSubmit({
       id: rule?.id || String(Date.now()),
@@ -109,11 +168,14 @@ export default function AddEditRuleModal({
               name={`topic`}
               label='Select Topic'
               onClear={() => handleTopicChange(null)}
-              onChange={handleTopicChange}
+              onChange={(selected) => {
+                handleTopicChange(selected as Topic | null);
+              }}
               arrowImgUrl="/icons/arrow-down.svg"
             />
+            {errors.topic && <p className="add-edit-rule__error">{errors.topic}</p>}
           </div>
-          <div>
+          <div className="add-edit-rule__field">
             <MultiSelect
               options={tags}
               selectedOptions={selectedTags}
@@ -132,23 +194,59 @@ export default function AddEditRuleModal({
               closeImgUrl="/icons/close.svg"
               arrowImgUrl="/icons/arrow-down.svg"
             />
+            {errors.tags && <p className="add-edit-rule__error">{errors.tags}</p>}
           </div>
 
           <div className="add-edit-rule__field">
             <label>Assigned Leads</label>
-            <div className="add-edit-rule__search-container">
-            <div className="add-edit-rule__search">
-              <img src="/icons/search-gray.svg" alt="search" width={16} height={16} />
-              <input type="text" placeholder="Search List" />
+            <div className="add-edit-rule__leads-header">
+              <div className="add-edit-rule__search">
+                <img src="/icons/search-gray.svg" alt="search" width={16} height={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search List" 
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              <button 
+                className="add-edit-rule__add-lead"
+                onClick={() => setShowLeadSelector(!showLeadSelector)}
+              >
+                <span className="add-edit-rule__add-lead-mobile">+ Lead</span>
+                <span className="add-edit-rule__add-lead-desktop">+ Add Lead</span>
+              </button>
+              
             </div>
-              <button className="add-edit-rule__add-lead">+ Add Lead</button>
+            <div className="add-edit-rule__lead-selector-container">
+            {showLeadSelector && (
+              <div 
+                ref={leadSelectorRef}
+                className="add-edit-rule__lead-selector"
+              >
+                <div className='add-edit-rule__lead-selector-header'>
+                    <img src="/icons/search-gray.svg" alt="search" width={16} height={16} />
+                    <input 
+                      type="text" 
+                      placeholder="Search" 
+                      onChange={(e) => setSearchQueryLead(e.target.value)}
+                    />
+                </div>
+                <LeadSelector
+                  members={members}
+                  searchQuery={searchQueryLead}
+                  selectedLeads={leads}
+                  onSelectLead={handleSelectLead}
+              />
+              </div>
+            )}
             </div>
             <div className="add-edit-rule__leads">
               {leads.length === 0 ? (
                 <p className="add-edit-rule__no-leads">No leads assigned</p>
               ) : (
                 <div className="add-edit-rule__lead-list">
-                  {leads.map(lead => (
+                  {filteredLeads.map(lead => (
                     <LeadItem 
                       key={lead.id}
                       lead={lead}
@@ -180,7 +278,9 @@ export default function AddEditRuleModal({
             flex-direction: column;
             gap: 24px;
             padding: 24px;
-            width: 656px;
+            width: 80vw;
+            max-width: 656px;
+            min-width: 280px;
           }
 
           .add-edit-rule__form {
@@ -235,6 +335,27 @@ export default function AddEditRuleModal({
             cursor: pointer;
             color: #64748B;
           }
+          
+          .add-edit-rule__lead-selector-container {
+            position: relative;
+          }
+
+          .add-edit-rule__lead-selector-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            gap: 8px;
+            border-bottom: 1px solid #CBD5E1;
+          }
+
+          .add-edit-rule__lead-selector-header input {
+            border: none;
+            outline: none;
+            font-size: 14px;
+            color: #64748B;
+            width: 100%;
+          }
 
           .add-edit-rule__search-container {
             display: flex;
@@ -249,7 +370,18 @@ export default function AddEditRuleModal({
             padding: 8px 12px;
             border: 1px solid #CBD5E1;
             border-radius: 8px;
-            
+            width: 180px;
+          }
+
+          .add-edit-rule__lead-selector {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 214px;
+            height: 276px;
+            box-shadow: 0px 2px 6px 0px #0F172A29;
+            border-radius: 8px;
+            background: white;
           }
 
           .add-edit-rule__search input {
@@ -258,7 +390,41 @@ export default function AddEditRuleModal({
             outline: none;
             font-size: 14px;
             color: #64748B;
-            width: 220px;
+            width: 130px;
+          }
+
+          .add-edit-rule__leads-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+          }
+
+          .add-edit-rule__add-lead-mobile {
+            display: inline;
+          }
+        
+          .add-edit-rule__add-lead-desktop {
+            display: none;
+          }
+
+          @media (min-width: 768px) {
+            .add-edit-rule__add-lead-desktop {
+              display: inline;
+            }
+            
+            .add-edit-rule__add-lead-mobile {
+              display: none;
+            }
+
+            .add-edit-rule__search {
+              width: 220px;
+            }
+
+            .add-edit-rule__search input {
+              width: 220px;
+            }
+
           }
 
           .add-edit-rule__add-lead {
@@ -274,17 +440,16 @@ export default function AddEditRuleModal({
           }
 
           .add-edit-rule__leads {
-            min-height: 120px;
             display: flex;
             flex-direction: column;
+            height: 300px;
+            overflow: auto;
           }
 
           .add-edit-rule__lead-list {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            padding: 16px;
-            background: #F8FAFC;
             border-radius: 4px;
             min-height: 286px;
           }
@@ -305,8 +470,6 @@ export default function AddEditRuleModal({
             display: flex;
             justify-content: flex-end;
             gap: 12px;
-            padding-top: 8px;
-            border-top: 1px solid #E2E8F0;
           }
 
           .add-edit-rule__cancel {
@@ -327,6 +490,14 @@ export default function AddEditRuleModal({
             border-radius: 8px;
             font-size: 14px;
             cursor: pointer;
+          }
+
+          .add-edit-rule__error {
+            color: #EF4444;
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: 400;
+            line-height: 16px;
           }
         `}</style>
       </div>

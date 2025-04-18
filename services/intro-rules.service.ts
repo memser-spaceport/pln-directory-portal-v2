@@ -1,37 +1,64 @@
 import { API_URLS } from '@/utils/constants';
 import { getHeader } from "@/utils/common.utils";
+import { Rule, Tag, Topic } from '@/types/intro-rules';
 
-export interface IntroRule {
-  id: string;
-  name: string;
-  tags: string[];
-  leadCount: number;
-}
+const formatIntroRule = (rules: any) : Rule[]=> {
+  return rules.map((rule: any) => {
+    const { topic, tags, leads } = rule;
+    const topicUpdated = {
+      id: topic.uid,
+      name: topic.name
+    };
+    const tagsUpdated = tags.map((tag: any) => ({
+      id: tag.uid,
+      name: tag.name
+    }));
+    const leadsUpdated = leads.map((lead: any) => ({
+      id: lead.uid,
+      name: lead.name,
+      avatar: lead.avatar,
+      role: lead.role
+    }));
+    return {
+      id: rule.uid,
+      topic:topicUpdated,
+      tags: tagsUpdated,
+      leads: leadsUpdated
+    };
+  });
+};
 
-export interface IntroTopic {
-  id: string;
-  name: string;
-}
+const formatIntroTopic = (topics: any) : Topic[]=> {
+  return topics.map((topic: any) => ({
+    id: topic.uid,
+    name: topic.name
+  }));
+};
 
-export interface IntroTag {
-  id: string;
-  name: string;
-}
+const formatIntroTag = (tags: any) : Tag[]=> {
+  return tags.map((tag: any) => ({
+    id: tag.uid,
+    name: tag.name
+  }));
+};
+
 
 export const getIntroRules = async (authToken: string) => {
   try {
     const response = await fetch(API_URLS.INTRO_RULES, {
       headers: getHeader(authToken),
     });
+    
 
     if (!response.ok) {
       throw new Error('Failed to fetch intro rules');
     }
 
     const data = await response.json();
+
     return {
       isError: false,
-      data: data as IntroRule[]
+      data: formatIntroRule(data)
     };
   } catch (error) {
     console.error('Error fetching intro rules:', error);
@@ -55,7 +82,7 @@ export const getIntroTags = async (authToken: string) => {
     const data = await response.json();
     return {
       isError: false,
-      data: data as IntroTag[]
+      data: formatIntroTag(data)
     };
   } catch (error) {
     console.error('Error fetching intro tags:', error);
@@ -78,7 +105,7 @@ export const getIntroTopics = async (authToken: string) => {
     const data = await response.json();
     return {
       isError: false,
-      data: data as IntroTopic[]
+      data: formatIntroTopic(data)
     };
   } catch (error) {
     console.error('Error fetching intro topics:', error);
@@ -89,7 +116,7 @@ export const getIntroTopics = async (authToken: string) => {
   }
 };
 
-export const createIntroRule = async (authToken: string, rule: Partial<IntroRule>) => {
+export const createIntroRule = async (authToken: string, rule: Partial<Rule>) => {
   try {
     const response = await fetch(API_URLS.INTRO_RULES, {
       method: 'POST',
@@ -104,7 +131,7 @@ export const createIntroRule = async (authToken: string, rule: Partial<IntroRule
     const data = await response.json();
     return {
       isError: false,
-      data: data as IntroRule
+      data: formatIntroRule(data)
     };
   } catch (error) {
     console.error('Error creating intro rule:', error);
@@ -115,7 +142,7 @@ export const createIntroRule = async (authToken: string, rule: Partial<IntroRule
   }
 };
 
-export const updateIntroRule = async (authToken: string, rule: IntroRule) => {
+export const updateIntroRule = async (authToken: string, rule: Rule) => {
   try {
     const response = await fetch(`${API_URLS.INTRO_RULES}/${rule.id}`, {
       method: 'PUT',
@@ -130,7 +157,7 @@ export const updateIntroRule = async (authToken: string, rule: IntroRule) => {
     const data = await response.json();
     return {
       isError: false,
-      data: data as IntroRule
+      data: formatIntroRule(data)
     };
   } catch (error) {
     console.error('Error updating intro rule:', error);

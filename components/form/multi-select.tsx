@@ -46,6 +46,9 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     [options, selectedOptionIds]
   );
 
+  console.log('availableOptions', availableOptions);
+  console.log('selectedOptions', selectedOptions);
+
   // Handle adding an option
   const handleOptionClick = (option: Option) => {
     onAdd(option);

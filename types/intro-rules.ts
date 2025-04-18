@@ -7,7 +7,6 @@ export interface Lead {
 
 export interface Rule {
   id: string;
-  name: string;
   topic: Topic;
   tags: Tag[];
   leads: Lead[];
@@ -27,4 +26,5 @@ export interface IntroRuleData {
   rules: Rule[];
   topics: Topic[];
   tags: Tag[];
+  members: any[];
 } 

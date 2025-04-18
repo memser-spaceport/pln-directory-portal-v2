@@ -9,18 +9,41 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import ManageIntroRules from '@/components/page/settings/manage-intro-rules';
 import { getIntroRules, getIntroTags, getIntroTopics } from '@/services/intro-rules.service';
-
+import { getMembersWithRolesForIntroRules } from '@/services/members.service';
+import { IntroRuleData } from '@/types/intro-rules';
 const getPageData = async (authToken: string) => {
   try {
-    const rulesResponse = await getIntroRules(authToken);
-    const topicsResponse = await getIntroTopics(authToken);
-    const tagsResponse = await getIntroTags(authToken);
+    const [rulesResponse, topicsResponse, tagsResponse, membersResponse] = await Promise.all([
+      getIntroRules(authToken),
+      getIntroTopics(authToken),
+      getIntroTags(authToken),
+      getMembersWithRolesForIntroRules()
+    ]);
+
     if (rulesResponse.isError || !rulesResponse.data) {
       return { isError: true, data: [] };
     }
-    return { isError: false, data: { rules: rulesResponse.data, topics: topicsResponse.data, tags: tagsResponse.data } };
+
+    return { 
+      isError: false, 
+      data: { 
+        rules: rulesResponse.data, 
+        topics: topicsResponse.data, 
+        tags: tagsResponse.data,
+        members: membersResponse.data 
+      } 
+    };
   } catch (error) {
-    return { isError: true, data: { rules: [], topics: [], tags: [] } };
+    console.error('Error fetching intro rules data:', error);
+    return { 
+      isError: true, 
+      data: { 
+        rules: [], 
+        topics: [], 
+        tags: [],
+        members: [] 
+      } 
+    };
   }
 };
 
@@ -73,7 +96,7 @@ export default async function IntroRulesPage() {
             />
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageIntroRules data={data} userInfo={userInfo} />
+            <ManageIntroRules data={data as IntroRuleData} userInfo={userInfo} />
           </div>
         </div>
       </div>

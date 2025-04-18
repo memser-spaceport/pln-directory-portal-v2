@@ -12,9 +12,11 @@ export default function LeadItem({ lead, onRemove }: LeadItemProps) {
     <div className="lead-item">
       <div className="lead-item__info">
         <img 
-          src={lead.avatar || '/icons/avatar-placeholder.svg'} 
+          src={lead.avatar || '/icons/default_profile.svg'} 
           alt={lead.name} 
           className="lead-item__avatar" 
+          width={40}
+          height={40}
         />
         <div className="lead-item__details">
           <span className="lead-item__name">{lead.name}</span>
@@ -25,7 +27,7 @@ export default function LeadItem({ lead, onRemove }: LeadItemProps) {
         onClick={() => onRemove(lead.id)} 
         className="lead-item__remove"
       >
-        <img src="/icons/close.svg" alt="remove" width={16} height={16} />
+        <img src="/icons/intro-rules/delete.svg" alt="remove" width={24} height={24} />
       </button>
 
       <style jsx>{`
@@ -33,21 +35,20 @@ export default function LeadItem({ lead, onRemove }: LeadItemProps) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 12px;
-          border: 1px solid #E2E8F0;
-          border-radius: 8px;
+          padding-top: 10px;
+          padding-bottom: 10px;
           background: white;
         }
 
         .lead-item__info {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
         }
 
         .lead-item__avatar {
-          width: 32px;
-          height: 32px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           object-fit: cover;
         }
@@ -59,14 +60,15 @@ export default function LeadItem({ lead, onRemove }: LeadItemProps) {
         }
 
         .lead-item__name {
-          font-size: 14px;
+          font-size: 16px;
           color: #1E293B;
           font-weight: 500;
         }
 
         .lead-item__role {
-          font-size: 12px;
+          font-size: 14px;
           color: #64748B;
+          font-weight: 400;
         }
 
         .lead-item__remove {
@@ -80,9 +82,7 @@ export default function LeadItem({ lead, onRemove }: LeadItemProps) {
           border-radius: 4px;
         }
 
-        .lead-item__remove:hover {
-          background: #F1F5F9;
-        }
+        
       `}</style>
     </div>
   );

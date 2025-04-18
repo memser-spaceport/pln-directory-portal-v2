@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 
 const mockTopics = [
-  { id: '1', name: 'Protocol Labs' },
-  { id: '2', name: 'Filecoin' },
-  { id: '3', name: 'IPFS' },
-  { id: '4', name: 'Libp2p' },
-  { id: '5', name: 'Research' }
+  { uid: '1', name: 'Protocol Labs' },
+  { uid: '2', name: 'Filecoin' },
+  { uid: '3', name: 'IPFS' },
+  { uid: '4', name: 'Libp2p' },
+  { uid: '5', name: 'Research' }
 ];
 
 export async function GET(request: Request) {

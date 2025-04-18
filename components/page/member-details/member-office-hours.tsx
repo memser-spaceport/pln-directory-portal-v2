@@ -35,10 +35,6 @@ const MemberOfficeHours = (props: any) => {
     router.push('/settings/profile');
   }
 
-  const openOfficeHoursWindow = (url: string) => {
-    window.open(url, '_blank');
-  };
-
   const onScheduleMeeting = async () => {
     const isLoggedInUser = userInfo?.uid === member?.id;
     try {
@@ -63,7 +59,9 @@ const MemberOfficeHours = (props: any) => {
         return;
       }
       triggerLoader(false);
-      openOfficeHoursWindow(officeHours);
+      setTimeout(() => {
+        window.open(officeHours, '_blank');
+      });
       const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), "PENDING,CLOSED");
       if (!allFollowups?.error) {
         const result = allFollowups?.data ?? [];

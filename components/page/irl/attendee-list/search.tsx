@@ -1,17 +1,34 @@
-const Search = (props: any) => {
-  const onChange = props?.onChange;
-  const placeholder = props?.placeholder;
-  const searchRef = props?.searchRef
-  const onKeyDown = props?.onKeyDown
+/**
+ * Props for the Search component.
+ */
+export interface SearchProps {
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  placeholder?: string;
+  searchRef?: React.RefObject<HTMLInputElement>;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+}
+
+/**
+ * Search input component with a search button.
+ *
+ * @component
+ * @param {SearchProps} props - The props for the Search component.
+ * @returns {JSX.Element} The rendered search input and button.
+ */
+const Search = (props: SearchProps): JSX.Element => {
+  // Destructure props for clarity
+  const { onChange, placeholder, searchRef, onKeyDown } = props;
 
   return (
     <>
+      {/* Search input and button container */}
       <div className="search">
         <input ref={searchRef} onChange={onChange} className="search__input" placeholder={placeholder} onKeyDown={onKeyDown} />
         <button type="button" className="search__btn">
           <img src="/icons/search.svg" alt="search" width={16} height={16} />
         </button>
       </div>
+      {/* Component styles */}
       <style jsx>{`
         .search {
           width: 100%;

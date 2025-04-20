@@ -9,6 +9,14 @@ import { IAnalyticsGuestLocation, IGuest, IGuestDetails, IIrlEvent } from '@/typ
 import { IUserInfo } from '@/types/shared.types';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
+/**
+ * DeleteAttendeesPopup component allows admins or users to remove attendees from one or more gatherings.
+ * Handles both self-removal and admin-removal flows, including selection logic and confirmation.
+ *
+ * @component
+ * @param {IDeleteAttendeesPopup} props - The props for the component.
+ * @returns {JSX.Element}
+ */
 interface IDeleteAttendeesPopup {
   eventDetails: IGuestDetails;
   location: IAnalyticsGuestLocation;
@@ -20,6 +28,10 @@ interface IDeleteAttendeesPopup {
   getEventDetails: any;
 }
 
+/**
+ * State for selected events per member.
+ * Key is memberUid, value is array of event UIDs.
+ */
 interface ISelectedEvents {
   [key: string]: string[];
 }
@@ -34,12 +46,17 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
   const getEventDetails = props?.getEventDetails;
 
   const selectedGuestIds = type === 'self-delete' ? [userInfo?.uid] : props?.selectedGuests ?? [];
-  const selectedGuests = type === 'self-delete' ? [eventDetails?.currentGuest] : guests?.filter((guest: IGuest) => selectedGuestIds?.includes(guest?.memberUid)) ?? [];
+  const selectedGuests = type === 'self-delete' ? [eventDetails?.currentGuest] : guests?.filter((guest: IGuest) => selectedGuestIds?.includes(guest?.memberUid));
   const setSelectedGuests = props?.setSelectedGuests;
 
   const [selectedEvents, setSelectedEvents] = useState<ISelectedEvents>({});
   const analytics = useIrlAnalytics();
 
+  /**
+   * Handles the deletion of selected guests from gatherings.
+   * Triggers analytics, loader, and toast notifications.
+   * @param {SyntheticEvent} e - The form event.
+   */
   const onDeleteGuests = async (e: SyntheticEvent) => {
     e.preventDefault();
     const toast = (await import('react-toastify')).toast;
@@ -92,13 +109,20 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
     }
   };
 
-  // Handle selecting or deselecting all gatherings for all members
+  /**
+   * Select or deselect all gatherings for all selected members.
+   * @param {boolean} isChecked - Whether to select or deselect all.
+   */
   const handleSelectAllGatherings = (isChecked: boolean) => {
     const updatedEvents = isChecked ? Object.fromEntries(selectedGuests?.map((member: IGuest) => [member?.memberUid, member?.events?.map((g: IIrlEvent) => g?.uid)])) : {};
     setSelectedEvents(updatedEvents);
   };
 
-  // Handle selecting or deselecting all gatherings for an individual member
+  /**
+   * Select or deselect all gatherings for a specific member.
+   * @param {string} memberUid - The member's UID.
+   * @param {boolean} isChecked - Whether to select or deselect all for this member.
+   */
   const handleSelectMemberGatherings = (memberUid: string, isChecked: boolean) => {
     setSelectedEvents((prevSelected: ISelectedEvents) => {
       const updatedGatherings = { ...prevSelected };
@@ -112,7 +136,12 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
     });
   };
 
-  // Handle selecting or deselecting individual gatherings for a member
+  /**
+   * Select or deselect a specific gathering for a member.
+   * @param {string} memberUid - The member's UID.
+   * @param {string} gatheringId - The gathering's UID.
+   * @param {boolean} isChecked - Whether to select or deselect this gathering.
+   */
   const handleSelectGathering = (memberUid: string, gatheringId: string, isChecked: boolean) => {
     setSelectedEvents((prevSelected: ISelectedEvents) => {
       const updated = { ...prevSelected };
@@ -125,21 +154,38 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
     });
   };
 
-  // Utility function to check if all gatherings for a member are selected
+  /**
+   * Check if all gatherings for a member are selected.
+   * @param {string} memberUid - The member's UID.
+   * @returns {boolean}
+   */
   const areAllMemberGatheringsSelected = (memberUid: string) => {
     const memberGatherings = selectedGuests?.find((m: any) => m?.memberUid === memberUid)?.events;
     return selectedEvents[memberUid]?.length === memberGatherings?.length || false;
   };
 
-  // to check if a specific gathering is selected for a member
+  /**
+   * Check if a specific gathering is selected for a member.
+   * @param {string} memberUid - The member's UID.
+   * @param {string} gatheringId - The gathering's UID.
+   * @returns {boolean}
+   */
   const isGatheringSelected = (memberUid: string, gatheringId: string) => selectedEvents[memberUid]?.includes(gatheringId);
 
+  /**
+   * Get the total number of selected gatherings across all members.
+   * @returns {number}
+   */
   const getTotalSelectedEvents = () => {
     return Object.keys(selectedEvents)?.reduce((total, memberUid) => {
       return total + selectedEvents[memberUid]?.length;
     }, 0);
   };
 
+  /**
+   * Get the total number of gatherings across all selected members.
+   * @returns {number}
+   */
   const getTotalEvents = () => {
     return selectedGuests?.reduce((total, guest) => {
       return total + (guest?.events?.length || 0);
@@ -150,13 +196,13 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
 
   return (
     <>
-      <div className="popup">
+      <div className="popup" data-testid="delete-attendees-popup">
         {/* Header */}
         <div className="popup__header">
-          <h3 className="popup__header__title">Remove Attendee from Gathering(s)</h3>
+          <h3 className="popup__header__title" data-testid="popup-header-title">Remove Attendee from Gathering(s)</h3>
           <div className="popup__header__info">
             <img src="/icons/info-red.svg" alt="info" />
-            <span className="popup__header__info__text">
+            <span className="popup__header__info__text" data-testid="popup-header-info-text">
               {type === 'self-delete'
                 ? 'You will be removed from the attendee list if you remove yourself from all gatherings.'
                 : 'Attendees will be removed completely if all gatherings are selected for removal.'}
@@ -170,11 +216,11 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
             <div className="popup__body__select-all">
               <div className="popup__body__select-all__checkbox-wrapper">
                 {allEventsSelected && (
-                  <button onClick={() => handleSelectAllGatherings(false)} className="checkbox--selected">
+                  <button onClick={() => handleSelectAllGatherings(false)} className="checkbox--selected" data-testid="select-all-checkbox-selected">
                     <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
                   </button>
                 )}
-                {!allEventsSelected && <button onClick={() => handleSelectAllGatherings(true)} className="checkbox"></button>}
+                {!allEventsSelected && <button onClick={() => handleSelectAllGatherings(true)} className="checkbox" data-testid="select-all-checkbox"></button>}
               </div>
               <h3 className="popup__body__select-all__title">Check to select all gatherings</h3>
             </div>
@@ -185,7 +231,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
             {selectedGuests?.map((guest: IGuest, index: number) => {
               const events = guest?.events?.filter((event: IIrlEvent) => eventDetails?.events?.some((g: IIrlEvent) => g?.uid === event?.uid));
               return (
-                <div className="popup__member" key={guest?.memberUid}>
+                <div className="popup__member" key={guest?.memberUid} data-testid={`popup-member-${guest?.memberUid}`}>
                   {type === 'admin-delete' && (
                     <div className="popup__member__header">
                       <img height={24} width={24} src={guest.memberLogo || getDefaultAvatar(guest?.memberLogo)} alt={guest.memberName} className="popup__member__header__img" />
@@ -200,11 +246,11 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
                       <div className="popup__member__gatherings__header">
                         <div className="popup__member__gatherings__header__checkbox-wrapper">
                           {areAllMemberGatheringsSelected(guest?.memberUid) && (
-                            <button onClick={() => handleSelectMemberGatherings(guest?.memberUid, false)} className="checkbox--selected">
+                            <button onClick={() => handleSelectMemberGatherings(guest?.memberUid, false)} className="checkbox--selected" data-testid={`member-checkbox-selected-${guest?.memberUid}`}>
                               <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
                             </button>
                           )}
-                          {!areAllMemberGatheringsSelected(guest?.memberUid) && <button onClick={() => handleSelectMemberGatherings(guest?.memberUid, true)} className="checkbox"></button>}
+                          {!areAllMemberGatheringsSelected(guest?.memberUid) && <button onClick={() => handleSelectMemberGatherings(guest?.memberUid, true)} className="checkbox" data-testid={`member-checkbox-${guest?.memberUid}`}></button>}
                         </div>
                         <h3 className="popup__member__gatherings__header__title">Select gathering(s) that you want to remove</h3>
                       </div>
@@ -212,15 +258,15 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
 
                     <div className="popup__member__gatherings__list">
                       {events?.map((event: IIrlEvent) => (
-                        <div key={event?.uid} className="popup__gathering">
+                        <div key={event?.uid} className="popup__gathering" data-testid={`popup-gathering-${guest?.memberUid}-${event?.uid}`}>
                           <div className="popup__gathering__checkbox-wrapper">
                             <>
                               {isGatheringSelected(guest?.memberUid, event?.uid) && (
-                                <button onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, false)} className="checkbox--selected">
+                                <button onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, false)} className="checkbox--selected" data-testid={`gathering-checkbox-selected-${guest?.memberUid}-${event?.uid}`}>
                                   <img height={11} width={11} src="/icons/right-white.svg" alt="checkbox" />
                                 </button>
                               )}
-                              {!isGatheringSelected(guest?.memberUid, event?.uid) && <button className="checkbox" onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, true)}></button>}
+                              {!isGatheringSelected(guest?.memberUid, event?.uid) && <button className="checkbox" onClick={() => handleSelectGathering(guest?.memberUid, event?.uid, true)} data-testid={`gathering-checkbox-${guest?.memberUid}-${event?.uid}`}></button>}
                             </>
                           </div>
 
@@ -249,13 +295,14 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
 
         {/* Footer */}
         <div className="popup__footer">
-          <button onClick={onClose} className="popup__footer__cancel">
+          <button onClick={onClose} className="popup__footer__cancel" data-testid="close-btn">
             Close
           </button>
           <button
             disabled={!Object.keys(selectedEvents).length}
             onClick={onDeleteGuests}
             className={`popup__footer__confirm ${!Object.keys(selectedEvents).length ? 'popup__footer__confirm--disabled' : ''}`}
+            data-testid="confirm-btn"
           >
             Confirm Removal
           </button>

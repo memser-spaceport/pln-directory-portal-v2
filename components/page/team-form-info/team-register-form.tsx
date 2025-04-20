@@ -12,19 +12,28 @@ import { ENROLLMENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { toast } from 'react-toastify';
 import { teamRegisterDefault, transformRawInputsToFormObj } from '@/utils/team.utils';
 import RegisterActions from '@/components/core/register/register-actions';
-import RegisterSuccess from '@/components/core/register/register-success';
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
 import { useRouter } from 'next/navigation';
 import { STEP_INDICATOR_KEY, TEAM_FORM_STEPS } from '@/utils/constants/team-constants';
 
-interface ITeamRegisterForm {
-  // onCloseForm: () => void;
+/**
+ * TeamRegisterForm Component
+ *
+ * This component manages the multi-step registration form for teams, including basic info, project details, and social info.
+ * It handles form validation, step navigation, and submission logic.
+ *
+ * @component
+ * @param {ITeamRegisterFormProps} props - The component props
+ * @returns {JSX.Element} The rendered team registration form
+ */
+interface ITeamRegisterFormProps {
+  /** Callback when registration is successful */
   onSuccess: () => void;
-  userInfo: any;
+  /** User information object (should contain at least email) */
+  userInfo: { email?: string; [key: string]: any };
 }
 
-function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
-  // const onCloseForm = props.onCloseForm;
+function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterFormProps) {
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: TEAM_FORM_STEPS, defaultStep: TEAM_FORM_STEPS[0], uniqueKey: STEP_INDICATOR_KEY });
   const formRef = useRef<HTMLFormElement>(null);
   const [allData, setAllData] = useState({ technologies: [], fundingStage: [], membershipSources: [], industryTags: [], isError: false });
@@ -43,21 +52,25 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
   
   const analytics = useJoinNetworkAnalytics();
 
-  // const scrollToTop = () => {
-  //   if (formContainerRef.current) {
-  //     formContainerRef.current.scrollTop = 0;
-  //   }
-  // };
-
-  // Scrolls the page to the top
+  /**
+   * Scrolls the page to the top (for error visibility)
+   */
   function scrollToTop() {
     document.body.scrollTop = 0;
   }
 
-  const onCloseForm = ()=>{
+  /**
+   * Handles closing the form and navigating to the home page
+   */
+  const onCloseForm = () => {
     router.push('/');
-  }
+  };
 
+  /**
+   * Handles form submission for the last step (social info)
+   * Validates, uploads image if present, and submits the registration request
+   * @param {FormEvent<HTMLFormElement>} e - The form submit event
+   */
   const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formRef.current) {
@@ -77,6 +90,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
         
         try {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
+          // Handle image upload if present
           if (formattedData?.teamProfile && formattedData.teamProfile.size > 0) {
             const imgResponse = await saveRegistrationImage(formattedData?.teamProfile);
             const image: any = imgResponse?.image;
@@ -85,6 +99,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
             delete formattedData.teamProfile;
             delete formattedData.imageFile;
           }
+          // Prepare data for API
           const data = {
             participantType: 'TEAM',
             status: 'PENDING',
@@ -96,7 +111,6 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
           const response = await createParticipantRequest(data);
 
           if (response.ok) {
-            // goToNextStep();
             onSuccess();
             document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
             analytics.recordTeamJoinNetworkSave("save-success", data);
@@ -114,6 +128,12 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
     }
   };
 
+  /**
+   * Validates form data using a Zod schema
+   * @param schema - Zod schema to validate against
+   * @param data - Data to validate
+   * @returns Validation result with success and errors
+   */
   const validateForm = (schema: any, data: any) => {
     const validationResponse = schema.safeParse(data);
     if (!validationResponse.success) {
@@ -123,6 +143,11 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
     return { success: true, errors: [] };
   };
 
+  /**
+   * Validates the basic info step, including async name check and image validation
+   * @param formattedData - Formatted form data
+   * @returns Array of error messages
+   */
   const validateTeamBasicErrors = async (formattedData: any) => {
     const errors = [];
     const validationResponse = validateForm(basicInfoSchema, formattedData);
@@ -148,9 +173,11 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
     }
 
     return errors;
+  };
 
-  }
-
+  /**
+   * Handles the Next button click for step navigation and validation
+   */
   const onNextClicked = async () => {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
@@ -185,12 +212,16 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
     }
   };
 
+  /**
+   * Handles the Back button click for step navigation
+   */
   const onBackClicked = () => {
     goToPreviousStep();
     scrollToTop();
     analytics.recordTeamJoinNetworkBackClick(currentStep);
   };
 
+  // Fetch dropdown/select options on mount
   useEffect(() => {
     getTeamsFormOptions()
       .then((data) => {
@@ -201,6 +232,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
       .catch((e) => console.error(e));
   }, []);
 
+  // Reset form and errors on custom event
   useEffect(() => {
     function resetHandler() {
       if (formRef.current) {
@@ -221,7 +253,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
   return (
     <>
       {(
-        <form className="trf" onSubmit={onFormSubmit} ref={formRef} noValidate>
+        <form className="trf" onSubmit={onFormSubmit} ref={formRef} noValidate data-testid="team-register-form">
           <div ref={formContainerRef} className="trf__form">
             <div className={currentStep !== TEAM_FORM_STEPS[0] ? 'hidden' : 'form'}>
               <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent}/>

@@ -1,11 +1,38 @@
-import { useRef, useState } from 'react';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import useClickedOutside from '@/hooks/useClickedOutside';
 import Toggle from '@/components/ui/toogle';
 import Image from 'next/image';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
-const TeamMemberCard = (props: any) => {
+/**
+ * TeamMemberCard component displays a team member's profile, role, and actions (toggle team lead, remove/undo remove).
+ *
+ * @param {object} props - The component props
+ * @param {TeamMember} props.member - The team member object (profile, name, role, verification, team status, etc.)
+ * @param {(id: string) => void} props.handleTeamLeadToggle - Function to call when toggling team lead status
+ * @param {(id: string) => void} props.handleRemoveMember - Function to call when removing a member
+ * @returns {JSX.Element} The rendered team member card
+ */
+export interface TeamMemberTeams {
+  role: string;
+  teamLead: boolean;
+  status: string;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  profile: string;
+  isVerified: boolean;
+  teams: TeamMemberTeams;
+}
+
+export interface TeamMemberCardProps {
+  member: TeamMember;
+  handleTeamLeadToggle: (id: string) => void;
+  handleRemoveMember: (id: string) => void;
+}
+
+const TeamMemberCard = (props: TeamMemberCardProps) => {
   //props
   const member = props?.member ?? {};
   const handleTeamLeadToggle = props?.handleTeamLeadToggle;
@@ -13,106 +40,91 @@ const TeamMemberCard = (props: any) => {
 
   //variable
   const role = member?.teams?.role;
-  const menuRef = useRef(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  useClickedOutside({ callback: () => setIsMenuOpen(false), ref: menuRef });
-  //methods
-  // const handleMenuOpen = () => {
-  //   setIsMenuOpen(!isMenuOpen);
-  // };
-
-  const handleTeamLeadClick = () => {
-    // setIsMenuOpen(false);
+  // Handler for toggling team lead status
+  const handleTeamLeadClick = (e: React.BaseSyntheticEvent) => {
+    e.preventDefault();
     handleTeamLeadToggle(member.id);
   };
 
+  // Handler for removing a member
   const handleRemoveClick = () => {
     handleRemoveMember(member.id);
   };
 
+  // Derived state for conditional rendering
   const isMemberRemovedChanges = member?.teams?.status === 'Delete';
   const isMemberTeamLeadChanges = member?.teams?.status === 'Update';
 
   return (
     <>
-      <div className={`memberCard ${isMemberRemovedChanges && 'removed'} ${member?.teams?.status == "Add" && "new__member"}`}>
+      <div className={`memberCard ${isMemberRemovedChanges && 'removed'} ${member?.teams?.status == "Add" && "new__member"}`} data-testid="team-member-card">
         <div className="memberCard__profile-details">
           <div className="memberCard__profile-details__profile">
             <div className="memberCard__profile-details__profile-container">
+              {/* Show team lead badge if member is a team lead */}
               {member?.teams?.teamLead && (
                 <Tooltip
                   side="top"
                   asChild
                   trigger={
-                    <div>
+                    <div data-testid="team-lead-badge">
                       <img alt="lead" loading="lazy" className="memberCard__profile-details__profile-container__lead" height={16} width={16} src="/icons/badge/team-lead.svg" />
                     </div>
                   }
                   content={'Team Lead'}
                 />
               )}
-              <img loading="lazy" className="memberCard__profile-details__profile__image" alt="profile" src={member?.profile || getDefaultAvatar(member?.name)} width={40} height={40} />
+              <img loading="lazy" className="memberCard__profile-details__profile__image" alt="profile" src={member?.profile || getDefaultAvatar(member?.name)} width={40} height={40} data-testid="profile-image" />
             </div>
             <div className="memberCard__profile-details__profile__name-role">
-              <Tooltip asChild trigger={<h2 className="memberCard__profile-details__profile__name-role__name">{member?.name}</h2>} content={member?.name} />
-              <Tooltip asChild trigger={<p className="memberCard__profile-details__profile__name-role__role">{role}</p>} content={role} />
+              {/* Show member name and role with tooltips */}
+              <Tooltip asChild trigger={<h2 className="memberCard__profile-details__profile__name-role__name" data-testid="member-name">{member?.name}</h2>} content={member?.name} />
+              <Tooltip asChild trigger={<p className="memberCard__profile-details__profile__name-role__role" data-testid="member-role">{role}</p>} content={role} />
             </div>
           </div>
         </div>
 
-        {/* <div className="memberCard__more" ref={menuRef}>
-          <button type="button" className="memberCard__more__btn" onClick={handleMenuOpen}>
-            <img loading="lazy" alt="goto" src="/icons/menu-dots.svg" height={16} width={16} />
-          </button>
-          {isMenuOpen && (
-            <div className="memberCard__more__menu">
-              <button className="memberCard__more__menu__lead" type="button" onClick={handleTeamLeadClick}>
-                <img src="/icons/upload.svg" alt="Promote" height={16} width={16} />
-                <span>{`${member?.teams?.teamLead ? "Revoke" : "Make"} Team Lead`}</span>
-              </button>
-              <button className="memberCard__more__menu__remove" type="button" onClick={handleRemoveClick}>
-                <img src="/icons/delete-grey-outline.svg" alt="Delete" height={16} width={16} />
-                Remove Member
-              </button>
-            </div>
-          )}
-        </div> */}
+        {/* Action buttons: toggle team lead, remove/undo remove */}
         {!isMemberRemovedChanges ? (
           <div className="memberCard__btn__actions">
-            {member.isVerified == true 
-              ? <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'}`}>
+            {/* Show toggle if member is verified, else show disabled toggle with tooltip */}
+            {member.isVerified 
+              ? <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'}`} data-testid="team-lead-toggle-container">
                  <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>            
-                 <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={member?.teams?.teamLead} />
+                 <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={member?.teams?.teamLead} data-testid="team-lead-toggle" />
                 </div>
               : <Tooltip
                  side="top"
                  asChild
                  trigger={
-                  <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'} ${member?.isVerified ? '' : 'disabled-bg'} `}  >
+                  <div className={`memberCard__btn__actions__team__lead__toggle ${isMemberTeamLeadChanges && 'toggle-changes'} disabled-bg`}  data-testid="team-lead-toggle-container-disabled">
                     <p className="memberCard__btn__actions__team__lead__toggle__label">Team Lead</p>            
-                    <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={false} disabled={true}/>
+                    <Toggle height="16px" width="28px" callback={handleTeamLeadClick} isChecked={false} disabled={true} data-testid="team-lead-toggle-disabled"/>
                    </div>
                  }
                  content={'Member has limited access. Please contact admin'}
                 />
             }
 
-            <button className="memberCard__btn__actions__delete__btn" type="button" onClick={handleRemoveClick}>
+            {/* Remove member button */}
+            <button className="memberCard__btn__actions__delete__btn" type="button" onClick={handleRemoveClick} data-testid="remove-member-btn">
               <Image src="/icons/delete-grey-outline.svg" alt="remove" width={16} height={16} />
               <p className="memberCard__btn__actions__delete__btn__text">Remove</p>
             </button>
           </div>
         ) : (
-          <div className="memberCard__confirm__changes">
+          // Show undo option if member is marked for removal
+          <div className="memberCard__confirm__changes" data-testid="confirm-changes-section">
             <p className="memberCard__confirm__changes__text">Save Changes to confirm remove</p>
-            <button type="button" className="memberCard__confirm__changes__undo" onClick={handleRemoveClick}>
+            <button type="button" className="memberCard__confirm__changes__undo" onClick={handleRemoveClick} data-testid="undo-remove-btn">
               Undo
             </button>
           </div>
         )}
       </div>
 
+      {/* Component styles */}
       <style jsx>
         {`
           .memberCard {

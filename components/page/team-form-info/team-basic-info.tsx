@@ -142,7 +142,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           <div className="teaminfo__form__plnFriend__toggle">
             <input type="checkbox" readOnly checked={isPlnFriend} id="member-info-pln-friend" hidden name="plnFriend" />
             <p className="teaminfo__form__plnFriend__toggle__label">Is your organization, company, or team friends of PL?</p>
-            <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} />
+            <Toggle id="pl-friend" height="16px" width="28px" isChecked={isPlnFriend} callback={onTogglePlnFriend} data-testid="pl-friend-toggle" />
           </div>
         </div>
 

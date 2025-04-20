@@ -1,11 +1,28 @@
 'use client';
 
-function TeamRegisterInfo() {
+/**
+ * TeamRegisterInfo Component
+ *
+ * This component displays the header and description for the team registration form.
+ * It also includes embedded styles for layout and appearance.
+ *
+ * @component
+ * @example
+ * return <TeamRegisterInfo />
+ */
+// TypeScript interface for props (currently empty, for future extensibility)
+export interface TeamRegisterInfoProps {}
+
+// Main functional component for team registration info
+function TeamRegisterInfo(/* props: TeamRegisterInfoProps */) {
   return (
     <>
+      {/* Container for the team registration info section */}
       <div className="tri">
         <div className="tri__head">
+          {/* Title for the section */}
           <h2 className="tri__head__title">Submit a Team</h2>
+          {/* Description for the section */}
           <p className="tri__head__desc">Tell us about your team!</p>
         </div>
       </div>

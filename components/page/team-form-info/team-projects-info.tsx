@@ -27,6 +27,14 @@ interface ITeamProjectsInfo {
   showFocusArea?: boolean;
 }
 
+/**
+ * TeamProjectsInfo component displays and manages the project-related information for a team registration form.
+ * It handles protocols, funding stage, membership sources, industry tags, and optionally focus areas.
+ *
+ * @component
+ * @param {ITeamProjectsInfo} props - The props for the component.
+ * @returns {JSX.Element}
+ */
 const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
   const initialValues = props?.initialValues;
   const protocolOptions = props?.protocolOptions;
@@ -45,12 +53,22 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
 
   const [isFocusAreaModalOpen, setIsFocusAreaModalOpen] = useState(false);
 
+  /**
+   * Adds an item to a state array.
+   * @param setState - The state setter function.
+   * @param itemToAdd - The item to add.
+   */
   const addItem = (setState: React.Dispatch<React.SetStateAction<any[]>>, itemToAdd: any) => {
     setState((prevItems: any[]) => {
       return [...prevItems, itemToAdd];
     });
   };
 
+  /**
+   * Removes an item from a state array.
+   * @param setState - The state setter function.
+   * @param itemToRemove - The item to remove.
+   */
   const removeItem = (setState: React.Dispatch<React.SetStateAction<any[]>>, itemToRemove: any) => {
     setState((prevItems: any[]) => {
       const newItems = prevItems.filter((item) => item.id !== itemToRemove.id);
@@ -58,9 +76,17 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
     });
   };
 
+  /**
+   * Handles changes to the selected focus areas.
+   * @param items - The new focus area items.
+   */
   const onFocusAreaChanged = (items: any[]) => {
     setSelectedFocusAreas([...items])
   }
+
+  /**
+   * Opens the focus area modal dialog.
+   */
   const onEditFocusArea =() => {
     setIsFocusAreaModalOpen(true)
     if (focusAreaDialogRef.current) {
@@ -68,6 +94,10 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
     }
   }
 
+  /**
+   * Closes the focus area modal dialog.
+   * @param e - The event object.
+   */
   const onFocusAreaClose = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
@@ -76,10 +106,18 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
        focusAreaDialogRef.current.close();
     }
   }
+
+  /**
+   * Handles changes to the selected funding stage.
+   * @param item - The selected funding stage item.
+   */
   const onTeamSelectionChanged = (item: any) => {
     setSelectedFundingStage(item);
   };
 
+  /**
+   * Effect to initialize and reset form state
+   */
   useEffect(() => {
     setSelectedProtocols([...initialValues.technologies])
     setSelectedMembershipSources([...initialValues.membershipSources])

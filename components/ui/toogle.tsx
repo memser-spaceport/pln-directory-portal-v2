@@ -17,6 +17,7 @@ interface IToggle {
   callback: (e:BaseSyntheticEvent) => void;
   id? :string
   disabled?: boolean; 
+  'data-testid'?: string;
 }
 
 /**
@@ -33,11 +34,12 @@ const Toggle = (props:IToggle) => {
     const callback = props?.callback;
     const id = props?.id;
     const disabled = props?.disabled;
+    const dataTestId = props?.['data-testid'];
     return (
       <>
         {/* Main toggle label and input */}
         <label className='toogle' style={{ width: width, height: height }}>
-          <input type='checkbox' checked={isChecked} onChange={(e) => callback(e)} id={`${id ? id : ''}`} disabled={disabled}/>
+          <input type='checkbox' checked={isChecked} onChange={(e) => callback(e)} id={`${id ? id : ''}`} disabled={disabled} data-testid={dataTestId}/>
           <span className='toogle__slider toogle__round'></span>
         </label>
   

@@ -538,7 +538,7 @@ const LocationCard = (props: any) => {
           border-radius: 8px 0px 0px 8px;
           width: 200px;
           align-items: center;
-          padding: 4px 4px 4px 17px;
+          padding: 4px 4px 4px 12px;
           width: ${attendee?.length > 0 ? '125px' : '235px'};
           justify-content: center;
           cursor: pointer;
@@ -752,7 +752,7 @@ const LocationCard = (props: any) => {
           box-shadow: 0px 1px 1px 0px #0f172a14;
         }
         .followRoot__followingBtn {
-          padding: 5px;
+          padding: 5px 0 5px 8px;
           background: #ffffff;
           border-radius: 8px 0px 0px 8px;
           display: flex;

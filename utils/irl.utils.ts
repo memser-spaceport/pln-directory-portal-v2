@@ -470,3 +470,8 @@ export function abbreviateString(inputString: string) {
     return words.map((word: any) => word[0].toLowerCase()).join('');
   }
 }
+
+export function formatHtml(html: string) {
+  if (!html) return '';
+  return html.replace(/<[^>]+>/g, '');
+}

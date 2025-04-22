@@ -5,7 +5,7 @@ import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpe
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
   handleHostAndSpeaker(options);
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/filters${options? '?': ''}${options ? new URLSearchParams(options as any) : ''}`, {
+  const response = await fetch(`https://protocol-labs-network-api.herokuapp.com/v1/members/filters${options? '?': ''}${options ? new URLSearchParams(options as any) : ''}`, {
     cache: 'force-cache',
     method: 'GET',
     next: { tags: ['member-filters'] },
@@ -189,7 +189,7 @@ export const findRoleByName = async (params: any) => {
 
 export const getMemberRoles = async (options: IMemberListOptions) => {
   handleHostAndSpeaker(options);
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/roles?${new URLSearchParams(options as any)}`, {
+  const response = await fetch(`https://protocol-labs-network-api.herokuapp.com/v1/members/roles?${new URLSearchParams(options as any)}`, {
     cache: 'force-cache',
     method: 'GET',
     headers: getHeader(''),

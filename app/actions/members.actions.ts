@@ -7,8 +7,9 @@ import { handleHostAndSpeaker } from "@/utils/member.utils";
 export const getMemberListForQuery = async (options: IMemberListOptions, currentPage: number, limit: number, authToken?: string) => {
   
   handleHostAndSpeaker(options);
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}${options ? '&' + new URLSearchParams(options as any) : ''}`, {
-      cache: 'force-cache',
+  console.log(`https://protocol-labs-network-api.herokuapp.com/v1/members?page=${currentPage}&limit=${limit}${options ? '&' + new URLSearchParams(options as any) : ''}`)
+  const response = await fetch(`https://protocol-labs-network-api.herokuapp.com/v1/members?page=${currentPage}&limit=${limit}${options ? '&' + new URLSearchParams(options as any) : ''}`, {
+      cache: 'no-store',
       method: 'GET',
       next: { tags: ['member-list'] },
       headers: getHeader(authToken?? ''),

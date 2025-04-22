@@ -348,7 +348,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
 
         .hec__content__input__logo {
           position: relative;
-          z-index: -1;
+          z-index: -0;
           display: flex;
           align-items: center;
           font-size: 12px;

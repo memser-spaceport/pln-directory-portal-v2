@@ -3,7 +3,7 @@ import React from 'react';
 
 const ChatInput = React.forwardRef<
   HTMLTextAreaElement,
-  React.ComponentProps<'textarea'> & { onSubmit?: () => void; isAnswerLoading?: boolean; isLoadingObject?: boolean; onStopStreaming?: () => void; isLimitReached?: boolean; onTextSubmit?: () => void }
+  React.ComponentProps<'textarea'> & { onSubmit?: any; isAnswerLoading?: boolean; isLoadingObject?: boolean; onStopStreaming?: () => void; isLimitReached?: boolean; onTextSubmit?: any }
 >(({ className, onSubmit, isAnswerLoading, isLoadingObject, onStopStreaming, isLimitReached, onTextSubmit, onChange, ...props }, ref) => {
 
 
@@ -54,7 +54,7 @@ const ChatInput = React.forwardRef<
             <button
               onClick={(e) => {
                 e.preventDefault();
-                onTextSubmit?.();
+                onTextSubmit?.(e);
               }}
               className={`huskyinput__action__submit huskyinput__action__submit--disabled`}
             >
@@ -64,7 +64,7 @@ const ChatInput = React.forwardRef<
             <button
               onClick={(e) => {
                 e.preventDefault();
-                onTextSubmit?.();
+                onTextSubmit?.(e);
               }}
               title="Submit query"
               className="huskyinput__action__submit"

@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import { DAILY_CHAT_LIMIT } from '@/utils/constants';
 import { getParsedValue } from '@/utils/common.utils';
+import HuskyOptions from './husky-options';
 
 const Husky = () => {
   const [limitReached, setLimitReached] = useState<boolean>(false); // daily limit check
 
   const [isShrunk, setIsShrunk] = useState(false); // Track whether header is shrunk
+  const selectedOption = "chat"
 
   const checkIsLimitReached = () => {
     const refreshToken = getParsedValue(Cookies.get('refreshToken'));
@@ -62,6 +64,9 @@ const Husky = () => {
     <>
       <div id="husky-home" className={`husky ${isShrunk ? 'husky--shrunk' : ''}`}>
         {/* Sentinel element to observe */}
+        <div className='husky__options'>
+          <HuskyOptions selectedOption={selectedOption}/>
+        </div>
         <div className="husky__hdr">
           <h3 className="husky__hdr__title">Explore Protocol Labs with Husky, an LLM-powered chatbot</h3>
         </div>
@@ -74,10 +79,10 @@ const Husky = () => {
           height: 100%;
           width: 100%;
           background: linear-gradient(71.47deg, rgba(66, 125, 255, 0.1) 8.43%, rgba(68, 213, 187, 0.1) 87.45%);
-          background-image: url('/images/husky/husky-banner.svg');
+          background-image: url('/images/husky/husky-banner-background.jpg');
           background-repeat: no-repeat;
-          background-position: 50% 15px;
-          background-size: 200px 195px;
+          background-position: top;
+          background-size: cover;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -102,9 +107,8 @@ const Husky = () => {
 
         @media (min-width: 1024px) {
           .husky {
-            background-position: 50% 31px;
-            background-size: 240px 235px;
-            padding: 80px 0px 35px 0px;
+            background-position: top;
+            padding: 60px 0px 35px 0px;
             gap: 36px;
             transition: padding 0.3s ease, gap 0.3s ease;
           }

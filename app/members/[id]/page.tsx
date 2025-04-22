@@ -15,6 +15,7 @@ import MemberProjectContribution from '@/components/page/member-details/member-p
 import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
+import IntrosAiTrigger from '@/components/page/member-details/intros-ai-trigger';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -64,6 +65,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
           </div>
         )}
       </div>
+      <IntrosAiTrigger member={member}/>
       
     </div>
   );

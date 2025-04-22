@@ -31,6 +31,9 @@ export async function middleware(req: NextRequest) {
   const authTokenFromCookie = req?.cookies?.get('authToken');
   const userInfo = req?.cookies?.get('userInfo');
   let isValidAuthToken = false;
+  
+  const pathname = req.nextUrl.pathname;
+  response.headers.set('x-pathname', pathname);
 
   try {
     if (!refreshTokenFromCookie) {

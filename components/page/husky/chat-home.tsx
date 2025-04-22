@@ -8,14 +8,18 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { getChatCount } from '@/utils/husky.utlils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+import HuskyOptions from '../home/husky/husky-options';
+import DiscoverSection from './discover-section';
 
 interface ChatHomeProps {
+  isLoggedIn: boolean;
   onSubmit: (query: string) => void;
   setMessages: (messages: any[]) => void;
   setType: (type: string) => void;
+  selectedOption: string;
 }
 
-const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
+const ChatHome = ({ isLoggedIn, onSubmit, setMessages, setType, selectedOption}: ChatHomeProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [initialPrompts, setInitialPrompts] = useState<any[]>([]);
   const [limitReached, setLimitReached] = useState<boolean>(false); // daily limit check
@@ -114,6 +118,14 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
     <>
       <div className="chat-home">
         <div className="chat-home__header">
+          {isLoggedIn && (
+            <div className="chat-home__header-options">
+              <HuskyOptions selectedOption={selectedOption}/>
+            </div>
+          )}
+
+          <img src="/images/husky/hysky-hexagon-small.svg" width={151} height={149} alt="Husky Logo" className="chat-home__header-options__logo" />
+
           <h3 className="chat-home__title">Explore Protocol Labs with Husky, an LLM-powered chatbot</h3>
         </div>
         <form className="chat-home__form">
@@ -180,33 +192,47 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
             </div>
           )}
         </form>
+        <div className='chat-home__discover'>
+          <DiscoverSection questions={[]} />
+        </div>
       </div>
       <style jsx>{`
         .chat-home {
-          background-image: url('/images/husky/husky-banner.svg');
-          background-size: 235px 230px;
-          background-repeat: no-repeat;
           background-position: center 20px;
           display: flex;
           flex-direction: column;
-          align-items: center;
-          gap: 25px;
           width: 100%;
         }
 
         .chat-home__header {
           display: flex;
+          flex-direction: column;
           justify-content: center;
           align-items: center;
-          padding-top: 54px;
         }
 
+        .chat-home__header-options {
+        margin-top: 30px;
+      }
+
+      .chat-home__header-options__logo {
+      margin-top: 55px;
+      }
         .chat-home__form {
           position: relative;
-          width: calc(100% - 20px);
+          margin: auto;
           display: flex;
           justify-content: center;
+          margin-top: 25px;
         }
+
+        .chat-home__discover {
+        margin: auto;
+        padding-top: 20px;
+          width: calc(100% - 20px);
+          padding-bottom: 80px;
+
+      }
 
         .chat-home__textarea {
           position: relative;
@@ -220,6 +246,8 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
           color: #1e3a8a;
           font-size: 20px;
           line-height: 26px;
+          margin-top: 20px;
+          
         }
 
         .chat-home__prompts {
@@ -306,7 +334,6 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
           .chat-home {
             // height: 400px;
             background-size: 387px 341px;
-            padding-top: 102px;
             background-position: top center;
           }
 
@@ -323,6 +350,10 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
           .chat-home__form {
             width: 602px;
             background-position: center;
+          }
+
+          .chat-home__discover {
+            width: 602px;
           }
 
           .chat-home__error-message {

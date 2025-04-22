@@ -15,7 +15,7 @@
 .home__husky {
   width: 100%;
   position: sticky;
-  top: 8px;
+  top: -50px;
   z-index: 4;
   background: linear-gradient(71.47deg, #E0EAF9 8.43%,  #E0F2F3 87.45%);
 }
@@ -31,7 +31,7 @@
   }
 
   .home__husky {
-    top: -60px;
+    top: -140px;
   }
 }
 

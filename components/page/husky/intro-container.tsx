@@ -1,18 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Chat from './chat';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import ChatHeader from './chat-header';
 import { useRouter } from 'next/navigation';
-
+import { useEffect, useState } from 'react';
+import IntroHeader from './intro/intro-header';
+import Intro from './intro/intro';
+import { INTRO_INITIAL_MESSAGES } from '@/utils/constants';
 interface ChatContainerProps {
   isLoggedIn: boolean;
   userInfo: any;
 }
 
-const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
-  const [initialMessages, setInitialMessages] = useState<any>([]);
+const IntroContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
+  const [initialMessages, setInitialMessages] = useState<any>(INTRO_INITIAL_MESSAGES);
   const [type, setType] = useState<string>('');
   const analytics = useHuskyAnalytics();
   const router = useRouter();
@@ -46,9 +46,9 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   return (
     <>
       <div className="chat-container">
-        {isLoggedIn && <ChatHeader resetChat={resetChat} />}
+        {isLoggedIn && <IntroHeader resetChat={resetChat} />}
         <div className="chat-container__body">
-          <Chat isLoggedIn={isLoggedIn} userInfo={userInfo} initialMessages={initialMessages} setInitialMessages={setInitialMessages} from={type} setType={setType} />
+          <Intro isLoggedIn={isLoggedIn} userInfo={userInfo} initialMessages={initialMessages} />
         </div>
       </div>
       <style jsx>{`
@@ -74,4 +74,4 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   );
 };
 
-export default ChatContainer;
+export default IntroContainer;

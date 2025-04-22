@@ -9,7 +9,7 @@ export const PAGE_ROUTES = {
   ADD_TEAM: '/teams/add',
   SIGNUP: '/sign-up',
   HUSKY: '/husky/chat',
-  INROS_AI: 'husky/intros-ai',
+  INROS_AI: '/husky/intro',
   EVENTS: '/events',
 };
 
@@ -1262,3 +1262,74 @@ export const EVENTS_SUBMIT_FORM_TYPES = {
   ALL: 'all',
 };
 
+export const INTRO_INITIAL_MESSAGES = [
+  {
+    "role": "assistant",
+    "content": "",
+    "toolInvocations": [
+      {
+        "state": "result",
+        "step": 0,
+        "toolCallId": "call_initAssistantWelcome",
+        "toolName": "getInitialOptions",
+        "args": {},
+        "result": {
+          "question": "Hey there! Looking to connect with someone in the network? I can help you find the right person and set up an introduction.",
+          "options": [
+            {
+              "id": "specific_person",
+              "text": "Connect with a specific person",
+              "description": "Search and connect with someone you already have in mind"
+            },
+            {
+              "id": "not_sure",
+              "text": "Yes, but I am not sure whom to connect with",
+              "description": "Get help finding the right person based on your goals"
+            },
+            {
+              "id": "check_status",
+              "text": "Check status on a previous request",
+              "description": "See the progress of a past connection request"
+            }
+          ]
+        }
+      }
+    ],
+    "parts": [
+      {
+        "type": "step-start"
+      },
+      {
+        "type": "tool-invocation",
+        "toolInvocation": {
+          "state": "result",
+          "step": 0,
+          "toolCallId": "call_initAssistantWelcome",
+          "toolName": "getInitialOptions",
+          "args": {},
+          "result": {
+            "question": "Hey there! Looking to connect with someone in the network? I can help you find the right person and set up an introduction.",
+            "options": [
+              {
+                "id": "specific_person",
+                "text": "Connect with a specific person",
+                "description": "Search and connect with someone you already have in mind"
+              },
+              {
+                "id": "not_sure",
+                "text": "Yes, but I am not sure whom to connect with",
+                "description": "Get help finding the right person based on your goals"
+              },
+              {
+                "id": "check_status",
+                "text": "Check status on a previous request",
+                "description": "See the progress of a past connection request"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  
+];

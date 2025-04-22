@@ -385,7 +385,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
     return (
       <>
         <div className="chat__home">
-          <ChatHome onSubmit={onHuskyInput} setMessages={setInitialMessages ?? (() => {})} setType={setType ?? (() => {})} />
+          <ChatHome  isLoggedIn={isLoggedIn} onSubmit={onHuskyInput} setMessages={setInitialMessages ?? (() => {})} setType={setType ?? (() => {})} selectedOption='chat'/>
         </div>
         <style jsx>{`
           .chat__home {
@@ -397,7 +397,6 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
 
           @media (min-width: 768px) {
             .chat__home {
-              padding-top: 12vh;
             }
           }
         `}</style>

@@ -6,6 +6,7 @@ import { parseMemberLocation } from '@/utils/member.utils';
 import MemberSkillList from './member-skill-list';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IMemberGridView {
   member: IMember;
@@ -17,7 +18,6 @@ const Tooltip = dynamic(() => import('@/components/core/tooltip/tooltip').then((
 const MemberGridView = (props: IMemberGridView) => {
   const member = props?.member;
   const isUserLoggedIn = props?.isUserLoggedIn;
-  const profileUrl = member?.profile ?? '/icons/default_profile.svg';
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams
     .filter((team) => team.id !== mainTeam?.id)
@@ -29,6 +29,8 @@ const MemberGridView = (props: IMemberGridView) => {
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
   const isBorder = isTeamLead || isOpenToWork;
+  const defaultAvatarImage = useDefaultAvatar(member?.name);
+  const profileUrl = member?.profile ?? defaultAvatarImage;
 
   return (
     <>

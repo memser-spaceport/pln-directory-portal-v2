@@ -6,6 +6,7 @@ import { Tooltip } from "@/components/core/tooltip/tooltip"
 import { EVENTS } from "@/utils/constants"
 import HostSpeakersList from "../hosts-speakers-list"
 import { useEventsAnalytics } from "@/analytics/events.analytics"
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface MembersListProps {
   members?: any[]
@@ -58,6 +59,8 @@ const MembersList: React.FC<MembersListProps> = ({
         <div className="members-grid mobile-grid">
           {mobileVisibleMembers?.map((member) => {
             const { hostEvents, speakerEvents } = countRoleEvents(member);
+            const defaultAvatar = getDefaultAvatar(member?.member?.name);
+
             return (
               <Tooltip
                 key={`mobile-${member.memberUid}`}
@@ -70,7 +73,7 @@ const MembersList: React.FC<MembersListProps> = ({
                   >
                     <div className="image-container">
                       <Image
-                        src={member.member?.image?.url || '/icons/default-user-profile.svg'}
+                        src={member.member?.image?.url || defaultAvatar}
                         alt={member.member?.name || 'Unknown'}
                         width={34}
                         height={34}
@@ -117,7 +120,7 @@ const MembersList: React.FC<MembersListProps> = ({
                   >
                     <div className="image-container">
                       <Image
-                        src={member.member?.image?.url || '/icons/default-user-profile.svg'}
+                        src={member.member?.image?.url || getDefaultAvatar(member?.member?.name)}
                         alt={member.member?.name || 'Unknown'}
                         width={36}
                         height={36}

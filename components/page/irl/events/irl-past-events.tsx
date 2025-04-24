@@ -14,6 +14,7 @@ import clip from 'text-clipper';
 import { DOMPurify } from 'isomorphic-dompurify';
 import SearchGatherings from './search-gatherings';
 import Image from 'next/image';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface EventDetailsProps {
   eventDetails: {
@@ -233,18 +234,22 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                       <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(selectedEvent?.startDate, selectedEvent?.endDate)}</span>
                       <span className="root__irl__mobileView__top__cnt__eventDate--count">
                         <span className="root__irl__imgsec__images" style={{ paddingLeft: '5px' }}>
-                          {selectedEvent.eventGuests?.slice(0, 3).map((member: any, index: number) => (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <Image
-                              key={index}
-                              style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: '3px' }}
-                              className="root__irl__imgsec__images__img__mob"
-                              src={member?.member?.image?.url || '/icons/default_profile.svg'}
-                              alt="attendee"
-                              height={18}
-                              width={18}
-                            />
-                          ))}
+                          {selectedEvent.eventGuests?.slice(0, 3).map((member: any, index: number) => {
+                            const defaultAvatar = getDefaultAvatar(member?.member?.name);
+
+                            return (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <Image
+                                key={index}
+                                style={{ position: 'relative', zIndex: '0', marginLeft: `-6px`, top: '3px' }}
+                                className="root__irl__imgsec__images__img__mob"
+                                src={member?.member?.image?.url || defaultAvatar}
+                                alt="attendee"
+                                height={18}
+                                width={18}
+                              />
+                            );
+                          })}
                         </span>
                         <span style={{ paddingLeft: '5px' }}>{selectedEvent?.eventGuests?.length}</span>
                       </span>

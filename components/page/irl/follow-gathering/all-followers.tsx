@@ -6,6 +6,7 @@ import { IMember } from '@/types/members.types';
 import { EVENTS } from '@/utils/constants';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IAllFollowers {
   onClose: () => void;
@@ -70,6 +71,8 @@ const AllFollowers = (props: IAllFollowers) => {
           </div>
           <div className="cm__body__followers">
             {filteredFollowers?.map((follower: any, index: number) => {
+              const defaultAvatar = getDefaultAvatar(follower.name);
+
               return (
                 <div key={'follower' + follower?.uid} className={`follower__wrpr ${index !== filteredFollowers.length - 1 ? 'borderb' : ''}`}>
                   <a href={`${process.env.APPLICATION_BASE_URL}/members/${follower.memberUid}`} target="_blank" onClick={() => onFollowerClickHandler(follower)}>
@@ -84,7 +87,7 @@ const AllFollowers = (props: IAllFollowers) => {
                             loading="eager"
                             priority={true}
                             className="follower__info__img"
-                            src={follower.logo || '/icons/default_profile.svg'}
+                            src={follower.logo || defaultAvatar}
                           />
                           {follower?.teamLead && (
                             <>

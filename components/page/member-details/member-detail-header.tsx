@@ -11,6 +11,7 @@ import { parseMemberLocation } from '@/utils/member.utils';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useEffect } from 'react';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -21,7 +22,6 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const member = props?.member;
   const name = member?.name ?? '';
   const isLoggedIn = props?.isLoggedIn;
-  const profile = member?.profile ?? '/icons/default_profile.svg';
   const role = member?.mainTeam?.role || 'Contributor';
   const location = parseMemberLocation(member?.location);
   const isTeamLead = member?.teamLead;
@@ -39,7 +39,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
   const editUrl = isAdmin && !isOwner ? `${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}` : `${PAGE_ROUTES.SETTINGS}/profile`;
-
+  const defaultAvatarImage = useDefaultAvatar(member?.name);
+  const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
 
   const onEditProfileClick = () => {

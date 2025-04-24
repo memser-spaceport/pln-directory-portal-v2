@@ -7,10 +7,12 @@ import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.uti
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { EVENTS } from '@/utils/constants';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 const MemberCard = (props: any) => {
   const member = props?.member;
-  const profileUrl = member?.profile || '/icons/default_profile.svg';
+  const defaultAvatar = useDefaultAvatar(member.name);
+  const profileUrl = member?.profile || defaultAvatar;
 
   const mainTeam = member?.mainTeam;
   const otherTeams = member?.teams

@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { canUserPerformEditAction } from '@/utils/irl.utils';
 import PresenceRequestSuccess from './presence-request-success';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 interface IFollowSectionProps {
   userInfo: any;
   eventLocationSummary: any;
@@ -191,18 +192,22 @@ const FollowSection = (props: IFollowSectionProps) => {
           <div className='root__irl__follcnt__update__web'>Planning to attend? Enroll yourselves & follow to get event updates & reminders.</div>
           <div className={`root__irl__follwcnt__imgsec ${!isShrunk ? 'hideCnt-mob' : 'showCnt'}`}>
             <div onClick={onFollowersClickHandler} className="root__irl__follwcnt__imgsec__images">
-              {followProperties.followers?.slice(0, 3).map((follower: any, index: number) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <Image
-                  key={index}
-                  style={{ position: 'relative', zIndex: `${3 - index}`, marginLeft: `-11px` }}
-                  className="root__irl__follwcnt__imgsec__images__img"
-                  src={follower?.logo || '/icons/default_profile.svg'}
-                  alt="follower"
-                  height={24}
-                  width={24}
-                />
-              ))}
+              {followProperties.followers?.slice(0, 3).map((follower: any, index: number) => {
+                const defaultAvatar = getDefaultAvatar(follower.name);
+
+                return (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <Image
+                    key={index}
+                    style={{ position: 'relative', zIndex: `${3 - index}`, marginLeft: `-11px` }}
+                    className="root__irl__follwcnt__imgsec__images__img"
+                    src={follower?.logo || defaultAvatar}
+                    alt="follower"
+                    height={24}
+                    width={24}
+                  />
+                );
+              })}
             </div>
             <div className="root__irl__follwcnt__imgsec__desccnt">
               <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.followers.length} {followProperties.followers.length > 1 ? "members" : "member"} </span>

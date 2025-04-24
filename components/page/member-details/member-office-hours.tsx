@@ -59,7 +59,9 @@ const MemberOfficeHours = (props: any) => {
         return;
       }
       triggerLoader(false);
-      window.open(officeHours, '_blank');
+      setTimeout(() => {
+        window.open(officeHours, '_blank');
+      });
       const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), "PENDING,CLOSED");
       if (!allFollowups?.error) {
         const result = allFollowups?.data ?? [];

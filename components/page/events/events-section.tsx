@@ -322,7 +322,7 @@ export default function EventsSection({
           
           .carousel-viewport {
             overflow: hidden;
-            width: 100%;
+            width: 98%;
           }
           
           .carousel-container-inner {

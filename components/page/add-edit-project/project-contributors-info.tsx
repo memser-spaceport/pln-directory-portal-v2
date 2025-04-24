@@ -473,7 +473,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
 
           .projectContributorsc__contributors__empty {
           height: 64px;
-          padding: 22px; 20px;
+          padding: 22px;
           border-radius: 8px;
           background-color: white;
           display: flex;

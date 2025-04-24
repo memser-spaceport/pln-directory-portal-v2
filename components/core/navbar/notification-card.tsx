@@ -1,13 +1,15 @@
 import { IFollowUp } from '@/types/officehours.types';
 import { calculateTime } from '@/utils/common.utils';
 import { NOTIFICATION_TYPES } from '@/utils/constants';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface INotification {
   notification: IFollowUp;
 }
 const NotificationCard = (props: INotification) => {
   const notification = props?.notification;
-  const profile = notification?.interaction?.targetMember?.image?.url ?? '/icons/default_profile.svg';
+  const defaultAvatarImage = useDefaultAvatar(notification?.interaction?.targetMember?.name);
+  const profile = notification?.interaction?.targetMember?.image?.url ?? defaultAvatarImage;
 
   const text = getTitle(notification) ?? '';
   const daysAgo = calculateTime(notification?.createdAt);

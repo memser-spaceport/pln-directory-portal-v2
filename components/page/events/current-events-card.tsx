@@ -1,6 +1,7 @@
 "use client"
 
-import { getFormattedDateString } from "@/utils/irl.utils"
+import { getFormattedDateString, formatHtml } from "@/utils/irl.utils"
+import clip from "text-clipper";
 
 export default function CurrentEventCard(props: any) {
  
@@ -11,6 +12,9 @@ export default function CurrentEventCard(props: any) {
   const location = props.eventData.location;
   const startDate = props.eventData.startDate;
   const endDate = props.eventData.endDate;
+
+  const sanitizedDesc = formatHtml(description || '');
+  const clippedDesc = clip(sanitizedDesc, 80, { html: false, maxLines: 2 });
   
   return (
     <div className="current-event-card">
@@ -24,8 +28,8 @@ export default function CurrentEventCard(props: any) {
 
       <div className="event-body-container">
         <div className="event-body">
-          <h2 className="event-title">{name}</h2>
-          <p className="event-description">{description.length > 100 ? `${description.substring(0, 90)}...` : description}</p>
+          <h2 className="event-title">{name.length > 40 ? `${name.substring(0, 40)}...` : name}</h2>
+          <div className="event-description">{clippedDesc}</div>
         </div>
         
         <div className="event-footer">

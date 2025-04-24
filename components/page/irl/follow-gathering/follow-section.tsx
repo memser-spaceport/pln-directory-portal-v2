@@ -543,7 +543,7 @@ const FollowSection = (props: IFollowSectionProps) => {
           .toolbar__actionCn__edit__list {
             position: absolute;
             z-index: 4;
-            width: {}207px;
+            width: 207px;
             background: #fff;
             padding: 8px;
             border-radius: 12px;

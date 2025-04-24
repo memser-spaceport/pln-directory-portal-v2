@@ -813,7 +813,7 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: left;
+            align-items: flex-start;
             border-radius: 12px;
           }
 

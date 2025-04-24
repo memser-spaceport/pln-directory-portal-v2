@@ -3,6 +3,7 @@ import AddTeamMemberDetail from './add-team-member-detail';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 const AddTeamMemberPopUp = (props: any) => {
   const allMembers = props?.allMembers;
@@ -159,7 +160,7 @@ const AddTeamMemberPopUp = (props: any) => {
                         <div className="cpt__cnt__cptr">
                           <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={selectedMembers.some((m: any) => m.id === member.uid)} onChange={() => onCheckBoxChange(member)} />
                           <div className="cpt__cnt__cptr__pflctr">
-                            <img loading="lazy" className="cpt__cnt__cptr__profile" alt="profile" src={member?.profile || '/icons/default-user-profile.svg'} width={40} height={40} />
+                            <img loading="lazy" className="cpt__cnt__cptr__profile" alt="profile" src={member?.profile || getDefaultAvatar(member?.name)} width={40} height={40} />
                             {member?.teamMemberRoles?.some((role: any) => role.teamLead) && (
                               <Tooltip
                                 side="top"

@@ -7,6 +7,7 @@ import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IAllContributorsModal {
   onClose: () => void;
@@ -67,6 +68,8 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
           </div>
           <div className="cm__body__contributors">
             {filteredContriList?.map((contributor: any) => {
+              const defaultAvatar = getDefaultAvatar(contributor?.name);
+
               return (
                 <div
                   className="contributor__wrpr"
@@ -76,7 +79,7 @@ const AllContributorsModal = (props: IAllContributorsModal) => {
                   <div className="contributor">
                     <div className="contributor__info">
                       <div className="contributor__info__imgWrpr">
-                        <Image alt="profile" width={40} height={40} layout='intrinsic' loading='eager' priority={true}  className="contributor__info__img" src={contributor.logo || '/icons/default_profile.svg'}  />
+                        <Image alt="profile" width={40} height={40} layout='intrinsic' loading='eager' priority={true}  className="contributor__info__img" src={contributor.logo || defaultAvatar}  />
                         {contributor?.teamLead && <img src="/icons/badge/team-lead.svg" className="contributor__info__teamlead" alt="team lead image" width={16} height={16} />}
                       </div>
                       <div className="contributor__info__name">{contributor?.name}</div>

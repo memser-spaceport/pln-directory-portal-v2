@@ -1,21 +1,10 @@
 import * as yup from 'yup';
 import { AskCloseReasons, CloseAskForm } from '@/components/core/close-ask-dialog/types';
 
-const optionSchema = yup
-  .object({
-    label: yup.string().required(),
-    value: yup.string().required(),
-  })
-  .nullable()
-  .required('Resolved by is required');
-
-export const closeAskFormSchema: yup.ObjectSchema<CloseAskForm> = yup.object({
+export const closeAskFormSchema = yup.object({
   reason: yup.string().required('Reason is required'),
   resolvedBy: yup
-    .object({
-      label: yup.string().required(),
-      value: yup.string().required(),
-    })
+    .object<CloseAskForm['resolvedBy']>()
     .nullable()
     .when('reason', {
       is: (reason: string) => reason === AskCloseReasons.FULLY_ADDRESSED || reason === AskCloseReasons.PARTIALLY_ADDRESSED,
@@ -23,7 +12,7 @@ export const closeAskFormSchema: yup.ObjectSchema<CloseAskForm> = yup.object({
       otherwise: () => yup.object().nullable(),
     }),
   comments: yup.string(),
-});
+}) as yup.ObjectSchema<CloseAskForm>;
 
 export const closeAskInitialData: CloseAskForm = {
   reason: AskCloseReasons.FULLY_ADDRESSED,

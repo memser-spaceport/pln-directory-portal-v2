@@ -37,7 +37,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     isNotFound,
     officeHoursFlag,
     hasEditAsksAccess,
-    isLoggedInMemberPartOfTeam
+    isLoggedInMemberPartOfTeam,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -75,7 +75,9 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
             <ContactInfo team={team} userInfo={userInfo} />
-            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam}/>}
+            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && (
+              <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam} />
+            )}
           </div>
           {/* Funding */}
           {team?.fundingStage || team?.membershipSources?.length ? (
@@ -164,13 +166,14 @@ async function getPageData(teamId: string) {
         {
           'teamMemberRoles.team.uid': teamId,
           isVerified: 'all',
-          select: 'uid,name,isVerified,image.url,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+          select:
+            'uid,name,isVerified,image.url,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
           pagination: false,
         },
         teamId,
         0,
         0,
-        isLoggedIn
+        isLoggedIn,
       ),
       getFocusAreas('Team', {}),
     ]);
@@ -185,7 +188,7 @@ async function getPageData(teamId: string) {
           pagination: false,
         },
         0,
-        0
+        0,
       );
       if (!allTeams?.error) {
         memberTeams = allTeams?.data?.formattedData ?? [];

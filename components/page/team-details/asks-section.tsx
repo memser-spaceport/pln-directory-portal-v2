@@ -11,12 +11,21 @@ import { toast } from 'react-toastify';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 import { Tooltip } from '../../core/tooltip/tooltip';
+import { CloseAskDialog } from '@/components/core/close-ask-dialog';
 
 interface IAsksSection {
   asks: any[];
   hasEditAsksAccess: boolean;
   team: any;
 }
+
+const initialSelectedAsk = {
+  title: '',
+  description: '',
+  tags: [],
+  uid: '',
+  teamUid: '',
+};
 
 const AsksSection = (props: IAsksSection) => {
   const initialAsks = props?.asks;
@@ -32,13 +41,8 @@ const AsksSection = (props: IAsksSection) => {
   const [type, setType] = useState('Add');
   const [isAddAsk, setIsAddAsk] = useState(false);
   const [allErrors, setAllErrors]: any = useState([]);
-  const [selectedAsk, setSelectedAsk] = useState({
-    title: '',
-    description: '',
-    tags: [],
-    uid: '',
-    teamUid: '',
-  });
+  const [selectedAsk, setSelectedAsk] = useState(initialSelectedAsk);
+  const [showCloseAskDialog, setShowCloseAskDialog] = useState(false);
 
   const onAddAsksClickHandler = () => {
     setIsAddAsk(true);
@@ -96,7 +100,7 @@ const AsksSection = (props: IAsksSection) => {
           },
           body: JSON.stringify(payload),
         },
-        true
+        true,
       );
 
       if (response?.ok) {
@@ -164,6 +168,28 @@ const AsksSection = (props: IAsksSection) => {
     });
   };
 
+  const onCloseAskClickHandler = (ask: any) => {
+    setSelectedAsk((e: any) => {
+      return {
+        title: ask.title,
+        tags: ask.tags,
+        description: ask.description,
+        uid: ask.uid,
+        teamUid: ask.teamUid,
+      };
+    });
+    setShowCloseAskDialog(true);
+
+    // todo - add close ask analytics
+    // analytics.teamDetailEditAskClicked(getAnalyticsTeamInfo(team), {
+    //   title: ask.title,
+    //   tags: ask.tags,
+    //   description: ask.description,
+    //   uid: ask.uid,
+    //   teamUid: ask.teamUid,
+    // });
+  };
+
   const onDeleteClickHandler = async (id: string) => {
     setIsAddAsk(false);
     deleteModalRef.current?.showModal();
@@ -196,7 +222,7 @@ const AsksSection = (props: IAsksSection) => {
           },
           body: JSON.stringify(payload),
         },
-        true
+        true,
       );
       if (response?.ok) {
         analytics.teamDetailDeleteAskConfirmClicked(getAnalyticsTeamInfo(team), { ...payload.ask, teamName: payload.teamName });
@@ -268,9 +294,15 @@ const AsksSection = (props: IAsksSection) => {
                 <div className="asksec__allasks__ask__hdr">
                   <p className="asksec__allasks__ask__hdr__ttl">{ask.title}</p>
                   {hasEditAsksAccess && (
-                    <button onClick={() => onEditAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
-                      Edit
-                    </button>
+                    <div className="aslsec__allasks__ask__hdr__controls">
+                      <button onClick={() => onEditAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
+                        Edit
+                      </button>
+                      <div className="aslsec__allasks__ask__hdr__separator" />
+                      <button onClick={() => onCloseAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
+                        Close
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div className="asksec__allasks__ask__cont" dangerouslySetInnerHTML={{ __html: ask.description }} />
@@ -298,6 +330,15 @@ const AsksSection = (props: IAsksSection) => {
         onClose={onAsksCloseClickHandler}
         onSubmit={onFormSubmitHandler}
         onDeleteClickHandler={onDeleteClickHandler}
+      />
+
+      <CloseAskDialog
+        data={selectedAsk}
+        isVisible={showCloseAskDialog}
+        onClose={() => {
+          setShowCloseAskDialog(false);
+          setSelectedAsk(initialSelectedAsk);
+        }}
       />
 
       <Modal modalRef={deleteModalRef} onClose={onDeleteConfirmationClose}>
@@ -407,6 +448,17 @@ const AsksSection = (props: IAsksSection) => {
             font-size: 14px;
             font-weight: 600;
             line-height: 24px;
+          }
+
+          .aslsec__allasks__ask__hdr__controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+
+          .aslsec__allasks__ask__hdr__separator {
+            height: 16px;
+            border-right: 1px solid #e2e8f0;
           }
 
           .asksec__allasks__ask__hdr__edit {

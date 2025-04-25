@@ -22,20 +22,23 @@ const FocusAreaItem = (props: FocusArea) => {
   const uniqueKey = props?.uniqueKey;
   const router = useRouter();
 
-  const assignedItemsLength = currentItem?.[uniqueKey]?.length;
+  const assignedItemsLength = currentItem?.[uniqueKey]?.length || 0;
   const isChildrensAvailable = hasSelectedItems(currentItem);
   const isSelectedItem = getIsSelectedItem(currentItem);
-  const [isExpand, setIsExpand] = useState((isSelectedItem && isChildrensAvailable) || false);
-
+  const isParent = parents.some((parent) => parent.uid === currentItem.uid);
+  
+  // Initialize isExpand state
+  const [isExpand, setIsExpand] = useState(false);
+  
+  // Update isExpand when dependencies change
   useEffect(() => {
     if (isParent) {
       setIsExpand(true);
     } else {
       setIsExpand(isSelectedItem && isChildrensAvailable);
     }
-  }, [router]);
+  }, [isParent, isSelectedItem, isChildrensAvailable, router]);
 
-  const isParent = parents.some((parent) => parent.uid === currentItem.uid);
   const onCheckboxClickHandler = () => {
     if (isChildrensAvailable) {
       setIsExpand(true);
@@ -95,11 +98,21 @@ const FocusAreaItem = (props: FocusArea) => {
     <>
       <div className="fltitemcon">
         <div className={`fltitemcon__item`}>
-          <button disabled={assignedItemsLength === 0} className={`filtitemcon__item__expbtn ${getStyle()}`} onClick={() => onCheckboxClickHandler()}>
+          <button 
+            disabled={assignedItemsLength === 0} 
+            className={`filtitemcon__item__expbtn ${getStyle()}`} 
+            onClick={() => onCheckboxClickHandler()}
+            data-testid="item-button"
+          >
             {(isParent || isSelectedItem) && <img alt="mode" src={getIcon()} />}
           </button>
           {(isChildrensAvailable || isGrandParent) && (
-            <button disabled={!isChildrensAvailable} className={`filteritemcon__expbtn`} onClick={onExpandClickHandler}>
+            <button 
+              disabled={!isChildrensAvailable} 
+              className={`filteritemcon__expbtn`} 
+              onClick={onExpandClickHandler}
+              data-testid="expand-button"
+            >
               <Image height={16} width={16} alt="expand" src={getExpandIcon()} />
             </button>
           )}

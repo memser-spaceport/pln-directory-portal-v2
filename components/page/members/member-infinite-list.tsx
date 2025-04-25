@@ -21,6 +21,12 @@ const MemberInfiniteList = (props: any) => {
   const analytics = useMemberAnalytics();
   const viewType = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
 
+  useEffect(() => {
+
+    console.log('currentPage', currentPage);
+
+  }, [currentPage]);
+
   const onMemberOnClickHandler = (e: any, member: IMember) => {
     if (!e.ctrlKey) {
       triggerLoader(true);

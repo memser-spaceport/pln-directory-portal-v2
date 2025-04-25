@@ -32,6 +32,12 @@ const MemberInfiniteList = (props: any) => {
     totalCurrentItems: userList?.users?.length,
   });
 
+  useEffect(() => {
+
+    console.log('currentPage', currentPage);
+
+  }, [currentPage]);
+
   const onMemberOnClickHandler = (e: any, member: IMember) => {
     if (!e.ctrlKey) {
       triggerLoader(true);

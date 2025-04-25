@@ -96,7 +96,7 @@ const Happened = (props: IHappened) => {
     }
 
     if (troubles.includes(TROUBLES_INFO.didntHappened.name) && formattedData?.didntHappenedReasons?.length === 0) {
-      tempErrors.push('Please select the reason for Meeting didn’t happen');
+      tempErrors.push("Please select the reason for Meeting didn't happen");
     }
 
     if (troubles.includes(TROUBLES_INFO.technicalIssues.name) && formattedData?.technnicalIssueReasons?.length === 0) {
@@ -240,7 +240,7 @@ const Happened = (props: IHappened) => {
   return (
     <>
       <div className="hpndC">
-        <form noValidate ref={formRef} onSubmit={onFormSubmit}>
+        <form role="form" noValidate ref={formRef} onSubmit={onFormSubmit}>
           <div id='happened-form-con' className="hdndC__formc">
             <div className="hpdnC__titleSec">
               <h2 className="hpdnC__titleSec__ttl">{`How was your recent meeting with ${currentFollowup?.interaction?.targetMember?.name}?`}</h2>

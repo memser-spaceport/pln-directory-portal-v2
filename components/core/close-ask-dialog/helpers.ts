@@ -1,12 +1,35 @@
 import * as yup from 'yup';
-import { AskCloseReasons } from '@/components/core/close-ask-dialog/types';
+import { AskCloseReasons, CloseAskForm } from '@/components/core/close-ask-dialog/types';
 
-export const closeAskFormSchema = yup.object({
+const optionSchema = yup
+  .object({
+    label: yup.string().required(),
+    value: yup.string().required(),
+  })
+  .nullable()
+  .required('Resolved by is required');
+
+export const closeAskFormSchema: yup.ObjectSchema<CloseAskForm> = yup.object({
   reason: yup.string().required('Reason is required'),
-  resolvedBy: yup.string().required('Resolved by is required'),
-  comments: yup.string().required('Required'),
+  resolvedBy: yup
+    .object({
+      label: yup.string().required(),
+      value: yup.string().required(),
+    })
+    .nullable()
+    .when('reason', {
+      is: (reason: string) => reason === AskCloseReasons.FULLY_ADDRESSED || reason === AskCloseReasons.PARTIALLY_ADDRESSED,
+      then: () => yup.object().required('Resolved by is required'),
+      otherwise: () => yup.object().nullable(),
+    }),
+  comments: yup.string(),
 });
 
+export const closeAskInitialData: CloseAskForm = {
+  reason: AskCloseReasons.FULLY_ADDRESSED,
+  resolvedBy: null,
+  comments: '',
+};
 export const REASON_OPTIONS = [
   {
     label: AskCloseReasons.FULLY_ADDRESSED,
@@ -33,3 +56,21 @@ export const REASON_OPTIONS = [
     value: AskCloseReasons.OTHER,
   },
 ];
+
+export function getDependantLabel(reason: string) {
+  switch (reason) {
+    case AskCloseReasons.FULLY_ADDRESSED:
+    case AskCloseReasons.PARTIALLY_ADDRESSED: {
+      return "What's left unresolved?";
+    }
+    case AskCloseReasons.NO_LONGER_NEEDED:
+    case AskCloseReasons.UNADRESSABLE:
+    case AskCloseReasons.DUPLICATE: {
+      return 'Additional information';
+    }
+    case AskCloseReasons.OTHER:
+    default: {
+      return 'Specify other reason(s)';
+    }
+  }
+}

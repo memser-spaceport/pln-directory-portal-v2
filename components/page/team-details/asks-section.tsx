@@ -333,11 +333,20 @@ const AsksSection = (props: IAsksSection) => {
       />
 
       <CloseAskDialog
+        teamName={team.name}
         data={selectedAsk}
         isVisible={showCloseAskDialog}
         onClose={() => {
           setShowCloseAskDialog(false);
           setSelectedAsk(initialSelectedAsk);
+        }}
+        onSuccess={async () => {
+          const teamResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${team.id}`, { cache: 'no-store' });
+
+          if (teamResponse?.ok) {
+            const result = await teamResponse.json();
+            setAllAsks([...result.asks]);
+          }
         }}
       />
 

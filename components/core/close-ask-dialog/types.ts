@@ -1,3 +1,5 @@
+import { Option } from '@/types/shared.types';
+
 export enum AskCloseReasons {
   FULLY_ADDRESSED = 'Fully Addressed',
   PARTIALLY_ADDRESSED = 'Partially Addressed',
@@ -9,6 +11,20 @@ export enum AskCloseReasons {
 
 export type CloseAskForm = {
   reason: string;
-  resolvedBy: string;
-  comments: string;
+  resolvedBy: Option | null;
+  comments?: string;
 };
+
+export interface CloseAskDialogProps {
+  teamName: string;
+  data: {
+    title: string;
+    description: string;
+    tags: string[];
+    uid: string;
+    teamUid: string;
+  };
+  onClose: () => void;
+  isVisible: boolean;
+  onSuccess: () => Promise<void>;
+}

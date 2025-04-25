@@ -33,11 +33,22 @@ interface ManageMembersSettingsProps {
 }
 
 function ManageMembersSettings({ members = [], preferences = {}, selectedMember = {}, viewType = 'profile', userInfo, isVerifiedFlag }: ManageMembersSettingsProps) {
-  const steps = [{ name: 'basic', label:"BASIC" }, { name: 'skills', label:"SKILLS" }, { name: 'contributions', label:"CONTRIBUTIONS" }, { name: 'social', label:"SOCIAL" }];
-  const profileTypeOptions = [{ name: 'profile', label:"Profile" }, { name: 'privacy', label:"Privacy" }];
-  const membersVerificationOptions = [{ name: 'Verified', value: 'true' }, { name: 'Un-Verified', value: 'false' }];
+  const steps = [
+    { name: 'basic', label: 'BASIC' },
+    { name: 'skills', label: 'SKILLS' },
+    { name: 'contributions', label: 'CONTRIBUTIONS' },
+    { name: 'social', label: 'SOCIAL' },
+  ];
+  const profileTypeOptions = [
+    { name: 'profile', label: 'Profile' },
+    { name: 'privacy', label: 'Privacy' },
+  ];
+  const membersVerificationOptions = [
+    { name: 'Verified', value: 'true' },
+    { name: 'Un-Verified', value: 'false' },
+  ];
   const selectedProfileType = { name: viewType, label: viewType?.charAt(0)?.toUpperCase() + viewType?.slice(1) };
-  const [activeTab, setActiveTab] = useState({ name: 'basic', label:"BASIC" });
+  const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
@@ -55,8 +66,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
   const handleTabClick = (v: string) => {
     analytics.recordMemberProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
-    setActiveTab({ name: v , label: v.toUpperCase()})
-  }
+    setActiveTab({ name: v, label: v.toUpperCase() });
+  };
 
   const onMemberChanged = (member: any) => {
     const uid = member?.id;
@@ -82,7 +93,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
   const onVerifiedFlagChange = (item: any) => {
     window.location.href = `/settings/members?viewType=${selectedProfileType.name}&isVerified=${item.value}`;
-  }
+  };
 
   const onResetForm = async (e?: any) => {
     const isSame = onFormChange();
@@ -314,7 +325,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
 
       router.push(`/settings/members?id=${selectedMember.uid}&viewType=${item.name}&isVerified=${isVerifiedFlag}`);
     },
-    [viewType, selectedMember, isVerifiedFlag]
+    [viewType, selectedMember, isVerifiedFlag],
   );
 
   useEffect(() => {
@@ -356,6 +367,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     };
   }, [initialValues, viewType]);
 
+  console.log(members);
+
   return (
     <>
       <div className="ms">
@@ -368,7 +381,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
                 onItemSelect={(item: any) => onVerifiedFlagChange(item)}
                 displayKey="name"
                 options={membersVerificationOptions}
-                selectedOption={membersVerificationOptions.find(v => v.value === isVerifiedFlag)}
+                selectedOption={membersVerificationOptions.find((v) => v.value === isVerifiedFlag)}
                 id="manage-teams-settings-verified"
               />
             </div>
@@ -423,7 +436,7 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           <form noValidate onReset={onResetForm} onSubmit={onFormSubmitted} ref={formRef} className="ms__content">
             <div className="ms__content__cn">
               <div className={`${activeTab.name !== 'basic' ? 'hidden' : ''}`}>
-                <MemberBasicInfo isAdminEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} isVerifiedFlag={isVerifiedFlag}/>
+                <MemberBasicInfo isAdminEdit={true} errors={errors.basicErrors} initialValues={initialValues.basicInfo} isVerifiedFlag={isVerifiedFlag} />
               </div>
               <div className={`${activeTab.name !== 'skills' ? 'hidden' : ''}`}>
                 <MemberSkillsInfo isEdit={true} errors={errors.skillsErrors} initialValues={initialValues.skillsInfo} skillsOptions={allData.skills} teamsOptions={allData.teams} />

@@ -293,7 +293,7 @@ const AsksSection = (props: IAsksSection) => {
               <div key={`${ask.uid}+${index}`} className="asksec__allasks__ask">
                 <div className="asksec__allasks__ask__hdr">
                   <p className="asksec__allasks__ask__hdr__ttl">{ask.title}</p>
-                  {hasEditAsksAccess && (
+                  {hasEditAsksAccess && ask.status !== 'CLOSED' && (
                     <div className="aslsec__allasks__ask__hdr__controls">
                       <button onClick={() => onEditAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
                         Edit

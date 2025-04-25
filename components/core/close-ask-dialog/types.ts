@@ -11,7 +11,7 @@ export enum AskCloseReasons {
 
 export type CloseAskForm = {
   reason: string;
-  resolvedBy: Option | null;
+  resolvedBy: MemberOption | null;
   comments?: string;
 };
 
@@ -28,3 +28,10 @@ export interface CloseAskDialogProps {
   isVisible: boolean;
   onSuccess: () => Promise<void>;
 }
+
+export type MemberOption = {
+  isVerified: boolean;
+  name: string;
+  profile: string;
+  uid: string;
+};

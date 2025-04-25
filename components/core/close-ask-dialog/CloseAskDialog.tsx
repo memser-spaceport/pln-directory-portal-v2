@@ -8,8 +8,7 @@ import TextArea from '@/components/form/text-area';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { closeAskFormSchema, closeAskInitialData, getDependantLabel, REASON_OPTIONS } from '@/components/core/close-ask-dialog/helpers';
 import { useAllMembers } from '@/services/members/hooks/useAllMembers';
-import { AskCloseReasons, CloseAskDialogProps, CloseAskForm } from '@/components/core/close-ask-dialog/types';
-import { Option } from '@/types/shared.types';
+import { AskCloseReasons, CloseAskDialogProps, CloseAskForm, MemberOption } from '@/components/core/close-ask-dialog/types';
 
 import s from './CloseAskDialog.module.css';
 import { useCloseAskMutation } from '@/services/teams/hooks/useCloseAskMutation';
@@ -94,7 +93,7 @@ export const CloseAskDialog: FC<CloseAskDialogProps> = ({ data, onClose, isVisib
                     iconKey="profile"
                     arrowImgUrl="/icons/arrow-down.svg"
                     displayKey="name"
-                    onChange={(selectedOption) => setValue('resolvedBy', selectedOption as Option)}
+                    onChange={(selectedOption) => setValue('resolvedBy', selectedOption as MemberOption)}
                   />
                 )}
                 <TextArea

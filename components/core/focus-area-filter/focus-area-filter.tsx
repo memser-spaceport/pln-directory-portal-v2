@@ -3,7 +3,7 @@ import { IFocusArea } from '@/types/shared.types';
 import { FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import FocusAreaItem from './filter-focus-are-item';
+import FocusAreaItem from './filter-focus-area-item';
 import Image from 'next/image';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';

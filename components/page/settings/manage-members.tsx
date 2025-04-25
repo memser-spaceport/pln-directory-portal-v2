@@ -367,8 +367,6 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
     };
   }, [initialValues, viewType]);
 
-  console.log(members);
-
   return (
     <>
       <div className="ms">

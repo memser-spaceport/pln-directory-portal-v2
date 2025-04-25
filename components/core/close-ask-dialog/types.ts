@@ -1,4 +1,4 @@
-import { Option } from '@/types/shared.types';
+import { ITeam } from '@/types/teams.types';
 
 export enum AskCloseReasons {
   FULLY_ADDRESSED = 'Fully Addressed',
@@ -16,7 +16,7 @@ export type CloseAskForm = {
 };
 
 export interface CloseAskDialogProps {
-  teamName: string;
+  team: ITeam;
   data: {
     title: string;
     description: string;

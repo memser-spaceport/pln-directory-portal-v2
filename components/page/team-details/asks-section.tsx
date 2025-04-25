@@ -179,15 +179,6 @@ const AsksSection = (props: IAsksSection) => {
       };
     });
     setShowCloseAskDialog(true);
-
-    // todo - add close ask analytics
-    // analytics.teamDetailEditAskClicked(getAnalyticsTeamInfo(team), {
-    //   title: ask.title,
-    //   tags: ask.tags,
-    //   description: ask.description,
-    //   uid: ask.uid,
-    //   teamUid: ask.teamUid,
-    // });
   };
 
   const onDeleteClickHandler = async (id: string) => {
@@ -333,7 +324,7 @@ const AsksSection = (props: IAsksSection) => {
       />
 
       <CloseAskDialog
-        teamName={team.name}
+        team={team}
         data={selectedAsk}
         isVisible={showCloseAskDialog}
         onClose={() => {

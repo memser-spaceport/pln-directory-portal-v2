@@ -14,7 +14,7 @@ import s from './CloseAskDialog.module.css';
 import { useCloseAskMutation } from '@/services/teams/hooks/useCloseAskMutation';
 import { triggerLoader } from '@/utils/common.utils';
 
-export const CloseAskDialog: FC<CloseAskDialogProps> = ({ data, onClose, isVisible, onSuccess, teamName }) => {
+export const CloseAskDialog: FC<CloseAskDialogProps> = ({ data, onClose, isVisible, onSuccess, team }) => {
   const [view, setView] = React.useState<'close' | 'confirm'>('close');
   const methods = useForm<CloseAskForm>({
     defaultValues: closeAskInitialData,
@@ -29,7 +29,7 @@ export const CloseAskDialog: FC<CloseAskDialogProps> = ({ data, onClose, isVisib
   } = methods;
   const { reason, resolvedBy, comments } = watch();
   const { data: allMembers } = useAllMembers();
-  const { mutateAsync } = useCloseAskMutation();
+  const { mutateAsync } = useCloseAskMutation(team);
 
   const onSubmit = () => {
     setView('confirm');
@@ -45,7 +45,7 @@ export const CloseAskDialog: FC<CloseAskDialogProps> = ({ data, onClose, isVisib
     triggerLoader(true);
     const res = await mutateAsync({
       teamId: data.teamUid,
-      teamName,
+      teamName: team?.name ?? '',
       uid: data.uid,
       status: 'CLOSED',
       closedReason: reason,

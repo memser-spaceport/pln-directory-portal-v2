@@ -4,6 +4,8 @@ import { customFetch } from '@/utils/fetch-wrapper';
 // import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
+import { ITeam } from '@/types/teams.types';
+import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 
 type CloseAskMutationParams = {
   teamId: string;
@@ -43,14 +45,13 @@ async function mutation({ teamId, uid, teamName, status, closedByUid, closedReas
   }
 }
 
-export function useCloseAskMutation() {
+export function useCloseAskMutation(team: ITeam) {
   const analytics = useTeamAnalytics();
 
   return useMutation({
     mutationFn: mutation,
-    onSuccess: () => {
-      // todo - add analytics
-      // analytics.teamDetailUpdateAskClicked(getAnalyticsTeamInfo(team), payload.ask);
+    onSuccess: (res) => {
+      analytics.teamDetailUpdateAskClicked(getAnalyticsTeamInfo(team), res);
     },
   });
 }

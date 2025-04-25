@@ -30,7 +30,7 @@ const config: Config = {
   silent: true,
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  coverageReporters: ['text', 'json','html'],
+  coverageReporters: ['text', 'json','html', 'lcov'],
   coverageThreshold: {
     global: {
       branches: 25,

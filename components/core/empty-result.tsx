@@ -8,7 +8,7 @@ const EmptyResult = (props: any) => {
   const isLoggedIn = props?.isLoggedIn;
 
   const onClearAllClickHandler = () => {
-    router.push(pathname);
+    router.push(pathname || "/");
   };
 
   

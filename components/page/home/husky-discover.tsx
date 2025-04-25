@@ -17,8 +17,8 @@ function HuskyDiscover(props: any) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const searchParams = useSearchParams();
   const router = useRouter()
-  const modalCode = searchParams.get('showmodal');
-  const huskyShareId = searchParams.get('discoverid');
+  const modalCode = searchParams?.get('showmodal');
+  const huskyShareId = searchParams?.get('discoverid');
   const [slugId, setSlugId] = useState(huskyShareId ?? '');
   const [initialChats, setInitialChats] = useState<any[]>([])
   const [isLoading, setLoadingStatus] = useState(false);

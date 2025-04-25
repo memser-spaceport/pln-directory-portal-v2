@@ -15,7 +15,7 @@ function HuskySidePanel() {
 
   useEffect(() => {
     const exclusions = ['/', '/settings']
-    if(exclusions.includes(pathname)) {
+    if(exclusions.includes(pathname ?? "/")) {
       setAvailability(false)
       setPanelStatus(false)
     } else {

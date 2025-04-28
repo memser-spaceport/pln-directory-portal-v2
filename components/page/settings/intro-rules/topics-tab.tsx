@@ -11,19 +11,12 @@ interface Topic {
 
 interface TopicsTabProps {
   topics: Topic[];
-  onEditTopic: (topicId: string) => void;
-  onAddTopic: () => void;
 }
 
-export default function TopicsTab({ topics, onEditTopic, onAddTopic }: TopicsTabProps) {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+export default function TopicsTab({ topics }: TopicsTabProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTopics, setFilteredTopics] = useState(topics);
 
-  const handleAddTopic = () => {
-    onAddTopic();
-    setIsAddModalOpen(false);
-  };
 
   const handleAddTopicBtnClick = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.ADD_EDIT_TOPIC_MODAL, { detail: { mode: 'add' } }));

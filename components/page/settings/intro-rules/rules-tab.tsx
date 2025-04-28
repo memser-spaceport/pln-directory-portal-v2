@@ -10,16 +10,12 @@ interface RulesTabProps {
   topics: Topic[];
   tags: Tag[];
   members: any[];
-  onEditRule: (ruleId: string) => void;
-  onAddRule: () => void;
 }
 
-export default function RulesTab({ rules, topics, tags, members, onEditRule, onAddRule }: RulesTabProps) {
+export default function RulesTab({ rules, topics, tags, members }: RulesTabProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleAddRule = (data: any) => {
-    onAddRule();
-    
     setIsAddModalOpen(false);
   };
 
@@ -29,8 +25,6 @@ export default function RulesTab({ rules, topics, tags, members, onEditRule, onA
 
 
   const handleEditRule = (rule: Rule) => {
-    //onEditRule(ruleId);
-    //setIsAddModalOpen(true);
     document.dispatchEvent(new CustomEvent(EVENTS.ADD_EDIT_RULE_MODAL, { detail: { mode: 'edit', rule } }));
   };
 

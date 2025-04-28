@@ -40,13 +40,6 @@ export default function ManageIntroRules({ data, userInfo }: ManageIntroRulesPro
     router.push(`?${params.toString()}`);
   };
 
-  const handleAddRule = () => {
-    // Add new rule logic
-  };
-
-  const handleEditRule = (ruleId: string) => {
-    // Edit rule logic
-  };
 
   return (
     <div className="mir">
@@ -82,6 +75,7 @@ export default function ManageIntroRules({ data, userInfo }: ManageIntroRulesPro
             {Object.values(TABS).map((tab) => (
               <button
                 key={tab.id}
+                data-testid="rules-tab"
                 onClick={() => {
                   handleTabChange(tab.id as TabType);
                   setShowMobileDropdown(false);
@@ -102,22 +96,16 @@ export default function ManageIntroRules({ data, userInfo }: ManageIntroRulesPro
             topics={topics}
             tags={tags}
             members={members}
-            onEditRule={handleEditRule}
-            onAddRule={handleAddRule}
           />
         )}
         {activeTab === 'tags' && (
           <TagsTab 
             tags={tags}
-            onEditTag={(id) => console.log('edit tag', id)}
-            onAddTag={() => console.log('add tag')}
           />
         )}
         {activeTab === 'topics' && (
           <TopicsTab 
             topics={topics}
-            onEditTopic={(id) => console.log('edit topic', id)}
-            onAddTopic={() => console.log('add topic')}
           />
         )}
       </div>

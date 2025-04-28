@@ -11,17 +11,12 @@ interface Tag {
 
 interface TagsTabProps {
   tags: Tag[];
-  onEditTag: (tagId: string) => void;
-  onAddTag: () => void;
 }
 
-export default function TagsTab({ tags, onEditTag, onAddTag }: TagsTabProps) {
+export default function TagsTab({ tags }: TagsTabProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTags, setFilteredTags] = useState(tags);
 
-  const handleAddTag = () => {
-    onAddTag();
-  };
 
   useEffect(() => {
     setFilteredTags(tags.filter((tag) => tag.name.toLowerCase().includes(searchQuery.toLowerCase())));

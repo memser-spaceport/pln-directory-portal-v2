@@ -14,6 +14,7 @@ export interface ITeamsSearchParams {
     focusAreas: string;
     isRecent: string;
     isHost: string;
+    isSponsor: string;
     asks?: string;
   }
   

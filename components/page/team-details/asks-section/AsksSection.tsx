@@ -72,14 +72,26 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
 
   const tabData = activeTab === 'Open Asks' ? groupedData.open : groupedData.archived;
 
+  if (isLoading) {
+    return null;
+  }
+
+  if (activeTab === 'Open Asks' && !isLoading && groupedData.open.length === 0) {
+    return (
+      <div className={s.root}>
+        <div className={s.header}>Asks</div>
+        <NoDataView canSubmit={canEdit} team={team} />
+      </div>
+    );
+  }
+
   return (
     <div className={s.root}>
       <div className={s.header}>
         <Tabs variant="secondary" tabs={tabs} activeTab={activeTab} onTabClick={(item) => setActiveTab(item as View)}>
-          <SubmitAskDialog toggleVariant="secondary" />
+          <SubmitAskDialog toggleVariant="secondary" team={team} />
         </Tabs>
       </div>
-      {activeTab === 'Open Asks' && !isLoading && groupedData.open.length === 0 && <NoDataView canSubmit={canEdit} />}
       {tabData.map((item, index) => {
         return <TeamAsksItem key={item.uid} data={item} canEdit={canEdit} />;
       })}

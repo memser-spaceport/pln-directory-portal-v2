@@ -21,7 +21,6 @@ import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
 import { AsksSection } from '@/components/page/team-details/asks-section/AsksSection';
-import OldAsksSection from '@/components/page/team-details/asks-section';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -72,10 +71,6 @@ async function Page({ params }: { params: ITeamDetailParams }) {
               <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />
             </div>
           )}
-
-          <div className={styles.teamDetail__Container__asks}>
-            <OldAsksSection team={team} asks={team.asks} hasEditAsksAccess={hasEditAsksAccess ?? false} />
-          </div>
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>

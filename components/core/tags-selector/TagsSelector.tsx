@@ -34,7 +34,7 @@ export const TagsSelector = () => {
     }
 
     setIsTagsDropdown(true);
-    setFilteredTags((prev: any) => {
+    setFilteredTags(() => {
       return DEFAULT_ASK_TAGS.filter((initialTag: string) => !tags.includes(initialTag));
     });
   };
@@ -62,7 +62,7 @@ export const TagsSelector = () => {
   const onTagsChangeHandler = (e: any) => {
     const inputValue = e.target.value.trim().toLowerCase();
 
-    setFilteredTags((prev: any) => {
+    setFilteredTags(() => {
       const availableTags = DEFAULT_ASK_TAGS.filter((tag: string) => tag.toLowerCase().includes(inputValue));
       return availableTags.filter((tag) => !tags.includes(tag));
     });

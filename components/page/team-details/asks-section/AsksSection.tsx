@@ -79,7 +79,7 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
         </Tabs>
       </div>
       {activeTab === 'Open Asks' && !tabData.length && <NoDataView canSubmit={canEdit} team={team} />}
-      {tabData.map((item, index) => {
+      {tabData.map((item) => {
         return <TeamAsksItem key={item.uid} data={item} canEdit={canEdit} team={team} />;
       })}
     </div>

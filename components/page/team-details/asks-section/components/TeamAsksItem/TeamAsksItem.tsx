@@ -11,7 +11,6 @@ interface Props {
 }
 
 export const TeamAsksItem: FC<Props> = ({ data, canEdit, team }) => {
-  console.log(data);
   return (
     <div className={s.root}>
       <div className={s.header}>

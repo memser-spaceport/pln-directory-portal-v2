@@ -238,6 +238,7 @@ const AsksSection = (props: IAsksSection) => {
       triggerLoader(false);
     }
   };
+
   return (
     <>
       <div className="asksec">

@@ -1,0 +1,8 @@
+.toggleButton {
+    color: #156ff7;
+    background: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    /*line-height: 20px;*/
+    white-space: nowrap;
+}

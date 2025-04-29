@@ -20,7 +20,7 @@ import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
-import AsksSection from '@/components/page/team-details/asks-section';
+import { AsksSection } from '@/components/page/team-details/asks-section/AsksSection';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -62,13 +62,13 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           {/* Asks */}
           {!hasEditAsksAccess && team?.asks.length > 0 && (
             <div className={styles.teamDetail__Container__asks}>
-              <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
+              <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />
             </div>
           )}
 
           {hasEditAsksAccess && (
             <div className={styles.teamDetail__Container__asks}>
-              <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
+              <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />
             </div>
           )}
 

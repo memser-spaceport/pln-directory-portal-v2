@@ -12,6 +12,7 @@ export const closeAskFormSchema = yup.object({
       otherwise: () => yup.object().nullable(),
     }),
   comments: yup.string(),
+  disabled: yup.boolean(),
 }) as yup.ObjectSchema<CloseAskForm>;
 
 export const closeAskInitialData: CloseAskForm = {

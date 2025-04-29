@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { ITeamAsk } from '@/types/teams.types';
+import { ITeam, ITeamAsk } from '@/types/teams.types';
 
 import s from './TeamAsksItem.module.css';
 import { EditAskDialog } from '@/components/core/edit-ask-dialog';
@@ -7,14 +7,20 @@ import { EditAskDialog } from '@/components/core/edit-ask-dialog';
 interface Props {
   data: ITeamAsk;
   canEdit: boolean;
+  team: ITeam;
 }
 
-export const TeamAsksItem: FC<Props> = ({ data, canEdit }) => {
+export const TeamAsksItem: FC<Props> = ({ data, canEdit, team }) => {
+  console.log(data);
   return (
     <div className={s.root}>
       <div className={s.header}>
-        <p className={s.title}>{data.title}</p>
-        {canEdit && <EditAskDialog />}
+        <div className={s.titleWrapper}>
+          <p className={s.title}>{data.title}</p>
+          {data.status === 'CLOSED' && <div className={s.reasonBadge}>{data.closedReason}</div>}
+        </div>
+
+        {canEdit && <EditAskDialog team={team} ask={data} />}
       </div>
       <div className={s.content} dangerouslySetInnerHTML={{ __html: data.description }} />
       <div className={s.tags}>

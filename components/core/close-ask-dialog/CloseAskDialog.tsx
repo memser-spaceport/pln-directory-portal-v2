@@ -2,17 +2,16 @@ import React, { FC } from 'react';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-
 import RadioButton from '@/components/form/radio-button';
 import TextArea from '@/components/form/text-area';
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { closeAskFormSchema, closeAskInitialData, getDependantLabel, REASON_OPTIONS } from '@/components/core/close-ask-dialog/helpers';
 import { useAllMembers } from '@/services/members/hooks/useAllMembers';
 import { AskCloseReasons, CloseAskDialogProps, CloseAskForm, MemberOption } from '@/components/core/close-ask-dialog/types';
-
-import s from './CloseAskDialog.module.css';
 import { useCloseAskMutation } from '@/services/teams/hooks/useCloseAskMutation';
 import { triggerLoader } from '@/utils/common.utils';
+
+import s from './CloseAskDialog.module.css';
 
 export const CloseAskDialog: FC<CloseAskDialogProps> = ({ data, onClose, isVisible, onSuccess, team }) => {
   const [view, setView] = React.useState<'close' | 'confirm'>('close');

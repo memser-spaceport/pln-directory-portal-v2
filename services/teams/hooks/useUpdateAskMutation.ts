@@ -1,27 +1,22 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { customFetch } from '@/utils/fetch-wrapper';
-// import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import { ITeam } from '@/types/teams.types';
+import { ITeam, ITeamAsk } from '@/types/teams.types';
 import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 import { TeamsQueryKeys } from '@/services/teams/constants';
 
-type CloseAskMutationParams = {
+type UpdateAskMutationParams = {
   teamId: string;
   teamName: string;
-  uid: string;
-  status: string;
-  closedReason?: string;
-  closedComment?: string;
-  closedByUid?: string;
+  ask: Partial<ITeamAsk>;
 };
 
-async function mutation({ teamId, uid, teamName, status, closedByUid, closedReason, closedComment }: CloseAskMutationParams) {
+async function mutation({ teamId, teamName, ask }: UpdateAskMutationParams) {
   const { authToken } = getCookiesFromClient();
   const url = `${process.env.DIRECTORY_API_URL}/v1/teams/${teamId}/ask`;
-  const payload = { ask: { uid, status, closedByUid, closedReason, closedComment }, teamName };
+  const payload = { ask, teamName };
 
   const response = await customFetch(
     url,
@@ -37,7 +32,7 @@ async function mutation({ teamId, uid, teamName, status, closedByUid, closedReas
   );
 
   if (response?.ok) {
-    toast.success('Ask closed successfully');
+    toast.success('Ask added successfully');
 
     return await response.json();
   } else {
@@ -46,7 +41,7 @@ async function mutation({ teamId, uid, teamName, status, closedByUid, closedReas
   }
 }
 
-export function useCloseAskMutation(team: ITeam) {
+export function useUpdateAskMutation(team: ITeam) {
   const analytics = useTeamAnalytics();
   const queryClient = useQueryClient();
 
@@ -56,7 +51,7 @@ export function useCloseAskMutation(team: ITeam) {
       queryClient.invalidateQueries({
         queryKey: [TeamsQueryKeys.GET_ASKS],
       });
-      analytics.teamDetailUpdateAskClicked(getAnalyticsTeamInfo(team), res);
+      analytics.teamDetailSubmitAskClicked(getAnalyticsTeamInfo(team), res);
     },
   });
 }

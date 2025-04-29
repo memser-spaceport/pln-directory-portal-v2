@@ -69,6 +69,13 @@ export interface ITeamAsk {
   description: string;
   teamUid: string;
   status: 'OPEN' | 'CLOSED';
+  closedReason?: string;
+  closedComment: string;
+  closedBy?: {
+    name: string;
+    uid: string;
+    image: { url: string };
+  };
 }
 
 export interface ITeam {

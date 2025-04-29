@@ -13,6 +13,7 @@ export type CloseAskForm = {
   reason: string;
   resolvedBy: MemberOption | null;
   comments?: string;
+  disabled?: boolean;
 };
 
 export interface CloseAskDialogProps {

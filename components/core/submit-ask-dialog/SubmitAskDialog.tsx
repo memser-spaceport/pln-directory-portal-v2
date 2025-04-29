@@ -3,12 +3,6 @@ import React, { FC, useState } from 'react';
 import { clsx } from 'clsx';
 import { FormProvider, useForm } from 'react-hook-form';
 import Image from 'next/image';
-import TextField from '@/components/form/text-field';
-import { FormField } from '@/components/form/form-field';
-import TextEditor from '@/components/ui/text-editor';
-import HiddenField from '@/components/form/hidden-field';
-import { TagsSelector } from '@/components/core/tags-selector/TagsSelector';
-
 import { useCreateAskMutation } from '@/services/teams/hooks/useCreateAskMutation';
 import { ITeam } from '@/types/teams.types';
 import { SubmitAskForm } from '@/components/core/submit-ask-dialog/types';
@@ -17,6 +11,7 @@ import { submitAskFormSchema } from '@/components/core/submit-ask-dialog/helpers
 
 import s from './SubmitAskDialog.module.css';
 import { triggerLoader } from '@/utils/common.utils';
+import { AskDetails } from '@/components/core/edit-ask-dialog/components/AskDetails';
 
 interface Props {
   toggleVariant?: 'primary' | 'secondary';
@@ -42,12 +37,9 @@ export const SubmitAskDialog: FC<Props> = ({ toggleVariant = 'primary', toggleTi
 
   const {
     handleSubmit,
-    watch,
-    setValue,
     reset,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting },
   } = methods;
-  const { title, description, tags } = watch();
 
   const onSubmit = async (formData: SubmitAskForm) => {
     if (!team.name) {
@@ -90,42 +82,7 @@ export const SubmitAskDialog: FC<Props> = ({ toggleVariant = 'primary', toggleTi
             <p className={s.description}>{`(${remainingAsks}${remainingAsks > 1 ? '/3 asks' : '/3 asks'} remaining) You can submit up to 3 asks`}</p>
             <FormProvider {...methods}>
               <form noValidate onSubmit={handleSubmit(onSubmit)} className={s.form}>
-                <div className={s.formBody}>
-                  <FormField name="title" footerComponent={<div className={s.charCount}>{`${32 - title.length}/32`}</div>}>
-                    <TextField
-                      isError={!!errors['title']}
-                      onChange={(e) => setValue('title', e.target.value, { shouldValidate: true })}
-                      maxLength={32}
-                      id="add-ask-title"
-                      label="Title*"
-                      value={title}
-                      defaultValue={title}
-                      name="title"
-                      type="text"
-                      placeholder="Enter short title eg. Looking for partnerships"
-                    />
-                  </FormField>
-                  <FormField label="Describe what you need help with*">
-                    <div className="addaskcnt__desc__edtr">
-                      <TextEditor
-                        maxLength={200}
-                        height={165}
-                        isRequired={!!errors['description']}
-                        statusBar={false}
-                        toolbarOptions="bold italic underline strikethrough customLinkButton"
-                        text={description}
-                        setContent={(v) => setValue('description', v, { shouldValidate: true })}
-                        errorMessage={errors['description']?.message ?? ''}
-                        isToolbarSticky={false}
-                      />
-                      <HiddenField value={description.trim()} defaultValue={description} name={`description`} />
-                    </div>
-                  </FormField>
-                  <FormField label="Select Tags*">
-                    <TagsSelector />
-                  </FormField>
-                </div>
-
+                <AskDetails />
                 <div className={s.dialogControls}>
                   <button type="button" className={s.secondaryButton} onClick={onCancel}>
                     Cancel

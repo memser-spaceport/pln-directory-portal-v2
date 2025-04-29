@@ -16,7 +16,7 @@ export const TagsSelector = () => {
     setValue,
     formState: { errors },
   } = useFormContext();
-  const { tags } = watch();
+  const { tags, disabled } = watch();
   const [isTagsDropdown, setIsTagsDropdown] = useState(false);
   const [filteredTags, setFilteredTags] = useState<string[]>([]);
 
@@ -29,6 +29,10 @@ export const TagsSelector = () => {
   }, [isTagsDropdown]);
 
   const onTagSectionClickHandler = () => {
+    if (disabled) {
+      return;
+    }
+
     setIsTagsDropdown(true);
     setFilteredTags((prev: any) => {
       return DEFAULT_ASK_TAGS.filter((initialTag: string) => !tags.includes(initialTag));
@@ -91,7 +95,7 @@ export const TagsSelector = () => {
             {tags?.map((tag: string, index: number) => (
               <div className={s.tag} key={`${tag}+${index}`}>
                 {tag}
-                <button onClick={() => onTagRemoveClickhandler(tag)} className="addaskcnt__tagscnt__tagsandinput__tgs__tag__dlte">
+                <button disabled={disabled} onClick={() => onTagRemoveClickhandler(tag)} className="addaskcnt__tagscnt__tagsandinput__tgs__tag__dlte">
                   <img alt="delete" src="/icons/close-gray.svg" />
                 </button>
                 <HiddenField value={tag ?? ''} defaultValue={tag ?? ''} name={`askTag${index}-name`} />
@@ -99,7 +103,15 @@ export const TagsSelector = () => {
             ))}
           </div>
         )}
-        <input onKeyDown={onTagsKeyDown} ref={tagSearchRef} onChange={onTagsChangeHandler} className={s.tagInput} placeholder={`${tags?.length === 0 ? 'Select tags' : ''}`} type="text" />
+        <input
+          disabled={disabled}
+          onKeyDown={onTagsKeyDown}
+          ref={tagSearchRef}
+          onChange={onTagsChangeHandler}
+          className={s.tagInput}
+          placeholder={`${tags?.length === 0 ? 'Select tags' : ''}`}
+          type="text"
+        />
       </div>
       <FormFieldError name="tags" />
       {isTagsDropdown && (

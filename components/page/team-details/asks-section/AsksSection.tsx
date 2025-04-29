@@ -2,13 +2,11 @@
 
 import React, { FC, useMemo, useState } from 'react';
 import { useTeamAsks } from '@/services/teams/hooks/useTeamAsks';
-import Image from 'next/image';
 
 import s from './AsksSection.module.css';
 import { ITeam, ITeamAsk } from '@/types/teams.types';
 import { Tabs } from '@/components/ui/tabs/Tabs';
 import { SubmitAskDialog } from '@/components/core/submit-ask-dialog';
-import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { NoDataView } from '@/components/page/team-details/asks-section/components/NoDataView';
 import { TeamAsksItem } from '@/components/page/team-details/asks-section/components/TeamAsksItem';
 
@@ -50,18 +48,6 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
       {
         name: 'Open Asks',
         count: groupedData.open.length,
-        endAdornment: (
-          <Tooltip
-            asChild
-            trigger={<Image src="/icons/info.svg" height={16} width={16} alt="Asks Info" />}
-            content={
-              <p style={{ padding: '8px', whiteSpace: 'balance' }}>
-                Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise,
-                networks, or resources to support your project.
-              </p>
-            }
-          />
-        ),
       },
       {
         name: 'Archived Asks',
@@ -76,7 +62,7 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
     return null;
   }
 
-  if (activeTab === 'Open Asks' && !isLoading && groupedData.open.length === 0) {
+  if (activeTab === 'Open Asks' && !isLoading && data?.length === 0) {
     return (
       <div className={s.root}>
         <div className={s.header}>Asks</div>
@@ -92,8 +78,9 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
           <SubmitAskDialog toggleVariant="secondary" team={team} />
         </Tabs>
       </div>
+      {activeTab === 'Open Asks' && !tabData.length && <NoDataView canSubmit={canEdit} team={team} />}
       {tabData.map((item, index) => {
-        return <TeamAsksItem key={item.uid} data={item} canEdit={canEdit} />;
+        return <TeamAsksItem key={item.uid} data={item} canEdit={canEdit} team={team} />;
       })}
     </div>
   );

@@ -17,6 +17,7 @@
         transition: border-bottom 0.3s ease;
         display: flex;
         justify-content: center;
+        align-items: center;
         gap: 5px;
         white-space: nowrap;
 

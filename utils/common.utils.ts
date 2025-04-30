@@ -374,3 +374,7 @@ export function getTelegramUsername(input: string) {
 export const isMobileDevice = () => {
   return /Mobi|Android/i.test(navigator.userAgent);
 };
+
+export const isSkipRecaptcha = () => {
+  return process.env.NEXT_PUBLIC_SKIP_RECAPTCHA_CHECK === 'true'
+}

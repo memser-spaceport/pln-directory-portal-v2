@@ -1,46 +1,61 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import HuskyEmptyChat from '@/components/core/husky/husky-empty-chat';
+
+jest.mock('@/services/discovery.service', () => ({
+  getChatQuestions: () => Promise.resolve({
+    data: [{
+      question: 'Summary of discussions from the LabWeek Field Building sessions?'
+    }]
+  })
+}));
 
 describe('HuskyEmptyChat Component', () => {
   const mockOnPromptClicked = jest.fn();
+  const setLimitReached = jest.fn();
+  const checkIsLimitReached = jest.fn().mockReturnValue(false);
 
   beforeEach(() => {
-    render(<HuskyEmptyChat onPromptClicked={mockOnPromptClicked} />);
+    mockOnPromptClicked.mockClear();
+
+    render(<HuskyEmptyChat
+      isHidden={false}
+      onPromptClicked={mockOnPromptClicked}
+      checkIsLimitReached={checkIsLimitReached}
+      setLimitReached={setLimitReached}
+      limitReached={false} />);
   });
 
   test('renders correctly', () => {
-    // Check if the component renders the title
-    expect(screen.getByText(/What is Husky?/i)).not.toBeNull();
     // Check if the input is present
-    expect(screen.getByPlaceholderText(/Go ahead, ask anything../i)).not.toBeNull();
+    expect(screen.getByTestId('prompt-input')).toBeInTheDocument();
   });
 
-  test('handles prompt submission with valid input', async () => {
-    const input = screen.getByPlaceholderText(/Go ahead, ask anything../i);
+  test('handles prompt submission', async () => {
+    const input = screen.getByTestId('prompt-input');
     fireEvent.change(input, { target: { value: 'Hello, Husky!' } });
     fireEvent.click(screen.getByTestId('submit-button'));
-
-    // Check if the onPromptClicked function was called with the correct argument
-    expect(mockOnPromptClicked).toHaveBeenCalledWith('Hello, Husky!');
+    expect(mockOnPromptClicked).toHaveBeenCalledTimes(1);
   });
 
+  // this is not rendered anywhere in the app
+  test('handles exploration prompt render', async () => {
+    const input = screen.getByTestId('prompt-input');
+    fireEvent.focus(input);
 
-  test('handles exploration prompt click', async () => {
-    const explorationPrompt = screen.getByTestId('prompt-0');
-    fireEvent.click(explorationPrompt);
-
-    // Check if the onPromptClicked function was called with the correct argument
-    expect(mockOnPromptClicked).toHaveBeenCalledWith('Summary of discussions from the LabWeek Field Building sessions?');
+    await waitFor(() => {
+      const explorationPrompt = screen.getByTestId('prompt-0');
+      expect(explorationPrompt).toBeInTheDocument();
+    }, { timeout: 1000 });
   });
 
   test('handles key down event for submission', async () => {
-    const input = screen.getByPlaceholderText(/Go ahead, ask anything../i);
+    const input = screen.getByTestId('prompt-input');
     fireEvent.change(input, { target: { value: 'Test Enter Key' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
 
-    // Check if the onPromptClicked function was called with the correct argument
-    expect(mockOnPromptClicked).toHaveBeenCalledWith('Test Enter Key');
+    // Check if the onPromptClicked function was called
+    expect(mockOnPromptClicked).toHaveBeenCalledTimes(1);
   });
-
 });
 

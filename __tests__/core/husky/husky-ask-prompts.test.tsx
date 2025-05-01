@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import HuskyAskPrompts from '@/components/core/husky/husky-ask-prompts';
-import { getIrlPrompts, getProjectsPrompts, getTeamPrompts } from '@/services/home.service';
+import { getIrlPrompts, getProjectsPrompts, getTeamPrompts } from '@/services/discovery.service';
 
 // Mock the service functions
-jest.mock('@/services/home.service', () => ({
+jest.mock('@/services/discovery.service', () => ({
   getIrlPrompts: jest.fn(),
   getProjectsPrompts: jest.fn(),
   getTeamPrompts: jest.fn(),
@@ -73,7 +73,7 @@ describe('HuskyAskPrompts', () => {
   });
 
   test('displays no results found when no prompts match the search', async () => {
-    window.innerWidth = 1024;
+    // window.innerWidth = 1024;
     (getTeamPrompts as jest.Mock).mockResolvedValue([{ name: 'Team A', logo: '/path/to/logo', relatedQuestions: ['Question 1', 'Question 2'] }]);
     render(<HuskyAskPrompts suggestionTopicSelected="teams" onPromptItemClicked={mockOnPromptItemClicked} />);
 

@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 // Define the props type for the DiscoverCard component
 interface DiscoverCardProps {
   data: {
+    type?: string;
     image: {
       mob: string;
       desktop: string;
@@ -31,12 +32,12 @@ const DiscoverCard = (props: DiscoverCardProps) => {
   const onDiscoverCardClick = () => {
     analytics.onDiscoverCardClicked(data, getAnalyticsUserInfo(userInfo));
     const links = data?.answerSourceLinks?.map((item:any) => item?.link);
-    document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: {...data,answerSourceLinks: links }}));
+    document.dispatchEvent(new CustomEvent('open-husky-discover', { detail: {...data, answerSourceLinks: links }}));
   };
 
   return (
     <>
-      <div data-testid="discover-card" className="discover-card" onClick={onDiscoverCardClick} aria-label={`Discover card for ${data.question}`}>
+      <div data-testid={data.type === 'discoverhusky' ? 'discover-husky-card' : 'discover-card'} className="discover-card" onClick={onDiscoverCardClick} aria-label={`Discover card for ${data.question}`}>
         <div className="discover-card__pattern">
           <picture>
             <source media="(max-width: 1024px)" srcSet={data.image?.mob} />

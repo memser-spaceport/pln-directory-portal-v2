@@ -61,7 +61,7 @@ const Discover = (props: any) => {
                 })}
               </div>}
             </div> */}
-            <div className="discover__body__carousal__cards embla__container">
+            <div className="discover__body__carousal__cards embla__container" data-testid="discover-carousel-cards">
               {slides.map((slide, index) => (
                 <div key={index} className="discover__body__carousal__cards__embla embla__slide">
                   {slide.map((card, slideIndex) => (
@@ -70,7 +70,7 @@ const Discover = (props: any) => {
                 </div>
               ))}
             </div>
-            <div className="discover__body embla__container">
+            <div className="discover__body embla__container" >
               <div className="discover__body__cards embla__slide">
                 {formattedDiscoverData.map((data) => (
                   <Fragment key={`section-one-discover-card-${data.uid}`}>

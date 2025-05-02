@@ -8,13 +8,13 @@ import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/u
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import Link from 'next/link';
 import usePagination from '@/hooks/irl/use-pagination';
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { getMembersListOptions, getMembersOptionsFromQuery } from '@/utils/member.utils';
 import cookies from 'js-cookie';
 import TableLoader from '@/components/core/table-loader';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import useListPagination from '@/hooks/use-list-pagination';
-
+import GridViewLoader from '@/components/core/grid-view-loader';
 const MemberInfiniteList = (props: any) => {
   const members = props?.members ?? [];
   const userInfo = props?.userInfo;
@@ -24,7 +24,7 @@ const MemberInfiniteList = (props: any) => {
   const analytics = useMemberAnalytics();
   const viewType = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
   const [userList, setUserList] = useState<any>({ users: members, totalItems: totalItems });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(members.length < totalItems);
   const observerTarget = useRef<HTMLDivElement>(null);
   const { currentPage, setPagination } = useListPagination({
     observerTargetRef: observerTarget,
@@ -43,23 +43,24 @@ const MemberInfiniteList = (props: any) => {
   const getAllMembers = async () => {
     const toast = (await import('react-toastify')).toast;
     try {
-      // setIsLoading(true);
       const authToken = cookies.get('authToken');
       const optionsFromQuery = getMembersOptionsFromQuery(searchParams);
       const listOptions: IMemberListOptions = getMembersListOptions(optionsFromQuery);
-      const teamsRes = await getMemberListForQuery(listOptions, currentPage, ITEMS_PER_PAGE, authToken);
-      if (teamsRes.isError) {
-        // setIsLoading(false);
+      const memberResponse = await getMemberListForQuery(listOptions, currentPage, ITEMS_PER_PAGE, authToken);
+      if (memberResponse.isError) {
         toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
         return;
       }
-      setUserList((prev: any) => ({ users: [...prev.users, ...teamsRes?.items], totalItems: teamsRes?.total }));
+      if(userList.totalItems + memberResponse.items.length === memberResponse.total) {
+        setIsLoading(false);
+      } else {
+        setIsLoading(true);
+      }
+      setUserList((prev: any) => ({ users: [...prev.users, ...memberResponse?.items], totalItems: memberResponse?.total }));
     } catch (error) {
       console.error('Error in fetching teams', error);
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-      // setIsLoading(false);
     } finally {
-      // setIsLoading(false);
     }
   };
 
@@ -73,9 +74,9 @@ const MemberInfiniteList = (props: any) => {
     }
   }, [currentPage]);
 
-    // Sync team list
-    useEffect(() => {
-    setPagination({ page: 2, limit: ITEMS_PER_PAGE});
+  // Sync team list
+  useEffect(() => {
+    setPagination({ page: 2, limit: ITEMS_PER_PAGE });
     setUserList({ users: members, totalItems: totalItems });
   }, [members]);
 
@@ -87,28 +88,39 @@ const MemberInfiniteList = (props: any) => {
             <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
           </div>
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
-          {[...userList?.users]?.map((member: any, index: number) => (
+            {[...userList?.users]?.map((member: any, index: number) => (
+              <Fragment key={`memberitem-${member?.id}-${index}`}>
                 <Link
                   prefetch={false}
                   href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
                   key={`memberitem-${member?.id}-${index}`}
-                  className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
-                  onClick={(e) => onMemberOnClickHandler(e, member)}
-                  // scroll={false}
-                >
-                  {VIEW_TYPE_OPTIONS.GRID === viewType && <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />}
-                  {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
-                </Link>
-              ))}
-            <div ref={observerTarget} />
+                className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
+                onClick={(e) => onMemberOnClickHandler(e, member)}
+                // scroll={false}
+              >
+                {VIEW_TYPE_OPTIONS.GRID === viewType && <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />}
+                {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
+              </Link>
+              {(isLoading && (index === userList?.users?.length - 1)) && (
+                <>
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <GridViewLoader key={`grid-view-loader-${index}`} />
+                ))}
+                </>
+              )} 
+              </Fragment>
+            ))}
+          
+          <div className="observer-target" ref={observerTarget}></div>
+
           </div>
-          {isLoading && <TableLoader />}
         </div>
       </div>
       <style jsx>{`
         .members-list {
           width: 100%;
           margin-bottom: 10px;
+          position: relative;
         }
 
         .members-list__titlesec {
@@ -160,6 +172,15 @@ const MemberInfiniteList = (props: any) => {
 
         .members-list__list__member {
           margin: 0px 16px;
+        }
+
+        .observer-target {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          pointer-events: none;
         }
 
         @media (min-width: 1024px) {

@@ -12,7 +12,7 @@ import { toast } from 'react-toastify';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 import LoginBtn from './login-btn';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import SignUpBtn from './sign-up';
+import { usePostHog } from 'posthog-js/react';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
@@ -28,6 +28,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   const settingsUrl = '/settings';
 
   const analytics = useCommonAnalytics();
+  const postHogProps = usePostHog();
   const drawerRef = useRef(null);
   const router = useRouter();
 
@@ -57,6 +58,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
     document.dispatchEvent(new CustomEvent('init-privy-logout'));
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
     createLogoutChannel().postMessage('logout');
+    postHogProps.reset();
   };
 
   const handleSubmitTeam = () => {

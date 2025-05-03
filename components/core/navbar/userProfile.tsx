@@ -12,7 +12,7 @@ import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { createLogoutChannel } from '../login/broadcast-channel';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { usePostHog } from 'posthog-js/react';
 
 interface IProfile {
   userInfo: IUserInfo;
@@ -24,6 +24,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
   const router = useRouter();
 
   const analytics = useCommonAnalytics();
+  const postHogProps = usePostHog();
   const userInfo = props?.userInfo;
 
   useClickedOutside({ callback: () => setIsDropdown(false), ref: profileMenuRef });
@@ -39,6 +40,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
     document.dispatchEvent(new CustomEvent('init-privy-logout'));
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
     createLogoutChannel().postMessage('logout');
+    postHogProps.reset();
   };
 
   const onAccountOptionsClickHandler = (name: string) => {

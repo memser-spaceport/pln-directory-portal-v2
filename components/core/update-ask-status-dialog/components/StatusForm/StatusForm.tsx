@@ -31,6 +31,7 @@ export const StatusForm: FC<Props> = ({ team, ask, onClose }) => {
       reason: ask.closedReason ?? AskCloseReasons.ACTIVE,
       disabled: ask.status === 'CLOSED',
     },
+    reValidateMode: 'onChange',
     resolver: yupResolver(closeAskFormSchema),
   });
   const {

@@ -15,26 +15,23 @@ type DeleteAskMutationParams = {
 
 async function mutation({ teamId, ask, teamName }: DeleteAskMutationParams) {
   const { authToken } = getCookiesFromClient();
-  const url = `${process.env.DIRECTORY_API_URL}/v1/teams/${teamId}/ask`;
-  const payload = { ask: { ...ask, isDeleted: true }, teamName };
+  const url = `${process.env.DIRECTORY_API_URL}/v1/asks/${ask.uid}`;
 
   const response = await customFetch(
     url,
     {
-      method: 'PATCH',
+      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`,
       },
-      body: JSON.stringify(payload),
     },
     true,
   );
 
   if (response?.ok) {
     toast.success('Ask deleted successfully');
-
-    return await response.json();
+    return true;
   } else {
     toast.error('Something went wrong!');
     return null;

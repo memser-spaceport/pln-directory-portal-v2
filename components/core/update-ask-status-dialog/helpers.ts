@@ -3,8 +3,19 @@ import { AskCloseReasons, CloseAskForm } from '@/components/core/update-ask-stat
 
 export const closeAskFormSchema = yup.object({
   reason: yup.string().required('Reason is required'),
-  resolvedBy: yup.object<CloseAskForm['resolvedBy']>().nullable(),
-  comments: yup.string(),
+  resolvedBy: yup
+    .object<CloseAskForm['resolvedBy']>()
+    .nullable()
+    .when('reason', {
+      is: (reason: string) => reason === AskCloseReasons.FULLY_ADDRESSED || reason === AskCloseReasons.PARTIALLY_ADDRESSED,
+      then: () => yup.object().required('Required'),
+      otherwise: () => yup.object().nullable(),
+    }),
+  comments: yup.string().when('reason', {
+    is: (reason: string) => reason === AskCloseReasons.ACTIVE,
+    then: () => yup.string(),
+    otherwise: () => yup.string().required('Required'),
+  }),
   disabled: yup.boolean(),
 }) as yup.ObjectSchema<CloseAskForm>;
 

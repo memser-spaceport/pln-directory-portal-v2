@@ -17,13 +17,13 @@ type CreateAskMutationParams = {
 
 async function mutation({ teamId, teamName, title, description, tags }: CreateAskMutationParams) {
   const { authToken } = getCookiesFromClient();
-  const url = `${process.env.DIRECTORY_API_URL}/v1/teams/${teamId}/ask`;
-  const payload = { ask: { title, description, tags }, teamName };
+  const url = `${process.env.DIRECTORY_API_URL}/v1/teams/${teamId}/asks`;
+  const payload = { title, description, tags };
 
   const response = await customFetch(
     url,
     {
-      method: 'PATCH',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`,

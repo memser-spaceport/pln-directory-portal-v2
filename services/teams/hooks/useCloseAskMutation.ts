@@ -20,8 +20,12 @@ type CloseAskMutationParams = {
 
 async function mutation({ teamId, uid, teamName, status, closedByUid, closedReason, closedComment }: CloseAskMutationParams) {
   const { authToken } = getCookiesFromClient();
-  const url = `${process.env.DIRECTORY_API_URL}/v1/teams/${teamId}/ask`;
-  const payload = { ask: { uid, status, closedByUid, closedReason, closedComment }, teamName };
+  const url = `${process.env.DIRECTORY_API_URL}/v1/asks/${uid}/close`;
+  const payload = {
+    closedReason,
+    closedComment,
+    closedByUid,
+  };
 
   const response = await customFetch(
     url,

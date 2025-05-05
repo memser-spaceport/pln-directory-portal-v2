@@ -49,12 +49,12 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
         name: 'Open Asks',
         count: groupedData.open.length,
       },
-      {
+      canEdit && {
         name: 'Archived Asks',
         count: groupedData.archived.length,
       },
-    ];
-  }, [groupedData.archived.length, groupedData.open.length]);
+    ].filter(Boolean) as Array<{ name: string; count: number }>;
+  }, [groupedData.archived.length, groupedData.open.length, canEdit]);
 
   const tabData = activeTab === 'Open Asks' ? groupedData.open : groupedData.archived;
 

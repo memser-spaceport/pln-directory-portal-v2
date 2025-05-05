@@ -15,8 +15,8 @@ type UpdateAskMutationParams = {
 
 async function mutation({ teamId, teamName, ask }: UpdateAskMutationParams) {
   const { authToken } = getCookiesFromClient();
-  const url = `${process.env.DIRECTORY_API_URL}/v1/teams/${teamId}/ask`;
-  const payload = { ask, teamName };
+  const url = `${process.env.DIRECTORY_API_URL}/v1/asks/${ask.uid}`;
+  const payload = { title: ask.title, description: ask.description, tags: ask.tags };
 
   const response = await customFetch(
     url,
@@ -32,7 +32,7 @@ async function mutation({ teamId, teamName, ask }: UpdateAskMutationParams) {
   );
 
   if (response?.ok) {
-    toast.success('Ask added successfully');
+    toast.success('Ask updated successfully');
 
     return await response.json();
   } else {

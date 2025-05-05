@@ -5,6 +5,7 @@ import { createParticipantRequest } from '@/services/participants-request.servic
 import { saveRegistrationImage } from '@/services/registration.service';
 import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/services/sign-up.service';
 import { cookies } from 'next/headers';
+import { isSkipRecaptcha } from '@/utils/common.utils';
 
 /**
  * Handles the sign-up form submission action.
@@ -24,7 +25,7 @@ import { cookies } from 'next/headers';
  *
  * @throws {Error} If an error occurs during the form submission process.
  */
-export async function signUpFormAction(data: any, recaptchaToken: string) {
+export async function signUpFormAction(data: any, recaptchaToken: string | undefined) {
   try {
     // const formData = Object.fromEntries(data.entries());
     // console.log(formData);
@@ -40,16 +41,17 @@ export async function signUpFormAction(data: any, recaptchaToken: string) {
 
     // let formattedObj;
     // formattedObj = formatFormDataToApi(formData,cookiesValue);
+    if (!isSkipRecaptcha()) {
+      if (recaptchaToken) {
+        const isCaptchaVerified = await validateCaptcha(recaptchaToken);
 
-    if (recaptchaToken) {
-      const isCaptchaVerified = await validateCaptcha(recaptchaToken);
-
-      if (isCaptchaVerified && !isCaptchaVerified.success) {
-        console.error(`Captcha verification failed while adding subscriber for user: ${data.email}`);
-        return { success: false, message: 'Captcha verification failed.' };
+        if (isCaptchaVerified && !isCaptchaVerified.success) {
+          console.error(`Captcha verification failed while adding subscriber for user: ${data.email}`);
+          return { success: false, message: 'Captcha verification failed.' };
+        }
+      } else {
+        return { success: false, message: 'Captcha token not found.' };
       }
-    } else {
-      return { success: false, message: 'Captcha token not found.' };
     }
 
     // let errors: any = validateSignUpForm(formattedObj);

@@ -1,11 +1,11 @@
 import React from 'react';
-import s from '@/components/core/submit-ask-dialog/SubmitAskDialog.module.css';
 import { FormField } from '@/components/form/form-field';
 import TextField from '@/components/form/text-field';
 import TextEditor from '@/components/ui/text-editor';
 import HiddenField from '@/components/form/hidden-field';
 import { TagsSelector } from '@/components/core/tags-selector/TagsSelector';
 import { useFormContext } from 'react-hook-form';
+import s from '@/components/core/submit-ask-dialog/SubmitAskDialog.module.css';
 
 export const AskDetails = () => {
   const {

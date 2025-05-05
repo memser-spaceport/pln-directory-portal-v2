@@ -3,6 +3,7 @@ import { ITeam, ITeamAsk } from '@/types/teams.types';
 
 import s from './TeamAsksItem.module.css';
 import { EditAskDialog } from '@/components/core/edit-ask-dialog';
+import { AskActionsMenu } from '@/components/page/team-details/asks-section/components/AskActionsMenu';
 
 interface Props {
   data: ITeamAsk;
@@ -19,7 +20,7 @@ export const TeamAsksItem: FC<Props> = ({ data, canEdit, team }) => {
           {data.status === 'CLOSED' && <div className={s.reasonBadge}>{data.closedReason}</div>}
         </div>
 
-        {canEdit && <EditAskDialog team={team} ask={data} />}
+        {canEdit && data.status !== 'CLOSED' && <AskActionsMenu team={team} ask={data} />}
       </div>
       <div className={s.content} dangerouslySetInnerHTML={{ __html: data.description }} />
       <div className={s.tags}>

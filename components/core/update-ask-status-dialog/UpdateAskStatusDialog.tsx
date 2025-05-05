@@ -2,18 +2,19 @@ import React, { FC } from 'react';
 
 import Image from 'next/image';
 import { ITeam, ITeamAsk } from '@/types/teams.types';
+import { StatusForm } from '@/components/core/update-ask-status-dialog/components/StatusForm';
 
-import s from './EditAskDialog.module.css';
-import { UpdateForm } from '@/components/core/edit-ask-dialog/components/UpdateForm';
+import s from './UpdateAskStatusDialog.module.css';
 
 interface Props {
+  toggleVariant?: 'primary' | 'secondary';
   team: ITeam;
   ask: ITeamAsk;
   onClose: () => void;
   isOpen: boolean;
 }
 
-export const EditAskDialog: FC<Props> = ({ team, ask, onClose, isOpen }) => {
+export const UpdateAskStatusDialog: FC<Props> = ({ toggleVariant = 'primary', team, ask, onClose, isOpen }) => {
   return (
     <>
       {isOpen && (
@@ -22,9 +23,8 @@ export const EditAskDialog: FC<Props> = ({ team, ask, onClose, isOpen }) => {
             <button type="button" className={s.closeButton} onClick={onClose}>
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
-            <h2>Edit your Asks</h2>
-            <p className={s.description}>Share short updates or requests for help, such as hiring needs, fundraising, or partnership opportunities.</p>
-            <UpdateForm team={team} ask={ask} onClose={onClose} />
+            <h2>Update Status</h2>
+            <StatusForm team={team} ask={ask} onClose={onClose} />
           </div>
         </div>
       )}

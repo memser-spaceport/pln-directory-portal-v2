@@ -17,6 +17,7 @@
         font-weight: 500;
         white-space: nowrap;
         border: none;
+        padding-right: 0;
     }
 }
 

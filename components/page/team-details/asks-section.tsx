@@ -11,7 +11,6 @@ import { toast } from 'react-toastify';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 import { Tooltip } from '../../core/tooltip/tooltip';
-import { CloseAskDialog } from '@/components/core/close-ask-dialog';
 
 interface IAsksSection {
   asks: any[];
@@ -42,7 +41,6 @@ const AsksSection = (props: IAsksSection) => {
   const [isAddAsk, setIsAddAsk] = useState(false);
   const [allErrors, setAllErrors]: any = useState([]);
   const [selectedAsk, setSelectedAsk] = useState(initialSelectedAsk);
-  const [showCloseAskDialog, setShowCloseAskDialog] = useState(false);
 
   const onAddAsksClickHandler = () => {
     setIsAddAsk(true);
@@ -168,19 +166,6 @@ const AsksSection = (props: IAsksSection) => {
     });
   };
 
-  const onCloseAskClickHandler = (ask: any) => {
-    setSelectedAsk((e: any) => {
-      return {
-        title: ask.title,
-        tags: ask.tags,
-        description: ask.description,
-        uid: ask.uid,
-        teamUid: ask.teamUid,
-      };
-    });
-    setShowCloseAskDialog(true);
-  };
-
   const onDeleteClickHandler = async (id: string) => {
     setIsAddAsk(false);
     deleteModalRef.current?.showModal();
@@ -290,10 +275,6 @@ const AsksSection = (props: IAsksSection) => {
                       <button onClick={() => onEditAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
                         Edit
                       </button>
-                      <div className="aslsec__allasks__ask__hdr__separator" />
-                      <button onClick={() => onCloseAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
-                        Close
-                      </button>
                     </div>
                   )}
                 </div>
@@ -322,24 +303,6 @@ const AsksSection = (props: IAsksSection) => {
         onClose={onAsksCloseClickHandler}
         onSubmit={onFormSubmitHandler}
         onDeleteClickHandler={onDeleteClickHandler}
-      />
-
-      <CloseAskDialog
-        team={team}
-        data={selectedAsk}
-        isVisible={showCloseAskDialog}
-        onClose={() => {
-          setShowCloseAskDialog(false);
-          setSelectedAsk(initialSelectedAsk);
-        }}
-        onSuccess={async () => {
-          const teamResponse = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${team.id}`, { cache: 'no-store' });
-
-          if (teamResponse?.ok) {
-            const result = await teamResponse.json();
-            setAllAsks([...result.asks]);
-          }
-        }}
       />
 
       <Modal modalRef={deleteModalRef} onClose={onDeleteConfirmationClose}>

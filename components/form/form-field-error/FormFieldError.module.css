@@ -3,6 +3,7 @@
     align-items: center;
 
     .message {
+        font-size: 14px;
         font-weight: 400;
         color: red;
     }

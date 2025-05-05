@@ -67,14 +67,16 @@
         border-bottom: 2px solid #E2E8F0;
 
         .tabsList {
-            margin-bottom: -2px;
+            margin-bottom: -4px;
         }
 
         .tab {
             color: #94A3B8;
             width: fit-content;
+            padding-left: 0;
 
             .text {
+                text-align: left;
                 font-size: 14px;
                 font-weight: 400;
                 text-transform: none;

@@ -97,6 +97,9 @@
 }
 
 .toggleButton {
-    color: #dd2c5a;
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
 }

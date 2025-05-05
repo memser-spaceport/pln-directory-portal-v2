@@ -103,7 +103,6 @@ function PrivyModals() {
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',
     });
-    postHogProps.reset();
     postHogProps.identify(output?.userInfo?.uid, {
       email: output?.userInfo?.email,
       name: output?.userInfo?.name,

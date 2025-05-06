@@ -17,7 +17,16 @@ interface ITagContainer {
   page: string
 }
 
+/**
+ * TagContainer component displays a list of tags with show more/less functionality and access control overlay for private filters.
+ * Handles tag selection, login prompt for private filters, and dynamic rendering of tags.
+ *
+ * @component
+ * @param {ITagContainer} props - The props for TagContainer
+ * @returns {JSX.Element}
+ */
 const TagContainer = (props: ITagContainer) => {
+  // Section: Props and state extraction
   const onTagClickHandler = props?.onTagClickHandler;
   const items = props?.items;
   const keyValue = props?.name;
@@ -28,13 +37,18 @@ const TagContainer = (props: ITagContainer) => {
 
   // const analytics = useCommonAnalytics();
 
+  // Section: Determine if any selected item is beyond the initial visible count
   const isShowMore = items?.some((item: IFilterSelectedItem, index: number) => {
     return item?.selected && index > 9;
   });
 
+  // Section: State for currently visible tags
   const [totalItems, setTotalItems] = useState(isShowMore ? items?.slice(0, items?.length) : items?.slice(0, initialCount));
   const showMoreOrLessCount = items?.length - totalItems?.length;
 
+  /**
+   * Handles show more/less button click to toggle the number of visible tags.
+   */
   const onShoreMoreAndLessClickHandler = () => {
     if (totalItems?.length < items?.length) {
       // analytics.onShowMoreClicked(window?.location?.pathname, label, getAnalyticsUserInfo(userInfo));
@@ -44,10 +58,15 @@ const TagContainer = (props: ITagContainer) => {
     setTotalItems(items?.slice(0, initialCount));
   };
 
+  // Section: Update visible tags when items change
   useEffect(() => {
     setTotalItems(isShowMore ? items?.slice(0, items?.length) : items?.slice(0, initialCount));
   }, [items]);
 
+  /**
+   * Hides the access overlay when mouse leaves the tag container.
+   * @param {string} id - The DOM id of the access container
+   */
   const onMouseLeave = (id: string) => {
     const accessElement = document?.getElementById(id);
     if (accessElement) {
@@ -55,6 +74,10 @@ const TagContainer = (props: ITagContainer) => {
     }
   };
 
+  /**
+   * Shows the access overlay when mouse enters the tag container, if user is not logged in and filter is private.
+   * @param {string} id - The DOM id of the access container
+   */
   const onMouseEnter = (id: string) => {
     const accessElement = document?.getElementById(id);
     if (accessElement && !isUserLoggedIn && PRIVATE_FILTERS.includes(keyValue)) {
@@ -62,6 +85,9 @@ const TagContainer = (props: ITagContainer) => {
     }
   };
 
+  /**
+   * Handles login button click in the access overlay.
+   */
   const onLoginClickHandler = () => {
     // analytics.onLogInClicked(props?.page, "filter section")
     triggerLoader(true);
@@ -70,7 +96,9 @@ const TagContainer = (props: ITagContainer) => {
 
   return (
     <>
+      {/* Tag container with access overlay and tags */}
       <div className="tags-container" onMouseEnter={() => onMouseEnter(`tags-container__access-container${label}`)} onMouseLeave={() => onMouseLeave(`tags-container__access-container${label}`)}>
+        {/* Access overlay for private filters */}
         <div className="tags-container__access-container" id={`tags-container__access-container${label}`}>
           <div className="tags-container__access-container__content">
             <img loading="lazy" alt="lock" src="/icons/lock.svg"/>
@@ -78,6 +106,7 @@ const TagContainer = (props: ITagContainer) => {
         </div>
         <h2 className="tags-container__title">{label}</h2>
         <div className="tags-container__tags">
+          {/* Render each tag */}
           {totalItems?.map((item: IFilterSelectedItem, index: number) => (
             <div key={`${item} + ${index}`}>
               <Tag callback={onTagClickHandler} disabled={item?.disabled} selected={item?.selected} keyValue={keyValue} value={item?.value} variant="secondary" />
@@ -95,6 +124,7 @@ const TagContainer = (props: ITagContainer) => {
           </div>
         )}
       </div>
+      {/* Styles */}
       <style jsx>
         {`
           .tags-container {

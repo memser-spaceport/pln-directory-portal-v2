@@ -1,17 +1,37 @@
 'use client';
 import React, { ReactNode } from 'react';
 
+/**
+ * Represents a single breadcrumb item.
+ * @interface BreadcrumbItem
+ * @property {string} [text] - The display text for the breadcrumb.
+ * @property {string} url - The URL for the breadcrumb link.
+ * @property {string} [icon] - Optional icon URL for the breadcrumb.
+ */
 interface BreadcrumbItem {
   text?: string;
   url: string;
   icon?: string;
 }
 
+/**
+ * Props for the Breadcrumbs component.
+ * @interface BreadcrumbProps
+ * @property {BreadcrumbItem[]} items - The breadcrumb items to display.
+ * @property {any} [LinkComponent] - Optional custom link component (e.g., Next.js Link).
+ */
 interface BreadcrumbProps {
   items: BreadcrumbItem[];
   LinkComponent?: any;
 }
 
+/**
+ * Breadcrumbs is a navigation component that displays a list of links representing the user's navigation path.
+ * Supports custom link components and icons for each breadcrumb.
+ *
+ * @param {BreadcrumbProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered breadcrumbs navigation.
+ */
 const Breadcrumbs: React.FC<BreadcrumbProps> = ({ items, LinkComponent }) => {
   return (
     <>

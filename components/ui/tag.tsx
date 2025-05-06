@@ -1,5 +1,17 @@
 import { SyntheticEvent } from 'react';
 
+/**
+ * Props for the Tag component.
+ * @interface TagProps
+ * @property {boolean} [disabled] - Whether the tag is disabled.
+ * @property {(key: string, value: string, selected: boolean, from?: string) => void} [callback] - Optional click callback.
+ * @property {boolean} [selected] - Whether the tag is selected.
+ * @property {string} value - The tag value (displayed text).
+ * @property {string} [variant] - The tag style variant ('primary', 'secondary', or default).
+ * @property {number} [tagsLength] - The total number of tags (affects style).
+ * @property {string} [keyValue] - The key for the tag (passed to callback).
+ * @property {string} [from] - Optional source identifier (passed to callback).
+ */
 interface TagProps {
   disabled?: boolean;
   callback?: (key: string, value: string, selected: boolean, from?: string) => void;
@@ -11,6 +23,13 @@ interface TagProps {
   from?: string;
 }
 
+/**
+ * Tag is a styled button component for displaying selectable tags.
+ * It supports variants, selection, disabled state, and click callbacks.
+ *
+ * @param {Readonly<TagProps>} props - The props for the tag.
+ * @returns {JSX.Element} The rendered tag button.
+ */
 export function Tag(props: Readonly<TagProps>) {
   // Props
   const selected = props.selected ?? false;
@@ -21,7 +40,7 @@ export function Tag(props: Readonly<TagProps>) {
   const tagsLength = props?.tagsLength ?? 3;
   const keyValue = props?.keyValue ?? '';
   const from = props?.from ?? '';
-
+  
   const getTagStyle = () => {
     if (variant === 'secondary') {
       if (selected) {

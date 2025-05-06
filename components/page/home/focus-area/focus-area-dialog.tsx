@@ -5,24 +5,45 @@ import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo, getAnalyticsFocusAreaInfo } from '@/utils/common.utils';
 import { HOME } from '@/utils/constants';
 
+/**
+ * FocusAreaDialog displays detailed information about a focus area in a modal dialog.
+ * It is triggered by a custom event and supports analytics tracking for user interactions.
+ *
+ * @component
+ * @param {any} props - The props for the component.
+ * @returns {JSX.Element}
+ */
 const FocusAreaDialog = (props: any) => {
+  // Destructure userInfo from props
   const { userInfo } = props;
+  // Ref for the modal dialog
   const focusAreaModalRef = useRef<HTMLDialogElement>(null);
+  // State for the currently displayed focus area
   const [focusArea, setFocusArea] = useState<any>();
+  // Analytics hook
   const analytics = useHomeAnalytics();
   
+  /**
+   * Closes the modal and resets the focus area state.
+   */
   const onClose = () => {
     focusAreaModalRef.current?.close();
     setFocusArea(null);
   };
 
+  // Effect to handle dialog open event
   useEffect(() => {
+    /**
+     * Updates the focus area and opens the modal dialog.
+     * @param {any} focusArea - The focus area to display.
+     */
     async function updateFocusArea(focusArea: any) {
       setFocusArea(focusArea);
       if (focusAreaModalRef?.current) {
         focusAreaModalRef.current.showModal();
       }
     }
+    // Event handler for opening the dialog
     document.addEventListener(HOME.TRIGGER_FOCUS_AREA_DIALOG, (e: any) => {
       updateFocusArea(e?.detail?.focusArea);
     });
@@ -33,6 +54,11 @@ const FocusAreaDialog = (props: any) => {
     };
   }, []);
 
+  /**
+   * Navigates to the teams or projects page for the given focus area and logs analytics.
+   * @param {any} focusArea - The focus area to route to.
+   * @param {string} type - Either 'Team' or 'Project'.
+   */
   const routeTo = (focusArea: any, type: string) => {
     if (type === 'Team') {
       window.open(`/teams?focusAreas=${focusArea.title}`, '_blank');

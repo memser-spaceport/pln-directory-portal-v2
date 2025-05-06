@@ -2,11 +2,24 @@ import { useState, useEffect } from 'react';
 import MonthYearField from './month-year-field';
 // import MonthYearField from './MonthYearField'; // Adjust path based on your project structure
 
+/**
+ * Props for the MonthYearRangeField component.
+ * @interface MonthYearRangeFieldProps
+ * @property {Date} [startDate] - Optional initial start date.
+ * @property {Date} [endDate] - Optional initial end date.
+ */
 interface MonthYearRangeFieldProps {
   startDate?: Date;
   endDate?: Date;
 }
 
+/**
+ * MonthYearRangeField is a component for selecting a start and end month/year range.
+ *
+ * @component
+ * @param {MonthYearRangeFieldProps} props - The props for the component.
+ * @returns {JSX.Element}
+ */
 const MonthYearRangeField: React.FC<MonthYearRangeFieldProps> = ({
   startDate: userStartDate,
   endDate: userEndDate,
@@ -37,11 +50,13 @@ const MonthYearRangeField: React.FC<MonthYearRangeFieldProps> = ({
     }
   }, [userEndDate]);
 
+  // Handler for start date change from child
   const handleStartDateChange = (dateString: string): void => {
     const [year, month] = dateString.split('-').map(Number);
     setStartDate(new Date(year, month - 1));
   };
 
+  // Handler for end date change from child
   const handleEndDateChange = (dateString: string): void => {
     const [year, month] = dateString.split('-').map(Number);
     setEndDate(new Date(year, month - 1));

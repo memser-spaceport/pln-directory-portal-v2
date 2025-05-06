@@ -6,12 +6,18 @@ import Link from 'next/link';
 const SignUpBtn = () => {
   const authAnalytics = useAuthAnalytics();
 
+  /**
+   * Handles sign-up button click event.
+   * - Tracks analytics
+   * - Navigates to sign-up page
+   */
   const onLoginClickHandler = () => {
     authAnalytics.onLoginBtnClicked();
     window.location.href = '/sign-up';
   };
   return (
     <>
+      {/* Sign up button triggers sign-up logic */}
       <div onClick={onLoginClickHandler}>
         <button className="SignUpBtn">Sign up</button>
       </div>

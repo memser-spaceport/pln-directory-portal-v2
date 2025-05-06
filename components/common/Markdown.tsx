@@ -2,6 +2,10 @@ import { FC } from 'react';
 import MarkdownToJSX from 'markdown-to-jsx';
 import HuskyCodeBlock from '../core/husky/husky-code-block';
 
+/**
+ * Props for the Markdown component.
+ * Defines the shape of all accepted props.
+ */
 interface MarkdownProps {
   children: string;
   className?: string;
@@ -13,9 +17,17 @@ const anchorWrapper = (props: any) => (
   </a>
 );
 
+/**
+ * Markdown component renders markdown content as JSX using markdown-to-jsx.
+ * Applies custom styles and overrides for various markdown elements.
+ *
+ * @param {MarkdownProps} props - The props for the Markdown component.
+ * @returns {JSX.Element} The rendered markdown content.
+ */
 export const Markdown: FC<MarkdownProps> = ({ children, className = '' }) => {
   return (
     <div className={className}>
+      {/* Render markdown with custom overrides for elements */}
       <MarkdownToJSX
         options={{
           overrides: {

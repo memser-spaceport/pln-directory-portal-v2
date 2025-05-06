@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ViewType matches snapshot 1`] = `
+<div>
+  <div
+    class="jsx-52b22ea04ef6becf view-option-container"
+  >
+    <button
+      class="jsx-52b22ea04ef6becf view-option-container__grid selected"
+    >
+      <img
+        alt="grid"
+        height="24"
+        loading="lazy"
+        src="/icons/grid-selected.svg"
+        width="24"
+      />
+    </button>
+    <button
+      class="jsx-52b22ea04ef6becf view-option-container__list not-selected"
+    >
+      <img
+        alt="list"
+        height="24"
+        loading="lazy"
+        src="/icons/list-deselect.svg"
+        width="24"
+      />
+    </button>
+  </div>
+</div>
+`;

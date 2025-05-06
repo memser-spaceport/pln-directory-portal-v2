@@ -171,7 +171,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
               <div>
                 <Image loading="lazy" src={addNew?.iconURL ?? '/icons/sign-up/share-with-bg.svg'} alt="add" width={20} height={20} />
               </div>
-              <input type="text" value={inputValue} onChange={handleAddInputChange} className="suggestions__input__field" placeholder={placeHolderText} name="add" />
+              <input type="text" id={id} value={inputValue} onChange={handleAddInputChange} className="suggestions__input__field" placeholder={placeHolderText} name="add" />
               <div className="suggestions__input__close" onClick={onCloseClick}>
                 <Image loading="lazy" src="/icons/close.svg" alt="add" width={16} height={16} />
               </div>
@@ -182,13 +182,14 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
             {!isAddMode && !selectedSuggestion && (
             <input
               type="text"
+              id={id}
               tabIndex={0}
               value={searchInputValue}
               onChange={handleInputChange}
               onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-              }
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
               }}
               className="suggestions__input__field"
               placeholder={placeHolderText}

@@ -35,6 +35,11 @@ const LandingFocusAreas = (props: any) => {
       .on('slideFocus', onScroll)
   }, [mb_emblaApi, onScroll])
 
+  /**
+   * Handles routing to the appropriate page based on focus area type.
+   * @param {IFocusArea} focusArea - The focus area object.
+   * @param {string} type - The type of focus area ('Team' or 'Project').
+   */
   const routeTo = (focusArea: IFocusArea, type: string) => {
     if (type === 'Team') {
       window.open(`/teams?focusAreas=${focusArea.title}`, '_blank');
@@ -55,6 +60,9 @@ const LandingFocusAreas = (props: any) => {
     );
   }
 
+  /**
+   * Handles click event for the Protocol Labs vision URL.
+   */
   const onProtocolVisionUrlClick = () => {
     analytics.onFocusAreaProtocolLabsVisionUrlClicked(protocolVisionUrl, getAnalyticsUserInfo(userInfo));
   };

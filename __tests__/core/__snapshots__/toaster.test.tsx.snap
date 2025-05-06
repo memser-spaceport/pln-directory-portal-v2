@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Toaster matches snapshot for regression safety 1`] = `
+<DocumentFragment>
+  <div
+    bodyclassname="toast__body"
+    class="toast__class"
+    data-testid="mock-toast-container"
+    position="top-right"
+    progressclassname="toast_progress"
+    theme="dark"
+    toastclassname="toast__toaster"
+  />
+</DocumentFragment>
+`;

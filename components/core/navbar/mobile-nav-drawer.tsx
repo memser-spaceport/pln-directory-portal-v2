@@ -1,3 +1,13 @@
+/**
+ * MobileNavDrawer component renders the mobile navigation drawer with menu, support, and user actions.
+ *
+ * - Handles navigation, analytics, and logout
+ * - Renders menu options, support/settings, and login/logout
+ *
+ * @component
+ * @param {IMobileNavDrawer} props - Component props
+ * @returns {JSX.Element}
+ */
 import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -15,12 +25,24 @@ import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { usePostHog } from 'posthog-js/react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
+/**
+ * Props for MobileNavDrawer component.
+ * @interface IMobileNavDrawer
+ * @property {IUserInfo} userInfo - User info object
+ * @property {boolean} isLoggedIn - Whether the user is logged in
+ * @property {() => void} onNavMenuClick - Callback for closing the nav menu
+ */
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
   onNavMenuClick: () => void;
 }
 
+/**
+ * MobileNavDrawer main functional component.
+ * @param {Readonly<IMobileNavDrawer>} props
+ * @returns {JSX.Element}
+ */
 export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   const userInfo = props.userInfo;
   const isLoggedIn = props.isLoggedIn;
@@ -37,6 +59,13 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
 
   useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
 
+  /**
+   * Handles navigation item click.
+   * - Navigates if not already on the page
+   * - Triggers loader and analytics
+   * @param url - The target URL
+   * @param name - The nav item name
+   */
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
       onNavMenuClick();
@@ -45,16 +74,30 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
     }
   };
 
+  /**
+   * Handles help/support item click.
+   * - Closes menu and tracks analytics
+   * @param name - The help item name
+   */
   const onHelpItemClickHandler = (name: string) => {
     onNavMenuClick();
     analytics.onNavGetHelpItemClicked(name, getAnalyticsUserInfo(userInfo));
   };
 
+  /**
+   * Handles account option click (settings/logout).
+   * - Closes menu and tracks analytics
+   * @param name - The account option name
+   */
   const onAccountOptionClickHandler = (name: string) => {
     onNavMenuClick();
     analytics.onNavAccountItemClicked(name, getAnalyticsUserInfo(userInfo));
   };
 
+  /**
+   * Handles logout click.
+   * - Tracks analytics, clears cookies, broadcasts logout, shows toast
+   */
   const onLogoutClickHandler = () => {
     onAccountOptionClickHandler('logout');
     clearAllAuthCookies();
@@ -64,6 +107,10 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
     postHogProps.reset();
   };
 
+  /**
+   * Handles submit team button click.
+   * - Tracks analytics and navigates to add team page
+   */
   const handleSubmitTeam = () => {
     analytics.onSubmitATeamBtnClicked();
     router.push(PAGE_ROUTES.ADD_TEAM);

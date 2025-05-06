@@ -3,6 +3,9 @@
 import { useState } from "react"
 import { Treemap, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts"
 
+/**
+ * Props for the TeamsTreemap component.
+ */
 interface TeamsTreemapProps {
   teams?: any[]
   backgroundColor?: string
@@ -11,6 +14,9 @@ interface TeamsTreemapProps {
   height?: number
 }
 
+/**
+ * Props for the customized treemap content renderer.
+ */
 interface CustomContentProps {
   root?: any
   depth?: number
@@ -25,13 +31,22 @@ interface CustomContentProps {
   name?: string
 }
 
+/**
+ * TeamsTreemap component displays a treemap visualization of teams, showing the number of hosts and speakers per team.
+ *
+ * @component
+ * @param {TeamsTreemapProps} props - The props for the TeamsTreemap component.
+ * @returns {JSX.Element} The rendered TeamsTreemap component.
+ */
 export default function TeamsTreemap({
   teams = [],
   backgroundColor = "#E5F7FF",
   borderColor = "#ffffff",
 }: TeamsTreemapProps) {
+  // State for the currently active (hovered) rectangle
   const [activeIndex, setActiveIndex] = useState(-1)
 
+  // Transform the teams data for the Treemap
   const transformedData = teams.map((team) => ({
     name: team.name,
     size: team.hosts.length + team.speakers.length,
@@ -40,11 +55,17 @@ export default function TeamsTreemap({
     logo: team.logo,
   }))
 
+  /**
+   * CustomizedContent renders each rectangle in the treemap, including the team name if space allows.
+   * @param props - CustomContentProps for the rectangle.
+   * @returns SVG group element for the rectangle and label.
+   */
   const CustomizedContent = (props: CustomContentProps) => {
     const { x = 0, y = 0, width = 0, height = 0, index = 0, name = "" } = props
 
     return (
       <>
+        {/* Rectangle for each team */}
         <g>
           <rect
             x={x}
@@ -53,6 +74,7 @@ export default function TeamsTreemap({
             height={height}
             className={`custom-rect ${index === activeIndex ? 'active' : ''}`}
           />
+          {/* Show team name if the rectangle is large enough */}
           {width > 70 && height > 40 && (
             <text
               x={x + 10}
@@ -90,6 +112,12 @@ export default function TeamsTreemap({
     )
   }
 
+  /**
+   * CustomTooltip renders a tooltip for the treemap rectangles.
+   * @param active - Whether the tooltip is active (hovered).
+   * @param payload - Data payload for the hovered rectangle.
+   * @returns Tooltip JSX or null.
+   */
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
@@ -104,6 +132,7 @@ export default function TeamsTreemap({
     return null
   }
 
+  // Show a message if there are no teams to display
   if (!teams || teams.length === 0) {
     return (
       <div className="no-data">
@@ -112,6 +141,7 @@ export default function TeamsTreemap({
     )
   }
 
+  // Main render: Treemap visualization
   return (
     <div className="treemap-container">
       <div className="treemap-background">

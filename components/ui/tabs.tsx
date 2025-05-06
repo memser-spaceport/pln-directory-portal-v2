@@ -1,5 +1,13 @@
 import React from 'react';
 
+/**
+ * Props for the Tabs component.
+ * @interface TabsProps
+ * @property {any[]} tabs - Array of tab objects, each with at least a 'name' and 'count'.
+ * @property {string} activeTab - The name of the currently active tab.
+ * @property {any} [errorInfo] - Optional object mapping tab names to error states.
+ * @property {(item: string) => void} onTabClick - Callback when a tab is clicked.
+ */
 interface TabsProps {
   tabs: any[];
   activeTab: string;
@@ -7,6 +15,13 @@ interface TabsProps {
   onTabClick: (item: string) => void;
 }
 
+/**
+ * Tabs is a navigation component for switching between different views or sections.
+ * It supports active state, error highlighting, and tab counts.
+ *
+ * @param {TabsProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered tabs navigation.
+ */
 const Tabs: React.FC<TabsProps> = ({ tabs, errorInfo = {}, activeTab, onTabClick }) => {
   return (
     <div className="tabs">

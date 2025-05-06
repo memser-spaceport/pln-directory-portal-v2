@@ -15,27 +15,46 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
+/**
+ * Props for the UserProfile component.
+ */
 interface IProfile {
   userInfo: IUserInfo;
 }
 
+/**
+ * UserProfile component renders the user avatar, dropdown menu, and handles account actions.
+ *
+ * @component
+ * @param {Readonly<IProfile>} props - The props for UserProfile.
+ * @returns {JSX.Element} The rendered user profile section.
+ */
 export default function UserProfile(props: Readonly<IProfile>) {
+  // Section: State and refs
   const [isDropdown, setIsDropdown] = useState(false);
   const profileMenuRef = useRef(null);
   const router = useRouter();
 
+  // Section: Analytics and user info
   const analytics = useCommonAnalytics();
   const postHogProps = usePostHog();
   const userInfo = props?.userInfo;
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
 
+  // Section: Handle outside click to close dropdown
   useClickedOutside({ callback: () => setIsDropdown(false), ref: profileMenuRef });
 
+  /**
+   * Handles dropdown open/close toggle.
+   */
   const onDrodownClick = () => {
     const mode = isDropdown ? 'close' : 'open';
     setIsDropdown((prev) => !prev);
   };
 
+  /**
+   * Handles user logout logic and analytics.
+   */
   const onLogoutHandler = () => {
     setIsDropdown(false);
     clearAllAuthCookies();
@@ -44,12 +63,16 @@ export default function UserProfile(props: Readonly<IProfile>) {
     createLogoutChannel().postMessage('logout');
     postHogProps.reset();
   };
-
+  /**
+   * Handles click on account options (e.g., settings, logout) and analytics.
+   * @param name - The name of the account option clicked.
+   */
   const onAccountOptionsClickHandler = (name: string) => {
     router.push('/settings/profile');
     analytics.onNavAccountItemClicked(name, getAnalyticsUserInfo(userInfo));
   };
 
+  // Section: Render user profile UI
   return (
     <div className="profile">
       <div className="profile__profileimgsection">
@@ -65,6 +88,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
         <button ref={profileMenuRef} className="profile__profileimgsection__dropdownbtn" onClick={onDrodownClick}>
           <Image height={20} width={20} loading="lazy" src="/icons/dropdown.svg" alt="dropdown" />
         </button>
+        {/* Dropdown menu */}
         {isDropdown && (
           <div className="profile__profileimagesection__ddown">
             <button className="profile__profileimagesection__ddown__settings" onClick={() => onAccountOptionsClickHandler('settings')}>

@@ -3,23 +3,29 @@ import { PAGE_ROUTES } from "@/utils/constants";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+// Renders a user-friendly error page with navigation links for not found or error situations.
 const Error = () => {
   
   const router = useRouter();
     
+  // Refresh the page on mount (side effect)
   useEffect(() => {
       router.refresh();
   }, [])
 
   return (
     <>
+      {/* Error page container */}
       <div className="error-container">
         <div className="error-container__content">
           <div className="error-container__content__notfoundcontainer">
+            {/* Error illustration */}
             <img  loading="lazy" className="error-container__content__notfound-img" alt="error" src="/icons/notfound.svg" />
           </div>
           <div className="error-container__content__message">
+            {/* Error title */}
             <h2 className="error-container__content__message__title">Oh snap! Something went wrong!</h2>
+            {/* Error description with navigation links */}
             <p className="error-container__content__message__desc">
               The page you&apos;re looking for doesn&apos;t exists or has been removed. Please try searching on the&nbsp;
               <a href={PAGE_ROUTES.TEAMS} className="error-container__content__message__desc__link">
@@ -39,11 +45,13 @@ const Error = () => {
               </a>{" "}
               pages.
             </p>
+            {/* Back to Home button */}
             <a href={PAGE_ROUTES.HOME} className="error-container__content__message__back-to-home">Back to Home </a>
           </div>
         </div>
       </div>
 
+      {/* Inline styles for error page layout and appearance */}
       <style jsx>
         {`
             .error-container {

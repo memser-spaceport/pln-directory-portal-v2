@@ -1,4 +1,13 @@
-import React, { use, useEffect, useRef, useState } from 'react';
+/**
+ * Props for MultiSelectWithSearch component.
+ * @interface MultiSelectWithSearchProps
+ * @property {string} label - The label for the input
+ * @property {Option[]} options - The available options
+ * @property {boolean} [mandatory] - Whether selection is mandatory
+ * @property {Option[]} selectedOptions - The currently selected options
+ * @property {(selected: Option[]) => void} onChange - Callback when selection changes
+ */
+import React, { useEffect, useRef, useState } from 'react';
 import HiddenField from './hidden-field';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { Option } from '@/types/shared.types';
@@ -11,7 +20,19 @@ interface MultiSelectWithSearchProps {
   onChange: (selected: Option[]) => void;
 }
 
+/**
+ * MultiSelectWithSearch component allows users to select multiple options with search and removal.
+ *
+ * - Supports searching, selecting, and removing options
+ * - Handles outside clicks to close dropdown
+ * - Shows error if mandatory and nothing selected
+ *
+ * @component
+ * @param {MultiSelectWithSearchProps} props - Component props
+ * @returns {JSX.Element}
+ */
 const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, mandatory, options, selectedOptions, onChange }) => {
+  // State for search term, dropdown visibility, selected options, error, and filtered options
   const [searchTerm, setSearchTerm] = useState('');
   const [isOptionsVisible, setOptionsVisible] = useState(false);
   const [selected, setSelected] = useState(selectedOptions);
@@ -35,6 +56,11 @@ const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, ma
 
   const [filteredOptions, setFilteredOptions] = useState(options);
 
+  /**
+   * Removes already selected options from the list of available options.
+   * @param optsToRemove - Options to filter
+   * @returns Filtered options
+   */
   const removeFromList = (optsToRemove: any) => {
     let filterTemp = optsToRemove;
     optsToRemove.map((option: any) => {
@@ -54,6 +80,10 @@ const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, ma
     }
   }, []);
 
+  /**
+   * Handles search input changes and filters options.
+   * @param e - Input event
+   */
   const handleSearchChange = (e: any) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -64,11 +94,19 @@ const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, ma
     setOptionsVisible(true);
   };
 
+  /**
+   * Handles clicking an option to select it.
+   * @param option - The option to select
+   */
   const handleOptionClick = (option: Option) => {
     setSelected([...selected, option]);
     setFilteredOptions(filteredOptions.filter((opt) => opt.value !== option.value));
   };
 
+  /**
+   * Handles deleting a selected option.
+   * @param option - The option to remove
+   */
   const handleOptionDelete = (option: Option) => {
     setSelected(selected.filter((selectedOption) => selectedOption.value !== option.value));
     setFilteredOptions([...filteredOptions, option].sort((a, b) => a.label.localeCompare(b.label)));
@@ -78,6 +116,10 @@ const MultiSelectWithSearch: React.FC<MultiSelectWithSearchProps> = ({ label, ma
     setError(selected.length === 0 && mandatory);
   }, [selected]);
 
+  /**
+   * Handles key down events in the input (prevents form submit on Enter).
+   * @param event - Keyboard event
+   */
   const handleKeyDown = (event: any) => {
     if (event.key === "Enter") {
       event.preventDefault(); // Prevent form submission

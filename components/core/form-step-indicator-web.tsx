@@ -6,17 +6,31 @@ import { EVENTS, PROJECT_FORM_STEPS } from '@/utils/constants';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
+/**
+ * FormStepIndicatorWeb displays a step indicator for multi-step forms in a web layout.
+ * It highlights the current step, completed steps, and provides context for the user.
+ *
+ * @component
+ * @param {IFormStepIndicatorProps} props - The props for the step indicator.
+ * @returns {JSX.Element} The rendered step indicator component.
+ */
 export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle}: IFormStepIndicatorProps) {
   const { currentStep} = useStepsIndicator({ steps, defaultStep, uniqueKey });
   // const { currentStep } = useStepsIndicator({ steps: PROJECT_FORM_STEPS, defaultStep: 'General', uniqueKey: 'add-project' });
 
   const currentStepIndex = steps.findIndex((v: string) => v === currentStep);
 
+  // Icon paths for different step states
   const activeIcon = '/icons/polygon-blue.svg';
   const completedIcon = '/icons/hexagon-completed.svg';
   const defaultIcon = '/icons/hexagon.svg';
 
-  const getStepImageSrc = (index: number) => {
+  /**
+   * Returns the image source for a step based on its state.
+   * @param {number} index - The index of the step.
+   * @returns {string} The image source path.
+   */
+  const getStepImageSrc = (index: number): string => {
     if (index === currentStepIndex) {
       return activeIcon;
     }
@@ -30,18 +44,22 @@ export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle
 
   return (
     <>
+      {/* Step Indicator Container */}
       <div className="formstep">
+        {/* Header Section */}
         <div className="formstep__header">
           <h1 className="formstep__header__title" data-testid="formstep-title">{title} - {currentStep}</h1>
 
           <p className="formstep__header__desc">{subTitle}</p>
         </div>
 
+        {/* Steps Body Section */}
         <div className="formstep__body">
           {steps?.map((step: string, index: number) => (
             <div className="formstep__body__step" key={`${step} + ${index}`}>
               <div className="formstep__body__step__imgc">
                 <img className="formstep__body__step__imgc__img" src={getStepImageSrc(index)} alt="step icon" width="24" height="24" />
+                {/* Show step number for current and upcoming steps */}
                 {currentStepIndex <= index && <p className={`formstep__body__step__imgc__img__count ${(currentStepIndex === index ) ? 'currentStep' : ''}`}>{index + 1}</p>}
               </div>
               <div>{step} </div>
@@ -50,6 +68,7 @@ export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle
         </div>
       </div>
 
+      {/* Component Styles */}
       <style jsx>
         {`
           .formstep {

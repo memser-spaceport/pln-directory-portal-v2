@@ -4,30 +4,37 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 const IrlErrorPage = () => {
-
+    // Get Next.js router instance
     const router = useRouter();
     
+    // Refresh the page on mount (side effect)
     useEffect(() => {
         router.refresh();
     }, [])
 
     return (
         <>
+            {/* Error page container */}
             <div className="error-container">
                 <div className="error-container__content">
                     <div className="error-container__content__notfoundcontainer">
+                        {/* Error illustration */}
                         <img loading="lazy" className="error-container__content__notfound-img" alt="error" src="/icons/irl-not-found.svg" />
                     </div>
                     <div className="error-container__content__message">
+                        {/* Error title */}
                         <h2 className="error-container__content__message__title">Oops, you&apos;ve wandered off the map!!</h2>
+                        {/* Error description */}
                         <p className="error-container__content__message__desc">
                             Looks like you&apos;re trying to explore a location not in our listings. Click the button below to take you where the action is!
                         </p>
+                        {/* Back to IRL Gatherings button */}
                         <a href={PAGE_ROUTES.IRL} className="error-container__content__message__back-to-home">Back to IRL Gatherings</a>
                     </div>
                 </div>
             </div>
 
+            {/* Inline styles for error page layout and appearance */}
             <style jsx>
                 {`
             .error-container {

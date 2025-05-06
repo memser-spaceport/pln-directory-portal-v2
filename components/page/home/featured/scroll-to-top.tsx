@@ -5,6 +5,12 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useEffect, useRef, useState } from 'react';
 
+/**
+ * Props for the ScrollToTop component.
+ * @interface IScrollToTop
+ * @property {string} pageName - The name of the current page for analytics.
+ * @property {IUserInfo} userInfo - The user information for analytics.
+ */
 interface IScrollToTop {
   pageName: string;
   userInfo: IUserInfo;
@@ -13,7 +19,10 @@ interface IScrollToTop {
 const ScrollToTop = (props: IScrollToTop) => {
   const pageName = props?.pageName;
   const userInfo = props?.userInfo;
+
+  // State to control button visibility
   const [showTopBtn, setShowTopBtn] = useState(false);
+  // Analytics instance
   const analytics = useCommonAnalytics();
   const buttonRef = useRef(null);
 
@@ -28,10 +37,12 @@ const ScrollToTop = (props: IScrollToTop) => {
     });
   };
 
+  // Effect: Observe the .featured section to toggle button visibility
   useEffect(() => {
     const target = document.querySelector('.featured');
     if (!target) return;
 
+    // IntersectionObserver callback: show button when .featured is in view
     const observer = new IntersectionObserver(
       ([entry]) => {
         setShowTopBtn(entry.isIntersecting);
@@ -43,6 +54,7 @@ const ScrollToTop = (props: IScrollToTop) => {
 
     observer.observe(target);
 
+    // Cleanup observer on unmount
     return () => {
       observer.disconnect();
     };
@@ -50,11 +62,13 @@ const ScrollToTop = (props: IScrollToTop) => {
 
   return (
     <>
+      {/* Only show the button when showTopBtn is true */}
       {showTopBtn && (
         <button ref={buttonRef} onClick={scrollToTop} className="scroll-to-top-button">
           <img src="/icons/up-arrow-black.svg" alt="arrow" />
         </button>
       )}
+      {/* Inline styles for the button */}
       <style jsx>{`
         .scroll-to-top-button {
           position: fixed;

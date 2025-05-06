@@ -1,13 +1,26 @@
+/**
+ * Props for the FilterCount component.
+ * @interface IFilterCount
+ * @property {number} count - The number to display in the filter count badge.
+ */
 interface IFilterCount {
     count: number;
   }
   
+  /**
+   * FilterCount displays a circular badge with a count, typically used for showing the number of active filters.
+   *
+   * @param {IFilterCount} props - The props for the component.
+   * @returns {JSX.Element} The rendered filter count badge.
+   */
   const FilterCount = (props: IFilterCount) => {
     const count = props?.count;
     return (
       <>
+        {/* Badge displaying the count */}
         <div className="filter-count">{count}</div>
   
+        {/* Inline styles for the badge */}
         <style jsx>
           {`
             .filter-count {

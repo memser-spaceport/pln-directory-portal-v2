@@ -10,6 +10,13 @@ const LoginBtn = () => {
   const authAnalytics = useAuthAnalytics();
   const router = useRouter();
 
+  /**
+   * Handles login button click event.
+   * - Tracks analytics
+   * - Checks userInfo cookie
+   * - Shows toast and refreshes if logged in
+   * - Navigates to login section if not logged in
+   */
   const onLoginClickHandler = () => {
     authAnalytics.onLoginBtnClicked();
     const userInfo = Cookies.get('userInfo');
@@ -17,6 +24,7 @@ const LoginBtn = () => {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
+      // Handle sign-up page edge case
       if(window.location.pathname === '/sign-up'){
         router.push(`/#login`);
       } else {
@@ -26,9 +34,11 @@ const LoginBtn = () => {
   };
   return (
     <>
+      {/* Login button triggers login logic */}
       <button className="loginBtn" onClick={onLoginClickHandler}>
         Login
       </button>
+      {/* Inline styles for the login button */}
       <style jsx>{`
         .loginBtn {
           background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);

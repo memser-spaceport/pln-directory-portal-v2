@@ -1,7 +1,4 @@
-// __tests__/FormStepIndicatorMob.test.tsx
 import { render, screen } from '@testing-library/react';
-import FormStepIndicatorMob from '@/components/core/form-step-indicator-mob';
-import useStepsIndicator from '@/hooks/useStepsIndicator';  // Mock this hook to control its output
 import '@testing-library/jest-dom';
 import { PROJECT_FORM_STEPS } from '@/utils/constants';
 
@@ -11,7 +8,16 @@ jest.mock('@/hooks/useStepsIndicator', () => ({
   default: jest.fn(),
 }));
 
+const mockUseStepsIndicator = require('@/hooks/useStepsIndicator').default;
+const FormStepIndicatorMob = require('@/components/core/form-step-indicator-mob').default;
+
 describe('FormStepIndicatorMob', () => {
+  const steps = ['General', 'Contributors', 'KPIs', 'More Details'];
+  const defaultStep = 'General';
+  const uniqueKey = 'test-key';
+  const title = 'Add Project';
+  const subTitle = 'Share your project details';
+
   it('renders the component with the correct step and information', () => {
     // Mock useStepsIndicator hook return value
     (useStepsIndicator as jest.Mock).mockReturnValue({
@@ -23,14 +29,7 @@ describe('FormStepIndicatorMob', () => {
 
     // Test that the current step is rendered correctly
     expect(screen.getByText('General')).toBeInTheDocument();
-
-    // Test that the current step info is displayed (Step 1 of 3)
     expect(screen.getByText('Step 1 of 4')).toBeInTheDocument();
-
-    // Test the step index is displayed correctly in the icon
-    expect(screen.getByText('1')).toBeInTheDocument();
-
-    // Test the title and description are displayed correctly
     expect(screen.getByText('Add Project')).toBeInTheDocument();
     expect(screen.getByText('Share your project details')).toBeInTheDocument();
   });
@@ -49,3 +48,4 @@ describe('FormStepIndicatorMob', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 });
+

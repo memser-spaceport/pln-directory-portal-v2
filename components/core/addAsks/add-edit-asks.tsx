@@ -21,6 +21,14 @@ interface IAddEditAsks {
   setErrors: any;
 }
 
+/**
+ * AddEditAsk renders a modal form for adding or editing an "Ask" item.
+ * Handles title, description, tags, and all related interactions.
+ *
+ * @component
+ * @param {IAddEditAsks} props - The props for the add/edit ask modal.
+ * @returns {JSX.Element}
+ */
 const AddEditAsk = (props: IAddEditAsks) => {
   const isAddAsk = props?.isAddAsk;
   const formRef = props?.formRef;

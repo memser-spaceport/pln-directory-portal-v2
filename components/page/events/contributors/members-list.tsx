@@ -17,26 +17,37 @@ const MembersList: React.FC<MembersListProps> = ({
   members = [],
   userInfo,
 }) => {
+  // State for tracking which member avatar is hovered
   const [hoveredMember, setHoveredMember] = useState<number | null>(null)
+  // Analytics hook for event tracking
   const analytics = useEventsAnalytics();
 
+  // Show message if no members are available
   if (!members || members.length === 0) {
     return <div className="no-members">No members available</div>
   }
 
+  // Filter only contributors (hosts or speakers)
   const contributors = members.filter(item => 
     item.isHost || item.isSpeaker || 
     (item.events && item.events.some((event: { isHost: any; isSpeaker: any }) => event.isHost || event.isSpeaker))
   );
 
+  // Limit for mobile and web visible contributors
   const mobileVisibleMembers = contributors.slice(0, 31)
   const webVisibleMembers = contributors.slice(0, 154)
 
+  /**
+   * Handles closing the contributors modal and fires analytics and event.
+   */
   const onCloseContributorsModal = () => {
     analytics.onContributtonModalCloseClicked();
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: false }));
   };
 
+  /**
+   * Handles opening the contributors modal and fires analytics and event.
+   */
   const onOpenContributorsModal = () => {
     analytics.onContributtonModalOpenClicked();
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: true }));
@@ -96,7 +107,7 @@ const MembersList: React.FC<MembersListProps> = ({
           })}
           {contributors.length > 31 && (
             <>
-              <div className="member-avatar more-members" onClick={() => onOpenContributorsModal()}>
+              <div className="member-avatar more-members" data-testid="more-members-mobile" onClick={() => onOpenContributorsModal()}>
                 <div className="image-container fallback-avatar-mobile">
                   +{contributors.length - 31}
                 </div>
@@ -143,7 +154,7 @@ const MembersList: React.FC<MembersListProps> = ({
           })}
           {contributors.length > 154 && (
             <>
-              <div className="member-avatar more-members">
+              <div className="member-avatar more-members" data-testid="more-members-web">
                 <div className="image-container fallback-avatar-web" onClick={() => onOpenContributorsModal()}>
                   +{contributors.length - 154}
                 </div>

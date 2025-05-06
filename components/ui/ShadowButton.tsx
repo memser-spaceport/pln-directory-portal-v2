@@ -4,6 +4,10 @@ import { useState } from "react";
 import { ButtonHTMLAttributes } from "react";
 import Image from "next/image";
 
+/**
+ * Props for the ShadowButton component.
+ * Extends standard button attributes and adds custom styling and icon options.
+ */
 interface ShadowButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   buttonColor?: string;
   shadowColor?: string;
@@ -18,6 +22,13 @@ interface ShadowButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
 }
 
+/**
+ * ShadowButton component renders a button with a colored shadow and optional icon.
+ * Handles hover state for shadow effect and supports left/right icon placement.
+ *
+ * @component
+ * @param {ShadowButtonProps} props - The props for ShadowButton.
+ */
 export default function ShadowButton({
   buttonColor = "#156FF7",
   shadowColor = "#3DFEB1",
@@ -32,30 +43,36 @@ export default function ShadowButton({
   children,
   ...props
 }: ShadowButtonProps) {
+  // Track hover state for shadow effect
   const [isHovering, setIsHovering] = useState(false);
 
   return (
     <div className="button-container">
+      {/* Shadow layer behind the button */}
       <div className="button-shadow"></div>
+      {/* Main button element */}
       <button
         className="button-main"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         {...props}
       >
+        {/* Optional left icon */}
         {iconSrc && iconPosition === 'left' && (
           <span className="icon-container left">
             <Image src={iconSrc} alt={iconAlt} width={iconWidth} height={iconHeight} />
           </span>
         )}
+        {/* Button text/content */}
         <span className="text-content">{children}</span>
+        {/* Optional right icon */}
         {iconSrc && iconPosition === 'right' && (
           <span className="icon-container right">
             <Image src={iconSrc} alt={iconAlt} width={iconWidth} height={iconHeight} />
           </span>
         )}
       </button>
-
+      {/* Component styles for layout, shadow, and hover effect */}
       <style jsx>{`
         .button-container {
           position: relative;

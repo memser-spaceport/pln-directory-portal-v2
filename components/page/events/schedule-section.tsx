@@ -10,10 +10,12 @@ export default function ScheduleSection(props: any) {
 
   return (
     <>
+      {/* Main schedule section container */}
       <div
         className={`schedule`}
         id="schedule"
       >
+        {/* Header with title and action buttons */}
         <div className="schedule__hdr">
           <h2>Event Calendar</h2>
           <div className="schedule__hdr__btn">
@@ -27,6 +29,7 @@ export default function ScheduleSection(props: any) {
                 Submit an Event
               </ShadowButton>
             </a>
+            {/* View all Events button */}
             <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" onClick={() => onGoToEventsButtonClicked()}>
               <ShadowButton
                 buttonColor="#3DFEB1"
@@ -44,8 +47,10 @@ export default function ScheduleSection(props: any) {
             </a>
           </div>
         </div>
+        {/* Embedded event calendar iframe */}
         <iframe src={`${process.env.PL_EVENTS_BASE_URL}/embed/program/`} className="schedule__iframe" title="Event Calendar"></iframe>
       </div>
+      {/* Section styles */}
       <style jsx>{`
         .schedule {
           width: 100%;

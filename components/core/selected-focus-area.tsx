@@ -3,18 +3,28 @@
 import FocusAreaDisplay from '@/components/core/focus-area-display';
 import { IFocusArea } from '@/types/shared.types';
 
+/**
+ * Props for the SelectedFocusAreas component.
+ */
 interface SelectedFocusAreasProps {
   focusAreas: IFocusArea[];
   selectedFocusAreas: any[];
 }
 
+/**
+ * Renders the selected focus areas section with a title and FocusAreaDisplay.
+ */
 const SelectedFocusAreas: React.FC<SelectedFocusAreasProps> = ({ focusAreas, selectedFocusAreas }) => {
+  // Section: Main render
   return (
     <>
+      {/* Container for focus area selection */}
       <div className="focus">
         <h2 className="focus__title">Focus Area</h2>
+        {/* Renders the focus area display with provided data */}
         <FocusAreaDisplay rawData={focusAreas} selectedItems={selectedFocusAreas} />
       </div>
+      {/* Inline styles for the component */}
       <style jsx>
         {`
           .focus {

@@ -1,21 +1,45 @@
 import React from 'react';
 
+/**
+ * Represents a single tab item for BookmarkTabs.
+ * @interface TabItem
+ * @property {string} key - Unique key for the tab.
+ * @property {string} displayText - Text to display for the tab.
+ * @property {string} [image] - Optional image URL for the tab icon.
+ */
 interface TabItem {
   key: string;
   displayText: string;
   image?: string;
 }
 
+/**
+ * Props for the BookmarkTabs component.
+ * @interface BookmarkTabsProps
+ * @property {TabItem[]} tabItems - Array of tab items to display.
+ * @property {string} activeTab - The key of the currently active tab.
+ * @property {(tab: string) => void} onTabSelect - Callback when a tab is selected.
+ */
 interface BookmarkTabsProps {
   tabItems: TabItem[];
   activeTab: string;
   onTabSelect: (tab: string) => void;
 }
 
+/**
+ * BookmarkTabs renders a horizontal tab bar with optional icons.
+ * Highlights the active tab and calls the callback when a tab is clicked.
+ *
+ * @component
+ * @param {BookmarkTabsProps} props - The props for BookmarkTabs
+ * @returns {JSX.Element}
+ */
 const BookmarkTabs: React.FC<BookmarkTabsProps> = ({ tabItems, activeTab, onTabSelect }) => {
   return (
     <>
+      {/* Tab bar container */}
       <div className="bookmark-tabs">
+        {/* Render each tab item */}
         {tabItems.map(({ key, displayText, image }) => (
           <div key={key} className={`bookmark-tabs__item ${key === activeTab ? 'bookmark-tabs__item--active' : ''}`} onClick={() => onTabSelect(key)}>
             {image && <img src={image} alt={displayText} className="tab-icon" />} {/* Render image if provided */}
@@ -23,6 +47,7 @@ const BookmarkTabs: React.FC<BookmarkTabsProps> = ({ tabItems, activeTab, onTabS
           </div>
         ))}
       </div>
+      {/* Inline styles for the component */}
       <style jsx>{`
         .bookmark-tabs {
           display: flex;

@@ -2,8 +2,6 @@
 
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import Modal from '@/components/core/modal';
-import { IMember } from '@/types/members.types';
-import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
@@ -24,6 +22,7 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
   const contributorsListRef = useRef<HTMLDialogElement>(null);
   const [filteredContriList, setFilteredContriList] = useState(contributorsList);
 
+  // Effect: Listen for open/close events for the modal
   useEffect(() => {
     document.addEventListener(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, (e: any) => {
       if (e.detail) {
@@ -51,12 +50,16 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
     setFilteredContriList(filteredMembers);
   };
 
+  /**
+   * Handles closing the modal, resetting search and filtered list.
+   */
   const onModalCloseClickHandler = () => {
     setSearchTerm("");
     setFilteredContriList(contributorsList);
     onClose();
   }
 
+  // --- Render modal with contributors list ---
   return (
     <>
       <Modal modalRef={contributorsListRef} onClose={onModalCloseClickHandler}>
@@ -72,6 +75,7 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                 className="cm__body__search__input" 
                 placeholder="Search" 
                 onChange={onInputchangeHandler} 
+                data-testid="search-input"
               />
               {searchTerm && (
                 <div 
@@ -80,6 +84,7 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                     setSearchTerm('');
                     setFilteredContriList(contributorsList);
                   }}
+                  data-testid="clear-search"
                 >
                   <Image 
                     src="/icons/close.svg" 
@@ -100,6 +105,7 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                   className="contributor__wrpr"
                   key={(contributor?.uid)}
                   onClick={() => onContributorClickHandler(contributor)}
+                  data-testid={`contributor-${contributor?.uid}`}
                 >
                   <div className="contributor">
                     <div className="contributor__info">
@@ -115,7 +121,7 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                 </div>
               );
             })}
-            {filteredContriList.length === 0 && <div className="cm__body__contributors__notFound">No Contributors found.</div>}
+            {filteredContriList.length === 0 && <div className="cm__body__contributors__notFound" data-testid="no-contributors">No Contributors found.</div>}
           </div>
         </div>
       </Modal>

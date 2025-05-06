@@ -4,6 +4,20 @@ import { Editor } from '@tinymce/tinymce-react';
 import React, { useEffect, useRef, useState } from 'react';
 import CustomLinkDialog from './link-dialog';
 
+/**
+ * Props for the TextEditor component.
+ * @interface ITextEditorProps
+ * @property {string} text - The initial content of the editor.
+ * @property {(item: string) => void} setContent - Callback to update the content.
+ * @property {string} [id] - Optional editor ID.
+ * @property {number} [maxLength] - Maximum allowed length for the content.
+ * @property {boolean} [statusBar] - Whether to show the status bar.
+ * @property {string} [toolbarOptions] - Toolbar options for TinyMCE.
+ * @property {boolean} [isRequired] - Whether the editor is required.
+ * @property {number} [height] - Height of the editor.
+ * @property {string} [errorMessage] - Error message to display.
+ * @property {boolean} [isToolbarSticky] - Whether the toolbar is sticky.
+ */
 interface ITextEditorProps {
   text: string;
   setContent: (item: string) => void;
@@ -17,6 +31,13 @@ interface ITextEditorProps {
   isToolbarSticky?: boolean;
 }
 
+/**
+ * TextEditor is a rich text editor component using TinyMCE, supporting custom dialogs, max length, and error display.
+ *
+ * @component
+ * @param {ITextEditorProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered text editor.
+ */
 const TextEditor = (props: ITextEditorProps) => {
   const [text, setText] = useState<string>(props.text);
   const [textOnly, setTextOnly] = useState<string>('');
@@ -59,7 +80,7 @@ const TextEditor = (props: ITextEditorProps) => {
   const maxLen = props.maxLength || 2000;
   return (
     <>
-      <div className="editor">
+      <div className="editor" data-testid="text-editor-container">
         <Editor
           apiKey={process.env.TEXT_EDITOR_API_KEY}
           value={props.text}
@@ -93,6 +114,7 @@ const TextEditor = (props: ITextEditorProps) => {
                   setDialogOpen(true);
                 },
                 onSetup: (buttonApi) => {
+                  // Handle button active state on node change
                   const nodeChangeHandler = (e: any) => {
                     const selectedNode = editor.selection.getNode();
                     if (selectedNode.nodeName === 'A') {
@@ -181,7 +203,7 @@ const TextEditor = (props: ITextEditorProps) => {
           {maxLen - textOnly.length}/{maxLen}
         </div>
       </div>
-      <input type="hidden" name="rich-text-editor" value={text} />
+      <input type="hidden" name="rich-text-editor" value={text} data-testid="text-editor-hidden-input" />
       <style jsx>{`
         .editor {
           outline: ${isRequired ? '1px solid red' : ''};

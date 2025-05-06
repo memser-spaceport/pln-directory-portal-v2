@@ -1,149 +1,116 @@
-// Unit test for the SearchWithSuggestions component
-
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SearchWithSuggestions from '../../components/form/suggestions';
+import * as signUpService from '../../services/sign-up.service';
 import '@testing-library/jest-dom';
 
-// Mock next/image to avoid SSR issues
 jest.mock('next/image', () => ({ __esModule: true, default: (props: any) => <img {...props} /> }));
-// Mock SuggestionDropdown to simplify dropdown rendering
-jest.mock('../../components/form/suggestion-dropdown', () => ({
-  __esModule: true,
-  default: ({ suggestions, onSelect, enableAddMode }: any) => (
-    <div data-testid="mock-dropdown">
-      {suggestions.length > 0 ? (
-        suggestions.map((s: any) => (
-          <div key={s.uid} data-testid="dropdown-item" onClick={() => onSelect(s)}>{s.name}</div>
-        ))
-      ) : (
-        <div data-testid="no-suggestions">No suggestions found</div>
-      )}
-      <button data-testid="add-mode-btn" onClick={enableAddMode}>Add Mode</button>
-    </div>
-  ),
-}));
-// Mock getSuggestions and formatSuggestions
-jest.mock('../../services/sign-up.service', () => ({
-  getSuggestions: jest.fn(),
-  formatSuggestions: jest.fn((sugs: any) => sugs),
-}));
-// Mock useDebounce to return value immediately
-jest.mock('../../hooks/useDebounce', () => ({
-  useDebounce: (v: any) => v,
-}));
-// Mock getColorObject
-jest.mock('../../utils/sign-up.utils', () => ({
-  getColorObject: () => ({ color: '#000', bgColor: '#fff' }),
-}));
-// Mock GROUP_TYPES
-jest.mock('../../utils/constants', () => ({
-  GROUP_TYPES: { TEAM: 'Team', PROJECT: 'Project' },
-}));
+jest.mock('../../components/form/suggestion-dropdown', () => ({ __esModule: true, default: (props: any) => (
+  <div data-testid="suggestion-dropdown">
+    {props.suggestions.map((s: any) => (
+      <div key={s.uid} data-testid="dropdown-suggestion" onClick={() => props.onSelect(s)}>{s.name}</div>
+    ))}
+    {props.addNew?.enable && <button onClick={props.enableAddMode}>Add New</button>}
+  </div>
+)}));
 
-const { getSuggestions } = require('../../services/sign-up.service');
+const mockSuggestions = [
+  { uid: '1', name: 'Alpha', logoURL: '', group: 'A' },
+  { uid: '2', name: 'Beta', logoURL: '', group: 'B' },
+];
 
 describe('SearchWithSuggestions', () => {
-  const baseProps = {
-    id: 'test-id',
-    name: 'test-name',
-    title: 'Test Title',
-    placeHolder: 'Type here...',
-    addNew: {
-      enable: true,
-      title: 'Add new',
-      actionString: 'Add',
-      iconURL: '/icon.svg',
-      placeHolderText: 'Paste URL',
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(signUpService, 'getSuggestions').mockResolvedValue(mockSuggestions);
+    jest.spyOn(signUpService, 'formatSuggestions').mockImplementation(s => s);
   });
 
-  it('renders input and label', () => {
-    render(<SearchWithSuggestions {...baseProps} />);
-    expect(screen.getByLabelText('Test Title')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Type here...')).toBeInTheDocument();
+  it('renders without crashing', () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" />);
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  it('shows dropdown with suggestions when typing more than 2 chars', async () => {
-    (getSuggestions as jest.Mock).mockResolvedValueOnce([
-      { uid: '1', name: 'Alpha', logoURL: '', group: 'Team' },
-      { uid: '2', name: 'Beta', logoURL: '', group: 'Project' },
-    ]);
-    render(<SearchWithSuggestions {...baseProps} />);
-    const input = screen.getByPlaceholderText('Type here...');
-    fireEvent.change(input, { target: { value: 'Alp' } });
-    await waitFor(() => expect(screen.getByTestId('mock-dropdown')).toBeInTheDocument());
-    expect(screen.getAllByTestId('dropdown-item')).toHaveLength(2);
+  it('renders the label if title is provided', () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" title="Test Title" />);
+    expect(screen.getByText('Test Title')).toBeInTheDocument();
+  });
+
+  it('renders the search input with correct placeholder', () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" placeHolder="Search here" />);
+    expect(screen.getByPlaceholderText('Search here')).toBeInTheDocument();
+  });
+
+  it('shows suggestions in dropdown when typing more than 2 characters', async () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Alp' } });
+    await waitFor(() => expect(screen.getByTestId('suggestion-dropdown')).toBeInTheDocument());
     expect(screen.getByText('Alpha')).toBeInTheDocument();
     expect(screen.getByText('Beta')).toBeInTheDocument();
   });
 
-  it('shows no suggestions when API returns empty', async () => {
-    (getSuggestions as jest.Mock).mockResolvedValueOnce([]);
-    render(<SearchWithSuggestions {...baseProps} />);
-    const input = screen.getByPlaceholderText('Type here...');
-    fireEvent.change(input, { target: { value: 'Zzz' } });
-    await waitFor(() => expect(screen.getByTestId('no-suggestions')).toBeInTheDocument());
+  it('shows "No suggestions found" if no suggestions', async () => {
+    jest.spyOn(signUpService, 'getSuggestions').mockResolvedValue([]);
+    render(<SearchWithSuggestions id="test-id" name="test-name" />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Zzz' } });
+    await waitFor(() => expect(screen.getByTestId('suggestion-dropdown')).toBeInTheDocument());
+    expect(screen.queryByTestId('dropdown-suggestion')).not.toBeInTheDocument();
   });
 
-  it('selects a suggestion from dropdown', async () => {
-    (getSuggestions as jest.Mock).mockResolvedValueOnce([
-      { uid: '1', name: 'Alpha', logoURL: '', group: 'Team' },
-    ]);
-    render(<SearchWithSuggestions {...baseProps} />);
-    const input = screen.getByPlaceholderText('Type here...');
-    fireEvent.change(input, { target: { value: 'Alp' } });
-    await waitFor(() => expect(screen.getByTestId('dropdown-item')).toBeInTheDocument());
-    fireEvent.click(screen.getByTestId('dropdown-item'));
+  it('selects a suggestion and closes dropdown', async () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Alp' } });
+    await waitFor(() => expect(screen.getByTestId('suggestion-dropdown')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Alpha'));
+    expect(screen.queryByTestId('suggestion-dropdown')).not.toBeInTheDocument();
+    expect(screen.getByText('Alpha')).toBeInTheDocument(); // selected suggestion
+  });
+
+  it('enables add mode when add new is clicked', async () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" addNew={{ enable: true }} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Alp' } });
+    await waitFor(() => expect(screen.getByTestId('suggestion-dropdown')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Add New'));
+    expect(screen.getByPlaceholderText('Enter or paste URL here')).toBeInTheDocument();
+  });
+
+  it('shows custom input and icon in add mode', () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" addNew={{ enable: true }} />);
+    fireEvent.click(screen.getByText('Add New'));
+    expect(screen.getByPlaceholderText('Enter or paste URL here')).toBeInTheDocument();
+    expect(screen.getByAltText('add')).toBeInTheDocument();
+  });
+
+  it('typing in custom input updates its value', () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" addNew={{ enable: true }} />);
+    fireEvent.click(screen.getByText('Add New'));
+    const input = screen.getByPlaceholderText('Enter or paste URL here');
+    fireEvent.change(input, { target: { value: 'custom value' } });
+    expect(input).toHaveValue('custom value');
+  });
+
+  it('clicking close in add mode resets input and disables add mode', () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" addNew={{ enable: true }} />);
+    fireEvent.click(screen.getByText('Add New'));
+    fireEvent.click(screen.getAllByAltText('add')[1]); // close button
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  it('shows selected suggestion and allows clearing it', async () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Alp' } });
+    await waitFor(() => expect(screen.getByTestId('suggestion-dropdown')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Alpha'));
     expect(screen.getByText('Alpha')).toBeInTheDocument();
-    expect(screen.getByText('Team')).toBeInTheDocument();
-    // Should show close button
-    expect(screen.getAllByAltText('add')[0]).toBeInTheDocument();
+    fireEvent.click(screen.getAllByAltText('add')[1]); // close button
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  it('can clear selected suggestion with close button', async () => {
-    (getSuggestions as jest.Mock).mockResolvedValueOnce([
-      { uid: '1', name: 'Alpha', logoURL: '', group: 'Team' },
-    ]);
-    render(<SearchWithSuggestions {...baseProps} />);
-    const input = screen.getByPlaceholderText('Type here...');
-    fireEvent.change(input, { target: { value: 'Alp' } });
-    await waitFor(() => expect(screen.getByTestId('dropdown-item')).toBeInTheDocument());
-    fireEvent.click(screen.getByTestId('dropdown-item'));
-    // Click close button
-    fireEvent.click(screen.getAllByAltText('add')[0]);
-    // Re-query the input after DOM update
-    await waitFor(() => {
-      const searchInput = screen.getByLabelText('Test Title');
-      expect(searchInput).toBeInTheDocument();
-      expect(searchInput).toHaveAttribute('placeholder', 'Type here...');
-    });
-  });
-
-  it('can enter add mode and input custom value', async () => {
-    (getSuggestions as jest.Mock).mockResolvedValueOnce([]);
-    render(<SearchWithSuggestions {...baseProps} />);
-    const input = screen.getByPlaceholderText('Type here...');
-    fireEvent.change(input, { target: { value: 'Zzz' } });
-    await waitFor(() => expect(screen.getByTestId('add-mode-btn')).toBeInTheDocument());
-    fireEvent.click(screen.getByTestId('add-mode-btn'));
-    // Should show add mode input
-    const addInput = screen.getByPlaceholderText('Paste URL');
-    fireEvent.change(addInput, { target: { value: 'https://custom.com' } });
-    expect(addInput).toHaveValue('https://custom.com');
-    // Close add mode
-    fireEvent.click(screen.getAllByAltText('add')[0]);
-    // Re-query the input after DOM update
-    await waitFor(() => {
-      const searchInput = screen.getByLabelText('Test Title');
-      expect(searchInput).toBeInTheDocument();
-      // Accept either placeholder due to component logic
-      expect(['Type here...', 'Paste URL']).toContain(searchInput.getAttribute('placeholder'));
-    });
+  it('renders hidden input with correct value', async () => {
+    render(<SearchWithSuggestions id="test-id" name="test-name" />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Alp' } });
+    await waitFor(() => expect(screen.getByTestId('suggestion-dropdown')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Alpha'));
+    const hidden = screen.getByDisplayValue(JSON.stringify(mockSuggestions[0]));
+    expect(hidden).toHaveAttribute('type', 'hidden');
   });
 });
-

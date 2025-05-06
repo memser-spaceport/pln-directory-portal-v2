@@ -1,14 +1,14 @@
 "use client"
 
-import { useIrlAnalytics } from "@/analytics/irl.analytics";
 import { PAGE_ROUTES } from "@/utils/constants";
 
 const IrlHeader = () => {
-   const analytics = useIrlAnalytics();
+  // TODO: Add analytics
+  //  const analytics = useIrlAnalytics();
    
-    const onViewPlEventsClick = () => {
-      analytics.trackViewPLEventsClick();
-    };
+  //   const onViewPlEventsClick = () => {
+  //     analytics.trackViewPLEventsClick();
+  //   };
   
   return (
     <>

@@ -191,6 +191,7 @@ const IrlLocation = (props: IrlLocation) => {
                     {locations?.slice(0, 3).map((location: any, index: any) => (
                         <IrlLocationCard
                             key={location.uid}
+                            data-testid={location.uid}
                             {...location}
                             isActive={activeLocationId ? activeLocationId === location.uid : index === 0}
                             onCardClick={() => handleCardClick(location)}
@@ -202,6 +203,7 @@ const IrlLocation = (props: IrlLocation) => {
                     {locations?.slice(0, 5).map((location: any, index: any) => (
                         <IrlLocationCard
                             key={location.uid}
+                            data-testid={location.uid}
                             {...location}
                             isActive={activeLocationId ? activeLocationId === location.uid : index === 0}
                             onCardClick={() => handleCardClick(location)}

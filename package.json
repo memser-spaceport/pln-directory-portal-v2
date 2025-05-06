@@ -11,6 +11,8 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@dicebear/collection": "^9.2.2",
+    "@dicebear/core": "^9.2.2",
     "@hookform/error-message": "^2.0.1",
     "@hookform/resolvers": "^5.0.1",
     "@privy-io/react-auth": "^1.71.0",

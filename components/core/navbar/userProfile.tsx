@@ -3,7 +3,7 @@
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { IUserInfo } from '@/types/shared.types';
-import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
+import { TOAST_MESSAGES } from '@/utils/constants';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
@@ -12,7 +12,8 @@ import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { createLogoutChannel } from '../login/broadcast-channel';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { usePostHog } from 'posthog-js/react';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IProfile {
   userInfo: IUserInfo;
@@ -24,7 +25,9 @@ export default function UserProfile(props: Readonly<IProfile>) {
   const router = useRouter();
 
   const analytics = useCommonAnalytics();
+  const postHogProps = usePostHog();
   const userInfo = props?.userInfo;
+  const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
 
   useClickedOutside({ callback: () => setIsDropdown(false), ref: profileMenuRef });
 
@@ -39,6 +42,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
     document.dispatchEvent(new CustomEvent('init-privy-logout'));
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
     createLogoutChannel().postMessage('logout');
+    postHogProps.reset();
   };
 
   const onAccountOptionsClickHandler = (name: string) => {
@@ -49,7 +53,15 @@ export default function UserProfile(props: Readonly<IProfile>) {
   return (
     <div className="profile">
       <div className="profile__profileimgsection">
-        <img loading="lazy" src={userInfo?.profileImageUrl || '/icons/default_profile.svg'} alt="profile" height={40} width={40} className="profile__profileimagesection__img" />
+        <div  className="profile__profileimgsection__img-wrapper" >
+          <Image
+            loading="lazy"
+            src={userInfo?.profileImageUrl || defaultAvatarImage}
+            alt="profile"
+            height={40}
+            width={40}
+            className="profile__profileimagesection__img" />
+        </div>
         <button ref={profileMenuRef} className="profile__profileimgsection__dropdownbtn" onClick={onDrodownClick}>
           <Image height={20} width={20} loading="lazy" src="/icons/dropdown.svg" alt="dropdown" />
         </button>
@@ -98,13 +110,17 @@ export default function UserProfile(props: Readonly<IProfile>) {
             align-items: center;
             justify-content: center;
           }
+          
+          .profile__profileimgsection__img-wrapper {
+              border: 1px solid #e2e8f0;
+              border-radius: 50%;
+              background-color: #e2e8f0;
+              overflow: hidden;
+              height: 40px;
+              width: 40px;
+          }
 
           .profile__profileimagesection__img {
-            border: 1px solid #e2e8f0;
-            border-radius: 50%;
-            background-color: #e2e8f0;
-            height: 40px;
-            width: 40px;
             object-fit: cover;
             object-position: center;
           }

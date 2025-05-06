@@ -7,6 +7,7 @@ import { getFormattedDateString } from '@/utils/irl.utils';
 import RegsiterFormLoader from '@/components/core/register/register-form-loader';
 import { IAnalyticsGuestLocation, IGuest, IGuestDetails, IIrlEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IDeleteAttendeesPopup {
   eventDetails: IGuestDetails;
@@ -187,7 +188,7 @@ const DeleteAttendeesPopup = (props: IDeleteAttendeesPopup) => {
                 <div className="popup__member" key={guest?.memberUid}>
                   {type === 'admin-delete' && (
                     <div className="popup__member__header">
-                      <img height={24} width={24} src={guest.memberLogo || '/icons/default-user-profile.svg'} alt={guest.memberName} className="popup__member__header__img" />
+                      <img height={24} width={24} src={guest.memberLogo || getDefaultAvatar(guest?.memberLogo)} alt={guest.memberName} className="popup__member__header__img" />
                       <span className="popup__member__header__name">{guest.memberName}</span>
                     </div>
                   )}

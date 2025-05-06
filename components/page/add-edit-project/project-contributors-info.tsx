@@ -12,6 +12,7 @@ import HiddenField from '@/components/form/hidden-field';
 import { IProjectResponse } from '@/types/project.types';
 import { ITeam } from '@/types/teams.types';
 import { IMemberResponse } from '@/types/members.types';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 export interface IProjectContributorsInfo {
   project: IProjectResponse;
@@ -238,13 +239,17 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
           {selectedContributors.length > 0 && (
             <>
               <div className="projectContributorsc__contributors__sContributors">
-                {selectedContributors?.map((contributor: any, index: any) => (
-                  <div onClick={() => onContributorClicked(contributor)} className='projectContributorsc__contributors__sContributors__cptr' key={`${contributor} + ${index}`}>
-                    <img className="projectContributorsc__contributors__sContributors__profile" height={32} width={32} src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} />
-                    <HiddenField value={contributor?.uid} defaultValue={contributor?.uid} name={`contributions${index}-memberUid`} />
-                    <HiddenField value={contributor?.cuid} defaultValue={contributor?.cuid} name={`contributions${index}-uid`} />
-                  </div>
-                ))}
+                {selectedContributors?.map((contributor: any, index: any) => {
+                  const defaultAvatar = getDefaultAvatar(contributor?.name);
+
+                  return (
+                    <div onClick={() => onContributorClicked(contributor)} className='projectContributorsc__contributors__sContributors__cptr' key={`${contributor} + ${index}`}>
+                      <img className="projectContributorsc__contributors__sContributors__profile" height={32} width={32} src={contributor?.logo ?? defaultAvatar} />
+                      <HiddenField value={contributor?.uid} defaultValue={contributor?.uid} name={`contributions${index}-memberUid`} />
+                      <HiddenField value={contributor?.cuid} defaultValue={contributor?.cuid} name={`contributions${index}-uid`} />
+                    </div>
+                  )
+                })}
               </div>
             </>
           )}
@@ -468,7 +473,7 @@ export default function ProjectContributorsInfo(props: IProjectContributorsInfo)
 
           .projectContributorsc__contributors__empty {
           height: 64px;
-          padding: 22px; 20px;
+          padding: 22px;
           border-radius: 8px;
           background-color: white;
           display: flex;

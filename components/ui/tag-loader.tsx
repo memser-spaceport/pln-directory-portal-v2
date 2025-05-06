@@ -1,22 +1,35 @@
 "use client"
 
+/**
+ * TagLoader is a skeleton loader component for tags.
+ * It displays a placeholder title and three sets of animated tag placeholders while content is loading.
+ *
+ * @returns {JSX.Element} The skeleton loader markup for tags.
+ */
 const TagLoader = () => {
     return <>
-        <div className="tag-loading-container">
+        {/* Container for the tag loader skeleton */}
+        <div className="tag-loading-container" data-testid="tag-loader-container">
+        {/* Title skeleton */}
         <div className="tag-loading-container__title"> </div>
+        {/* Tags skeleton row */}
         <div className="tag-loading-container__tags">
+          {/* First set of tag skeletons */}
           {Array.from({ length: 3 })?.map((firstSet, index) => (
             <div key={`${firstSet} ${index}`} className="tag-loading-container__tags__tag"> </div>
           ))}
+          {/* Second set of tag skeletons */}
           {Array.from({ length: 3 })?.map((secondSet, index) => (
             <div key={`${secondSet} + ${index}`}className="tag-loading-container__tags__tag1"> </div>
           ))}
+          {/* Third set of tag skeletons */}
           {Array.from({ length: 3 })?.map((thirdSet, index) => (
             <div key={`${thirdSet} + ${index}`} className="tag-loading-container__tags__tag2"> </div>
           ))}
         </div>
       </div>
 
+      {/* Inline styles for skeleton animation and layout */}
       <style jsx>
         {`
          .tag-loading-container {

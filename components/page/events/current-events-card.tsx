@@ -13,11 +13,13 @@ export default function CurrentEventCard(props: any) {
   const startDate = props.eventData.startDate;
   const endDate = props.eventData.endDate;
 
+  // Sanitize and clip the event description for display
   const sanitizedDesc = formatHtml(description || '');
   const clippedDesc = clip(sanitizedDesc, 80, { html: false, maxLines: 2 });
   
   return (
     <div className="current-event-card">
+      {/* Event banner image */}
       <div className="event-header-image">
         <img
           src={`${bannerUrl}`}
@@ -28,17 +30,20 @@ export default function CurrentEventCard(props: any) {
 
       <div className="event-body-container">
         <div className="event-body">
+          {/* Event name, clipped if too long */}
           <h2 className="event-title">{name.length > 40 ? `${name.substring(0, 40)}...` : name}</h2>
           <div className="event-description">{clippedDesc}</div>
         </div>
         
         <div className="event-footer">
+          {/* Event date info */}
           <div className="date-info">
             <span className="calendar-icon">
               <img src="/icons/calendar-outline.svg" alt="calendar" />
             </span>
             <span>{getFormattedDateString(startDate, endDate)}</span>
           </div>
+          {/* Attendees info, only if attendees > 0 */}
           {attendees > 0 && (
             <div className="attending-info">
               <span className="thumbs-icon">👍</span>

@@ -1,3 +1,14 @@
+/**
+ * AllNotifications component displays a list of notifications and handles related actions.
+ *
+ * - Renders notification cards or an empty state
+ * - Handles analytics and navigation
+ * - Handles click events for notifications and 'See all notifications' button
+ *
+ * @component
+ * @param {AllNotificationsProps} props - Component props
+ * @returns {JSX.Element}
+ */
 import Link from 'next/link';
 import NotificationCard from './notification-card';
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
@@ -11,13 +22,22 @@ const AllNotifications = (props: any) => {
   const userInfo = props?.userInfo;
   const pathname = usePathname();
 
+  /**
+   * Handles click on 'See all notifications' button.
+   * - Triggers loader and analytics if not already on notifications page
+   */
   const onSeeAllClickHanlder = () => {
     if(pathname !== PAGE_ROUTES.NOTIFICATIONS) {
       triggerLoader(true);
-    analytics.onSeeAllNotificationsClicked(getAnalyticsUserInfo(userInfo));
+      analytics.onSeeAllNotificationsClicked(getAnalyticsUserInfo(userInfo));
     }
   };
 
+  /**
+   * Handles click on a notification card.
+   * - Triggers analytics and dispatches event for rating popup
+   * @param notification - The clicked notification object
+   */
   const onNotificationClickHandler = (notification: any) => {
     analytics.onNotificationCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsNotificationInfo(notification));
 
@@ -40,6 +60,7 @@ const AllNotifications = (props: any) => {
           </div>
         </div>
 
+        {/* Render notifications if present */}
         {allNotifications.length > 0 && (
           <div className="allnot__body">
             {allNotifications?.map((notification: any, index: number) => (
@@ -50,6 +71,7 @@ const AllNotifications = (props: any) => {
           </div>
         )}
 
+        {/* Render empty state if no notifications */}
         {allNotifications.length === 0 && (
           <div className="allnotifins__empty">
             <img className="allnotifins__empty__icon" src="/icons/notification.svg" alt="notifications" />
@@ -58,6 +80,7 @@ const AllNotifications = (props: any) => {
           </div>
         )}
 
+        {/* See all notifications button */}
         <div className="allnot__body__ftr">
           <button type="button" className="allnot__body__ftr__allbtn">
             <Link onClick={onSeeAllClickHanlder} href={PAGE_ROUTES.NOTIFICATIONS}>
@@ -67,6 +90,7 @@ const AllNotifications = (props: any) => {
         </div>
       </div>
 
+      {/* Inline styles for all notifications */}
       <style jsx>
         {`
           button {

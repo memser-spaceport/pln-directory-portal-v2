@@ -14,6 +14,10 @@ import Modal from '@/components/core/modal';
 import { useRef } from 'react';
 import { PAGE_ROUTES, CONTRIBUTE_MODAL_VIDEO_URL } from '@/utils/constants';
 
+/**
+ * Props for the ContributorsSection component.
+ * Defines the shape of all accepted props.
+ */
 interface ContributorsSectionProps {
   members?: any[];
   teams?: any[];
@@ -28,6 +32,13 @@ interface ContributorsSectionProps {
   userInfo?: any;
 }
 
+/**
+ * ContributorsSection component displays a section with members, teams, and a modal for contributing.
+ * It includes a treemap visualization, a members list, and a modal dialog for contribution actions.
+ *
+ * @param {ContributorsSectionProps} props - The props for the ContributorsSection component.
+ * @returns {JSX.Element} The rendered ContributorsSection component.
+ */
 export default function ContributorsSection({
   members = [],
   teams = [],
@@ -40,6 +51,10 @@ export default function ContributorsSection({
 }: ContributorsSectionProps) {
   const { onContributeButtonClicked, onContributtonModalCloseClicked, onContributeModalIRLProceedButtonClicked } = useEventsAnalytics();
   const contributeRef = useRef<HTMLDialogElement>(null);
+
+  /**
+   * Handler to close the contribute modal and track analytics.
+   */
   const onCloseModal = () => {
     if (contributeRef.current) {
         contributeRef.current.close();
@@ -47,6 +62,9 @@ export default function ContributorsSection({
     onContributtonModalCloseClicked();
   };
 
+  /**
+   * Handler to open the contribute modal and track analytics.
+   */
   const openContributeModal = () => {
     if (contributeRef.current) {
         contributeRef.current.showModal();
@@ -58,22 +76,26 @@ export default function ContributorsSection({
       id="contributors"
       className={`contributors-container`}
     >
+      {/* Section: Header and Members List */}
       <div className="contributors-section-container">
         <div className="contributors-header">
           <div>
             <h1 className="contributors-title"> Contributors</h1>
             <p className="contributors-subtitle">Hosts & Speakers</p>
           </div>
+          {/* Contribute button opens the modal */}
           <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonWidth="121px" onClick={() =>  { openContributeModal(); }}>
             Contribute
           </ShadowButton>
         </div>
 
         <div className="section-container">
+          {/* Members list display */}
           <MembersList members={members} userInfo={userInfo} />
         </div>
       </div>
 
+      {/* Section: Teams Treemap Visualization */}
       <div className="section-container teams-section-container">
         <div
           style={{
@@ -105,12 +127,14 @@ export default function ContributorsSection({
         </div>
       </div>
 
+      {/* Modal: Ways to contribute */}
       <Modal modalRef={contributeRef} onClose={onCloseModal}>
         <div className="contribute-modal-container">
           <div className="contribute-modal-header">
             Ways to contribute
           </div>
           <div className="contribute-modal-video-container">
+            {/* Contribution explainer video */}
             <video
               autoPlay
               loop
@@ -129,6 +153,7 @@ export default function ContributorsSection({
             IRL Gatherings thrive when community members contribute in different ways! Here&apos;s how you can be a part of it.
             </div>
             <div className="contribute-modal-content-list">
+              {/* List of ways to contribute */}
               <div className="contribute-modal-content-list-item speaker">
                 <span className="contribute-modal-content-list-item-icon">
                   <img src="/icons/host_icon.svg" alt="Contribute to a gathering" />
@@ -162,6 +187,7 @@ export default function ContributorsSection({
             Once you land on IRL Gatherings, Click “I&apos;m Going” & choose how you&apos;d like to contribute and help make these gatherings valuable for everyone!
           </div>
           <div className="contribute-modal-content-button">
+            {/* Cancel and proceed buttons */}
             <button className="contribute-modal-content-button-cancel" onClick={onCloseModal}>
               Cancel
             </button>
@@ -175,6 +201,7 @@ export default function ContributorsSection({
         </div>
       </Modal>
 
+      {/* Section styles */}
       <style jsx>{`
         .contributors-container {
           width: 100%;

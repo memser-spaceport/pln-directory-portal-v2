@@ -10,6 +10,7 @@ export default function EventsBanner(props: any) {
 
   return (
     <section className="banner">
+      {/* Banner background image */}
       <div className="banner-image-container">
         <img 
           src="/images/events/events-banner.svg" 
@@ -20,12 +21,15 @@ export default function EventsBanner(props: any) {
       </div>
       
       <div className="content-container">
+        {/* Text content section */}
         <div className="text-content">
           <div className="text-content-title">Welcome to Protocol Labs Events</div>
           <div className="text-content-description">Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem</div>
         </div>
+        {/* Navigation buttons section */}
         <div className="buttons-container">
-          <a href={PAGE_ROUTES.IRL} onClick={() => onViewAllGatheringsClicked()}>
+          {/* Button to view gatherings */}
+          <a href={PAGE_ROUTES.IRL} onClick={() => onViewAllGatheringsClicked()} data-testid="gatherings-link">
             <ShadowButton
               buttonColor="#156FF7"
               shadowColor="#3DFEB1"
@@ -35,7 +39,8 @@ export default function EventsBanner(props: any) {
               View Gatherings
             </ShadowButton>
           </a>
-          <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" className="button-link" onClick={() => onViewAllEventsClicked()}>
+          {/* Button to view all events */}
+          <a href={`${process.env.PL_EVENTS_BASE_URL}/program`} target="_blank" className="button-link" onClick={() => onViewAllEventsClicked()} data-testid="events-link">
             <ShadowButton
               buttonColor="#3DFEB1"
               shadowColor="#156FF7"

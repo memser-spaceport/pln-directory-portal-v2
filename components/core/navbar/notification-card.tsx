@@ -1,3 +1,8 @@
+/**
+ * Props for NotificationCard component.
+ * @interface INotification
+ * @property {IFollowUp} notification - The notification object to display.
+ */
 import { IFollowUp } from '@/types/officehours.types';
 import { calculateTime } from '@/utils/common.utils';
 import { NOTIFICATION_TYPES } from '@/utils/constants';
@@ -24,17 +29,21 @@ const NotificationCard = (props: INotification) => {
 
   return (
     <>
+      {/* Main notification card container */}
       <div className="noticrd">
         <div className="noticrd__prflec">
           <img alt="profile" className="noticrd__prflec_prfle" src={profile} height={48} width={48} />
         </div>
 
         <div className="noticrd__cnt">
+          {/* Notification title (may contain HTML) */}
           <div className="noticrd__cnt__ttl" dangerouslySetInnerHTML={{ __html: text }}></div>
+          {/* Notification date */}
           <div className='noticrd__cnt__date'>{daysAgo}</div>
         </div>
       </div>
 
+      {/* Inline styles for notification card */}
       <style jsx>
         {`
           .noticrd {

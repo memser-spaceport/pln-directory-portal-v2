@@ -2,10 +2,31 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
+/**
+ * Option interface for selectable options in Dropdown.
+ * @interface Option
+ * @property {string} [key: string] - Any key-value pair for option data.
+ */
 interface Option {
   [key: string]: any;
 }
 
+/**
+ * Props for the Dropdown component.
+ * @interface DropdownProps
+ * @property {Option[]} options - List of selectable options.
+ * @property {any} selectedOption - Currently selected option.
+ * @property {function} onItemSelect - Callback when an option is selected.
+ * @property {string} uniqueKey - Key to uniquely identify options.
+ * @property {string} displayKey - Key to display option text.
+ * @property {string} [placeholder] - Placeholder text for the dropdown.
+ * @property {boolean} [isMandatory] - Whether the field is required.
+ * @property {string} [arrowImgUrl] - URL for the dropdown arrow image.
+ * @property {string} [label] - Label for the dropdown.
+ * @property {string} id - ID for the dropdown.
+ * @property {function} [onDropdownClicked] - Optional callback when the dropdown is clicked.
+ * @property {any} count - Optional count to display.
+ */
 interface DropdownProps {
   options: Option[];
   selectedOption: any;
@@ -21,6 +42,13 @@ interface DropdownProps {
   count: any;
 }
 
+/**
+ * Dropdown is a select component with search, single selection, and count support.
+ *
+ * @component
+ * @param {DropdownProps} props - The props for the component.
+ * @returns {JSX.Element}
+ */
 const Dropdown: React.FC<DropdownProps> = ({
   options,
   selectedOption,
@@ -42,6 +70,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   const defaultSelectedValue = selectedOption ? selectedOption[displayKey] : '';
   const onContainerClickHandler = onDropdownClicked;
 
+  // Handle option click and selection
   const handleOptionClick = (option: Option) => {
     if (searchRef.current) {
       searchRef.current.value = option[displayKey];
@@ -51,20 +80,24 @@ const Dropdown: React.FC<DropdownProps> = ({
     setFilteredOptions(options);
   };
 
+  // Handle search focus to toggle options
   const onSearchFocus = () => {
     setShowOptions(!showOptions);
   };
 
+  // Update filtered options when options prop changes
   useEffect(() => {
     setFilteredOptions(options);
   }, [options]);
 
+  // Sync search input value with selected option
   useEffect(() => {
     if (searchRef.current && selectedOption && selectedOption[displayKey]) {
       searchRef.current.value = selectedOption[displayKey];
     }
   }, [selectedOption, displayKey]);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {

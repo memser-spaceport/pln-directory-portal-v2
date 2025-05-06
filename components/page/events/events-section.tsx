@@ -13,6 +13,15 @@ import { PAGE_ROUTES } from "@/utils/constants";
 import { isPastDate } from "@/utils/irl.utils"
 import { formatFeaturedData } from "@/utils/home.utils"
 
+/**
+ * Props for the EventsSection component.
+ * @property eventLocations - Array of event or location data to display
+ * @property userInfo - Optional user info object
+ * @property isLoggedIn - Optional flag for user login state
+ * @property getFeaturedDataa - Optional callback to fetch featured data
+ * @property onEventClicked - Optional callback when an event card is clicked
+ * @property onIrlLocationClicked - Optional callback when a location card is clicked
+ */
 interface EventsSectionProps {
   eventLocations: any;
   userInfo?: any
@@ -23,8 +32,9 @@ interface EventsSectionProps {
 }
 
 /**
- * Main component for displaying the events section with carousel
- * Uses Embla Carousel for desktop and simple overflow scrolling for mobile
+ * Main component for displaying the events section with carousel.
+ * Uses Embla Carousel for desktop and simple overflow scrolling for mobile.
+ * Handles analytics, navigation, and dynamic data fetching for events and locations.
  */
 export default function EventsSection({ 
   eventLocations,
@@ -32,12 +42,13 @@ export default function EventsSection({
   isLoggedIn,
 }: EventsSectionProps) {
 
+  // Embla carousel setup
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" })
   const [canScrollPrev, setCanScrollPrev] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(true);
   const [featuredData, setfeaturedData] = useState(eventLocations ?? []);
 
-  // Update scroll buttons state
+  // Update scroll buttons state when carousel changes
   useEffect(() => {
     if (!emblaApi) return
 
@@ -56,12 +67,14 @@ export default function EventsSection({
     }
   }, [emblaApi])
 
+  // Carousel navigation handlers
   const scrollPrev = () => emblaApi?.scrollPrev()
   const scrollNext = () => emblaApi?.scrollNext()
   
   const router = useRouter();
   const analytics = useEventsAnalytics();
 
+  // Fetch and update featured data (used by LocationCard)
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
     const featData = await getAggregatedEventsData(authToken, isLoggedIn);
@@ -69,6 +82,7 @@ export default function EventsSection({
     router.refresh();
   };
 
+  // Build event location URL for event cards
   const getEventLocation = (event: any) => {
     try {
       const isPast = isPastDate(event.endDate);
@@ -79,10 +93,12 @@ export default function EventsSection({
     }
   };
 
+  // Analytics: location card click
   const onIrlLocationClicked = (location: any) => {
     analytics.onIrlLocationClicked(getAnalyticsLocationCardInfo(location));
   };
 
+  // Analytics: event card click
   const onEventClicked = (event: any) => {
     analytics.onEventCardClicked(event);
   };
@@ -122,6 +138,7 @@ export default function EventsSection({
     }
   };
 
+  // --- Render main events section ---
   return (
     <div className={`events-section`}>
       <div className="header">
@@ -147,6 +164,7 @@ export default function EventsSection({
         </div>
       </div>
 
+      {/* Show message if no events are found */}
       {featuredData.length === 0 && 
         <div className="no-events-container">
           <div className="no-events-text">
@@ -154,6 +172,7 @@ export default function EventsSection({
           </div>
         </div>
       }
+      {/* Mobile carousel/scrollable cards */}
       <div className="mobile-container">
         <div className="mobile-scroll-container">
           {featuredData.map((location: any) => (
@@ -164,6 +183,7 @@ export default function EventsSection({
         </div>
       </div>
 
+      {/* Desktop carousel */}
       <div className="desktop-container">
         <div className="carousel-viewport" ref={emblaRef}>
           <div className="carousel-container-inner">

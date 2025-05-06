@@ -1,6 +1,15 @@
 "use client";
 import { SyntheticEvent } from "react";
 
+/**
+ * Props for the ModalButton component.
+ * @interface IButton
+ * @property {string} variant - The CSS class for button styling (e.g., 'primary', 'secondary').
+ * @property {string} value - The button label text.
+ * @property {'submit' | 'reset' | 'button' | undefined} type - The button type attribute.
+ * @property {() => void} [callBack] - Optional click handler callback.
+ * @property {boolean} [isDisabled] - Optional flag to disable the button.
+ */
 export interface IButton {
   variant: string;
   value: string;
@@ -9,7 +18,14 @@ export interface IButton {
   isDisabled?: boolean;
 }
 
+/**
+ * ModalButton renders a styled button for use in modals, supporting variants, disabled state, and click callbacks.
+ *
+ * @param {IButton} props - The props for the button.
+ * @returns {JSX.Element} The rendered button element.
+ */
 const ModalButton = (props: IButton) => {
+  // Extract props for clarity
   const value = props?.value;
   const className = props?.variant;
   const type = props?.type;
@@ -18,6 +34,7 @@ const ModalButton = (props: IButton) => {
 
   return (
     <>
+      {/* Button element with styling and event handling */}
       <button
         disabled={isDisabled}
         type={type}
@@ -26,6 +43,7 @@ const ModalButton = (props: IButton) => {
       >
         {value}
       </button>
+      {/* Inline styles for button variants and disabled state */}
       <style jsx>
         {`
           .primary {

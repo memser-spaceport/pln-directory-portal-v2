@@ -1,5 +1,15 @@
 import { BaseSyntheticEvent } from "react";
 
+/**
+ * Props for the Toggle component.
+ * @interface IToggle
+ * @property {string} height - The height of the toggle switch.
+ * @property {string} width - The width of the toggle switch.
+ * @property {boolean} isChecked - Whether the toggle is checked.
+ * @property {(e: BaseSyntheticEvent) => void} callback - Callback when the toggle is changed.
+ * @property {string} [id] - Optional id for the input.
+ * @property {boolean} [disabled] - Whether the toggle is disabled.
+ */
 interface IToggle {
   height: string;
   width: string;
@@ -9,7 +19,14 @@ interface IToggle {
   disabled?: boolean; 
 }
 
+/**
+ * Toggle is a custom switch component for boolean input, supporting disabled state and custom dimensions.
+ *
+ * @param {IToggle} props - The props for the Toggle component.
+ * @returns {JSX.Element} The rendered toggle switch.
+ */
 const Toggle = (props:IToggle) => {
+    // Destructure props for clarity
     const height = props?.height;
     const width = props?.width;
     const isChecked = props?.isChecked;
@@ -18,11 +35,13 @@ const Toggle = (props:IToggle) => {
     const disabled = props?.disabled;
     return (
       <>
+        {/* Main toggle label and input */}
         <label className='toogle' style={{ width: width, height: height }}>
           <input type='checkbox' checked={isChecked} onChange={(e) => callback(e)} id={`${id ? id : ''}`} disabled={disabled}/>
           <span className='toogle__slider toogle__round'></span>
         </label>
   
+        {/* Inline styles for the toggle */}
         <style jsx>
           {`
             .toogle {

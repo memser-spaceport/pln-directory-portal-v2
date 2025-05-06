@@ -2,12 +2,25 @@
 
 import Link from "next/link";
 
+/**
+ * Props for BreadCrumb component.
+ * @interface IBreadcrumb
+ * @property {string} backLink - The URL for the directory link
+ * @property {string} directoryName - The name of the directory
+ * @property {string} pageName - The name of the current page
+ */
 interface IBreadcrumb {
   backLink: string;
   directoryName: string;
   pageName: string;
 }
 
+/**
+ * Props for a single breadcrumb item.
+ * @interface IBreadcrumbItem
+ * @property {string} label - The label for the breadcrumb item
+ * @property {string} [href] - The optional link for the breadcrumb item
+ */
 interface IBreadcrumbItem {
   label: string;
   href?: string;
@@ -18,10 +31,12 @@ export function BreadCrumb(props: IBreadcrumb) {
   return (
     <>
       <nav aria-label="breadcrumb" className="breadcrumb">
+        {/* Home icon link */}
         <a href="/">
           <img loading="lazy" src="/icons/home.svg" className="breadcrumb__home" />
         </a>
         <span className="breadcrumb__item__separator">/</span>
+        {/* Render each breadcrumb item */}
         {breadcrumbItems.map((item, itemIndex: number) => (
           <div key={item.label} className={`breadcrumb__item ${itemIndex === breadcrumbItems.length - 1 ? 'breadcrumb__item--last' : ''}`}>
             {item.href && (
@@ -34,6 +49,7 @@ export function BreadCrumb(props: IBreadcrumb) {
           </div>
         ))}
       </nav>
+      {/* Inline styles for breadcrumb */}
       <style jsx>{`
         .breadcrumb {
           display: flex;

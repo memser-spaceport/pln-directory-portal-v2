@@ -1,5 +1,18 @@
 import { ChangeEvent, useRef, useState } from 'react';
 
+/**
+ * Props for the TextArea component.
+ * @interface TextAreaProps
+ * @property {function} [onChange] - Callback fired when the text area value changes.
+ * @property {function} [onClear] - Callback fired when the text area is cleared (not currently used).
+ * @property {string} [placeholder] - Placeholder text for the text area.
+ * @property {boolean} [isMandatory] - Whether the field is required.
+ * @property {string} [label] - Label for the text area.
+ * @property {string} name - Name attribute for the text area (required).
+ * @property {string} id - ID attribute for the text area (required).
+ * @property {string} [defaultValue] - Default value for the text area.
+ * @property {number} [maxLength] - Maximum number of characters allowed.
+ */
 interface TextAreaProps {
   onChange?: (event: ChangeEvent<HTMLTextAreaElement>) => void;
   onClear?: () => void;
@@ -12,16 +25,29 @@ interface TextAreaProps {
   maxLength?: number;
 }
 
+/**
+ * TextArea is a reusable controlled textarea component with label and validation support.
+ *
+ * @component
+ * @param {TextAreaProps} props - The props for the component.
+ * @returns {JSX.Element}
+ */
 const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '', onChange, isMandatory, placeholder, maxLength }) => {
+  // Ref for the textarea element (not currently used for focus or value access)
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Handler for textarea value change
   const onTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     if (onChange) {
       onChange(e);
     }
   };
+
+  // Render the textarea with label and styles
   return (
     <>
       <div className="tf">
+        {/* Render label if provided */}
         {label && (
           <label htmlFor={id} className="tf__label">
             {label}
@@ -39,6 +65,7 @@ const TextArea: React.FC<TextAreaProps> = ({ label, id, name, defaultValue = '',
           maxLength={maxLength}
         />
       </div>
+      {/* Inline styles for the component */}
       <style jsx>
         {`
           .tf {

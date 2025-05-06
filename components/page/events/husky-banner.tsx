@@ -13,6 +13,7 @@ export default function HuskyBanner(props: any) {
     <div 
       className="husky-banner"
     >
+        {/* Section: Responsive images for web and mobile */}
         <div className="image-container">
           <img 
             src="/images/events/banner-bg-husky-web.jpg" 
@@ -32,6 +33,7 @@ export default function HuskyBanner(props: any) {
         <h2 className="banner-title">Have questions about events or contributors?</h2>
 
         <div className="button-container">
+          {/* Ask Husky button with analytics */}
           <a href={PAGE_ROUTES.HUSKY} target="_blank" onClick={() => analytics.onAskHuskyButtonClicked()}>
             <ShadowButton
               buttonColor="#ffffff"
@@ -50,6 +52,7 @@ export default function HuskyBanner(props: any) {
         </div>
       </div>
 
+      {/* Section styles */}
       <style jsx>{`
         .husky-banner {
           width: 100%;

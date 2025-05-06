@@ -1,19 +1,35 @@
 import React, { SyntheticEvent } from 'react';
 import { Tooltip as Popover } from '../page/irl/attendee-list/attendee-popover';
 
+/**
+ * Props for the IrlHostTag component.
+ * @interface IrlHostTag
+ * @property {any[]} hostEvents - List of host events to display.
+ * @property {(event: any) => void} onHostEventClick - Callback when a host event is clicked.
+ */
 interface IrlHostTag {
   hostEvents: any[];
   onHostEventClick: (event: any) => void;
 }
 
+/**
+ * IrlHostTag displays a button that opens a popover with a list of host events.
+ * Each event is rendered as a link (if available) or a span (if not), and clicking a link calls the callback.
+ *
+ * @component
+ * @param {IrlHostTag} props - The props for IrlHostTag
+ * @returns {JSX.Element}
+ */
 const IrlHostTag = ({ hostEvents, onHostEventClick }: IrlHostTag) => {
   return (
     <div className="gtr__guestName__li__info__host">
+      {/* Popover with host events list */}
       <Popover
         asChild
         align="start"
         content={
           <div className="gtr__guestName__li__info__host__list">
+            {/* Render each host event */}
             {hostEvents?.map((event: { link: string; name: string }, index: number) => {
               const isLinkAvailable = !!event?.link;
               const displayName = event?.name || `Link${index + 1}`;
@@ -48,6 +64,7 @@ const IrlHostTag = ({ hostEvents, onHostEventClick }: IrlHostTag) => {
           </button>
         }
       />
+      {/* Inline styles for the component */}
       <style jsx>{`
         .gtr__guestName__li__info__host__list {
           width: 168px;

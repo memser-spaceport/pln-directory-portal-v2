@@ -1,11 +1,19 @@
 'use client';
 
+/**
+ * RaisingFunds component displays a responsive UI element for indicating fundraising status.
+ * Shows a mobile icon on small screens and a styled label with icon on desktop.
+ *
+ * @component
+ */
 export const RaisingFunds = () => {
   return (
     <>
+      {/* Mobile view: shows only on small screens */}
       <div className="raising-funds_mob">
         <img src="/icons/raising-funds-mobile.svg" height={21} width={21} alt="raising funds" />
       </div>
+      {/* Desktop view: shows only on large screens */}
       <div className="raising-funds_web">
         <div className="raising-funds_web__icon-section">
           <div className="raising-funds_web__icon__section__icon"></div>
@@ -15,7 +23,6 @@ export const RaisingFunds = () => {
 
       <style jsx>
         {`
-
           .raising-funds_web {
             display: none;
           }

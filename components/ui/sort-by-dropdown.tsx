@@ -1,16 +1,34 @@
 import { SORT_ICONS } from "@/utils/constants";
 
+/**
+ * Props for the SortByDropdown component.
+ * @interface ISortByDrodown
+ * @property {string} selectedItem - The currently selected sort option name.
+ * @property {(type: string) => void} callback - Callback when a sort option is selected.
+ */
 interface ISortByDrodown {
   selectedItem: string;
   callback: (type: string) => void
 }
+
+/**
+ * SortByDropdown renders a dropdown list of sort options with icons.
+ * Highlights the selected option and calls the callback when an option is clicked.
+ *
+ * @component
+ * @param {ISortByDrodown} props - The props for SortByDropdown
+ * @returns {JSX.Element}
+ */
 const SortByDropdown = (props:ISortByDrodown ) => {
+  // Section: Props extraction
   const selectedItem = props?.selectedItem;
   const callback = props?.callback;
 
   return (
     <>
+      {/* Dropdown container */}
       <div className="dropdown">
+        {/* Render each sort option */}
         {SORT_ICONS?.map((option: any, index: number) => (
           <div className="dropdown__option__container" key={`${option} + ${index}`}>
             <button className={`dropdown__option__container__option ${option.name === selectedItem ? "dropdown__option__container__option__selected" : ""}`} onClick={() => callback(option?.name)}>

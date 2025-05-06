@@ -17,6 +17,14 @@ interface IMemberTeams {
   teams: ITeam[];
 }
 
+/**
+ * MemberTeams displays a summary of a member's teams, with a modal for viewing all teams.
+ * Handles analytics, modal open/close, and sorts teams by mainTeam and name.
+ *
+ * @component
+ * @param {IMemberTeams} props - Component props
+ * @returns {JSX.Element}
+ */
 const MemberTeams = (props: IMemberTeams) => {
   const member = props?.member;
   const teams = props?.teams ?? [];

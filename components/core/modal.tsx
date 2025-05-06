@@ -8,7 +8,7 @@ interface IModal {
   modalRef: any;
 }
 const Modal = (props: IModal) => {
-  const onClose = props?.onClose ?? props?.onClose;
+  const onClose = props?.onClose;
   const children = props?.children;
   const ref = props?.modalRef;
 

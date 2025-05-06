@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const Toaster = () => {
   return (
     <>
+      {/* ToastContainer from react-toastify handles all toast rendering */}
       <ToastContainer
         position="top-right"
         theme="dark"

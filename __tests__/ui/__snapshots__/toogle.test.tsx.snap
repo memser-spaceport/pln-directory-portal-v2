@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Toggle matches snapshot 1`] = `
+<div>
+  <label
+    class="jsx-2359626225 toogle"
+    style="width: 28px; height: 16px;"
+  >
+    <input
+      checked=""
+      class="jsx-2359626225"
+      disabled=""
+      id="toggle-id"
+      type="checkbox"
+    />
+    <span
+      class="jsx-2359626225 toogle__slider toogle__round"
+    />
+  </label>
+</div>
+`;

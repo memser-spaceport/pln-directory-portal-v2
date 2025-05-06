@@ -1,10 +1,18 @@
 'use client';
+
+/**
+ * BarTabsItem describes a single tab item for the BarTabs component.
+ */
 interface BarTabsItem {
   name: string;
   key: string;
   activeIcon?: string;
   inActiveIcon?: string;
 }
+
+/**
+ * Props for the BarTabs component.
+ */
 interface BarTabsProps {
   items: BarTabsItem[];
   activeItem: string;
@@ -12,9 +20,16 @@ interface BarTabsProps {
   transform?: string;
 }
 
+/**
+ * BarTabs component renders a horizontal tab bar with optional icons and active state.
+ *
+ * @component
+ * @param {BarTabsProps} props - The props for BarTabs.
+ */
 function BarTabs({ activeItem, items, onTabSelected, transform }: BarTabsProps) {
   return (
     <>
+      {/* Tab container */}
       <div className="hc__tab">
         {items.map((item) => (
           <p key={item.key} className={`hc__tab__item ${item.key === activeItem ? 'hc__tab__item--active' : ''}`} onClick={() => onTabSelected(item.key)}>
@@ -24,6 +39,7 @@ function BarTabs({ activeItem, items, onTabSelected, transform }: BarTabsProps) 
           </p>
         ))}
       </div>
+      {/* Component styles for layout and responsiveness */}
       <style jsx>
         {`
           .hc__tab {

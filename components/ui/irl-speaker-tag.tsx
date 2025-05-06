@@ -9,6 +9,7 @@ interface IrlSpeakerTag {
 const IrlSpeakerTag = ({ speakerEvents, onSpeakerEventClick }: IrlSpeakerTag) => {
   return (
     <div className="gtr__guestName__li__info__spkr">
+      {/* Popover with event list, triggered by the button */}
       <Popover
         asChild
         align="start"
@@ -18,6 +19,7 @@ const IrlSpeakerTag = ({ speakerEvents, onSpeakerEventClick }: IrlSpeakerTag) =>
               const isLinkAvailable = !!event?.link;
               const displayName = event?.name || `Link${index + 1}`;
 
+              // Render as <a> if link is available, otherwise as <span>
               const Element = isLinkAvailable ? 'a' : 'span';
               const elementProps = isLinkAvailable
                 ? {
@@ -32,6 +34,7 @@ const IrlSpeakerTag = ({ speakerEvents, onSpeakerEventClick }: IrlSpeakerTag) =>
               return (
                 <Element key={index} {...elementProps} className={`gtr__guestName__li__info__spkr__list__item ${speakerEvents?.length !== index + 1 ? 'border-bottom' : ''}`}>
                   {displayName}
+                  {/* Show arrow icon if link is available */}
                   {isLinkAvailable && <img src="/icons/arrow-blue.svg" alt="arrow" width={9} height={9} />}
                 </Element>
               );

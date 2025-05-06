@@ -2,12 +2,39 @@
 
 import { RefObject } from 'react';
 
+/**
+ * Option object for the Autocomplete component.
+ * @interface OptionsProps
+ * @property {string} label - The display label for the option.
+ * @property {string} value - The value for the option.
+ * @property {string} [logo] - Optional logo URL for the option.
+ */
 export interface OptionsProps {
   label: string;
   value: string;
   logo?: string;
 }
 
+/**
+ * Props for the Autocomplete component.
+ * @interface AutocompleteProps
+ * @property {OptionsProps} selectedOption - The currently selected option.
+ * @property {(option: OptionsProps) => void} callback - Callback when an option is selected.
+ * @property {boolean} isPaneActive - Whether the options pane is active.
+ * @property {RefObject<HTMLDivElement>} paneRef - Ref for the pane container.
+ * @property {RefObject<HTMLInputElement>} inputRef - Ref for the input element.
+ * @property {OptionsProps[]} searchResult - List of search result options.
+ * @property {(text: string) => void} onTextChange - Callback for input text change.
+ * @property {string} searchText - The current input value.
+ * @property {(isActive: boolean) => void} setIsPaneActive - Callback to set pane active state.
+ * @property {boolean} [required] - Whether the input is required.
+ * @property {string} placeholder - Placeholder text for the input.
+ * @property {string} [iconUrl] - Optional icon URL for the input.
+ * @property {() => void} [onInputBlur] - Optional blur handler for the input.
+ * @property {boolean} [isProcessing] - Whether a search is in progress.
+ * @property {() => void} onClear - Callback to clear the input.
+ * @property {boolean} [isClear] - Whether the clear button is shown.
+ */
 interface AutocompleteProps {
   selectedOption: OptionsProps;
   callback: (option: OptionsProps) => void;
@@ -27,6 +54,13 @@ interface AutocompleteProps {
   isClear?: boolean;
 }
 
+/**
+ * Autocomplete is a controlled input component with a dropdown for selecting options.
+ * It supports search, clear, loading, and custom icons.
+ *
+ * @param {Readonly<AutocompleteProps>} props - The props for the component.
+ * @returns {JSX.Element} The rendered autocomplete input and dropdown.
+ */
 export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
   //props
   const selectedOption = props.selectedOption;

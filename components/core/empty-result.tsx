@@ -11,6 +11,10 @@ const EmptyResult = (props: any) => {
   const isProjectPage = pathname === PAGE_ROUTES.PROJECTS;
   const authAnalytics = useAuthAnalytics();
 
+  /**
+   * Handles click on clear all criteria link.
+   * Navigates to the current pathname.
+   */
   const onClearAllClickHandler = () => {
     router.push(pathname);
   };
@@ -34,6 +38,7 @@ const EmptyResult = (props: any) => {
         </p>
       </div>
 
+      {/* Inline styles for empty result */}
       <style jsx>
         {`
             .data-not-found {

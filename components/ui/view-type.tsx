@@ -2,18 +2,34 @@ import { VIEW_TYPE_OPTIONS } from "@/utils/constants";
 import { Tooltip } from "../core/tooltip/tooltip";
 import Image from "next/image";
 
+/**
+ * Props for the ViewType component.
+ * @interface IViewType
+ * @property {string} view - The current view type (e.g., GRID or LIST).
+ * @property {(viewType: string) => void} callback - Callback to change the view type.
+ */
 interface IViewType {
   view: string;
   callback: (viewType: string) => void;
 }
 
+/**
+ * ViewType is a UI component for toggling between grid and list views.
+ * It displays two buttons (grid and list) and highlights the selected one.
+ *
+ * @param {IViewType} props - The props for the component.
+ * @returns {JSX.Element} The rendered view type selector.
+ */
 const ViewType = (props: IViewType) => {
+  // Destructure props for clarity
   const view = props?.view;
   const callback = props?.callback;
 
   return (
     <>
+      {/* Container for the view type options */}
       <div className="view-option-container">
+        {/* Grid view button with tooltip */}
         <Tooltip
         asChild
           trigger={
@@ -24,6 +40,7 @@ const ViewType = (props: IViewType) => {
           content={VIEW_TYPE_OPTIONS.GRID}
         />
 
+        {/* List view button with tooltip */}
         <Tooltip
         asChild
           trigger={

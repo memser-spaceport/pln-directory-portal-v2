@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SelectedFocusAreas matches snapshot for regression safety 1`] = `
+<DocumentFragment>
+  <div
+    class="jsx-2bcc6b9659845454 focus"
+  >
+    <h2
+      class="jsx-2bcc6b9659845454 focus__title"
+    >
+      Focus Area
+    </h2>
+    <div
+      data-testid="mock-focus-area-display"
+    >
+      rawData:2,selectedItems:1
+    </div>
+  </div>
+</DocumentFragment>
+`;

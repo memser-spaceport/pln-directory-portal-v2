@@ -6,6 +6,10 @@ export default function ScrollObserver() {
   const [isScrolling, setIsScrolling] = useState(false);
 
   useEffect(() => {
+    /**
+     * Scrolls smoothly to the element with the given id, offsetting for navbar.
+     * @param id - The id of the element to scroll to.
+     */
     const scrollToElement = (id: string) => {
       const element = document.getElementById(id);
       if (!element) return;
@@ -26,6 +30,9 @@ export default function ScrollObserver() {
       }, 1000);
     };
 
+    /**
+     * Handles initial hash on page load.
+     */
     const handleInitialHash = () => {
       if (window.location.hash) {
         const id = window.location.hash.substring(1);
@@ -33,6 +40,9 @@ export default function ScrollObserver() {
       }
     };
 
+    /**
+     * Handles hash changes (e.g., user clicks anchor link).
+     */
     const handleHashChange = () => {
       if (window.location.hash) {
         const id = window.location.hash.substring(1);
@@ -43,6 +53,7 @@ export default function ScrollObserver() {
     window.addEventListener('load', handleInitialHash);
     window.addEventListener('hashchange', handleHashChange);
 
+    // IntersectionObserver to update URL hash as sections come into view
     const observer = new IntersectionObserver(
       (entries) => {
         if (isScrolling) return;
@@ -52,6 +63,7 @@ export default function ScrollObserver() {
             const element = entry.target as HTMLElement;
             const id = element.id;
 
+            // Only update hash if not excluded
             if (!element.hasAttribute('data-exclude-from-url')) {
               window.history.replaceState(null, '', `#${id}`);
             }
@@ -61,6 +73,7 @@ export default function ScrollObserver() {
       { threshold: 0.5 }
     );
 
+    // Observe all sections with an id, except those excluded
     const eventsContainer = document.getElementById('events-container');
     const sections = eventsContainer 
       ? eventsContainer.querySelectorAll('[id]')
@@ -68,6 +81,7 @@ export default function ScrollObserver() {
 
     sections.forEach(section => observer.observe(section));
 
+    // Cleanup listeners and observer on unmount
     return () => {
       observer.disconnect();
       window.removeEventListener('load', handleInitialHash);
@@ -75,5 +89,6 @@ export default function ScrollObserver() {
     };
   }, [isScrolling]);
 
+  // This component does not render any DOM
   return null;
 } 

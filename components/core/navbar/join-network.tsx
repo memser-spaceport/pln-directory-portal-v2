@@ -1,3 +1,13 @@
+/**
+ * JoinNetwork component allows users to join the network as a member or team.
+ *
+ * - Shows a dropdown with options when not logged in
+ * - Handles analytics and navigation
+ * - Uses cookies to check login state
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 import { useRef, useState } from 'react';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { EVENTS, JOIN_NETWORK_MENUS, TOAST_MESSAGES } from '@/utils/constants';
@@ -9,12 +19,19 @@ import { useRouter } from 'next/navigation';
 export default function JoinNetwork() {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Ref for detecting outside clicks
   const joinNetworkRef = useRef<HTMLDivElement | null>(null);
   const analytics = useCommonAnalytics();
   const router = useRouter();
 
+  // Close dropdown when clicking outside
   useClickedOutside({ callback: () => setIsOpen(false), ref: joinNetworkRef });
 
+  /**
+   * Handles click on the main join network button.
+   * - If logged in, shows toast and refreshes
+   * - If not, toggles dropdown and tracks analytics
+   */
   const onJoinNetworkClick = () => {
     const userInfo = Cookies.get('userInfo');
     if (userInfo) {
@@ -26,6 +43,13 @@ export default function JoinNetwork() {
     }
   };
 
+  /**
+   * Handles click on a dropdown option.
+   * - Tracks analytics
+   * - Dispatches events for member/team
+   * - Closes dropdown
+   * @param item - The selected menu item
+   */
   const onJoinNetworkListClick = (item: any) => {
     analytics.onNavJoinNetworkOptionClicked(item.name);
     if (item.key === 'member') {
@@ -38,6 +62,7 @@ export default function JoinNetwork() {
 
   return (
     <>
+      {/* Main join network container */}
       <div className="jn" ref={joinNetworkRef} >
         <button className="jn__btn" onClick={onJoinNetworkClick}>
           <span className="jn__btn__txt">Join the network</span>
@@ -56,6 +81,7 @@ export default function JoinNetwork() {
           </ul>
         )}
       </div>
+      {/* Inline styles for join network */}
       <style jsx>{`
         .jn {
           position: relative;

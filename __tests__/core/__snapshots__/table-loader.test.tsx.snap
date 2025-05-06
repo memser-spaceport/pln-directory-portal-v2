@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TableLoader Component matches snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="jsx-c6b1c38f6f66a557 loader"
+  >
+    <div
+      class="jsx-c6b1c38f6f66a557 spinner"
+    />
+    <p
+      class="jsx-c6b1c38f6f66a557"
+    >
+      Loading more data...
+    </p>
+  </div>
+</DocumentFragment>
+`;

@@ -76,7 +76,7 @@ const getPageData = async () => {
   if (aggregatedEventsresponse?.error || contributorsData?.error || membersDetail?.error) {
     isError = true;
   }
-  aggregatedEventsData = formatFeaturedData(aggregatedEventsresponse?.data);
+  aggregatedEventsData = formatFeaturedData(aggregatedEventsresponse?.data, "events");
   return {
     userInfo,
     isLoggedIn,

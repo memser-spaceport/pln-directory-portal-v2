@@ -176,8 +176,12 @@ export function formatDiscoverData(discoverData: any) {
   return questionAndAnswers;
 }
 
-export function formatFeaturedData(featuredData: any) {
-  const priorities = (process.env.PRIORITY_FEATURED_SECTION || '').split('|').map((item: any, index: any) => {
+export function formatFeaturedData(featuredData: any, type?: string) {
+  const envValue = type === "events" 
+    ? process.env.PRIORITY_EVENTS_SECTION 
+    : process.env.PRIORITY_FEATURED_SECTION;
+
+  const priorities = (envValue || '').split('|').map((item: any, index: any) => {
     const [key, value] = item.split(':');
     return { key, value, order: index };  
   });

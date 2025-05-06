@@ -65,7 +65,7 @@ export default function EventsSection({
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
     const featData = await getAggregatedEventsData(authToken, isLoggedIn);
-    setfeaturedData(formatFeaturedData(featData.data));
+    setfeaturedData(formatFeaturedData(featData.data, "events"));
     router.refresh();
   };
 

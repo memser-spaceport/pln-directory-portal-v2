@@ -32,7 +32,7 @@ export function FormStepIndicatorWeb({steps,defaultStep,uniqueKey,title,subTitle
     <>
       <div className="formstep">
         <div className="formstep__header">
-          <h1 className="formstep__header__title">{title} - {currentStep}</h1>
+          <h1 className="formstep__header__title" data-testid="formstep-title">{title} - {currentStep}</h1>
 
           <p className="formstep__header__desc">{subTitle}</p>
         </div>

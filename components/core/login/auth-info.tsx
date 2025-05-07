@@ -78,7 +78,7 @@ const AuthInfo = () => {
                   Click here to sign up
                 </div>
               </div>
-              <button onClick={onClose}>
+              <button onClick={onClose} data-testid="close-button">
                 <img width={20} height={20} src="/icons/close-rounded-black.svg" className="authinfo__dialog__box__close" alt="close" />
               </button>
             </div>

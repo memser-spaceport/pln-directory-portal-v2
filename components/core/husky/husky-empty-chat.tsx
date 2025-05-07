@@ -4,7 +4,7 @@
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { getChatQuestions } from '@/services/discovery.service';
 import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, MouseEventHandler } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
@@ -16,9 +16,11 @@ interface HuskyEmptyChatProps {
   setLimitReached: any;
   checkIsLimitReached: any;
   isHidden: any;
+  // for tests
+  onPromptClicked?: () => void
 }
 
-function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, isHidden }: HuskyEmptyChatProps) {
+function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, isHidden, onPromptClicked}: HuskyEmptyChatProps) {
   // Initial prompts displayed to the user
   const [initialPrompts, setInitialPrompts] = useState<any[]>([]);
 
@@ -71,7 +73,12 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
     if (!isMobileOrTablet && window.innerWidth >= 1024) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault(); // Prevents adding a new line
-        handlePromptSubmission(); // Submits the form
+        if (onPromptClicked)  {
+          // for testing
+          onPromptClicked();
+        } else {
+          handlePromptSubmission(); // Submits the form
+        }
       }
     }
   };
@@ -146,7 +153,7 @@ function HuskyEmptyChat({ limitReached, setLimitReached, checkIsLimitReached, is
           <button
             tabIndex={-1} // Allow focusing
             onMouseDown={(e) => e.preventDefault()}
-            onClick={handlePromptSubmission}
+            onClick={onPromptClicked ?? handlePromptSubmission}
             className={`hec__content__box__search__button ${limitReached ? 'disabled' : ''}`}
             data-testid="submit-button"
             disabled={limitReached}

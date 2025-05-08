@@ -7,7 +7,7 @@ import { formatFeaturedData } from '@/utils/home.utils'
 
 
 export default async function Events() {
-  const { aggregatedEventsData, isLoggedIn, userInfo, isError } = await getPageData();
+  const { aggregatedEventsData, userInfo, isError } = await getPageData();
 
   if (isError) {
     return <Error />;
@@ -21,7 +21,6 @@ export default async function Events() {
 const getPageData = async () => {
   const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
   let isError = false;
-  let aggregatedEventsData = [];
 
   let aggregatedEventsResponse = await getAggregatedEventsData(authToken);
 
@@ -29,7 +28,7 @@ const getPageData = async () => {
     isError = true;
   }
 
-  aggregatedEventsData = formatFeaturedData(aggregatedEventsResponse?.data);
+  const aggregatedEventsData = formatFeaturedData(aggregatedEventsResponse?.data);
 
   return {
     userInfo,

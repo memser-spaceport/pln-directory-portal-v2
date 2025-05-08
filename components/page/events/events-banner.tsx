@@ -3,7 +3,7 @@
 import ShadowButton from "@/components/ui/ShadowButton"
 import { PAGE_ROUTES } from "@/utils/constants"
 import { useEventsAnalytics } from "@/analytics/events.analytics"
-import { getAnalyticsUserInfo } from "@/utils/common.utils";
+import Image from 'next/image';
 
 export default function EventsBanner(props: any) {
   const { onViewAllGatheringsClicked, onViewAllEventsClicked } = useEventsAnalytics();
@@ -11,11 +11,13 @@ export default function EventsBanner(props: any) {
   return (
     <section className="banner">
       <div className="banner-image-container">
-        <img 
+        <Image
           src="/images/events/events-banner.svg" 
           alt="Events Banner" 
           className="banner-image" 
           loading="eager"
+          fill
+          objectFit="cover"
         />
       </div>
       

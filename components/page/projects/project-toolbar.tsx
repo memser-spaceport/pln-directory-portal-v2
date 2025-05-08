@@ -4,7 +4,7 @@ import FilterCount from '../../ui/filter-count';
 import ViewType from '../../ui/view-type';
 import useClickedOutside from '../../../hooks/useClickedOutside';
 import useUpdateQueryParams from '../../../hooks/useUpdateQueryParams';
-import { ChangeEvent, FormEventHandler, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { EVENTS, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
 import SortByDropdown from './sort-dropdown';

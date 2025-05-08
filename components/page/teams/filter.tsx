@@ -314,7 +314,6 @@ const Filter = (props: ITeamFilterWeb) => {
           button {
             background: none;
             border: none;
-            border: none;
           }
           .team-filter {
             width: inherit;

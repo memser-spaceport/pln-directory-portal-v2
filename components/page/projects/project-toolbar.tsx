@@ -180,6 +180,7 @@ const ProjectsToolbar = (props: any) => {
             justify-content: space-between;
             height: 40px;
             gap: 8px;
+              width: 100%;
           }
 
           .toolbar__left {

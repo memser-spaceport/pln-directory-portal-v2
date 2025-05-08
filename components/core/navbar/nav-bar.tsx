@@ -45,9 +45,6 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
-      triggerLoader(true);
-    }
-    if (pathName !== url) {
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
   };

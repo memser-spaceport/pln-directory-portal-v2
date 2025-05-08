@@ -2,8 +2,9 @@ import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'
 import s from './ContentPanelSkeletonLoader.module.css';
+import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 
-const CARDS = Array.from({ length: 15 });
+const CARDS = Array.from({ length: INITIAL_ITEMS_PER_PAGE });
 
 export const ContentPanelSkeletonLoader = () => {
   return (

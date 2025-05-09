@@ -25,7 +25,7 @@ function TeamSocialInfo(props: ITeamSocialInfo) {
           </ul>
         )}
         <div className="teamSocialInfo__form__item">
-          <TextField isMandatory defaultValue={initialValues?.contactMethod ?? ''} maxLength={200} id="register-team-contactMethod" label="Preferred method of contact*" name="contactMethod" type="text" placeholder="Enter contact method" />
+          <TextField defaultValue={initialValues?.contactMethod ?? ''} maxLength={200} id="register-team-contactMethod" label="Preferred method of contact" name="contactMethod" type="text" placeholder="Enter contact method" />
           <p className="info">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
             <span className="info__text">What is the best way for people to connect with your team? (e.g., team Slack channel, team email address, team Discord server/channel, etc.)</span>

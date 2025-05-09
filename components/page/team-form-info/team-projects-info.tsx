@@ -143,7 +143,6 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
         <div>
           <SingleSelect
             id="teams-fundingstage"
-            isMandatory={true}
             placeholder="Select a Stage"
             uniqueKey="id"
             displayKey="name"
@@ -151,7 +150,7 @@ const TeamProjectsInfo = (props: ITeamProjectsInfo) => {
             selectedOption={selectedFundingStage}
             onItemSelect={(item) => onTeamSelectionChanged(item)}
             arrowImgUrl="/icons/arrow-down.svg"
-            label="Funding Stage*"
+            label="Funding Stage"
           />
           <HiddenField value={selectedFundingStage?.id} defaultValue={selectedFundingStage?.id ?? ''} name="fundingStage-uid" />
           <HiddenField value={selectedFundingStage?.name} defaultValue={selectedFundingStage?.name ?? ''} name="fundingStage-title" />

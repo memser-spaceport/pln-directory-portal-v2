@@ -88,7 +88,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
               defaultValue={initialValues.requestorEmail}
               isMandatory={true}
               id="register-team-requestor-email"
-              label="Requestor's email*"
+              disabled={true}
+              label="Requestor's email"
               name="requestorEmail"
               type="email"
               placeholder="Enter your email address"
@@ -161,7 +162,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
           </p>
         </div>
         <div className="teaminfo__form__item">
-          {<label className={`tf__label`}>Long Description*</label>}
+          {<label className={`tf__label`}>Long Description</label>}
           <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id="register-team-longDescription" />
           {/* <TextArea
             defaultValue={initialValues?.longDescription}

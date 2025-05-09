@@ -2,6 +2,8 @@
 
 This is the frontend for the Directory application, uses  [Next.js](https://nextjs.org/) framework and is bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+Link to the [index repo](https://github.com/memser-spaceport/protocol-labs-directory)
+
 
 ## Next.js Version
 
@@ -85,6 +87,46 @@ To run the tests, use the following command:
 npm run test
 ```
 
+
+## Contribution Guidelines
+
+If you are contributing to this repository, please follow these guidelines:
+
+1. Minimal use of external packages  
+   Only add a new package if it is absolutely necessary. Unnecessary dependencies can increase the bundle size and introduce maintainability issues.
+
+2. Styling conventions  
+   - Use `style jsx` for styling components.  
+   - Use `module.css` files for styling page-level components.
+
+3. CSS Class Naming (Custom BEM Convention)  
+   Use a custom BEM-like convention where each element’s class name is prefixed with its parent and ancestor class names, separated by double underscores.  
+   Example:
+   ```jsx
+   <div className="member">
+     <p className="member__name">John</p>
+     <div className="member__profession">
+       <p className="member__profession__org">Protocol Labs</p>
+       <p className="member__profession__desig">Developer</p>
+     </div>
+   </div>
+   ```
+4. **Unit Testing**  
+   Add or update unit tests for any component you create or modify. Tests should cover expected behaviors, edge cases, and component interactions where applicable.
+
+5. **Naming Conventions**  
+   Use clear, descriptive names for all variables, functions, and components. Avoid vague names like `data1`, `item`, or `temp`. Instead, prefer names that reflect the purpose or content of the variable or function.
+
+6. **PostHog Analytics**  
+   Ensure analytics events are added for all call-to-actions and key user operations. Follow these naming rules:
+   - Use lowercase letters only  
+   - Use present-tense verbs (e.g., `submit`, not `submitted`)  
+   - Use snake_case format
+
+   Format: `category_object_action`  
+   Examples:
+   - `signup_flow_submit_button_click`  
+   - `account_settings_email_update_submit`
 
 # Steps to run directory admin frontend service locally
 

@@ -3,7 +3,7 @@ import { getHeader } from "@/utils/common.utils";
 import { EVENTS_TEAM_UID } from "@/utils/constants";
 import { getFormattedEvents, getFormattedLocations } from "@/utils/home.utils";
 
-export const getAggregatedEventsData = async (authToken?: any, isLoggedIn?: boolean, isAdmin?: boolean) => {
+export const getAggregatedEventsData = async (authToken?: any) => {
     let url = `${process.env.DIRECTORY_API_URL}/v1/irl/aggregated-data`;
 
     try {
@@ -57,7 +57,7 @@ export const getEventContributors = async () => {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        ...getHeader(""),
+        'Content-Type': 'application/json',
         'Cache-Control': 'no-cache', // Disable caching
       },
     });

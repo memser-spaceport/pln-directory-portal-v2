@@ -97,7 +97,7 @@ If you are contributing to this repository, please follow these guidelines:
 
 2. Styling conventions  
    - Use `style jsx` for styling components.  
-   - Use `module.css` files for styling page-level components.
+   - Use `module.css` files for styling the pages.
 
 3. CSS Class Naming (Custom BEM Convention)  
    Use a custom BEM-like convention where each element’s class name is prefixed with its parent and ancestor class names, separated by double underscores.  

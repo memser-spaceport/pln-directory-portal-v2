@@ -20,7 +20,7 @@ import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
-import AsksSection from '@/components/page/team-details/asks-section';
+import { AsksSection } from '@/components/page/team-details/asks-section/AsksSection';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -37,7 +37,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
     isNotFound,
     officeHoursFlag,
     hasEditAsksAccess,
-    isLoggedInMemberPartOfTeam
+    isLoggedInMemberPartOfTeam,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -62,20 +62,22 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           {/* Asks */}
           {!hasEditAsksAccess && team?.asks.length > 0 && (
             <div className={styles.teamDetail__Container__asks}>
-              <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
+              <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />
             </div>
           )}
 
           {hasEditAsksAccess && (
             <div className={styles.teamDetail__Container__asks}>
-              <AsksSection team={team} asks={team?.asks ?? []} hasEditAsksAccess={hasEditAsksAccess ?? false} />
+              <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />
             </div>
           )}
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>
             <ContactInfo team={team} userInfo={userInfo} />
-            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam}/>}
+            {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && (
+              <TeamOfficeHours isLoggedIn={isLoggedIn} team={team} userInfo={userInfo} officeHoursFlag={officeHoursFlag} isLoggedInMemberPartOfTeam={isLoggedInMemberPartOfTeam} />
+            )}
           </div>
           {/* Funding */}
           {team?.fundingStage || team?.membershipSources?.length ? (
@@ -164,13 +166,14 @@ async function getPageData(teamId: string) {
         {
           'teamMemberRoles.team.uid': teamId,
           isVerified: 'all',
-          select: 'uid,name,isVerified,image.url,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+          select:
+            'uid,name,isVerified,image.url,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
           pagination: false,
         },
         teamId,
         0,
         0,
-        isLoggedIn
+        isLoggedIn,
       ),
       getFocusAreas('Team', {}),
     ]);
@@ -185,7 +188,7 @@ async function getPageData(teamId: string) {
           pagination: false,
         },
         0,
-        0
+        0,
       );
       if (!allTeams?.error) {
         memberTeams = allTeams?.data?.formattedData ?? [];

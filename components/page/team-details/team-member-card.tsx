@@ -3,6 +3,7 @@ import { Tooltip } from "@/components/core/tooltip/tooltip";
 import { ITag, ITeam } from "@/types/teams.types";
 import { IMember } from "@/types/members.types";
 import { Tag } from "@/components/ui/tag";
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface ITeamMemberCard {
   team: ITeam | undefined;
@@ -13,13 +14,14 @@ interface ITeamMemberCard {
 const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
   const member = props?.member ?? {};
   const team = props?.team;
-  const logo = member?.profile ?? "/icons/default_profile.svg";
   const memberName = member?.name ?? "";
   const role = team?.role ?? "";
   const skills = member?.skills ?? [];
   const isTeamLead = member?.teamLead;
   const url = props?.url; 
   const callback = props?.onCardClick
+  const defaultAvatarImage = useDefaultAvatar(member?.name);
+  const logo = member?.profile ?? defaultAvatarImage;
   
   return (
     <>

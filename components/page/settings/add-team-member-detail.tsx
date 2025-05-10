@@ -1,6 +1,7 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Toggle from '@/components/ui/toogle';
 import { Fragment, useState } from 'react';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 const AddTeamMemberDetail = (props: any) => {
   const selectedMembers = props?.selectedMembers;
@@ -57,7 +58,7 @@ const AddTeamMemberDetail = (props: any) => {
                     <div className="cpt__cnt__cptr">
                       <div className="cpt__cnt__cptr__img">
                         <div className="cpt__cnt__cptr__pflctr">
-                          <img loading="lazy" className="cpt__cnt__cptr__profile" alt="profile" src={member?.profile || '/icons/default-user-profile.svg'} width={40} height={40} />
+                          <img loading="lazy" className="cpt__cnt__cptr__profile" alt="profile" src={member?.profile || getDefaultAvatar(member?.name)} width={40} height={40} />
                           {member?.teams?.teamLead && (
                             <Tooltip
                               side="top"

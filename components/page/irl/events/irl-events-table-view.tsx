@@ -2,6 +2,7 @@ import { getFormattedDateString } from '@/utils/irl.utils';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Image from 'next/image';
 import { IRL_EVENTS_DEFAULT_IMAGE } from '@/utils/constants';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, handleElementClick, isEventSelected, eventType, isLoggedIn }: any) => {
   const handleRowClick = (gathering: any) => {
@@ -45,18 +46,22 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
                 {gathering.eventGuests?.length > 0 && (
                   <div className="root__irl__table-col__contentName__attendee__list">
                     <span className="root__irl__imgsec__images">
-                      {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <Image
-                          key={index}
-                          style={{ marginLeft: `-6px` }}
-                          className="root__irl__imgsec__images__img"
-                          src={member?.member?.image?.url || '/icons/default_profile.svg'}
-                          alt="attendee"
-                          height={18}
-                          width={18}
-                        />
-                      ))}
+                      {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => {
+                        const defaultAvatar = getDefaultAvatar(member?.member?.name);
+
+                        return (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <Image
+                            key={index}
+                            style={{ marginLeft: `-6px` }}
+                            className="root__irl__imgsec__images__img"
+                            src={member?.member?.image?.url || defaultAvatar}
+                            alt="attendee"
+                            height={18}
+                            width={18}
+                          />
+                        );
+                      })}
                     </span>
                     <span className="">
                       {gathering.eventGuests?.length > 0 ? gathering.eventGuests?.length : ''} {gathering?.eventGuests.length > 1 ? 'Attendees' : 'Attendee'}

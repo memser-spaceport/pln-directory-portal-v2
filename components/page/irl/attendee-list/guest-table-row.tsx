@@ -18,6 +18,7 @@ import { SyntheticEvent } from 'react';
 import Image from 'next/image';
 import IrlSpeakerTag from '@/components/ui/irl-speaker-tag';
 import IrlHostTag from '@/components/ui/irl-host-tag';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IGuestTableRow {
   guest: IGuest;
@@ -42,7 +43,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
 
   const guestUid = guest?.memberUid;
   const guestName = guest?.memberName ?? '';
-  const guestLogo = guest?.memberLogo || '/icons/default-user-profile.svg';
+  const guestLogo = guest?.memberLogo || getDefaultAvatar(guest?.memberName);
   const teamUid = guest?.teamUid ?? '';
   const teamName = guest?.teamName ?? '';
   const teamLogo = guest?.teamLogo || '/icons/team-default-profile.svg';

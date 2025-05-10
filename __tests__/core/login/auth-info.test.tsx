@@ -35,7 +35,7 @@ describe('AuthInfo Component', () => {
   test('renders AuthInfo component', () => {
     render(<AuthInfo />);
     expect(screen.getByTestId('authinfo-container')).not.toBeNull();
-    expect(screen.getByText(/New Authentication Method/i)).not.toBeNull();
+    expect(screen.getByText(/Proceed to Login/i)).not.toBeNull();
   });
 
 
@@ -45,7 +45,7 @@ describe('AuthInfo Component', () => {
     // Simulate a URL with privy_ keys
     window.history.pushState({}, 'Test Title', '/?privy_test=value&other=value');
     
-    fireEvent.click(screen.getByRole('button', { name: /Cancel/i }));
+    fireEvent.click(screen.getByTestId('close-button'));
     
     expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('other=value'));
   });

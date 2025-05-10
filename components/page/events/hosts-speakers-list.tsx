@@ -7,6 +7,7 @@ import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IHostSpeakersList {
   onClose: () => void;
@@ -92,6 +93,8 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
           </div>
           <div className="cm__body__contributors">
             {filteredContriList?.map((contributor: any) => {
+              const defaultAvatar = getDefaultAvatar(contributor?.member?.name);
+
               return (
                 <div
                   className="contributor__wrpr"
@@ -101,7 +104,7 @@ const HostSpeakersList = (props: IHostSpeakersList) => {
                   <div className="contributor">
                     <div className="contributor__info">
                       <div className="contributor__info__imgWrpr">
-                        <Image alt="profile" width={40} height={40} loading='eager' priority={true}  className="contributor__info__img" src={contributor?.member?.image?.url || '/icons/default_profile.svg'}  />
+                        <Image alt="profile" width={40} height={40} loading='eager' priority={true}  className="contributor__info__img" src={contributor?.member?.image?.url || defaultAvatar}  />
                       </div>
                       <div className="contributor__info__name">{contributor?.member?.name}</div>
                     </div>

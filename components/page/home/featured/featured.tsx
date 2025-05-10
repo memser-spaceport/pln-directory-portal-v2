@@ -3,7 +3,7 @@
 import useEmblaCarousel from 'embla-carousel-react';
 import { usePrevNextButtons } from '@/hooks/use-prev-next-buttons';
 import { EmblaOptionsType } from 'embla-carousel';
-import React, { useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import FeaturedHeader from './featured-header';
 import IrlCard from './irl-card';
 import MemberCard from './member-card';
@@ -131,13 +131,13 @@ const Featured = (props: any) => {
         <div>
           <div className={`featured__body`}>
             {featuredData?.map((item: any, index: number) => (
-              <>
+              <Fragment key={`${item.category}-${index}`}>
                 {item?.category === 'location' ? (
-                  item?.upcomingEvents?.length > 0 && <div key={`${item.category}-${index}`}>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                  item?.upcomingEvents?.length > 0 && <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
                 ) : (
-                  <div key={`${item.category}-${index}`}>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                  <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
                 )}
-              </>
+              </Fragment>
             ))}
           </div>
         </div>

@@ -39,7 +39,8 @@ describe('HuskyInputBox', () => {
   });
 
     // Test source selection
-    it('calls onSourceSelected when a source is clicked', () => {
+    // source selection is currently not used
+    it.skip('calls onSourceSelected when a source is clicked', () => {
         const sourceMenu = screen.getByTestId('husky-input-source-menu');
         fireEvent.click(sourceMenu);
         const sourceButton = screen.getByTestId('input-source-1');

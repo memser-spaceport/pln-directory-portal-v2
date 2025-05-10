@@ -12,6 +12,8 @@ import SelfEmailUpdate from './self-email-update';
 import AdminEmailUpdate from './admin-email-update';
 import Toggle from '@/components/ui/toogle';
 import TextEditor from '@/components/ui/text-editor';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import Image from 'next/image';
 
 interface MemberBasicInfoProps {
   errors: string[];
@@ -34,6 +36,12 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
   const [profileImage, setProfileImage] = useState<string>('');
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const [bio, setBio] = useState(initialValues.bio ?? '');
+  const isShowDefaultImage = !profileImage && !savedImage;
+
+  /**
+   * Generate default avatar image based on the member name.
+   */
+  const defaultAvatarImage = useDefaultAvatar(initialValues?.name);
 
   /**
    * Handles image upload and sets the profile image state.
@@ -99,17 +107,31 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
         <div className="memberinfo__form">
           <div className="memberinfo__form__user">
             <label htmlFor="member-image-upload" className="memberinfo__form__user__profile" data-testid="profile-image-upload">
-              {!profileImage && !savedImage && <img width="32" height="32" alt="upload member image" src="/icons/camera.svg" />}
-              {!profileImage && !savedImage && <span className="memberinfo__form__user__profile__text">Add Image</span>}
-              {(profileImage || savedImage) && (
-                <img className="memberinfo__form__user__profile__preview" src={formImage} data-testid="profile-image-preview" alt="user profile" width="95" height="95" />
-              )}
-              {(profileImage || savedImage) && (
-                <span className="memberinfo__form__user__profile__actions">
-                  <img width="32" height="32" title="Change profile image" alt="change image" src="/icons/recycle.svg" />
-                  <img onClick={onDeleteImage} width="32" height="32" title="Delete profile image" alt="delete image" src="/icons/trash.svg" />
-                </span>
-              )}
+              <div className="memberinfo__form__user__profile_avatar">
+                <Image
+                  className="memberinfo__form__user__profile__preview"
+                  src={isShowDefaultImage ? defaultAvatarImage : formImage}
+                  data-testid="profile-image-preview"
+                  alt="user profile"
+                  fill />
+              </div>
+              <span className="memberinfo__form__user__profile__actions">
+                <Image
+                  width="32"
+                  height="32"
+                  title="Change profile image"
+                  alt="change image"
+                  src="/icons/recycle.svg" />
+                {(profileImage || savedImage) && (
+                  <Image
+                    onClick={onDeleteImage}
+                    width="32"
+                    height="32"
+                    title="Delete profile image"
+                    alt="delete image"
+                    src="/icons/trash.svg" />
+                )}
+              </span>
             </label>
             <input type="text" readOnly value={formImage} id="member-info-basic-image" hidden name="imageFile" />
             <input data-testid="member-image-upload" onChange={onImageUpload} id="member-image-upload" name="memberProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
@@ -270,20 +292,28 @@ function MemberBasicInfo(props: MemberBasicInfoProps) {
             font-size: 12px;
             cursor: pointer;
             position: relative;
+            
+          }
+          .memberinfo__form__user__profile_avatar {
+              width: 100%;
+              height: 100%;
+              border-radius: 50%;
+              position: relative;
+              overflow: hidden;  
           }
           .memberinfo__form__user__profile__actions {
             display: flex;
             gap: 10px;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
+            align-items: flex-end;
+            justify-content: space-between;
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            inset: 0;
             border-radius: 50%;
-            background: rgb(0, 0, 0, 0.4);
+            background: rgb(0, 0, 0, 0.2);
+              
+            > img:hover {
+                filter: brightness(120%);
+            }
           }
 
           .memberinfo__form__user__profile__preview {

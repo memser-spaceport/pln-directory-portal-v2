@@ -1,8 +1,8 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { triggerLoader } from '@/utils/common.utils';
-import validateCaptcha, { getRecaptchaToken } from '@/services/google-recaptcha.service';
+import { isSkipRecaptcha, triggerLoader } from '@/utils/common.utils';
+import { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from 'react-toastify';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import { signUpFormAction } from '@/app/actions/sign-up.actions';
@@ -66,7 +66,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
       const reCAPTCHAToken = await getRecaptchaToken();
 
       // Validating reCAPTCHAToken
-      if (reCAPTCHAToken.error || !reCAPTCHAToken.token) {
+      if ((reCAPTCHAToken.error || !reCAPTCHAToken.token) && !isSkipRecaptcha()) {
         toast.error('Google reCAPTCHA validation failed. Please try again.');
         analytics.recordSignUpSave('submit-clicked-captcha-failed', Object.fromEntries(formData.entries()));
         triggerLoader(false);

@@ -1,6 +1,7 @@
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { EVENTS } from '@/utils/constants';
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 export default function ContributorsPopup(props: any) {
   const selectedContributors = [...props?.selectedContributors];
@@ -196,11 +197,13 @@ export default function ContributorsPopup(props: any) {
             <>
               {filteredContributors?.map((contributor: any, index: any) => {
                 const isSelected = getIsSelected(contributor);
+                const defaultAvatar = getDefaultAvatar(contributor?.name);
+
                 return (
                   <div className="cpt__cnt__cptr" key={`${contributor} + ${index}`}>
                     <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
                     <div className="cpt__cnt__cptr__pflctr">
-                      <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} height={40} width={40} />
+                      <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ?? defaultAvatar} height={40} width={40} />
                       {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={14} width={14} />}
                     </div>
                     <div className="cpt__cnt__cptr__dtls">
@@ -229,13 +232,15 @@ export default function ContributorsPopup(props: any) {
             {filteredContributors?.map((contributor: any, index: any) => {
               const isSelected = getIsSelected(contributor);
               const value = inputRef.current.value.toLowerCase() ?? '';
+              const defaultAvatar = getDefaultAvatar(contributor?.name);
+
               return (
                 <Fragment key={`${contributor} + ${index}`}>
                   {(contributor?.name.toLowerCase().includes(value.toLowerCase()) && isSelected) && (
                     <div className="cpt__cnt__cptr">
                       <input type="checkbox" className="cpt__cnt__cptr__chbox" checked={isSelected} onChange={() => onCheckBoxChange(contributor)} />
                       <div className="cpt__cnt__cptr__pflctr">
-                        <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ? contributor.logo : '/icons/default_profile.svg'} height={40} width={40} />
+                        <img alt="profile" className="cpt__cnt__cptr__profile" src={contributor?.logo ?? defaultAvatar} height={40} width={40} />
                         {contributor?.teamLead && <img alt="lead" className="cpt__cnt__cptr__pflctr__lead" src="/icons/badge/team-lead.svg" height={16} width={16} />}
                       </div>
                       <div className="cpt__cnt__cptr__dtls">

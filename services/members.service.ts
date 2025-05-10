@@ -2,6 +2,7 @@ import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types'
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
 import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpeaker, parseMemberDetailsForTeams } from '@/utils/member.utils';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
   handleHostAndSpeaker(options);
@@ -352,11 +353,13 @@ export const getMembersInfoForDp = async (isVerifiedFlag: string = 'all') => {
   const result = await response?.json();
   const formattedData: any = result?.members
     ?.map((info: any) => {
+      const defaultAvatar = getDefaultAvatar(info.name);
+
       return {
         id: info.uid,
         name: info.name,
-        image: info?.image?.url ?? '/icons/default-user-profile.svg',
-        imageUrl: info?.image?.url ?? '/icons/default-user-profile.svg',
+        image: info?.image?.url ?? defaultAvatar,
+        imageUrl: info?.image?.url ?? defaultAvatar,
       };
     })
     .sort((a: any, b: any) => a.name.localeCompare(b.name));

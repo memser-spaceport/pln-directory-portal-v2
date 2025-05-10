@@ -15,6 +15,7 @@ const mockProps = {
   startDate: '2024-12-02T07:00:00.000Z',
   endDate: '2024-12-10T07:00:00.000Z',
   bannerUrl: '/path/to/banner.jpg',
+  timezone: 'America/Los_Angeles',
 };
 
 describe('IrlCard', () => {
@@ -57,7 +58,7 @@ describe('IrlCard', () => {
   });
 
   it('renders "Going" for non invite-only events', () => {
-    const pastEventProps = { ...mockProps, type:'' };
+    const pastEventProps = { ...mockProps, type:'', endDate: '2026-12-10T07:00:00.000Z' };
     render(<IrlCard {...pastEventProps} />);
 
     expect(screen.getByText('10 Going')).toBeInTheDocument();

@@ -6,6 +6,7 @@ import { IMember } from '@/types/members.types';
 import { parseMemberLocation } from '@/utils/member.utils';
 import MemberSkillList from './member-skill-list';
 import Image from 'next/image';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IMemberListView {
   member: IMember;
@@ -15,13 +16,14 @@ interface IMemberListView {
 const MemberListView = (props: IMemberListView) => {
   const member = props?.member;
   const isUserLoggedIn = props?.isUserLoggedIn;
-  const profileUrl = member?.profile ?? '/icons/default_profile.svg';
   const role = member.mainTeam?.role || 'Contributor';
   const location = parseMemberLocation(member?.location);
   const skills = member?.skills ?? [];
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
   const isBorder = isTeamLead || isOpenToWork;
+  const defaultAvatarImage = useDefaultAvatar(member?.name);
+  const profileUrl = member?.profile ?? defaultAvatarImage;
 
   return (
     <>

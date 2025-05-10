@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 if (typeof window !== 'undefined') {
   posthog.init(process.env.POSTHOG_KEY as string, {
     api_host: process.env.POSTHOG_HOST,
+    person_profiles: 'always', 
     // Enable debug mode in development
     loaded: (posthog) => {
       if (process.env.NODE_ENV === 'development') posthog.debug();

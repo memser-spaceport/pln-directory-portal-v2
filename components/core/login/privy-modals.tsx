@@ -11,10 +11,12 @@ import { createLogoutChannel } from './broadcast-channel';
 import { deletePrivyUser } from '@/services/auth.service';
 import { triggerLoader } from '@/utils/common.utils';
 import { getFollowUps } from '@/services/office-hours.service';
+import { usePostHog } from 'posthog-js/react';
 
 function PrivyModals() {
   const { getAccessToken, linkEmail, linkGithub, linkGoogle, linkWallet, login, logout, ready, unlinkEmail, updateEmail, user, PRIVY_CUSTOM_EVENTS } = usePrivyWrapper();
   const analytics = useAuthAnalytics();
+  const postHogProps = usePostHog();
   const [linkAccountKey, setLinkAccountKey] = useState('');
   const router = useRouter();
 
@@ -100,6 +102,11 @@ function PrivyModals() {
       expires: new Date(refreshTokenExpiry.exp * 1000),
       path: '/',
       domain: process.env.COOKIE_DOMAIN || '',
+    });
+    postHogProps.identify(output?.userInfo?.uid, {
+      email: output?.userInfo?.email,
+      name: output?.userInfo?.name,
+      uid: output?.userInfo?.uid,
     });
   };
 

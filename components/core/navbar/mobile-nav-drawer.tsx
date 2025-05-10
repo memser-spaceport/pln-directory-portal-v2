@@ -12,7 +12,8 @@ import { toast } from 'react-toastify';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 import LoginBtn from './login-btn';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import SignUpBtn from './sign-up';
+import { usePostHog } from 'posthog-js/react';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
@@ -28,8 +29,11 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   const settingsUrl = '/settings';
 
   const analytics = useCommonAnalytics();
+  const postHogProps = usePostHog();
   const drawerRef = useRef(null);
   const router = useRouter();
+
+  const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
 
   useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
 
@@ -57,6 +61,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
     document.dispatchEvent(new CustomEvent('init-privy-logout'));
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
     createLogoutChannel().postMessage('logout');
+    postHogProps.reset();
   };
 
   const handleSubmitTeam = () => {
@@ -158,7 +163,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             {isLoggedIn && (
               <div className="md__container__bdy__footer__usrop">
                 <div className="md__container__bdy__footer__usrop__profilesec">
-                  <img className="md__container__bdy__footer__usrop__profilesec__profile" src={userInfo?.profileImageUrl || '/icons/default_profile.svg'} alt="profile" height={40} width={40} />
+                  <img className="md__container__bdy__footer__usrop__profilesec__profile" src={userInfo?.profileImageUrl || defaultAvatarImage} alt="profile" height={40} width={40} />
                   <div className="md__container__bdy__footer__usrop__profilesec__name">{userInfo?.name}</div>
                 </div>
                 <button className="md__container__bdy__footer__usrop__lgout" onClick={onLogoutClickHandler}>

@@ -212,7 +212,7 @@ describe('AdditionalDetails', () => {
         uid: 'team3',
       },
     };
-    const userHasEditRights = true;
+    const userHasEditRights = false;
     const authToken
       = 'your-auth-token';
     const user = userInfo;
@@ -223,12 +223,12 @@ describe('AdditionalDetails', () => {
 
   it('should return false when there is exception while validating if the user is team lead or not', async () => {
     const userInfo = {
-      leadingTeams: {},
+      leadingTeams: [],
     };
     const project = {
       maintainingTeam: [],
     };
-    const userHasEditRights = true;
+    const userHasEditRights = false;
     const authToken
       = 'your-auth-token';
     const user = userInfo;

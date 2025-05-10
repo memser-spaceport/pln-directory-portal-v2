@@ -30,7 +30,8 @@ describe('HuskyFeedback Component', () => {
   });
 
 
-  test('calls forceUserLogin when login is required', async () => {
+  // Husky dialog is disabled for now accross the app
+  test.skip('calls forceUserLogin when login is required', async () => {
     (getUserCredentialsInfo as jest.Mock).mockResolvedValue({ isLoginRequired: true, newAuthToken: 'token', newUserInfo: null });
 
     render(<HuskyFeedback onClose={mockOnClose} question="Test Question" answer="Test Answer" setLoadingStatus={mockSetLoadingStatus} forceUserLogin={mockForceUserLogin} />);

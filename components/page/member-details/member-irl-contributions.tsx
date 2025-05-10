@@ -25,6 +25,7 @@ interface IEventGuest {
   uid: string;
   isHost: boolean;
   isSpeaker: boolean;
+  isSponsor: boolean;
   event: IEvent;
 }
 
@@ -32,6 +33,7 @@ interface GroupedEvents {
   Attendee: IEvent[];
   Speaker: IEvent[];
   Host: IEvent[];
+  Sponsor: IEvent[];
 }
 
 interface IMemberRepositories {
@@ -51,20 +53,21 @@ const IrlMemberContribution = (props: IMemberRepositories) => {
   const transformData = (array: any[]): GroupedEvents => {
     return array.reduce(
       (acc: GroupedEvents, item) => {
-        if (!item.isSpeaker && !item.isHost) {
+        if (!item.isSpeaker && !item.isHost && !item.isSponsor) {
           acc.Attendee.push(item.event);
         }
 
         if (item.isSpeaker) acc.Speaker.push(item.event);
         if (item.isHost) acc.Host.push(item.event);
+        if (item.isSponsor) acc.Sponsor.push(item.event);
 
         return acc;
       },
-      { Host: [], Speaker: [], Attendee: [] }
+      { Host: [], Speaker: [], Attendee: [], Sponsor: [] }
     );
   };
 
-  const groupedData: GroupedEvents = member ? transformData(sortedEvents) : { Host: [], Speaker: [], Attendee: [] };
+  const groupedData: GroupedEvents = member ? transformData(sortedEvents) : { Host: [], Speaker: [], Attendee: [], Sponsor: [] };
 
   const onClose = () => {
     if (modalRef.current) {

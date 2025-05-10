@@ -57,7 +57,7 @@ export const getEventContributors = async () => {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        ...getHeader(""),
+        'Content-Type': 'application/json',
         'Cache-Control': 'no-cache', // Disable caching
       },
     });

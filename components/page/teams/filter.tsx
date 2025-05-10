@@ -47,6 +47,7 @@ const Filter = (props: ITeamFilterWeb) => {
   const includeOfficeHours = searchParams['officeHoursOnly'] === 'true' || false;
   const isRecent = searchParams['isRecent'] === 'true' || false;
   const isHost = searchParams['isHost'] === 'true' || false;
+  const isSponsor = searchParams['isSponsor'] === 'true' || false;
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
   
@@ -86,6 +87,18 @@ const Filter = (props: ITeamFilterWeb) => {
       return;
     }
     updateQueryParams('isHost', '', searchParams);
+  }
+
+  const onIsSponsorToggle = () => {
+    triggerLoader(true);
+    if (searchParams?.page) {
+      searchParams.page = '1';
+    }
+    if (!isSponsor) {
+      updateQueryParams('isSponsor', 'true', searchParams);
+      return;
+    }
+    updateQueryParams('isSponsor', '', searchParams);
   }
 
   const onIsActiveToggle = () => {
@@ -139,7 +152,7 @@ const Filter = (props: ITeamFilterWeb) => {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
-      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost', 'asks'];
+      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost', 'isSponsor', 'asks'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           current.delete(query);
@@ -204,13 +217,19 @@ const Filter = (props: ITeamFilterWeb) => {
           {/* Border line */}
           <div className="team-filter__bl"></div>
 
-          <div className='team-filter__body__event'>
+          <div className="team-filter__body__event">
             <p className="team-filter__body__ttl">Contributions</p>
             {/* New member filter */}
             <div className="team-filter__body__host">
               <h3 className="team-filter__body__host__title">Host</h3>
               <div className="pe__body__topic__select__toggle">
                 <Toggle height="16px" width="28px" callback={onIsHostToggle} isChecked={isHost} />
+              </div>
+            </div>
+            <div className="team-filter__body__sponsor">
+              <h3 className="team-filter__body__sponsor__title">Sponsor</h3>
+              <div className="pe__body__topic__select__toggle">
+                <Toggle height="16px" width="28px" callback={onIsSponsorToggle} isChecked={isSponsor} />
               </div>
             </div>
           </div>
@@ -220,7 +239,7 @@ const Filter = (props: ITeamFilterWeb) => {
 
           <FocusAreaFilter
             title="Focus Area"
-            uniqueKey={FOCUS_AREAS_FILTER_KEYS.teams as "teamAncestorFocusAreas" | "projectAncestorFocusAreas"}
+            uniqueKey={FOCUS_AREAS_FILTER_KEYS.teams as 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas'}
             focusAreaRawData={filterValues?.focusAreas?.rawData}
             selectedItems={filterValues?.focusAreas?.selectedFocusAreas}
             searchParams={searchParams}
@@ -398,7 +417,7 @@ const Filter = (props: ITeamFilterWeb) => {
             justify-content: space-between;
           }
 
-          .team-filter__body__includes, .team-filter__body__recent, .team-filter__body__host{
+          .team-filter__body__includes, .team-filter__body__recent, .team-filter__body__host, .team-filter__body__sponsor {
             // padding: 0px 0px 16px 0px;
             display: flex;
             align-items: center;
@@ -406,7 +425,7 @@ const Filter = (props: ITeamFilterWeb) => {
             justify-content: space-between;
           }
 
-          .team-filter__body__includes__title, .team-filter__body__recent__title, .team-filter__body__host__title {
+          .team-filter__body__includes__title, .team-filter__body__recent__title, .team-filter__body__host__title, .team-filter__body__sponsor__title {
             color: #475569;
             font-size: 14px;
             font-weight: 400;

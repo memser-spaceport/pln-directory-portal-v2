@@ -61,7 +61,8 @@ const MembersFilter = (props: IMembersFilter) => {
   const includeUnVerified = searchParams['includeUnVerified'] === 'true' || false;
   const isHost = searchParams['isHost'] === 'true' || false;
   const isSpeaker = searchParams['isSpeaker'] === 'true' || false;
-  const isHostAndSpeaker = searchParams['isHostAndSpeaker'] === 'true' || false;
+  const isSponsor = searchParams['isSponsor'] === 'true' || false;
+  const isHostAndSpeakerAndSponsor = searchParams['isHostAndSpeakerAndSponsor'] === 'true' || false;
 
   const onToggleClicked = async (param: string, id: string, event: BaseSyntheticEvent) => {
     const currentParams = new URLSearchParams(searchParams);
@@ -73,13 +74,20 @@ const MembersFilter = (props: IMembersFilter) => {
       currentParams.set(param, 'true');
       if (param === 'isHost') {
         currentParams.delete('isSpeaker');
-        currentParams.delete('isHostAndSpeaker');
+        currentParams.delete('isSponsor');
+        currentParams.delete('isHostAndSpeakerAndSponsor');
       } else if (param === 'isSpeaker') {
         currentParams.delete('isHost');
-        currentParams.delete('isHostAndSpeaker');
-      } else if (param === 'isHostAndSpeaker') {
+        currentParams.delete('isSponsor');
+        currentParams.delete('isHostAndSpeakerAndSponsor');
+      } else if (param === 'isSponsor') {
         currentParams.delete('isHost');
         currentParams.delete('isSpeaker');
+        currentParams.delete('isHostAndSpeakerAndSponsor');
+      } else if (param === 'isHostAndSpeakerAndSponsor') {
+        currentParams.delete('isHost');
+        currentParams.delete('isSpeaker');
+        currentParams.delete('isSponsor');
       }
     } else {
       analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, false, getAnalyticsUserInfo(userInfo));
@@ -111,7 +119,7 @@ const MembersFilter = (props: IMembersFilter) => {
       const pathname = window?.location?.pathname;
       analytics.onClearAllClicked(PAGE_ROUTES.TEAMS, selectedItems, getAnalyticsUserInfo(userInfo));
 
-      const clearQuery = ['skills', 'region', 'country', 'metroArea', 'includeFriends', 'includeUnVerified', 'openToWork', 'officeHoursOnly', 'memberRoles','isRecent', 'isHost', 'isSpeaker', 'isHostAndSpeaker'];
+      const clearQuery = ['skills', 'region', 'country', 'metroArea', 'includeFriends', 'includeUnVerified', 'openToWork', 'officeHoursOnly', 'memberRoles','isRecent', 'isHost', 'isSpeaker', 'isSponsor', 'isHostAndSpeakerAndSponsor'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           triggerLoader(true);
@@ -241,7 +249,7 @@ const MembersFilter = (props: IMembersFilter) => {
 
           {/* Border line */}
           <div className="team-filter__bl"></div>
-          <div className='team-filter__body__event '>
+          <div className="team-filter__body__event ">
             {/* <div className="team-filter__bod"> */}
             <p className="team-filter__body__ttl">Contributions</p>
             <div className="team-filter__body__toggle-section__toggle-option">
@@ -271,14 +279,27 @@ const MembersFilter = (props: IMembersFilter) => {
             </div>
 
             <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host & Speaker</h3>
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Sponsor</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
                 <Toggle
                   height="16px"
                   width="28px"
-                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isHostAndSpeaker', 'member-is-host-speaker', e)}
-                  isChecked={isHostAndSpeaker}
-                  id="member-is-host-speaker"
+                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isSponsor', 'member-is-sponsor', e)}
+                  isChecked={isSponsor}
+                  id="member-is-sponsor"
+                />
+              </div>
+            </div>
+
+            <div className="team-filter__body__toggle-section__toggle-option">
+              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host, Speaker, Sponsor</h3>
+              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
+                <Toggle
+                  height="16px"
+                  width="28px"
+                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isHostAndSpeakerAndSponsor', 'member-is-host-speaker-sponsor', e)}
+                  isChecked={isHostAndSpeakerAndSponsor}
+                  id="member-is-host-speaker-sponsor"
                 />
               </div>
             </div>
@@ -289,7 +310,8 @@ const MembersFilter = (props: IMembersFilter) => {
           <div className="team-filter__bl"></div>
           <RolesFilter memberRoles={filterValues?.memberRoles} searchParams={searchParams} userInfo={userInfo} />
           <div className="team-filter__bl"></div>
-          <TagContainer page={PAGE_ROUTES.MEMBERS} label="Skills" name="skills" items={filterValues?.skills ?? []} onTagClickHandler={onTagClickHandler} initialCount={10} userInfo={userInfo} />
+          <TagContainer page={PAGE_ROUTES.MEMBERS} label="Skills" name="skills" items={filterValues?.skills ?? []}
+                        onTagClickHandler={onTagClickHandler} initialCount={10} userInfo={userInfo} />
           <div className="team-filter__bl"></div>
           <TagContainer
             page={PAGE_ROUTES.MEMBERS}

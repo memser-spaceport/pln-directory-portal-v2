@@ -80,6 +80,23 @@ const ParticipationDetails = (props: IParticipationDetails) => {
     });
   };
 
+  const onDeleteSponsorSubEventsClickHandler = (selectedGathering: IIrlGathering, sponsorSubEvent: IIrlParticipationEvent) => {
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
+
+      if (index !== -1) {
+        const updatedGatherings = [...prev];
+        const gatheringToUpdate = { ...updatedGatherings[index] };
+        const updatedSponsorSubEvents = gatheringToUpdate.sponsorSubEvents.filter((event: IIrlParticipationEvent) => event.uid !== sponsorSubEvent.uid);
+        gatheringToUpdate.sponsorSubEvents = updatedSponsorSubEvents;
+        updatedGatherings[index] = gatheringToUpdate;
+        return updatedGatherings;
+      }
+
+      return prev;
+    });
+  };
+
   const onHostSubEventFieldChangeHandler = (e: React.ChangeEvent<HTMLInputElement>, selectedGathering: IIrlGathering, hostSubEvent: IIrlParticipationEvent, field: string) => {
     setParticipationErrors((prev: string[]) => {
       const updatedErrors = [...prev];
@@ -122,6 +139,30 @@ const ParticipationDetails = (props: IParticipationDetails) => {
           updatedGatherings[index] = {
             ...selectedGathering,
             speakerSubEvents: [...(selectedGathering?.speakerSubEvents || []), { uid: id, name: selectedGathering?.name ?? '', link: websiteLink ?? '' }],
+          };
+        }
+        return updatedGatherings;
+      }
+      return prev;
+    });
+  };
+
+  const onSponsorSelectHandler = (selectedGathering: IIrlGathering) => {
+    const websiteLink = selectedGathering?.resources?.find(
+      (resource: any) => resource?.name?.toLowerCase().includes('website')
+    )?.link || null;
+
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
+      const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
+      if (index !== -1) {
+        const updatedGatherings = [...prev];
+        if (selectedGathering?.sponsorSubEvents?.length > 0) {
+          updatedGatherings[index] = { ...selectedGathering, sponsorSubEvents: [] };
+        } else {
+          updatedGatherings[index] = {
+            ...selectedGathering,
+            sponsorSubEvents: [...(selectedGathering?.sponsorSubEvents || []), { uid: id, name: selectedGathering?.name ?? '', link: websiteLink ?? '' }],
           };
         }
         return updatedGatherings;
@@ -174,6 +215,33 @@ const ParticipationDetails = (props: IParticipationDetails) => {
     });
   };
 
+  const onSponsorSubEventFieldChangeHandler = (e: React.ChangeEvent<HTMLInputElement>, selectedGathering: IIrlGathering, sponsorSubEvent: IIrlParticipationEvent, field: string) => {
+    setParticipationErrors((prev: string[]) => {
+      const updatedErrors = [...prev];
+      const errorIndex = updatedErrors.findIndex((error: string) => error === `${sponsorSubEvent?.uid}-${field}`);
+      if (errorIndex !== -1) {
+        updatedErrors.splice(errorIndex, 1);
+      }
+      return updatedErrors;
+    });
+
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
+      if (index !== -1) {
+        const updatedGatherings = [...prev];
+        const updatedSponsorSubEvents = selectedGathering.sponsorSubEvents.map((event: IIrlParticipationEvent) => {
+          if (event.uid === sponsorSubEvent.uid) {
+            return { ...sponsorSubEvent, [field]: e.target.value };
+          }
+          return event;
+        });
+        updatedGatherings[index] = { ...selectedGathering, sponsorSubEvents: [...updatedSponsorSubEvents] };
+        return updatedGatherings;
+      }
+      return prev;
+    });
+  };
+
   const onAddMoreSpeakerClickHandler = (selectedGathering: IIrlGathering) => {
     setSelectedGatherings((prev: IIrlGathering[]) => {
       const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
@@ -191,11 +259,28 @@ const ParticipationDetails = (props: IParticipationDetails) => {
     });
   };
 
+  const onAddMoreSponsorClickHandler = (selectedGathering: IIrlGathering) => {
+    setSelectedGatherings((prev: IIrlGathering[]) => {
+      const index = prev.findIndex((gathering: IIrlGathering) => gathering.uid === selectedGathering.uid);
+
+      if (index !== -1) {
+        const updatedGatherings = [...prev];
+        const id = 'id' + Math.random().toString(36).substr(2, 9) + Date.now();
+        updatedGatherings[index] = {
+          ...selectedGathering,
+          sponsorSubEvents: [...selectedGathering.sponsorSubEvents, { uid: id, name: '', link: '' }],
+        };
+        return updatedGatherings;
+      }
+      return prev;
+    });
+  };
+
   return (
     <>
       <div className="ptndtls">
         <div className="ptndtls__ttl">
-          <h2 className="ptndtls__ttl__txt">Are you hosting or speaking at any of these gatherings?</h2>
+          <h2 className="ptndtls__ttl__txt">Are you hosting, sponsoring or speaking at any of these gatherings?</h2>
         </div>
 
         <div className="ptndtls__cnt">
@@ -206,6 +291,8 @@ const ParticipationDetails = (props: IParticipationDetails) => {
               <div className="ptndtls__cnt__header__rht__hst">HOST</div>
 
               <div className="ptndtls__cnt__header__rht__spkr">SPEAKER</div>
+
+              <div className="ptndtls__cnt__header__rht__spnsr">SPONSOR</div>
             </div>
           </div>
 
@@ -213,11 +300,12 @@ const ParticipationDetails = (props: IParticipationDetails) => {
             {selectedGatherings?.map((selectedGathering: IIrlGathering, index: number) => {
               const isHostSubEvents = selectedGathering?.hostSubEvents?.length > 0;
               const isSpeakerSubEvents = selectedGathering?.speakerSubEvents?.length > 0;
+              const isSponsorSubEvents = selectedGathering?.sponsorSubEvents?.length > 0;
               return (
                 <div className="ptndtls__cnt__pptdtls__pptdtlcnt" key={`${selectedGathering.uid} + ${index}`}>
                   <div
                     className={`ptndtls__cnt__pptdtls__pptdtl ${index > 0 ? 'bordert' : ''} ${
-                      selectedGathering?.hostSubEvents?.length > 0 || selectedGathering?.speakerSubEvents?.length > 0 ? 'borderb' : ''
+                      selectedGathering?.hostSubEvents?.length > 0 || selectedGathering?.speakerSubEvents?.length > 0 || selectedGathering?.sponsorSubEvents?.length > 0 ? 'borderb' : ''
                     }`}
                   >
                     <div className="ptndtls__cnt__pptdtls__pptdtl__rht">
@@ -252,6 +340,17 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                           onSelect={() => onSpeakerSelectHandler(selectedGathering)}
                         />
                         <span className="ptndtls__cnt__pptdtls__pptdtl__lft__spkr__txt">SPEAKER</span>
+                      </div>
+
+                      <div className="ptndtls__cnt__pptdtls__pptdtl__lft__spnsr">
+                        <CustomCheckbox
+                          name={`isSponsor-${selectedGathering.uid}`}
+                          value={isSponsorSubEvents.toString()}
+                          initialValue={isSponsorSubEvents}
+                          disabled={isVerifiedMember === false}
+                          onSelect={() => onSponsorSelectHandler(selectedGathering)}
+                        />
+                        <span className="ptndtls__cnt__pptdtls__pptdtl__lft__spnsr__txt">SPONSOR</span>
                       </div>
                     </div>
                   </div>
@@ -359,6 +458,58 @@ const ParticipationDetails = (props: IParticipationDetails) => {
                       </button>
                     </div>
                   )}
+
+                  {selectedGathering?.sponsorSubEvents?.length > 0 && (
+                    <div className="ptndtls__cnt__pptdtls__pptdtl__evntscnt">
+                      <span className="ptndtls__cnt__pptdtls__pptdtl__evnts__subevnt__ttl">Event you are sponsoring</span>
+
+                      <div className="ptndtls__cnt__pptdtls__pptdtl__evnts">
+                        {selectedGathering?.sponsorSubEvents?.map((sponsorSubEvent: IIrlParticipationEvent, index: number) => (
+                          <div key={`${sponsorSubEvent.uid}`} className={`ptndtls__cnt__pptdtls__pptdtl__evnts__evnt`}>
+                            <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt">
+                              {index !== 0 && <button
+                                type="button"
+                                className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__nmecnt__dltbtn"
+                                onClick={() => onDeleteSponsorSubEventsClickHandler(selectedGathering, sponsorSubEvent)}
+                              >
+                                <img src="/icons/delete.svg" height={16} width={16} />
+                              </button>}
+                              <TextField
+                                onChange={(e) => onSponsorSubEventFieldChangeHandler(e, selectedGathering, sponsorSubEvent, 'name')}
+                                isDelete={true}
+                                type={'text'}
+                                placeholder="Enter Event Name"
+                                name={`sponsorSubEvent-${selectedGathering.uid}-${sponsorSubEvent?.uid}-name`}
+                                defaultValue={sponsorSubEvent.name}
+                                id={''}
+                                readOnly = {index === 0}
+                                // isMandatory = {index !== 0}
+                                // isError={participationErrors.includes(`${speakerSubEvent?.uid}-name`) ? true : false}
+                              />
+                            </div>
+
+                            <div className="ptndtls__cnt__pptdtls__pptdtl__evnts__evnt__urlcnt">
+                              <TextFieldWithCopyIcon
+                                onChange={(e) => onSponsorSubEventFieldChangeHandler(e, selectedGathering, sponsorSubEvent, 'link')}
+                                type={'text'}
+                                placeholder="Enter URL"
+                                name={`sponsorSubEvent-${selectedGathering.uid}-${sponsorSubEvent.uid}-link`}
+                                defaultValue={sponsorSubEvent.link}
+                                id={''}
+                                readOnly = {index === 0}
+                                // isMandatory = {index !== 0}
+                                isError={participationErrors?.includes(`${sponsorSubEvent?.uid}-link`) ? true : false}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button type="button" className="ptndtls__cnt__pptdtls__pptdtl__evntscnt__addmrecnt" onClick={() => onAddMoreSponsorClickHandler(selectedGathering)}>
+                        <img src="/icons/add.svg" height={16} width={16} />
+                        <span className="ptndtls__cnt__pptdtls__pptdtl__evntscnt__addmrecnt__txt">Add more</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -419,7 +570,6 @@ const ParticipationDetails = (props: IParticipationDetails) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          border-right: 1px solid #cbd5e1;
           border-left: 1px solid #cbd5e1;
         }
 
@@ -429,6 +579,16 @@ const ParticipationDetails = (props: IParticipationDetails) => {
           display: flex;
           align-items: center;
           justify-content: center;
+          border-left: 1px solid #cbd5e1;
+        }
+
+        .ptndtls__cnt__header__rht__spnsr {
+          width: 71px;
+          height: 26px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-left: 1px solid #cbd5e1;
         }
 
         .ptndtls__cnt__pptdtls__pptdtl {
@@ -460,9 +620,8 @@ const ParticipationDetails = (props: IParticipationDetails) => {
         }
 
         .ptndtls__cnt__pptdtls__pptdtl__lft__hst {
-          padding: 8px 16px;
+          padding: 8px 12px;
           width: 61px;
-          border-right: 1px solid #cbd5e1;
           border-left: 1px solid #cbd5e1;
           display: flex;
           align-items: center;
@@ -471,8 +630,19 @@ const ParticipationDetails = (props: IParticipationDetails) => {
         }
 
         .ptndtls__cnt__pptdtls__pptdtl__lft__spkr {
-          padding: 8px 16px;
+          padding: 8px 12px;
           width: 61px;
+          border-left: 1px solid #cbd5e1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+        }
+
+        .ptndtls__cnt__pptdtls__pptdtl__lft__spnsr {
+          padding: 8px 12px;
+          width: 61px;
+          border-left: 1px solid #cbd5e1;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -484,6 +654,10 @@ const ParticipationDetails = (props: IParticipationDetails) => {
         }
 
         .ptndtls__cnt__pptdtls__pptdtl__lft__spkr__txt {
+          display: none;
+        }
+
+        .ptndtls__cnt__pptdtls__pptdtl__lft__spnsr__txt {
           display: none;
         }
 
@@ -557,6 +731,9 @@ const ParticipationDetails = (props: IParticipationDetails) => {
           .ptndtls__cnt__pptdtls__pptdtl__lft__spkr {
             width: unset;
           }
+          .ptndtls__cnt__pptdtls__pptdtl__lft__spnsr {
+            width: unset;
+          }
 
           .ptndtls__cnt__pptdtls__pptdtl__rht__nme {
             max-width: 300px;
@@ -570,6 +747,13 @@ const ParticipationDetails = (props: IParticipationDetails) => {
           }
 
           .ptndtls__cnt__pptdtls__pptdtl__lft__spkr__txt {
+            font-size: 10px;
+            font-weight: 400;
+            line-height: 20px;
+            display: unset;
+          }
+
+          .ptndtls__cnt__pptdtls__pptdtl__lft__spnsr__txt {
             font-size: 10px;
             font-weight: 400;
             line-height: 20px;

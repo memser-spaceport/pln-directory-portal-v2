@@ -259,8 +259,10 @@ export const transformMembers = (result: any, currentEvents: string[]) => {
         logo: event?.logo?.url || '',
         isHost: event?.isHost || false,
         isSpeaker: event?.isSpeaker || false,
+        isSponsor: event?.isSponsor || false,
         hostSubEvents: event?.additionalInfo?.hostSubEvents || [],
         speakerSubEvents: event?.additionalInfo?.speakerSubEvents || [],
+        sponsorSubEvents: event?.additionalInfo?.sponsorSubEvents || [],
         checkInDate: event?.additionalInfo?.checkInDate || '',
         checkOutDate: event?.additionalInfo?.checkOutDate || '',
         type: event?.type || '',
@@ -293,6 +295,7 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
 
   let isHost = false;
   let isSpeaker = false;
+  let isSponsor = false;
 
   // Handle attending names if present
   if (attending) {
@@ -317,12 +320,19 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
       if (name === 'hosts') {
         isHost = true;
         isSpeaker = false;
+        isSponsor = false;
       } else if (name === 'speakers') {
         isHost = false;
         isSpeaker = true;
-      } else if (name === 'hostsAndSpeakers') {
+        isSponsor = false;
+      } else if (name === 'sponsors') {
+        isHost = false;
+        isSpeaker = false;
+        isSponsor = true;
+      } else if (name === 'hostsAndSpeakersAndSponsors') {
         isHost = true;
         isSpeaker = true;
+        isSponsor = true;
       }
     });
   }
@@ -335,9 +345,10 @@ export const parseSearchParams = (searchParams: any, currentEvents: any[]) => {
     });
   }
 
-  if (isHost || isSpeaker) {
+  if (isHost || isSpeaker || isSponsor) {
     result.isHost = isHost;
     result.isSpeaker = isSpeaker;
+    result.isSponsor = isSponsor;
   }
 
   return result;
@@ -390,8 +401,10 @@ export const transformGuestDetail = (result: any, gatherings: any) => {
       logo: item?.event?.logo?.url || '',
       isHost: item?.isHost || false,
       isSpeaker: item?.isSpeaker || false,
+      isSponsor: item?.isSponsor || false,
       hostSubEvents: item?.additionalInfo?.hostSubEvents || [],
       speakerSubEvents: item?.additionalInfo?.speakerSubEvents || [],
+      sponsorSubEvents: item?.additionalInfo?.sponsorSubEvents || [],
       checkInDate: item?.additionalInfo?.checkInDate || '',
       checkOutDate: item?.additionalInfo?.checkOutDate || '',
       type: item?.event?.type || '',

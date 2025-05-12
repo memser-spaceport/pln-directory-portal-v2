@@ -7,9 +7,10 @@ import { IMember } from '@/types/members.types';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import Link from 'next/link';
-import TableLoader from '@/components/core/table-loader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteMembersList } from '@/services/members/hooks/useInfiniteMembersList';
+import { CardsLoader } from '@/components/core/loaders/CardsLoader';
+import { ListLoader } from '@/components/core/loaders/ListLoader';
 
 const MemberInfiniteList = (props: any) => {
   const members = props?.members ?? [];
@@ -27,7 +28,7 @@ const MemberInfiniteList = (props: any) => {
     analytics.onMemberCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), viewType);
   };
 
-  const { data, hasNextPage, fetchNextPage, isLoading } = useInfiniteMembersList(
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteMembersList(
     {
       searchParams,
     },
@@ -36,6 +37,8 @@ const MemberInfiniteList = (props: any) => {
     },
   );
 
+  const Loader = VIEW_TYPE_OPTIONS.GRID === viewType ? CardsLoader : ListLoader;
+
   return (
     <>
       <div>
@@ -43,7 +46,7 @@ const MemberInfiniteList = (props: any) => {
           <div className="members-list__titlesec">
             <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
           </div>
-          <InfiniteScroll scrollableTarget="body" loader={<TableLoader />} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage}>
+          <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage}>
             <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
               {data?.map((member) => (
                 <Link
@@ -57,9 +60,9 @@ const MemberInfiniteList = (props: any) => {
                   {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
                 </Link>
               ))}
+              {isFetchingNextPage && <Loader />}
             </div>
           </InfiniteScroll>
-          {isLoading && <TableLoader />}
         </div>
       </div>
       <style jsx>{`

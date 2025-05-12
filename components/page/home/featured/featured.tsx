@@ -115,8 +115,8 @@ const Featured = (props: any) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const cauroselActions = usePrevNextButtons(emblaApi);
   const router = useRouter();
+  const allFeaturedData = props.featuredData ?? [];
   const [featuredData, setfeaturedData] = useState(props.featuredData ?? []);
-
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
     const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin);
@@ -124,10 +124,18 @@ const Featured = (props: any) => {
     router.refresh();
   };
 
+  const onFilterClick = (filter: string) => {
+    if (filter === 'all') {
+      setfeaturedData(allFeaturedData);
+    } else {
+      setfeaturedData(allFeaturedData.filter((item: any) => item.category === filter));
+    }
+  };
+
   return (
     <>
       <div className="featured">
-        <FeaturedHeader {...cauroselActions} userInfo={userInfo} />
+        <FeaturedHeader {...cauroselActions} userInfo={userInfo} onClick={onFilterClick} />
         <div>
           <div className={`featured__body`}>
             {featuredData?.map((item: any, index: number) => (
@@ -182,7 +190,7 @@ const Featured = (props: any) => {
         .featured {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 20px;
           width: 100%;
         }
 

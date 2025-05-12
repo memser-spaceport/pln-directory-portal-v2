@@ -134,6 +134,12 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_PROTOCOL_LABS_VISION_URL_CLICKED, params);
   }
 
+  function onFeaturedFilterClicked(filter: string) {
+    const params = {
+      filter,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_FILTER_CLICKED, params);
+  }
 
   return {
     featuredSubmitRequestClicked,
@@ -150,5 +156,6 @@ export const useHomeAnalytics = () => {
     onMmeberBioPopupViewProfileBtnClicked,
     onFocusAreaProtocolLabsVisionUrlClicked,
     onIrlLocationClicked,
+    onFeaturedFilterClicked,
   };
 };

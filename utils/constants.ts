@@ -389,6 +389,7 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_CAROUSEL_ACTIONS_CLICKED: 'discover-carousel-actions-clicked',
   DISCOVER_CARD_CLICKED: 'discover-card-clicked',
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
+  FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
 };
 
 export const EVENTS_ANALYTICS = {

@@ -109,9 +109,9 @@ const TeamList = (props: any) => {
             </Link>
           </div>
         ))}
+        {isLoading && <Loader />}
         <div ref={observerTarget} />
       </div>
-      {isLoading && <Loader />}
       <style jsx>{`
         .team-list {
           width: 100%;

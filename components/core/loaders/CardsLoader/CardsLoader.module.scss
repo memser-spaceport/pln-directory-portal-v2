@@ -1,5 +1,9 @@
 @use 'styles/media.scss';
 
+.root {
+    margin-top: 24px;
+}
+
 .card {
     display: flex;
     flex-direction: column;
@@ -8,6 +12,7 @@
     background: #fff;
     border-radius: 12px;
     position: relative;
+    overflow: hidden;
 
     .header {
         height: 33px;

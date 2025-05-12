@@ -11,9 +11,9 @@ export default function MemberDetailsExperience({ member, isLoggedIn, userInfo }
   const [isSeeAll, setIsSeeAll] = useState(false);
   const [showExperience, setShowExperience] = useState(experiences?.slice(0, 4));
   const modalRef = useRef<HTMLDialogElement>(null);
-  console.log(experiences);
-  
-  const isEditable = isLoggedIn && member?.id === userInfo?.uid;
+  const roles = isLoggedIn ? userInfo.roles ?? [] : [];
+  const isAdmin = roles.includes('DIRECTORYADMIN');
+  const isEditable = isLoggedIn && (member?.id === userInfo?.uid || isAdmin);
 
   useEffect(() => {
     if (isSeeAll) {

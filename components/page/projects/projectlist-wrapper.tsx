@@ -4,17 +4,15 @@ import { ITEMS_PER_PAGE, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import ProjectGridView from './project-grid-view';
 import ProjectListView from './project-list-view';
 import Link from 'next/link';
-import ProjectList from './project-list';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import usePagination from '@/hooks/irl/use-pagination';
 import { getProjectSelectOptions, getProjectsFiltersFromQuery } from '@/utils/projects.utils';
 import ProjectAddCard from './project-add-card';
-import TableLoader from '@/components/core/table-loader';
 import { getAllProjects } from '@/app/actions/projects.actions';
 import useListPagination from '@/hooks/use-list-pagination';
+import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 
 const ProjectlistWrapper = (props: any) => {
   const searchParams = props?.searchParams;
@@ -61,7 +59,7 @@ const ProjectlistWrapper = (props: any) => {
       const projectsResponse = await getAllProjects(
         { ...selectOpitons, isDeleted: false, select: 'uid,name,tagline,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url' },
         currentPage,
-        ITEMS_PER_PAGE
+        ITEMS_PER_PAGE,
       );
       if (!projectsResponse?.error) {
         // setIsLoading(false);
@@ -111,7 +109,7 @@ const ProjectlistWrapper = (props: any) => {
           <div ref={paginationRef} />
         </div>
       </div>
-      {isloading && <TableLoader />}
+      {isloading && <CardsLoader />}
 
       <style jsx>{`
         .project-list {

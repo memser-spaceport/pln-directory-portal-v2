@@ -8,13 +8,11 @@ import TeamGridView from './team-grid-view';
 import Link from 'next/link';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getTeamsListOptions, getTeamsOptionsFromQuery } from '@/utils/team.utils';
-import usePagination from '@/hooks/irl/use-pagination';
 import TeamListView from './team-list-view';
-import TableLoader from '@/components/core/table-loader';
 import { getTeamList } from '@/app/actions/teams.actions';
 import useListPagination from '@/hooks/use-list-pagination';
-import ProjectAddCard from '../projects/project-add-card';
 import TeamAddCard from './team-add-card';
+import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 
 interface ITeamList {
   totalTeams: number;
@@ -97,7 +95,9 @@ const TeamList = (props: any) => {
             className={`team-list__team ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid__team' : 'team-list__list__team'}`}
             onClick={(e) => onTeamClickHandler(e, team)}
           >
-            <Link prefetch={false} href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}
+            <Link
+              prefetch={false}
+              href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}
               onClick={(e: any) => {
                 if (e.defaultPrevented) return;
               }}
@@ -109,7 +109,7 @@ const TeamList = (props: any) => {
         ))}
         <div ref={observerTarget} />
       </div>
-      {isLoading && <TableLoader />}
+      {isLoading && <CardsLoader />}
       <style jsx>{`
         .team-list {
           width: 100%;

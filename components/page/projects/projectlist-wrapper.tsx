@@ -13,6 +13,7 @@ import ProjectAddCard from './project-add-card';
 import { getAllProjects } from '@/app/actions/projects.actions';
 import useListPagination from '@/hooks/use-list-pagination';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
+import { ListLoader } from '@/components/core/loaders/ListLoader';
 
 const ProjectlistWrapper = (props: any) => {
   const searchParams = props?.searchParams;
@@ -21,6 +22,7 @@ const ProjectlistWrapper = (props: any) => {
   const userInfo = props?.userInfo;
   const totalProjects = props?.totalProjects;
   const isLoggedIn = props?.isLoggedIn;
+  const Loader = VIEW_TYPE_OPTIONS.GRID === viewType ? CardsLoader : ListLoader;
 
   const [allProjects, setAllProjects] = useState<any[]>([...projects]);
 
@@ -109,7 +111,7 @@ const ProjectlistWrapper = (props: any) => {
           <div ref={paginationRef} />
         </div>
       </div>
-      {isloading && <CardsLoader />}
+      {isloading && <Loader />}
 
       <style jsx>{`
         .project-list {

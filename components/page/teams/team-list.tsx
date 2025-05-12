@@ -13,6 +13,7 @@ import { getTeamList } from '@/app/actions/teams.actions';
 import useListPagination from '@/hooks/use-list-pagination';
 import TeamAddCard from './team-add-card';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
+import { ListLoader } from '@/components/core/loaders/ListLoader';
 
 interface ITeamList {
   totalTeams: number;
@@ -30,6 +31,7 @@ const TeamList = (props: any) => {
   const [teamList, setTeamList] = useState<any>({ teams: allTeams, totalTeams: totalTeams });
   const [isLoading, setIsLoading] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
+  const Loader = VIEW_TYPE_OPTIONS.GRID === viewType ? CardsLoader : ListLoader;
 
   const onTeamClickHandler = (e: any, team: ITeam) => {
     if (!e.ctrlKey) {
@@ -109,7 +111,7 @@ const TeamList = (props: any) => {
         ))}
         <div ref={observerTarget} />
       </div>
-      {isLoading && <CardsLoader />}
+      {isLoading && <Loader />}
       <style jsx>{`
         .team-list {
           width: 100%;

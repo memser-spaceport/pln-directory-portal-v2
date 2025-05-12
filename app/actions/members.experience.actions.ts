@@ -18,7 +18,7 @@ const validate = (formattedData: any) => {
   const errs: any = {};
   const regex = /^[a-zA-Z0-9\s\-&,]{2,100}$/;
   const companyRegex = /^[a-zA-Z0-9\s\-&,\.]{2,100}$/;
-  const locationRegex = /^[a-zA-Z0-9\s\-,.\-]{2,100}$/;
+  const locationRegex = /^[a-zA-Z0-9\s.,-]{2,100}$/;
 
   // Title validation
   if (!formattedData?.title?.trim()) errs.title = 'Please provide the title';
@@ -54,17 +54,41 @@ const validate = (formattedData: any) => {
 
 const transformObject = (object: any) => {
   const formattedData = Object.fromEntries(object);
+  const startDateMonth = formattedData?.['add-edit-experience-startDate']
+  ? formattedData['add-edit-experience-startDate'].includes('-')
+    ? formattedData['add-edit-experience-startDate'].split('-')[1]
+    : 0
+  : 0;
+  const startDateYear = formattedData?.['add-edit-experience-startDate']
+  ? formattedData['add-edit-experience-startDate'].includes('-')
+    ? formattedData['add-edit-experience-startDate'].split('-')[0]
+    : 0
+  : 0;
+
+  const endDateMonth = formattedData?.['add-edit-experience-endDate']
+  ? formattedData['add-edit-experience-endDate'].includes('-')
+    ? formattedData['add-edit-experience-endDate'].split('-')[1]
+    : 0
+  : 0;
+
+  const endDateYear = formattedData?.['add-edit-experience-endDate']
+  ? formattedData['add-edit-experience-endDate'].includes('-')
+    ? formattedData['add-edit-experience-endDate'].split('-')[0]
+    : 0
+  : 0;
+  
+
   const experienceData = {
     title: formattedData?.['experience-title'],
     company: formattedData?.['experience-company'],
     startDate: {
-      month: formattedData?.['add-edit-experience-startDate'].split('-')[1],
-      year: formattedData?.['add-edit-experience-startDate'].split('-')[0],
+      month: startDateMonth,
+      year: startDateYear,
       day: 0,
     },
     endDate: {
-      month: formattedData?.['add-edit-experience-endDate']?.split('-')[1] || 0,
-      year: formattedData?.['add-edit-experience-endDate']?.split('-')[0] || 0,
+      month: endDateMonth,
+      year: endDateYear,
       day: 0,
     },
     location: formattedData?.['experience-location'],

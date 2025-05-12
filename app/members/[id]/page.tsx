@@ -15,9 +15,7 @@ import MemberProjectContribution from '@/components/page/member-details/member-p
 import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
-import MemberDetailsEducation from '@/components/page/member-details/member-education';
 import MemberDetailsExperience from '@/components/page/member-details/member-experience';
-import MemberDetailsCertifications from '@/components/page/member-details/member-detail-certifications';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -51,13 +49,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
           {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
           {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
         </div>
-        {/* {
-          member?.education?.length > 0 && (
-            <div className={styles?.memberDetail__container__default}>
-              <MemberDetailsEducation member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            </div>
-          )
-        } */}
 
         {
           canShowExperience && (
@@ -67,13 +58,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
           )
         }
 
-        {/* {
-          member?.certifications?.length > 0 && (
-            <div className={styles?.memberDetail__container__default}>
-              <MemberDetailsCertifications member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            </div>
-          )
-        } */}
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
         </div>

@@ -108,10 +108,10 @@ const ProjectlistWrapper = (props: any) => {
               {VIEW_TYPE_OPTIONS.LIST === viewType && <ProjectListView project={project} viewType={viewType} />}
             </Link>
           ))}
+          {isloading && <Loader />}
           <div ref={paginationRef} />
         </div>
       </div>
-      {isloading && <Loader />}
 
       <style jsx>{`
         .project-list {

@@ -15,10 +15,16 @@ import MemberProjectContribution from '@/components/page/member-details/member-p
 import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
+import MemberDetailsEducation from '@/components/page/member-details/member-education';
+import MemberDetailsExperience from '@/components/page/member-details/member-experience';
+import MemberDetailsCertifications from '@/components/page/member-details/member-detail-certifications';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
-  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo,officeHoursFlag } = await getpageData(memberId);
+  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo, officeHoursFlag } = await getpageData(memberId);
+
+  const isExperienceEmpty = member?.experience?.length == 0;
+  const canShowExperience = member?.experience?.length > 0 || (isLoggedIn && member?.id === userInfo?.uid && isExperienceEmpty);
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
@@ -38,13 +44,36 @@ const MemberDetails = async ({ params }: { params: any }) => {
           {!isLoggedIn && <MemberProfileLoginStrip member={member} />}
           <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
             <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo}/>}
+            {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo} />}
           </div>
         </div>
         <div className={styles?.memberDetail__container__contact}>
           {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
           {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
         </div>
+        {/* {
+          member?.education?.length > 0 && (
+            <div className={styles?.memberDetail__container__default}>
+              <MemberDetailsEducation member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            </div>
+          )
+        } */}
+
+        {
+          canShowExperience && (
+            <div className={styles?.memberDetail__container__default}>
+              <MemberDetailsExperience member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            </div>
+          )
+        }
+
+        {/* {
+          member?.certifications?.length > 0 && (
+            <div className={styles?.memberDetail__container__default}>
+              <MemberDetailsCertifications member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            </div>
+          )
+        } */}
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
         </div>
@@ -88,7 +117,7 @@ const getpageData = async (memberId: string) => {
     }
 
     const [memberResponse, memberTeamsResponse] = await Promise.all([
-      getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo),
+      getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo, true, true),
       getAllTeams(
         '',
         {

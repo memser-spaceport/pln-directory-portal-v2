@@ -233,7 +233,8 @@ export default function AddEditExperienceModal() {
         </div>
         <style jsx>{`
           .add-edit-experience__modal {
-            width: 656px;
+            width: 90vw;
+            max-width: 656px;
             background: #fff;
             border-radius: 8px;
             padding: 24px;
@@ -283,6 +284,8 @@ export default function AddEditExperienceModal() {
           }
           .add-edit-experience__modal__dates {
             display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
             gap: 24px;
             width: 100%;
             position: relative;
@@ -348,6 +351,20 @@ export default function AddEditExperienceModal() {
             position: absolute;
             top: 0;
             right: 0;
+          }
+          @media (max-width: 768px) {
+            .add-edit-experience__modal {
+              padding: 16px;
+            }
+            
+            .add-edit-experience__modal__footer {
+              flex-wrap: wrap;
+            }
+            
+            .delete-btn, .cancel-btn, .save-btn {
+              padding: 8px 12px;
+              font-size: 12px;
+            }
           }
         `}</style>
       </form>

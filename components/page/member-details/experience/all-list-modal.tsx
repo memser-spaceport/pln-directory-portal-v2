@@ -57,7 +57,8 @@ export default function AllListModal() {
       </div>
       <style jsx>{`
         .member-detail__experience__modal {
-          width: 500px;
+          width: 90vw;
+          max-width: 656px;
           height: 100%;
           overflow-y: auto;
           background-color: #fff;
@@ -72,7 +73,7 @@ export default function AllListModal() {
           align-items: center;
         }
         .member-detail__experience__modal__list {
-          max-height: 600px;
+          max-height: 520px;
           overflow-y: auto;
           display: flex;
           flex-direction: column;

@@ -1,0 +1,32 @@
+.root {
+    height: inherit;
+    display: flex;
+    position: relative;
+    background: #f1f5f9;
+    min-height: calc(100vh - 80px);
+}
+
+.filters {
+    width: 0;
+}
+
+.content {
+    position: relative;
+    flex: 1;
+    background: #f1f5f9;
+}
+
+@media (min-width: 1024px) {
+    .content {
+        display: flex;
+        justify-content: center;
+        padding: 30px 0 40px;
+    }
+
+    .filters {
+        width: 300px;
+        border-right: 1px solid #e2e8f0;
+        background: #fff;
+        height: calc(100vh - 80px);
+    }
+}

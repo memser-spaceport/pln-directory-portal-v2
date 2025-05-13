@@ -29,7 +29,6 @@ interface EventsSectionProps {
 export default function EventsSection({ 
   eventLocations,
   userInfo,
-  isLoggedIn,
 }: EventsSectionProps) {
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" })
@@ -64,7 +63,7 @@ export default function EventsSection({
 
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
-    const featData = await getAggregatedEventsData(authToken, isLoggedIn);
+    const featData = await getAggregatedEventsData(authToken);
     setfeaturedData(formatFeaturedData(featData.data));
     router.refresh();
   };

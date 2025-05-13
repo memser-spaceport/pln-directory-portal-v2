@@ -15,8 +15,7 @@ import MemberProjectContribution from '@/components/page/member-details/member-p
 import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
-import ExperienceList from '@/components/page/member-details/experience/list';
-import ExperienceModalsProvider from '@/components/page/member-details/experience/modals-provider';
+import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -72,9 +71,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
           </div>
         )}
       </div>
-
-      {/* Modals - rendered once */}
-      <ExperienceModalsProvider />
     </div>
   );
 };

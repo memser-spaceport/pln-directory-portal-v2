@@ -1,3 +1,4 @@
+'use client';
 import Modal from '@/components/core/modal';
 import MemberDetailsExperienceDetail from './experience-detail';
 import { useRef, useEffect } from 'react';
@@ -28,7 +29,6 @@ export default function AllListModal() {
       setIsSeeAll(true);
       setExperiences(e.detail.experiences);
       setIsEditable(e.detail.isEditable);
-      console.log(e.detail);
       modalRef.current?.showModal()
     };
     document.addEventListener(EVENTS.TRIGGER_SEE_ALL_EXPERIENCE_MODAL, handler);

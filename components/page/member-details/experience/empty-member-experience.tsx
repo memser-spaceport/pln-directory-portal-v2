@@ -1,28 +1,26 @@
 'use client';
 
+import PopupTriggerIconButton from '@/components/ui/popup-trigger-icon-button';
 import { EVENTS } from '@/utils/constants';
-import Image from 'next/image';
 
 const EmptyMemberExperience = ({ member }: { member: any }) => {
+  const addExperienceData = {
+    experience: {
+      memberId: member?.id,
+      title: '',
+      company: '',
+      start: { month: 0, year: 0 },
+      end: { month: 0, year: 0 },
+      isCurrent: false,
+      location: '',
+      uid: null,
+    },
+  };
+
   return (
     <>
-      <div className="member-detail__experience__list__empty" onClick={() => {
-        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL,
-            { detail: {
-             experience: {
-               memberId: member?.id,
-               title: '',
-               company: '',
-               start: { month: 0, year: 0 },
-               end: { month: 0, year: 0 },
-               isCurrent: false,
-               location: '',
-               uid: null
-              } 
-            }}  ));
-      }}>
-        <Image src="/icons/add-blue.svg" alt="arrow-right" width={16} height={16} />
-        <p>Add Experience</p>
+      <div className="member-detail__experience__list__empty">
+        <PopupTriggerIconButton iconImgUrl="/icons/add-blue.svg" label="Add Experience" size={16} triggerEvent={EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL} data={addExperienceData} alt="add" />
       </div>
       <style jsx>{`
         .member-detail__experience__list__empty {

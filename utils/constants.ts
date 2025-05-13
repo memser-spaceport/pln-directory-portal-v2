@@ -83,6 +83,9 @@ export const EVENTS = {
   UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
   RESET_ASK_FORM_VALUES: 'reset-ask-form',
   MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP: 'open-mark-my-presence-success',
+  TRIGGER_ADD_EDIT_EXPERIENCE_MODAL: 'trigger-add-edit-experience-modal',
+  TRIGGER_SEE_ALL_EXPERIENCE_MODAL: 'trigger-see-all-experience-modal',
+  TRIGGER_DIALOG_LOADER: 'trigger-dialog-loader',
 };
 
 export const HELPER_MENU_OPTIONS = [

@@ -67,6 +67,13 @@
   padding: 20px;
 }
 
+.memberDetail__container__default {
+  box-shadow: 0px 4px 4px 0px #0f172a0a;
+  background: #fff;
+  min-height: 20px;
+  padding: 20px;
+}
+
 @media (min-width: 1024px) {
   .memberDetail {
     align-items: center;
@@ -94,6 +101,10 @@
   }
 
   .memberDetail__container__repositories, .memberDetail__irlContribution {
+    border-radius: 8px;
+  }
+
+  .memberDetail__container__default {
     border-radius: 8px;
   }
 }

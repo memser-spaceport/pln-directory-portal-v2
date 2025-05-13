@@ -123,9 +123,9 @@ const deleteMemberExperience = async (experienceId: string, authToken: string) =
     return { success: true, message: 'Experience deleted successfully!', errorCode: 'success' };
   } else {
     if (response.status === 404) {
-      return { success: false, message: 'Experience not found!', errorCode: 'experience-not-found' };
+      return { success: false, message: 'Experience not found!', errorCode: 'experience-not-found', errors: {} };
     } else {
-      return { success: false, message: 'Experience deletion failed!', errorCode: 'delete-experience-error' };
+      return { success: false, message: 'Experience deletion failed!', errorCode: 'delete-experience-error', errors: {} };
     }
   }
 };
@@ -140,9 +140,9 @@ const updateMemberExperience = async (experienceId: string, formattedData: any, 
     return { success: true, message: 'Experience updated successfully!', errorCode: 'success' };
   } else {
     if (response.status === 404) {
-      return { success: false, message: 'Experience not found!', errorCode: 'experience-not-found' };
+      return { success: false, message: 'Experience not found!', errorCode: 'experience-not-found', errors: {} };
     } else {
-      return { success: false, message: 'Experience update failed!', errorCode: 'update-experience-error' };
+      return { success: false, message: 'Experience update failed!', errorCode: 'update-experience-error', errors: {} };
     }
   }
 };
@@ -158,6 +158,6 @@ const addMemberExperience = async (data: any, authToken: string) => {
   if (response.ok) {
     return { success: true, message: 'Experience added successfully!', errorCode: 'success' };
   } else {
-    return { success: false, message: 'Experience addition failed!', errorCode: 'add-experience-error' };
+    return { success: false, message: 'Experience addition failed!', errorCode: 'add-experience-error', errors: {} };
   }
 };

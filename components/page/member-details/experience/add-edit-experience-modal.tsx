@@ -178,7 +178,7 @@ export default function AddEditExperienceModal() {
               isOptional={true}
               minYear={1970}
               maxYear={new Date().getFullYear()}
-              initialDate={experienceRef.current?.isCurrent ? null : experienceRef.current?.endDate}
+              initialDate={experienceRef?.current?.isCurrent ? undefined : (experienceRef?.current?.endDate ?? undefined)}
             />
             <div className="add-edit-experience__modal__dates__current">
               <span>Present</span>

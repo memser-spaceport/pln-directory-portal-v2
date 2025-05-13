@@ -1,10 +1,10 @@
 'use server';
 
 import { getHeader } from '@/utils/common.utils';
-import { cookies } from 'next/headers';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
-export const MemberExperienceFormAction = async (state: any, formData: FormData) => {
-  const authToken = cookies().get('authToken')?.value ?? '';
+export const MemberExperienceFormAction = async (state: any, formData: FormData) => { 
+  const { authToken } = getCookiesFromHeaders();
 
   const experienceId = formData.get('experience-uid');
   if (formData.get('actionType') === 'delete') {
@@ -122,7 +122,11 @@ const deleteMemberExperience = async (experienceId: string, authToken: string) =
   if (response.ok) {
     return { success: true, message: 'Experience deleted successfully!', errorCode: 'success' };
   } else {
-    return { success: false, message: 'Experience deletion failed!', errorCode: 'delete-experience-error' };
+    if (response.status === 404) {
+      return { success: false, message: 'Experience not found!', errorCode: 'experience-not-found' };
+    } else {
+      return { success: false, message: 'Experience deletion failed!', errorCode: 'delete-experience-error' };
+    }
   }
 };
 
@@ -135,11 +139,17 @@ const updateMemberExperience = async (experienceId: string, formattedData: any, 
   if (response.ok) {
     return { success: true, message: 'Experience updated successfully!', errorCode: 'success' };
   } else {
-    return { success: false, message: 'Experience update failed!', errorCode: 'update-experience-error' };
+    if (response.status === 404) {
+      return { success: false, message: 'Experience not found!', errorCode: 'experience-not-found' };
+    } else {
+      return { success: false, message: 'Experience update failed!', errorCode: 'update-experience-error' };
+    }
   }
 };
 
 const addMemberExperience = async (data: any, authToken: string) => {
+  console.log(data);
+  console.log(authToken);
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-experiences`, {
     method: 'POST',
     body: JSON.stringify(data),

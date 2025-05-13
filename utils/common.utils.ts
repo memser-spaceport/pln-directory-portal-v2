@@ -6,6 +6,10 @@ export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
 };
 
+export const triggerDialogLoader = (status: boolean) => {
+  document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_DIALOG_LOADER, { detail: status }));
+};
+
 export function compareObjsIfSame(obj1: any, obj2: any) {
   if (obj1 === obj2) {
     return true; // Handles identical values and reference equality for objects and arrays

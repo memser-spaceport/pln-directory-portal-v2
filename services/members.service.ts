@@ -84,30 +84,6 @@ export const getMemberRepositories = async (id: string) => {
   return result;
 };
 
-const formatExperience = (experiences: any) => {
-  return experiences.map((experience: any) => {
-    return {  
-        'memberId': experience?.memberUId,
-        'company': experience?.company,
-        'title': experience?.title,
-        "start": {
-          "year": experience?.startDate?.year ?? 1970,
-          "month": experience?.startDate?.month ?? 1,
-          "day": experience?.startDate?.day ?? 1
-        },
-        'end': {
-          'year': experience?.endDate?.year ?? 1970,
-          'month': experience?.endDate?.month ?? 1,
-          'day': experience?.endDate?.day ?? 1
-        },
-        'isCurrent': experience?.isCurrent,
-        'location': experience?.location,
-        'uid': experience?.uid ?? '',
-        'isFlaggedByUser': experience?.isFlaggedByUser ?? false
-      }
-    })
-}
-
 export const getMember = async (id: string, query: any, isLoggedIn?: boolean, userInfo?: any, isHidePref: boolean = true,fetchNew?: boolean) => {
   const requestOPtions: RequestInit = { method: 'GET', headers: getHeader('') };
   if(fetchNew){
@@ -167,8 +143,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     preferences: result.preferences ?? null,
     isSubscribedToNewsletter: result?.isSubscribedToNewsletter ?? false,
     isVerified: result?.isVerified,
-    eventGuests: result?.eventGuests ?? [],
-    experience: formatExperience(result?.experiences ?? []),
+    eventGuests: result?.eventGuests ?? []
   };
 
   if (isLoggedIn) {

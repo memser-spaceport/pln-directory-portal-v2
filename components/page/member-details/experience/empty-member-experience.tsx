@@ -1,3 +1,5 @@
+'use client';
+
 import { EVENTS } from '@/utils/constants';
 import Image from 'next/image';
 

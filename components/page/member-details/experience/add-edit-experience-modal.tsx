@@ -1,60 +1,83 @@
+'use client';
+
 import Modal from '@/components/core/modal';
 import { EVENTS } from '@/utils/constants';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import TextField from '@/components/form/text-field';
 import MonthYearPicker from '@/components/form/month-year-picker';
 import Toggle from '@/components/ui/toogle';
 import { useFormState } from 'react-dom';
 import { MemberExperienceFormAction } from '@/app/actions/members.experience.actions';
 import { toast } from 'react-toastify';
-import { triggerLoader } from '@/utils/common.utils';
+import { triggerDialogLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
+
+interface Experience {
+  uid?: string;
+  memberId?: string;
+  title?: string;
+  company?: string;
+  startDate?: string;
+  endDate?: string | null;
+  isCurrent?: boolean;
+  location?: string;
+  start?: { month: any; year: any };
+  end?: { month: any; year: any };
+}
 
 export default function AddEditExperienceModal() {
   const modalRef = useRef<HTMLDialogElement>(null);
   const initialState = { success: false, message: '', errorCode: '', errors: {} }
   const router = useRouter();
 
-  // Form state
-  const [isEdit, setIsEdit] = useState(false);
-  const [experience, setExperience] = useState<any>({});
+  const experienceRef = useRef<Experience>({});
+  
   const [errors, setErrors] = useState<any>({});
   const [isConfirming, setIsConfirming] = useState(false);
   const [formActionType, setFormActionType] = useState('save');
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useFormState(async (prevState: any, formData: any) => {
-    triggerLoader(true);
-    const result = await MemberExperienceFormAction(prevState, formData);
-    triggerLoader(false);
-    return result;
-  }, initialState)
+  const [forceUpdate, setForceUpdate] = useState(0);
 
+
+  const [state, formAction] = useFormState(MemberExperienceFormAction, initialState)
+  const [isPending, startTransition] = useTransition();
+
+  const handleSubmit = (formData: any) => {
+    startTransition(() => {
+      formAction(formData);
+    });
+  }
+  
+  useEffect(() => {
+    isPending ? triggerDialogLoader(true) : triggerDialogLoader(false);
+  }, [isPending]);
 
   useEffect(() => {
     const handler = (e: any) => {
-      setExperience({});
-      const exp = e.detail?.experience;
+      const exp = e.detail?.experience || {};
       
       exp['startDate'] = getDateFromMonthYear(exp?.start?.month, exp?.start?.year);
       exp['endDate'] = exp?.isCurrent ? null : getDateFromMonthYear(exp?.end?.month, exp?.end?.year);
-      setExperience(exp);
-      setIsEdit(!!exp?.uid);
+      
+      experienceRef.current = exp;
+      
       setErrors({});
+      formRef.current?.reset();
       setTimeout(() => modalRef.current?.showModal(), 0);
     };
+    
     document.addEventListener(EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL, handler);
     return () => document.removeEventListener(EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL, handler);
   }, []);
 
   const getDateFromMonthYear = (month: number, year: number) => {
-    console.log(experience);
     if(month === 0 && year === 0) return new Date().toISOString();
     return new Date(year, month, 1).toISOString();
   };
 
   const closeModal = () => {
     modalRef.current?.close();
-    setExperience({});
+    experienceRef.current = {};
     formRef.current?.reset();
     setIsConfirming(false);
   };
@@ -70,15 +93,14 @@ export default function AddEditExperienceModal() {
       if(state?.message){
         closeModal();
         toast.error(state?.message);
+        router.refresh();
       }
     }
-    triggerLoader(false);
-  }, [state]);
+  }, [state, router]);
 
   const handleDelete = async () => {
     if(isConfirming) {
       await setFormActionType('delete');
-      triggerLoader(true);
       formRef.current?.requestSubmit();
     }else{
       setIsConfirming(true);
@@ -86,25 +108,36 @@ export default function AddEditExperienceModal() {
   };
 
   const handleSave = async () => {
-    triggerLoader(true);
     await setFormActionType('save');
     formRef.current?.requestSubmit();
   };
 
+  // Helper to update experience ref
+  const updateExperience = (key: string, value: any) => {
+    if(key === 'startDate' || key === 'endDate'){
+      setForceUpdate(prev => prev + 1);
+    }
+    experienceRef.current = {
+      ...experienceRef.current,
+      [key]: value
+    };
+  };
+
+  const isEdit = !!experienceRef.current?.uid;
+
   return (
     <Modal modalRef={modalRef} onClose={closeModal}>
-      <form className="add-edit-experience__modal" action={formAction} autoComplete="off" noValidate ref={formRef}>
-        {experience?.uid && <input type="hidden" name="experience-uid" value={experience?.uid} />}
+      <form className="add-edit-experience__modal" action={handleSubmit} autoComplete="off" noValidate ref={formRef}>
+        {experienceRef.current?.uid && <input type="hidden" name="experience-uid" value={experienceRef.current.uid} />}
         <input type="hidden" name="actionType" value={formActionType} />
-        {experience?.memberId && <input type="hidden" name="memberId" value={experience?.memberId} />}  
+        {experienceRef.current?.memberId && <input type="hidden" name="memberId" value={experienceRef.current.memberId} />}  
         <div className="add-edit-experience__modal__header">
           <h2>{isEdit ? 'Edit' : 'Add'} Experience</h2>
         </div>
         <div className="add-edit-experience__modal__body">
           <TextField
             label="Title*"
-            value={experience?.title || ''}
-            defaultValue={experience?.title || ''}
+            defaultValue={experienceRef.current?.title || ''}
             type="text"
             name="experience-title"
             required={true}
@@ -115,23 +148,18 @@ export default function AddEditExperienceModal() {
 
           <TextField
             label="Company or Organization*"
-            value={experience?.company || ''}
-            defaultValue={experience?.company || ''}
+            defaultValue={experienceRef.current?.company || ''}
             type="text"
             name="experience-company"
             required={true}
             id="experience-company"
-            onChange={(e) => {
-              console.log(e.target.value);
-              setExperience({ ...experience, company: e.target.value });
-            }}
             placeholder="Enter company or organization"
           />
           {errors.company && <p className="error-text">{errors.company}</p>}
 
           <div className="add-edit-experience__modal__dates">
             <MonthYearPicker
-              onDateChange={(value: string) => setExperience({ ...experience, startDate: value })}
+              onDateChange={(value: string) => updateExperience('startDate', value)}
               id={`add-edit-experience-startDate`}
               dayValue="start"
               name={`add-edit-experience-startDate`}
@@ -139,10 +167,10 @@ export default function AddEditExperienceModal() {
               isOptional={false}
               minYear={1970}
               maxYear={new Date().getFullYear()}
-              initialDate={experience?.startDate}
+              initialDate={experienceRef.current?.startDate}
             />
             <MonthYearPicker
-              onDateChange={(value: string) => setExperience({ ...experience, endDate: value })}
+              onDateChange={(value: string) => updateExperience('endDate', value)}
               id={`add-edit-experience-endDate`}
               dayValue="end"
               name={`add-edit-experience-endDate`}
@@ -150,7 +178,7 @@ export default function AddEditExperienceModal() {
               isOptional={true}
               minYear={1970}
               maxYear={new Date().getFullYear()}
-              initialDate={experience?.isCurrent ? null : experience?.endDate}
+              initialDate={experienceRef.current?.isCurrent ? null : experienceRef.current?.endDate}
             />
             <div className="add-edit-experience__modal__dates__current">
               <span>Present</span>
@@ -158,20 +186,26 @@ export default function AddEditExperienceModal() {
                 height="16px"
                 width="28px"
                 callback={(e) => {
-                  setExperience({ ...experience, isCurrent: e.target.checked, endDate: e.target.checked ? null : getDateFromMonthYear(experience?.end?.month, experience?.end?.year) });
+                  const isCurrent = e.target.checked;
+                  updateExperience('isCurrent', isCurrent);
+                  updateExperience('endDate', isCurrent ? null : 
+                    getDateFromMonthYear(
+                      experienceRef.current?.end?.month, 
+                      experienceRef.current?.end?.year
+                    )
+                  );
+                  setForceUpdate(prev => prev + 1);
                 }}
-                isChecked={experience?.isCurrent}
+                isChecked={experienceRef?.current?.isCurrent || false}
               />
-              <input type="hidden" name="isCurrent" value={experience?.isCurrent ? 'true' : 'false'} />
+              <input type="hidden" name="isCurrent" value={experienceRef.current?.isCurrent ? 'true' : 'false'} />
             </div>
-
           </div>
-            {errors.startDate && <p className="error-text">{errors.startDate}</p>}
-            {errors.endDate && <p className="error-text">{errors.endDate}</p>}
+          {errors.startDate && <p className="error-text">{errors.startDate}</p>}
+          {errors.endDate && <p className="error-text">{errors.endDate}</p>}
           <TextField
             label="Location"
-            value={experience?.location || ''}
-            defaultValue={experience?.location || ''}
+            defaultValue={experienceRef.current?.location || ''}
             type="text"
             placeholder="Enter location"
             name="experience-location"
@@ -188,9 +222,11 @@ export default function AddEditExperienceModal() {
           <button type="button" className="cancel-btn" onClick={closeModal}>
             Cancel
           </button>
-          <button type="button" className="save-btn"
-           style={{ background: '#156ff7', color: '#fff' }}
-           onClick={handleSave}
+          <button 
+            type="button" 
+            className="save-btn"
+            style={{ background: '#156ff7', color: '#fff' }}
+            onClick={handleSave}
           >
             Save
           </button>

@@ -105,7 +105,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
 
   return <>
       <div className="month-year-field" data-testid="month-year-picker"> {/* Added data-testid */}
-        <label className={`month-year-field__label ${disabled ? 'label--disabled' : ''}`}>{label} {!isOptional && <span className="required-field">*</span>}</label>
+        <label data-testid="month-year-picker-label" className={`month-year-field__label ${disabled ? 'label--disabled' : ''}`}>{label} {!isOptional && <span className="required-field">*</span>}</label>
         <div className={`month-year-field__dropdowns ${disabled ? 'month-year-field__dropdowns--disabled' : ''}`}>
           <div
             ref={monthDropdownRef}

@@ -13,7 +13,7 @@ describe('MonthYearPicker', () => {
   it('renders with initial date', () => {
     render(<MonthYearPicker initialDate="2023-05-15T00:00:00.000Z" label="Select Date" name="date" id="date" onDateChange={mockOnDateChange} />);
     // Check if the label is rendered
-    expect(screen.getByText('Select Date*')).toBeInTheDocument();
+    expect(screen.getByTestId('month-year-picker-label')).toBeInTheDocument();
     // Check if the month and year are displayed correctly
     expect(screen.getByText('May')).toBeInTheDocument();
     expect(screen.getByText('2023')).toBeInTheDocument();

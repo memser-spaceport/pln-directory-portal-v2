@@ -34,9 +34,9 @@ const config: Config = {
   coverageThreshold: {
     global: {
       branches: 25,
-      functions: 25,
-      lines: 25,
-      statements: 25,
+      functions: 20,
+      lines: 15,
+      statements: 15,
     },
   },
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {

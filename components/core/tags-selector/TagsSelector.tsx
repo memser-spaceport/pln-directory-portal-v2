@@ -95,7 +95,7 @@ export const TagsSelector = () => {
             {tags?.map((tag: string, index: number) => (
               <div className={s.tag} key={`${tag}+${index}`}>
                 {tag}
-                <button disabled={disabled} onClick={() => onTagRemoveClickhandler(tag)} className="addaskcnt__tagscnt__tagsandinput__tgs__tag__dlte">
+                <button disabled={disabled} onClick={() => onTagRemoveClickhandler(tag)} className={s.tagButton}>
                   <img alt="delete" src="/icons/close-gray.svg" />
                 </button>
                 <HiddenField value={tag ?? ''} defaultValue={tag ?? ''} name={`askTag${index}-name`} />

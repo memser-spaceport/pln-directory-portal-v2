@@ -30,10 +30,9 @@ const Toolbar = (props: IToolbar) => {
   const search = searchParams.get('search');
   const router = useRouter();
 
-
   //hooks
   const analytics = useIrlAnalytics();
- 
+
   const debounce = (func: Function, delay: number) => {
     let timeoutId: NodeJS.Timeout;
     return (...args: any[]) => {
@@ -296,12 +295,14 @@ const Toolbar = (props: IToolbar) => {
               left: unset;
             }
 
-            .toolbar__actionCn__webView, .toolbar__actionCn__webView__follCnt {
+            .toolbar__actionCn__webView,
+            .toolbar__actionCn__webView__follCnt {
               display: none;
             }
           }
           @media (min-width: 1024px) {
-            .toolbar__actionCn__webView, .toolbar__actionCn__webView__follCnt {
+            .toolbar__actionCn__webView,
+            .toolbar__actionCn__webView__follCnt {
               display: flex;
             }
 

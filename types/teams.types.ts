@@ -14,8 +14,10 @@ export interface ITeamsSearchParams {
   focusAreas: string;
   isRecent: string;
   isHost: string;
+  isSponsor: string;
   asks?: string;
 }
+  
 
 export interface ITeamFilterSelectedItems {
   tags: { selected: boolean; value: string; disabled: boolean }[];

@@ -25,11 +25,13 @@ interface IEvent {
 interface IEventGuest {
   uid: string;
   isHost: boolean;
+  isSponsor: boolean;
   event: IEvent;
 }
 
 interface GroupedEvents {
   Host: IEvent[];
+  Sponsor: IEvent[];
 }
 
 interface ITeamMembers {
@@ -51,14 +53,16 @@ const TeamIrlContributions = (props: ITeamMembers) => {
   const transformData = (event: IEventGuest[]): GroupedEvents => {
     return event.reduce(
       (acc: GroupedEvents, item) => {
-        acc.Host.push(item.event);
+        if (item.isHost) acc.Host.push(item.event);
+        if (item.isSponsor) acc.Host.push(item.event);
+
         return acc;
       },
-      { Host: [] }
+      { Host: [], Sponsor: [] }
     );
   };
 
-  const groupedData: GroupedEvents = team ? transformData(sortedEvents) : { Host: [] };
+  const groupedData: GroupedEvents = team ? transformData(sortedEvents) : { Host: [], Sponsor: [] };
 
   const onClose = () => {
     if (modalRef.current) {

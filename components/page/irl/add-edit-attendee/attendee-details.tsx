@@ -97,8 +97,10 @@ const AttendeeDetails = (props: IAttendeeForm) => {
             uid: e?.event?.uid,
             isHost: e?.isHost,
             isSpeaker: e?.isSpeaker,
+            isSponsor: e?.isSponsor,
             hostSubEvents: e?.additionalInfo?.hostSubEvents,
             speakerSubEvents: e?.additionalInfo?.speakerSubEvents,
+            sponsorSubEvents: e?.additionalInfo?.sponsorSubEvents,
             }))
             
             setGuestGoingEvents(userGoingEvents)

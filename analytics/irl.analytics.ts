@@ -23,6 +23,7 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED: 'irl-guest-list-table-add-office-hours-clicked',
     IRL_GUEST_LIST_TABLE_HOST_EVENT_CLICKED: 'irl-guest-list-table-host-event-clicked',
     IRL_GUEST_LIST_TABLE_SPEAKER_EVENT_CLICKED: 'irl-guest-list-table-speaker-event-clicked',
+    IRL_GUEST_LIST_TABLE_SPONSOR_EVENT_CLICKED: 'irl-guest-list-table-sponsor-event-clicked',
     IRL_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
     IRL_TO_HUSKY_REDIRECT_CLICKED: 'irl-to-husky-redirect-clicked',
     IRL_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
@@ -358,6 +359,15 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_TABLE_SPEAKER_EVENT_CLICKED, { ...params });
   };
 
+  const trackSponsorEventClicked = (location: any, event: any) => {
+    const params = {
+      locationUid: location?.uid,
+      locationName: location?.name,
+      ...event,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_TABLE_SPONSOR_EVENT_CLICKED, { ...params });
+  };
+
   function trackLocationClicked(id: any, locationName: any) {
     const params = {
       locationUid: id,
@@ -598,6 +608,7 @@ export const useIrlAnalytics = () => {
     trackNoAttendeesStripRespondBtnClicked,
     trackHostEventClicked,
     trackSpeakerEventClicked,
+    trackSponsorEventClicked,
     trackPastEventClicked,
     trackAdditionalResourcesClicked,
     irlGuestDetailPrivacySettingClick,

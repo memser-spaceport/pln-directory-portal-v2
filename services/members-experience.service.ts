@@ -3,7 +3,7 @@ import { getHeader } from "@/utils/common.utils";
 
 
 export const getAllMemberExperiences = async (memberUid: string) => {
-    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-experiences/get-all-by-member-uid/${memberUid}`,
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}/experiences`,
         {
             cache: 'force-cache',
             method: 'GET',

@@ -46,8 +46,8 @@ export default function AllListModal() {
               <h2 className="member-detail__experience__modal__header__title">Experience</h2>
             </div>
             <div className="member-detail__experience__modal__list">
-              {experiences.map((experience: any) => (
-                <div key={experience?.uid}>
+              {experiences.map((experience: any, index: number) => (
+                <div key={index+'-experience-modal-list-item'}>
                   <MemberDetailsExperienceDetail experience={experience} isEditable={isEditable} closeModal={closeModal} />
                 </div>
               ))}

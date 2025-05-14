@@ -16,13 +16,14 @@ export default async function ExperienceList({ member, isEditable }: { member: a
         memberId: member?.id,
         title: '',
         company: '',
-        start: { month: 0, year: 0 },
-        end: { month: 0, year: 0 },
+        startDate: new Date(),
+        endDate: new Date(),
         isCurrent: false,
         location: '',
         uid: null,
       }
   }
+
 
 
     const formatExperience = (experiences: any) => {
@@ -31,16 +32,8 @@ export default async function ExperienceList({ member, isEditable }: { member: a
         memberId: experience?.memberUid,
         company: experience?.company,
         title: experience?.title,
-        start: {
-          year: experience?.startDate?.year ?? 1970,
-          month: experience?.startDate?.month ?? 1,
-          day: experience?.startDate?.day ?? 1,
-        },
-        end: {
-          year: experience?.endDate?.year ?? 1970,
-          month: experience?.endDate?.month ?? 1,
-          day: experience?.endDate?.day ?? 1,
-        },
+        startDate: experience?.startDate ? new Date(experience?.startDate) : new Date(),
+        endDate: experience?.endDate ? new Date(experience?.endDate) : new Date(),
         isCurrent: experience?.isCurrent,
         location: experience?.location,
         uid: experience?.uid ?? '',
@@ -88,8 +81,8 @@ export default async function ExperienceList({ member, isEditable }: { member: a
             )}
             {experiences.length > 0 && (
               <div className={styles?.memberDetail__experience__list__content}>
-                {formattedExperiences.slice(0, 4).map((experience: any) => (
-                  <div key={experience.id}>
+                {formattedExperiences.slice(0, 4).map((experience: any, index: number) => (
+                  <div key={index}>
                     <MemberDetailsExperienceDetail experience={experience} isEditable={isEditable} />
                   </div>
                 ))}

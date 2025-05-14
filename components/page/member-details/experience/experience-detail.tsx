@@ -5,19 +5,19 @@ import { EVENTS } from '@/utils/constants';
 
 export default function MemberDetailsExperienceDetail({ experience, isEditable, closeModal }: { experience: any, isEditable: boolean, closeModal?: any }) {
   
-  const getMonthName = (monthNumber: number) => {
+    const getMonthName = (date: Date) => {
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    return months[monthNumber-1];
+    return months[date.getMonth()];
   };
 
-  const getDuration = (startMonth: number, startYear: number, endMonth: number, endYear: number, isCurrent: boolean) => {
-    const startDate = new Date(startYear, startMonth -1 , 1);
-    let endDate;
+  const getYear = (date: Date) => {
+    return date.getFullYear();
+  };
+
+  const getDuration = (startDate: Date, endDate: Date, isCurrent: boolean) => {
     if (isCurrent) {
       endDate = new Date();
-    } else {
-      endDate = new Date(endYear, endMonth -1 , 1);
-    }
+    } 
     const years = endDate.getFullYear() - startDate.getFullYear();
     const months = endDate.getMonth() - startDate.getMonth();
     const totalMonths = years * 12 + months;
@@ -40,10 +40,10 @@ export default function MemberDetailsExperienceDetail({ experience, isEditable, 
             <p className={styles?.memberDetail__experience__item__detail__company}>{experience?.company}</p>
             <p className={styles?.memberDetail__experience__item__detail__duration}>
               <span className={styles?.memberDetail__experience__item__detail__duration__text}>
-                {getMonthName(experience?.start?.month)} {experience?.start?.year} - {experience?.isCurrent ? 'Present' : getMonthName(experience?.end?.month) + ' ' + experience?.end?.year}
+                {getMonthName(experience?.startDate)} {getYear(experience?.startDate)} - {experience?.isCurrent ? 'Present' : getMonthName(experience?.endDate) + ' ' + getYear(experience?.endDate)}
               </span>
               <span className={styles?.memberDetail__experience__item__detail__duration__dot}>•</span>
-              <span>{getDuration(experience?.start?.month, experience?.start?.year, experience?.end?.month, experience?.end?.year, experience?.isCurrent)}</span>
+              <span>{getDuration(experience?.startDate, experience?.endDate, experience?.isCurrent)}</span>
             </p>
             {experience?.location && <p className={styles?.memberDetail__experience__item__detail__location}>{experience?.location}</p>}
           </div>

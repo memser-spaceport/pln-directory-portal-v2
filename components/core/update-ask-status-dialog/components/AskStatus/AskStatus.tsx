@@ -29,7 +29,7 @@ export const AskStatus = () => {
             formKey="resolvedBy"
             onClear={() => setValue('resolvedBy', null, { shouldValidate: true, shouldDirty: true })}
             selectedOption={resolvedBy}
-            label="Who helped resolve the ask?"
+            label="Who helped resolve the ask?*"
             options={allMembers?.data ?? []}
             name="resolvedBy"
             uniqueKey="uid"

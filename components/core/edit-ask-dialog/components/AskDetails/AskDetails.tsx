@@ -5,7 +5,7 @@ import TextEditor from '@/components/ui/text-editor';
 import HiddenField from '@/components/form/hidden-field';
 import { TagsSelector } from '@/components/core/tags-selector/TagsSelector';
 import { useFormContext } from 'react-hook-form';
-import s from '@/components/core/submit-ask-dialog/SubmitAskDialog.module.css';
+import s from '@/components/core/submit-ask-dialog/SubmitAskDialog.module.scss';
 
 export const AskDetails = () => {
   const {

@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 
 export const editAskFormSchema = yup.object({
-  title: yup.string().required('Title is required'),
+  title: yup.string().required('Title is required').min(7, 'Minimum 7 characters required'),
 
   description: yup.string().required('Description is required'),
 

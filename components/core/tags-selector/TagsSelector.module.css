@@ -55,6 +55,9 @@
 }
 
 .addaskcnt__tagscnt__tagsandinput__tgs__tag__dlte {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: 16px;
 }
 

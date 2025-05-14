@@ -153,7 +153,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           {iconKey && selectedOption && <img className="selected__icon" src={selectedOption[iconKey] || defaultImage} alt={selectedOption[displayKey]} />}
           <input
             id={id}
-            className={`select__search ${iconKey ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
+            className={`select__search ${iconKey && selectedOption ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
               (isMandatory && !selectedOption?.[uniqueKey]) || (isMandatory && searchRef.current?.value === '') ? 'select__search--error' : ''
             }`}
             ref={searchRef}

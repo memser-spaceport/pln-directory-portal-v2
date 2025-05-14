@@ -7,7 +7,7 @@ import { useCloseAskMutation } from '@/services/teams/hooks/useCloseAskMutation'
 import Image from 'next/image';
 import { AskCloseReasons, CloseAskForm } from '@/components/core/update-ask-status-dialog/types';
 import { closeAskFormSchema, closeAskInitialData } from '@/components/core/update-ask-status-dialog/helpers';
-import s from '@/components/core/edit-ask-dialog/EditAskDialog.module.css';
+import s from '@/components/core/edit-ask-dialog/EditAskDialog.module.scss';
 import { AskStatus } from '@/components/core/update-ask-status-dialog/components/AskStatus';
 
 interface Props {
@@ -96,13 +96,13 @@ export const StatusForm: FC<Props> = ({ team, ask, onClose }) => {
       {view === 'confirm' && (
         <div className={s.modal}>
           <div className={s.modalContent}>
-            <button type="button" className={s.closeButton} onClick={onClose}>
+            <button type="button" className={s.closeButton} onClick={() => setView('close')}>
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <h2>Are you sure you want to close your ask?</h2>
             <p className={s.confirmationMessage}>Clicking &apos;Archive&apos; will close and archive your asks.</p>
             <div className={s.dialogControls}>
-              <button type="button" className={s.secondaryButton} onClick={onCancel}>
+              <button type="button" className={s.secondaryButton} onClick={() => setView('close')}>
                 Cancel
               </button>
               <button type="button" className={s.primaryButton} onClick={onFinalize} disabled={isSubmitting}>

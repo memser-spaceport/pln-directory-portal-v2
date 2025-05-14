@@ -17,7 +17,6 @@ export interface ITeamsSearchParams {
   isSponsor: string;
   asks?: string;
 }
-  
 
 export interface ITeamFilterSelectedItems {
   tags: { selected: boolean; value: string; disabled: boolean }[];
@@ -81,7 +80,7 @@ export interface ITeamAsk {
 }
 
 export interface ITeam {
-  asks: never[];
+  asks: ITeamAsk[];
   role?: string;
   id: string;
   logo?: string;

@@ -7,7 +7,7 @@ import { useUpdateAskMutation } from '@/services/teams/hooks/useUpdateAskMutatio
 import { SubmitAskForm } from '@/components/core/submit-ask-dialog/types';
 import { triggerLoader } from '@/utils/common.utils';
 import { ITeam, ITeamAsk } from '@/types/teams.types';
-import s from '@/components/core/edit-ask-dialog/EditAskDialog.module.css';
+import s from '@/components/core/edit-ask-dialog/EditAskDialog.module.scss';
 import { AskDetails } from '@/components/core/edit-ask-dialog/components/AskDetails';
 
 interface Props {

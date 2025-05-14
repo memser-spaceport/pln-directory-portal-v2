@@ -62,11 +62,11 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
     return null;
   }
 
-  if (activeTab === 'Open Asks' && !isLoading && data?.length === 0) {
+  if (!isLoading && data?.length === 0) {
     return (
       <div className={s.root}>
         <div className={s.header}>Asks</div>
-        <NoDataView canSubmit={canEdit} team={team} />
+        <NoDataView canSubmit={canEdit} team={team} openAsksCount={groupedData.open.length} />
       </div>
     );
   }
@@ -75,10 +75,10 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
     <div className={s.root}>
       <div className={s.header}>
         <Tabs variant="secondary" tabs={tabs} activeTab={activeTab} onTabClick={(item) => setActiveTab(item as View)}>
-          <SubmitAskDialog toggleVariant="secondary" team={team} />
+          {activeTab === 'Open Asks' && <SubmitAskDialog canSubmit={canEdit} toggleVariant="secondary" team={team} openAsksCount={groupedData.open.length} />}
         </Tabs>
       </div>
-      {activeTab === 'Open Asks' && !tabData.length && <NoDataView canSubmit={canEdit} team={team} />}
+      {activeTab === 'Open Asks' && !tabData.length && <NoDataView canSubmit={canEdit} team={team} openAsksCount={groupedData.open.length} />}
       {tabData.map((item) => {
         return <TeamAsksItem key={item.uid} data={item} canEdit={canEdit} team={team} />;
       })}

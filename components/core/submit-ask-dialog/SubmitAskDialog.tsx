@@ -9,7 +9,7 @@ import { SubmitAskForm } from '@/components/core/submit-ask-dialog/types';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { submitAskFormSchema } from '@/components/core/submit-ask-dialog/helpers';
 
-import s from './SubmitAskDialog.module.css';
+import s from './SubmitAskDialog.module.scss';
 import { triggerLoader } from '@/utils/common.utils';
 import { AskDetails } from '@/components/core/edit-ask-dialog/components/AskDetails';
 
@@ -17,11 +17,11 @@ interface Props {
   toggleVariant?: 'primary' | 'secondary';
   toggleTitle?: string;
   team: ITeam;
+  openAsksCount?: number;
+  canSubmit: boolean;
 }
 
-const remainingAsks = 3;
-
-export const SubmitAskDialog: FC<Props> = ({ toggleVariant = 'primary', toggleTitle = 'Submit Asks', team }) => {
+export const SubmitAskDialog: FC<Props> = ({ toggleVariant = 'primary', toggleTitle = 'Submit Asks', team, canSubmit }) => {
   const [open, toggleOpen] = useState(false);
 
   const methods = useForm<SubmitAskForm>({
@@ -61,6 +61,10 @@ export const SubmitAskDialog: FC<Props> = ({ toggleVariant = 'primary', toggleTi
     reset();
   };
 
+  if (!canSubmit) {
+    return null;
+  }
+
   return (
     <>
       <button
@@ -79,7 +83,7 @@ export const SubmitAskDialog: FC<Props> = ({ toggleVariant = 'primary', toggleTi
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <h2>Your Asks</h2>
-            <p className={s.description}>{`(${remainingAsks}${remainingAsks > 1 ? '/3 asks' : '/3 asks'} remaining) You can submit up to 3 asks`}</p>
+            <p className={s.description}>Share short updates or requests for help, such as hiring needs, fundraising, or partnership opportunities.</p>
             <FormProvider {...methods}>
               <form noValidate onSubmit={handleSubmit(onSubmit)} className={s.form}>
                 <AskDetails />

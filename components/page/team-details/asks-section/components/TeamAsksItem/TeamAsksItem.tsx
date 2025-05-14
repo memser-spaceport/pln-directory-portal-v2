@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import { ITeam, ITeamAsk } from '@/types/teams.types';
 
 import s from './TeamAsksItem.module.css';
@@ -12,6 +12,18 @@ interface Props {
 }
 
 export const TeamAsksItem: FC<Props> = ({ data, canEdit, team }) => {
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const links = contentRef.current?.querySelectorAll('a');
+
+    links?.forEach((link) => {
+      link.setAttribute('class', s.link);
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer'); // for security
+    });
+  }, [data.description]);
+
   return (
     <div className={s.root}>
       <div className={s.header}>
@@ -20,9 +32,9 @@ export const TeamAsksItem: FC<Props> = ({ data, canEdit, team }) => {
           {data.status === 'CLOSED' && <div className={s.reasonBadge}>{data.closedReason}</div>}
         </div>
 
-        {canEdit && data.status !== 'CLOSED' && <AskActionsMenu team={team} ask={data} />}
+        {canEdit && <AskActionsMenu team={team} ask={data} deleteOnly={data.status === 'CLOSED'} />}
       </div>
-      <div className={s.content} dangerouslySetInnerHTML={{ __html: data.description }} />
+      <div ref={contentRef} className={s.content} dangerouslySetInnerHTML={{ __html: data.description }} />
       <div className={s.tags}>
         {data?.tags?.map((tag: string, index: number) => (
           <div key={`${tag}+${index}`} className={s.tag}>

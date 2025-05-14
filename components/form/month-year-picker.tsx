@@ -10,6 +10,7 @@ interface MonthYearPickerProps {
   dayValue?: 'start' | 'end'; // Whether to use start or end of month for day value
   name: string;
   id: string;
+  isOptional?: boolean;
   onDateChange: (value: string) => void
 }
 
@@ -45,6 +46,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
   dayValue = 'start',
   name,
   id,
+  isOptional = false,
   onDateChange
 }) => {
   const initialMonthYear = initialDate ? parseISODate(initialDate) : null;
@@ -103,7 +105,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
 
   return <>
       <div className="month-year-field" data-testid="month-year-picker"> {/* Added data-testid */}
-        <label className={`month-year-field__label ${disabled ? 'label--disabled' : ''}`}>{label}* </label>
+        <label className={`month-year-field__label ${disabled ? 'label--disabled' : ''}`}>{label} {!isOptional && <span className="required-field">*</span>}</label>
         <div className={`month-year-field__dropdowns ${disabled ? 'month-year-field__dropdowns--disabled' : ''}`}>
           <div
             ref={monthDropdownRef}

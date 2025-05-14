@@ -116,9 +116,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       // }
 
       formattedData?.events?.map((event: any) => {    
-        // Process both hostSubEvents and speakerSubEvents
+        // Process hostSubEvents, speakerSubEvents and sponsorSubEvents
         event.hostSubEvents = processSubEvents(event?.hostSubEvents);
         event.speakerSubEvents = processSubEvents(event?.speakerSubEvents);
+        event.sponsorSubEvents = processSubEvents(event?.sponsorSubEvents);
       });
       
       const isError = validateForm(formattedData);
@@ -211,8 +212,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             events[eventIndex][subKey] = formValues[key];
             events[eventIndex]['isHost'] = false;
             events[eventIndex]['isSpeaker'] = false;
+            events[eventIndex]['isSponsor'] = false;
             events[eventIndex]['hostSubEvents'] = [];
             events[eventIndex]['speakerSubEvents'] = [];
+            events[eventIndex]['sponsorSubEvents'] = [];
             if(from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
               events[eventIndex]['eventName'] = props?.allGatherings?.find((gathering: IIrlEvent) => gathering?.uid === formValues[key])?.name;
             }
@@ -231,6 +234,13 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         const eventIndex = [...events].findIndex((event) => event.uid === eventUid);
         if (eventIndex !== -1) {
           events[eventIndex].isSpeaker = formValues[key] === 'true';
+        }
+      } else if (key.startsWith('isSponsor')) {
+        const eventUid = key.split('-')[1];
+        events = structuredClone([...events]).filter((g) => g);
+        const eventIndex = [...events].findIndex((event) => event.uid === eventUid);
+        if (eventIndex !== -1) {
+          events[eventIndex].isSponsor = formValues[key] === 'true';
         }
       } else if (key.startsWith('hostSubEvent')) {
         const [_, eventUid, subEventId, subEventKey] = key.split('-');
@@ -262,6 +272,22 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               [subEventKey]: formValues[key].trim(),
             };
             events[eventIndex].speakerSubEvents.push(newSpeakerSiubEvent);
+          }
+        }
+      } else if (key.startsWith('sponsorSubEvent')) {
+        const [_, eventUid, subEventId, subEventKey] = key.split('-');
+        events = structuredClone([...events]).filter((g) => g);
+        const eventIndex = [...events].findIndex((event) => event.uid === eventUid);
+        if (eventIndex !== -1) {
+          const sponsorSubEventIndex = events[eventIndex].sponsorSubEvents.findIndex((subEvent: any) => subEvent.uid === subEventId);
+          if (sponsorSubEventIndex !== -1) {
+            events[eventIndex].sponsorSubEvents[sponsorSubEventIndex][subEventKey] = formValues[key].trim();
+          } else {
+            const newSponsorSiubEvent = {
+              uid: subEventId,
+              [subEventKey]: formValues[key].trim(),
+            };
+            events[eventIndex].sponsorSubEvents.push(newSponsorSiubEvent);
           }
         }
       } else if (key.startsWith('checkInDate') || key.startsWith('checkOutDate')) {
@@ -333,6 +359,13 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               isError = true;
               participationErrors.push(`${speakerSubEvent?.uid}-link`);
             }
+        });
+
+        event?.sponsorSubEvents?.map((sponsorSubEvent: IIrlParticipationEvent) => {
+          if (sponsorSubEvent?.link && !isLink(sponsorSubEvent?.link.trim())) {
+            isError = true;
+            participationErrors.push(`${sponsorSubEvent?.uid}-link`);
+          }
         });
       });
       setErrors((prev: IIrlAttendeeFormErrors) => ({

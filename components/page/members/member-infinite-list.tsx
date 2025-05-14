@@ -1,19 +1,16 @@
 'use client';
 
-import { ITEMS_PER_PAGE, PAGE_ROUTES, TOAST_MESSAGES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import { PAGE_ROUTES, VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import MemberGridView from './member-grid-view';
 import MemberListView from './member-list-view';
-import { IMember, IMemberListOptions } from '@/types/members.types';
+import { IMember } from '@/types/members.types';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import Link from 'next/link';
-import usePagination from '@/hooks/irl/use-pagination';
-import { useEffect, useRef, useState } from 'react';
-import { getMembersListOptions, getMembersOptionsFromQuery } from '@/utils/member.utils';
-import cookies from 'js-cookie';
-import TableLoader from '@/components/core/table-loader';
-import { getMemberListForQuery } from '@/app/actions/members.actions';
-import useListPagination from '@/hooks/use-list-pagination';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { useInfiniteMembersList } from '@/services/members/hooks/useInfiniteMembersList';
+import { CardsLoader } from '@/components/core/loaders/CardsLoader';
+import { ListLoader } from '@/components/core/loaders/ListLoader';
 
 const MemberInfiniteList = (props: any) => {
   const members = props?.members ?? [];
@@ -23,61 +20,24 @@ const MemberInfiniteList = (props: any) => {
   const isUserLoggedIn = props?.isUserLoggedIn;
   const analytics = useMemberAnalytics();
   const viewType = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
-  const [userList, setUserList] = useState<any>({ users: members, totalItems: totalItems });
-  const [isLoading, setIsLoading] = useState(false);
-  const observerTarget = useRef<HTMLDivElement>(null);
-  const { currentPage, setPagination } = useListPagination({
-    observerTargetRef: observerTarget,
-    totalItems: totalItems,
-    totalCurrentItems: userList?.users?.length,
-  });
 
   const onMemberOnClickHandler = (e: any, member: IMember) => {
     if (!e.ctrlKey) {
       triggerLoader(true);
     }
     analytics.onMemberCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), viewType);
-    // router.push(`${PAGE_ROUTES.MEMBERS}/${id}`, {scroll: false})
   };
 
-  const getAllMembers = async () => {
-    const toast = (await import('react-toastify')).toast;
-    try {
-      // setIsLoading(true);
-      const authToken = cookies.get('authToken');
-      const optionsFromQuery = getMembersOptionsFromQuery(searchParams);
-      const listOptions: IMemberListOptions = getMembersListOptions(optionsFromQuery);
-      const teamsRes = await getMemberListForQuery(listOptions, currentPage, ITEMS_PER_PAGE, authToken);
-      if (teamsRes.isError) {
-        // setIsLoading(false);
-        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-        return;
-      }
-      setUserList((prev: any) => ({ users: [...prev.users, ...teamsRes?.items], totalItems: teamsRes?.total }));
-    } catch (error) {
-      console.error('Error in fetching teams', error);
-      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-      // setIsLoading(false);
-    } finally {
-      // setIsLoading(false);
-    }
-  };
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteMembersList(
+    {
+      searchParams,
+    },
+    {
+      initialData: { items: members, total: totalItems },
+    },
+  );
 
-  useEffect(() => {
-    if (currentPage !== 1) {
-      const fetchData = async () => {
-        await getAllMembers();
-      };
-
-      fetchData();
-    }
-  }, [currentPage]);
-
-    // Sync team list
-    useEffect(() => {
-    setPagination({ page: 2, limit: ITEMS_PER_PAGE});
-    setUserList({ users: members, totalItems: totalItems });
-  }, [members]);
+  const Loader = VIEW_TYPE_OPTIONS.GRID === viewType ? CardsLoader : ListLoader;
 
   return (
     <>
@@ -86,23 +46,23 @@ const MemberInfiniteList = (props: any) => {
           <div className="members-list__titlesec">
             <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
           </div>
-          <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
-          {[...userList?.users]?.map((member: any, index: number) => (
+          <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage}>
+            <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
+              {data?.map((member) => (
                 <Link
                   prefetch={false}
                   href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
-                  key={`memberitem-${member?.id}-${index}`}
+                  key={member.id}
                   className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
                   onClick={(e) => onMemberOnClickHandler(e, member)}
-                  // scroll={false}
                 >
                   {VIEW_TYPE_OPTIONS.GRID === viewType && <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />}
                   {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
                 </Link>
               ))}
-            <div ref={observerTarget} />
-          </div>
-          {isLoading && <TableLoader />}
+              {isFetchingNextPage && <Loader />}
+            </div>
+          </InfiniteScroll>
         </div>
       </div>
       <style jsx>{`
@@ -146,7 +106,6 @@ const MemberInfiniteList = (props: any) => {
           row-gap: 24px;
           column-gap: 16px;
           width: 100%;
-          justify-content: center;
           padding: 2px;
         }
 
@@ -155,16 +114,16 @@ const MemberInfiniteList = (props: any) => {
           flex-direction: column;
           gap: 16px;
           margin-bottom: 16px;
-          padding: 0px 8px;
+          padding: 0 8px;
         }
 
         .members-list__list__member {
-          margin: 0px 16px;
+          margin: 0 16px;
         }
 
         @media (min-width: 1024px) {
           .members-list__list__members {
-            padding: 0px 0px;
+            padding: 0 0;
           }
 
           .members-list__grid {
@@ -177,7 +136,7 @@ const MemberInfiniteList = (props: any) => {
           }
 
           .members-list__list {
-            padding: 0px 20px;
+            padding: 0 20px;
           }
         }
       `}</style>

@@ -54,7 +54,10 @@
     width: fit-content;
 }
 
-.addaskcnt__tagscnt__tagsandinput__tgs__tag__dlte {
+.tagButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: 16px;
 }
 

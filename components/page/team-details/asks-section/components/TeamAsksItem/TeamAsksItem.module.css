@@ -33,6 +33,10 @@
     font-weight: 400;
     line-height: 24px;
     color: #0F172A;
+
+    .link {
+        color: #156FF7;
+    }
 }
 
 .tags {

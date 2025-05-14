@@ -12,9 +12,10 @@ import { UpdateAskStatusDialog } from '@/components/core/update-ask-status-dialo
 interface Props {
   team: ITeam;
   ask: ITeamAsk;
+  deleteOnly?: boolean;
 }
 
-export const AskActionsMenu: FC<Props> = ({ team, ask }) => {
+export const AskActionsMenu: FC<Props> = ({ team, ask, deleteOnly }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dialogsState, setDialogsState] = useState<{
     status: boolean;
@@ -47,32 +48,36 @@ export const AskActionsMenu: FC<Props> = ({ team, ask }) => {
             [s.open]: isOpen,
           })}
         >
-          <button
-            className={clsx(s.menuButton)}
-            onClick={() => {
-              setDialogsState((prevState) => ({
-                ...prevState,
-                status: true,
-              }));
-              toggleOpen();
-            }}
-          >
-            <Image height={20} width={20} alt="edit" loading="lazy" src="/icons/archive.svg" />
-            Update Status
-          </button>
-          <button
-            className={clsx(s.menuButton)}
-            onClick={() => {
-              setDialogsState((prevState) => ({
-                ...prevState,
-                edit: true,
-              }));
-              toggleOpen();
-            }}
-          >
-            <Image height={20} width={20} alt="edit" loading="lazy" src="/icons/edit-outlined.svg" />
-            Edit
-          </button>
+          {!deleteOnly && (
+            <>
+              <button
+                className={clsx(s.menuButton)}
+                onClick={() => {
+                  setDialogsState((prevState) => ({
+                    ...prevState,
+                    status: true,
+                  }));
+                  toggleOpen();
+                }}
+              >
+                <Image height={20} width={20} alt="edit" loading="lazy" src="/icons/archive.svg" />
+                Update Status
+              </button>
+              <button
+                className={clsx(s.menuButton)}
+                onClick={() => {
+                  setDialogsState((prevState) => ({
+                    ...prevState,
+                    edit: true,
+                  }));
+                  toggleOpen();
+                }}
+              >
+                <Image height={20} width={20} alt="edit" loading="lazy" src="/icons/edit-outlined.svg" />
+                Edit
+              </button>
+            </>
+          )}
           <button
             className={clsx(s.menuButton)}
             onClick={() => {

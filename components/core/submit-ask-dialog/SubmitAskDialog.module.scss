@@ -1,12 +1,32 @@
+@use 'styles/media';
+
 .toggleButton {
-    background: inherit;
+    padding: 4px 24px;
+    border: 1px solid #cbd5e1;
+    color: #ffff;
+    box-shadow: 0 1px 1px 0 #0f172a14;
+    background: #156ff7;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
+    height: 30px;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
+
+    &.secondary {
+        color: #156ff7;
+        background: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+        border: none;
+        padding-right: 0;
+        padding-left: 12px;
+    }
+
+    &.disabled {
+        opacity:  0.6;
+        cursor: default;
+    }
 }
 
 .modal {
@@ -36,10 +56,14 @@
     background: white;
     border-radius: 12px;
     position: relative;
-    padding: 24px;
+    padding: 12px;
     width: 100%;
     max-width: 656px;
     gap: 10px;
+
+    @include media.tablet-landscape {
+        padding: 24px;
+    }
 }
 
 .description {
@@ -53,6 +77,36 @@
     margin-top: 24px;
 }
 
+.formBody {
+    flex: 1;
+    overflow: auto;
+    padding: 0 4px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+
+    /* Turn off scrollbar */
+    &::-webkit-scrollbar {
+        background: transparent;
+        border-radius: 0;
+        display: none;
+        height: 0;
+        width: 0;
+    }
+}
+
+.charCount {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 500;
+    align-items: flex-end;
+    display: flex;
+}
 
 .dialogControls {
     display: flex;
@@ -97,27 +151,9 @@
     line-height: 20px;
 }
 
-.statusBadge {
-    color: #475569;
-    font-size: 12px;
-    border-radius: 24px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 12px;
-    font-weight: 500;
-    line-height: 14px;
-    background-color: #E8FFEB;
-
-    &.closed {
-        background-color: #FFF2C9;
-    }
-}
-
-.confirmationMessage {
-    margin-block: 24px;
-    font-size: 14px;
+.content {
+    font-size: 15px;
     font-weight: 400;
+    line-height: 24px;
     color: #0F172A;
 }

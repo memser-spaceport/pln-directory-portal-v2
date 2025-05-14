@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import Image from 'next/image';
 import { ITeam, ITeamAsk } from '@/types/teams.types';
 
-import s from './EditAskDialog.module.css';
+import s from './EditAskDialog.module.scss';
 import { UpdateForm } from '@/components/core/edit-ask-dialog/components/UpdateForm';
 
 interface Props {

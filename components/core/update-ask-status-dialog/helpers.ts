@@ -14,7 +14,11 @@ export const closeAskFormSchema = yup.object({
   comments: yup.string().when('reason', {
     is: (reason: string) => reason === AskCloseReasons.ACTIVE,
     then: () => yup.string(),
-    otherwise: () => yup.string().required('Required'),
+    otherwise: () =>
+      yup
+        .string()
+        .required('Required')
+        .test('not-only-spaces', 'This field cannot be only spaces', (value) => value != null && value.trim().length > 0),
   }),
   disabled: yup.boolean(),
 }) as yup.ObjectSchema<CloseAskForm>;
@@ -59,16 +63,16 @@ export function getDependantLabel(reason: string) {
   switch (reason) {
     case AskCloseReasons.FULLY_ADDRESSED:
     case AskCloseReasons.PARTIALLY_ADDRESSED: {
-      return "What's left unresolved?";
+      return "What's left unresolved?*";
     }
     case AskCloseReasons.NO_LONGER_NEEDED:
     case AskCloseReasons.UNADRESSABLE:
     case AskCloseReasons.DUPLICATE: {
-      return 'Additional information';
+      return 'Additional information*';
     }
     case AskCloseReasons.OTHER:
     default: {
-      return 'Specify other reason(s)';
+      return 'Specify other reason(s)*';
     }
   }
 }

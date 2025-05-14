@@ -11,7 +11,7 @@ import { MemberExperienceFormAction } from '@/app/actions/members.experience.act
 import { toast } from 'react-toastify';
 import { triggerDialogLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
-
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 interface Experience {
   uid?: string;
   memberId?: string;
@@ -23,13 +23,14 @@ interface Experience {
   location?: string;
 }
 
-export default function AddEditExperienceModal() {
+export default function AddEditExperienceModal({member,userInfo}: {member: any,userInfo: any}) {
   const modalRef = useRef<HTMLDialogElement>(null);
   const initialState = { success: false, message: '', errorCode: '', errors: {} }
   const router = useRouter();
 
   const experienceRef = useRef<Experience>({});
-  
+  const analytics = useMemberAnalytics();
+
   const [errors, setErrors] = useState<any>({});
   const [isConfirming, setIsConfirming] = useState(false);
   const [formActionType, setFormActionType] = useState('save');
@@ -72,19 +73,45 @@ export default function AddEditExperienceModal() {
     formRef.current?.reset();
     setIsConfirming(false);
   };
+  
 
   useEffect(() => {
     if(state?.success){
       closeModal();
       router.refresh();
       toast.success(state?.message);
+     if(formActionType === 'save'){
+      if(isEdit){
+        analytics.onEditExperienceSaveClicked(userInfo, member,experienceRef.current,'success');
+      }else{
+        analytics.onAddExperienceSaveClicked(userInfo, member,experienceRef.current,'success');
+      }
+     }else if(formActionType === 'delete'){
+      analytics.onDeleteExperienceSaveClicked(userInfo, member,experienceRef.current,'success');
+     }
     }else if(state?.errorCode === 'validation'){
       setErrors(state?.errors);
+      if(formActionType === 'save'){
+        if(isEdit){
+          analytics.onEditExperienceSaveClicked(userInfo, member,experienceRef.current,'validation-error');
+        }else{
+          analytics.onAddExperienceSaveClicked(userInfo, member,experienceRef.current,'validation-error');
+        }
+      } 
     }else{
       if(state?.message){
         closeModal();
         toast.error(state?.message);
         router.refresh();
+        if(formActionType === 'save'){
+          if(isEdit){
+            analytics.onEditExperienceSaveClicked(userInfo, member,experienceRef.current,'error');
+          }else{
+            analytics.onAddExperienceSaveClicked(userInfo, member,experienceRef.current,'error');
+          }
+        }else if(formActionType === 'delete'){
+          analytics.onDeleteExperienceSaveClicked(userInfo, member,experienceRef.current,'error');
+        }
       }
     }
   }, [state, router]);
@@ -93,6 +120,7 @@ export default function AddEditExperienceModal() {
     if(isConfirming) {
       await setFormActionType('delete');
       formRef.current?.requestSubmit();
+
     }else{
       setIsConfirming(true);
     }

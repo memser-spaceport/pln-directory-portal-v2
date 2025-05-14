@@ -6,10 +6,11 @@ import AllListModal from './all-list-modal';
 import AddEditExperienceModal from './add-edit-experience-modal';
 import MemberDetailsExperienceDetail from './experience-detail';
 import PopupTriggerIconButton from '@/components/ui/popup-trigger-icon-button';
-
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 export default async function ExperienceList({ member, isEditable }: { member: any; isEditable: boolean }) {
   let experiences = [];
   let formattedExperiences = [];
+  const { userInfo } = await getCookiesFromHeaders();
   let seeAllExperienceData = null;
   const addExperienceData = {
       experience: {
@@ -64,12 +65,16 @@ export default async function ExperienceList({ member, isEditable }: { member: a
             <div className={styles?.memberDetail__experience__header__actions}>
             {
               (isEditable && formattedExperiences.length > 0) && (
-                <PopupTriggerIconButton iconImgUrl="/icons/add-blue.svg" label="Add" size={16} triggerEvent={EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL} data={addExperienceData} alt="add" />
+                <PopupTriggerIconButton 
+                iconImgUrl="/icons/add-blue.svg" label="Add" size={12} triggerEvent={EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL} data={addExperienceData} alt="add"
+                analyticsData={{method: 'onAddExperienceClicked', user: userInfo, member: member}}
+                />
               )
             }
             {
-              experiences.length > 4 && (
-                <PopupTriggerIconButton label="See All" size={16} triggerEvent={EVENTS.TRIGGER_SEE_ALL_EXPERIENCE_MODAL} data={seeAllExperienceData} alt="seeall" />
+              experiences.length > 3 && (
+                <PopupTriggerIconButton label="See All" size={16} triggerEvent={EVENTS.TRIGGER_SEE_ALL_EXPERIENCE_MODAL}
+                 data={seeAllExperienceData} alt="seeall" analyticsData={{method: 'onSeeAllExperienceClicked', user: userInfo, member: member}}/>
               )
             }
             </div>
@@ -82,16 +87,16 @@ export default async function ExperienceList({ member, isEditable }: { member: a
             )}
             {experiences.length > 0 && (
               <div className={styles?.memberDetail__experience__list__content}>
-                {formattedExperiences.slice(0, 4).map((experience: any, index: number) => (
+                {formattedExperiences.slice(0, 3).map((experience: any, index: number) => (
                   <div key={index}>
-                    <MemberDetailsExperienceDetail experience={experience} isEditable={isEditable} />
+                    <MemberDetailsExperienceDetail experience={experience} isEditable={isEditable} member={member} userInfo={userInfo}/>
                   </div>
                 ))}
               </div>
             )}
           </div>
-          <AddEditExperienceModal />
-          <AllListModal />
+          <AddEditExperienceModal member={member} userInfo={userInfo}/>
+          <AllListModal member={member} userInfo={userInfo}/>
         </div>
       )}
     </>

@@ -361,6 +361,13 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE: 'member-detail-bio-edit-record-save',
   ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS: 'on_click_see_more_button_irl_contributions',
   MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS: 'member-details-on-click-irl-contributions',
+
+  MEMBER_DETAIL_ADD_EXPERIENCE_CLICKED: 'member_detail_add_experience_clicked',
+  MEMBER_DETAIL_SEE_ALL_EXPERIENCE_CLICKED: 'member_detail_see_all_experience_clicked',
+  MEMBER_DETAIL_EDIT_EXPERIENCE_CLICKED: 'member_detail_edit_experience_clicked',
+  MEMBER_DETAIL_EDIT_EXPERIENCE_SAVE_CLICKED: 'member_detail_edit_experience_save_clicked',
+  MEMBER_DETAIL_ADD_EXPERIENCE_SAVE_CLICKED: 'member_detail_add_experience_save_clicked',
+  MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED: 'member_detail_delete_experience_save_clicked',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};

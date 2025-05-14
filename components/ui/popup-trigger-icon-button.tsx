@@ -1,12 +1,30 @@
 'use client';
 import Image from 'next/image';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { useModalAnalytics } from '@/analytics/modal.analytics';
+import {  } from '@/types/shared.types';
+interface IAnalyticsData {
+  method: string;
+  user: any;
+  member: any;
+}
 
-export default function PopupTriggerIconButton({ iconImgUrl ,label,size ,alt, triggerEvent,data, callback}: { iconImgUrl?: string, label?: string, size?: number, alt: string, triggerEvent: string, data: any, callback?: any }) {
+export default function PopupTriggerIconButton({ iconImgUrl ,label,size ,alt, triggerEvent,data, callback, analyticsData}: { iconImgUrl?: string, label?: string, size?: number, alt: string, triggerEvent: string, data: any, callback?: any, analyticsData?: IAnalyticsData }) {
+  const analytics = useModalAnalytics();
   
   const handleClick = () => {
+    
     document.dispatchEvent(new CustomEvent(triggerEvent, { detail: data }));
     if(callback){
       callback()
+    }
+    if(analyticsData){
+      if (analyticsData?.method && typeof analytics[analyticsData.method as keyof typeof analytics] === 'function') {
+        (analytics[analyticsData.method as keyof typeof analytics] as Function)(
+          getAnalyticsUserInfo(analyticsData.user), 
+          getAnalyticsMemberInfo(analyticsData.member)
+        );
+      }
     }
   };
   

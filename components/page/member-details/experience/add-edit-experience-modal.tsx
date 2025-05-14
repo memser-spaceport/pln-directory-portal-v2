@@ -17,12 +17,10 @@ interface Experience {
   memberId?: string;
   title?: string;
   company?: string;
-  startDate?: string;
-  endDate?: string | null;
+  startDate?: Date;
+  endDate?: Date | null;
   isCurrent?: boolean;
   location?: string;
-  start?: { month: any; year: any };
-  end?: { month: any; year: any };
 }
 
 export default function AddEditExperienceModal() {
@@ -55,10 +53,7 @@ export default function AddEditExperienceModal() {
   useEffect(() => {
     const handler = (e: any) => {
       const exp = e.detail?.experience || {};
-      
-      exp['startDate'] = getDateFromMonthYear(exp?.start?.month, exp?.start?.year);
-      exp['endDate'] = exp?.isCurrent ? null : getDateFromMonthYear(exp?.end?.month, exp?.end?.year);
-      
+            
       experienceRef.current = exp;
       
       setErrors({});
@@ -70,10 +65,6 @@ export default function AddEditExperienceModal() {
     return () => document.removeEventListener(EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL, handler);
   }, []);
 
-  const getDateFromMonthYear = (month: number, year: number) => {
-    if(month === 0 && year === 0) return new Date().toISOString();
-    return new Date(year, month, 1).toISOString();
-  };
 
   const closeModal = () => {
     modalRef.current?.close();
@@ -167,7 +158,9 @@ export default function AddEditExperienceModal() {
               isOptional={false}
               minYear={1970}
               maxYear={new Date().getFullYear()}
-              initialDate={experienceRef.current?.startDate}
+              initialDate={experienceRef.current?.startDate
+                 ? new Date(experienceRef.current?.startDate).toISOString()
+                  : undefined}
             />
             <MonthYearPicker
               onDateChange={(value: string) => updateExperience('endDate', value)}
@@ -178,7 +171,11 @@ export default function AddEditExperienceModal() {
               isOptional={true}
               minYear={1970}
               maxYear={new Date().getFullYear()}
-              initialDate={experienceRef?.current?.isCurrent ? undefined : (experienceRef?.current?.endDate ?? undefined)}
+              initialDate={experienceRef?.current?.isCurrent
+                 ? undefined
+                  : (experienceRef?.current?.endDate 
+                    ? new Date(experienceRef.current?.endDate).toISOString()
+                     : undefined)}
             />
             <div className="add-edit-experience__modal__dates__current">
               <span>Present</span>
@@ -188,12 +185,7 @@ export default function AddEditExperienceModal() {
                 callback={(e) => {
                   const isCurrent = e.target.checked;
                   updateExperience('isCurrent', isCurrent);
-                  updateExperience('endDate', isCurrent ? null : 
-                    getDateFromMonthYear(
-                      experienceRef.current?.end?.month, 
-                      experienceRef.current?.end?.year
-                    )
-                  );
+                  updateExperience('endDate', isCurrent ? null : experienceRef.current?.startDate);
                   setForceUpdate(prev => prev + 1);
                 }}
                 isChecked={experienceRef?.current?.isCurrent || false}

@@ -3,7 +3,7 @@
 import { getHeader } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
-export const MemberExperienceFormAction = async (state: any, formData: FormData) => { 
+export const MemberExperienceFormAction = async (state: any, formData: FormData) => {
   const { authToken } = getCookiesFromHeaders();
 
   const experienceId = formData.get('experience-uid');
@@ -31,19 +31,15 @@ const validate = (formattedData: any) => {
   if (formattedData?.company?.trim()?.length > 1 && !companyRegex.test(formattedData?.company?.trim())) errs.company = 'Company name contains invalid characters.';
 
   // Start date validation
-  if (!formattedData?.startDate?.month) errs.startMonth = 'Please provide the start month';
-  if (!formattedData?.startDate?.year) errs.startYear = 'Please provide the start year';
+  if (!formattedData?.startDate) errs.startDate = 'Please provide the start date';
 
   // End date validation
-  if (!formattedData?.isCurrent) {
-    if (!formattedData?.endDate?.month) errs.endMonth = 'Please provide the end month';
-    if (!formattedData?.endDate?.year) errs.endYear = 'Please provide the end year';
-    if (formattedData?.endDate?.month && formattedData?.endDate?.year) {
-      const endDate = new Date(formattedData?.endDate?.year, formattedData?.endDate?.month - 1, 1);
-      const startDate = new Date(formattedData?.startDate?.year, formattedData?.startDate?.month - 1, 1);
-      if (endDate < startDate) errs.endDate = 'End date must be greater than start date';
-    }
-  }
+  if (formattedData?.isCurrent) formattedData.endDate = new Date().toISOString();
+
+  if (!formattedData?.endDate) errs.endDate = 'Please provide the end date';
+  const endDate = new Date(formattedData?.endDate);
+  const startDate = new Date(formattedData?.startDate);
+  if (endDate < startDate) errs.endDate = 'End date must be greater than start date';
 
   // Location validation
   if (formattedData?.location?.trim()?.length > 100) errs.location = 'Location must be less than 100 characters';
@@ -54,43 +50,12 @@ const validate = (formattedData: any) => {
 
 const transformObject = (object: any) => {
   const formattedData = Object.fromEntries(object);
-  const startDateMonth = formattedData?.['add-edit-experience-startDate']
-  ? formattedData['add-edit-experience-startDate'].includes('-')
-    ? formattedData['add-edit-experience-startDate'].split('-')[1]
-    : 0
-  : 0;
-  const startDateYear = formattedData?.['add-edit-experience-startDate']
-  ? formattedData['add-edit-experience-startDate'].includes('-')
-    ? formattedData['add-edit-experience-startDate'].split('-')[0]
-    : 0
-  : 0;
-
-  const endDateMonth = formattedData?.['add-edit-experience-endDate']
-  ? formattedData['add-edit-experience-endDate'].includes('-')
-    ? formattedData['add-edit-experience-endDate'].split('-')[1]
-    : 0
-  : 0;
-
-  const endDateYear = formattedData?.['add-edit-experience-endDate']
-  ? formattedData['add-edit-experience-endDate'].includes('-')
-    ? formattedData['add-edit-experience-endDate'].split('-')[0]
-    : 0
-  : 0;
   
-
   const experienceData = {
     title: formattedData?.['experience-title'],
     company: formattedData?.['experience-company'],
-    startDate: {
-      month: startDateMonth,
-      year: startDateYear,
-      day: 0,
-    },
-    endDate: {
-      month: endDateMonth,
-      year: endDateYear,
-      day: 0,
-    },
+    startDate: formattedData?.['add-edit-experience-startDate'],
+    endDate: formattedData?.['add-edit-experience-endDate'],
     location: formattedData?.['experience-location'],
     isCurrent: formattedData?.['isCurrent'] === 'true',
     memberUid: formattedData?.['memberId'],
@@ -148,13 +113,12 @@ const updateMemberExperience = async (experienceId: string, formattedData: any, 
 };
 
 const addMemberExperience = async (data: any, authToken: string) => {
-  console.log(data);
-  console.log(authToken);
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-experiences`, {
     method: 'POST',
     body: JSON.stringify(data),
     headers: getHeader(authToken ?? ''),
   });
+
   if (response.ok) {
     return { success: true, message: 'Experience added successfully!', errorCode: 'success' };
   } else {

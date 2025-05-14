@@ -12,6 +12,7 @@ interface MonthYearPickerProps {
   id: string;
   isOptional?: boolean;
   onDateChange: (value: string) => void
+  sort?: 'asc' | 'desc'
 }
 
 const parseISODate = (isoDate: string) => {
@@ -47,7 +48,8 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
   name,
   id,
   isOptional = false,
-  onDateChange
+  onDateChange,
+  sort = 'asc'
 }) => {
   const initialMonthYear = initialDate ? parseISODate(initialDate) : null;
   const [selectedDate, setSelectedDate] = useState(initialMonthYear);
@@ -57,7 +59,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
   const yearDropdownRef = useRef<HTMLDivElement | null>(null);
   const disabled = !initialDate;
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
+  const years = sort === 'asc' ? Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i) : Array.from({ length: maxYear - minYear + 1 }, (_, i) => maxYear - i);
   const currentMonth = initialMonthYear?.month  ? initialMonthYear?.month - 1 : 1;
 
 

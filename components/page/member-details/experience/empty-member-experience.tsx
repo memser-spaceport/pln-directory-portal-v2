@@ -34,7 +34,6 @@ const EmptyMemberExperience = ({ member }: { member: any }) => {
           letter-spacing: 0px;
           gap: 8px;
           color: #156ff7;
-          cursor: pointer;
         }
       `}</style>
     </>

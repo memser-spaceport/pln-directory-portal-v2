@@ -54,12 +54,13 @@ export default async function ExperienceList({ member, isEditable }: { member: a
     return <></>;
   }
 
+  const experienceLabel = formattedExperiences.length > 0 ? `Experience (${formattedExperiences.length})` : 'Experience';
   return (
     <>
       {(formattedExperiences.length > 0 || isEditable) && (
         <div className={styles?.memberDetail__experience__list}>
           <div className={styles?.memberDetail__experience__list__header}>
-            <h2 className={styles?.memberDetail__experience__header__title}>Experience</h2>
+            <h2 className={styles?.memberDetail__experience__header__title}>{experienceLabel}</h2>
             <div className={styles?.memberDetail__experience__header__actions}>
             {
               (isEditable && formattedExperiences.length > 0) && (

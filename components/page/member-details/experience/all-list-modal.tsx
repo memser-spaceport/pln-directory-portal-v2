@@ -43,7 +43,7 @@ export default function AllListModal() {
         >
           <div className="member-detail__experience__modal">
             <div className="member-detail__experience__modal__header">
-              <h2 className="member-detail__experience__modal__header__title">Experience</h2>
+              <h2 className="member-detail__experience__modal__header__title">Experience ({experiences.length})</h2>
             </div>
             <div className="member-detail__experience__modal__list">
               {experiences.map((experience: any, index: number) => (
@@ -59,8 +59,8 @@ export default function AllListModal() {
         .member-detail__experience__modal {
           width: 90vw;
           max-width: 656px;
-          height: 100%;
-          overflow-y: auto;
+          height: 515px;
+          overflow-y: hidden;
           background-color: #fff;
           padding: 24px;
           display: flex;

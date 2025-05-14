@@ -17,7 +17,6 @@ export const MemberExperienceFormAction = async (state: any, formData: FormData)
 const validate = (formattedData: any) => {
   const errs: any = {};
   const regex = /^[a-zA-Z0-9\s\-&,]{2,100}$/;
-  const companyRegex = /^[a-zA-Z0-9\s\-&,\.]{2,100}$/;
   const locationRegex = /^[a-zA-Z0-9\s.,-]{2,100}$/;
 
   // Title validation
@@ -28,18 +27,21 @@ const validate = (formattedData: any) => {
   // Company validation
   if (!formattedData?.company?.trim()) errs.company = 'Please provide the company name';
   if (formattedData?.company?.trim()?.length > 100) errs.company = 'Company name must be less than 100 characters';
-  if (formattedData?.company?.trim()?.length > 0 && !companyRegex.test(formattedData?.company?.trim())) errs.company = 'Company name contains invalid characters.';
 
   // Start date validation
   if (!formattedData?.startDate) errs.startDate = 'Please provide the start date';
-
-  // End date validation
-  if (formattedData?.isCurrent) formattedData.endDate = new Date().toISOString();
-
-  if (!formattedData?.endDate) errs.endDate = 'Please provide the end date';
-  const endDate = new Date(formattedData?.endDate);
   const startDate = new Date(formattedData?.startDate);
-  if (endDate < startDate) errs.endDate = 'End date must be greater than start date';
+  if(startDate > new Date()) errs.startDate = 'Start date must be in the past';
+
+
+  if (!formattedData?.isCurrent && !formattedData?.endDate) errs.endDate = 'Please provide the end date';
+  
+  if(!formattedData.isCurrent) {
+    const endDate = new Date(formattedData?.endDate);
+    if (endDate < startDate) errs.endDate = 'End date must be greater than start date';
+  } else {
+    delete formattedData.endDate;
+  }
 
   // Location validation
   if (formattedData?.location?.trim()?.length > 100) errs.location = 'Location must be less than 100 characters';

@@ -157,6 +157,7 @@ export default function AddEditExperienceModal() {
               label="Start Date"
               isOptional={false}
               minYear={1970}
+              sort="desc"
               maxYear={new Date().getFullYear()}
               initialDate={experienceRef.current?.startDate
                  ? new Date(experienceRef.current?.startDate).toISOString()
@@ -170,6 +171,7 @@ export default function AddEditExperienceModal() {
               label="End Date"
               isOptional={true}
               minYear={1970}
+              sort="desc"
               maxYear={new Date().getFullYear()}
               initialDate={experienceRef?.current?.isCurrent
                  ? undefined

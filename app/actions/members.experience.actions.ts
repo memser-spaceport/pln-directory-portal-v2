@@ -23,12 +23,12 @@ const validate = (formattedData: any) => {
   // Title validation
   if (!formattedData?.title?.trim()) errs.title = 'Please provide the title';
   if (formattedData?.title?.trim()?.length > 100) errs.title = 'Title must be less than 100 characters';
-  if (formattedData?.title?.trim()?.length > 1 && !regex.test(formattedData?.title?.trim())) errs.title = 'Title contains invalid characters.';
+  if (formattedData?.title?.trim()?.length > 0 && !regex.test(formattedData?.title?.trim())) errs.title = 'Title contains invalid characters.';
 
   // Company validation
   if (!formattedData?.company?.trim()) errs.company = 'Please provide the company name';
   if (formattedData?.company?.trim()?.length > 100) errs.company = 'Company name must be less than 100 characters';
-  if (formattedData?.company?.trim()?.length > 1 && !companyRegex.test(formattedData?.company?.trim())) errs.company = 'Company name contains invalid characters.';
+  if (formattedData?.company?.trim()?.length > 0 && !companyRegex.test(formattedData?.company?.trim())) errs.company = 'Company name contains invalid characters.';
 
   // Start date validation
   if (!formattedData?.startDate) errs.startDate = 'Please provide the start date';

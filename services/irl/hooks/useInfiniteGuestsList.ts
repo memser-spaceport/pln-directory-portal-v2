@@ -59,7 +59,7 @@ export function useInfiniteGuestsList(
     data: {
       ...initialData,
       guests: items,
-      totalGuests: data.pages[0].totalGuests,
+      totalGuests: data.pages?.[0].totalGuests,
     },
     error,
     fetchNextPage,

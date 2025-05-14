@@ -151,6 +151,8 @@ export function transformRawInputsToFormObj(obj: any) {
       }
     } else if (key.startsWith('rich-text-editor')) {
       result['longDescription'] = obj[key];
+    } else if (key.startsWith('name')) {
+      result['name'] = (obj[key]).trim();
     } else {
       result[key] = obj[key];
     }

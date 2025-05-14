@@ -2,8 +2,8 @@
 
 import { IFilterSelectedItem, IUserInfo } from '@/types/shared.types';
 import { ITeamFilterSelectedItems, ITeamsSearchParams } from '@/types/teams.types';
-import { DEFAULT_ASK_TAGS, EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { EVENTS, FOCUS_AREAS_FILTER_KEYS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { useRouter } from 'next/navigation';
 import FilterCount from '../../ui/filter-count';
 import Toggle from '../../ui/toogle';
 import TagContainer from '../tag-container';
@@ -332,7 +332,6 @@ const Filter = (props: ITeamFilterWeb) => {
         {`
           button {
             background: none;
-            border: none;
             border: none;
           }
           .team-filter {

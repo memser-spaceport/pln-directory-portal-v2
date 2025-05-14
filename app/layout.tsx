@@ -10,6 +10,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import HuskySidePanel from '@/components/core/husky/husky-sidepanel';
+import QueryProvider from '@/providers/QueryProvider';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -54,23 +55,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* importing google reCaptcha v3 */}
         <script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} async defer></script>
       </head>
-      <body className={`${inter.className} layout`}>
+      <body className={`${inter.className} layout`} id="body">
         <Suspense>
           <PostHogPageview />
         </Suspense>
         <StyledJsxRegistry>
-          <header className="layout__header">
-            <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-          </header>
-          <main className="layout__main">{children}</main>
-          <Loader />
-          <AuthBox />
-          <Toaster />
-          <BroadCastChannel />
-          <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
-          <MemberRegisterDialog />
-          {/* <TeamRegisterDialog /> */}
-          <CookieChecker isLoggedIn={isLoggedIn} />
+          <QueryProvider>
+            <header className="layout__header">
+              <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+            </header>
+            <main className="layout__main">{children}</main>
+            <Loader />
+            <AuthBox />
+            <Toaster />
+            <BroadCastChannel />
+            <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+            <MemberRegisterDialog />
+            {/* <TeamRegisterDialog /> */}
+            <CookieChecker isLoggedIn={isLoggedIn} />
+          </QueryProvider>
         </StyledJsxRegistry>
       </body>
     </html>

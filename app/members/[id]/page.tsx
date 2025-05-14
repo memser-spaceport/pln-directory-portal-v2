@@ -1,5 +1,5 @@
 import Error from '@/components/core/error';
-import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { BreadCrumb } from '@/components/core/bread-crumb';
@@ -15,14 +15,18 @@ import MemberProjectContribution from '@/components/page/member-details/member-p
 import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
+import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
-  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo,officeHoursFlag } = await getpageData(memberId);
+  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo, officeHoursFlag } = await getpageData(memberId);
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
   }
+
+  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
+  const isExperienceEditable = isLoggedIn && (member?.id === userInfo?.uid || isAdmin);
 
   if (isError) {
     return <Error />;
@@ -38,13 +42,16 @@ const MemberDetails = async ({ params }: { params: any }) => {
           {!isLoggedIn && <MemberProfileLoginStrip member={member} />}
           <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
             <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo}/>}
+            {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo} />}
           </div>
         </div>
         <div className={styles?.memberDetail__container__contact}>
           {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
           {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
         </div>
+        {/* Experience List */}
+        <ExperienceList member={member} isEditable={isExperienceEditable}/>
+        
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
         </div>

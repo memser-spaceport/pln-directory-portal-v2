@@ -2,8 +2,7 @@ import Image from 'next/image';
 import styles from './list.module.css';
 import PopupTriggerIconButton from '@/components/ui/popup-trigger-icon-button';
 import { EVENTS } from '@/utils/constants';
-
-export default function MemberDetailsExperienceDetail({ experience, isEditable, closeModal }: { experience: any, isEditable: boolean, closeModal?: any }) {
+export default function MemberDetailsExperienceDetail({ experience, isEditable, closeModal,member,userInfo }: { experience: any, isEditable: boolean, closeModal?: any, member: any, userInfo: any }) {
   
     const getMonthName = (date: Date) => {
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -49,7 +48,9 @@ export default function MemberDetailsExperienceDetail({ experience, isEditable, 
           </div>
         </div>
         {isEditable && (
-          <PopupTriggerIconButton iconImgUrl="/icons/edit-blue.svg" size={16} triggerEvent={EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL} data={{experience: {...experience}}} alt="edit" callback={closeModal}/>
+          <PopupTriggerIconButton iconImgUrl="/icons/edit-blue.svg" size={16} triggerEvent={EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL} data={{experience: {...experience}}} alt="edit" callback={closeModal}
+          analyticsData={{method: 'onEditExperienceClicked', user: userInfo, member: member}}
+          />
         )}
       </div>
     </>

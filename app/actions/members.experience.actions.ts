@@ -16,13 +16,11 @@ export const MemberExperienceFormAction = async (state: any, formData: FormData)
 
 const validate = (formattedData: any) => {
   const errs: any = {};
-  const regex = /^[a-zA-Z0-9\s\-&,]{2,100}$/;
   const locationRegex = /^[a-zA-Z0-9\s.,-]{2,100}$/;
 
   // Title validation
   if (!formattedData?.title?.trim()) errs.title = 'Please provide the title';
   if (formattedData?.title?.trim()?.length > 100) errs.title = 'Title must be less than 100 characters';
-  if (formattedData?.title?.trim()?.length > 0 && !regex.test(formattedData?.title?.trim())) errs.title = 'Title contains invalid characters.';
 
   // Company validation
   if (!formattedData?.company?.trim()) errs.company = 'Please provide the company name';

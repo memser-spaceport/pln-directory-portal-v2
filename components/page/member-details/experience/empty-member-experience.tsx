@@ -2,8 +2,10 @@
 
 import PopupTriggerIconButton from '@/components/ui/popup-trigger-icon-button';
 import { EVENTS } from '@/utils/constants';
-
+import cookies from 'js-cookie';
 const EmptyMemberExperience = ({ member }: { member: any }) => {
+
+  const userInfo = cookies.get('userInfo');
   const addExperienceData = {
     experience: {
       memberId: member?.id,
@@ -20,7 +22,9 @@ const EmptyMemberExperience = ({ member }: { member: any }) => {
   return (
     <>
       <div className="member-detail__experience__list__empty">
-        <PopupTriggerIconButton iconImgUrl="/icons/add-blue.svg" label="Add Experience" size={16} triggerEvent={EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL} data={addExperienceData} alt="add" />
+        <PopupTriggerIconButton iconImgUrl="/icons/add-blue.svg" label="Add Experience"
+         size={16} triggerEvent={EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL} data={addExperienceData}
+          alt="add" analyticsData={{method: 'onAddExperienceClicked', user: userInfo, member: member}}/>
       </div>
       <style jsx>{`
         .member-detail__experience__list__empty {

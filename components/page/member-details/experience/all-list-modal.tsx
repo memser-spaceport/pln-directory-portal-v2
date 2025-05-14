@@ -60,7 +60,7 @@ export default function AllListModal() {
           width: 90vw;
           max-width: 656px;
           height: 515px;
-          overflow-y: hidden;
+          overflow-y: auto;
           background-color: #fff;
           padding: 24px;
           display: flex;

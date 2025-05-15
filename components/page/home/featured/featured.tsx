@@ -19,6 +19,7 @@ import { getFeaturedData } from '@/services/featured.service';
 import { useRouter } from 'next/navigation';
 import { formatFeaturedData } from '@/utils/home.utils';
 import Cookies from 'js-cookie';
+import { useFilter } from '@/hooks/useFilter';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
@@ -115,30 +116,32 @@ const Featured = (props: any) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const cauroselActions = usePrevNextButtons(emblaApi);
   const router = useRouter();
-  const allFeaturedData = props.featuredData ?? [];
-  const [featuredData, setfeaturedData] = useState(props.featuredData ?? []);
+  const [unfilteredFeaturedData, setUnfilteredFeaturedData] = useState(props.featuredData ?? []);
+  const { activeFilter, onFilterClick: handleFilterSelected } = useFilter<string>('all');
+
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
     const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin);
-    setfeaturedData(formatFeaturedData(featData.data));
+    setUnfilteredFeaturedData(formatFeaturedData(featData.data));
     router.refresh();
   };
 
-  const onFilterClick = (filter: string) => {
-    if (filter === 'all') {
-      setfeaturedData(allFeaturedData);
-    } else {
-      setfeaturedData(allFeaturedData.filter((item: any) => item.category === filter));
-    }
-  };
+  const displayedFeaturedData = activeFilter === 'all'
+    ? unfilteredFeaturedData
+    : unfilteredFeaturedData.filter((item: any) => item.category === activeFilter);
 
   return (
     <>
       <div className="featured">
-        <FeaturedHeader {...cauroselActions} userInfo={userInfo} onClick={onFilterClick} />
+        <FeaturedHeader
+          {...cauroselActions}
+          userInfo={userInfo}
+          activeFilter={activeFilter}
+          onClick={handleFilterSelected}
+        />
         <div>
           <div className={`featured__body`}>
-            {featuredData?.map((item: any, index: number) => (
+            {displayedFeaturedData?.map((item: any, index: number) => (
               <Fragment key={`${item.category}-${index}`}>
                 {item?.category === 'location' ? (
                   item?.upcomingEvents?.length > 0 && <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>

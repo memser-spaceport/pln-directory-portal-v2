@@ -2,7 +2,6 @@ import React from 'react';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { HOME_PAGE_LINKS } from '@/utils/constants';
-import { useFilter } from '@/hooks/useFilter';
 
 const filterOptions = [
   { label: 'All', value: 'all' },
@@ -12,14 +11,22 @@ const filterOptions = [
   { label: 'Event', value: 'event' },
 ];
 
-const FeaturedHeader = ({ userInfo, onClick }: { userInfo: any, onClick: (filter: string) => void }) => {
-  const analytics = useHomeAnalytics();
-  const { activeFilter, onFilterClick: setActiveFilter } = useFilter<string>('all');
+interface FeaturedHeaderProps {
+  userInfo: any;
+  onClick: (filter: string) => void;
+  activeFilter: string;
+  prevBtnDisabled?: boolean;
+  nextBtnDisabled?: boolean;
+  onPrevButtonClick?: () => void;
+  onNextButtonClick?: () => void;
+}
 
-  const onFilterClick = (filter: string) => {
-    setActiveFilter(filter);
-    onClick(filter);
-    analytics.onFeaturedFilterClicked(filter);
+const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps) => {
+  const analytics = useHomeAnalytics();
+
+  const onFilterButtonClick = (filterValue: string) => {
+    onClick(filterValue);
+    analytics.onFeaturedFilterClicked(filterValue);
   };
 
   const featuredRequestUrl = HOME_PAGE_LINKS.FEATURED_REQUEST_URL;
@@ -37,7 +44,7 @@ const FeaturedHeader = ({ userInfo, onClick }: { userInfo: any, onClick: (filter
               <button
                 key={option.value}
                 className={`featured__ttl__txt${activeFilter === option.value ? ' active' : ''}`}
-                onClick={() => onFilterClick(option.value)}
+                onClick={() => onFilterButtonClick(option.value)}
                 type="button"
                 aria-pressed={activeFilter === option.value}
               >

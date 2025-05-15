@@ -6,6 +6,9 @@ import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import MembersFilter from './members-filter';
 
+/**
+ * Interface for FilterWrapper component props
+ */
 interface IFilterwrapper {
   filterValues: any;
   userInfo: IUserInfo;
@@ -13,6 +16,12 @@ interface IFilterwrapper {
   isUserLoggedIn: boolean;
 }
 
+/**
+ * FilterWrapper component that renders the MembersFilter in both mobile and desktop views
+ * 
+ * @param props - Component props
+ * @returns JSX Element
+ */
 export default function FilterWrapper(props: IFilterwrapper) {
   const searchParams = props?.searchParams;
 
@@ -32,13 +41,15 @@ export default function FilterWrapper(props: IFilterwrapper) {
   }, [router, searchParams]);
 
   return (
-    <div className="fw">
+    <div className="fw" data-testid="filter-wrapper">
+      {/* Mobile filter view - only shown when isMobileFilter is true */}
       {isMobileFilter && (
-        <div className="fw__mob">
+        <div className="fw__mob" data-testid="mobile-filter">
           <MembersFilter {...props} />
         </div>
       )}
-      <div className="fw__web">
+      {/* Desktop filter view - always present but conditionally displayed via CSS */}
+      <div className="fw__web" data-testid="desktop-filter">
         <MembersFilter {...props} />
       </div>
       <style jsx>
@@ -72,6 +83,7 @@ export default function FilterWrapper(props: IFilterwrapper) {
         `}
       </style>
 
+      {/* Global styles to control page scrolling when mobile filter is open */}
       <style jsx global>
         {`
           html {

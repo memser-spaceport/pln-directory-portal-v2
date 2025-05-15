@@ -7,10 +7,24 @@ import { ProfileSocialLink } from "./profile-social-link";
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, getProfileFromURL } from "@/utils/common.utils";
 import { useTeamAnalytics } from "@/analytics/teams.analytics";
 
+/**
+ * Props for the ContactInfo component.
+ * @interface IContactInfo
+ * @property {ITeam | undefined} team - The team object containing contact details.
+ * @property {IUserInfo | undefined} userInfo - The user info object for analytics.
+ */
 interface IContactInfo {
   team: ITeam | undefined;
   userInfo: IUserInfo | undefined;
 }
+
+/**
+ * Renders the contact information section for a team, including preferred contact, website, Twitter, and LinkedIn.
+ * Handles analytics tracking for contact clicks.
+ *
+ * @param {IContactInfo} props - The props for the component.
+ * @returns {JSX.Element} The rendered contact info section.
+ */
 const ContactInfo = (props: IContactInfo) => {
   const team = props?.team;
   const userInfo = props?.userInfo;
@@ -21,6 +35,7 @@ const ContactInfo = (props: IContactInfo) => {
 
   const analytics = useTeamAnalytics();
 
+  // Section: Callback for contact clicks (triggers analytics)
   const callback = (type: string, url: string) => {
     analytics.onTeamDetailContactClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), type, url);
   }

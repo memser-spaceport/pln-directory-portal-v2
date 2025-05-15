@@ -2,6 +2,13 @@ import { ChangeEvent, Fragment, useEffect, useState } from 'react';
 import MemberDetailsTeamCard from './member-details-team-card';
 import { PAGE_ROUTES } from '@/utils/constants';
 
+/**
+ * AllTeams component displays a searchable, filterable list of all teams for a member.
+ *
+ * @component
+ * @param {IAllTeams} props - The props for AllTeams component
+ * @returns {JSX.Element}
+ */
 interface IAllTeams {
   teams: any;
   isLoggedIn: boolean;
@@ -21,12 +28,17 @@ const AllTeams = (props: IAllTeams) => {
 
   const teamsLength = teams.length ?? 0;
 
+  /**
+   * Handles input change for the search bar, updates searchTerm state.
+   * @param e - ChangeEvent from the input
+   */
   const onInputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const name = e?.target?.value?.toLowerCase();
     setSearchTerm(name);
   };
 
   useEffect(() => {
+    // Filter teams by search term, or reset to sortedTeams if search is cleared
     if (searchTerm) {
       const filteredTeam = allTeams?.filter((member: any) => member?.name?.toLowerCase()?.includes(searchTerm));
       setAllTeams(filteredTeam);
@@ -36,12 +48,14 @@ const AllTeams = (props: IAllTeams) => {
   }, [searchTerm]);
 
   useEffect(() => {
+    // Handler to reset teams and search when the custom event is fired
     const handler = () => {
       setAllTeams(sortedTeams);
       setSearchTerm('');
     };
     document.addEventListener('close-member-teams-modal', handler);
     return () => {
+      // Clean up the event listener on unmount
       return document.addEventListener('close-member-teams-modal', handler);
     };
   }, []);

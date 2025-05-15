@@ -3,6 +3,19 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getSocialLinkUrl } from '@/utils/common.utils';
 
+/**
+ * Props for the ProfileSocialLink component.
+ * @interface IProfileSocialLink
+ * @property {string} type - The type of social link (e.g., twitter, linkedin).
+ * @property {string} [logo] - The logo image URL for the social link.
+ * @property {number} [height] - The height of the logo image.
+ * @property {number} [width] - The width of the logo image.
+ * @property {boolean} [preferred] - Whether this is the preferred social link.
+ * @property {string} profile - The profile name or identifier.
+ * @property {string} handle - The handle or fallback identifier.
+ * @property {(type: string, url: string) => void} callback - Callback when the link is clicked.
+ */
+
 interface IProfileSocialLink {
   type: string;
   logo?: string;
@@ -14,7 +27,16 @@ interface IProfileSocialLink {
   callback: (type: string, url: string) => void;
 }
 
+/**
+ * Renders a social profile link with logo and profile/handle text.
+ * Applies different styles based on the 'preferred' prop.
+ *
+ * @param {IProfileSocialLink} props - The props for the component.
+ * @returns {JSX.Element} The rendered social link component.
+ */
+
 export function ProfileSocialLink(props: IProfileSocialLink) {
+  // Section: Extract props for clarity and maintainability
   const callback = props?.callback;
   const profile = props?.profile;
   const type = props?.type;
@@ -24,6 +46,7 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
   const preferred = props?.preferred ?? false;
   const handle = props?.handle;
 
+  // Section: Compute the social link URL
   const href = getSocialLinkUrl(profile, type, handle);
   return (
     <>
@@ -38,7 +61,9 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
         data-testid="profile-social-link"
         className={`profile-social-link ${preferred ? 'preffered' : 'not-preferred'} `}
       >
+        {/* Logo image for the social link */}
         <img loading="lazy" src={logo} alt={type} height={height} width={width} />
+        {/* Display profile or fallback to handle */}
         <p className="profile-social-link__link">{profile ? profile : handle}</p>
       </a>
       {/* }

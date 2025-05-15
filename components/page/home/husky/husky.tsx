@@ -60,10 +60,10 @@ const Husky = () => {
 
   return (
     <>
-      <div id="husky-home" className={`husky ${isShrunk ? 'husky--shrunk' : ''}`}>
+      <div id="husky-home" className={`husky ${isShrunk ? 'husky--shrunk' : ''}`} data-testid="husky-component">
         {/* Sentinel element to observe */}
         <div className="husky__hdr">
-          <h3 className="husky__hdr__title">Explore Protocol Labs with Husky, an LLM-powered chatbot</h3>
+          <h3 className="husky__hdr__title" data-testid="husky-title">Explore Protocol Labs with Husky, an LLM-powered chatbot</h3>
         </div>
         <div className="husky_input">
           <HuskyEmptyChat isHidden={isShrunk} checkIsLimitReached={checkIsLimitReached} limitReached={limitReached} setLimitReached={setLimitReached} />

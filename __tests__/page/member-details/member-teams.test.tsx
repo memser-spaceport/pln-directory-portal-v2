@@ -6,6 +6,11 @@ import React from 'react';
 import * as ReactModule from 'react'; // For mocking useRef
 import MemberTeams from '@/components/page/member-details/member-teams';
 
+declare global {
+  // eslint-disable-next-line no-var
+  var __test_refObj: any;
+}
+
 // Mock child components
 jest.mock('@/components/page/member-details/member-details-team-card', () => ({
   __esModule: true,
@@ -17,11 +22,16 @@ jest.mock('@/components/page/member-details/all-teams', () => ({
 }));
 jest.mock('@/components/core/modal', () => ({
   __esModule: true,
-  default: (props: any) => (
-    <dialog data-testid="modal" open onClick={props.onClose}>
-      {props.children}
-    </dialog>
-  ),
+  default: (props: any) => {
+    if (props.modalRef && typeof props.modalRef === 'object') {
+      props.modalRef.current = (globalThis as any).__test_refObj || null;
+    }
+    return (
+      <dialog data-testid="modal" open onClick={props.onClose}>
+        {props.children}
+      </dialog>
+    );
+  },
 }));
 
 // Mock analytics and utils
@@ -73,6 +83,7 @@ describe('MemberTeams', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     refObj = { showModal: jest.fn(), close: jest.fn() };
+    globalThis.__test_refObj = refObj;
     jest.spyOn(ReactModule, 'useRef').mockReturnValue({ current: refObj });
   });
 
@@ -152,6 +163,49 @@ describe('MemberTeams', () => {
     // The next should be sorted by name
     expect(screen.getByTestId('team-card-t1')).toBeInTheDocument();
     expect(screen.getByTestId('team-card-t2')).toBeInTheDocument();
+  });
+
+  it('calls onSeeAllClickHandler when "See all" button is clicked', () => {
+    const teams = [
+      createTeam({ id: 't1', name: 'Team 1' }),
+      createTeam({ id: 't2', name: 'Team 2' }),
+      createTeam({ id: 't3', name: 'Team 3' }),
+      createTeam({ id: 't4', name: 'Team 4' }),
+    ];
+    const member = { ...createProps().member, teams };
+    render(<MemberTeams {...createProps({ member, teams })} />);
+    const seeAllButton = screen.getByText('See all');
+    fireEvent.click(seeAllButton);
+    expect(refObj.showModal).toHaveBeenCalled();
+    expect(onTeamsSeeAllClicked).toHaveBeenCalled();
+  });
+
+  it('calls onClose when modal is closed', () => {
+    const props = createProps();
+    const eventSpy = jest.spyOn(document, 'dispatchEvent');
+    render(<MemberTeams {...props} />);
+    fireEvent.click(screen.getByTestId('modal'));
+    expect(refObj.close).toHaveBeenCalled();
+    expect(eventSpy).toHaveBeenCalledWith(expect.any(CustomEvent));
+  });
+
+  it('sorts teams with different mainTeam values', () => {
+    const teams = [
+      createTeam({ id: 't1', name: 'Alpha', mainTeam: false }),
+      createTeam({ id: 't2', name: 'Beta', mainTeam: true }),
+    ];
+    const member = { ...createProps().member, teams };
+    render(<MemberTeams {...createProps({ member, teams })} />);
+    // The mainTeam: true should come first
+    const teamCards = screen.getAllByTestId(/team-card-/);
+    expect(teamCards[0]).toHaveTextContent('Beta');
+    expect(teamCards[1]).toHaveTextContent('Alpha');
+  });
+
+  it('handles teams prop as undefined', () => {
+    const member = createProps().member;
+    render(<MemberTeams member={member} userInfo={createProps().userInfo} isLoggedIn={true} teams={undefined as any} />);
+    expect(screen.getByText(/Team\(s\) are yet to be linked/i)).toBeInTheDocument();
   });
 
 });

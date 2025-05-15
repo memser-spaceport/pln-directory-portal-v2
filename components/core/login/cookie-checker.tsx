@@ -4,16 +4,32 @@ import { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 
+/**
+ * Props for the CookieChecker component.
+ * @interface ICookieChecker
+ * @property {boolean} isLoggedIn - Indicates if the user is currently logged in.
+ */
 interface ICookieChecker {
   isLoggedIn: boolean;
 }
 
+/**
+ * CookieChecker component monitors the user's session by checking the presence of a refreshToken cookie.
+ * If the session expires (cookie is missing), it displays a modal dialog prompting the user to log in again.
+ *
+ * @component
+ * @param {ICookieChecker} props - Component props
+ * @returns {JSX.Element}
+ */
 const CookieChecker = (props: ICookieChecker) => {
   const isLoggedIn = props?.isLoggedIn;
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(isLoggedIn);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const analytics = useCommonAnalytics();
 
+  /**
+   * Handles closing the session expired dialog and reloads the page.
+   */
   const onClose = () => {
     if (dialogRef.current) {
       dialogRef.current.close();
@@ -21,17 +37,27 @@ const CookieChecker = (props: ICookieChecker) => {
     window.location.reload();
   };
 
+  /**
+   * Handles the login action when the user clicks the Login button in the dialog.
+   * Tracks the event and redirects to the login section, then reloads the page.
+   */
   const onLogin = () => {
     analytics.onSessionExpiredLoginClicked();
     window.location.href = `${window.location.pathname}${window.location.search}#login`;
     window.location.reload();
   };
 
+  // Update local state if isLoggedIn prop changes
   useEffect(() => {
     setIsUserLoggedIn(isLoggedIn);
   }, [isLoggedIn]);
 
+  // Effect to check for session expiry (missing refreshToken cookie)
   useEffect(() => {
+    /**
+     * Checks if the refreshToken cookie is missing while the user is logged in.
+     * If so, shows the session expired dialog.
+     */
     const checkCookieExpiry = () => {
       const cookie = Cookies.get('refreshToken');
       if (isUserLoggedIn && !cookie) {

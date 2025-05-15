@@ -1,3 +1,8 @@
+/**
+ * @fileoverview MemberRepositories component displays a member's repositories with modal and analytics support.
+ * @module MemberRepositories
+ */
+
 'use client';
 
 import { Fragment, useRef } from 'react';
@@ -15,6 +20,12 @@ interface IMemberRepositories {
   userInfo: IUserInfo;
 }
 
+/**
+ * MemberRepositories displays a member's repositories with modal and analytics support.
+ *
+ * @param {IMemberRepositories} props - Component props
+ * @returns {JSX.Element}
+ */
 const MemberRepositories = (props: IMemberRepositories) => {
   const member = props?.member;
   const repositories: any = member?.repositories;
@@ -24,6 +35,9 @@ const MemberRepositories = (props: IMemberRepositories) => {
   const analytics = useMemberAnalytics();
   const itemsToShow = Array.isArray(repositories) ? repositories?.slice(0, 3) : [];
 
+  /**
+   * Handles modal close event.
+   */
   const onClose = () => {
     if (modalRef.current) {
       document.dispatchEvent(new CustomEvent('close-member-repos-modal'));
@@ -31,6 +45,9 @@ const MemberRepositories = (props: IMemberRepositories) => {
     }
   };
 
+  /**
+   * Handles 'See all' button click, opens modal and fires analytics.
+   */
   const onSeeAllClickHandler = () => {
     if (modalRef.current) {
       modalRef.current.showModal();
@@ -53,6 +70,7 @@ const MemberRepositories = (props: IMemberRepositories) => {
             </div>
           )}
 
+          {/* Error state for failed fetch */}
           {!Array.isArray(repositories) && repositories?.statusCode == 500 && (
             <div className="member-repo__header-unable">
               <h2 className="member-repo__title">Repositories (0)</h2>
@@ -62,6 +80,7 @@ const MemberRepositories = (props: IMemberRepositories) => {
             </div>
           )}
 
+          {/* List or empty state */}
           {Array.isArray(repositories) &&
             (repositories?.length > 0 ? (
               <div className="member-repo__repo-container">
@@ -83,6 +102,7 @@ const MemberRepositories = (props: IMemberRepositories) => {
         </div>
       )}
 
+      {/* Modal for all repositories */}
       {Array.isArray(repositories) && (
         <div className="all-member-container">
           <Modal modalRef={modalRef} onClose={onClose}>

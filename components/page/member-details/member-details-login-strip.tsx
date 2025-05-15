@@ -6,6 +6,14 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 
+/**
+ * MemberProfileLoginStrip displays a login prompt for limited member profiles.
+ * Shows a login button and handles login analytics and navigation.
+ *
+ * @component
+ * @param {IMemberProfileLoginStrip} props - The props for the component
+ * @returns {JSX.Element}
+ */
 interface IMemberProfileLoginStrip {
   member: IMember;
 }
@@ -14,6 +22,11 @@ const MemberProfileLoginStrip = (props: IMemberProfileLoginStrip) => {
   const router = useRouter();
   const authAnalytics = useAuthAnalytics();
 
+  /**
+   * Handles the login button click event.
+   * If user is logged in, shows a toast and refreshes the page.
+   * Otherwise, triggers analytics and navigates to the login section.
+   */
   const onLoginClickHandler = () => {
     const userInfo = Cookies.get('userInfo');
     if (userInfo) {

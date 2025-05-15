@@ -1,3 +1,8 @@
+/**
+ * @fileoverview ContactDetails component displays a member's contact/social links with analytics tracking.
+ * @module ContactDetails
+ */
+
 'use client';
 import { ProfileSocialLink } from './profile-social-link';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getProfileFromURL } from '@/utils/common.utils';
@@ -10,6 +15,12 @@ interface IContactDetails {
   userInfo: IUserInfo;
 }
 
+/**
+ * ContactDetails displays a member's contact/social links with analytics tracking.
+ *
+ * @param {IContactDetails} props - Component props
+ * @returns {JSX.Element}
+ */
 const ContactDetails = (props: IContactDetails) => {
   const member = props?.member;
 
@@ -23,6 +34,11 @@ const ContactDetails = (props: IContactDetails) => {
 
   const memberAnalytics = useMemberAnalytics();
 
+  /**
+   * Callback for social link click, fires analytics event.
+   * @param {string} type - Social type
+   * @param {string} url - Social URL
+   */
   const callback = (type: string, url: string) => {
     memberAnalytics.onSocialProfileLinkClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), type, url);
   };
@@ -33,6 +49,7 @@ const ContactDetails = (props: IContactDetails) => {
         <h2 className="contact-details__title">Contact Details</h2>
         <div className="contact-details__container">
           <div className="contact-details__container__social">
+            {/* Render each social link if present */}
             {linkedinHandle && (
               <ProfileSocialLink
                 callback={callback}

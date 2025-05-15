@@ -45,21 +45,33 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
    */
   const [clippedContent, setClippedContent] = useState(getContent(content));
 
+  /**
+   * Handles the 'Show More' button click, expands the bio content and fires analytics.
+   */
   const onShowMoreClickHandler = () => {
     analytics.onMemberDetailsBioReadMoreClicked(getAnalyticsMemberInfo(member));
     setClippedContent(content);
   };
 
+  /**
+   * Handles the 'Show Less' button click, collapses the bio content and fires analytics.
+   */
   const onShowLessClickHandler = () => {
     analytics.onMemberDetailsBioReadLessClicked(getAnalyticsMemberInfo(member));
     setClippedContent(getContent(content));
   };
 
+  /**
+   * Handles the 'Edit' button click, enables the editor and fires analytics.
+   */
   const onEditClickHandler = () => {
     setEditor(true);
     analytics.onMemberDetailsBioEditClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
   };
 
+  /**
+   * Handles the 'Cancel' button click, resets the editor state and fires analytics.
+   */
   const onCancelClickHandler = () => {
     analytics.onMemberDetailsBioEditCancelClicked(getAnalyticsMemberInfo(member), getAnalyticsUserInfo(userInfo));
     setContent(member?.bio ?? '');
@@ -67,6 +79,9 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
     setEditor(false);
   };
 
+  /**
+   * Handles the 'Save' button click, updates the member bio, fires analytics, and shows toast notifications.
+   */
   const onSaveClickHandler = async () => {
     // if(content === ''){
     //   toast.error('Bio cannot be empty');
@@ -128,12 +143,14 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
       <div className="bioCn">
         <div className="bioCn__header">
           <h2 className="bioCn__ttl">Bio</h2>
+          {/* Show edit button if not editing and user is admin or owner */}
           {!showEditor && (isAdmin || isOwner) && (
             <button className="bioCn__ttl__header__edit" onClick={onEditClickHandler}>
               Edit
               {/* <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} /> */}
             </button>
           )}
+          {/* Show cancel/save buttons if editing */}
           {showEditor && (
             <div className="bioCn__header__action">
               <button className="bioCn__header__action__cancel" onClick={onCancelClickHandler}>
@@ -145,9 +162,11 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
             </div>
           )}
         </div>
+        {/* Show bio content or editor */}
         {!showEditor && (
           <div>
             <div className="bioCn__content" dangerouslySetInnerHTML={{ __html: clippedContent }} />
+            {/* Show 'show more' if content is clipped */}
             {content?.length > clippedContent?.length && (
               <button className="bioCn__content__show-more" onClick={onShowMoreClickHandler}>
                 show more{' '}
@@ -156,6 +175,7 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
                     </span>
               </button>
             )}
+            {/* Show 'show less' if content is fully shown and longer than contentLength */}
             {content?.length > contentLength && content === clippedContent && (
               <button className="bioCn__content__show-less" onClick={onShowLessClickHandler}>
                 show less
@@ -166,6 +186,7 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
             )}
           </div>
         )}
+        {/* Show text editor if editing */}
         {showEditor && (
           <div className="bioCn__content">
             <TextEditor text={content} setContent={setContent} />

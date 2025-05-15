@@ -3,20 +3,36 @@ import { IMember, IMemberRepository } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
+/**
+ * Props for MemberDetailsRepoCard component.
+ */
 interface IMemberRepoCard {
   repo: IMemberRepository;
   userInfo: IUserInfo;
   memebr: IMember;
 }
 
+/**
+ * MemberDetailsRepoCard displays a repository card for a member, including project name, description, and a link.
+ * Handles analytics on click.
+ *
+ * @component
+ * @param {IMemberRepoCard} props - Component props
+ * @returns {JSX.Element}
+ */
 const MemberDetailsRepoCard = (props: IMemberRepoCard) => {
+  // Destructure props
   const repo = props?.repo;
   const userInfo = props?.userInfo;
   const member = props.memebr;
   const profile = '/icons/repository.svg';
 
+  // Analytics hook
   const analytics = useMemberAnalytics();
 
+  /**
+   * Handles click on the repository card for analytics.
+   */
   const onRepoClickHandler = () => {
     analytics.onGithubProjectItemClicked(
       {
@@ -31,6 +47,7 @@ const MemberDetailsRepoCard = (props: IMemberRepoCard) => {
 
   return (
     <>
+      {/* Main repository card link */}
       <a href={repo?.url} target="_blank" className="member-repo" onClick={onRepoClickHandler}>
         <div className="member-repo__profile-container">
           <div className="member-repo__profile-container__profile">
@@ -48,6 +65,7 @@ const MemberDetailsRepoCard = (props: IMemberRepoCard) => {
         </button>
       </a>
 
+      {/* Component styles */}
       <style jsx>
         {`
           .member-repo {

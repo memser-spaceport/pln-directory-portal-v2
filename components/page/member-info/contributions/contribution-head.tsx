@@ -1,6 +1,9 @@
 import CustomToggle from '@/components/form/custom-toggle';
 import Toggle from '@/components/form/toggle';
 
+/**
+ * Props for the ContributionHead component.
+ */
 interface ContributionHeadProps {
   expandedId: number;
   contributionIndex: number;
@@ -12,6 +15,14 @@ interface ContributionHeadProps {
   onProjectStatusChanged: (checked: boolean) => void;
 }
 
+/**
+ * ContributionHead displays the header for a single contribution, including project name,
+ * expansion/collapse controls, delete button, and a toggle for current project status.
+ *
+ * @component
+ * @param {ContributionHeadProps} props - The props for the component.
+ * @returns {JSX.Element}
+ */
 function ContributionHead(props: ContributionHeadProps) {
   const expandedId = props.expandedId;
   const contributionIndex = props.contributionIndex;

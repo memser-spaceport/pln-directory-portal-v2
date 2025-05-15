@@ -3,10 +3,22 @@ import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
+/**
+ * Props for the AdminEmailUpdate component.
+ * @typedef {Object} EmailUpdateProps
+ * @property {string} email - The current email address to display and update.
+ */
+
 type EmailUpdateProps = {
   email: string;
 };
 
+/**
+ * AdminEmailUpdate allows an admin to update a user's email address with validation and analytics tracking.
+ *
+ * @param {EmailUpdateProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered admin email update form.
+ */
 const AdminEmailUpdate: React.FC<EmailUpdateProps> = ({ email }) => {
   const newEmailRef = useRef<HTMLInputElement>(null);
   const confirmEmailRef = useRef<HTMLInputElement>(null);
@@ -93,6 +105,7 @@ const AdminEmailUpdate: React.FC<EmailUpdateProps> = ({ email }) => {
               {error && <p className="eu__emails__error">{error}</p>}
             </div>
             <input
+              data-testid="hidden-email-input"
               name="email"
               hidden
               type="email"

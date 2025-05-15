@@ -52,12 +52,12 @@ function LinkAuthAccounts() {
 
   return (
     <>
-      <div className="lc">
+      <div className="lc" data-testid="link-accounts-container">
         <h2 className="lc__title">Link your account for login</h2>
         <div className="lc__list">
           {activeLinkedAccounts.map((account: any) => (
-            <div key={account.name} className="lc__list__item">
-              <img width="20" height="20" className="lc__list__item__img" src={account.img} />
+            <div key={account.name} className="lc__list__item" data-testid={`account-item-${account.name}`}>
+              <img width="20" height="20" className="lc__list__item__img" src={account.img} alt={`${account.title} icon`} />
               <p className="lc__list__item__title">{account.title}</p>
               {!account.isLinked && (
                 <button
@@ -68,13 +68,14 @@ function LinkAuthAccounts() {
                     onLinkAccount(account.name);
                   }}
                   className="lc__list__item__btn"
+                  data-testid={`link-button-${account.name}`}
                 >
                   Link account
                 </button>
               )}
               {account.isLinked && (
-                <p className="lc__list__item__text">
-                  <img src="/icons/tick_green.svg" />
+                <p className="lc__list__item__text" data-testid={`linked-status-${account.name}`}>
+                  <img src="/icons/tick_green.svg" alt="Linked checkmark" />
                   <span>Linked</span>
                 </p>
               )}

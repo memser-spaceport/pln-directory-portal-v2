@@ -4,6 +4,15 @@ import MemberProjectExperienceCard from './member-project-experience-card';
 interface IAllProjectExperience {
   contributions: any;
 }
+
+/**
+ * MemberProjectContributions displays a searchable, filterable list of project contributions.
+ * Handles search, modal close event, and empty state.
+ *
+ * @component
+ * @param {IAllProjectExperience} props - The props for the component
+ * @returns {JSX.Element}
+ */
 const MemberProjectContributions = (props: IAllProjectExperience) => {
   const contributions = props?.contributions ?? [];
   const [allContributions, setAllContributions] = useState(contributions);

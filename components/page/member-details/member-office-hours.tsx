@@ -1,3 +1,8 @@
+/**
+ * @fileoverview MemberOfficeHours component displays and manages office hours for a member, including scheduling, editing, and login prompts.
+ * @module MemberOfficeHours
+ */
+
 'use client';
 
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
@@ -20,21 +25,34 @@ const MemberOfficeHours = (props: any) => {
   const memberAnalytics = useMemberAnalytics();
   const router = useRouter();
 
+  /**
+   * Handles login button click, triggers analytics and navigates to login section.
+   */
   const onLoginClickHandler = () => {
     authAnalytics.onLoginBtnClicked();
     router.push(`${window.location.pathname}${window.location.search}#login`);
   };
 
+  /**
+   * Handles add office hours button click, triggers analytics and navigates to profile settings.
+   */
   const onAddOH = () => {
     memberAnalytics.onAddOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
     router.push('/settings/profile');
   }
 
+  /**
+   * Handles edit office hours button click, triggers analytics and navigates to profile settings.
+   */
   const onEditOH = () => {
     memberAnalytics.onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
     router.push('/settings/profile');
   }
 
+  /**
+   * Handles scheduling a meeting, including API calls, analytics, and UI feedback.
+   * @async
+   */
   const onScheduleMeeting = async () => {
     const isLoggedInUser = userInfo?.uid === member?.id;
     try {
@@ -78,17 +96,22 @@ const MemberOfficeHours = (props: any) => {
     memberAnalytics.onOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
   };
 
+  /**
+   * Handles Learn More button click, triggers analytics.
+   */
   const onLearnMoreBtnClick = () => {
     memberAnalytics.onLearnMoreClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
   };
 
   return (
     <>
+      {/* Main office hours container */}
       <div className="office-hours">
         <div className="office-hours__left">
           <div className="office-hours__left__calendar">
             <img loading="lazy" alt="calendar" className="office-hours__left__calendar__icon" src="/icons/calendar.svg" />
           </div>
+          {/* Show message or title based on login status */}
           {!isLoggedIn ? (
             <span suppressHydrationWarning className="office-hours__left__msg">
               {OFFICE_HOURS_MSG} {member?.name}
@@ -104,6 +127,7 @@ const MemberOfficeHours = (props: any) => {
               <img loading="lazy" alt="learn more" src="/icons/learn-more.svg" height={16} width={16} />
             </button>
           </a>
+          {/* Show meeting/edit/add buttons based on login and office hours status */}
           {isLoggedIn && officeHours && (
             <div>
               {!isLoggedInUser && <button className="office-hours__right__meeting" onClick={onScheduleMeeting}>Schedule Meeting</button>}

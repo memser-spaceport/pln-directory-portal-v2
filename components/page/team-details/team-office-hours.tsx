@@ -16,9 +16,13 @@ const TeamOfficeHours = (props: any) => {
   const userInfo = props?.userInfo;
   const isLoggedInMemberPartOfTeam = props?.isLoggedInMemberPartOfTeam ?? false;
 
+  // Analytics hooks
   const teamAnalytics = useTeamAnalytics();
   const router = useRouter();
 
+  /**
+   * Handles login button click. Triggers analytics and navigates to login if not logged in.
+   */
   const onLoginClickHandler = () => {
     const userInfo = Cookies.get('userInfo');
     if (userInfo) {
@@ -30,6 +34,9 @@ const TeamOfficeHours = (props: any) => {
     }
   };
 
+  /**
+   * Handles scheduling a meeting. Triggers analytics if not a team member.
+   */
   const onScheduleMeeting = (event: any) => {
     if(!isLoggedInMemberPartOfTeam){
       teamAnalytics.onScheduleMeetingClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
@@ -42,13 +49,16 @@ const TeamOfficeHours = (props: any) => {
   //   teamAnalytics.onLearnMoreClicked(getAnalyticsUserInfo(userInfo), getAnalyticsTeamInfo(team));
   // };
 
+  // --- Render Section ---
   return (
     <>
+      {/* Main office hours container */}
       <div className="office-hours">
         <div className="office-hours__left">
           <div className="office-hours__left__calendar">
             <img loading="lazy" alt="calendar" className="office-hours__left__calendar__icon" src="/icons/calendar.svg" />
           </div>
+          {/* Show message or title based on login state */}
           {!isLoggedIn ? (
             <p className="office-hours__left__msg">
               {TEAM_OFFICE_HOURS_MSG} {team?.name}
@@ -76,12 +86,14 @@ const TeamOfficeHours = (props: any) => {
             />
           )}
 
+          {/* Not Available button if logged in but no office hours */}
           {isLoggedIn && !officeHours && (
             <button disabled className="office-hours__right__meeting cursor-default disabled">
               Not Available
             </button>
           )}
 
+          {/* Login to Schedule button if not logged in */}
           {!isLoggedIn && (
             <button onClick={onLoginClickHandler} className="office-hours__right__meeting">
               Login to Schedule
@@ -89,6 +101,7 @@ const TeamOfficeHours = (props: any) => {
           )}
         </div>
       </div>
+      {/* Inline styles for the component */}
       <style jsx>{`
         .office-hours {
           padding: 16px;

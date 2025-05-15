@@ -14,11 +14,24 @@ import Technologies from './technologies';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
+/**
+ * Props for the TeamDetails component.
+ * @interface ITeamDetails
+ * @property {ITeam} team - The team object containing all team details.
+ * @property {IUserInfo | undefined} userInfo - The current user info, if available.
+ */
 interface ITeamDetails {
   team: ITeam;
   userInfo: IUserInfo | undefined;
 }
 
+/**
+ * TeamDetails displays the main details, tags, and actions for a team.
+ *
+ * @component
+ * @param {ITeamDetails} props - The props for the component.
+ * @returns {JSX.Element} The rendered team details UI.
+ */
 const TeamDetails = (props: ITeamDetails) => {
   const params = useParams();
   const team = props?.team;
@@ -40,6 +53,10 @@ const TeamDetails = (props: ITeamDetails) => {
     setIsTechnologyPopup(!isTechnologyPopup);
   };
 
+  /**
+   * Checks if the current user has edit access to the team.
+   * @returns {boolean} True if user can edit the team, false otherwise.
+   */
   function getHasTeamEditAccess() {
     try {
       if (userInfo?.roles?.includes(ADMIN_ROLE) || userInfo?.leadingTeams?.includes(team?.id)) {
@@ -51,6 +68,10 @@ const TeamDetails = (props: ITeamDetails) => {
     }
   }
 
+  /**
+   * Handles the edit team button click event.
+   * Triggers analytics and navigates to the team settings page.
+   */
   const onEditTeamClickHandler = () => {
     if (userInfo?.roles?.includes(ADMIN_ROLE)) {
       analytics.onEditTeamByAdmin(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo));
@@ -71,8 +92,10 @@ const TeamDetails = (props: ITeamDetails) => {
         {/* Name and about section */}
         <div className="team-details__profile">
           <div className="team-details__profile__logo-tags-container">
+            {/* Team logo */}
             <img loading="lazy" alt="team-profile" className="team-details__profile__logo-tags-container__team-logo" src={logo} />
             <div className="team-details__profile__logo-tags-container__name-tagcontainer">
+              {/* Team name with tooltip */}
               <Tooltip asChild trigger={<h1 className="team-details__profile__logo-tags-container__name-tagcontainer__team-name">{teamName}</h1>} content={teamName} />
               <div className="team-details__profile__logo-tags-container__name-tagcontainer__tags">
                 {/* Tags Mobile */}
@@ -159,6 +182,7 @@ const TeamDetails = (props: ITeamDetails) => {
             </div>
           </div>
 
+          {/* Edit button, only if user has access */}
           {hasTeamEditAccess && (
             <button className="team-details__profile__edit" onClick={onEditTeamClickHandler}>
               <Image src="/icons/edit.svg" alt="Edit" height={16} width={16} />

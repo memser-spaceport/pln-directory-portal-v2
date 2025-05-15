@@ -18,6 +18,11 @@ interface IMemberDetailHeader {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
 }
+
+/**
+ * MemberDetailHeader displays the member's profile header, including avatar, name, teams, location, role, and skills.
+ * It also provides edit functionality for owners and admins.
+ */
 const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const member = props?.member;
   const name = member?.name ?? '';
@@ -30,12 +35,14 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const userInfo = props?.userInfo;
   const router = useRouter();
 
+  // Section: Teams and roles
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams
     .filter((team) => team.id !== mainTeam?.id)
     .map((team) => team.name)
     .sort();
 
+  // Section: Permissions and edit URL
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
   const editUrl = isAdmin && !isOwner ? `${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}` : `${PAGE_ROUTES.SETTINGS}/profile`;
@@ -43,6 +50,9 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
 
+  /**
+   * Handles the edit profile click event, triggers analytics for owner or admin.
+   */
   const onEditProfileClick = () => {
     if (isOwner) {
       analytics.onMemberEditBySelf(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
@@ -52,6 +62,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   };
 
   useEffect(() => {
+    // Hide loader on mount or router change
     triggerLoader(false);
   }, [router]);
 

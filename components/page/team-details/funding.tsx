@@ -5,9 +5,22 @@ import { Tag } from '@/components/ui/tag';
 import { ITag, ITeam } from '@/types/teams.types';
 import { Fragment } from 'react';
 
+/**
+ * Props for the Funding component.
+ * @interface IFunding
+ * @property {ITeam} team - The team object containing funding details.
+ */
 interface IFunding {
   team: ITeam;
 }
+
+/**
+ * Renders the funding stage and membership sources for a team.
+ * Displays a list of accelerator programs or a fallback if none are available.
+ *
+ * @param {IFunding} props - The props for the component.
+ * @returns {JSX.Element} The rendered funding section.
+ */
 const Funding = (props: IFunding) => {
   const team = props?.team;
   const fundingStage = team?.fundingStage?.title;

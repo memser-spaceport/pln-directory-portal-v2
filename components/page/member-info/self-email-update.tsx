@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { getUserInfo } from '@/utils/third-party.helper';
+
 function SelfEmailUpdate(props: any) {
   const email = props.email;
   const uid = props.uid;
@@ -34,6 +35,7 @@ function SelfEmailUpdate(props: any) {
     setCurrentEmail(email);
   }, [email]);
 
+  // Effect to handle the custom event for updating the user email
   useEffect(() => {
     async function updateUserEmail(e: any) {
       try {
@@ -94,12 +96,12 @@ function SelfEmailUpdate(props: any) {
       <div className="eu">
         <div className="eu__head">
           <label className="eu__head__label">Email*</label>
-          <button className="eu__head__btn" onClick={onEmailEdit} type="button">
+          <button className="eu__head__btn" onClick={onEmailEdit} type="button" data-testid="edit-email-btn">
             Edit Email
           </button>
         </div>
-        <p className="eu__input">{email}</p>
-        <input name="email" type="email" hidden value={currentEmail} readOnly/>
+        <p className="eu__input" data-testid="email-display">{email}</p>
+        <input name="email" type="email" hidden value={currentEmail} readOnly data-testid="hidden-email-input"/>
       </div>
       <style jsx>
         {`

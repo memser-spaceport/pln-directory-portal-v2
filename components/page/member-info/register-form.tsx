@@ -34,6 +34,12 @@ interface InitialValues {
   socialInfo: any;
 }
 
+/**
+ * RegisterForm is a multi-step form for member registration, handling validation, analytics, and submission.
+ *
+ * @param {RegisterFormProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered registration form.
+ */
 const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({
     steps: ['basic', 'skills', 'contributions', 'social', 'success'],

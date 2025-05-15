@@ -8,6 +8,10 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Image from 'next/image';
 import Toggle from '../ui/toogle';
 
+/**
+ * Interface for TagContainer component props
+ * @interface ITagContainer
+ */
 interface ITagContainer {
   onTagClickHandler: (key: string, value: string, selected: boolean, title?: string) => void;
   items: IFilterSelectedItem[];
@@ -23,6 +27,19 @@ interface ITagContainer {
   onIsActiveToggle?: (isActive: any) => void;
 }
 
+/**
+ * TagContainer component displays a collection of selectable tags with show more/less functionality
+ * 
+ * Features:
+ * - Displays tags with selected/unselected state
+ * - Shows a limited number initially with option to expand
+ * - Optional toggle feature for additional filtering
+ * - Access control for private filters when user is not logged in
+ * - Tooltip support for additional information
+ * 
+ * @param props - Component props as defined in ITagContainer
+ * @returns React component
+ */
 const TagContainer = (props: ITagContainer) => {
   const onTagClickHandler = props?.onTagClickHandler;
   const items = props?.items;
@@ -50,6 +67,10 @@ const TagContainer = (props: ITagContainer) => {
     setIsShowMore(!isShowMore);
   };
 
+  /**
+   * Hides the access container when mouse leaves
+   * @param id - DOM element ID
+   */
   const onMouseLeave = (id: string) => {
     const accessElement = document?.getElementById(id);
     if (accessElement) {
@@ -57,6 +78,10 @@ const TagContainer = (props: ITagContainer) => {
     }
   };
 
+  /**
+   * Shows the access container when mouse enters (for private filters when user is not logged in)
+   * @param id - DOM element ID
+   */
   const onMouseEnter = (id: string) => {
     const accessElement = document?.getElementById(id);
     if (accessElement && !isUserLoggedIn && PRIVATE_FILTERS.includes(keyValue)) {
@@ -64,6 +89,9 @@ const TagContainer = (props: ITagContainer) => {
     }
   };
 
+  /**
+   * Handles click on the login button in the access container
+   */
   const onLoginClickHandler = () => {
     // analytics.onLogInClicked(props?.page, "filter section")
   };

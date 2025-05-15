@@ -8,6 +8,15 @@ import { IFormatedTeamProject, ITeam } from '@/types/teams.types';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
+/**
+ * Props for the TeamProjectCard component.
+ * @interface ITeamProjectCard
+ * @property {IFormatedTeamProject} project - The project data to display.
+ * @property {boolean} hasProjectsEditAccess - Whether the user has edit access to the project.
+ * @property {string} url - The URL to the project details page.
+ * @property {Function} onCardClicked - Callback when the card is clicked.
+ * @property {Function} onEditClicked - Callback when the edit button is clicked.
+ */
 interface ITeamProjectCard {
   project: IFormatedTeamProject;
   hasProjectsEditAccess: boolean;
@@ -15,6 +24,15 @@ interface ITeamProjectCard {
   onCardClicked: any;
   onEditClicked: any;
 }
+
+/**
+ * TeamProjectCard displays a project card for a team, including logo, name, tagline, and edit/go-to actions.
+ * Handles edit access, fundraising, and maintainer badges, and disables interaction for deleted projects.
+ *
+ * @component
+ * @param {ITeamProjectCard} props - The props for the component.
+ * @returns {JSX.Element} The rendered project card UI.
+ */
 const TeamProjectCard = (props: ITeamProjectCard) => {
   const project = props?.project;
   const logo = getLogo();
@@ -25,6 +43,11 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
   const callback = props?.onCardClicked;
   const onEditClicked = props?.onEditClicked;
 
+  /**
+   * Returns the appropriate logo URL for the project.
+   * @private
+   * @returns {string} Logo URL
+   */
   function getLogo() {
     if (project?.isDeleted) {
       return '/icons/deleted-project-logo.svg';
@@ -38,12 +61,16 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
 
   return (
     <>
+      {/* Main project card container */}
       <a target='_blank' onClick={() => callback(project)} href={url} className={`${project?.isDeleted ? 'deleted' : ''} team-project-card`} title={`${project?.isDeleted ? 'Project does not exist' : ''}`}>
         <div className="team-project-card__profilec">
+          {/* Project logo */}
           <img loading="lazy" alt="team-logo" className="team-project-card__profilec__profile-logo" src={logo} height={40} width={40} />
           <div className="team-project-card__profilec__name-and-tagline">
             <div className="team-project-card__profilec__name-and-tagline__name-and-raising-funds">
+              {/* Project name with tooltip */}
               <Tooltip asChild trigger={<h2 className="team-project-card__profilec__name-and-tagline__name">{name}</h2>} content={name} />
+              {/* Maintainer badge if applicable */}
               {project?.isMaintainingProject && (
                 <Tooltip
                   side="top"
@@ -56,6 +83,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
                   content={'Maintainer'}
                 />
               )}
+              {/* Raising Funds badge if applicable */}
               {lookingForFunding && (
                 <div
                   onClick={(e) => {
@@ -77,11 +105,13 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
                 </div>
               )}
             </div>
+            {/* Project tagline with tooltip */}
             <Tooltip asChild trigger={<p className="team-project-card__profilec__name-and-tagline__tagline">{tagLine}</p>} content={tagLine} />
           </div>
         </div>
         <div className="team-project-card__goto">
           <div>
+            {/* Edit button if user has access and project is not deleted */}
             {project?.hasEditAccess && !project?.isDeleted && (
               <div className="team-project-card__goto__options">
                 <button
@@ -98,6 +128,7 @@ const TeamProjectCard = (props: ITeamProjectCard) => {
             )}
           </div>
 
+          {/* Go-to button section */}
           <div className="team-project-card__goto__btn-section">
             <button className="team-project-card__goto__btn">
               <img loading="lazy" alt="go-to" src="/icons/right-arrow-gray.svg" width={16} height={16} />

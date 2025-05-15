@@ -19,6 +19,13 @@ interface MemberContributionInfoProps {
   errors: any;
 }
 
+/**
+ * MemberContributionInfo component displays and manages a list of project contributions for a member.
+ * Allows adding, editing, and removing contributions, and handles validation and analytics.
+ *
+ * @param {MemberContributionInfoProps} props - The props for the component.
+ * @returns {JSX.Element}
+ */
 function MemberContributionInfo({ initialValues, projectsOptions = [], errors = {} }: MemberContributionInfoProps) {
   const [contributionInfos, setContributionInfos] = useState(initialValues ?? []);
   const currentProjectsCount = contributionInfos?.filter((v: any) => v.currentProject === true).length;
@@ -37,6 +44,10 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
     endDate: new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth() + 1, 0)).toISOString(),
   };
 
+  /**
+   * Toggle the expansion of a contribution item.
+   * @param index Index of the contribution to expand/collapse.
+   */
   const onToggleExpansion = (index: number) => {
     setExpandedId((v) => {
       if (v === index) {
@@ -47,6 +58,9 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
     });
   };
 
+  /**
+   * Add a new contribution entry.
+   */
   const onAddContribution = () => {
     analytics.recordMemberProjectContributionAdd('', getAnalyticsUserInfo(userInfo));
     const newExp = [...contributionInfos];
@@ -55,6 +69,10 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
     setContributionInfos([...newExp]);
   };
 
+  /**
+   * Delete a contribution entry by index.
+   * @param index Index of the contribution to delete.
+   */
   const onDeleteContribution = (index: number) => {
     if (index === expandedId) {
       setExpandedId(-1);
@@ -68,12 +86,20 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
     analytics.recordMemberProjectContributionDelete('', getAnalyticsUserInfo(userInfo));
   };
 
+  /**
+   * Get available project options that are not already selected.
+   * @returns Remaining project options.
+   */
   const getAvailableContributionOptions = () => {
     const selectedTeamUids = [...contributionInfos].filter((v) => v.projectUid !== '').map((v) => v.projectUid);
     const remainingItems = [...projectsOptions].filter((v) => !selectedTeamUids.includes(v.projectUid));
     return [...remainingItems];
   };
 
+  /**
+   * Clear the selected project for a contribution.
+   * @param index Index of the contribution to clear.
+   */
   const onClearProjectSearch = (index: number) => {
     setContributionInfos((old: any) => {
       old[index] = { ...old[index], projectUid: '', projectName: '', projectLogo: '', currentProject: false };
@@ -81,6 +107,11 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
     });
   };
 
+  /**
+   * Update the selected project for a contribution.
+   * @param index Index of the contribution.
+   * @param item Selected project item.
+   */
   const onProjectSelectionChanged = (index: number, item: any) => {
     setContributionInfos((old: any) => {
       const newV = structuredClone(old);
@@ -91,11 +122,18 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
     });
   };
 
+  /**
+   * Update a detail field for a contribution.
+   * @param index Index of the contribution.
+   * @param value New value for the field.
+   * @param key Field key to update.
+   */
   const onProjectDetailsChanged = (index: number, value: string | boolean, key: string) => {
     if (contributionInfos[index]) {
       setContributionInfos((old: any) => {
         const newV = structuredClone(old);
         newV[index][key] = value;
+        // If toggling currentProject, update endDate accordingly
         if(key === 'currentProject' && value === false) {
           newV[index]['endDate'] =  new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth() + 1, 0)).toISOString();
         } else if (key === 'currentProject' && value === true) {
@@ -106,6 +144,7 @@ function MemberContributionInfo({ initialValues, projectsOptions = [], errors = 
     }
   };
 
+  // Effect to reset contributions when initialValues change or when reset event is triggered
   useEffect(() => {
     setContributionInfos(structuredClone(initialValues) ?? []);
     function resetHandler() {

@@ -41,16 +41,31 @@ interface ITeamMembers {
   userInfo: IAnalyticsUserInfo;
 }
 
+/**
+ * TeamIrlContributions component displays a team's IRL (in real life) event contributions grouped by role.
+ * It provides a summary view and a modal for detailed event lists, with analytics tracking for user interactions.
+ *
+ * @component
+ * @param {ITeamMembers} props - The props for the component, including team, members, and userInfo.
+ * @returns {JSX.Element}
+ */
 const TeamIrlContributions = (props: ITeamMembers) => {
+  // Extract user info and analytics hooks
   const userInfo = props?.userInfo;
   const modalRef = useRef<HTMLDialogElement>(null);
   const [selectedRole, setSelectedRole] = useState('');
   const analytics = useTeamAnalytics();
 
+  // Get event guests from team and sort by date
   const team = props?.team?.eventGuests;
   const sortedEvents = sortEventsByDate(team);
 
+  /**
+   * Transforms the event guest data into a grouped format by role.
+   * Currently only groups by 'Host'.
+   */
   const transformData = (event: IEventGuest[]): GroupedEvents => {
+    // Group all events under 'Host' for now
     return event.reduce(
       (acc: GroupedEvents, item) => {
         if (item.isHost) acc.Host.push(item.event);
@@ -62,14 +77,21 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     );
   };
 
+  // Grouped event data for rendering
   const groupedData: GroupedEvents = team ? transformData(sortedEvents) : { Host: [], Sponsor: [] };
 
+  /**
+   * Handles closing the modal dialog.
+   */
   const onClose = () => {
     if (modalRef.current) {
       modalRef.current.close();
     }
   };
 
+  /**
+   * Handles clicking the additional count (+N) to open the modal for a role.
+   */
   const onClickHandler = (role: string) => {
     if (modalRef.current) {
       setSelectedRole(role);
@@ -78,10 +100,14 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     analytics.onClickSeeMoreIrlContribution(userInfo);
   };
 
+  /**
+   * Handles clicking an event, tracks analytics, and opens the event link in a new tab.
+   */
   const handleEventClick = (details: any, role: any) => {
     analytics.onClickTeamIrlContribution(userInfo);
     const isActive = checkTimeZone(details);
 
+    // Determine if event is upcoming or past
     const type = isActive ? 'upcoming' : 'past';
     const location = details?.location?.location ?? '';
     const locationName = location?.split(',')[0].trim();
@@ -96,6 +122,9 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     window.open(fullUrl, '_blank');
   };
 
+  /**
+   * Checks if the event is upcoming or past based on timezone-aware end date.
+   */
   const checkTimeZone = (details: any) => {
     const timezone = details?.location?.timezone;
     const endDateInTargetTimezone = toZonedTime(details?.endDate, timezone);
@@ -104,16 +133,22 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     return endDateInTargetTimezone.getTime() > currentDateInTargetTimezone.getTime();
   };
 
+  /**
+   * Formats a date string to 'MMM yyyy' in the given timezone.
+   */
   const getFormattedDateString = (date: string, timeZone: string) => {
     const dateInTargetTimezone = toZonedTime(date, timeZone);
     return format(dateInTargetTimezone, 'MMM yyyy', { timeZone });
   };
 
+  // --- Render Section ---
   return (
     <>
+      {/* Main container for IRL contributions */}
       <div className="root">
         <div className="root__header">Contributions ({team?.length})</div>
         <div className="root__irlCrbts">
+          {/* Render grouped events by role */}
           {Object.entries(groupedData).map(([role, events]) => {
             const visibleEvents = events?.slice(0, 5);
             const additionalCount = events?.length - visibleEvents?.length;
@@ -121,10 +156,12 @@ const TeamIrlContributions = (props: ITeamMembers) => {
             return (
               <div key={role} className="root__irlCrbts__row root__irlCrbts__row__border__btm">
                 <div className="root__irlCrbts__col root__irlCrbts__row__border__right">
+                  {/* Role icon and label */}
                   <img src={`/icons/${role.toLowerCase()}_icon.svg`} alt={role.toLowerCase()} />
                   {role}
                 </div>
                 <div className="root__irlCrbts__col__event">
+                  {/* Render up to 5 events for this role */}
                   {visibleEvents.map((details: any, index: React.Key | null | undefined) => {
                     const isActive = checkTimeZone(details);
                     return (
@@ -148,6 +185,7 @@ const TeamIrlContributions = (props: ITeamMembers) => {
                       />
                     );
                   })}
+                  {/* Show additional count if more than 5 events */}
                   {additionalCount > 0 && (
                     <div className="root__irlCrbts__col__event__cnts additional-count" onClick={() => onClickHandler(role)}>
                       +{additionalCount}
@@ -160,6 +198,7 @@ const TeamIrlContributions = (props: ITeamMembers) => {
         </div>
       </div>
 
+      {/* Modal for showing all events for a selected role */}
       <Modal modalRef={modalRef} onClose={onClose}>
         <div className="root__irl__addRes__popup">
           {Object.entries(groupedData)
@@ -170,6 +209,7 @@ const TeamIrlContributions = (props: ITeamMembers) => {
                   <div className="root__irl__modalHeader__title">Contributions - {role} ({events.length})</div>
                 </div>
                 <div className="root__irl__popupCntr">
+                  {/* List all events for the selected role in the modal */}
                   {events.map((resource: { link: any; name: any }, index: number) => (
                     <div
                       key={index}

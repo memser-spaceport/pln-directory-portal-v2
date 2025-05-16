@@ -46,12 +46,12 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
     const memberList = await getMemberListForQuery(memberFilterQuery, 1, INITIAL_ITEMS_PER_PAGE, authToken);
 
     if (memberList?.isError) {
-      return { isError: true, error: memberList?.error};
-    } 
+      return { isError: true, error: memberList?.error };
+    }
 
     members = memberList?.items;
     totalMembers = memberList?.total;
-    
+
     return { isError, members, totalMembers, isLoggedIn };
   } catch (error) {
     console.error(error);

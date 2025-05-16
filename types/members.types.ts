@@ -15,7 +15,7 @@ export type IMemberListOptions = IListOptions & {
   isHost?: boolean;
   isSpeaker?: boolean;
   isHostAndSpeaker?: boolean;
-  isVerified?:string;
+  isVerified?: string;
 };
 
 export interface IMemberResponse {
@@ -41,7 +41,7 @@ export interface IMemberResponse {
   repositories: [];
   preferences: {};
   createdAt: string;
-  bio?:string;
+  bio?: string;
 }
 
 export interface IMember {
@@ -136,7 +136,8 @@ export interface IMembersSearchParams {
   includeUnVerified: string;
   isHost: string;
   isSpeaker: string;
-  isHostAndSpeaker: string;
+  isSponsor: string;
+  isHostAndSpeakerAndSponsor: string;
 }
 
 export interface IMemberDetailParams {

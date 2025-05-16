@@ -67,7 +67,6 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
             <img width={24} height={24} className="autocomplete__img" src={selectedOption?.logo || iconUrl} alt="logo" />
           </div>
           <input placeholder={placeholder} ref={inputRef} value={searchText} className="autocomplete__input" onChange={onTextInputChange} onBlur={onInputBlur} type="text" tabIndex={-1} />
-
           {isClear && (
             <button className="autocomplete__img__wrpr__clrbtn" onClick={onClear}>
               <img src="/icons/close-gray.svg" />
@@ -117,6 +116,7 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
 
           .autocomplete__box {
             display: flex;
+            align-items: center;
             gap: 8px;
             cursor: pointer;
             padding: 8px 12px;
@@ -134,9 +134,9 @@ export const Autocomplete = (props: Readonly<AutocompleteProps>) => {
           .autocomplete__img__wrpr__clrbtn {
             background: none;
             border: none;
-            height: 10px;
-            margin-top: 2px;
-            width: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
           .autocomplete__img {

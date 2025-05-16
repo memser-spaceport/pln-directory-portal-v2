@@ -356,14 +356,13 @@ export default function ContributorsSection({
         }
 
         .contribute-modal-container {
-          padding: 20px;
           display: flex;
           flex-direction: column;
           width: 85vw;
           max-height: 85dvh;
           min-height: 30vh;
           overflow-y: auto;
-          padding: 15px;
+          padding: 0;
           gap: 10px;
         }
 
@@ -373,6 +372,22 @@ export default function ContributorsSection({
           line-height: 32px;
           display: flex;
           gap: 8px;
+          padding: 15px 15px 8px;
+          position: sticky;
+          top: 0;
+          background: #fff;
+          z-index: 0;
+        }
+
+        .contribute-modal-video-container,
+        .contribute-modal-content,
+        .contribute-modal-content-description,
+        .contribute-modal-content-button {
+          padding-inline: 15px;
+        }
+
+        .contribute-modal-content-button {
+          padding-bottom: 15px;
         }
 
         .desktop-view {
@@ -406,8 +421,22 @@ export default function ContributorsSection({
 
           .contribute-modal-container {
             width: 537px;
-            padding: 24px;
             gap: 20px;
+          }
+
+          .contribute-modal-header {
+            padding: 24px 24px 8px;
+          }
+
+          .contribute-modal-video-container,
+          .contribute-modal-content,
+          .contribute-modal-content-description,
+          .contribute-modal-content-button {
+            padding-inline: 24px;
+          }
+
+          .contribute-modal-content-button {
+            padding-bottom: 24px;
           }
 
           .contribute-modal-content-list-item {

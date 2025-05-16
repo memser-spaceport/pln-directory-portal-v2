@@ -107,7 +107,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           </Link>
           <div className="nb__left__web-optns">
             {NAV_OPTIONS.map((option, index) => (
-              <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)}>
+              <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)} prefetch>
                 <li key={option.name} tabIndex={0} className={`nb__left__web-optns__optn ${pathName === option.url ? 'nb__left__web-optns__optn--active' : ''}`}>
                   <Image height={20} width={20} className="nb__left__web-optns__optn__img" src={pathName === option.url ? option.selectedLogo : option.unSelectedLogo} alt={option.name} />
                   <p className="nb__left__web-optns__optn__name">{option.name}</p>

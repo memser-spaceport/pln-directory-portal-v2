@@ -55,7 +55,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
   const from = props?.from ?? '';
 
   const [formInitialValues, setFormInitialValues] = useState<any>(props?.formData);
-  const [topicsAndReason,setTopicsAndReason]= useState(props?.formData?.topicsAndReason ?? null);
+  const [topicsAndReason, setTopicsAndReason] = useState(props?.formData?.topicsAndReason ?? null);
   const isAllowedToManageGuests = canUserPerformEditAction(userInfo?.roles ?? [], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const [isVerifiedMember, setIsVerifiedMember] = useState();
   const [guestGoingEvents, setGuestGoingEvents] = useState([]);
@@ -75,11 +75,11 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     }
   }, []);
 
-  useEffect(()=>{
-    if(typeof formInitialValues?.topicsAndReason === 'object' && formInitialValues?.topicsAndReason !== null) {
-      setTopicsAndReason(formInitialValues.topicsAndReason)
+  useEffect(() => {
+    if (typeof formInitialValues?.topicsAndReason === 'object' && formInitialValues?.topicsAndReason !== null) {
+      setTopicsAndReason(formInitialValues.topicsAndReason);
     }
-  },[formInitialValues])
+  }, [formInitialValues]);
 
   function getGatherings(): IIrlEvent[] {
     // if (searchParams?.type === 'past') {
@@ -115,13 +115,13 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       //   formattedData.events = finalResult;
       // }
 
-      formattedData?.events?.map((event: any) => {    
+      formattedData?.events?.map((event: any) => {
         // Process hostSubEvents, speakerSubEvents and sponsorSubEvents
         event.hostSubEvents = processSubEvents(event?.hostSubEvents);
         event.speakerSubEvents = processSubEvents(event?.speakerSubEvents);
         event.sponsorSubEvents = processSubEvents(event?.sponsorSubEvents);
       });
-      
+
       const isError = validateForm(formattedData);
       if (isError) {
         formScroll();
@@ -136,7 +136,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
           formattedData['memberName'] = userInfo?.name;
           result = await markMyPresence(selectedLocation.uid, formattedData, eventType);
-        }else{
+        } else {
           result = await createEventGuest(selectedLocation.uid, formattedData, eventType);
         }
         if (result?.error) {
@@ -150,7 +150,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         triggerLoader(false);
         if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
           document.dispatchEvent(new Event(EVENTS.MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP));
-        }else{
+        } else {
           analytics.irlGuestDetailSaveBtnClick(getAnalyticsUserInfo(userInfo), getAnalyticsLocationInfo(selectedLocation), 'api_success', formattedData);
           if (isAllowedToManageGuests) {
             toast.success(TOAST_MESSAGES.ATTENDEE_ADDED_SUCCESSFULLY);
@@ -216,7 +216,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             events[eventIndex]['hostSubEvents'] = [];
             events[eventIndex]['speakerSubEvents'] = [];
             events[eventIndex]['sponsorSubEvents'] = [];
-            if(from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
+            if (from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) {
               events[eventIndex]['eventName'] = props?.allGatherings?.find((gathering: IIrlEvent) => gathering?.uid === formValues[key])?.name;
             }
           }
@@ -294,11 +294,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
         additionalInfo[key] = formValues[key];
       } else if (key.startsWith('topics')) {
         topics = [...topics, formValues[key]];
-      } else if (key === "telegramId") {
+      } else if (key === 'telegramId') {
         const formattedValue = removeAtSymbol(formValues[key].trim());
         result[key] = getTelegramUsername(formattedValue);
-      }
-      else {
+      } else {
         result[key] = formValues[key];
       }
     }
@@ -308,12 +307,10 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     return result;
   }
 
-  function processSubEvents (subEvents: any[]) {
+  function processSubEvents(subEvents: any[]) {
     if (!subEvents) return [];
-      return subEvents.filter(
-        (subEvent: any) => subEvent?.name?.trim() !== '' || subEvent?.link?.trim() !== ''
-      );
-  };
+    return subEvents.filter((subEvent: any) => subEvent?.name?.trim() !== '' || subEvent?.link?.trim() !== '');
+  }
 
   useEffect(() => {
     if (scrollTo && formBodyRef.current) {
@@ -330,7 +327,6 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
     onClose();
   };
 
-
   const validateForm = (formattedData: any) => {
     let isError = false;
     if (!formattedData?.memberUid) {
@@ -340,7 +336,8 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, gatheringErrors: prev.gatheringErrors.filter((error: string) => error !== IRL_ATTENDEE_FORM_ERRORS.SELECT_MEMBER) }));
     }
 
-    const canSkipGateringsValidation = formInitialValues && formInitialValues?.events?.length != 0 && (eventType === 'past' && from != EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE) && mode !== IAM_GOING_POPUP_MODES.ADMINADD;
+    const canSkipGateringsValidation =
+      formInitialValues && formInitialValues?.events?.length != 0 && eventType === 'past' && from != EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE && mode !== IAM_GOING_POPUP_MODES.ADMINADD;
     if (formattedData.events.length === 0 && !canSkipGateringsValidation) {
       isError = true;
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, participationError: [], gatheringErrors: Array.from(new Set([...prev?.gatheringErrors, IRL_ATTENDEE_FORM_ERRORS.SELECT_GATHERING])) }));
@@ -348,17 +345,17 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       let participationErrors: string[] = [];
       formattedData?.events?.map((event: any) => {
         event?.hostSubEvents?.map((hostSubEvent: IIrlParticipationEvent) => {
-            if (hostSubEvent?.link && !isLink(hostSubEvent?.link)) {
-              isError = true;
-              participationErrors.push(`${hostSubEvent?.uid}-link`);
-            }
+          if (hostSubEvent?.link && !isLink(hostSubEvent?.link)) {
+            isError = true;
+            participationErrors.push(`${hostSubEvent?.uid}-link`);
+          }
         });
 
         event?.speakerSubEvents?.map((speakerSubEvent: IIrlParticipationEvent) => {
-            if (speakerSubEvent?.link && !isLink(speakerSubEvent?.link.trim())) {
-              isError = true;
-              participationErrors.push(`${speakerSubEvent?.uid}-link`);
-            }
+          if (speakerSubEvent?.link && !isLink(speakerSubEvent?.link.trim())) {
+            isError = true;
+            participationErrors.push(`${speakerSubEvent?.uid}-link`);
+          }
         });
 
         event?.sponsorSubEvents?.map((sponsorSubEvent: IIrlParticipationEvent) => {
@@ -394,7 +391,7 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
       setErrors((prev: IIrlAttendeeFormErrors) => ({ ...prev, dateErrors: [] }));
     }
     return isError;
-  }
+  };
 
   return (
     <div className="attndformcnt">
@@ -407,7 +404,19 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
           <h2 className="atndform__bdy__ttl">{from === EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE ? 'Request to claim your attendance' : 'Enter Attendee Details'}</h2>
           <AttendeeFormErrors errors={errors} />
           <div>
-            <AttendeeDetails setGuestGoingEvents={setGuestGoingEvents} setIsVerifiedMember={setIsVerifiedMember} gatherings={gatherings} setFormInitialValues={setFormInitialValues} initialValues={formInitialValues} allGuests={allGuests} memberInfo={userInfo} mode={mode} errors={errors} location={selectedLocation} eventType = {eventType}/>
+            <AttendeeDetails
+              setGuestGoingEvents={setGuestGoingEvents}
+              setIsVerifiedMember={setIsVerifiedMember}
+              gatherings={gatherings}
+              setFormInitialValues={setFormInitialValues}
+              initialValues={formInitialValues}
+              allGuests={allGuests}
+              memberInfo={userInfo}
+              mode={mode}
+              errors={errors}
+              location={selectedLocation}
+              eventType={eventType}
+            />
           </div>
           <div>
             <Gatherings
@@ -424,39 +433,38 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
               from={from}
             />
           </div>
-          {
-            from !== EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE && (
+          {from !== EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE && (
+            <div className="atndform__details">
               <div>
-                <div>
-            <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
-          </div>
-          <div>
-            <Topics defaultTags={defaultTags} selectedItems=
-            {
-              formInitialValues?.topicsAndReason ?  (formInitialValues?.topicsAndReason?.topics ?? []) : []
-              } />
-          </div>
-          <div>
-            <TopicsDescription initialValue={ formInitialValues?.topicsAndReason ?  (formInitialValues?.topicsAndReason?.reason) : '' } />
-          </div>
-          <div className='interest-note'>
-            <div className='interest-note__icon'><Image src="/icons/info-blue.svg" alt="info" width={16} height={16} /></div>
-            <p className='interest-note__text'>Modifications to these fields (Select topics of interest and Describe your interests) will affect all events at this location, including past events</p>
-          </div>
-
-          <div id="telegram-section">
-            <TelegramHandle location={selectedLocation} userInfo={props?.userInfo} initialValues={formInitialValues} scrollTo={scrollTo} />
-          </div>
-          <div id="officehours-section">
-            <OfficeHours location={selectedLocation} userInfo={props?.userInfo} initialValues={formInitialValues} scrollTo={scrollTo} />
-          </div>
+                <ArrivalAndDepatureDate initialValues={formInitialValues} allGatherings={gatherings} errors={errors} />
               </div>
-            )
-          }
+              <div>
+                <Topics defaultTags={defaultTags} selectedItems={formInitialValues?.topicsAndReason ? (formInitialValues?.topicsAndReason?.topics ?? []) : []} />
+              </div>
+              <div>
+                <TopicsDescription initialValue={formInitialValues?.topicsAndReason ? formInitialValues?.topicsAndReason?.reason : ''} />
+              </div>
+              <div className="interest-note">
+                <div className="interest-note__icon">
+                  <Image src="/icons/info-blue.svg" alt="info" width={16} height={16} />
+                </div>
+                <p className="interest-note__text">
+                  Modifications to these fields (Select topics of interest and Describe your interests) will affect all events at this location, including past events
+                </p>
+              </div>
+
+              <div id="telegram-section">
+                <TelegramHandle location={selectedLocation} userInfo={props?.userInfo} initialValues={formInitialValues} scrollTo={scrollTo} />
+              </div>
+              <div id="officehours-section">
+                <OfficeHours location={selectedLocation} userInfo={props?.userInfo} initialValues={formInitialValues} scrollTo={scrollTo} />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="atndform__optns">
-          <AttendeeOptions mode={mode} onCloseClickHandler={onCloseClickHandler}/>
+          <AttendeeOptions mode={mode} onCloseClickHandler={onCloseClickHandler} />
         </div>
       </form>
 
@@ -499,24 +507,30 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             gap: 20px;
           }
 
-          .interest-note{
+          .interest-note {
             font-weight: 400;
             font-size: 14px;
             line-height: 24px;
-            background-color: #DBEAFE;
+            background-color: #dbeafe;
             padding: 12px;
             border-radius: 8px;
-            display:flex;
+            display: flex;
             gap: 8px;
           }
 
-          .interest-note__icon{
-            padding-top:2px;
+          .interest-note__icon {
+            padding-top: 2px;
           }
 
           .atndform__bdy__ttl {
             font-size: 17px;
             font-weight: 600;
+          }
+
+          .atndform__details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
           }
 
           .atndform__optns {
@@ -537,7 +551,6 @@ const AttendeeForm: React.FC<IAttendeeForm> = (props) => {
             user-select: none;
             outline: none;
           }
-
 
           @media (min-width: 1024px) {
             .atndform {

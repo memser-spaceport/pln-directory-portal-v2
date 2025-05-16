@@ -1,0 +1,4 @@
+export enum IrlQueryKeys {
+  GET_GUESTS_LIST = 'GET_GUESTS_LIST',
+  GET_EVENT_DETAILS = 'GET_EVENT_DETAILS',
+}

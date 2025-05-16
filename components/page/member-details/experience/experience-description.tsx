@@ -1,6 +1,6 @@
 'use client'
 import styles from './list.module.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 export default function ExperienceDescription({ description }: { description: string }) {
 
     const [showMore, setShowMore] = useState(description.length > 255);
@@ -8,6 +8,10 @@ export default function ExperienceDescription({ description }: { description: st
     const handleShowMore = () => {
         setShowMore(!showMore);
     }
+
+    useEffect(() => {
+        setShowMore(description.length > 255);
+    }, [description]);
 
   return (
     <div className={styles?.memberDetail__experience__item__detail__description}>

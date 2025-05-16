@@ -47,9 +47,9 @@ const AttendeeDetails = (props: IAttendeeForm) => {
 
   const [selectedTeam, setSelectedTeam] = useState(initialValues?.team ?? { name: '', logo: '', uid: '' });
   const [selectedMember, setSelectedMember] = useState<IUserInfo>(member || { name: '', uid: '' });
-  
+
   const handleTeamChange = (option: any) => {
-    setSelectedTeam({...option,  uid: option.id});
+    setSelectedTeam({ ...option, uid: option.id });
   };
 
   const onResetMember = () => {
@@ -93,7 +93,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
         try {
           triggerLoader(true);
           let result = await getGuestDetail(selectedMember.uid ?? '', location.uid, authToken, eventType);
-          const userGoingEvents =  result?.map((e:any)=>({
+          const userGoingEvents = result?.map((e: any) => ({
             uid: e?.event?.uid,
             isHost: e?.isHost,
             isSpeaker: e?.isSpeaker,
@@ -101,29 +101,27 @@ const AttendeeDetails = (props: IAttendeeForm) => {
             hostSubEvents: e?.additionalInfo?.hostSubEvents,
             speakerSubEvents: e?.additionalInfo?.speakerSubEvents,
             sponsorSubEvents: e?.additionalInfo?.sponsorSubEvents,
-            }))
-            
-            setGuestGoingEvents(userGoingEvents)
-            let topicsAndReasonResponse;
-            if(selectedMember.uid){
-              topicsAndReasonResponse = await getTopicsAndReasonForUser(location.uid,selectedMember.uid,authToken);
-            }
-          if (result.length>0) {
+          }));
+
+          setGuestGoingEvents(userGoingEvents);
+          let topicsAndReasonResponse;
+          if (selectedMember.uid) {
+            topicsAndReasonResponse = await getTopicsAndReasonForUser(location.uid, selectedMember.uid, authToken);
+          }
+          if (result.length > 0) {
             const formData: any = transformGuestDetail(result, gatherings);
             updateMemberDetails(false);
-            setSelectedTeam({name: formData?.teamName,
-              uid: formData?.teamUid,
-              logo: formData?.teamLogo ?? '',});
+            setSelectedTeam({ name: formData?.teamName, uid: formData?.teamUid, logo: formData?.teamLogo ?? '' });
             setInitialTeams(formData.teams);
-            
-            if(!topicsAndReasonResponse.isError){
+
+            if (!topicsAndReasonResponse.isError) {
               formData['topicsAndReason'] = topicsAndReasonResponse;
             }
-            
+
             setFormInitialValues(formData);
           } else {
             const formData: any = {};
-            if(!topicsAndReasonResponse.isError){
+            if (!topicsAndReasonResponse.isError) {
               formData['topicsAndReason'] = topicsAndReasonResponse;
             }
             updateMemberDetails(true);
@@ -131,17 +129,16 @@ const AttendeeDetails = (props: IAttendeeForm) => {
             return;
           }
         } catch (error) {
-          console.error("Error fetching guest details:", error);
+          console.error('Error fetching guest details:', error);
           // Optionally handle error
         } finally {
           triggerLoader(false);
         }
       };
-  
+
       fetchGuestDetails();
     }
   }, [selectedMember]);
-  
 
   // useEffect(() => {
   //   if (selectedMember.uid) {
@@ -188,7 +185,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
   const updateMemberDetails = async (updateAll: boolean) => {
     try {
       triggerLoader(true);
-      const memberResult = await getMember(selectedMember.uid ?? '', { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false,true);
+      const memberResult = await getMember(selectedMember.uid ?? '', { with: 'image,skills,location,teamMemberRoles.team' }, true, selectedMember, false, true);
       const memberPreferencesResponse = await getMemberPreferences(selectedMember.uid ?? '', authToken);
       if (memberPreferencesResponse.isError) {
         return { isError: true };
@@ -196,7 +193,7 @@ const AttendeeDetails = (props: IAttendeeForm) => {
       let showTelegram = memberPreferencesResponse?.memberPreferences?.telegram ?? true;
       if (!memberResult.error) {
         const memberData = memberResult?.data?.formattedData;
-        setIsVerifiedMember(memberData?.isVerified)
+        setIsVerifiedMember(memberData?.isVerified);
         document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_TELEGRAM_HANDLE, { detail: { telegramHandle: memberData?.telegramHandle, showTelegram } }));
         document.dispatchEvent(new CustomEvent(EVENTS.UPDATE_OFFICE_HOURS, { detail: { officeHours: memberData?.officeHours } }));
         if (updateAll) {

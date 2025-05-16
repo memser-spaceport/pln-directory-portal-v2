@@ -1,9 +1,33 @@
+import React from 'react';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { HOME_PAGE_LINKS } from '@/utils/constants';
 
-const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
+const filterOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Team', value: 'team' },
+  { label: 'Projects', value: 'project' },
+  { label: 'Members', value: 'member' },
+  { label: 'Event', value: 'event' },
+];
+
+interface FeaturedHeaderProps {
+  userInfo: any;
+  onClick: (filter: string) => void;
+  activeFilter: string;
+  prevBtnDisabled?: boolean;
+  nextBtnDisabled?: boolean;
+  onPrevButtonClick?: () => void;
+  onNextButtonClick?: () => void;
+}
+
+const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps) => {
   const analytics = useHomeAnalytics();
+
+  const onFilterButtonClick = (filterValue: string) => {
+    onClick(filterValue);
+    analytics.onFeaturedFilterClicked(filterValue);
+  };
 
   const featuredRequestUrl = HOME_PAGE_LINKS.FEATURED_REQUEST_URL;
 
@@ -16,8 +40,17 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
       <div className="featured__hdr">
         <div className="featured__ttl__cn">
           <div className="featured__ttl">
-            <img className="featured__ttl__img" src="/icons/featured.svg" alt="featured" />
-            <h2 className="featured__ttl__txt">Featured</h2>
+            {filterOptions.map((option) => (
+              <button
+                key={option.value}
+                className={`featured__ttl__txt${activeFilter === option.value ? ' active' : ''}`}
+                onClick={() => onFilterButtonClick(option.value)}
+                type="button"
+                aria-pressed={activeFilter === option.value}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
           <div className="featured__hdr__desc">
             <span className="featured__hdr__desc__txt">
@@ -41,6 +74,8 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          border-top: 1px solid #E3E3E3;
+          padding-top: 24px;
         }
 
         .featured__hdr__actions {
@@ -51,20 +86,16 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
 
         .featured__ttl {
           display: flex;
-          gap: 4px;
+          gap: 20px;
           align-items: center;
         }
 
-        .featured__ttl__img {
-          height: 16px;
-          width: 16px;
-        }
-
         .featured__ttl__txt {
-          font-size: 16px;
-          font-weight: 500;
-          line-height: 32px;
-          color: #0f172a;
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 24px;
+          color: #475569;
+          cursor: pointer;
         }
 
         .featured__hdr__actions button {
@@ -92,8 +123,9 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
 
         .featured__ttl__cn {
           display: flex;
-          flex-direction: column;
+          justify-content: space-between;
           gap: 12px;
+          width: 100%;
         }
 
         .featured__hdr__actions__left:hover .featured__hdr__actions__left__img {
@@ -104,24 +136,22 @@ const FeaturedHeader = ({ userInfo }: { userInfo: any }) => {
           content: url('/icons/right-arrow-circle-blue.svg');
         }
 
+        .featured__ttl__txt.active {
+          color: #333333;
+          font-weight: 600;
+          font-size: 14px;
+        }
+
         @media (min-width: 1024px) {
           .featured__hdr__actions {
             display: flex;
           }
-
-          .featured__ttl {
-            gap: 8px;
-          }
-
-          .featured__ttl__img {
-            height: 28px;
-            width: 28px;
-          }
-
-          .featured__ttl__txt {
-            font-size: 32px;
-            line-height: 28px;
-          }
+        }
+        
+        @media (max-width: 768px) {
+          .featured__ttl__cn {
+            flex-wrap: wrap;
+          }          
         }
       `}</style>
     </>

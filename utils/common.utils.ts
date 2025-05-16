@@ -1,7 +1,7 @@
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, EMAIL_REGEX, EVENTS, GITHUB_URL_REGEX, LINKEDIN_URL_REGEX, SORT_OPTIONS, TELEGRAM_URL_REGEX, TWITTER_URL_REGEX } from './constants';
 import { ITeam } from '@/types/teams.types';
-import Cookies from 'js-cookie'
+import Cookies from 'js-cookie';
 export const triggerLoader = (status: boolean) => {
   document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_LOADER, { detail: status }));
 };
@@ -15,8 +15,8 @@ export function compareObjsIfSame(obj1: any, obj2: any) {
     return true; // Handles identical values and reference equality for objects and arrays
   }
 
-   // Treat "" and null as equivalent
-   if ((obj1 === "" && obj2 === null) || (obj1 === null && obj2 === "")) {
+  // Treat "" and null as equivalent
+  if ((obj1 === '' && obj2 === null) || (obj1 === null && obj2 === '')) {
     return true;
   }
 
@@ -67,7 +67,6 @@ export const getUserInfoFromLocal = () => {
     return null;
   }
 };
-
 
 export const getUniqueId = () => {
   const dateString = Date.now().toString(36); // Encodes current timestamp in base 36
@@ -155,12 +154,12 @@ export const getAnalyticsProjectInfo = (project: any) => {
 };
 
 export const getAnalyticsLocationCardInfo = (location: any) => {
-  if(location?.uid && location.location) {
+  if (location?.uid && location.location) {
     return {
       uid: location.uid,
       name: location.location,
       slugUrl: location.location?.split(',')[0].trim(),
-    }
+    };
   }
 };
 
@@ -185,7 +184,8 @@ export const getQuery = (searchParams: any) => {
     team: searchParams?.team ?? '',
     isHost: searchParams?.isHost ?? '',
     isSpeaker: searchParams?.isSpeaker ?? '',
-    isHostAndSpeaker: searchParams?.isHostAndSpeaker ?? '',
+    isSponsor: searchParams?.isSponsor ?? '',
+    isHostAndSpeakerAndSponsor: searchParams?.isHostAndSpeakerAndSponsor ?? '',
     asks: searchParams?.asks ?? '',
   };
 };
@@ -357,7 +357,6 @@ export const calculateTime = (inputDate: any) => {
   }
 };
 
-
 export function removeAtSymbol(str: string) {
   try {
     if (str.startsWith('@')) {
@@ -365,7 +364,7 @@ export function removeAtSymbol(str: string) {
     }
     return str;
   } catch (error) {
-    return str
+    return str;
   }
 }
 
@@ -380,5 +379,5 @@ export const isMobileDevice = () => {
 };
 
 export const isSkipRecaptcha = () => {
-  return process.env.NEXT_PUBLIC_SKIP_RECAPTCHA_CHECK === 'true'
-}
+  return process.env.NEXT_PUBLIC_SKIP_RECAPTCHA_CHECK === 'true';
+};

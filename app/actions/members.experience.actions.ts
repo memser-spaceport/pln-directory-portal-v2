@@ -38,7 +38,7 @@ const validate = (formattedData: any) => {
     const endDate = new Date(formattedData?.endDate);
     if (endDate < startDate) errs.endDate = 'End date must be greater than start date';
   } else {
-    delete formattedData.endDate;
+    formattedData.endDate = null;
   }
 
   // Location validation

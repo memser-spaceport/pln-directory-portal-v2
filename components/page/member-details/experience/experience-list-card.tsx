@@ -39,6 +39,7 @@ export default async function ExperienceList({ member, isEditable }: { member: a
         location: experience?.location,
         uid: experience?.uid ?? '',
         isFlaggedByUser: experience?.isFlaggedByUser ?? false,
+        description: experience?.description ?? '',
       };
     });
   };

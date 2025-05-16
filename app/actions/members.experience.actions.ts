@@ -59,6 +59,7 @@ const transformObject = (object: any) => {
     location: formattedData?.['experience-location'],
     isCurrent: formattedData?.['isCurrent'] === 'true',
     memberUid: formattedData?.['memberId'],
+    description: formattedData?.['experience-description'],
   };
   return experienceData;
 };

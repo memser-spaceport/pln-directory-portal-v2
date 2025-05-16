@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import { triggerDialogLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import TextArea from '@/components/form/text-area';
 interface Experience {
   uid?: string;
   memberId?: string;
@@ -21,6 +22,7 @@ interface Experience {
   endDate?: Date | null;
   isCurrent?: boolean;
   location?: string;
+  description?: string;
 }
 
 export default function AddEditExperienceModal({member,userInfo}: {member: any,userInfo: any}) {
@@ -155,24 +157,24 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
         </div>
         <div className="add-edit-experience__modal__body">
           <TextField
-            label="Title*"
+            label="Role*"
             defaultValue={experienceRef.current?.title || ''}
             type="text"
             name="experience-title"
             required={true}
             id="experience-title"
-            placeholder="Enter title"
+            placeholder="Enter role"
           />
           {errors.title && <span className="error-text">{errors.title}</span>}
 
           <TextField
-            label="Company or Organization*"
+            label="Team or Organization*"
             defaultValue={experienceRef.current?.company || ''}
             type="text"
             name="experience-company"
             required={true}
             id="experience-company"
-            placeholder="Enter company or organization"
+            placeholder="Enter team or organization"
           />
           {errors.company && <p className="error-text">{errors.company}</p>}
 
@@ -234,6 +236,15 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
             id="experience-location"
           />
           {errors.location && <p className="error-text">{errors.location}</p>}
+
+          <TextArea 
+            label="Impact or Work Description"
+            defaultValue={experienceRef.current?.description || ''}
+            placeholder="Enter impact or work description"
+            name="experience-description"
+            id="experience-description"
+          />
+          {errors.description && <p className="error-text">{errors.description}</p>}
         </div>
         <div className="add-edit-experience__modal__footer">
           {isEdit && (

@@ -61,10 +61,10 @@ export const REASON_OPTIONS = [
 
 export function getDependantLabel(reason: string) {
   switch (reason) {
-    case AskCloseReasons.FULLY_ADDRESSED:
     case AskCloseReasons.PARTIALLY_ADDRESSED: {
       return "What's left unresolved?*";
     }
+    case AskCloseReasons.FULLY_ADDRESSED:
     case AskCloseReasons.NO_LONGER_NEEDED:
     case AskCloseReasons.UNADRESSABLE:
     case AskCloseReasons.DUPLICATE: {

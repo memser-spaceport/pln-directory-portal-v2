@@ -67,6 +67,7 @@
         border-bottom: 2px solid #E2E8F0;
 
         .tabsList {
+            display: flex;
             margin-bottom: -2px;
         }
 

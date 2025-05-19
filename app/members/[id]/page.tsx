@@ -49,9 +49,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
           {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
           {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
         </div>
-        {/* Experience List */}
-        <ExperienceList member={member} isEditable={isExperienceEditable}/>
-        
+        {isLoggedIn && <ExperienceList member={member} isEditable={isExperienceEditable} />}
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
         </div>
@@ -104,7 +102,7 @@ const getpageData = async (memberId: string) => {
           pagination: false,
         },
         0,
-        0
+        0,
       ),
     ]);
     member = memberResponse?.data?.formattedData;

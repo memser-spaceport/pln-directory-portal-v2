@@ -7,7 +7,7 @@ import styles from './list.module.css';
 
 export default function ExperienceDescription({ description = '' }: { description: string }) {
   const [sanitized, setSanitized] = useState('');
-  const [toggle, setToggle] = useState(true);
+  const [isClipped, setIsClipped] = useState(false);
 
   useEffect(() => {
     if (description && typeof window !== 'undefined') {
@@ -15,29 +15,29 @@ export default function ExperienceDescription({ description = '' }: { descriptio
       const clipped = clip(clean, 255, { html: true, maxLines: 2 });
 
       setSanitized(clipped);
-      setToggle(clean.length > clipped.length);
+      setIsClipped(clean.length > clipped.length);
     }
   }, [description]);
 
   const handleToggle = () => {
-    setToggle(!toggle);
+    setIsClipped(!isClipped);
   };
 
   return (
     <div className={styles.memberDetail__experience__item__detail__description}>
       {sanitized && (
         <p
-          dangerouslySetInnerHTML={{ __html: toggle ? sanitized : DOMPurify.sanitize(description) }}
+          dangerouslySetInnerHTML={{ __html: isClipped ? sanitized : DOMPurify.sanitize(description) }}
           className={styles.memberDetail__experience__item__detail__description__text}
         />
       )}
 
-      {description.length > 255 && (
+      {isClipped && (
         <span
           onClick={handleToggle}
           className={styles.memberDetail__experience__item__detail__description__text__more}
         >
-          {toggle ? 'Show more' : 'Show less'}
+          Show more
         </span>
       )}
     </div>

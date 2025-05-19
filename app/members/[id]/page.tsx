@@ -4,8 +4,8 @@ import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { BreadCrumb } from '@/components/core/bread-crumb';
 import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
-import MemberProfileLoginStrip from '@/components/page/member-details/member-details-login-strip';
-import ContactDetails from '@/components/page/member-details/contact-details';
+import { MemberProfileLoginStrip } from '@/components/page/member-details/member-details-login-strip';
+import { ContactDetails } from '@/components/page/member-details/contact-details';
 import MemberTeams from '@/components/page/member-details/member-teams';
 import MemberRepositories from '@/components/page/member-details/member-repositories';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -46,12 +46,13 @@ const MemberDetails = async ({ params }: { params: any }) => {
           </div>
         </div>
         <div className={styles?.memberDetail__container__contact}>
-          {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
+          {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
+          <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
           {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
         </div>
         {/* Experience List */}
-        <ExperienceList member={member} isEditable={isExperienceEditable}/>
-        
+        <ExperienceList member={member} isEditable={isExperienceEditable} />
+
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
         </div>
@@ -104,7 +105,7 @@ const getpageData = async (memberId: string) => {
           pagination: false,
         },
         0,
-        0
+        0,
       ),
     ]);
     member = memberResponse?.data?.formattedData;

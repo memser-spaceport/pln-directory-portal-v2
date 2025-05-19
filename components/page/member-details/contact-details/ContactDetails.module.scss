@@ -1,0 +1,115 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  padding: 20px 20px 0 20px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: #64748b;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.social,
+.socialPreview {
+  margin-top: 8px;
+  display: flex;
+  width: 100%;
+  gap: 8px;
+}
+
+.social {
+  flex-wrap: wrap;
+}
+
+.socialPreview {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 8px 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+
+  @include media.tablet-portrait {
+    flex-direction: row;
+  }
+
+  .bg1, .bg2 {
+    position: absolute;
+    inset: 0;
+  }
+
+  .bg1 {
+    border-radius: 12px;
+    background: #F1F5F9;
+    //background: red;
+    z-index: 0;
+  }
+
+  .bg2 {
+    border-radius: 12px;
+    border: 2px solid rgba(21, 111, 247, 0.20);
+    background: rgba(255, 255, 255, 0.01);
+    backdrop-filter: blur(2px);
+    //z-index: -1;
+  }
+
+  .content {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .loginButton {
+    position: relative;
+    border-radius: 40px;
+    display: inline-flex;
+    height: 40px;
+    padding: 5px 16px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    border: 0.5px solid #CBD5E1;
+    background: #156FF7;
+    white-space: nowrap;
+
+    color: #FFF;
+    font-feature-settings: 'liga' off, 'clig' off;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
+
+    @include media.mobile-only {
+      width: 100%;
+    }
+  }
+
+  .control {
+    padding-inline: 12px;
+
+    @include media.mobile-only {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    @include media.tablet-landscape {
+      padding-inline: 12px;
+      width: fit-content;
+    };
+  }
+}

@@ -5,10 +5,10 @@ import { HOME_PAGE_LINKS } from '@/utils/constants';
 
 const filterOptions = [
   { label: 'All', value: 'all' },
-  { label: 'Team', value: 'team' },
-  { label: 'Projects', value: 'project' },
+  { label: 'Teams', value: 'team' },
   { label: 'Members', value: 'member' },
-  { label: 'Event', value: 'event' },
+  { label: 'Projects', value: 'project' },
+  { label: 'Events', value: 'event' },
 ];
 
 interface FeaturedHeaderProps {

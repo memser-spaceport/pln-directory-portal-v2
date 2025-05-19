@@ -111,8 +111,8 @@ const getpageData = async (memberId: string) => {
     member = memberResponse?.data?.formattedData;
     teams = memberTeamsResponse?.data?.formattedData;
 
-    let officeHoursFlag = false;
-    officeHoursFlag = member['officeHours'] ? true : false;
+    const officeHoursFlag = !!member['officeHours'];
+
     if (!isLoggedIn && member['officeHours']) {
       delete member['officeHours'];
     }

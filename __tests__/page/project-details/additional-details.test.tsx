@@ -6,8 +6,6 @@ import React, { Dispatch, SetStateAction } from 'react';
 import { updateProject } from '@/services/projects.service';
 
 describe('AdditionalDetails', () => {
-  // const setStateMock: Dispatch<SetStateAction<any>> = jest.fn();
-  // jest.spyOn(React, 'useState').mockImplementation(() => [true, setStateMock]);
 
   beforeEach(() => {
     jest.resetModules();

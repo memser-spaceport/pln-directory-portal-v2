@@ -18,6 +18,14 @@ interface IAsksSection {
   team: any;
 }
 
+const initialSelectedAsk = {
+  title: '',
+  description: '',
+  tags: [],
+  uid: '',
+  teamUid: '',
+};
+
 const AsksSection = (props: IAsksSection) => {
   const initialAsks = props?.asks;
   const team = props?.team;
@@ -32,13 +40,7 @@ const AsksSection = (props: IAsksSection) => {
   const [type, setType] = useState('Add');
   const [isAddAsk, setIsAddAsk] = useState(false);
   const [allErrors, setAllErrors]: any = useState([]);
-  const [selectedAsk, setSelectedAsk] = useState({
-    title: '',
-    description: '',
-    tags: [],
-    uid: '',
-    teamUid: '',
-  });
+  const [selectedAsk, setSelectedAsk] = useState(initialSelectedAsk);
 
   const onAddAsksClickHandler = () => {
     setIsAddAsk(true);
@@ -96,7 +98,7 @@ const AsksSection = (props: IAsksSection) => {
           },
           body: JSON.stringify(payload),
         },
-        true
+        true,
       );
 
       if (response?.ok) {
@@ -196,7 +198,7 @@ const AsksSection = (props: IAsksSection) => {
           },
           body: JSON.stringify(payload),
         },
-        true
+        true,
       );
       if (response?.ok) {
         analytics.teamDetailDeleteAskConfirmClicked(getAnalyticsTeamInfo(team), { ...payload.ask, teamName: payload.teamName });
@@ -221,6 +223,7 @@ const AsksSection = (props: IAsksSection) => {
       triggerLoader(false);
     }
   };
+
   return (
     <>
       <div className="asksec">
@@ -267,10 +270,12 @@ const AsksSection = (props: IAsksSection) => {
               <div key={`${ask.uid}+${index}`} className="asksec__allasks__ask">
                 <div className="asksec__allasks__ask__hdr">
                   <p className="asksec__allasks__ask__hdr__ttl">{ask.title}</p>
-                  {hasEditAsksAccess && (
-                    <button onClick={() => onEditAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
-                      Edit
-                    </button>
+                  {hasEditAsksAccess && ask.status !== 'CLOSED' && (
+                    <div className="aslsec__allasks__ask__hdr__controls">
+                      <button onClick={() => onEditAskClickHandler(ask)} className="asksec__allasks__ask__hdr__edit">
+                        Edit
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div className="asksec__allasks__ask__cont" dangerouslySetInnerHTML={{ __html: ask.description }} />
@@ -407,6 +412,17 @@ const AsksSection = (props: IAsksSection) => {
             font-size: 14px;
             font-weight: 600;
             line-height: 24px;
+          }
+
+          .aslsec__allasks__ask__hdr__controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+
+          .aslsec__allasks__ask__hdr__separator {
+            height: 16px;
+            border-right: 1px solid #e2e8f0;
           }
 
           .asksec__allasks__ask__hdr__edit {

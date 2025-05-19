@@ -43,7 +43,6 @@ function HuskyDialog(props: any) {
 
   return (
     <>
-      <div>HELLO</div>
       <dialog onClose={onDialogClose} ref={dialogRef} className="hd">
         <div className="hd__head">
           <img className="hd__head__logo" src="/images/husky-logo.svg" />

@@ -3,19 +3,16 @@ import { useCommonAnalytics } from '@/analytics/common.analytics';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { getFollowUps } from '@/services/office-hours.service';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, PAGE_ROUTES } from '@/utils/constants';
-import cookies from 'js-cookie';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { SyntheticEvent, useEffect, useRef, useState } from 'react';
 import AllNotifications from './all-notifications';
-import JoinNetwork from './join-network';
 import LoginBtn from './login-btn';
 import MobileNavDrawer from './mobile-nav-drawer';
 import UserProfile from './userProfile';
-import SignUpBtn from './sign-up';
 import HuskyLink from './husky-link';
 
 interface INavbar {
@@ -44,9 +41,6 @@ export default function Navbar(props: Readonly<INavbar>) {
   useClickedOutside({ callback: () => setIsNotification(false), ref: notificationRef });
 
   const onNavItemClickHandler = (url: string, name: string) => {
-    if (pathName !== url) {
-      triggerLoader(true);
-    }
     if (pathName !== url) {
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
@@ -113,7 +107,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           </Link>
           <div className="nb__left__web-optns">
             {NAV_OPTIONS.map((option, index) => (
-              <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)}>
+              <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)} prefetch>
                 <li key={option.name} tabIndex={0} className={`nb__left__web-optns__optn ${pathName === option.url ? 'nb__left__web-optns__optn--active' : ''}`}>
                   <Image height={20} width={20} className="nb__left__web-optns__optn__img" src={pathName === option.url ? option.selectedLogo : option.unSelectedLogo} alt={option.name} />
                   <p className="nb__left__web-optns__optn__name">{option.name}</p>

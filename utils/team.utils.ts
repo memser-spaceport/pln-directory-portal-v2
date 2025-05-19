@@ -1,25 +1,26 @@
-import { ITag, ITeamListOptions, ITeamResponse, ITeamsSearchParams } from "@/types/teams.types";
-import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from "./common.utils";
-import { URL_QUERY_VALUE_SEPARATOR } from "./constants";
+import { ITag, ITeamListOptions, ITeamResponse, ITeamsSearchParams } from '@/types/teams.types';
+import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
+import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 
 export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
-  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent, isHost, asks } = queryParams;
+  const { sort, tags, membershipSources, fundingStage, searchBy, technology, includeFriends, focusAreas, officeHoursOnly, isRecent, isHost, isSponsor, asks } = queryParams;
   const sortFromQuery = getSortFromQuery(sort?.toString());
   const sortField = sortFromQuery.field.toLowerCase() + ',default';
 
   return {
     ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),
-    ...(technology ? { "technologies.title__with": stringifyQueryValues(technology) } : {}),
-    ...(membershipSources ? { "membershipSources.title__with": stringifyQueryValues(membershipSources) } : {}),
-    ...(fundingStage ? { "fundingStage.title__with": stringifyQueryValues(fundingStage) } : {}),
-    ...(tags ? { "industryTags.title__with": stringifyQueryValues(tags) } : {}),
+    ...(technology ? { 'technologies.title__with': stringifyQueryValues(technology) } : {}),
+    ...(membershipSources ? { 'membershipSources.title__with': stringifyQueryValues(membershipSources) } : {}),
+    ...(fundingStage ? { 'fundingStage.title__with': stringifyQueryValues(fundingStage) } : {}),
+    ...(tags ? { 'industryTags.title__with': stringifyQueryValues(tags) } : {}),
     ...(includeFriends ? {} : { plnFriend: false }),
     ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
-    ...(focusAreas ? { 'focusAreas': stringifyQueryValues(focusAreas) } : {}),
-    ...(isRecent ? {isRecent:true} : {}),
-    ...(isHost ? {isHost:true} : {}),
-    ...(asks ? { 'askTags': stringifyQueryValues(asks) } : {}),
-    orderBy: `${sortFromQuery.direction === "desc" ? "-" : ""}${sortField}`,
+    ...(focusAreas ? { focusAreas: stringifyQueryValues(focusAreas) } : {}),
+    ...(isRecent ? { isRecent: true } : {}),
+    ...(isHost ? { isHost: true } : {}),
+    ...(isSponsor ? { isSponsor: true } : {}),
+    ...(asks ? { askTags: stringifyQueryValues(asks) } : {}),
+    orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
   };
 }
 
@@ -51,12 +52,11 @@ export function getTagsFromValues(allValues: string[], availableValues: string[]
   });
 }
 
-
 export function getTeamsListOptions(options: ITeamListOptions) {
-  return { ...options, select: "uid,name,shortDescription,logo.url,industryTags.title,asks", pagination: true };
+  return { ...options, select: 'uid,name,shortDescription,logo.url,industryTags.title,asks', pagination: true };
 }
 
-export function transformTeamApiToFormObj(obj: any){
+export function transformTeamApiToFormObj(obj: any) {
   const output = {
     ...obj.basicInfo,
     ...obj.projectsInfo,
@@ -65,32 +65,32 @@ export function transformTeamApiToFormObj(obj: any){
   };
 
   output.fundingStage = {
-    title: {...output}.fundingStage?.name,
-    uid: {...output}.fundingStage?.id
-  }
+    title: { ...output }.fundingStage?.name,
+    uid: { ...output }.fundingStage?.id,
+  };
 
-  output.membershipSources = {...output}.membershipSources?.map((v:any) => {
+  output.membershipSources = { ...output }.membershipSources?.map((v: any) => {
     return {
       title: v.name,
-      uid: v.id
-    }
-  })
+      uid: v.id,
+    };
+  });
 
-  output.technologies = {...output}.technologies?.map((v:any) => {
+  output.technologies = { ...output }.technologies?.map((v: any) => {
     return {
       title: v.name,
-      uid: v.id
-    }
-  })
-  output.industryTags = {...output}.industryTags?.map((v:any) => {
+      uid: v.id,
+    };
+  });
+  output.industryTags = { ...output }.industryTags?.map((v: any) => {
     return {
       title: v.name,
-      uid: v.id
-    }
-  })
-  
- delete output.teamProfile
- delete output.requestorEmail
+      uid: v.id,
+    };
+  });
+
+  delete output.teamProfile;
+  delete output.requestorEmail;
   return output;
 }
 
@@ -126,8 +126,7 @@ export function transformRawInputsToFormObj(obj: any) {
         }
         membershipSources[membershipSourceIndex][subKey] = obj[key];
       }
-    } 
-    else if (key.startsWith('teamFocusAreas')) {
+    } else if (key.startsWith('teamFocusAreas')) {
       const [focusArea, subKey] = key.split('-');
       const focusAreaIndexMatch = focusArea.match(/\d+$/);
       if (focusAreaIndexMatch) {
@@ -137,9 +136,7 @@ export function transformRawInputsToFormObj(obj: any) {
         }
         teamFocusAreas[focusAreaIndex][subKey] = obj[key];
       }
-    } 
-    
-    else if (key.startsWith('industryTag')) {
+    } else if (key.startsWith('industryTag')) {
       const [industryTag, subKey] = key.split('-');
       const industryTagIndexMatch = industryTag.match(/\d+$/);
       if (industryTagIndexMatch) {
@@ -152,13 +149,13 @@ export function transformRawInputsToFormObj(obj: any) {
     } else if (key.startsWith('rich-text-editor')) {
       result['longDescription'] = obj[key];
     } else if (key.startsWith('name')) {
-      result['name'] = (obj[key]).trim();
+      result['name'] = obj[key].trim();
     } else {
       result[key] = obj[key];
     }
   }
 
-  result['plnFriend'] = result.plnFriend  === 'on' ? true : false;
+  result['plnFriend'] = result.plnFriend === 'on' ? true : false;
   result.fundingStage = fundingStage;
   result.technologies = Object.values(technologies);
   result.membershipSources = Object.values(membershipSources);
@@ -167,22 +164,21 @@ export function transformRawInputsToFormObj(obj: any) {
   return result;
 }
 
-
 export const getTechnologyImage = (technology: string) => {
-  if (technology === "Filecoin") {
-    return "/icons/technology/filecoin.svg";
-  } else if (technology === "IPFS") {
-    return "/icons/technology/ipfs.svg";
-  } else if (technology === "libp2p") {
-    return "/icons/technology/libp2p.svg";
-  } else if (technology === "IPLD") {
-    return "/icons/technology/ipld.svg";
-  } else if (technology === "drand") {
-    return "/icons/technology/drand.svg";
-  } else if (technology === "FVM") {
-    return "/icons/technology/fvm.svg";
-  } else if (technology === "SourceCred") {
-    return "/icons/technology/sourcecred.svg";
+  if (technology === 'Filecoin') {
+    return '/icons/technology/filecoin.svg';
+  } else if (technology === 'IPFS') {
+    return '/icons/technology/ipfs.svg';
+  } else if (technology === 'libp2p') {
+    return '/icons/technology/libp2p.svg';
+  } else if (technology === 'IPLD') {
+    return '/icons/technology/ipld.svg';
+  } else if (technology === 'drand') {
+    return '/icons/technology/drand.svg';
+  } else if (technology === 'FVM') {
+    return '/icons/technology/fvm.svg';
+  } else if (technology === 'SourceCred') {
+    return '/icons/technology/sourcecred.svg';
   }
 };
 
@@ -216,10 +212,10 @@ export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
       blog: selectedTeam?.blog ?? '',
     },
     memberInfo: {
-      teamMemberRoles: membersDetail
-    } 
-  }
-}
+      teamMemberRoles: membersDetail,
+    },
+  };
+};
 
 export const teamRegisterDefault = {
   basicInfo: {
@@ -244,7 +240,7 @@ export const teamRegisterDefault = {
     telegramHandler: '',
     blog: '',
   },
-}
+};
 
 export function getFormattedDateString(startDate: string, endDate: string) {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -259,8 +255,8 @@ export function getFormattedDateString(startDate: string, endDate: string) {
     const startMonthName = monthNames[parseInt(startMonth, 10) - 1];
     const endMonthName = monthNames[parseInt(endMonth, 10) - 1];
 
-    const formattedStartYear = startYear.slice(2); 
-    const formattedEndYear = endYear.slice(2); 
+    const formattedStartYear = startYear.slice(2);
+    const formattedEndYear = endYear.slice(2);
 
     if (startDateOnly === endDateOnly) {
       return `${startMonthName} ${formattedStartYear}`;

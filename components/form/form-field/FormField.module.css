@@ -1,0 +1,17 @@
+.root {
+    display: flex;
+    flex-direction: column;
+}
+
+.label {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}

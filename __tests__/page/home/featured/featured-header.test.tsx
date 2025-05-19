@@ -13,6 +13,7 @@ describe('FeaturedHeader Component', () => {
   const mockUserInfo = { id: 'user1' };
   const mockAnalytics = {
     featuredSubmitRequestClicked: jest.fn(),
+    onFeaturedFilterClicked: jest.fn(),
   };
 
   beforeEach(() => {
@@ -21,21 +22,43 @@ describe('FeaturedHeader Component', () => {
   });
 
   it('renders the FeaturedHeader component', () => {
-    render(<FeaturedHeader userInfo={mockUserInfo} />);
-    expect(screen.getByText('Featured')).toBeInTheDocument();
+    render(<FeaturedHeader 
+      userInfo={mockUserInfo}
+      onClick={() => {}}
+      activeFilter=""
+    />);
+    // Check for the "All" filter button instead of "Featured"
+    expect(screen.getByText('All')).toBeInTheDocument();
+    // Check for other filter options to verify the component rendered correctly
+    expect(screen.getByText('Teams')).toBeInTheDocument();
+    expect(screen.getByText('Projects')).toBeInTheDocument();
+    expect(screen.getByText('Members')).toBeInTheDocument();
+    expect(screen.getByText('Events')).toBeInTheDocument();
   });
 
-  it('renders the "Submit a request" link with correct URL', () => {
-    render(<FeaturedHeader userInfo={mockUserInfo} />);
-    const link = screen.getByText('Submit a request');
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', HOME_PAGE_LINKS.FEATURED_REQUEST_URL);
+  it('calls onClick and analytics when a filter button is clicked', () => {
+    const mockOnClick = jest.fn();
+    render(<FeaturedHeader 
+      userInfo={mockUserInfo}
+      onClick={mockOnClick}
+      activeFilter=""
+    />);
+    
+    const teamFilterButton = screen.getByText('Teams');
+    fireEvent.click(teamFilterButton);
+    
+    expect(mockOnClick).toHaveBeenCalledWith('team');
+    expect(mockAnalytics.onFeaturedFilterClicked).toHaveBeenCalledWith('team');
   });
 
-  it('calls featuredSubmitRequestClicked when "Submit a request" link is clicked', () => {
-    render(<FeaturedHeader userInfo={mockUserInfo} />);
-    const link = screen.getByText('Submit a request');
-    fireEvent.click(link);
-    expect(mockAnalytics.featuredSubmitRequestClicked).toHaveBeenCalledWith(mockUserInfo, HOME_PAGE_LINKS.FEATURED_REQUEST_URL);
+  it('applies active class to the selected filter', () => {
+    render(<FeaturedHeader 
+      userInfo={mockUserInfo}
+      onClick={() => {}}
+      activeFilter="team"
+    />);
+    
+    const teamFilterButton = screen.getByText('Teams');
+    expect(teamFilterButton.className).toContain('active');
   });
 });

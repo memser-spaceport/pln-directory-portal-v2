@@ -83,6 +83,9 @@ export const EVENTS = {
   UPDATE_IRL_LOCATION_FOLLOWERS: 'update-irl-location-followers',
   RESET_ASK_FORM_VALUES: 'reset-ask-form',
   MARK_MY_PRESENCE_SUBMIT_SUCCESS_POPUP: 'open-mark-my-presence-success',
+  TRIGGER_ADD_EDIT_EXPERIENCE_MODAL: 'trigger-add-edit-experience-modal',
+  TRIGGER_SEE_ALL_EXPERIENCE_MODAL: 'trigger-see-all-experience-modal',
+  TRIGGER_DIALOG_LOADER: 'trigger-dialog-loader',
 };
 
 export const HELPER_MENU_OPTIONS = [
@@ -358,6 +361,13 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE: 'member-detail-bio-edit-record-save',
   ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS: 'on_click_see_more_button_irl_contributions',
   MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS: 'member-details-on-click-irl-contributions',
+
+  MEMBER_DETAIL_ADD_EXPERIENCE_CLICKED: 'member_detail_add_experience_clicked',
+  MEMBER_DETAIL_SEE_ALL_EXPERIENCE_CLICKED: 'member_detail_see_all_experience_clicked',
+  MEMBER_DETAIL_EDIT_EXPERIENCE_CLICKED: 'member_detail_edit_experience_clicked',
+  MEMBER_DETAIL_EDIT_EXPERIENCE_SAVE_CLICKED: 'member_detail_edit_experience_save_clicked',
+  MEMBER_DETAIL_ADD_EXPERIENCE_SAVE_CLICKED: 'member_detail_add_experience_save_clicked',
+  MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED: 'member_detail_delete_experience_save_clicked',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};
@@ -379,6 +389,7 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_CAROUSEL_ACTIONS_CLICKED: 'discover-carousel-actions-clicked',
   DISCOVER_CARD_CLICKED: 'discover-card-clicked',
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
+  FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
 };
 
 export const EVENTS_ANALYTICS = {
@@ -509,6 +520,22 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.12 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '19, May 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Uniquely generated PFP for the user profiles without an added profile picture</li>
+    <li>A new way to show contributions at events/IRL Gatherings - "Sponsor"</li>
+    <li>Performance updates: Improved Page load speed & load behavior for Members, Team and Events pages</li>
+    <li>Added the ability for team members to <a style="text-decoration:underline; color:#156ff7" href="https://assets.plnetwork.io/Asks+feature-update.mp4" target="_blank">update Asks</a> with different status (i.e. Fully Addressed, Partially Addressed, No Longer Needed and more). Signal who supported the ask & how they did.</li>
+    <li>Enhanced the Member Detail Page to include a <a style="text-decoration:underline; color:#156ff7" href="https://assets.plnetwork.io/Experience+section-Members.mp4" target="_blank">new Experience section</a> which allows users to view a member's professional background, past roles, achievements, and relevant experiences.</li>
+    </ul>
+    </div>`,
+  }, 
   {
     title: 'Version 4.1.11 - Directory Enhancements',
     tag: 'Improvements',

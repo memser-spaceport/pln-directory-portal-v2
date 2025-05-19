@@ -17,9 +17,35 @@ describe('Featured Component', () => {
     onProjectCardClicked: jest.fn(),
   };
 
+  // Mock data for getAnalyticsTeamInfo result
+  const mockTeamInfo = {
+    id: '3',
+    name: 'Team 1',
+    isNew: true,
+    logo: 'team url',
+    shortDescription: 'lorem ipsum lorem ipsum'
+  };
+
+  // Mock data for getAnalyticsProjectInfo result
+  const mockProjectInfo = {
+    id: '4',
+    name: 'Project 1'
+  };
+
+  // Mock data for getAnalyticsMemberInfo result
+  const mockMemberInfo = {
+    name: 'John Doe',
+    teams: ['Team A', 'Team B', 'Team C'],
+    openToWork: true
+  };
+
   beforeEach(() => {
+    jest.clearAllMocks();
     (useHomeAnalytics as jest.Mock).mockReturnValue(mockAnalytics);
     (getAnalyticsUserInfo as jest.Mock).mockReturnValue(mockUserInfo);
+    (getAnalyticsTeamInfo as jest.Mock).mockReturnValue(mockTeamInfo);
+    (getAnalyticsProjectInfo as jest.Mock).mockReturnValue(mockProjectInfo);
+    (getAnalyticsMemberInfo as jest.Mock).mockReturnValue(mockMemberInfo);
   });
 
   const featuredData = [
@@ -57,7 +83,17 @@ describe('Featured Component', () => {
 
   it('renders the Featured component', () => {
     render(<Featured featuredData={featuredData} isLoggedIn={true} userInfo={mockUserInfo} />);
-    expect(screen.getByText('Featured')).toBeInTheDocument();
+    
+    // Check for filter buttons instead of "Featured" text
+    expect(screen.getByText('All')).toBeInTheDocument();
+    expect(screen.getByText('Teams')).toBeInTheDocument();
+    expect(screen.getByText('Projects')).toBeInTheDocument();
+    
+    // Also verify some content is rendered
+    expect(screen.getByText('Aleph Ciudad')).toBeInTheDocument();
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.getByText('Team 1')).toBeInTheDocument();
+    expect(screen.getByText('Project 1')).toBeInTheDocument();
   });
 
   it('calls onIrlCardClicked when an event card is clicked', () => {
@@ -76,21 +112,24 @@ describe('Featured Component', () => {
     render(<Featured featuredData={featuredData} isLoggedIn={true} userInfo={mockUserInfo} />);
     const memberLink = screen.getByText('John Doe');
     fireEvent.click(memberLink);
-    expect(mockAnalytics.onMemberCardClicked).toHaveBeenCalledWith(mockUserInfo, getAnalyticsMemberInfo(featuredData[1]));
+    expect(mockAnalytics.onMemberCardClicked).toHaveBeenCalledWith(mockUserInfo, mockMemberInfo);
+    expect(getAnalyticsMemberInfo).toHaveBeenCalledWith(featuredData[1]);
   });
 
   it('calls onTeamCardClicked when a team card is clicked', () => {
     render(<Featured featuredData={featuredData} isLoggedIn={true} userInfo={mockUserInfo} />);
     const teamLink = screen.getByText('Team 1');
     fireEvent.click(teamLink);
-    expect(mockAnalytics.onTeamCardClicked).toHaveBeenCalledWith(mockUserInfo, getAnalyticsTeamInfo(featuredData[2]));
+    expect(mockAnalytics.onTeamCardClicked).toHaveBeenCalledWith(mockUserInfo, mockTeamInfo);
+    expect(getAnalyticsTeamInfo).toHaveBeenCalledWith(featuredData[2]);
   });
 
   it('calls onProjectCardClicked when a project card is clicked', () => {
     render(<Featured featuredData={featuredData} isLoggedIn={true} userInfo={mockUserInfo} />);
     const projectLink = screen.getByText('Project 1');
     fireEvent.click(projectLink);
-    expect(mockAnalytics.onProjectCardClicked).toHaveBeenCalledWith(mockUserInfo, getAnalyticsProjectInfo(featuredData[3]));
+    expect(mockAnalytics.onProjectCardClicked).toHaveBeenCalledWith(mockUserInfo, mockProjectInfo);
+    expect(getAnalyticsProjectInfo).toHaveBeenCalledWith(featuredData[3]);
   });
 
   it('returns null for unsupported categories', () => {

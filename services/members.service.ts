@@ -143,7 +143,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     preferences: result.preferences ?? null,
     isSubscribedToNewsletter: result?.isSubscribedToNewsletter ?? false,
     isVerified: result?.isVerified,
-    eventGuests: result?.eventGuests ?? [],
+    eventGuests: result?.eventGuests ?? []
   };
 
   if (isLoggedIn) {

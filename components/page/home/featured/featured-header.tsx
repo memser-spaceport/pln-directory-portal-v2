@@ -52,7 +52,7 @@ const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps
               </button>
             ))}
           </div>
-          <div className="featured__hdr__desc">
+          {/* <div className="featured__hdr__desc">
             <span className="featured__hdr__desc__txt">
               Want to feature your team, project, team member or event?{' '}
               <a
@@ -66,7 +66,7 @@ const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps
                 Submit a request
               </a>
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
       <style jsx>{`

@@ -521,6 +521,22 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.12 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '19, May 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li>Uniquely generated PFP for the user profiles without an added profile picture</li>
+    <li>A new way to show contributions at events/IRL Gatherings - "Sponsor"</li>
+    <li>Performance updates: Improved Page load speed & load behavior for Members, Team and Events pages</li>
+    <li>Added the ability for team members to <a style="text-decoration:underline; color:#156ff7" href="https://assets.plnetwork.io/Asks+feature-update.mp4" target="_blank">update Asks</a> with different status (i.e. Fully Addressed, Partially Addressed, No Longer Needed and more). Signal who supported the ask & how they did.</li>
+    <li>Enhanced the Member Detail Page to include a <a style="text-decoration:underline; color:#156ff7" href="https://assets.plnetwork.io/Experience+section-Members.mp4" target="_blank">new Experience section</a> which allows users to view a member's professional background, past roles, achievements, and relevant experiences.</li>
+    </ul>
+    </div>`,
+  }, 
+  {
     title: 'Version 4.1.11 - Directory Enhancements',
     tag: 'Improvements',
     date: '09, Apr 2025',

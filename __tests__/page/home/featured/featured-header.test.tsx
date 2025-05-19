@@ -36,28 +36,6 @@ describe('FeaturedHeader Component', () => {
     expect(screen.getByText('Events')).toBeInTheDocument();
   });
 
-  it('renders the "Submit a request" link with correct URL', () => {
-    render(<FeaturedHeader 
-      userInfo={mockUserInfo} 
-      onClick={() => {}}
-      activeFilter=""
-    />); 
-    const link = screen.getByText('Submit a request');
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', HOME_PAGE_LINKS.FEATURED_REQUEST_URL);
-  });
-
-  it('calls featuredSubmitRequestClicked when "Submit a request" link is clicked', () => {
-    render(<FeaturedHeader 
-      userInfo={mockUserInfo}
-      onClick={() => {}}
-      activeFilter=""
-    />);
-    const link = screen.getByText('Submit a request');
-    fireEvent.click(link);
-    expect(mockAnalytics.featuredSubmitRequestClicked).toHaveBeenCalledWith(mockUserInfo, HOME_PAGE_LINKS.FEATURED_REQUEST_URL);
-  });
-
   it('calls onClick and analytics when a filter button is clicked', () => {
     const mockOnClick = jest.fn();
     render(<FeaturedHeader 

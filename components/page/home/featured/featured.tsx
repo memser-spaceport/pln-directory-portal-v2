@@ -19,6 +19,7 @@ import { getFeaturedData } from '@/services/featured.service';
 import { useRouter } from 'next/navigation';
 import { formatFeaturedData } from '@/utils/home.utils';
 import Cookies from 'js-cookie';
+import { useFilter } from '@/hooks/useFilter';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
@@ -115,31 +116,45 @@ const Featured = (props: any) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const cauroselActions = usePrevNextButtons(emblaApi);
   const router = useRouter();
-  const [featuredData, setfeaturedData] = useState(props.featuredData ?? []);
+  const [unfilteredFeaturedData, setUnfilteredFeaturedData] = useState(props.featuredData ?? []);
+  const { activeFilter, onFilterClick: handleFilterSelected } = useFilter<string>('all');
 
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
     const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin);
-    setfeaturedData(formatFeaturedData(featData.data));
+    setUnfilteredFeaturedData(formatFeaturedData(featData.data));
     router.refresh();
   };
+
+  const displayedFeaturedData = activeFilter === 'all'
+    ? unfilteredFeaturedData
+    : unfilteredFeaturedData.filter((item: any) => item.category === activeFilter);
 
   return (
     <>
       <div className="featured">
-        <FeaturedHeader {...cauroselActions} userInfo={userInfo} />
+        <FeaturedHeader
+          {...cauroselActions}
+          userInfo={userInfo}
+          activeFilter={activeFilter}
+          onClick={handleFilterSelected}
+        />
         <div>
-          <div className={`featured__body`}>
-            {featuredData?.map((item: any, index: number) => (
-              <Fragment key={`${item.category}-${index}`}>
-                {item?.category === 'location' ? (
-                  item?.upcomingEvents?.length > 0 && <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
-                ) : (
-                  <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
-                )}
-              </Fragment>
-            ))}
-          </div>
+          {displayedFeaturedData?.length > 0 ? (
+            <div className={`featured__body`}>
+              {displayedFeaturedData?.map((item: any, index: number) => (
+                <Fragment key={`${item.category}-${index}`}>
+                  {item?.category === 'location' ? (
+                    item?.upcomingEvents?.length > 0 && <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                  ) : (
+                    <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                  )}
+                </Fragment>
+              ))}
+            </div>
+          ) : (
+            <div className="featured__no-results">No results found</div>
+          )}
         </div>
 
         <MemberBioModal />
@@ -182,8 +197,29 @@ const Featured = (props: any) => {
         .featured {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 20px;
           width: 100%;
+        }
+
+        .featured__no-results {
+          text-align: center;
+          padding: 40px;
+          font-size: 14px;
+          color: #64748b;
+          background-color: #ffffff;
+          border-radius: 8px;
+          box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        @media (min-width: 1024px) {
+          .featured__no-results {
+            height: 130px;
+            padding: 0;
+          }
         }
 
         @media (min-width: 1920px) {

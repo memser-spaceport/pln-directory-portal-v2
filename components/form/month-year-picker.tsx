@@ -10,7 +10,9 @@ interface MonthYearPickerProps {
   dayValue?: 'start' | 'end'; // Whether to use start or end of month for day value
   name: string;
   id: string;
+  isOptional?: boolean;
   onDateChange: (value: string) => void
+  sort?: 'asc' | 'desc'
 }
 
 const parseISODate = (isoDate: string) => {
@@ -45,7 +47,9 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
   dayValue = 'start',
   name,
   id,
-  onDateChange
+  isOptional = false,
+  onDateChange,
+  sort = 'asc'
 }) => {
   const initialMonthYear = initialDate ? parseISODate(initialDate) : null;
   const [selectedDate, setSelectedDate] = useState(initialMonthYear);
@@ -55,7 +59,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
   const yearDropdownRef = useRef<HTMLDivElement | null>(null);
   const disabled = !initialDate;
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
+  const years = sort === 'asc' ? Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i) : Array.from({ length: maxYear - minYear + 1 }, (_, i) => maxYear - i);
   const currentMonth = initialMonthYear?.month  ? initialMonthYear?.month - 1 : 1;
 
 
@@ -103,7 +107,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
 
   return <>
       <div className="month-year-field" data-testid="month-year-picker"> {/* Added data-testid */}
-        <label className={`month-year-field__label ${disabled ? 'label--disabled' : ''}`}>{label}* </label>
+        <label data-testid="month-year-picker-label" className={`month-year-field__label ${disabled ? 'label--disabled' : ''}`}>{label} {!isOptional && <span className="required-field">*</span>}</label>
         <div className={`month-year-field__dropdowns ${disabled ? 'month-year-field__dropdowns--disabled' : ''}`}>
           <div
             ref={monthDropdownRef}

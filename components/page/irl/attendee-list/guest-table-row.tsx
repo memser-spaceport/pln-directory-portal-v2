@@ -18,6 +18,7 @@ import { SyntheticEvent } from 'react';
 import Image from 'next/image';
 import IrlSpeakerTag from '@/components/ui/irl-speaker-tag';
 import IrlHostTag from '@/components/ui/irl-host-tag';
+import IrlSponsorTag from '@/components/ui/irl-sponsor-tag';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 interface IGuestTableRow {
@@ -56,6 +57,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const events = guest?.events ?? [];
   const hostEvents = events?.flatMap((event: IIrlEvent) => event?.hostSubEvents || []);
   const speakerEvents = events?.flatMap((event: IIrlEvent) => event?.speakerSubEvents || []);
+  const sponsorEvents = events?.flatMap((event: IIrlEvent) => event?.sponsorSubEvents || []);
   const formattedEventRange = checkInDate && checkOutDate ? getFormattedDateString(checkInDate, checkOutDate) : '';
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -158,6 +160,10 @@ const GuestTableRow = (props: IGuestTableRow) => {
     analytics.trackHostEventClicked(location, { eventName: event?.name, eventLink: event?.link });
   };
 
+  const onSponsorEventClick = (event: { name: string; link: string }) => {
+    analytics.trackSponsorEventClicked(location, { eventName: event?.name, eventLink: event?.link });
+  };
+
   const onLoginClick = () => {
     analytics.trackLoginToRespondBtnClick(location);
     onLogin();
@@ -193,6 +199,9 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   {newSearchParams.type === 'past'
                     ? isEventAvailable[0]?.isHost && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
                     : hostEvents?.length > 0 && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />}
+                  {newSearchParams.type === 'past'
+                    ? isEventAvailable[0]?.isSponsor && <IrlSponsorTag sponsorEvents={sponsorEvents} onSponsorEventClick={onSponsorEventClick} />
+                    : sponsorEvents?.length > 0 && <IrlSponsorTag sponsorEvents={sponsorEvents} onSponsorEventClick={onSponsorEventClick} />}
                 </div>
               </div>
             </a>
@@ -213,6 +222,9 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   {newSearchParams.type === 'past'
                     ? isEventAvailable[0]?.isHost && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />
                     : hostEvents?.length > 0 && <IrlHostTag hostEvents={hostEvents} onHostEventClick={onHostEventClick} />}
+                  {newSearchParams.type === 'past'
+                    ? isEventAvailable[0]?.isSponsor && <IrlSponsorTag sponsorEvents={sponsorEvents} onSponsorEventClick={onSponsorEventClick} />
+                    : sponsorEvents?.length > 0 && <IrlSponsorTag sponsorEvents={sponsorEvents} onSponsorEventClick={onSponsorEventClick} />}
                 </div>
               </a>
             </Link>

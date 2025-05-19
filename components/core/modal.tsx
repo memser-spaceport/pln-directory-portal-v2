@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import { ReactNode, useEffect, useRef } from 'react';
-
+import DialogLoader from './dialog-loader';
 interface IModal {
   onClose: (e?: any) => void;
   children: ReactNode;
@@ -15,6 +15,7 @@ const Modal = (props: IModal) => {
   return (
     <>
       <dialog autoFocus={true} ref={ref} className="modal">
+        <DialogLoader />
         {/* for skip button focus */}
         <button className="modal__cn__hidden"></button>
         <div className="modal__cn">
@@ -52,6 +53,7 @@ const Modal = (props: IModal) => {
             background: transparent;
             user-select: none;
             outline: none;
+            z-index: 1;
           }
         `}
       </style>

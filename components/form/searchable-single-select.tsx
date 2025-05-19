@@ -29,6 +29,7 @@ interface SearchableSingleSelectProps {
   showClear?: boolean;
   closeImgUrl?: string;
   isError?: boolean;
+  disabled?: boolean;
 }
 
 const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
@@ -53,6 +54,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
   showClear,
   closeImgUrl,
   isError = false,
+  disabled = false,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
   const [showOptions, setShowOptions] = useState(false);
@@ -151,7 +153,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           {iconKey && selectedOption && <img className="selected__icon" src={selectedOption[iconKey] || defaultImage} alt={selectedOption[displayKey]} />}
           <input
             id={id}
-            className={`select__search ${iconKey ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
+            className={`select__search ${iconKey && selectedOption ? 'hasDefaultImg' : ''} ${selectedOption && iconKey && selectedOption[iconKey] ? 'select__icon' : ''} ${
               (isMandatory && !selectedOption?.[uniqueKey]) || (isMandatory && searchRef.current?.value === '') ? 'select__search--error' : ''
             }`}
             ref={searchRef}
@@ -171,6 +173,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
               }
               setShowOptions(false);
             }}
+            disabled={disabled}
           />
           <input ref={inputRef} type="text" hidden defaultValue={defaultSelectedValue} name={name} />
 
@@ -190,21 +193,25 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
 
           {showOptions && (
             <ul className="select__options">
-              {filteredOptions.length > 0 && ( 
-              <Virtuoso style={{height: '150px'}} data={filteredOptions} itemContent={(_, option: any) => (
-                <li
-                  key={option[uniqueKey]}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleOptionClick(option);
-                  }}
-                  className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}
-                >
-                  {iconKey && <img loading='eager' height={24} width={24} className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
-                  <span> {option[displayKey]}</span>
-                </li>
-              )} />
-            )}
+              {filteredOptions.length > 0 && (
+                <Virtuoso
+                  style={{ height: '150px' }}
+                  data={filteredOptions}
+                  itemContent={(_, option: any) => (
+                    <li
+                      key={option[uniqueKey]}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleOptionClick(option);
+                      }}
+                      className={`select__options__item ${option[displayKey] === selectedOption?.[displayKey] ? 'select__options__item--selected' : ''}`}
+                    >
+                      {iconKey && <img loading="eager" height={24} width={24} className="select__options__item__img" src={option[iconKey] || defaultImage} alt={option[displayKey]} />}
+                      <span> {option[displayKey]}</span>
+                    </li>
+                  )}
+                />
+              )}
               {/* {filteredOptions.map((option) => (
                 <li
                   key={option[uniqueKey]}

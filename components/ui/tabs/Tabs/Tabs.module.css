@@ -1,0 +1,100 @@
+.root {
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    .tabsList {
+        display: flex;
+        width: 100%;
+    }
+
+    .tab {
+        padding: 8px 12px;
+        cursor: pointer;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        transition: border-bottom 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+
+        .text {
+            font-size: 14px;
+            font-weight: 400;
+            text-transform: uppercase;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .count {
+            font-size: 11px;
+            width: 28px;
+            height: 15px;
+            background-color: #94a3b8;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        &.active {
+            border-bottom: 2px solid #156ff7;
+
+            .text {
+                font-weight: 700;
+                color: #156ff7;
+            }
+
+            .count {
+                background-color: #156ff7;
+            }
+        }
+
+        &.error {
+            border-bottom: 2px solid red;
+
+            .text {
+                color: red;
+            }
+        }
+    }
+
+    &.secondary {
+        border-bottom: 2px solid #E2E8F0;
+
+        .tabsList {
+            display: flex;
+            margin-bottom: -2px;
+        }
+
+        .tab {
+            color: #94A3B8;
+            width: fit-content;
+            padding-left: 0;
+
+            .text {
+                text-align: left;
+                font-size: 14px;
+                font-weight: 400;
+                text-transform: none;
+            }
+
+            .count {
+                display: none;
+            }
+
+            &.active .text {
+                color: #0F172A;
+            }
+        }
+    }
+}
+
+.tabsList {
+    display: flex;
+}
+

@@ -87,6 +87,14 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_PROFILE_CLICKED, params);
   }
 
+  function onAddExperienceClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
+    const params = {
+      user,
+      ...member,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_EXPERIENCE_CLICKED, params);
+  }
+
   function onSocialProfileLinkClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, type: string, link: string) {
     const params = {
       user,
@@ -345,6 +353,36 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS, params);
   }
 
+  function onEditExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,experience: any,status: string) {
+    const params = {
+      user,
+      ...member,
+      experience,
+      status,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_EXPERIENCE_SAVE_CLICKED, params);
+  }
+
+  function onAddExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,experience: any,status: string) {
+    const params = {
+      user,
+      ...member,
+      experience,
+      status,
+    };
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_EXPERIENCE_SAVE_CLICKED, params);
+  }
+
+  function onDeleteExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,experience: any,status: string) {
+    const params = {
+      user,
+      ...member,
+      experience,
+      status,
+    };  
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED, params);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -383,6 +421,10 @@ export const useMemberAnalytics = () => {
     onClickSeeMoreIrlContribution,
     onClickEventIrlContribution,
     onAddOfficeHourClicked,
-    onEditOfficeHourClicked
+    onEditOfficeHourClicked,
+    onAddExperienceClicked,
+    onEditExperienceSaveClicked,
+    onAddExperienceSaveClicked,
+    onDeleteExperienceSaveClicked
   };
 };

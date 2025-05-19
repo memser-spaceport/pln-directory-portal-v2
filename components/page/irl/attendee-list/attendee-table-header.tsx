@@ -32,12 +32,13 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const reverseRoleMapping: { [key: string]: string } = {
     hosts: 'Hosts only',
     speakers: 'Speakers only',
-    hostsAndSpeakers: 'Hosts & speakers',
+    sponsors: 'Sponsors only',
+    hostsAndSpeakersAndSponsors: 'Hosts, speakers & sponsors',
   } as any;
   const attendeeTypeParams = searchParams.get('attendees');
   const attendeeTypeItems = attendeeTypeParams ? attendeeTypeParams.split(URL_QUERY_VALUE_SEPARATOR) : [];
   const selectedAttendeeTypes = attendeeTypeItems.map((role) => reverseRoleMapping[role]).filter(Boolean);
-  const attendeeTypeFilterItems = ['Hosts only', 'Speakers only', 'Hosts & speakers'];
+  const attendeeTypeFilterItems = ['Hosts only', 'Speakers only', 'Sponsors only', 'Hosts, speakers & sponsors'];
 
   const eventsFilterProps = useFloatingSelect({
     items: events,
@@ -181,7 +182,8 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
     const roleMapping = {
       'Hosts only': 'hosts',
       'Speakers only': 'speakers',
-      'Hosts & speakers': 'hostsAndSpeakers',
+      'Sponsors only': 'sponsors',
+      'Hosts, speakers & sponsors': 'hostsAndSpeakersAndSponsors',
     } as any;
 
     const queryParams = new URLSearchParams(searchParams);

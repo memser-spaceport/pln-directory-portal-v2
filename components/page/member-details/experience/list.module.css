@@ -140,6 +140,11 @@
   line-height: 16px;
 }
 
+.memberDetail__experience__item__detail__description__text a {
+  color: #156FF7;
+  text-decoration: none;
+}
+
 .memberDetail__experience__item__detail__description__text__more {
   font-weight: 400;
   font-size: 12px;

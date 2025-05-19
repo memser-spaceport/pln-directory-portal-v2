@@ -140,17 +140,21 @@ const Featured = (props: any) => {
           onClick={handleFilterSelected}
         />
         <div>
-          <div className={`featured__body`}>
-            {displayedFeaturedData?.map((item: any, index: number) => (
-              <Fragment key={`${item.category}-${index}`}>
-                {item?.category === 'location' ? (
-                  item?.upcomingEvents?.length > 0 && <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
-                ) : (
-                  <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
-                )}
-              </Fragment>
-            ))}
-          </div>
+          {displayedFeaturedData?.length > 0 ? (
+            <div className={`featured__body`}>
+              {displayedFeaturedData?.map((item: any, index: number) => (
+                <Fragment key={`${item.category}-${index}`}>
+                  {item?.category === 'location' ? (
+                    item?.upcomingEvents?.length > 0 && <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                  ) : (
+                    <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                  )}
+                </Fragment>
+              ))}
+            </div>
+          ) : (
+            <div className="featured__no-results">No results found</div>
+          )}
         </div>
 
         <MemberBioModal />
@@ -195,6 +199,27 @@ const Featured = (props: any) => {
           flex-direction: column;
           gap: 20px;
           width: 100%;
+        }
+
+        .featured__no-results {
+          text-align: center;
+          padding: 40px;
+          font-size: 14px;
+          color: #64748b;
+          background-color: #ffffff;
+          border-radius: 8px;
+          box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        @media (min-width: 1024px) {
+          .featured__no-results {
+            height: 130px;
+            padding: 0;
+          }
         }
 
         @media (min-width: 1920px) {

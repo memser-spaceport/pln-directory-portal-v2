@@ -70,7 +70,7 @@ export default function MemberDetailsExperienceDetail({ experience, isEditable, 
               <span>{getDuration(experience?.startDate, experience?.endDate, experience?.isCurrent)}</span>
             </p>
             {experience?.location && <p className={styles?.memberDetail__experience__item__detail__location}>{experience?.location}</p>}
-            {experience?.description && <ExperienceDescription description={experience?.description} />}
+            {experience?.description?.length > 0 && <ExperienceDescription description={experience?.description} />}
           </div>
         </div>
         {isEditable && (

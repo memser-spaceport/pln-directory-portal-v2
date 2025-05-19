@@ -13,6 +13,8 @@ import { triggerDialogLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import TextArea from '@/components/form/text-area';
+import TextEditor from '@/components/ui/text-editor';
+import HiddenField from '@/components/form/hidden-field';
 interface Experience {
   uid?: string;
   memberId?: string;
@@ -135,7 +137,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
 
   // Helper to update experience ref
   const updateExperience = (key: string, value: any) => {
-    if(key === 'startDate' || key === 'endDate'){
+    if(key === 'startDate' || key === 'endDate' || key === 'description'){
       setForceUpdate(prev => prev + 1);
     }
     experienceRef.current = {
@@ -177,6 +179,22 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
             placeholder="Enter team or organization"
           />
           {errors.company && <p className="error-text">{errors.company}</p>}
+
+          <div className="add-edit-experience__modal__description">
+            <label className="add-edit-experience__modal__description__label">Impact or Work Description</label>
+            <TextEditor
+              maxLength={2000}
+              height={165}
+              isRequired={false}
+              statusBar={false}
+              toolbarOptions="bold italic underline strikethrough customLinkButton bullist numlist"
+              text={experienceRef.current?.description || ''}
+              setContent={(value: string) => updateExperience('description', value)}
+              isToolbarSticky={false}
+            />
+            <HiddenField value={experienceRef.current?.description || ''} defaultValue={experienceRef.current?.description || ''} name={`description`} />
+          </div>
+          {errors.description && <p className="error-text">{errors.description}</p>}
 
           <div className="add-edit-experience__modal__dates">
             <MonthYearPicker
@@ -236,15 +254,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
             id="experience-location"
           />
           {errors.location && <p className="error-text">{errors.location}</p>}
-
-          <TextArea 
-            label="Impact or Work Description"
-            defaultValue={experienceRef.current?.description || ''}
-            placeholder="Enter impact or work description"
-            name="experience-description"
-            id="experience-description"
-          />
-          {errors.description && <p className="error-text">{errors.description}</p>}
+          
         </div>
         <div className="add-edit-experience__modal__footer">
           {isEdit && (
@@ -299,6 +309,13 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
             margin-bottom: 12px;
             gap: 4px;
           }
+
+          .add-edit-experience__modal__description__label {
+            font-weight: 600 !important;
+            font-size: 14px;
+          }
+          
+          
           .add-edit-experience__modal__body input,
           .add-edit-experience__modal__body select {
             padding: 8px;

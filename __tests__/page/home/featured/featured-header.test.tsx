@@ -30,10 +30,10 @@ describe('FeaturedHeader Component', () => {
     // Check for the "All" filter button instead of "Featured"
     expect(screen.getByText('All')).toBeInTheDocument();
     // Check for other filter options to verify the component rendered correctly
-    expect(screen.getByText('Team')).toBeInTheDocument();
+    expect(screen.getByText('Teams')).toBeInTheDocument();
     expect(screen.getByText('Projects')).toBeInTheDocument();
     expect(screen.getByText('Members')).toBeInTheDocument();
-    expect(screen.getByText('Event')).toBeInTheDocument();
+    expect(screen.getByText('Events')).toBeInTheDocument();
   });
 
   it('renders the "Submit a request" link with correct URL', () => {
@@ -66,7 +66,7 @@ describe('FeaturedHeader Component', () => {
       activeFilter=""
     />);
     
-    const teamFilterButton = screen.getByText('Team');
+    const teamFilterButton = screen.getByText('Teams');
     fireEvent.click(teamFilterButton);
     
     expect(mockOnClick).toHaveBeenCalledWith('team');
@@ -80,7 +80,7 @@ describe('FeaturedHeader Component', () => {
       activeFilter="team"
     />);
     
-    const teamFilterButton = screen.getByText('Team');
+    const teamFilterButton = screen.getByText('Teams');
     expect(teamFilterButton.className).toContain('active');
   });
 });

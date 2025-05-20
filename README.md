@@ -128,6 +128,9 @@ If you are contributing to this repository, please follow these guidelines:
    - `signup_flow_submit_button_click`  
    - `account_settings_email_update_submit`
 
+   For more best practices, visit the official PostHog documentation:  
+   [https://posthog.com/docs/product-analytics/best-practices](https://posthog.com/docs/product-analytics/best-practices)
+   
 # Steps to run directory admin frontend service locally
 
 #### This app is used by admin to approve/reject/edit member and team join requests.

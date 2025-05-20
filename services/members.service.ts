@@ -1,7 +1,14 @@
 import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
-import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpeaker, parseMemberDetailsForTeams } from '@/utils/member.utils';
+import {
+  hidePreferences,
+  parseMemberDetails,
+  getUniqueFilters,
+  handleHostAndSpeaker,
+  parseMemberDetailsForTeams,
+  getVisibleSocialHandles
+} from '@/utils/member.utils';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
@@ -162,6 +169,12 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     if (isHidePref) {
       hidePreferences(preferences, member);
     }
+  }
+
+  const visibleHandles = getVisibleSocialHandles(member);
+  member = {
+    ...member,
+    visibleHandles: visibleHandles,
   }
 
   if (!isLoggedIn) {

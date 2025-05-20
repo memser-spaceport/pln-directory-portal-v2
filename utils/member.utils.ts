@@ -696,7 +696,6 @@ export function getVisibleSocialHandles(member): string[] {
   const fieldMap = {
     email: ['email', 'showEmail'],
     github: ['githubHandler', 'showGithub'],
-    githubHandle: ['githubHandle', 'showGithubHandle'],
     discord: ['discordHandler', 'showDiscord'],
     twitter: ['twitterHandler', 'showTwitter'],
     linkedin: ['linkedinHandler', 'showLinkedin'],

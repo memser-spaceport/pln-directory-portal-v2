@@ -109,8 +109,6 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
 
   const result = await memberResponse?.json();
 
-  console.log(result);
-
   const teamAndRoles: { teamTitle: any; role: any; teamUid: any; }[] = [];
   const teams =
     result.teamMemberRoles?.map((teamMemberRole: any) => {

@@ -96,7 +96,6 @@ const MembersFilter = (props: IMembersFilter) => {
     router.push(`${window.location.pathname}?${currentParams.toString()}`);
   };
 
-
   const onTagClickHandler = async (key: string, value: string, isSelected: boolean) => {
     try {
       triggerLoader(true);
@@ -109,7 +108,7 @@ const MembersFilter = (props: IMembersFilter) => {
       updateQueryParams(key, currentTags.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
       analytics.onTagSelected(PAGE_ROUTES.TEAMS, key, getAnalyticsUserInfo(userInfo), value);
       return;
-    } catch (error) { }
+    } catch (error) {}
   };
 
   const onClearAllClicked = () => {
@@ -119,7 +118,22 @@ const MembersFilter = (props: IMembersFilter) => {
       const pathname = window?.location?.pathname;
       analytics.onClearAllClicked(PAGE_ROUTES.TEAMS, selectedItems, getAnalyticsUserInfo(userInfo));
 
-      const clearQuery = ['skills', 'region', 'country', 'metroArea', 'includeFriends', 'includeUnVerified', 'openToWork', 'officeHoursOnly', 'memberRoles','isRecent', 'isHost', 'isSpeaker', 'isSponsor', 'isHostAndSpeakerAndSponsor'];
+      const clearQuery = [
+        'skills',
+        'region',
+        'country',
+        'metroArea',
+        'includeFriends',
+        'includeUnVerified',
+        'openToWork',
+        'officeHoursOnly',
+        'memberRoles',
+        'isRecent',
+        'isHost',
+        'isSpeaker',
+        'isSponsor',
+        'isHostAndSpeakerAndSponsor',
+      ];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           triggerLoader(true);
@@ -223,13 +237,7 @@ const MembersFilter = (props: IMembersFilter) => {
             <div className="team-filter__body__toggle-section__toggle-option">
               <h3 className="team-filter__body__toggle-section__toogle-option__title">New Members</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle
-                  height="16px"
-                  width="28px"
-                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isRecent', 'member-is-recent', e)}
-                  isChecked={isRecent}
-                  id="member-is-recent"
-                />
+                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('isRecent', 'member-is-recent', e)} isChecked={isRecent} id="member-is-recent" />
               </div>
             </div>
             {/* Unverified Members filter */}
@@ -255,52 +263,21 @@ const MembersFilter = (props: IMembersFilter) => {
             <div className="team-filter__body__toggle-section__toggle-option">
               <h3 className="team-filter__body__toggle-section__toogle-option__title">Host</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle
-                  height="16px"
-                  width="28px"
-                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isHost', 'member-is-host', e)}
-                  isChecked={isHost}
-                  id="member-is-host"
-                />
+                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('isHost', 'member-is-host', e)} isChecked={isHost} id="member-is-host" />
               </div>
             </div>
 
             <div className="team-filter__body__toggle-section__toggle-option">
               <h3 className="team-filter__body__toggle-section__toogle-option__title">Speaker</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle
-                  height="16px"
-                  width="28px"
-                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isSpeaker', 'member-is-speaker', e)}
-                  isChecked={isSpeaker}
-                  id="member-is-speaker"
-                />
+                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('isSpeaker', 'member-is-speaker', e)} isChecked={isSpeaker} id="member-is-speaker" />
               </div>
             </div>
 
             <div className="team-filter__body__toggle-section__toggle-option">
               <h3 className="team-filter__body__toggle-section__toogle-option__title">Sponsor</h3>
               <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle
-                  height="16px"
-                  width="28px"
-                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isSponsor', 'member-is-sponsor', e)}
-                  isChecked={isSponsor}
-                  id="member-is-sponsor"
-                />
-              </div>
-            </div>
-
-            <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host, Speaker, Sponsor</h3>
-              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle
-                  height="16px"
-                  width="28px"
-                  callback={(e: BaseSyntheticEvent) => onToggleClicked('isHostAndSpeakerAndSponsor', 'member-is-host-speaker-sponsor', e)}
-                  isChecked={isHostAndSpeakerAndSponsor}
-                  id="member-is-host-speaker-sponsor"
-                />
+                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('isSponsor', 'member-is-sponsor', e)} isChecked={isSponsor} id="member-is-sponsor" />
               </div>
             </div>
           </div>
@@ -310,8 +287,7 @@ const MembersFilter = (props: IMembersFilter) => {
           <div className="team-filter__bl"></div>
           <RolesFilter memberRoles={filterValues?.memberRoles} searchParams={searchParams} userInfo={userInfo} />
           <div className="team-filter__bl"></div>
-          <TagContainer page={PAGE_ROUTES.MEMBERS} label="Skills" name="skills" items={filterValues?.skills ?? []}
-                        onTagClickHandler={onTagClickHandler} initialCount={10} userInfo={userInfo} />
+          <TagContainer page={PAGE_ROUTES.MEMBERS} label="Skills" name="skills" items={filterValues?.skills ?? []} onTagClickHandler={onTagClickHandler} initialCount={10} userInfo={userInfo} />
           <div className="team-filter__bl"></div>
           <TagContainer
             page={PAGE_ROUTES.MEMBERS}

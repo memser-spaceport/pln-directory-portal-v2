@@ -692,6 +692,29 @@ export function handleHostAndSpeaker(options: any) {
   }
 }
 
+export function getVisibleSocialHandles(member): string[] {
+  const fieldMap = {
+    email: ['email', 'showEmail'],
+    github: ['githubHandler', 'showGithub'],
+    githubHandle: ['githubHandle', 'showGithubHandle'],
+    discord: ['discordHandler', 'showDiscord'],
+    twitter: ['twitterHandler', 'showTwitter'],
+    linkedin: ['linkedinHandler', 'showLinkedin'],
+    telegram: ['telegramHandler', 'showTelegram'],
+  };
+
+  const result = [];
+
+  for (const friendlyName in fieldMap) {
+    const [dataKey, prefKey] = fieldMap[friendlyName];
+    if (member[dataKey] && member.preferences?.[prefKey]) {
+      result.push(friendlyName);
+    }
+  }
+
+  return result;
+}
+
 export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: string) => {
   return members?.map((member: IMemberResponse): IMember => {
     let parsedMember = { ...member };

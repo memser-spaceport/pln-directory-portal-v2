@@ -692,7 +692,7 @@ export function handleHostAndSpeaker(options: any) {
   }
 }
 
-export function getVisibleSocialHandles(member): string[] {
+export function getVisibleSocialHandles(member: any): string[] {
   const fieldMap = {
     email: ['email', 'showEmail'],
     github: ['githubHandler', 'showGithub'],

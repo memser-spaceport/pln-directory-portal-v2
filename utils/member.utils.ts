@@ -695,11 +695,11 @@ export function handleHostAndSpeaker(options: any) {
 export function getVisibleSocialHandles(member: any): string[] {
   const fieldMap: Record<string, [string, string]> = {
     email: ['email', 'showEmail'],
-    github: ['githubHandler', 'showGithub'],
-    discord: ['discordHandler', 'showDiscord'],
-    twitter: ['twitterHandler', 'showTwitter'],
-    linkedin: ['linkedinHandler', 'showLinkedin'],
-    telegram: ['telegramHandler', 'showTelegram'],
+    github: ['githubHandle', 'showGithubHandle'],
+    discord: ['discordHandle', 'showDiscord'],
+    twitter: ['twitter', 'showTwitter'],
+    linkedin: ['linkedinHandle', 'showLinkedin'],
+    telegram: ['telegramHandle', 'showTelegram'],
   };
 
   const result: string[] = [];

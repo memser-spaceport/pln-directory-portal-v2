@@ -1,41 +1,26 @@
 'use client';
 
-import { ITEMS_PER_PAGE, VIEW_TYPE_OPTIONS } from '@/utils/constants';
+import { VIEW_TYPE_OPTIONS } from '@/utils/constants';
 import ProjectGridView from './project-grid-view';
 import ProjectListView from './project-list-view';
 import Link from 'next/link';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getProjectSelectOptions, getProjectsFiltersFromQuery } from '@/utils/projects.utils';
 import ProjectAddCard from './project-add-card';
-import { getAllProjects } from '@/app/actions/projects.actions';
-import useListPagination from '@/hooks/use-list-pagination';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ListLoader } from '@/components/core/loaders/ListLoader';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { useInfiniteProjectsList } from '@/services/projects/hooks/useInfiniteProjectsList';
 
 const ProjectlistWrapper = (props: any) => {
   const searchParams = props?.searchParams;
   const viewType = searchParams?.viewType ?? VIEW_TYPE_OPTIONS.GRID;
-  const projects: any[] = props?.projects ?? [];
+  const projects = props?.projects ?? [];
   const userInfo = props?.userInfo;
   const totalProjects = props?.totalProjects;
   const isLoggedIn = props?.isLoggedIn;
-  const Loader = VIEW_TYPE_OPTIONS.GRID === viewType ? CardsLoader : ListLoader;
-
-  const [allProjects, setAllProjects] = useState<any[]>([...projects]);
 
   const analytics = useProjectAnalytics();
-  const router = useRouter();
-  const paginationRef = useRef(null);
-  const [isloading, setIsLoading] = useState(false);
-
-  const { currentPage, limit, setPagination } = useListPagination({
-    observerTargetRef: paginationRef,
-    totalItems: totalProjects,
-    totalCurrentItems: allProjects?.length,
-  });
 
   const onNavigateToProject = (e: any, project: any) => {
     if (!e.ctrlKey) {
@@ -48,45 +33,16 @@ const ProjectlistWrapper = (props: any) => {
     });
   };
 
-  useEffect(() => {
-    triggerLoader(false);
-  }, [router, searchParams]);
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteProjectsList(
+    {
+      searchParams,
+    },
+    {
+      initialData: { items: projects, total: totalProjects },
+    },
+  );
 
-  const getProjects = async () => {
-    try {
-      // setIsLoading(true);
-      const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
-      const selectOpitons = getProjectSelectOptions(filterFromQuery);
-
-      const projectsResponse = await getAllProjects(
-        { ...selectOpitons, isDeleted: false, select: 'uid,name,tagline,logo.url,description,lookingForFunding,maintainingTeam.name,maintainingTeam.logo.url' },
-        currentPage,
-        ITEMS_PER_PAGE,
-      );
-      if (!projectsResponse?.error) {
-        // setIsLoading(false);
-        setAllProjects([...allProjects, ...projectsResponse?.data?.formattedData]);
-        return;
-      } else {
-        // setIsLoading(false);
-      }
-    } catch (error) {
-      // setIsLoading(false);
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    if (currentPage !== 1) {
-      getProjects();
-    }
-  }, [currentPage]);
-
-  // Sync  eventDetails changes
-  useEffect(() => {
-    setPagination({ page: 2, limit: ITEMS_PER_PAGE });
-    setAllProjects([...projects]);
-  }, [projects]);
+  const Loader = VIEW_TYPE_OPTIONS.GRID === viewType ? CardsLoader : ListLoader;
 
   return (
     <>
@@ -94,23 +50,24 @@ const ProjectlistWrapper = (props: any) => {
         <div className="project-list__titlesec">
           <h1 className="project-list__titlesec__title">Projects</h1> <div className="project-list__title__count">({totalProjects})</div>
         </div>
-        <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid' : 'project-list__list'}`}>
-          {isLoggedIn && totalProjects > 0 && <ProjectAddCard userInfo={userInfo} viewType={viewType} />}
-          {allProjects?.map((project: any, index: number) => (
-            <Link
-              href={`/projects/${project.id}`}
-              key={`projectitem-${project.id}-${index}`}
-              prefetch={false}
-              className={`project-list__project ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid__project' : 'project-list__list__project'}`}
-              onClick={(e) => onNavigateToProject(e, project)}
-            >
-              {VIEW_TYPE_OPTIONS.GRID === viewType && <ProjectGridView project={project} viewType={viewType} />}
-              {VIEW_TYPE_OPTIONS.LIST === viewType && <ProjectListView project={project} viewType={viewType} />}
-            </Link>
-          ))}
-          {isloading && <Loader />}
-          <div ref={paginationRef} />
-        </div>
+        <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage}>
+          <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid' : 'project-list__list'}`}>
+            {isLoggedIn && totalProjects > 0 && <ProjectAddCard userInfo={userInfo} viewType={viewType} />}
+            {data?.map((project: any, index: number) => (
+              <Link
+                href={`/projects/${project.id}`}
+                key={`projectitem-${project.id}-${index}`}
+                prefetch={false}
+                className={`project-list__project ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid__project' : 'project-list__list__project'}`}
+                onClick={(e) => onNavigateToProject(e, project)}
+              >
+                {VIEW_TYPE_OPTIONS.GRID === viewType && <ProjectGridView project={project} viewType={viewType} />}
+                {VIEW_TYPE_OPTIONS.LIST === viewType && <ProjectListView project={project} viewType={viewType} />}
+              </Link>
+            ))}
+            {isFetchingNextPage && <Loader />}
+          </div>
+        </InfiniteScroll>
       </div>
 
       <style jsx>{`

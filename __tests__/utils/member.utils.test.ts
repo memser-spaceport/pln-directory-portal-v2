@@ -107,11 +107,11 @@ describe('getVisibleSocialHandles function', () => {
   it('should return nothing but officeHours when all preferences are false', () => {
     const member = {
       email: 'some.user@gmail.com',
-      githubHandler: 'https://github.com/some-user',
-      discordHandler: 'some-user-discord',
-      twitterHandler: 'some-user-twitter',
-      linkedinHandler: 'https://www.linkedin.com/in/some-user/',
-      telegramHandler: 'some-user-tg',
+      githubHandle: 'https://github.com/some-user',
+      discordHandle: 'some-user-discord',
+      twitter: 'some-user-twitter',
+      linkedinHandle: 'https://www.linkedin.com/in/some-user/',
+      telegramHandle: 'some-user-tg',
       officeHours: 'https://woozy-homicide.info',
       preferences: {
         showEmail: false,
@@ -133,11 +133,11 @@ describe('getVisibleSocialHandles function', () => {
   it('should return nothing when all preferences are false as well as officeHours', () => {
     const member = {
       email: 'some.user@gmail.com',
-      githubHandler: 'https://github.com/some-user',
-      discordHandler: 'some-user-discord',
-      twitterHandler: 'some-user-twitter',
-      linkedinHandler: 'https://www.linkedin.com/in/some-user/',
-      telegramHandler: 'some-user-tg',
+      githubHandle: 'https://github.com/some-user',
+      discordHandle: 'some-user-discord',
+      twitter: 'some-user-twitter',
+      linkedinHandle: 'https://www.linkedin.com/in/some-user/',
+      telegramHandle: 'some-user-tg',
       officeHours: null,
       preferences: {
         showEmail: false,
@@ -151,6 +151,40 @@ describe('getVisibleSocialHandles function', () => {
     };
 
     const expectedResult: string[] = [];
+
+    const handles = getVisibleSocialHandles(member);
+    expect(handles).toEqual(expectedResult);
+  });
+
+  it('should return all when there are no preferences', () => {
+    const member = {
+      email: 'some.user@gmail.com',
+      githubHandle: 'https://github.com/some-user',
+      discordHandle: 'some-user-discord',
+      twitter: 'some-user-twitter',
+      linkedinHandle: 'https://www.linkedin.com/in/some-user/',
+      telegramHandle: 'some-user-tg',
+      officeHours: 'some-office-hours',
+    };
+
+    const expectedResult: string[] = [ 'email', 'github', 'discord', 'twitter', 'linkedin', 'telegram', 'officeHours' ];
+
+    const handles = getVisibleSocialHandles(member);
+    expect(handles).toEqual(expectedResult);
+  });
+
+  it('should return nothing if all nulls and no preferences', () => {
+    const member = {
+      email: null,
+      githubHandle: null,
+      discordHandle: null,
+      twitter: null,
+      linkedinHandle: null,
+      telegramHandle: null,
+      officeHours: null,
+    };
+
+    const expectedResult: string[] = [  ];
 
     const handles = getVisibleSocialHandles(member);
     expect(handles).toEqual(expectedResult);

@@ -711,6 +711,10 @@ export function getVisibleSocialHandles(member: any): string[] {
     }
   }
 
+  if (member.officeHours) {
+    result.push('officeHours');
+  }
+
   return result;
 }
 

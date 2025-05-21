@@ -455,8 +455,8 @@ export const FOCUS_AREAS_FILTER_KEYS = {
   teams: 'teamAncestorFocusAreas',
 };
 
-export const ITEMS_PER_PAGE = 6;
-export const INITIAL_ITEMS_PER_PAGE = 6;
+export const ITEMS_PER_PAGE = 50;
+export const INITIAL_ITEMS_PER_PAGE = 50;
 
 export const ENROLLMENT_TYPE = {
   MEMBER: 'MEMBER',
@@ -535,7 +535,7 @@ export const ChangeLogList = [
     <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Enhanced Member Profiles</span> - Added <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/a7a44c8914f54f549e22062e94fec66e?sid=ee628226-0183-48a4-973f-1e515c934c5e" target="_blank">new Experience section</a> displaying professional background, past roles, and impact created</li>
     </ul>
     </div>`,
-  }, 
+  },
   {
     title: 'Version 4.1.11 - Directory Enhancements',
     tag: 'Improvements',

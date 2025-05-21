@@ -3,6 +3,7 @@
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getSocialLinkUrl } from '@/utils/common.utils';
 import { ReactNode } from 'react';
+import Image from 'next/image';
 
 interface IProfileSocialLink {
   type: string;
@@ -38,7 +39,7 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
               data-testid="profile-social-link"
               className={`profile-social-link ${preferred ? 'preffered' : 'not-preferred'} `}
             >
-              <img loading="lazy" src={logo} alt={type} height={height} width={width} />
+              {logo && <Image loading="lazy" src={logo} alt={type} height={height} width={width} />}
               <p className={`profile-social-link__link ${isPreview ? 'profile-social-link__link-preview' : ''}`}>{profile ? profile : handle}</p>
             </a>
             {suffix}

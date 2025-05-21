@@ -31,7 +31,9 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
 
 export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
   const router = useRouter();
-  const { githubHandle, discordHandle, telegramHandle, twitter, linkedinHandle, email, visibleHandles } = member;
+  const { visibleHandles } = member;
+
+  const showOfficeHours = visibleHandles?.includes('officeHours');
 
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
@@ -59,13 +61,13 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
           <div className={s.social}>
             {visibleHandles
               ?.filter((item) => item !== 'officeHours')
-              .map((item) => {
+              .map((item, i, arr) => {
                 const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
 
                 return (
                   <Fragment key={item}>
                     <ProfileSocialLink profile={getProfileFromURL(handle, item)} height={24} width={24} callback={callback} type={item} handle={handle} logo={getLogoByProvider(item)} />
-                    <div className={s.divider} />
+                    {!showOfficeHours && i === arr.length - 1 ? null : <div className={s.divider} />}
                   </Fragment>
                 );
               })}

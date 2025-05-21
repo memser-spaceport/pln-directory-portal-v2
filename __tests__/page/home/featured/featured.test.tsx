@@ -86,7 +86,7 @@ describe('Featured Component', () => {
     
     // Check for filter buttons instead of "Featured" text
     expect(screen.getByText('All')).toBeInTheDocument();
-    expect(screen.getByText('Team')).toBeInTheDocument();
+    expect(screen.getByText('Teams')).toBeInTheDocument();
     expect(screen.getByText('Projects')).toBeInTheDocument();
     
     // Also verify some content is rendered

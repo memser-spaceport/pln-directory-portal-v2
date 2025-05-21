@@ -1,22 +1,53 @@
-'use client'
-import styles from './list.module.css';
+'use client';
+
 import { useState, useEffect } from 'react';
-export default function ExperienceDescription({ description }: { description: string }) {
+import clip from 'text-clipper';
+import DOMPurify from 'dompurify';
+import styles from './list.module.css';
 
-    const [showMore, setShowMore] = useState(description.length > 255);
+export default function ExperienceDescription({ description = '' }: { description: string }) {
+  const [sanitized, setSanitized] = useState('');
+  const [isClipped, setIsClipped] = useState(false);
 
-    const handleShowMore = () => {
-        setShowMore(!showMore);
+  useEffect(() => {
+    if (description && typeof window !== 'undefined') {
+      const clean = DOMPurify.sanitize(description,{
+        ALLOWED_ATTR: ['href', 'target', 'rel'],
+        ADD_ATTR: ['target', 'rel'],
+        ADD_TAGS: ['a'], // only if you're limiting tags
+      });
+      const clipped = clip(clean, 255, { html: true, maxLines: 2 });
+
+      setSanitized(clipped);
+      setIsClipped(clean.length > clipped.length);
     }
+  }, [description]);
 
-    useEffect(() => {
-        setShowMore(description.length > 255);
-    }, [description]);
+  const handleToggle = () => {
+    setIsClipped(!isClipped);
+  };
 
   return (
-    <div className={styles?.memberDetail__experience__item__detail__description}>
-      <p className={styles?.memberDetail__experience__item__detail__description__text}>{showMore ? description.slice(0, 255) : description}</p>
-      {showMore && <span className={styles?.memberDetail__experience__item__detail__description__text__more} onClick={handleShowMore}>Show more</span>}
+    <div className={styles.memberDetail__experience__item__detail__description}>
+      {sanitized && (
+        <p
+          dangerouslySetInnerHTML={{ __html: isClipped ? sanitized : DOMPurify.sanitize(description,{
+            ALLOWED_ATTR: ['href', 'target', 'rel'],
+            ADD_ATTR: ['target', 'rel'],
+            ADD_TAGS: ['a']
+          }) }}
+          className={styles.memberDetail__experience__item__detail__description__text}
+        />
+      )}
+
+      {isClipped && (
+        <span
+          onClick={handleToggle}
+          className={styles.memberDetail__experience__item__detail__description__text__more}
+        >
+          Show more
+        </span>
+      )}
     </div>
   );
 }

@@ -5,10 +5,10 @@ import { HOME_PAGE_LINKS } from '@/utils/constants';
 
 const filterOptions = [
   { label: 'All', value: 'all' },
-  { label: 'Team', value: 'team' },
-  { label: 'Projects', value: 'project' },
+  { label: 'Teams', value: 'team' },
   { label: 'Members', value: 'member' },
-  { label: 'Event', value: 'event' },
+  { label: 'Projects', value: 'project' },
+  { label: 'Events', value: 'event' },
 ];
 
 interface FeaturedHeaderProps {
@@ -52,7 +52,7 @@ const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps
               </button>
             ))}
           </div>
-          <div className="featured__hdr__desc">
+          {/* <div className="featured__hdr__desc">
             <span className="featured__hdr__desc__txt">
               Want to feature your team, project, team member or event?{' '}
               <a
@@ -66,7 +66,7 @@ const FeaturedHeader = ({ userInfo, onClick, activeFilter }: FeaturedHeaderProps
                 Submit a request
               </a>
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
       <style jsx>{`

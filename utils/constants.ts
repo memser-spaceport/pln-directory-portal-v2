@@ -455,8 +455,8 @@ export const FOCUS_AREAS_FILTER_KEYS = {
   teams: 'teamAncestorFocusAreas',
 };
 
-export const ITEMS_PER_PAGE = 50;
-export const INITIAL_ITEMS_PER_PAGE = 50;
+export const ITEMS_PER_PAGE = 6;
+export const INITIAL_ITEMS_PER_PAGE = 6;
 
 export const ENROLLMENT_TYPE = {
   MEMBER: 'MEMBER',
@@ -520,6 +520,22 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.12 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '19, May 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Automatic Profile Pictures</span> - Uniquely generated avatars for user profiles without that don't have custom images</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">New Contribution Type</span> - Added "Sponsor" status to highlight financial support at events and IRL gatherings</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Performance Optimization</span> - Improved load speed and behavior for Members, Team, and Events pages</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Ask Status Management</span> - Team members can now <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/f78df63772f94a6f97e42dc9f82bcf2d?sid=46fe2314-a2ec-469a-824a-46bb23a46651" target="_blank">update Ask</a> statuses (Fully Addressed, Partially Addressed, No Longer Needed, etc.) and document who provided support and how to improve contribution capture</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Enhanced Member Profiles</span> - Added <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/a7a44c8914f54f549e22062e94fec66e?sid=ee628226-0183-48a4-973f-1e515c934c5e" target="_blank">new Experience section</a> displaying professional background, past roles, and impact created</li>
+    </ul>
+    </div>`,
+  }, 
   {
     title: 'Version 4.1.11 - Directory Enhancements',
     tag: 'Improvements',

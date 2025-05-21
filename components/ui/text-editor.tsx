@@ -164,7 +164,7 @@ const TextEditor = (props: ITextEditorProps) => {
                 editor.undoManager.add(); // Add to the undo stack
               } else {
                 // Insert new link
-                const linkMarkup = `<a href="${link}" target="_blank">${txt}</a>`;
+                const linkMarkup = `<a href="${link}" target="_blank" rel="noopener noreferrer">${txt}</a>`;
                 editor.execCommand('mceInsertContent', false, linkMarkup);
               }
           

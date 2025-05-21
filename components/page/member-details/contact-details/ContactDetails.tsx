@@ -12,7 +12,7 @@ import { TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 
-interface IContactDetails {
+interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
@@ -20,7 +20,7 @@ interface IContactDetails {
 
 const PLACEHOLDER = ['twitter', 'telegram', 'github', 'website', 'discord', 'email'];
 
-export const ContactDetails = ({ member, isLoggedIn, userInfo }: IContactDetails) => {
+export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
   const router = useRouter();
   const { githubHandle, discordHandle, telegramHandle, twitter, linkedinHandle, email } = member;
 

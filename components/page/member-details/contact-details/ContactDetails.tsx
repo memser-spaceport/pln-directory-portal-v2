@@ -11,6 +11,8 @@ import { toast } from 'react-toastify';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { OfficeHoursHandle } from '@/components/page/member-details/office-hours-handle';
+import { Fragment } from 'react';
 
 interface Props {
   member: IMember;
@@ -18,11 +20,18 @@ interface Props {
   userInfo: IUserInfo;
 }
 
-const PLACEHOLDER = ['twitter', 'telegram', 'github', 'website', 'discord', 'email'];
+const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
+  linkedin: 'linkedinHandle',
+  github: 'githubHandle',
+  twitter: 'twitter',
+  email: 'email',
+  discord: 'discordHandle',
+  telegram: 'telegramHandle',
+};
 
 export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
   const router = useRouter();
-  const { githubHandle, discordHandle, telegramHandle, twitter, linkedinHandle, email } = member;
+  const { githubHandle, discordHandle, telegramHandle, twitter, linkedinHandle, email, visibleHandles } = member;
 
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
@@ -48,76 +57,26 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
       <div className={s.container}>
         {isLoggedIn ? (
           <div className={s.social}>
-            {linkedinHandle && (
-              <ProfileSocialLink
-                callback={callback}
-                profile={getProfileFromURL(linkedinHandle, 'linkedin')}
-                type="linkedin"
-                handle={linkedinHandle}
-                logo={'/icons/contact/linkedIn-contact-logo.svg'}
-                height={14}
-                width={14}
-              />
-            )}
+            {visibleHandles
+              ?.filter((item) => item !== 'officeHours')
+              .map((item) => {
+                const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
 
-            {twitter && (
-              <ProfileSocialLink
-                callback={callback}
-                profile={getProfileFromURL(twitter, 'twitter')}
-                type="twitter"
-                handle={twitter}
-                logo={'/icons/contact/twitter-contact-logo.svg'}
-                height={14}
-                width={14}
-              />
-            )}
-
-            {discordHandle && (
-              <ProfileSocialLink
-                callback={callback}
-                profile={getProfileFromURL(discordHandle, 'discord')}
-                type="discord"
-                handle={discordHandle}
-                logo={'/icons/contact/discord-contact-logo.svg'}
-                height={14}
-                width={14}
-              />
-            )}
-
-            {telegramHandle && (
-              <ProfileSocialLink
-                callback={callback}
-                profile={getProfileFromURL(telegramHandle, 'telegram')}
-                type="telegram"
-                handle={telegramHandle}
-                logo={'/icons/contact/telegram-contact-logo.svg'}
-                height={14}
-                width={14}
-              />
-            )}
-
-            {email && (
-              <ProfileSocialLink callback={callback} profile={getProfileFromURL(email, 'email')} type="email" handle={email} logo={'/icons/contact/email-contact-logo.svg'} height={14} width={14} />
-            )}
-
-            {githubHandle && (
-              <ProfileSocialLink
-                callback={callback}
-                profile={getProfileFromURL(githubHandle, 'github')}
-                type="github"
-                handle={githubHandle}
-                logo={'/icons/contact/github-contact-logo.svg'}
-                height={14}
-                width={14}
-              />
-            )}
+                return (
+                  <Fragment key={item}>
+                    <ProfileSocialLink profile={getProfileFromURL(handle, item)} height={24} width={24} callback={callback} type={item} handle={handle} logo={getLogoByProvider(item)} />
+                    <div className={s.divider} />
+                  </Fragment>
+                );
+              })}
+            {visibleHandles?.includes('officeHours') && <OfficeHoursHandle member={member} userInfo={userInfo} />}
           </div>
         ) : (
           <div className={s.socialPreview}>
             <div className={s.bg1} />
             <div className={s.bg2} />
             <div className={s.content}>
-              {PLACEHOLDER.map((item) => {
+              {visibleHandles?.map((item) => {
                 return (
                   <ProfileSocialLink
                     key={item}
@@ -168,6 +127,9 @@ function getLogoByProvider(provider: string): string {
     case 'twitter': {
       return '/icons/contact/twitter-contact-logo.svg';
     }
+    case 'officeHours': {
+      return '/icons/contact/meet-contact-logo.svg';
+    }
     default: {
       return '/icons/contact/website-contact-logo.svg';
     }
@@ -186,7 +148,7 @@ function consistentRandomString(input: string): string {
   // Expand into 12 base62 characters
   let str = '';
   let seed = hash;
-  while (str.length < 12) {
+  while (str.length < 8) {
     str += base62[seed % 62];
     seed = (seed * 31 + 17) >>> 0; // mix the seed for next char
   }

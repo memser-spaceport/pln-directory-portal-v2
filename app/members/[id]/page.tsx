@@ -12,7 +12,6 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMember, getMemberUidByAirtableId } from '@/services/members.service';
 import { getAllTeams } from '@/services/teams.service';
 import MemberProjectContribution from '@/components/page/member-details/member-project-contribution';
-import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
@@ -39,7 +38,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
       </div>
       <div className={styles?.memberDetail__container}>
         <div>
-          {!isLoggedIn && <MemberProfileLoginStrip member={member} />}
           <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
             <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo} />}
@@ -48,7 +46,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
         <div className={styles?.memberDetail__container__contact}>
           {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
           <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-          {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
         </div>
         {isLoggedIn && <ExperienceList member={member} isEditable={isExperienceEditable} />}
         <div className={styles?.memberDetail__container__teams}>

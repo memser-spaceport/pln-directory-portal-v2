@@ -2,7 +2,7 @@
 @use 'styles/mixins';
 
 .root {
-  padding: 20px 20px 0 20px;
+  padding: 20px;
 }
 
 .title {
@@ -24,12 +24,16 @@
 .socialPreview {
   margin-top: 8px;
   display: flex;
+  align-items: center;
   width: 100%;
   gap: 8px;
 }
 
 .social {
+  border-radius: 12px;
+  background: #F8FAFC;
   flex-wrap: wrap;
+  padding: 8px 2px;
 }
 
 .socialPreview {
@@ -112,4 +116,11 @@
       width: fit-content;
     };
   }
+}
+
+.divider {
+  height: 24px;
+  background: #E2E8F0;
+  width: 1px;
+  margin-inline: 8px;
 }

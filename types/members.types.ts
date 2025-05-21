@@ -68,6 +68,7 @@ export interface IMember {
   bio?: string;
   isVerified?: boolean;
   eventGuests?: [];
+  visibleHandles?: string[];
 }
 
 export interface ILoggedoutMember {}

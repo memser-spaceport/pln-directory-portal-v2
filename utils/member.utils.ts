@@ -706,7 +706,7 @@ export function getVisibleSocialHandles(member: any): string[] {
 
   for (const friendlyName in fieldMap) {
     const [dataKey, prefKey] = fieldMap[friendlyName];
-    if (member[dataKey] && member.preferences?.[prefKey]) {
+    if (member[dataKey] && (member.preferences?.[prefKey] ?? true)) {
       result.push(friendlyName);
     }
   }

@@ -317,6 +317,11 @@ export const TEAMS_ANALYTICS_EVENTS = {
   CAROUSEL_PREV_BTN_CLICKED: 'carousel-previous-btn-clicked',
   CAROUSEL_NEXT_BTN_CLICKED: 'carousel-next-btn-clicked',
   CAROUSEL_BTN_CLICKED: 'carousel-btn-clicked',
+  ASK_ACTIONS_MENU_OPEN: 'team-ask-actions-menu-open',
+  ASK_SECTION_TAB_CLICK: 'team-ask-section-tab-click',
+  IS_HOST_TOGGLE_CLICKED: 'team-is-host-toggle-clicked',
+  IS_ACTIVE_TOGGLE_CLICKED: 'team-is-active-toggle-clicked',
+  IS_SPONSOR_TOGGLE_CLICKED: 'team-is-sponsor-toggle-clicked',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {

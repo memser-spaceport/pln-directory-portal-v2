@@ -8,6 +8,7 @@ import { ITeam, ITeamAsk } from '@/types/teams.types';
 import { clsx } from 'clsx';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { UpdateAskStatusDialog } from '@/components/core/update-ask-status-dialog';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 interface Props {
   team: ITeam;
@@ -28,6 +29,8 @@ export const AskActionsMenu: FC<Props> = ({ team, ask, deleteOnly }) => {
   });
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const { onAskActionsMenuOpen } = useTeamAnalytics();
+
   const toggleOpen = useCallback(() => {
     setIsOpen((prev) => !prev);
   }, []);
@@ -40,7 +43,17 @@ export const AskActionsMenu: FC<Props> = ({ team, ask, deleteOnly }) => {
   return (
     <>
       <div className={s.root} ref={menuRef}>
-        <button className={s.controlButton} onClick={toggleOpen} aria-label="asks menu button" aria-haspopup="true" aria-expanded={isOpen} type="button">
+        <button
+          className={s.controlButton}
+          onClick={() => {
+            onAskActionsMenuOpen();
+            toggleOpen();
+          }}
+          aria-label="asks menu button"
+          aria-haspopup="true"
+          aria-expanded={isOpen}
+          type="button"
+        >
           <Image loading="lazy" className={s.menuIcon} alt="asks menu icon" src={'/icons/menu-dots-vertical.svg'} height={20} width={20} />
         </button>
         <div

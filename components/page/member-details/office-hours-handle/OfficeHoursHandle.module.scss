@@ -1,0 +1,99 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    'handle link'
+    'desc desc'
+    'schedule schedule';
+  grid-row-gap: 8px;
+  grid-column-gap: 12px;
+  width: 100%;
+
+  @include media.tablet-portrait {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.handle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  grid-area: handle;
+}
+
+.label {
+  display: block;
+  color: #0F172A;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+  gap: 4px;
+  white-space: nowrap;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+
+  &.forceVisible {
+    @include media.tablet-landscape {
+      display: block;
+    }
+  }
+}
+
+.description {
+  grid-area: desc;
+  color: #0F172A;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0.12px;
+  width:  100%;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.link {
+  grid-area:  link;
+  color: var(--Neutral-Slate-900, #0F172A);
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 20px; /* 166.667% */
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.scheduleButton {
+  background: #fff;
+  color: #000;
+  box-shadow: 0 1px 1px 0 #0f172a14;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: nowrap;
+  width: 100%;
+  grid-area: schedule;
+
+  @include media.tablet-portrait {
+    width: fit-content;
+  }
+}

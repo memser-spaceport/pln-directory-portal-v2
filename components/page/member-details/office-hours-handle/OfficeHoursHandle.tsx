@@ -1,6 +1,5 @@
 import React from 'react';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, getProfileFromURL, triggerLoader } from '@/utils/common.utils';
-import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { toast } from 'react-toastify';

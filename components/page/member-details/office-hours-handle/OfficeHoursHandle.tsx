@@ -1,6 +1,5 @@
 import React from 'react';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, getProfileFromURL, triggerLoader } from '@/utils/common.utils';
-import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { toast } from 'react-toastify';
@@ -11,12 +10,16 @@ import { IMember } from '@/types/members.types';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
+import s from './OfficeHoursHandle.module.scss';
+import { clsx } from 'clsx';
+
 interface Props {
   userInfo: IUserInfo;
   member: IMember;
+  isLoggedIn: boolean;
 }
 
-export const OfficeHoursHandle = ({ userInfo, member }: Props) => {
+export const OfficeHoursHandle = ({ userInfo, member, isLoggedIn }: Props) => {
   const { officeHours } = member;
   const memberAnalytics = useMemberAnalytics();
   const router = useRouter();
@@ -72,19 +75,32 @@ export const OfficeHoursHandle = ({ userInfo, member }: Props) => {
   };
 
   return (
-    <ProfileSocialLink
-      profile="Office Hours"
-      height={24}
-      width={24}
-      callback={onScheduleMeeting}
-      type="officeHours"
-      handle="Office Hours"
-      logo="/icons/contact/meet-contact-logo.svg"
-      suffix={
-        <a href={LEARN_MORE_URL} target="blank" style={{ display: 'flex', alignItems: 'center' }} onClick={onLearnMoreBtnClick}>
-          <Image loading="lazy" alt="learn more" src="/icons/info.svg" height={16} width={16} />
-        </a>
-      }
-    />
+    <div className={s.root}>
+      <span className={s.handle}>
+        <Image loading="lazy" src="/icons/contact/meet-contact-logo.svg" alt="Office hours logo" height={24} width={24} />
+        <span
+          className={clsx(s.label, {
+            [s.forceVisible]: isLoggedIn,
+          })}
+        >
+          Office Hours
+        </span>
+      </span>
+      <span
+        className={clsx(s.description, {
+          [s.hidden]: isLoggedIn,
+        })}
+      >
+        Office Hours are 15-30 minute meetings that members can schedule with others in network.
+      </span>
+      <a href={LEARN_MORE_URL} target="blank" className={s.link} onClick={onLearnMoreBtnClick}>
+        Learn more <Image loading="lazy" alt="learn more" src="/icons/open-link.svg" height={18} width={18} />
+      </a>
+      {isLoggedIn && (
+        <button className={s.scheduleButton} onClick={onScheduleMeeting}>
+          Schedule Meeting
+        </button>
+      )}
+    </div>
   );
 };

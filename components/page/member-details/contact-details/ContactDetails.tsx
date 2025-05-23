@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { OfficeHoursHandle } from '@/components/page/member-details/office-hours-handle';
 import { Fragment } from 'react';
+import { clsx } from 'clsx';
 
 interface Props {
   member: IMember;
@@ -59,42 +60,67 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
       <div className={s.container}>
         {isLoggedIn ? (
           <div className={s.social}>
-            {visibleHandles
-              ?.filter((item) => item !== 'officeHours')
-              .map((item, i, arr) => {
-                const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
+            <div className={s.top}>
+              <div className={s.content}>
+                {visibleHandles
+                  ?.filter((item) => item !== 'officeHours')
+                  .map((item, i, arr) => {
+                    const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
 
-                return (
-                  <Fragment key={item}>
-                    <ProfileSocialLink profile={getProfileFromURL(handle, item)} height={24} width={24} callback={callback} type={item} handle={handle} logo={getLogoByProvider(item)} />
-                    {!showOfficeHours && i === arr.length - 1 ? null : <div className={s.divider} />}
-                  </Fragment>
-                );
-              })}
-            {visibleHandles?.includes('officeHours') && <OfficeHoursHandle member={member} userInfo={userInfo} />}
+                    return (
+                      <Fragment key={item}>
+                        <ProfileSocialLink profile={getProfileFromURL(handle, item)} height={24} width={24} callback={callback} type={item} handle={handle} logo={getLogoByProvider(item)} />
+                        {i === arr.length - 1 ? null : <div className={s.divider} />}
+                      </Fragment>
+                    );
+                  })}
+              </div>
+            </div>
+            {showOfficeHours && (
+              <div className={s.bottom}>
+                <OfficeHoursHandle member={member} userInfo={userInfo} isLoggedIn />
+              </div>
+            )}
           </div>
         ) : (
           <div className={s.socialPreview}>
             <div className={s.bg1} />
             <div className={s.bg2} />
-            <div className={s.content}>
-              {visibleHandles?.map((item) => {
-                return (
-                  <ProfileSocialLink
-                    key={item}
-                    profile=""
-                    height={24}
-                    width={24}
-                    callback={callback}
-                    type={item}
-                    handle={consistentRandomString(`${member.name}__${item}`)}
-                    logo={getLogoByProvider(item)}
-                    isPreview
-                  />
-                );
-              })}
+            <div className={s.top}>
+              <div className={s.content}>
+                {visibleHandles
+                  ?.filter((item) => item !== 'officeHours')
+                  .map((item, i, arr) => {
+                    return (
+                      <Fragment key={item}>
+                        <ProfileSocialLink
+                          key={item}
+                          profile=""
+                          height={24}
+                          width={24}
+                          callback={callback}
+                          type={item}
+                          handle={consistentRandomString(`${member.name}__${item}`)}
+                          logo={getLogoByProvider(item)}
+                          isPreview
+                        />
+                        {i === arr.length - 1 ? null : <div className={s.divider} />}
+                      </Fragment>
+                    );
+                  })}
+              </div>
+              <div className={clsx(s.control, s.tablet)}>
+                <button className={s.loginButton} onClick={onLoginClickHandler}>
+                  Login for access
+                </button>
+              </div>
             </div>
-            <div className={s.control}>
+            {showOfficeHours && (
+              <div className={s.bottom}>
+                <OfficeHoursHandle member={member} userInfo={userInfo} isLoggedIn={false} />
+              </div>
+            )}
+            <div className={clsx(s.control, s.mobileOnly)}>
               <button className={s.loginButton} onClick={onLoginClickHandler}>
                 Login for access
               </button>

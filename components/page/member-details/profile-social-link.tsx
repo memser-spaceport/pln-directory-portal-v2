@@ -4,6 +4,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getSocialLinkUrl } from '@/utils/common.utils';
 import { ReactNode } from 'react';
 import Image from 'next/image';
+import { clsx } from 'clsx';
 
 interface IProfileSocialLink {
   type: string;
@@ -30,14 +31,23 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
         trigger={
           <div className="profile-social-link__suffix">
             <a
-              onClick={() => {
+              onClick={(e) => {
+                if (isPreview) {
+                  e.preventDefault();
+                  return;
+                }
+
                 callback(type, href);
               }}
               href={href}
               target="_blank"
               rel="noreferrer noopener"
               data-testid="profile-social-link"
-              className={`profile-social-link ${preferred ? 'preffered' : 'not-preferred'} `}
+              className={clsx('profile-social-link', {
+                preffered: preferred,
+                'not-preferred': !preferred,
+                preview: isPreview,
+              })}
             >
               {logo && <Image loading="lazy" src={logo} alt={type} height={height} width={width} />}
               <p className={`profile-social-link__link ${isPreview ? 'profile-social-link__link-preview' : ''}`}>{profile ? profile : handle}</p>
@@ -86,6 +96,11 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
 
           .not-preferred {
             border-radius: 4px;
+          }
+
+          .preview {
+            user-select: none;
+            pointer-events: none;
           }
 
           @media (min-width: 1024px) {

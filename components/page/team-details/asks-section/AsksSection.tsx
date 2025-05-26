@@ -9,6 +9,7 @@ import { Tabs } from '@/components/ui/tabs/Tabs';
 import { SubmitAskDialog } from '@/components/core/submit-ask-dialog';
 import { NoDataView } from '@/components/page/team-details/asks-section/components/NoDataView';
 import { TeamAsksItem } from '@/components/page/team-details/asks-section/components/TeamAsksItem';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 interface Props {
   team: ITeam;
@@ -20,6 +21,7 @@ type View = 'Open Asks' | 'Archived Asks';
 export const AsksSection: FC<Props> = ({ team, canEdit }) => {
   const [activeTab, setActiveTab] = useState<View>('Open Asks');
   const { data, isLoading } = useTeamAsks(team?.id);
+  const { onAskSectionTabClick } = useTeamAnalytics();
 
   const groupedData = useMemo(() => {
     if (!data) {
@@ -74,7 +76,15 @@ export const AsksSection: FC<Props> = ({ team, canEdit }) => {
   return (
     <div className={s.root}>
       <div className={s.header}>
-        <Tabs variant="secondary" tabs={tabs} activeTab={activeTab} onTabClick={(item) => setActiveTab(item as View)}>
+        <Tabs
+          variant="secondary"
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabClick={(item) => {
+            onAskSectionTabClick();
+            setActiveTab(item as View);
+          }}
+        >
           {activeTab === 'Open Asks' && <SubmitAskDialog canSubmit={canEdit} toggleVariant="secondary" team={team} openAsksCount={groupedData.open.length} />}
         </Tabs>
       </div>

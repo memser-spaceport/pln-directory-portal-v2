@@ -4,15 +4,14 @@ import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { BreadCrumb } from '@/components/core/bread-crumb';
 import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
-import MemberProfileLoginStrip from '@/components/page/member-details/member-details-login-strip';
-import ContactDetails from '@/components/page/member-details/contact-details';
+import { MemberProfileLoginStrip } from '@/components/page/member-details/member-details-login-strip';
+import { ContactDetails } from '@/components/page/member-details/contact-details';
 import MemberTeams from '@/components/page/member-details/member-teams';
 import MemberRepositories from '@/components/page/member-details/member-repositories';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMember, getMemberUidByAirtableId } from '@/services/members.service';
 import { getAllTeams } from '@/services/teams.service';
 import MemberProjectContribution from '@/components/page/member-details/member-project-contribution';
-import MemberOfficeHours from '@/components/page/member-details/member-office-hours';
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
@@ -39,15 +38,14 @@ const MemberDetails = async ({ params }: { params: any }) => {
       </div>
       <div className={styles?.memberDetail__container}>
         <div>
-          {!isLoggedIn && <MemberProfileLoginStrip member={member} />}
           <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
             <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo} />}
           </div>
         </div>
         <div className={styles?.memberDetail__container__contact}>
-          {isLoggedIn && <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
-          {((!isLoggedIn && officeHoursFlag) || isLoggedIn) && <MemberOfficeHours isLoggedIn={isLoggedIn} member={member} userInfo={userInfo} officeHoursFlag={officeHoursFlag} />}
+          {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
+          <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
         </div>
         {isLoggedIn && <ExperienceList member={member} isEditable={isExperienceEditable} />}
         <div className={styles?.memberDetail__container__teams}>
@@ -108,8 +106,8 @@ const getpageData = async (memberId: string) => {
     member = memberResponse?.data?.formattedData;
     teams = memberTeamsResponse?.data?.formattedData;
 
-    let officeHoursFlag = false;
-    officeHoursFlag = member['officeHours'] ? true : false;
+    const officeHoursFlag = !!member['officeHours'];
+
     if (!isLoggedIn && member['officeHours']) {
       delete member['officeHours'];
     }

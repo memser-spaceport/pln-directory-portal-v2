@@ -1,0 +1,103 @@
+import { debounce } from 'lodash';
+import React, { FC, KeyboardEventHandler, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import s from './DebouncedInput.module.scss';
+import Image from 'next/image';
+
+interface Props {
+  value: string;
+  onChange: (val: string) => void;
+  onBlur?: () => void;
+  onFocus?: () => void;
+  disabled?: boolean;
+  placeholder?: string;
+  onlyNumbers?: boolean;
+  type?: 'text' | 'number';
+  flushIcon?: ReactNode;
+  onImplictFlush?: () => void;
+}
+
+export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, placeholder, type, onlyNumbers, flushIcon, onImplictFlush, onFocus, ...rest }) => {
+  const [localValue, setLocalValue] = useState(value);
+
+  const debouncedChange = useMemo(
+    () =>
+      debounce((val: string) => {
+        onChange(val);
+      }, 700),
+    [onChange],
+  );
+
+  const handleKeyPress = useCallback<KeyboardEventHandler>(
+    (e) => {
+      if (type === 'text' && onlyNumbers && !/^[0-9.]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    },
+    [onlyNumbers, type],
+  );
+
+  const handleKeyUp = useCallback<KeyboardEventHandler>(
+    (e) => {
+      if (e.key === 'Enter') {
+        debouncedChange.flush();
+      } else if (e.key === 'Escape') {
+        debouncedChange.cancel();
+        setLocalValue('');
+        onChange('');
+      }
+    },
+    [debouncedChange, onChange],
+  );
+
+  useEffect(() => {
+    // Sync if parent changes the value
+    if (value !== localValue) {
+      setLocalValue(value);
+    }
+    // eslint-disable-next-line
+  }, [value]);
+
+  return (
+    <div className={s.root}>
+      <input
+        type="text"
+        value={localValue}
+        onKeyPress={handleKeyPress}
+        onKeyUp={handleKeyUp}
+        onChange={(e) => {
+          const val = e.target.value;
+          setLocalValue(val);
+          debouncedChange(val);
+        }}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        disabled={disabled}
+        placeholder={placeholder ?? 'Search'}
+        {...rest}
+      />
+      {localValue && (
+        <button
+          className={s.clearButton}
+          onClick={() => {
+            setLocalValue('');
+            debouncedChange.flush();
+          }}
+        >
+          <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} />
+        </button>
+      )}
+      {flushIcon && (
+        <button
+          className={s.flushButton}
+          onClick={() => {
+            debouncedChange.flush();
+            onImplictFlush?.();
+          }}
+        >
+          {flushIcon}
+        </button>
+      )}
+    </div>
+  );
+};

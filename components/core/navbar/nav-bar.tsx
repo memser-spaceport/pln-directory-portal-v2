@@ -14,6 +14,7 @@ import LoginBtn from './login-btn';
 import MobileNavDrawer from './mobile-nav-drawer';
 import UserProfile from './userProfile';
 import HuskyLink from './husky-link';
+import { ApplicationSearch } from '@/components/core/application-search';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -117,6 +118,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           </div>
         </div>
         <div className="nb__right">
+          <ApplicationSearch />
           <HuskyLink />
           <button id="directory-feedback-btn" className="nb__right__feedback" data-exclude-from-url="true">
             <Image src="/icons/nav-feedback.svg" alt="nav-feedback" height={48} width={48} />

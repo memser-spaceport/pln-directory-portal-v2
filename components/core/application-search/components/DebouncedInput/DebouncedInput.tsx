@@ -1,5 +1,5 @@
 import { debounce } from 'lodash';
-import React, { FC, KeyboardEventHandler, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, KeyboardEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import s from './DebouncedInput.module.scss';
 import Image from 'next/image';
@@ -83,7 +83,7 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
         <button
           id="application-search-clear"
           className={s.clearButton}
-          onClick={(e) => {
+          onClick={() => {
             debouncedChange.cancel();
             setLocalValue('');
             onChange('');
@@ -95,7 +95,7 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
       {flushIcon && (
         <button
           className={s.flushButton}
-          onClick={(e) => {
+          onClick={() => {
             debouncedChange.flush();
             onImplictFlush?.();
           }}

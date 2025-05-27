@@ -6,7 +6,7 @@ interface Props {
   className?: string;
 }
 
-export const HighlightedText: FC<Props> = ({ text, query, className }) => {
+export const HighlightedText: FC<Props> = ({ text, query }) => {
   if (!query) return <>{text}</>;
 
   const parts = text.split(new RegExp(`(${query})`, 'gi'));

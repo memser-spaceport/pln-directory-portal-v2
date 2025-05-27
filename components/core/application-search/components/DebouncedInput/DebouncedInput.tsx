@@ -9,6 +9,7 @@ interface Props {
   onChange: (val: string) => void;
   onBlur?: () => void;
   onFocus?: () => void;
+  onClick?: () => void;
   disabled?: boolean;
   placeholder?: string;
   onlyNumbers?: boolean;
@@ -17,7 +18,7 @@ interface Props {
   onImplictFlush?: () => void;
 }
 
-export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, placeholder, type, onlyNumbers, flushIcon, onImplictFlush, onFocus, ...rest }) => {
+export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, placeholder, type, onlyNumbers, flushIcon, onImplictFlush, onFocus, onClick, ...rest }) => {
   const [localValue, setLocalValue] = useState(value);
 
   const debouncedChange = useMemo(
@@ -41,13 +42,14 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
     (e) => {
       if (e.key === 'Enter') {
         debouncedChange.flush();
+        onClick?.();
       } else if (e.key === 'Escape') {
         debouncedChange.cancel();
         setLocalValue('');
         onChange('');
       }
     },
-    [debouncedChange, onChange],
+    [debouncedChange, onChange, onClick],
   );
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
           setLocalValue(val);
           debouncedChange(val);
         }}
+        onClick={onClick}
         onBlur={onBlur}
         onFocus={onFocus}
         disabled={disabled}
@@ -78,19 +81,21 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
       />
       {localValue && (
         <button
+          id="application-search-clear"
           className={s.clearButton}
-          onClick={() => {
+          onClick={(e) => {
+            debouncedChange.cancel();
             setLocalValue('');
-            debouncedChange.flush();
+            onChange('');
           }}
         >
-          <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} />
+          <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} style={{ pointerEvents: 'none' }} id="application-search-clear-icon" />
         </button>
       )}
       {flushIcon && (
         <button
           className={s.flushButton}
-          onClick={() => {
+          onClick={(e) => {
             debouncedChange.flush();
             onImplictFlush?.();
           }}

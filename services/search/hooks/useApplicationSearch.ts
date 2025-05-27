@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { SearchQueryKeys } from '@/services/search/constants';
+import { SearchResult } from '@/services/search/types';
 
 async function fetcher(searchTerm: string) {
   // const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/teams/${teamId}`, { cache: 'no-store' });
@@ -47,7 +48,9 @@ async function fetcher(searchTerm: string) {
         ],
       },
     ],
-  };
+    members: [],
+    projects: [],
+  } satisfies SearchResult;
 }
 
 export function useApplicationSearch(searchTerm: string) {

@@ -36,10 +36,10 @@ export const SearchResultsSection = ({ title, items, type, query }: Props) => {
 
             return (
               <li
-                key={item.id}
+                key={item.uid}
                 className={s.foundItem}
                 onClick={() => {
-                  router.push(`/${type}/${item.id}`);
+                  router.push(`/${type}/${item.uid}`);
                 }}
               >
                 <div className={s.header}>
@@ -56,14 +56,14 @@ export const SearchResultsSection = ({ title, items, type, query }: Props) => {
                 <ul className={s.matches}>
                   {item.matches.map((match) => {
                     return (
-                      <li key={match.type} className={s.matchRow}>
+                      <li key={match.field} className={s.matchRow}>
                         <div className={s.arrow}>
                           <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
                         </div>
                         <p className={s.text}>
                           <HighlightedText text={match.content} query={query} />
                         </p>
-                        <div className={s.matchType}>{match.type}</div>
+                        <div className={s.matchType}>{match.field}</div>
                       </li>
                     );
                   })}

@@ -58,16 +58,17 @@ export const ApplicationSearch = () => {
     }
 
     // todo -handle no data
-    if (!data) {
+    if (!data || (!data.events.length && !data.teams.length && !data.members.length && !data.projects.length)) {
       return <NothingFound onClick={handleTryAiSearch} />;
     }
 
     return (
       <>
+        <TryAiSearch />
         {!!data.teams?.length && <SearchResultsSection type="teams" title="Teams" items={data.teams} query={searchTerm} />}
         {!!data.members?.length && <SearchResultsSection type="members" title="Members" items={data.members} query={searchTerm} />}
         {!!data.projects?.length && <SearchResultsSection type="projects" title="Projects" items={data.projects} query={searchTerm} />}
-        {!!data.events && <SearchResultsSection type="events" title="Events" items={data.events} query={searchTerm} />}
+        {!!data.events?.length && <SearchResultsSection type="events" title="Events" items={data.events} query={searchTerm} />}
       </>
     );
   }

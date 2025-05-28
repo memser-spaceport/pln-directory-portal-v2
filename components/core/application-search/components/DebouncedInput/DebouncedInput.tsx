@@ -70,6 +70,7 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
         onChange={(e) => {
           const val = e.target.value;
           setLocalValue(val);
+          debouncedChange.cancel();
           debouncedChange(val);
         }}
         onClick={onClick}

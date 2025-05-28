@@ -1,8 +1,8 @@
 export type FoundItem = {
-  id: string;
+  uid: string;
   name: string;
   matches: {
-    type: string;
+    field: string;
     content: string;
   }[];
 };

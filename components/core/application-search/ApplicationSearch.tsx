@@ -12,6 +12,7 @@ import { SearchResultsSection } from '@/components/core/application-search/compo
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { useQueryClient } from '@tanstack/react-query';
 import { SearchQueryKeys } from '@/services/search/constants';
+import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
 
 export const ApplicationSearch = () => {
   const inputRef: any = useRef(null);
@@ -54,11 +55,10 @@ export const ApplicationSearch = () => {
     }
 
     if (isLoading) {
-      return <div>Loading...</div>;
+      return <ContentLoader />;
     }
 
-    // todo -handle no data
-    if (!data || (!data.events.length && !data.teams.length && !data.members.length && !data.projects.length)) {
+    if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length)) {
       return <NothingFound onClick={handleTryAiSearch} />;
     }
 
@@ -86,7 +86,6 @@ export const ApplicationSearch = () => {
         onImplictFlush={refetch}
         onClick={() => setFocused(true)}
       />
-
       {isOpen && <div className={s.dropdown}>{renderContent()}</div>}
     </div>
   );

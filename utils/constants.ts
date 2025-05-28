@@ -13,12 +13,12 @@ export const PAGE_ROUTES = {
 };
 
 export const NAV_OPTIONS = [
-  {
-    name: 'Home',
-    url: PAGE_ROUTES.HOME,
-    selectedLogo: '/icons/home.svg',
-    unSelectedLogo: '/icons/home-deselected.svg',
-  },
+  // {
+  //   name: 'Home',
+  //   url: PAGE_ROUTES.HOME,
+  //   selectedLogo: '/icons/home.svg',
+  //   unSelectedLogo: '/icons/home-deselected.svg',
+  // },
   {
     name: 'Teams',
     url: PAGE_ROUTES.TEAMS,

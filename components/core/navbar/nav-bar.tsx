@@ -119,7 +119,7 @@ export default function Navbar(props: Readonly<INavbar>) {
         </div>
         <div className="nb__right">
           <ApplicationSearch />
-          <HuskyLink />
+          {/*<HuskyLink />*/}
           <button id="directory-feedback-btn" className="nb__right__feedback" data-exclude-from-url="true">
             <Image src="/icons/nav-feedback.svg" alt="nav-feedback" height={48} width={48} />
           </button>

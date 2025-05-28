@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
 import Image from 'next/image';
 
@@ -13,12 +13,14 @@ import { RecentSearch } from '@/components/core/application-search/components/Re
 import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
+import { FullSearchPanel } from '@/components/core/application-search/components/FullSearchPanel';
 
 export const AppSearchDesktop = () => {
   const inputRef: any = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isFocused, setFocused] = useState(false);
   const queryClient = useQueryClient();
+  const [showFullSearch, setShowFullSearch] = useState(false);
 
   useClickedOutside({
     callback: (e) => {
@@ -36,7 +38,21 @@ export const AppSearchDesktop = () => {
 
   const { data, isLoading, refetch } = useApplicationSearch(searchTerm);
 
-  const isOpen = isFocused || !!data;
+  const isOpen = isFocused; //  || !!data;
+
+  const handleChange = useCallback((val: string) => {
+    setFocused(true);
+    setSearchTerm(val);
+  }, []);
+
+  const handleFlush = useCallback(() => {
+    setFocused(false);
+    setShowFullSearch(true);
+  }, []);
+
+  const handleClick = useCallback(() => {
+    setFocused(true);
+  }, []);
 
   const handleTryAiSearch = () => {
     // todo - show full search modal using search term
@@ -74,19 +90,32 @@ export const AppSearchDesktop = () => {
   }
 
   return (
-    <div className={s.root} ref={inputRef} id="application-search">
-      <DebouncedInput
-        onChange={(val) => {
-          setFocused(true);
-          setSearchTerm(val);
-        }}
-        placeholder="Search"
-        value={searchTerm}
-        flushIcon={<Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />}
-        onImplictFlush={refetch}
-        onClick={() => setFocused(true)}
-      />
-      {isOpen && <div className={s.dropdown}>{renderContent()}</div>}
-    </div>
+    <>
+      {showFullSearch ? (
+        <div className={s.modal}>
+          <div className={s.modalContent}>
+            <button type="button" className={s.closeButton} onClick={() => setShowFullSearch(!showFullSearch)}>
+              <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
+            </button>
+            <div className={s.wrapper}>
+              <FullSearchPanel initialSearchTerm={searchTerm} />
+              <div>AI search here</div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className={s.root} ref={inputRef} id="application-search">
+          <DebouncedInput
+            onChange={handleChange}
+            placeholder="Search"
+            value={searchTerm}
+            flushIcon={<Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />}
+            onImplictFlush={handleFlush}
+            onClick={handleClick}
+          />
+          {isOpen && <div className={s.dropdown}>{renderContent()}</div>}
+        </div>
+      )}
+    </>
   );
 };

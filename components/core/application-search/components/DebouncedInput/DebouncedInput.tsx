@@ -21,8 +21,6 @@ interface Props {
 export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, placeholder, type, onlyNumbers, flushIcon, onImplictFlush, onFocus, onClick, ...rest }) => {
   const [localValue, setLocalValue] = useState(value);
 
-  console.log(value, localValue);
-
   const debouncedChange = useMemo(
     () =>
       debounce((val: string) => {

@@ -103,8 +103,8 @@ $padding-inline: 16px;
 
 .divider {
   height: 1px;
-  width: calc(100% + $padding-inline * 2);
-  margin-inline: -$padding-inline;
+  width: calc(100%);
+  //margin-inline: -$padding-inline;
   margin-block: 8px;
   background: #E2E8F0;
 }

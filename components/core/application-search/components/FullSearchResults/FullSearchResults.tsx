@@ -28,6 +28,10 @@ export const FullSearchResults = ({ searchTerm }: Props) => {
         };
       })
       .sort((a, b) => {
+        if (a.key === 'top') {
+          return -1;
+        }
+
         if (a.length > b.length) {
           return -1;
         }
@@ -59,7 +63,12 @@ export const FullSearchResults = ({ searchTerm }: Props) => {
       ) : (
         <>
           {sortedData.map((item) => (
-            <CollapsibleSection key={item.label} title={`${item.label} (${item.values?.length ?? 0})`} disabled={!item.values?.length}>
+            <CollapsibleSection
+              key={item.label}
+              title={`${item.label} (${item.values?.length ?? 0})`}
+              disabled={!item.values?.length}
+              initialOpen={item.label === 'Top Results' && !!item.values?.length}
+            >
               <SearchResultsSection items={item.values ?? []} query={searchTerm} />
             </CollapsibleSection>
           ))}

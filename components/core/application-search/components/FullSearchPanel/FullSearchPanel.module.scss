@@ -1,0 +1,64 @@
+@use 'styles/media';
+
+$padding-inline: 16px;
+
+.root {
+  position: relative;
+  //position: fixed;
+  //inset: 0;
+  flex: 1;
+  height:  100%;
+  background: #fff;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.top {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 1;
+}
+
+.divider {
+  margin-inline: $padding-inline;
+  height: 1px;
+  width: calc(100% - $padding-inline * 2);
+  background: #E2E8F0;
+
+  &.mt1 {
+    margin-top: 16px;
+  }
+}
+
+.header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  color: var(--Neutral-Slate-900, #0F172A);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 40px; /* 222.222% */
+}
+
+.closeButton {
+  margin-left: auto;
+  padding: 8px;
+}
+
+.inputSection {
+  padding: 16px;
+}
+
+.content {
+  padding: 16px;
+  //background-color: red;
+  flex: 1;
+}

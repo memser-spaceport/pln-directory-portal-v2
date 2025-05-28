@@ -1,6 +1,7 @@
 export type FoundItem = {
   uid: string;
   name: string;
+  index: 'teams' | 'members' | 'events' | 'projects';
   matches: {
     field: string;
     content: string;
@@ -12,4 +13,5 @@ export type SearchResult = {
   members?: FoundItem[];
   teams?: FoundItem[];
   projects?: FoundItem[];
+  top?: FoundItem[];
 };

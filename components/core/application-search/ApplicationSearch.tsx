@@ -13,6 +13,7 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import { useQueryClient } from '@tanstack/react-query';
 import { SearchQueryKeys } from '@/services/search/constants';
 import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
+import { AppSearchMobile } from '@/components/core/application-search/components/AppSearchMobile';
 
 export const ApplicationSearch = () => {
   const inputRef: any = useRef(null);
@@ -65,28 +66,31 @@ export const ApplicationSearch = () => {
     return (
       <>
         <TryAiSearch />
-        {!!data.teams?.length && <SearchResultsSection type="teams" title="Teams" items={data.teams} query={searchTerm} />}
-        {!!data.members?.length && <SearchResultsSection type="members" title="Members" items={data.members} query={searchTerm} />}
-        {!!data.projects?.length && <SearchResultsSection type="projects" title="Projects" items={data.projects} query={searchTerm} />}
-        {!!data.events?.length && <SearchResultsSection type="events" title="Events" items={data.events} query={searchTerm} />}
+        {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
+        {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
+        {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}
+        {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} />}
       </>
     );
   }
 
   return (
-    <div className={s.root} ref={inputRef} id="application-search">
-      <DebouncedInput
-        onChange={(val) => {
-          setFocused(true);
-          setSearchTerm(val);
-        }}
-        placeholder="Search"
-        value={searchTerm}
-        flushIcon={<Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />}
-        onImplictFlush={refetch}
-        onClick={() => setFocused(true)}
-      />
-      {isOpen && <div className={s.dropdown}>{renderContent()}</div>}
-    </div>
+    <>
+      <div className={s.root} ref={inputRef} id="application-search">
+        <DebouncedInput
+          onChange={(val) => {
+            setFocused(true);
+            setSearchTerm(val);
+          }}
+          placeholder="Search"
+          value={searchTerm}
+          flushIcon={<Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />}
+          onImplictFlush={refetch}
+          onClick={() => setFocused(true)}
+        />
+        {isOpen && <div className={s.dropdown}>{renderContent()}</div>}
+      </div>
+      <AppSearchMobile />
+    </>
   );
 };

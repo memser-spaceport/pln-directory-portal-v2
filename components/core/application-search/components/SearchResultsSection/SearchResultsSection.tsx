@@ -8,9 +8,8 @@ import { HighlightedText } from '@/components/core/application-search/components
 import { useRouter } from 'next/navigation';
 
 interface Props {
-  title: string;
+  title?: string;
   items: FoundItem[];
-  type: 'teams' | 'members' | 'projects' | 'events';
   query: string;
 }
 
@@ -21,15 +20,17 @@ const SECTION_TYPE_ICONS = {
   events: '/icons/irl-event-default-logo.svg',
 };
 
-export const SearchResultsSection = ({ title, items, type, query }: Props) => {
+export const SearchResultsSection = ({ title, items, query }: Props) => {
   const router = useRouter();
 
   return (
     <>
       <div className={s.root}>
-        <div className={s.label}>
-          {title} ({items.length})
-        </div>
+        {title && (
+          <div className={s.label}>
+            {title} ({items.length})
+          </div>
+        )}
         <ul className={s.list}>
           {items.map((item) => {
             const defaultAvatar = getDefaultAvatar(item?.name);
@@ -39,7 +40,7 @@ export const SearchResultsSection = ({ title, items, type, query }: Props) => {
                 key={item.uid}
                 className={s.foundItem}
                 onClick={() => {
-                  router.push(`/${type}/${item.uid}`);
+                  router.push(`/${item.index}/${item.uid}`);
                 }}
               >
                 <div className={s.header}>
@@ -50,7 +51,7 @@ export const SearchResultsSection = ({ title, items, type, query }: Props) => {
                     <HighlightedText text={item.name} query={query} />
                   </div>
                   <div className={s.type}>
-                    <Image src={SECTION_TYPE_ICONS[type]} alt={item.name} width={14} height={14} />
+                    <Image src={SECTION_TYPE_ICONS[item.index]} alt={item.name} width={14} height={14} />
                   </div>
                 </div>
                 <ul className={s.matches}>

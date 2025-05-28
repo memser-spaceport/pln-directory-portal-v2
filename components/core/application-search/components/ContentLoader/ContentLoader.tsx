@@ -8,7 +8,7 @@ import s from './ContentLoader.module.scss';
 export const ContentLoader = () => {
   return (
     <div className={s.root}>
-      <Lottie animationData={loader} style={{ width: 150, height: 150 }} />
+      <Lottie animationData={loader} style={{ width: '75%', height: '75%' }} />
     </div>
   );
 };

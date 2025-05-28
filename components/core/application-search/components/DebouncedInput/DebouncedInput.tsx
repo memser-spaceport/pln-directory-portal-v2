@@ -21,6 +21,8 @@ interface Props {
 export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, placeholder, type, onlyNumbers, flushIcon, onImplictFlush, onFocus, onClick, ...rest }) => {
   const [localValue, setLocalValue] = useState(value);
 
+  console.log(value, localValue);
+
   const debouncedChange = useMemo(
     () =>
       debounce((val: string) => {
@@ -42,14 +44,15 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
     (e) => {
       if (e.key === 'Enter') {
         debouncedChange.flush();
-        onClick?.();
+        onImplictFlush?.();
+        // onClick?.();
       } else if (e.key === 'Escape') {
         debouncedChange.cancel();
         setLocalValue('');
         onChange('');
       }
     },
-    [debouncedChange, onChange, onClick],
+    [debouncedChange, onChange, onImplictFlush],
   );
 
   useEffect(() => {
@@ -69,8 +72,8 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
         onKeyUp={handleKeyUp}
         onChange={(e) => {
           const val = e.target.value;
+          // debouncedChange.cancel();
           setLocalValue(val);
-          debouncedChange.cancel();
           debouncedChange(val);
         }}
         onClick={onClick}

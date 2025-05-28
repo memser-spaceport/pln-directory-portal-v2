@@ -1,8 +1,15 @@
+@use 'styles/media';
+
 $padding-inline: 16px;
 
 .root {
   position: relative;
   z-index: 1;
+  display: none;
+
+  @include media.tablet-landscape {
+    display: block;
+  }
 }
 
 .dropdown {

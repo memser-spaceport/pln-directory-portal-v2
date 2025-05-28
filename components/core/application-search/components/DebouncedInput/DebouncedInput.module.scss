@@ -5,10 +5,13 @@
   display: flex;
   align-items: center;
   height: 40px;
-  min-width: 400px;
+  min-width: unset;
   position: relative;
-
   background: linear-gradient(0deg, #F1F5F9 0%, #F1F5F9 100%), #FFF;
+
+  @include media.tablet-landscape {
+    min-width: 400px;
+  }
 
   > input {
     border-radius: 8px;

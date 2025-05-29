@@ -4,7 +4,7 @@ import Image from 'next/image';
 import s from './SearchResultsSection.module.scss';
 import { FoundItem } from '@/services/search/types';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { HighlightedText } from '@/components/core/application-search/components/HighlightedText';
+// import { HighlightedText } from '@/components/core/application-search/components/HighlightedText';
 import { useRouter } from 'next/navigation';
 
 interface Props {
@@ -33,7 +33,7 @@ export const SearchResultsSection = ({ title, items, query }: Props) => {
         )}
         <ul className={s.list}>
           {items.map((item) => {
-            const defaultAvatar = getDefaultAvatar(item?.name);
+            const defaultAvatar = item.image || getDefaultAvatar(item?.name);
 
             return (
               <li
@@ -48,7 +48,8 @@ export const SearchResultsSection = ({ title, items, query }: Props) => {
                     <Image src={defaultAvatar} alt={item.name} width={24} height={24} />
                   </div>
                   <div className={s.name}>
-                    <HighlightedText text={item.name} query={query} />
+                    {item.name}
+                    {/*<HighlightedText text={item.name} query={query} />*/}
                   </div>
                   <div className={s.type}>
                     <Image src={SECTION_TYPE_ICONS[item.index]} alt={item.name} width={14} height={14} />
@@ -61,9 +62,7 @@ export const SearchResultsSection = ({ title, items, query }: Props) => {
                         <div className={s.arrow}>
                           <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
                         </div>
-                        <p className={s.text}>
-                          <HighlightedText text={match.content} query={query} />
-                        </p>
+                        <p className={s.text} dangerouslySetInnerHTML={{ __html: match.content }} />
                         <div className={s.matchType}>{match.field}</div>
                       </li>
                     );

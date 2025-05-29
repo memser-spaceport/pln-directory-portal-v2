@@ -87,6 +87,11 @@ $padding-inline: 16px;
       font-style: normal;
       font-weight: 400;
       line-height: 16px; /* 133.333% */
+
+      em {
+        font-style: normal;
+        color: rgba(21, 111, 247, 0.75);
+      }
     }
 
     .matchType {

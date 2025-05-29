@@ -1,3 +1,5 @@
+@use 'styles/mixins';
+
 .root {
   position: relative;
   //flex: 1;
@@ -18,4 +20,6 @@
   flex: 1;
   overflow: auto;
   padding-block: 12px;
+
+  @include mixins.hide-scrollbar;
 }

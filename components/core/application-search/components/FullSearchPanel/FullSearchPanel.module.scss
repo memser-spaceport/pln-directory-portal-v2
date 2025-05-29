@@ -1,8 +1,10 @@
 @use 'styles/media';
+@use 'styles/mixins';
 
 $padding-inline: 16px;
 
 .root {
+  @include mixins.hide-scrollbar;
   position: relative;
   flex: 1;
   height:  100%;

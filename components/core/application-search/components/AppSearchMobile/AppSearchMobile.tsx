@@ -13,13 +13,15 @@ import { NothingFound } from '@/components/core/application-search/components/No
 import { clsx } from 'clsx';
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { FullSearchResults } from '@/components/core/application-search/components/FullSearchResults';
+import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
 
 export const AppSearchMobile = () => {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'regular' | 'ai'>('regular');
   const [searchTerm, setSearchTerm] = useState('');
   const [isFocused, setFocused] = useState(true);
-  const { data, isLoading, refetch } = useApplicationSearch(searchTerm);
+  const { data, isLoading } = useApplicationSearch(searchTerm);
+  const [initialAiPrompt, setInitialAiPrompt] = useState('');
 
   const handleChange = useCallback((val: string) => {
     setFocused(true);
@@ -34,19 +36,24 @@ export const AppSearchMobile = () => {
     setFocused(true);
   }, []);
 
-  const handleTryAiSearch = () => {
-    // todo - show full search modal using search term
-  };
+  const handleTryAiSearch = useCallback(
+    (val?: string) => {
+      setFocused(false);
+      setMode('ai');
+      setInitialAiPrompt(val ?? searchTerm);
+    },
+    [searchTerm],
+  );
 
   function renderContent() {
     if (isFocused) {
       if (!searchTerm) {
         return (
           <>
-            <TryAiSearch disabled={searchTerm.trim().length === 0} />
-            <TryToSearch />
+            <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
+            <TryToSearch onSelect={handleChange} />
             <div className={clsx(s.divider, s.mt1)} />
-            <RecentSearch onSelect={(text) => setSearchTerm(text)} />
+            <RecentSearch onSelect={handleChange} />
           </>
         );
       }
@@ -61,7 +68,7 @@ export const AppSearchMobile = () => {
 
       return (
         <>
-          <TryAiSearch disabled={searchTerm.trim().length === 0} />
+          <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
           {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
           {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
           {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}
@@ -69,7 +76,7 @@ export const AppSearchMobile = () => {
         </>
       );
     } else {
-      return <FullSearchResults searchTerm={searchTerm} />;
+      return <FullSearchResults searchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} />;
     }
   }
 
@@ -78,7 +85,7 @@ export const AppSearchMobile = () => {
       <button className={s.toggleButton} onClick={() => setOpen(true)}>
         <Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />
       </button>
-      {open && (
+      {open && mode === 'regular' && (
         <div className={s.wrapper}>
           <div className={s.top}>
             <div className={s.header}>
@@ -90,6 +97,7 @@ export const AppSearchMobile = () => {
                   setOpen(false);
                   setFocused(true);
                   setSearchTerm('');
+                  setInitialAiPrompt('');
                 }}
               >
                 <Image src="/icons/close-gray.svg" alt="Close" width={20} height={20} style={{ pointerEvents: 'none' }} />
@@ -109,6 +117,29 @@ export const AppSearchMobile = () => {
             <div className={s.divider} />
           </div>
           <div className={s.content}>{renderContent()}</div>
+        </div>
+      )}
+      {open && mode === 'ai' && (
+        <div className={s.wrapper}>
+          <div className={s.top}>
+            <div className={s.header}>
+              <SearchModeToggle active={mode} onChange={setMode} />
+              <span className={s.title}>AI Search</span>
+              <button
+                className={s.closeButton}
+                onClick={() => {
+                  setOpen(false);
+                  setFocused(true);
+                  setSearchTerm('');
+                }}
+              >
+                <Image src="/icons/close-gray.svg" alt="Close" width={20} height={20} style={{ pointerEvents: 'none' }} />
+              </button>
+            </div>
+
+            <div className={s.divider} />
+          </div>
+          <AiChatPanel className={s.mobileContent} initialPrompt={initialAiPrompt} mobileView />
         </div>
       )}
     </div>

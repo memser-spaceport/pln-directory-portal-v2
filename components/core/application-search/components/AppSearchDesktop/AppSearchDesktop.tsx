@@ -106,7 +106,15 @@ export const AppSearchDesktop = () => {
       {showFullSearch ? (
         <div className={s.modal}>
           <div className={s.modalContent}>
-            <button type="button" className={s.closeButton} onClick={() => setShowFullSearch(!showFullSearch)}>
+            <button
+              type="button"
+              className={s.closeButton}
+              onClick={() => {
+                setInitialAiPrompt('');
+                setSearchTerm('');
+                setShowFullSearch(!showFullSearch);
+              }}
+            >
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <div className={s.wrapper}>

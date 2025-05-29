@@ -20,6 +20,7 @@ import { ChatHistory } from '@/components/core/application-search/components/AiC
 import Messages from '@/components/page/husky/messages';
 import ChatFeedback from '@/components/page/husky/chat-feedback';
 import RegisterFormLoader from '@/components/core/register/register-form-loader';
+import { clsx } from 'clsx';
 
 interface Props {
   isLoggedIn?: boolean;
@@ -28,9 +29,11 @@ interface Props {
   userInfo?: IUserInfo;
   isOwnThread?: boolean;
   initialPrompt?: string;
+  className?: string;
+  mobileView?: boolean;
 }
 
-export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThread, initialPrompt }: Props) => {
+export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThread, initialPrompt, className, mobileView = false }: Props) => {
   const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
   const [initialMessages, setInitialMessages] = useState<any>([]);
   const [type, setType] = useState<string>('');
@@ -351,8 +354,9 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
   }, [initialPrompt]);
 
   return (
-    <div className={s.root}>
-      <ChatPanelHeader />
+    <div className={clsx(s.root, className)}>
+      {!mobileView && <ChatPanelHeader />}
+
       <ChatSubheader isEmpty lastQuery="" isShowHistory={showHistory} onToggleHistory={() => setShowHistory(!showHistory)} />
       {showHistory ? (
         <>

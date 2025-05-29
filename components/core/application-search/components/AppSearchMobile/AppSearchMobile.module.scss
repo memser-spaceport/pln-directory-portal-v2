@@ -1,4 +1,5 @@
 @use 'styles/media';
+@use 'styles/mixins';
 
 $padding-inline: 16px;
 
@@ -13,6 +14,7 @@ $padding-inline: 16px;
 }
 
 .wrapper {
+  @include mixins.hide-scrollbar;
   position: fixed;
   inset: 0;
   background: #fff;
@@ -67,4 +69,9 @@ $padding-inline: 16px;
   padding: 16px;
   //background-color: red;
   flex: 1;
+}
+
+.mobileContent {
+  padding-inline: 16px;
+  padding-bottom: 16px;
 }

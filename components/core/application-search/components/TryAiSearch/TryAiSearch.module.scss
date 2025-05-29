@@ -12,4 +12,12 @@
   padding: 10px 8px;
   height: 40px;
   width: 100%;
+
+  color: #0F172A;
+
+  &:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    user-select: none;
+  }
 }

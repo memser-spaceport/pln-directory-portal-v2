@@ -43,7 +43,7 @@ export const AppSearchMobile = () => {
       if (!searchTerm) {
         return (
           <>
-            <TryAiSearch />
+            <TryAiSearch disabled={searchTerm.trim().length === 0} />
             <TryToSearch />
             <div className={clsx(s.divider, s.mt1)} />
             <RecentSearch onSelect={(text) => setSearchTerm(text)} />
@@ -61,7 +61,7 @@ export const AppSearchMobile = () => {
 
       return (
         <>
-          <TryAiSearch />
+          <TryAiSearch disabled={searchTerm.trim().length === 0} />
           {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
           {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
           {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}

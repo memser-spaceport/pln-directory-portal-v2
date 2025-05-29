@@ -58,7 +58,7 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch }: Props) => {
 
   return (
     <div className={s.root}>
-      <TryAiSearch onClick={onTryAiSearch} />
+      <TryAiSearch onClick={onTryAiSearch} disabled={searchTerm.trim().length === 0} />
       {isLoading ? (
         <ContentLoader />
       ) : (

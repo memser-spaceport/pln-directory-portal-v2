@@ -74,7 +74,7 @@ export const AppSearchDesktop = () => {
     if (!searchTerm) {
       return (
         <>
-          <TryAiSearch onClick={handleTryAiSearch} />
+          <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
           <TryToSearch onSelect={handleChange} />
           <div className={s.divider} />
           <RecentSearch onSelect={handleChange} />
@@ -92,7 +92,7 @@ export const AppSearchDesktop = () => {
 
     return (
       <>
-        <TryAiSearch onClick={handleTryAiSearch} />
+        <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
         {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
         {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
         {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}

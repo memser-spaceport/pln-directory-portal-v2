@@ -1,0 +1,15 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.title {
+  color: #0F172A;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 40px; /* 222.222% */
+}

@@ -55,13 +55,14 @@ $padding-inline: 16px;
   background: transparent;
   user-select: none;
   outline: none;
+  z-index: 2;
 }
 
 .modalContent {
   background: white;
   border-radius: 12px;
   position: relative;
-  padding: 24px;
+  padding: 32px;
   width: 100%;
   max-width: calc(100vw - 32px);
   height: calc(100% - 16px);

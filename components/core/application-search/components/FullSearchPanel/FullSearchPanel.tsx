@@ -45,9 +45,9 @@ export const FullSearchPanel = ({ initialSearchTerm }: Props) => {
         return (
           <>
             <TryAiSearch />
-            <TryToSearch />
+            <TryToSearch onSelect={handleChange} />
             <div className={clsx(s.divider, s.mt1)} />
-            <RecentSearch onSelect={(text) => setSearchTerm(text)} />
+            <RecentSearch onSelect={handleChange} />
           </>
         );
       }

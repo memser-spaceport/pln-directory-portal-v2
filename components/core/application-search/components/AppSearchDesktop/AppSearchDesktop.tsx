@@ -14,6 +14,8 @@ import { ContentLoader } from '@/components/core/application-search/components/C
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { FullSearchPanel } from '@/components/core/application-search/components/FullSearchPanel';
+import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
+import clsx from 'clsx';
 
 export const AppSearchDesktop = () => {
   const inputRef: any = useRef(null);
@@ -28,6 +30,10 @@ export const AppSearchDesktop = () => {
         return;
       }
 
+      if ((e.target as HTMLElement).classList.contains('search-suggestion') || (e.target as HTMLElement).classList.contains('chat-recent-search')) {
+        return;
+      }
+
       setFocused(false);
       setSearchTerm('');
       queryClient.cancelQueries({ queryKey: [SearchQueryKeys.GET_APPLICATION_SEARCH_RESULTS] });
@@ -36,7 +42,7 @@ export const AppSearchDesktop = () => {
     ref: inputRef,
   });
 
-  const { data, isLoading, refetch } = useApplicationSearch(searchTerm);
+  const { data, isLoading } = useApplicationSearch(searchTerm);
 
   const isOpen = isFocused; //  || !!data;
 
@@ -63,9 +69,9 @@ export const AppSearchDesktop = () => {
       return (
         <>
           <TryAiSearch />
-          <TryToSearch />
+          <TryToSearch onSelect={handleChange} />
           <div className={s.divider} />
-          <RecentSearch onSelect={(text) => setSearchTerm(text)} />
+          <RecentSearch onSelect={handleChange} />
         </>
       );
     }
@@ -99,7 +105,7 @@ export const AppSearchDesktop = () => {
             </button>
             <div className={s.wrapper}>
               <FullSearchPanel initialSearchTerm={searchTerm} />
-              <div>AI search here</div>
+              <AiChatPanel />
             </div>
           </div>
         </div>
@@ -113,7 +119,7 @@ export const AppSearchDesktop = () => {
             onImplictFlush={handleFlush}
             onClick={handleClick}
           />
-          {isOpen && <div className={s.dropdown}>{renderContent()}</div>}
+          {isOpen && <div className={clsx('app-search-dropdown', s.dropdown)}>{renderContent()}</div>}
         </div>
       )}
     </>

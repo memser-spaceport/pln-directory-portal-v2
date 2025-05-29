@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import s from './AiChatPanel.module.scss';
 import { ChatPanelHeader } from '@/components/core/application-search/components/AiChatPanel/components/ChatPanelHeader';
@@ -17,25 +17,31 @@ import { toast } from 'react-toastify';
 import { IUserInfo } from '@/types/shared.types';
 import { createHuskyThread, createThreadTitle } from '@/services/husky.service';
 import { ChatHistory } from '@/components/core/application-search/components/AiChatPanel/components/ChatHistory';
+import Messages from '@/components/page/husky/messages';
 
 interface Props {
   isLoggedIn?: boolean;
   id?: string;
   from?: string;
   userInfo?: IUserInfo;
+  isOwnThread?: boolean;
+  initialPrompt?: string;
 }
 
-export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo }: Props) => {
+export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThread, initialPrompt }: Props) => {
+  const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
   const [initialMessages, setInitialMessages] = useState<any>([]);
   const [type, setType] = useState<string>('');
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [isAnswerLoading, setIsAnswerLoading] = useState(false);
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>(); // daily limit
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const feedbackPopupRef = useRef<HTMLDialogElement>(null);
   const [messages, setMessages] = useState<any[]>(initialMessages ?? []);
   const [question, setQuestion] = useState('');
   const messagesRef = useRef<any[]>(initialMessages ?? []);
   const threadUidRef = useRef<string | undefined>(id);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const fromRef = useRef<string>(from ?? '');
   const analytics = useHuskyAnalytics();
 
@@ -94,6 +100,21 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo }: Props) =
     setIsAnswerLoading(true);
   };
 
+  // Update messagesRef whenever messages state changes
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Update fromRef whenever from prop changes
+  useEffect(() => {
+    fromRef.current = from ?? '';
+  }, [from]);
+
+  // Update threadUidRef whenever threadUid prop changes
+  useEffect(() => {
+    threadUidRef.current = id;
+  }, [id, initialMessages]);
+
   // Checks and sets the thread ID for the current chat session
   const checkAndSetThreadId = useCallback(() => {
     if (threadUidRef.current && messagesRef.current.length > 0) {
@@ -104,6 +125,52 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo }: Props) =
     threadUidRef.current = newThreadUid;
     return newThreadUid;
   }, [id]);
+
+  useEffect(() => {
+    if (chatError) {
+      setMessages((prev) => {
+        if (prev.length === 0) return prev;
+        return prev.map((msg, index) => (index === prev.length - 1 ? { ...msg, answer: '', isError: true } : msg));
+      });
+    }
+
+    if (chatObject?.content && chatIsLoading) {
+      setIsAnswerLoading(false);
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const lastIndex = newMessages.length - 1;
+        newMessages[lastIndex] = {
+          ...newMessages[lastIndex],
+          answer: chatObject?.content || newMessages[lastIndex]?.answer || '',
+          followUpQuestions: chatObject?.followUpQuestions || newMessages[lastIndex]?.followUpQuestions || [],
+          sources: chatObject?.sources || newMessages[lastIndex]?.sources || [],
+          actions: chatObject?.actions || newMessages[lastIndex]?.actions || [],
+          sql: [],
+        };
+
+        return newMessages;
+      });
+    }
+  }, [chatObject, chatIsLoading, chatError]);
+
+  useEffect(() => {
+    setMessages([...initialMessages]);
+  }, [initialMessages]);
+
+  useEffect(() => {
+    const storedInput = localStorage.getItem('input');
+    if (storedInput) {
+      handleChatSubmission({ question: storedInput, type: 'user-input' });
+      localStorage.removeItem('input');
+    }
+  }, []);
+
+  // scroll to the bottom of the chat when new message is added
+  useEffect(() => {
+    if (isAnswerLoading && chatContainerRef.current) {
+      chatContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [isAnswerLoading]);
 
   // handle all chat submission
   const handleChatSubmission = useCallback(
@@ -211,6 +278,57 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo }: Props) =
     stopChat();
   }, [question]);
 
+  const onFollowupClicked = (question: string) => {
+    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
+      return;
+    }
+    handleChatSubmission({ question, type: 'followup' });
+  };
+
+  // handle feedback submission
+  const onFeedback = async (question: string, answer: string) => {
+    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
+      return;
+    }
+    analytics.trackFeedbackClick(question, answer);
+    feedbackPopupRef.current?.showModal();
+    setFeedbackQandA({ question, answer });
+  };
+
+  // handle regenerate by clicking the regenerate button
+  const onRegenerate = useCallback(
+    (query: string) => {
+      if (chatIsLoading || (!isOwnThread && fromRef.current === 'detail')) {
+        return;
+      }
+      onHuskyInput(query);
+      analytics.trackRegenerate();
+    },
+    [chatIsLoading],
+  );
+
+  // handle copy answer by clicking the copy button
+  const onCopyAnswer = async (answer: string) => {
+    analytics.trackAnswerCopy(answer);
+  };
+
+  // handle question edit by clicking the edit button
+  const onQuestionEdit = useCallback((question: string) => {
+    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
+      return;
+    }
+    analytics.trackQuestionEdit(question);
+    textareaRef.current!.value = question;
+    textareaRef.current!.focus();
+  }, []);
+
+  useEffect(() => {
+    if (initialPrompt) {
+      textareaRef.current!.value = initialPrompt;
+      textareaRef.current!.focus();
+    }
+  }, [initialPrompt]);
+
   return (
     <div className={s.root}>
       <ChatPanelHeader />
@@ -221,7 +339,23 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo }: Props) =
         </>
       ) : (
         <>
-          <EmptyChatView />
+          {messages?.length > 0 ? (
+            <div className={s.messagesWrapper} ref={chatContainerRef}>
+              <Messages
+                messages={messages}
+                onFollowupClicked={onFollowupClicked}
+                isAnswerLoading={isAnswerLoading}
+                isLoadingObject={chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')}
+                onFeedback={onFeedback}
+                onRegenerate={onRegenerate}
+                onCopyAnswer={onCopyAnswer}
+                onQuestionEdit={onQuestionEdit}
+                threadId={threadUidRef.current}
+              />
+            </div>
+          ) : (
+            <EmptyChatView />
+          )}
           <form className={s.chatInputWrapper}>
             {limitReached && <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} from="husky-chat" />}
             <ChatInput

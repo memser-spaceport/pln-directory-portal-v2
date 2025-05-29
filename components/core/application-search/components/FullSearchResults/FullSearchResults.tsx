@@ -10,9 +10,10 @@ import { SearchResult } from '@/services/search/types';
 
 interface Props {
   searchTerm: string;
+  onTryAiSearch: () => void;
 }
 
-export const FullSearchResults = ({ searchTerm }: Props) => {
+export const FullSearchResults = ({ searchTerm, onTryAiSearch }: Props) => {
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
 
   const sortedData = useMemo(() => {
@@ -57,7 +58,7 @@ export const FullSearchResults = ({ searchTerm }: Props) => {
 
   return (
     <div className={s.root}>
-      <TryAiSearch />
+      <TryAiSearch onClick={onTryAiSearch} />
       {isLoading ? (
         <ContentLoader />
       ) : (

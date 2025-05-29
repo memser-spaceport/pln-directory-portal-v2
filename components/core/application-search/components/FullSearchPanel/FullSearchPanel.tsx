@@ -15,9 +15,10 @@ import s from './FullSearchPanel.module.scss';
 
 interface Props {
   initialSearchTerm: string;
+  onTryAiSearch: (query: string) => void;
 }
 
-export const FullSearchPanel = ({ initialSearchTerm }: Props) => {
+export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch }: Props) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [isFocused, setFocused] = useState(!initialSearchTerm);
   const { data, isLoading } = useApplicationSearch(searchTerm);
@@ -36,7 +37,7 @@ export const FullSearchPanel = ({ initialSearchTerm }: Props) => {
   }, []);
 
   const handleTryAiSearch = () => {
-    // todo - show full search modal using search term
+    onTryAiSearch(searchTerm);
   };
 
   function renderContent() {
@@ -44,7 +45,7 @@ export const FullSearchPanel = ({ initialSearchTerm }: Props) => {
       if (!searchTerm) {
         return (
           <>
-            <TryAiSearch />
+            <TryAiSearch onClick={handleTryAiSearch} />
             <TryToSearch onSelect={handleChange} />
             <div className={clsx(s.divider, s.mt1)} />
             <RecentSearch onSelect={handleChange} />
@@ -62,7 +63,7 @@ export const FullSearchPanel = ({ initialSearchTerm }: Props) => {
 
       return (
         <>
-          <TryAiSearch />
+          <TryAiSearch onClick={handleTryAiSearch} />
           {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
           {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
           {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}
@@ -70,7 +71,7 @@ export const FullSearchPanel = ({ initialSearchTerm }: Props) => {
         </>
       );
     } else {
-      return <FullSearchResults searchTerm={searchTerm} />;
+      return <FullSearchResults searchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} />;
     }
   }
 

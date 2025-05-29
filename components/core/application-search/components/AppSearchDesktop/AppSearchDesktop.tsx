@@ -23,6 +23,7 @@ export const AppSearchDesktop = () => {
   const [isFocused, setFocused] = useState(false);
   const queryClient = useQueryClient();
   const [showFullSearch, setShowFullSearch] = useState(false);
+  const [initialAiPrompt, setInitialAiPrompt] = useState('');
 
   useClickedOutside({
     callback: (e) => {
@@ -60,15 +61,20 @@ export const AppSearchDesktop = () => {
     setFocused(true);
   }, []);
 
-  const handleTryAiSearch = () => {
-    // todo - show full search modal using search term
-  };
+  const handleTryAiSearch = useCallback(
+    (val?: string) => {
+      setFocused(false);
+      setShowFullSearch(true);
+      setInitialAiPrompt(val ?? searchTerm);
+    },
+    [searchTerm],
+  );
 
   function renderContent() {
     if (!searchTerm) {
       return (
         <>
-          <TryAiSearch />
+          <TryAiSearch onClick={handleTryAiSearch} />
           <TryToSearch onSelect={handleChange} />
           <div className={s.divider} />
           <RecentSearch onSelect={handleChange} />
@@ -86,7 +92,7 @@ export const AppSearchDesktop = () => {
 
     return (
       <>
-        <TryAiSearch />
+        <TryAiSearch onClick={handleTryAiSearch} />
         {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
         {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
         {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}
@@ -104,8 +110,8 @@ export const AppSearchDesktop = () => {
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <div className={s.wrapper}>
-              <FullSearchPanel initialSearchTerm={searchTerm} />
-              <AiChatPanel />
+              <FullSearchPanel initialSearchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} />
+              <AiChatPanel initialPrompt={initialAiPrompt} />
             </div>
           </div>
         </div>

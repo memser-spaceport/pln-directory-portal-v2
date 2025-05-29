@@ -15,9 +15,11 @@ import { getUserCredentials } from '@/utils/auth.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { toast } from 'react-toastify';
 import { IUserInfo } from '@/types/shared.types';
-import { createHuskyThread, createThreadTitle } from '@/services/husky.service';
+// import { createHuskyThread, createThreadTitle } from '@/services/husky.service';
 import { ChatHistory } from '@/components/core/application-search/components/AiChatPanel/components/ChatHistory';
 import Messages from '@/components/page/husky/messages';
+import ChatFeedback from '@/components/page/husky/chat-feedback';
+import RegisterFormLoader from '@/components/core/register/register-form-loader';
 
 interface Props {
   isLoggedIn?: boolean;
@@ -43,7 +45,9 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
   const threadUidRef = useRef<string | undefined>(id);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fromRef = useRef<string>(from ?? '');
+  const endRef = useRef<HTMLDivElement | null>(null);
   const analytics = useHuskyAnalytics();
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
 
   const {
     object: chatObject,
@@ -78,8 +82,6 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
       setIsAnswerLoading(false);
     },
   });
-
-  console.log(chatObject);
 
   const addMessage = (question: string) => {
     setMessages((prev) => {
@@ -157,20 +159,27 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
     setMessages([...initialMessages]);
   }, [initialMessages]);
 
-  useEffect(() => {
-    const storedInput = localStorage.getItem('input');
-    if (storedInput) {
-      handleChatSubmission({ question: storedInput, type: 'user-input' });
-      localStorage.removeItem('input');
-    }
-  }, []);
-
   // scroll to the bottom of the chat when new message is added
   useEffect(() => {
-    if (isAnswerLoading && chatContainerRef.current) {
-      chatContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    console.log('handle autoscroll', chatIsLoading);
+    if (chatIsLoading && endRef.current && autoScrollEnabled) {
+      endRef?.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
-  }, [isAnswerLoading]);
+  }, [chatIsLoading, autoScrollEnabled]);
+
+  useEffect(() => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      const isAtBottom = Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 10;
+
+      setAutoScrollEnabled(isAtBottom);
+    };
+
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // handle all chat submission
   const handleChatSubmission = useCallback(
@@ -228,19 +237,21 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
           analytics.trackAiResponse('success', type, false, question);
           return;
         }
-
-        if ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1)) {
-          const threadResponse = await createHuskyThread(authToken, threadId); // create new thread
-          if (threadResponse) {
-            const [titleResponse] = await Promise.all([createThreadTitle(authToken, threadId, question), submitChat(submitParams)]); //create thread title
-            if (titleResponse) {
-              document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
-            }
-          }
-        } else {
-          submitChat(submitParams);
-          document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
-        }
+        //
+        // if ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1)) {
+        //   const threadResponse = await createHuskyThread(authToken, threadId); // create new thread
+        //   if (threadResponse) {
+        //     const [titleResponse] = await Promise.all([createThreadTitle(authToken, threadId, question), submitChat(submitParams)]); //create thread title
+        //     if (titleResponse) {
+        //       document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+        //     }
+        //   }
+        // } else {
+        //   submitChat(submitParams);
+        //   document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+        // }
+        submitChat(submitParams);
+        document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
         analytics.trackAiResponse('success', type, false, question);
       } catch (error) {
         console.error(`Error in ${type} submission:`, error);
@@ -257,10 +268,13 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
   // handle submit by clicking the send button
   const submitForm = () => {
     const trimmedValue = textareaRef.current?.value.trim();
+
     if (!trimmedValue) {
       return;
     }
+
     onHuskyInput(trimmedValue);
+
     textareaRef.current!.value = '';
   };
 
@@ -282,6 +296,7 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
     if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
       return;
     }
+
     handleChatSubmission({ question, type: 'followup' });
   };
 
@@ -293,6 +308,12 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
     analytics.trackFeedbackClick(question, answer);
     feedbackPopupRef.current?.showModal();
     setFeedbackQandA({ question, answer });
+  };
+
+  // handle close feedback popup
+  const onCloseFeedback = () => {
+    setFeedbackQandA({ question: '', answer: '' });
+    feedbackPopupRef.current?.close();
   };
 
   // handle regenerate by clicking the regenerate button
@@ -352,6 +373,7 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
                 onQuestionEdit={onQuestionEdit}
                 threadId={threadUidRef.current}
               />
+              <div ref={endRef} />
             </div>
           ) : (
             <EmptyChatView />
@@ -371,6 +393,14 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
               isLimitReached={limitReached === 'warn' || limitReached === 'finalRequest'}
             />
           </form>
+          <dialog onClose={onCloseFeedback} ref={feedbackPopupRef} className="feedback-popup">
+            {feedbackQandA.answer && feedbackQandA.question && (
+              <>
+                <ChatFeedback question={feedbackQandA.question} answer={feedbackQandA.answer} onClose={onCloseFeedback} />
+                <RegisterFormLoader />
+              </>
+            )}
+          </dialog>
         </>
       )}
     </div>

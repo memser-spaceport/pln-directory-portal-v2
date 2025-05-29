@@ -46,7 +46,7 @@ const Messages: React.FC<MessagesProps> = ({ messages, onFollowupClicked, isAnsw
       </div>
       <style jsx>{`
         .chat__messages {
-          padding: 10px;
+          //padding: 10px;
           display: flex;
           flex-direction: column;
           gap: 16px;
@@ -54,7 +54,7 @@ const Messages: React.FC<MessagesProps> = ({ messages, onFollowupClicked, isAnsw
 
         @media (min-width: 1024px) {
           .chat__messages {
-            padding: 20px;
+            //padding: 20px;
           }
         }
       `}</style>

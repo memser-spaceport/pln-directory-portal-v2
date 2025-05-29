@@ -356,7 +356,12 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
       <ChatSubheader isEmpty lastQuery="" isShowHistory={showHistory} onToggleHistory={() => setShowHistory(!showHistory)} />
       {showHistory ? (
         <>
-          <ChatHistory onSelect={(q) => onHuskyInput(q)} />
+          <ChatHistory
+            onSelect={(q) => {
+              setShowHistory(false);
+              onHuskyInput(q);
+            }}
+          />
         </>
       ) : (
         <>

@@ -1,57 +1,15 @@
-import React, { Fragment, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import s from './ChatHistory.module.scss';
+import { useChatHistory } from '@/services/search/hooks/useChatHistory';
+import { getYear, isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 
-const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
-
-const data = [
-  {
-    date: Date.now(),
-    message: 'Cryptocurrency enthusiasts in the tech community',
-  },
-  {
-    date: Date.now(),
-    message: 'Top influencers in the blockchain space',
-  },
-  {
-    date: yesterday,
-    message: 'Notable personalities in the NFT market',
-  },
-];
-
-const formatDateLabel = (date: Date) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-  yesterday.setHours(0, 0, 0, 0);
-
-  const input = new Date(date);
-  input.setHours(0, 0, 0, 0);
-
-  if (input.getTime() === today.getTime()) return 'Today';
-  if (input.getTime() === yesterday.getTime()) return 'Yesterday';
-
-  const dd = String(input.getDate()).padStart(2, '0');
-  const mm = String(input.getMonth() + 1).padStart(2, '0');
-  const yyyy = input.getFullYear();
-
-  return `${dd}.${mm}.${yyyy}`;
-};
-
-const groupByDate = (data: { date: number | Date; message: string }[]) => {
-  return data.reduce(
-    (acc, item) => {
-      const dateKey = new Date(item.date).toISOString().split('T')[0]; // e.g., "2025-05-21"
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(item);
-      return acc;
-    },
-    {} as Record<string, typeof data>,
-  );
-};
+interface IThread {
+  title: string;
+  threadId: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface Props {
   onSelect: (val: string) => void;
@@ -60,26 +18,93 @@ interface Props {
 export const ChatHistory = ({ onSelect }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const preparedData = useMemo(() => {
-    return groupByDate(data.filter((item) => item.message.toLowerCase().includes(searchTerm.toLowerCase())));
-  }, [searchTerm]);
+  const { data: history, isLoading } = useChatHistory();
+
+  const groupChatsByDate = useCallback((chats: IThread[]) => {
+    const now = new Date();
+    const oneWeekAgo = subWeeks(now, 1);
+    const oneMonthAgo = subMonths(now, 1);
+    const currentYear = getYear(now);
+
+    return (chats ?? []).reduce(
+      (
+        groups: {
+          today: IThread[];
+          yesterday: IThread[];
+          lastWeek: IThread[];
+          lastMonth: IThread[];
+          [year: number]: IThread[];
+        },
+        chat: IThread,
+      ) => {
+        const chatDate = new Date(chat.createdAt);
+        const chatYear = getYear(chatDate);
+
+        if (isNaN(chatDate.getTime())) return groups;
+
+        if (isToday(chatDate)) {
+          groups.today.push(chat);
+        } else if (isYesterday(chatDate)) {
+          groups.yesterday.push(chat);
+        } else if (chatDate > oneWeekAgo) {
+          groups.lastWeek.push(chat);
+        } else if (chatDate > oneMonthAgo) {
+          groups.lastMonth.push(chat);
+        } else if (chatYear < currentYear) {
+          if (!groups[chatYear]) groups[chatYear] = [];
+          groups[chatYear].push(chat);
+        }
+
+        return groups;
+      },
+      {
+        today: [],
+        yesterday: [],
+        lastWeek: [],
+        lastMonth: [],
+      },
+    );
+  }, []);
+
+  // Memoize the grouped chats to prevent unnecessary recalculations
+  const groupedChats = useMemo(() => groupChatsByDate(history), [history, groupChatsByDate]);
+
+  // Memoize the ordered keys for better performance
+  const orderedKeys = useMemo(() => {
+    const fixedKeys = ['today', 'yesterday', 'lastWeek', 'lastMonth'];
+
+    // Get dynamically generated year sections and sort in descending order
+    const yearKeys = Object.keys(groupedChats)
+      .filter((key) => !fixedKeys.includes(key))
+      .sort((a, b) => Number(b) - Number(a));
+
+    return [...fixedKeys, ...yearKeys];
+  }, [groupedChats]);
 
   return (
     <>
       <div className={s.root}>
-        {!!Object.keys(preparedData).length &&
-          Object.keys(preparedData).map((key) => {
-            return (
-              <Fragment key={key}>
-                <div className={s.label}>{formatDateLabel(new Date(key))}</div>
-                {preparedData[key].map((item) => (
-                  <div key={item.message} className={s.query} onClick={() => onSelect(item.message)}>
-                    {item.message}
+        {orderedKeys.map((key) =>
+          groupedChats[key as keyof typeof groupedChats]?.length > 0 ? (
+            <React.Fragment key={key}>
+              <div className={s.label}>{key === 'lastWeek' ? 'Last 7 days' : key === 'lastMonth' ? 'Last 30 days' : key === 'today' ? 'Today' : key === 'yesterday' ? 'Yesterday' : key}</div>
+              {groupedChats[key as keyof typeof groupedChats]
+                .sort((a: IThread, b: IThread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by createdAt (newest first)
+                .filter((item) => item.title.toLowerCase().includes(searchTerm))
+                .map((chat: IThread) => (
+                  <div
+                    key={chat.threadId}
+                    className={s.query}
+                    onClick={() => {
+                      onSelect(chat.title);
+                    }}
+                  >
+                    {chat.title}
                   </div>
                 ))}
-              </Fragment>
-            );
-          })}
+            </React.Fragment>
+          ) : null,
+        )}
       </div>
       <div className={s.inputWrapper}>
         <div className={s.leftIcon}>🧠</div>

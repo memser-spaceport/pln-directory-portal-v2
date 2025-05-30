@@ -96,13 +96,14 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
       )}
       {flushIcon && (
         <button
+          id="application-search-flush"
           className={s.flushButton}
           onClick={() => {
             debouncedChange.flush();
             onImplictFlush?.();
           }}
         >
-          {flushIcon}
+          <span style={{ pointerEvents: 'none' }}>{flushIcon}</span>
         </button>
       )}
     </div>

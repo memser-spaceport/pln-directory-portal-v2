@@ -9,7 +9,7 @@ interface Props {
 
 export const NothingFound = ({ onClick }: Props) => {
   return (
-    <button className={s.root} onClick={() => onClick()}>
+    <button className={s.root} onClick={() => onClick()} id="application-search-nothing-found">
       <div className={s.content}>
         <div className={s.title}>Nothing found</div>
         <div className={s.subtitle}>Try AI Search for more results</div>

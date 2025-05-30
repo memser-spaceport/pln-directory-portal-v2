@@ -1,9 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import Image from 'next/image';
 import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
-import { TryAiSearch } from '@/components/core/application-search/components/TryAiSearch';
-import { TryToSearch } from '@/components/core/application-search/components/TryToSearch';
-import { clsx } from 'clsx';
 import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
 import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
@@ -45,9 +42,9 @@ export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch }: Props) => 
       if (!searchTerm) {
         return (
           <>
-            <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
-            <TryToSearch onSelect={handleChange} />
-            <div className={clsx(s.divider, s.mt1)} />
+            {/*<TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />*/}
+            {/*<TryToSearch onSelect={handleChange} />*/}
+            {/*<div className={clsx(s.divider, s.mt1)} />*/}
             <RecentSearch onSelect={handleChange} />
           </>
         );
@@ -63,7 +60,7 @@ export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch }: Props) => 
 
       return (
         <>
-          <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
+          {/*<TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />*/}
           {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
           {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
           {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}

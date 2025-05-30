@@ -164,7 +164,6 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
 
   // scroll to the bottom of the chat when new message is added
   useEffect(() => {
-    console.log('handle autoscroll', chatIsLoading);
     if (chatIsLoading && endRef.current && autoScrollEnabled) {
       endRef?.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
@@ -266,10 +265,10 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
   );
 
   // handle husky input submission
-  const onHuskyInput = (query: string) => handleChatSubmission({ question: query, type: 'user-input' });
+  const onHuskyInput = useCallback((query: string) => handleChatSubmission({ question: query, type: 'user-input' }), []);
 
   // handle submit by clicking the send button
-  const submitForm = () => {
+  const submitForm = useCallback(() => {
     const trimmedValue = textareaRef.current?.value.trim();
 
     if (!trimmedValue) {
@@ -279,7 +278,7 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
     onHuskyInput(trimmedValue);
 
     textareaRef.current!.value = '';
-  };
+  }, [onHuskyInput]);
 
   // handle submit by pressing enter key
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -348,10 +347,10 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
 
   useEffect(() => {
     if (initialPrompt) {
-      textareaRef.current!.value = initialPrompt;
-      textareaRef.current!.focus();
+      console.log('Autosubmit');
+      onHuskyInput(initialPrompt);
     }
-  }, [initialPrompt]);
+  }, [initialPrompt, onHuskyInput]);
 
   return (
     <div className={clsx(s.root, className)}>

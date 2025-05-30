@@ -16,6 +16,8 @@ interface Props {
 export const FullSearchResults = ({ searchTerm, onTryAiSearch }: Props) => {
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
 
+  const totalFound = (data?.teams?.length ?? 0) + (data?.events?.length ?? 0) + (data?.members?.length ?? 0) + (data?.projects?.length ?? 0);
+
   const sortedData = useMemo(() => {
     if (!data) {
       return [];
@@ -58,7 +60,7 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch }: Props) => {
 
   return (
     <div className={s.root}>
-      <TryAiSearch onClick={onTryAiSearch} disabled={searchTerm.trim().length === 0} />
+      <div className={s.totalFoundLabel}>Total results ({totalFound})</div>
       {isLoading ? (
         <ContentLoader />
       ) : (

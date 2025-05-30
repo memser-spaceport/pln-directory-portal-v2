@@ -19,11 +19,18 @@ import clsx from 'clsx';
 
 export const AppSearchDesktop = () => {
   const inputRef: any = useRef(null);
+  const fullSearchDialogRef: any = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isFocused, setFocused] = useState(false);
   const queryClient = useQueryClient();
   const [showFullSearch, setShowFullSearch] = useState(false);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
+
+  const handleFullSearchClose = useCallback(() => {
+    setInitialAiPrompt('');
+    setSearchTerm('');
+    setShowFullSearch(false);
+  }, []);
 
   useClickedOutside({
     callback: (e) => {
@@ -41,6 +48,34 @@ export const AppSearchDesktop = () => {
       queryClient.removeQueries({ queryKey: [SearchQueryKeys.GET_APPLICATION_SEARCH_RESULTS] });
     },
     ref: inputRef,
+  });
+
+  useClickedOutside({
+    callback: (e) => {
+      if (
+        (e.target as HTMLElement).id === 'application-search-clear-icon' ||
+        (e.target as HTMLElement).id === 'application-search-clear' ||
+        (e.target as HTMLElement).id === 'application-search-try-ai' ||
+        (e.target as HTMLElement).id === 'application-search-nothing-found'
+      ) {
+        return;
+      }
+
+      if ((e.target as HTMLElement).classList.contains('search-suggestion') || (e.target as HTMLElement).classList.contains('chat-recent-search')) {
+        return;
+      }
+
+      if ((e.target as HTMLElement).id === 'application-search-flush') {
+        return;
+      }
+
+      handleFullSearchClose();
+      queryClient.cancelQueries({ queryKey: [SearchQueryKeys.GET_APPLICATION_SEARCH_RESULTS] });
+      queryClient.removeQueries({ queryKey: [SearchQueryKeys.GET_APPLICATION_SEARCH_RESULTS] });
+      queryClient.cancelQueries({ queryKey: [SearchQueryKeys.GET_FULL_APPLICATION_SEARCH_RESULTS] });
+      queryClient.removeQueries({ queryKey: [SearchQueryKeys.GET_FULL_APPLICATION_SEARCH_RESULTS] });
+    },
+    ref: fullSearchDialogRef,
   });
 
   const { data, isLoading } = useApplicationSearch(searchTerm);
@@ -105,16 +140,8 @@ export const AppSearchDesktop = () => {
     <>
       {showFullSearch ? (
         <div className={s.modal}>
-          <div className={s.modalContent}>
-            <button
-              type="button"
-              className={s.closeButton}
-              onClick={() => {
-                setInitialAiPrompt('');
-                setSearchTerm('');
-                setShowFullSearch(!showFullSearch);
-              }}
-            >
+          <div className={s.modalContent} ref={fullSearchDialogRef}>
+            <button type="button" className={s.closeButton} onClick={handleFullSearchClose}>
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <div className={s.wrapper}>

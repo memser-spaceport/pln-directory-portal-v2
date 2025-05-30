@@ -1,8 +1,8 @@
-import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
+import { EVENTS, HELPER_MENU_OPTIONS, NAV_OPTIONS, PAGE_ROUTES, PROFILE_MENU_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import JoinNetwork from './join-network';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { IUserInfo } from '@/types/shared.types';
@@ -14,11 +14,16 @@ import LoginBtn from './login-btn';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { usePostHog } from 'posthog-js/react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import AllNotifications from '@/components/core/navbar/all-notifications';
+import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
+import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
   onNavMenuClick: () => void;
+  authToken: string;
+  onShowNotifications: () => void;
 }
 
 export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
@@ -27,7 +32,6 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
   const onNavMenuClick = props?.onNavMenuClick;
   const pathName = usePathname();
   const settingsUrl = '/settings';
-
   const analytics = useCommonAnalytics();
   const postHogProps = usePostHog();
   const drawerRef = useRef(null);
@@ -87,7 +91,13 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             {/* Pages */}
             <div className="md__container__bdy__menus">
               {NAV_OPTIONS.map((option, index) => (
-                <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)}>
+                <Link
+                  href={option.url}
+                  key={`${option.url} + ${index}`}
+                  onClick={() => {
+                    onNavItemClickHandler(option?.url, option?.name);
+                  }}
+                >
                   <li key={option.name} tabIndex={0} className={`md__container__bdy__menus__menu ${pathName === option.url ? 'md__container__bdy__menus__menu--active' : ''}`}>
                     <Image
                       loading="lazy"
@@ -109,6 +119,40 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
             {/* Support & Settings */}
             <div className="md__container__bdy__supandset">
               <h2 className="md__container__bdy__supandset__tle">SUPPORT & SETTINGS</h2>
+
+              <li
+                role="button"
+                onClick={() => {
+                  props.onShowNotifications();
+                  onNavMenuClick();
+                }}
+                className="md__container__bdy__supandset__optn"
+              >
+                <Image width={16} height={16} alt="Notifications" src="/icons/bell.svg" />
+                <div className="md__container__bdy__supandset__optn__name">Notifications</div>
+              </li>
+
+              {PROFILE_MENU_OPTIONS.map((helperMenu, index) => {
+                if (helperMenu.type === 'button' && helperMenu.name === 'Submit a Team' && isLoggedIn) {
+                  return (
+                    <li key={`${helperMenu} + ${index}`} role="button" onClick={handleSubmitTeam} className="md__container__bdy__supandset__optn">
+                      <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
+                      <div className="md__container__bdy__supandset__optn__name">{helperMenu.name}</div>
+                    </li>
+                  );
+                } else if (helperMenu.type !== 'button') {
+                  return (
+                    <Link onClick={() => onHelpItemClickHandler(helperMenu.name)} target={helperMenu.type} href={helperMenu.url ?? ''} key={`${helperMenu} + ${index}`}>
+                      <li className="md__container__bdy__supandset__optn">
+                        <Image width={16} height={16} alt={helperMenu.name} src={helperMenu.icon} />
+                        <div className="nb__right__helpc__opts__optn__name">{helperMenu.name}</div>
+                        {helperMenu.isExternal && <Image width={20} height={20} alt="arrow-right" src="/icons/arrow-up-gray.svg" />}
+                      </li>
+                    </Link>
+                  );
+                }
+              })}
+
               {HELPER_MENU_OPTIONS.map((helperMenu, index) => {
                 if (helperMenu.type === 'button' && helperMenu.name === 'Submit a Team' && isLoggedIn) {
                   return (
@@ -187,7 +231,7 @@ export default function MobileNavDrawer(props: Readonly<IMobileNavDrawer>) {
           .md {
             position: fixed;
             right: 0;
-            z-index: 3;
+            z-index: 11;
             top: 0;
             background-color: rgb(0, 0, 0, 0.4);
             display: flex;

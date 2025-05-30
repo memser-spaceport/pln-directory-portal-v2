@@ -4,13 +4,19 @@
 $padding-inline: 16px;
 
 .root {
-  display: block;
+  @include mixins.centralize;
+  display: flex;
   position: relative;
   z-index: 10;
 
   @include media.tablet-landscape {
     display: none;
   }
+}
+
+.toggleButton {
+  @include mixins.centralize;
+  padding-inline: 8px;
 }
 
 .wrapper {

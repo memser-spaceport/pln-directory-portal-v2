@@ -88,13 +88,14 @@ export const EVENTS = {
   TRIGGER_DIALOG_LOADER: 'trigger-dialog-loader',
 };
 
-export const HELPER_MENU_OPTIONS = [
-  // {
-  //   icon: '/icons/submitteam.svg',
-  //   name: 'Submit a Team',
-  //   type: 'button',
-  //   isExternal: false,
-  // },
+export const PROFILE_MENU_OPTIONS = [
+  {
+    icon: '/icons/members--selected.svg',
+    name: 'My Profile',
+    type: '_blank',
+    url: '/settings/profile',
+    isExternal: false,
+  },
   {
     icon: '/icons/message.svg',
     name: 'ProtoSphere',
@@ -102,6 +103,15 @@ export const HELPER_MENU_OPTIONS = [
     url: process.env.PROTOSPHERE_URL,
     isExternal: true,
   },
+];
+
+export const HELPER_MENU_OPTIONS = [
+  // {
+  //   icon: '/icons/submitteam.svg',
+  //   name: 'Submit a Team',
+  //   type: 'button',
+  //   isExternal: false,
+  // },
   {
     icon: '/icons/question-circle-grey.svg',
     name: 'Get Support',

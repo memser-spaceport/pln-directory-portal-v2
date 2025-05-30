@@ -13,9 +13,10 @@ import s from './FullSearchPanel.module.scss';
 interface Props {
   initialSearchTerm: string;
   onTryAiSearch: (query: string) => void;
+  onClose: () => void;
 }
 
-export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch }: Props) => {
+export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose }: Props) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [isFocused, setFocused] = useState(!initialSearchTerm);
   const { data, isLoading } = useApplicationSearch(searchTerm);
@@ -61,14 +62,14 @@ export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch }: Props) => 
       return (
         <>
           {/*<TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />*/}
-          {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
-          {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
-          {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}
-          {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} />}
+          {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={onClose} />}
+          {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={onClose} />}
+          {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={onClose} />}
+          {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={onClose} />}
         </>
       );
     } else {
-      return <FullSearchResults searchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} />;
+      return <FullSearchResults searchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={onClose} />;
     }
   }
 

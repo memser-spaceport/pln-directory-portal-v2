@@ -29,6 +29,13 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo }: Props) => {
   const { data, isLoading } = useApplicationSearch(searchTerm);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
 
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    setFocused(true);
+    setSearchTerm('');
+    setInitialAiPrompt('');
+  }, []);
+
   const handleChange = useCallback((val: string) => {
     setFocused(true);
     setSearchTerm(val);
@@ -75,14 +82,14 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo }: Props) => {
       return (
         <>
           <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
-          {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
-          {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
-          {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}
-          {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} />}
+          {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={handleClose} />}
+          {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={handleClose} />}
+          {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={handleClose} />}
+          {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={handleClose} />}
         </>
       );
     } else {
-      return <FullSearchResults searchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} />;
+      return <FullSearchResults searchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={handleClose} />;
     }
   }
 
@@ -97,15 +104,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo }: Props) => {
             <div className={s.header}>
               <SearchModeToggle active={mode} onChange={setMode} />
               <span className={s.title}>Search</span>
-              <button
-                className={s.closeButton}
-                onClick={() => {
-                  setOpen(false);
-                  setFocused(true);
-                  setSearchTerm('');
-                  setInitialAiPrompt('');
-                }}
-              >
+              <button className={s.closeButton} onClick={handleClose}>
                 <Image src="/icons/close-gray.svg" alt="Close" width={20} height={20} style={{ pointerEvents: 'none' }} />
               </button>
             </div>

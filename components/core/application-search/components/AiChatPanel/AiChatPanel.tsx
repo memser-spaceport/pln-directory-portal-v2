@@ -359,7 +359,7 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
 
       <ChatSubheader isEmpty lastQuery="" isShowHistory={showHistory} onToggleHistory={() => setShowHistory(!showHistory)} isLoggedIn={isLoggedIn} />
       {showHistory ? (
-        <>
+        <div className={s.messagesWrapper}>
           <ChatHistory
             isLoggedIn={isLoggedIn}
             onSelect={(thread) => {
@@ -369,7 +369,7 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
               setShowHistory(false);
             }}
           />
-        </>
+        </div>
       ) : (
         <>
           {messages?.length > 0 ? (

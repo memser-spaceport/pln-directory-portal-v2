@@ -11,9 +11,10 @@ import { SearchResult } from '@/services/search/types';
 interface Props {
   searchTerm: string;
   onTryAiSearch: () => void;
+  onClose: () => void;
 }
 
-export const FullSearchResults = ({ searchTerm, onTryAiSearch }: Props) => {
+export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose }: Props) => {
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
 
   const totalFound = (data?.teams?.length ?? 0) + (data?.events?.length ?? 0) + (data?.members?.length ?? 0) + (data?.projects?.length ?? 0);
@@ -72,7 +73,7 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch }: Props) => {
               disabled={!item.values?.length}
               initialOpen={item.label === 'Top Results' && !!item.values?.length}
             >
-              <SearchResultsSection items={item.values ?? []} query={searchTerm} />
+              <SearchResultsSection items={item.values ?? []} query={searchTerm} onSelect={onClose} />
             </CollapsibleSection>
           ))}
         </>

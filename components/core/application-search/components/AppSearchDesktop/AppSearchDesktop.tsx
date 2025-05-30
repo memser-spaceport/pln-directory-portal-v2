@@ -40,7 +40,12 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
 
   useClickedOutside({
     callback: (e) => {
-      if ((e.target as HTMLElement).id === 'application-search-clear-icon' || (e.target as HTMLElement).id === 'application-search-clear') {
+      if (
+        (e.target as HTMLElement).id === 'application-search-clear-icon' ||
+        (e.target as HTMLElement).id === 'application-search-clear' ||
+        (e.target as HTMLElement).id === 'application-search-try-ai' ||
+        (e.target as HTMLElement).id === 'application-search-nothing-found'
+      ) {
         return;
       }
 
@@ -134,10 +139,10 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
     return (
       <>
         <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
-        {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} />}
-        {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} />}
-        {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} />}
-        {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} />}
+        {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={handleFullSearchClose} />}
       </>
     );
   }
@@ -151,7 +156,7 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <div className={s.wrapper}>
-              <FullSearchPanel initialSearchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} />
+              <FullSearchPanel initialSearchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={handleFullSearchClose} />
               <AiChatPanel initialPrompt={initialAiPrompt} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             </div>
           </div>

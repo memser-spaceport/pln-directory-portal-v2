@@ -11,6 +11,7 @@ interface Props {
   title?: string;
   items: FoundItem[];
   query: string;
+  onSelect?: () => void;
 }
 
 const SECTION_TYPE_ICONS = {
@@ -20,7 +21,7 @@ const SECTION_TYPE_ICONS = {
   events: '/icons/irl-event-default-logo.svg',
 };
 
-export const SearchResultsSection = ({ title, items, query }: Props) => {
+export const SearchResultsSection = ({ title, items, query, onSelect }: Props) => {
   const router = useRouter();
 
   return (
@@ -41,6 +42,7 @@ export const SearchResultsSection = ({ title, items, query }: Props) => {
                 className={s.foundItem}
                 onClick={() => {
                   router.push(`/${item.index}/${item.uid}`);
+                  onSelect?.();
                 }}
               >
                 <div className={s.header}>

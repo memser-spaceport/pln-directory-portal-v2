@@ -123,7 +123,7 @@ export const ChatHistory = ({ onSelect, isLoggedIn }: Props) => {
           ) : null,
         )}
       </div>
-      <div className={s.inputWrapper}>
+      <div className={s.inputWrapper} style={{ display: 'none' }}>
         <div className={s.leftIcon}>🧠</div>
         <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={s.input} placeholder="Search in History" />
         <button className={s.actionButton}>

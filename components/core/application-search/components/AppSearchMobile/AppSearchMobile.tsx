@@ -14,8 +14,14 @@ import { clsx } from 'clsx';
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { FullSearchResults } from '@/components/core/application-search/components/FullSearchResults';
 import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
+import { IUserInfo } from '@/types/shared.types';
 
-export const AppSearchMobile = () => {
+interface Props {
+  userInfo: IUserInfo;
+  isLoggedIn: boolean;
+}
+
+export const AppSearchMobile = ({ isLoggedIn, userInfo }: Props) => {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'regular' | 'ai'>('regular');
   const [searchTerm, setSearchTerm] = useState('');
@@ -139,7 +145,7 @@ export const AppSearchMobile = () => {
 
             <div className={s.divider} />
           </div>
-          <AiChatPanel className={s.mobileContent} initialPrompt={initialAiPrompt} mobileView />
+          <AiChatPanel className={s.mobileContent} initialPrompt={initialAiPrompt} mobileView isLoggedIn={isLoggedIn} userInfo={userInfo} />
         </div>
       )}
     </div>

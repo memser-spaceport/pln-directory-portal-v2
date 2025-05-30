@@ -16,8 +16,14 @@ import { SearchResultsSection } from '@/components/core/application-search/compo
 import { FullSearchPanel } from '@/components/core/application-search/components/FullSearchPanel';
 import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
 import clsx from 'clsx';
+import { IUserInfo } from '@/types/shared.types';
 
-export const AppSearchDesktop = () => {
+interface Props {
+  userInfo: IUserInfo;
+  isLoggedIn: boolean;
+}
+
+export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
   const inputRef: any = useRef(null);
   const fullSearchDialogRef: any = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -146,7 +152,7 @@ export const AppSearchDesktop = () => {
             </button>
             <div className={s.wrapper}>
               <FullSearchPanel initialSearchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} />
-              <AiChatPanel initialPrompt={initialAiPrompt} />
+              <AiChatPanel initialPrompt={initialAiPrompt} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             </div>
           </div>
         </div>

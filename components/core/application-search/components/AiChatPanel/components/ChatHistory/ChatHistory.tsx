@@ -3,6 +3,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 import s from './ChatHistory.module.scss';
 import { useChatHistory } from '@/services/search/hooks/useChatHistory';
 import { getYear, isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
+import { getHuskyThreadById } from '@/services/husky.service';
+import { getUserCredentials } from '@/utils/auth.utils';
 
 interface IThread {
   title: string;
@@ -12,10 +14,11 @@ interface IThread {
 }
 
 interface Props {
-  onSelect: (val: string) => void;
+  onSelect: (thread: Awaited<ReturnType<typeof getHuskyThreadById>>) => void;
+  isLoggedIn: boolean;
 }
 
-export const ChatHistory = ({ onSelect }: Props) => {
+export const ChatHistory = ({ onSelect, isLoggedIn }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: history, isLoading } = useChatHistory();
@@ -95,8 +98,22 @@ export const ChatHistory = ({ onSelect }: Props) => {
                   <div
                     key={chat.threadId}
                     className={s.query}
-                    onClick={() => {
-                      onSelect(chat.title);
+                    onClick={async () => {
+                      const { authToken } = await getUserCredentials(isLoggedIn);
+
+                      if (!authToken) {
+                        return;
+                      }
+
+                      const thread = await getHuskyThreadById(chat.threadId, authToken);
+
+                      if (!thread) {
+                        return;
+                      }
+
+                      onSelect(thread);
+
+                      // onSelect(chat.title);
                     }}
                   >
                     {chat.title}

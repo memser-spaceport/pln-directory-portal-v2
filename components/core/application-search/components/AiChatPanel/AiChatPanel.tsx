@@ -15,7 +15,7 @@ import { getUserCredentials } from '@/utils/auth.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { toast } from 'react-toastify';
 import { IUserInfo } from '@/types/shared.types';
-// import { createHuskyThread, createThreadTitle } from '@/services/husky.service';
+import { createHuskyThread, createThreadTitle } from '@/services/husky.service';
 import { ChatHistory } from '@/components/core/application-search/components/AiChatPanel/components/ChatHistory';
 import Messages from '@/components/page/husky/messages';
 import ChatFeedback from '@/components/page/husky/chat-feedback';
@@ -35,16 +35,16 @@ interface Props {
 
 export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThread, initialPrompt, className, mobileView = false }: Props) => {
   const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
-  const [initialMessages, setInitialMessages] = useState<any>([]);
+  // const [initialMessages, setInitialMessages] = useState<any>([]);
   const [type, setType] = useState<string>('');
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [isAnswerLoading, setIsAnswerLoading] = useState(false);
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>(); // daily limit
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const feedbackPopupRef = useRef<HTMLDialogElement>(null);
-  const [messages, setMessages] = useState<any[]>(initialMessages ?? []);
+  const [messages, setMessages] = useState<any[]>([]);
   const [question, setQuestion] = useState('');
-  const messagesRef = useRef<any[]>(initialMessages ?? []);
+  const messagesRef = useRef<any[]>([]);
   const threadUidRef = useRef<string | undefined>(id);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fromRef = useRef<string>(from ?? '');
@@ -116,9 +116,9 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
   }, [from]);
 
   // Update threadUidRef whenever threadUid prop changes
-  useEffect(() => {
-    threadUidRef.current = id;
-  }, [id, initialMessages]);
+  // useEffect(() => {
+  //   threadUidRef.current = id;
+  // }, [id, initialMessages]);
 
   // Checks and sets the thread ID for the current chat session
   const checkAndSetThreadId = useCallback(() => {
@@ -129,7 +129,7 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
     // setThreadUid(newThreadUid);
     threadUidRef.current = newThreadUid;
     return newThreadUid;
-  }, [id]);
+  }, []);
 
   useEffect(() => {
     if (chatError) {
@@ -158,9 +158,9 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
     }
   }, [chatObject, chatIsLoading, chatError]);
 
-  useEffect(() => {
-    setMessages([...initialMessages]);
-  }, [initialMessages]);
+  // useEffect(() => {
+  //   setMessages([...initialMessages]);
+  // }, [initialMessages]);
 
   // scroll to the bottom of the chat when new message is added
   useEffect(() => {
@@ -239,21 +239,23 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
           analytics.trackAiResponse('success', type, false, question);
           return;
         }
-        //
-        // if ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1)) {
-        //   const threadResponse = await createHuskyThread(authToken, threadId); // create new thread
-        //   if (threadResponse) {
-        //     const [titleResponse] = await Promise.all([createThreadTitle(authToken, threadId, question), submitChat(submitParams)]); //create thread title
-        //     if (titleResponse) {
-        //       document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
-        //     }
-        //   }
-        // } else {
-        //   submitChat(submitParams);
-        //   document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
-        // }
-        submitChat(submitParams);
-        document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+
+        if (isLoggedIn && ((hasRefreshToken && messagesRef.current.length === 0) || (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1))) {
+          const threadResponse = await createHuskyThread(authToken, threadId); // create new thread
+
+          if (threadResponse) {
+            const [titleResponse] = await Promise.all([createThreadTitle(authToken, threadId, question), submitChat(submitParams)]); //create thread title
+
+            if (titleResponse) {
+              document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+            }
+          }
+        } else {
+          submitChat(submitParams);
+          document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+        }
+        // submitChat(submitParams);
+        // document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
         analytics.trackAiResponse('success', type, false, question);
       } catch (error) {
         console.error(`Error in ${type} submission:`, error);
@@ -347,7 +349,6 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
 
   useEffect(() => {
     if (initialPrompt) {
-      console.log('Autosubmit');
       onHuskyInput(initialPrompt);
     }
   }, [initialPrompt, onHuskyInput]);
@@ -356,13 +357,16 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
     <div className={clsx(s.root, className)}>
       {!mobileView && <ChatPanelHeader />}
 
-      <ChatSubheader isEmpty lastQuery="" isShowHistory={showHistory} onToggleHistory={() => setShowHistory(!showHistory)} />
+      <ChatSubheader isEmpty lastQuery="" isShowHistory={showHistory} onToggleHistory={() => setShowHistory(!showHistory)} isLoggedIn={isLoggedIn} />
       {showHistory ? (
         <>
           <ChatHistory
-            onSelect={(q) => {
+            isLoggedIn={isLoggedIn}
+            onSelect={(thread) => {
+              // onHuskyInput(q);
+              setMessages(thread.chats);
+              threadUidRef.current = thread.threadId;
               setShowHistory(false);
-              onHuskyInput(q);
             }}
           />
         </>

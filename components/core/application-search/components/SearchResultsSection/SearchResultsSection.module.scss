@@ -1,0 +1,115 @@
+@use "styles/mixins";
+@use 'styles/media';
+
+$padding-inline: 16px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  gap: 8px;
+
+  .label {
+    color: #64748B;
+    font-feature-settings: 'liga' off, 'clig' off;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    gap: 4px;
+  }
+
+  .foundItem {
+    padding: 8px 16px 8px 8px;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 4px;
+    align-self: stretch;
+
+    border-radius: 8px;
+    border: 1px solid #F1F5F9;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .avatar {
+    height: 24px;
+    width: 24px;
+    min-width: 24px;
+    border-radius: 4px;
+    border: 0.75px solid #E2E8F0;
+    overflow: hidden;
+  }
+
+  .name {
+    @include mixins.ellipse-text;
+  }
+
+  .type {
+    margin-left: auto;
+    padding: 4px;
+    border-radius: 4px;
+    background: var(--Neutral-Slate-100, #F1F5F9);
+  }
+
+  .matches {
+    list-style: none;
+  }
+
+  .matchRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    .arrow {
+      @include mixins.centralize;
+      height: 26px;
+    }
+
+    .text {
+      @include mixins.ellipse-text;
+      overflow: hidden;
+      color: #64748B;
+      text-overflow: ellipsis;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 16px; /* 133.333% */
+
+      em {
+        font-style: normal;
+        color: rgba(21, 111, 247, 0.75);
+      }
+    }
+
+    .matchType {
+      color: #CAD4E0;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 16px; /* 133.333% */
+      margin-left: auto;
+      text-transform: capitalize;
+    }
+  }
+}
+
+.divider {
+  height: 1px;
+  width: calc(100%);
+  //margin-inline: -$padding-inline;
+  margin-block: 8px;
+  background: #E2E8F0;
+}

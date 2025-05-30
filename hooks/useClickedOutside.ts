@@ -2,7 +2,7 @@
 import { RefObject, useEffect } from 'react';
 
 interface ClickedOutsideProps {
-  callback: () => void;
+  callback: (e: MouseEvent) => void;
   ref: RefObject<HTMLElement>;
 }
 
@@ -12,7 +12,7 @@ const useClickedOutside = (props: ClickedOutsideProps) => {
 
   const handleClick = (e: MouseEvent) => {
     if (ref.current && !ref.current.contains(e.target as Node)) {
-      callback();
+      callback(e);
     }
   };
 

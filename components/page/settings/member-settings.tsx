@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import MemberSkillsInfo from '../member-info/member-skills-info';
 import MemberContributionInfo from '../member-info/member-contributions-info';
 import MemberSocialInfo from '../member-info/member-social-info';
-import { compareObjects, getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString, getInitialMemberFormValues } from '@/utils/member.utils';
+import { compareObjects, getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString, getInitialMemberFormValues,  updateMemberInfoCookie } from '@/utils/member.utils';
 import SettingsAction from './actions';
 import SingleSelect from '@/components/form/single-select';
 import Cookies from 'js-cookie';
@@ -21,6 +21,7 @@ import Modal from '@/components/core/modal';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import AlertMessage from './alert-message';
+import { useUserStore } from '@/services/members/store';
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 
@@ -43,7 +44,6 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
   const queryClient = useQueryClient();
-
   const [allErrors, setAllErrors] = useState<any[]>([]);
   const tabsWithError = {
     basic: errors.basicErrors.length > 0,
@@ -53,6 +53,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   };
   const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo]);
   const analytics = useSettingsAnalytics();
+  const { actions: { setProfileImage } } = useUserStore();
 
   const handleTabClick = (v: string) => {
     analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
@@ -227,6 +228,8 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         if (imgEle) {
           imgEle.value = image.url;
         }
+        updateMemberInfoCookie(image.url);
+        setProfileImage(image.url);
       } else if (memberInfo?.image?.uid && memberInfo?.image?.url && formattedForms.imageFile === memberInfo?.image?.url) {
         formattedForms.imageUid = memberInfo?.image?.uid;
       }

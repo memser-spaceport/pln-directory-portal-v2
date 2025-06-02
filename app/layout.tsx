@@ -10,6 +10,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import QueryProvider from '@/providers/QueryProvider';
+import StoreInitializer from '@/providers/StoreInitializer';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
 import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <StyledJsxRegistry>
           <QueryProvider>
+            <StoreInitializer userInfo={userInfo} />
             <PostHogIdentifier />
             <header className="layout__header">
               <SubscribeToRecoomendations userInfo={userInfo} />

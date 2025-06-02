@@ -17,6 +17,7 @@ import s from './AccountMenu.module.scss';
 import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { clsx } from 'clsx';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   userInfo: IUserInfo;
@@ -29,6 +30,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
   const analytics = useCommonAnalytics();
   const postHogProps = usePostHog();
+  const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
 
   const handleLogout = useCallback(() => {
@@ -69,7 +71,12 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
         <Menu.Portal>
           <Menu.Positioner className={s.Positioner} align="end" sideOffset={10}>
             <Menu.Popup className={s.Popup}>
-              <Menu.Item className={s.Item}>
+              <Menu.Item
+                className={s.Item}
+                onClick={() => {
+                  router.push('/settings/profile');
+                }}
+              >
                 <UserIcon /> {userInfo.name ?? userInfo.email}
               </Menu.Item>
               <Menu.Item className={s.Item} onClick={() => setShowNotifications(true)}>

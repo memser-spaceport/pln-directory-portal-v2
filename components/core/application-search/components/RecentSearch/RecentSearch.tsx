@@ -1,10 +1,10 @@
 import React from 'react';
 
 import s from './RecentSearch.module.scss';
-import { useRecentSearch } from '@/services/search/hooks/useRecentSearch';
 import Image from 'next/image';
-import { useRemoveRecentSearch } from '@/services/search/hooks/useRemoveRecentSearch';
 import { clsx } from 'clsx';
+import { useRecentSearch } from '@/services/search/hooks/useRecentSearch';
+import { useRemoveRecentSearch } from '@/services/search/hooks/useRemoveRecentSearch';
 
 interface Props {
   onSelect: (text: string) => void;
@@ -12,20 +12,20 @@ interface Props {
 
 export const RecentSearch = ({ onSelect }: Props) => {
   const { data } = useRecentSearch();
-  const { mutate, isPending } = useRemoveRecentSearch();
+  const { mutate } = useRemoveRecentSearch();
 
   return (
     <div className={s.root}>
       <div className={s.label}>Recent</div>
       <ul className={s.list}>
         {data?.map((item) => (
-          <li key={item.id} className={clsx('chat-recent-search', s.searchItem)} onClick={() => onSelect(item.text)}>
-            <span className={s.searchItemText}>{item.text}</span>
+          <li key={item} className={clsx('chat-recent-search', s.searchItem)} onClick={() => onSelect(item)}>
+            <span className={s.searchItemText}>{item}</span>
             <button
               className={clsx(s.removeButton)}
               onClick={(e) => {
                 e.stopPropagation();
-                mutate({ id: item.id });
+                mutate({ item });
               }}
             >
               <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} />

@@ -13,7 +13,6 @@ import { Metadata } from 'next';
 import { ADMIN_ROLE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
-import Husky from '@/components/page/home/husky/husky';
 import { formatFeaturedData } from '@/utils/home.utils';
 
 export default async function Home() {
@@ -23,31 +22,29 @@ export default async function Home() {
     return <Error />;
   }
 
-  return <>
-    <div className={styles.home}>
-      {/* Husky chat */}
-      <div className={styles.home__husky}>
-        <Husky/>
+  return (
+    <>
+      <div className={styles.home}>
+        <div className={styles.home__cn}>
+          {/* Focus Area section */}
+          <div className={styles.home__cn__focusarea}>
+            <LandingFocusAreas focusAreas={focusAreas} userInfo={userInfo} />
+          </div>
+          {/* Discover section */}
+          <div className={styles.home__cn__discover}>
+            <Discover discoverData={discoverData} userInfo={userInfo} />
+          </div>
+          {/* Featured section */}
+          <div className={styles.home__cn__featured}>
+            <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+          </div>
+          <ScrollToTop pageName="Home" userInfo={userInfo} />
+        </div>
       </div>
-      <div className={styles.home__cn}>
-        {/* Focus Area section */} 
-        <div className={styles.home__cn__focusarea}>
-          <LandingFocusAreas focusAreas={focusAreas} userInfo={userInfo}/>
-        </div>
-        {/* Discover section */}
-        <div className={styles.home__cn__discover}>
-          <Discover discoverData={discoverData}  userInfo={userInfo} />
-        </div>
-        {/* Featured section */}
-        <div className={styles.home__cn__featured}>
-          <Featured featuredData={featuredData} isLoggedIn={isLoggedIn} userInfo={userInfo}/>
-        </div>
-        <ScrollToTop pageName='Home' userInfo={userInfo}/>
-      </div>
-    </div>
-    <HuskyDialog isLoggedIn={isLoggedIn} />
-    <HuskyDiscover isLoggedIn={isLoggedIn} />
+      <HuskyDialog isLoggedIn={isLoggedIn} />
+      <HuskyDiscover isLoggedIn={isLoggedIn} />
     </>
+  );
 }
 
 const getPageData = async () => {
@@ -56,15 +53,14 @@ const getPageData = async () => {
   let featuredData = [] as any;
   let discoverData = [] as any;
   let teamFocusAreas: IFocusArea[] = [];
-  let projectFocusAreas: IFocusArea[]= [];
+  let projectFocusAreas: IFocusArea[] = [];
   const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   try {
-    const [
-      teamFocusAreaResponse, projectFocusAreaResponse, featuredResponse, discoverResponse] = await Promise.all([
+    const [teamFocusAreaResponse, projectFocusAreaResponse, featuredResponse, discoverResponse] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
       getFeaturedData(authToken, isLoggedIn, isAdmin),
-      getDiscoverData()
+      getDiscoverData(),
     ]);
     if (teamFocusAreaResponse?.error || projectFocusAreaResponse?.error || featuredResponse?.error || discoverResponse?.error) {
       return {
@@ -72,41 +68,41 @@ const getPageData = async () => {
         userInfo,
         isLoggedIn,
         focusAreas: {
-            teamFocusAreas,
-            projectFocusAreas
+          teamFocusAreas,
+          projectFocusAreas,
         },
         discoverData,
-        featuredData
+        featuredData,
       };
     }
-    teamFocusAreas  = Array.isArray(teamFocusAreaResponse?.data) ?  teamFocusAreaResponse?.data?.filter((data: any) => !data?.parentUid) : [];
+    teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data) ? teamFocusAreaResponse?.data?.filter((data: any) => !data?.parentUid) : [];
     projectFocusAreas = Array.isArray(projectFocusAreaResponse?.data) ? projectFocusAreaResponse?.data?.filter((data: any) => !data?.parentUid) : [];
     featuredData = formatFeaturedData(featuredResponse?.data);
     discoverData = discoverResponse?.data;
     return {
-        isError,
-        userInfo,
-        isLoggedIn,
-        focusAreas: {
-            teamFocusAreas ,
-            projectFocusAreas
-        },
-        featuredData,
-        discoverData
-    }
+      isError,
+      userInfo,
+      isLoggedIn,
+      focusAreas: {
+        teamFocusAreas,
+        projectFocusAreas,
+      },
+      featuredData,
+      discoverData,
+    };
   } catch (error) {
-    console.log(error)
+    console.log(error);
     isError = true;
     return {
       isError,
       userInfo,
       isLoggedIn,
       focusAreas: {
-          teamFocusAreas ,
-          projectFocusAreas
+        teamFocusAreas,
+        projectFocusAreas,
       },
       featuredData,
-      discoverData
+      discoverData,
     };
   }
 };

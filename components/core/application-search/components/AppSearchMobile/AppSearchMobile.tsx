@@ -64,9 +64,13 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo }: Props) => {
         return (
           <>
             <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
-            <TryToSearch onSelect={handleChange} />
-            <div className={clsx(s.divider, s.mt1)} />
-            <RecentSearch onSelect={handleChange} />
+            <TryToSearch onSelect={handleTryAiSearch} />
+            {isLoggedIn && (
+              <>
+                <div className={clsx(s.divider, s.mt1)} />
+                <RecentSearch onSelect={handleChange} />
+              </>
+            )}
           </>
         );
       }

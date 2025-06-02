@@ -1,21 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { SearchQueryKeys } from '@/services/search/constants';
 
+export function saveRecentSearch(term: string) {
+  try {
+    const key = 'recentSearches';
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const updated = [term, ...existing.filter((t: string) => t !== term)].slice(0, 10);
+    localStorage.setItem(key, JSON.stringify(updated));
+    window.dispatchEvent(new Event('recent-search-updated'));
+  } catch (e) {
+    console.error('Failed to save recent search', e);
+  }
+}
+
 async function fetcher() {
-  return [
-    {
-      id: '1',
-      text: 'Filecoin storage solutions',
-    },
-    {
-      id: '2',
-      text: 'Zama privacy technology',
-    },
-    {
-      id: '3',
-      text: 'Celestia blockchain architecture',
-    },
-  ];
+  try {
+    const key = 'recentSearches';
+    return JSON.parse(localStorage.getItem(key) || '[]') as string[];
+  } catch (e) {
+    console.error('Failed to get recent search', e);
+  }
 }
 
 export function useRecentSearch() {

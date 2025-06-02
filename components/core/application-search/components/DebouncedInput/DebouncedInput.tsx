@@ -62,8 +62,9 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
   }, [value]);
 
   return (
-    <div className={s.root}>
+    <div className={s.root} id="application-search-input-root">
       <input
+        id="application-search-input"
         type="text"
         value={localValue}
         onKeyPress={handleKeyPress}

@@ -14,6 +14,7 @@ import { createLogoutChannel } from '../login/broadcast-channel';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { useUserInfo } from '@/providers/userInfo-provider';
 
 interface IProfile {
   userInfo: IUserInfo;
@@ -23,7 +24,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
   const [isDropdown, setIsDropdown] = useState(false);
   const profileMenuRef = useRef(null);
   const router = useRouter();
-
+  const {profileImage}=useUserInfo();
   const analytics = useCommonAnalytics();
   const postHogProps = usePostHog();
   const userInfo = props?.userInfo;
@@ -56,7 +57,7 @@ export default function UserProfile(props: Readonly<IProfile>) {
         <div  className="profile__profileimgsection__img-wrapper" >
           <Image
             loading="lazy"
-            src={userInfo?.profileImageUrl || defaultAvatarImage}
+            src={profileImage?.url || defaultAvatarImage}
             alt="profile"
             height={40}
             width={40}

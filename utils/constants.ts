@@ -90,13 +90,6 @@ export const EVENTS = {
 
 export const PROFILE_MENU_OPTIONS = [
   {
-    icon: '/icons/members--selected.svg',
-    name: 'My Profile',
-    type: '_blank',
-    url: '/settings/profile',
-    isExternal: false,
-  },
-  {
     icon: '/icons/message.svg',
     name: 'ProtoSphere',
     type: '_blank',

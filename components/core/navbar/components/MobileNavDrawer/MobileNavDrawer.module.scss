@@ -1,0 +1,17 @@
+.SeparatorWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #CAD3DF;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; /* 140% */
+}
+
+.Separator {
+  height: 1px;
+  background-color: #E2E8F0;
+  flex: 1;
+}

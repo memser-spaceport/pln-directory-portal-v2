@@ -1,9 +1,10 @@
 import { IMember, IMemberListOptions, IMemberPreferences, IMemberResponse, IMembersSearchParams, ITeamMemberRole } from '@/types/members.types';
-import { getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
+import { getParsedValue, getSortFromQuery, getUniqueFilterValues, stringifyQueryValues } from './common.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from './constants';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { validateLocation } from '@/services/location.service';
+import Cookies from 'js-cookie';
 
 export const getFormattedFilters = (searchParams: IMembersSearchParams, rawFilters: any, availableFilters: any, isLoggedIn: boolean) => {
   const restricedKeys = ['region', 'country', 'metroArea'];
@@ -747,3 +748,23 @@ export const parseMemberDetailsForTeams = (members: IMemberResponse[], teamId: s
     return data;
   });
 };
+
+export function updateMemberInfoCookie(url: string) {
+  try {
+    const existingUserInfo = Cookies.get('userInfo');
+    const parsedUserInfo = getParsedValue(existingUserInfo);
+
+    if (parsedUserInfo) {
+      const updatedUserInfo = {
+        ...parsedUserInfo,
+        profileImageUrl: url,
+      };
+
+      Cookies.set('userInfo', JSON.stringify(updatedUserInfo), {
+        path: '/',
+      });
+    }
+  } catch (error) {
+    console.error('Failed to update userInfo cookie:', error);
+  }
+}

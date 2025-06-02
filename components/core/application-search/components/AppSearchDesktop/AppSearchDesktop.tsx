@@ -21,9 +21,10 @@ import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 interface Props {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
+  authToken: string;
 }
 
-export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
+export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => {
   const inputRef: any = useRef(null);
   const fullSearchDialogRef: any = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -164,7 +165,7 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
             </button>
             <div className={s.wrapper}>
               <FullSearchPanel initialSearchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={handleFullSearchClose} />
-              <AiChatPanel initialPrompt={initialAiPrompt} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+              <AiChatPanel initialPrompt={initialAiPrompt} isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </div>
           </div>
         </div>

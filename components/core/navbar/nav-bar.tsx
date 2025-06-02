@@ -83,7 +83,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           </div>
         </div>
         <div className="nb__right">
-          <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} />
+          <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
           <NotificationsMenu isMobileView notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
           <div className="nb__right__drawerandprofilesec" onClick={onNavDrawerIconClickHandler}>
             <button className="nb__right__drawerandprofile__drawerbtn">

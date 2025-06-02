@@ -31,9 +31,10 @@ interface Props {
   initialPrompt?: string;
   className?: string;
   mobileView?: boolean;
+  authToken: string;
 }
 
-export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThread, initialPrompt, className, mobileView = false }: Props) => {
+export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThread, initialPrompt, className, mobileView = false, authToken: authorizationToken }: Props) => {
   const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
   // const [initialMessages, setInitialMessages] = useState<any>([]);
   const [type, setType] = useState<string>('');
@@ -62,6 +63,7 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
     api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/contextual-tools`,
     headers: {
       'Content-Type': 'application/json',
+      ...(authorizationToken ? { Authorization: `Bearer ${authorizationToken}` } : {}),
     },
     schema: z.object({
       content: z.string(),

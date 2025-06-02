@@ -19,9 +19,10 @@ import { IUserInfo } from '@/types/shared.types';
 interface Props {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
+  authToken: string;
 }
 
-export const AppSearchMobile = ({ isLoggedIn, userInfo }: Props) => {
+export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'regular' | 'ai'>('regular');
   const [searchTerm, setSearchTerm] = useState('');
@@ -148,7 +149,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo }: Props) => {
 
             <div className={s.divider} />
           </div>
-          <AiChatPanel className={s.mobileContent} initialPrompt={initialAiPrompt} mobileView isLoggedIn={isLoggedIn} userInfo={userInfo} />
+          <AiChatPanel className={s.mobileContent} initialPrompt={initialAiPrompt} mobileView isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
         </div>
       )}
     </div>

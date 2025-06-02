@@ -6,13 +6,14 @@ import { IUserInfo } from '@/types/shared.types';
 interface Props {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
+  authToken: string;
 }
 
-export const ApplicationSearch = ({ isLoggedIn, userInfo }: Props) => {
+export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) => {
   return (
     <>
-      <AppSearchDesktop isLoggedIn={isLoggedIn} userInfo={userInfo} />
-      <AppSearchMobile isLoggedIn={isLoggedIn} userInfo={userInfo} />
+      <AppSearchDesktop isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+      <AppSearchMobile isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
     </>
   );
 };

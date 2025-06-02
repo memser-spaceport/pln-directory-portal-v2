@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import LoginBtn from './login-btn';
-import MobileNavDrawer from './mobile-nav-drawer';
+import { MobileNavDrawer } from './components/MobileNavDrawer';
 import { ApplicationSearch } from '@/components/core/application-search';
 import { AccountMenu } from '@/components/core/navbar/components/AccountMenu/AccountMenu';
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
@@ -65,7 +65,14 @@ export default function Navbar(props: Readonly<INavbar>) {
     <>
       <div className="nb">
         {isMobileDrawerOpen && (
-          <MobileNavDrawer userInfo={userInfo} isLoggedIn={isLoggedIn} onNavMenuClick={onNavDrawerIconClickHandler} authToken={authToken} onShowNotifications={() => setShowNotifications(true)} />
+          <MobileNavDrawer
+            userInfo={userInfo}
+            isLoggedIn={isLoggedIn}
+            onNavMenuClick={onNavDrawerIconClickHandler}
+            authToken={authToken}
+            onShowNotifications={() => setShowNotifications(true)}
+            notificationsCount={notifications?.length}
+          />
         )}
         <div className="nb__left">
           <Link href="/" onClick={onNavbarApplogoClicked}>

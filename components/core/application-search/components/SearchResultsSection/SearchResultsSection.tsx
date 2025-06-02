@@ -58,17 +58,19 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
                   </div>
                 </div>
                 <ul className={s.matches}>
-                  {item.matches.map((match) => {
-                    return (
-                      <li key={match.field} className={s.matchRow}>
-                        <div className={s.arrow}>
-                          <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
-                        </div>
-                        <p className={s.text} dangerouslySetInnerHTML={{ __html: match.content }} />
-                        <div className={s.matchType}>{getFieldLabel(match.field)}</div>
-                      </li>
-                    );
-                  })}
+                  {item.matches
+                    .filter((match) => match.field !== 'name')
+                    .map((match) => {
+                      return (
+                        <li key={match.field} className={s.matchRow}>
+                          <div className={s.arrow}>
+                            <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
+                          </div>
+                          <p className={s.text} dangerouslySetInnerHTML={{ __html: match.content }} />
+                          <div className={s.matchType}>{getFieldLabel(match.field)}</div>
+                        </li>
+                      );
+                    })}
                 </ul>
               </li>
             );

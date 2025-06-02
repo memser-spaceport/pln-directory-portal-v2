@@ -4,7 +4,6 @@ import Image from 'next/image';
 
 import s from './AppSearchDesktop.module.scss';
 import { useQueryClient } from '@tanstack/react-query';
-import useClickedOutside from '@/hooks/useClickedOutside';
 import { SearchQueryKeys } from '@/services/search/constants';
 import { useApplicationSearch } from '@/services/search/hooks/useApplicationSearch';
 import { TryAiSearch } from '@/components/core/application-search/components/TryAiSearch';
@@ -17,6 +16,7 @@ import { FullSearchPanel } from '@/components/core/application-search/components
 import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
 import clsx from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
+import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 
 interface Props {
   userInfo: IUserInfo;
@@ -38,8 +38,8 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
     setShowFullSearch(false);
   }, []);
 
-  useClickedOutside({
-    callback: (e) => {
+  const handleInputClickOutside = useCallback(
+    (e: MouseEvent | TouchEvent) => {
       if (
         (e.target as HTMLElement).id === 'application-search-clear-icon' ||
         (e.target as HTMLElement).id === 'application-search-clear' ||
@@ -58,11 +58,11 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
       queryClient.cancelQueries({ queryKey: [SearchQueryKeys.GET_APPLICATION_SEARCH_RESULTS] });
       queryClient.removeQueries({ queryKey: [SearchQueryKeys.GET_APPLICATION_SEARCH_RESULTS] });
     },
-    ref: inputRef,
-  });
+    [queryClient],
+  );
 
-  useClickedOutside({
-    callback: (e) => {
+  const handleFullSearchClickOutside = useCallback(
+    (e: MouseEvent | TouchEvent) => {
       if (
         (e.target as HTMLElement).id === 'application-search-clear-icon' ||
         (e.target as HTMLElement).id === 'application-search-clear' ||
@@ -86,8 +86,11 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
       queryClient.cancelQueries({ queryKey: [SearchQueryKeys.GET_FULL_APPLICATION_SEARCH_RESULTS] });
       queryClient.removeQueries({ queryKey: [SearchQueryKeys.GET_FULL_APPLICATION_SEARCH_RESULTS] });
     },
-    ref: fullSearchDialogRef,
-  });
+    [handleFullSearchClose, queryClient],
+  );
+
+  useOnClickOutside([inputRef], handleInputClickOutside);
+  useOnClickOutside([fullSearchDialogRef], handleFullSearchClickOutside);
 
   const { data, isLoading } = useApplicationSearch(searchTerm);
 
@@ -121,9 +124,13 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo }: Props) => {
       return (
         <>
           <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
-          <TryToSearch onSelect={handleChange} />
-          <div className={s.divider} />
-          <RecentSearch onSelect={handleChange} />
+          <TryToSearch onSelect={handleTryAiSearch} />
+          {isLoggedIn && (
+            <>
+              <div className={s.divider} />
+              <RecentSearch onSelect={handleChange} />
+            </>
+          )}
         </>
       );
     }

@@ -302,7 +302,7 @@ const IrlEvents = (props: IIrlEvents) => {
               <div className="root__manage__events">
                 {/* TODO: Remove this once the new submit form is deployed */}
                 {/* <Link href={`${process.env.IRL_SUBMIT_FORM_URL}?location=${updatedIrlLocation}`} legacyBehavior target="_blank"> */}
-                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}`} legacyBehavior target="_blank">
+                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/add`} legacyBehavior target="_blank">
                   <a target="_blank" className="root__submit" onClick={onSubmitEventClick}>
                     <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
                     Submit an event
@@ -311,7 +311,7 @@ const IrlEvents = (props: IIrlEvents) => {
 
                 {/* TODO: Remove this once the new submit form is deployed */}
                 {/* <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/events/manage?location=${updatedIrlLocation}`} legacyBehavior target="_blank"> */}
-                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage`} legacyBehavior target="_blank">
+                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}?location=${updatedIrlLocation}&status=${encodeURIComponent('my events')}`} legacyBehavior target="_blank">
                   <a target="_blank" className="root__submit" onClick={onManageEventClick}>
                     <img src="/icons/settings-blue.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
                     Manage

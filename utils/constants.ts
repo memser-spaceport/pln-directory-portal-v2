@@ -529,6 +529,20 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.13 – Directory Enhancements',
+    tag: 'Improvements',
+    date: '3, June 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Unified Search</span> - Introduced a faster, general-purpose search that seamlessly integrates with AI-powered search capabilities.</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">User Contact Visibility</span> - Users can now see what types of contact information are associated with a member without logging in. Actual contact details remain hidden until login</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Performance Optimization</span> - Improved AI Search responsiveness and enhanced infinite scroll performance on several pages</li>
+    </ul>
+    </div>`,
+  },
+  {
     title: 'Version 4.1.12 - Directory Enhancements',
     tag: 'Improvements',
     date: '19, May 2025',

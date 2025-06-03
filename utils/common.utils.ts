@@ -187,6 +187,7 @@ export const getQuery = (searchParams: any) => {
     isSponsor: searchParams?.isSponsor ?? '',
     isHostAndSpeakerAndSponsor: searchParams?.isHostAndSpeakerAndSponsor ?? '',
     asks: searchParams?.asks ?? '',
+    searchBy: searchParams?.searchBy ?? '',
   };
 };
 

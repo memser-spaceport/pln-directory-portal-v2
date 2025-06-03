@@ -13,6 +13,7 @@ import Image from 'next/image';
 import FocusAreaFilter from '../../core/focus-area-filter/focus-area-filter';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { FiltersSearch } from '@/components/page/teams/FiltersSearch';
 
 export interface ITeamFilterWeb {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -155,7 +156,7 @@ const Filter = (props: ITeamFilterWeb) => {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
-      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost', 'isSponsor', 'asks'];
+      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost', 'isSponsor', 'asks', 'searchBy'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           current.delete(query);
@@ -197,6 +198,8 @@ const Filter = (props: ITeamFilterWeb) => {
 
         {/* Body */}
         <div className="team-filter__body">
+          <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
+
           <div className="team-filter__body__ohonly">
             <h3 className="team-filter__body__ohonly__title">Only Show Teams with Office Hours</h3>
             <div className="team-filter__body__ohonly__toogle">
@@ -409,8 +412,7 @@ const Filter = (props: ITeamFilterWeb) => {
           }
 
           .team-filter__body__ohonly {
-            margin-top: 20px;
-            padding: 16px 0px 0px 0px;
+            padding: 0;
             display: flex;
             align-items: center;
             gap: 12px;

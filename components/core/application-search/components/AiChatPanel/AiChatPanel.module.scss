@@ -1,0 +1,27 @@
+@use 'styles/mixins';
+
+.root {
+  position: relative;
+  //flex: 1;
+  height:  100%;
+  background: #fff;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.chatInputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px;
+}
+
+.messagesWrapper {
+  flex: 1;
+  overflow: auto;
+  padding-block: 12px;
+
+  @include mixins.hide-scrollbar;
+}

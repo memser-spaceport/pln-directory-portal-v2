@@ -15,6 +15,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { BaseSyntheticEvent, useEffect } from 'react';
 import { RolesFilter } from './roles-filter';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { FiltersSearch } from '@/components/page/members/FiltersSearch';
 
 const TagContainer = dynamic(() => import('@/components/ui/tag-container'), {
   loading: () => <TagLoader />,
@@ -133,6 +134,7 @@ const MembersFilter = (props: IMembersFilter) => {
         'isSpeaker',
         'isSponsor',
         'isHostAndSpeakerAndSponsor',
+        'searchBy',
       ];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
@@ -179,6 +181,7 @@ const MembersFilter = (props: IMembersFilter) => {
 
         {/* Body */}
         <div className="team-filter__body">
+          <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
           <div className="team-filter__body__toggle-section">
             <div className="team-filter__body__toggle-section__toggle-option">
               <h3 className="team-filter__body__toggle-section__toogle-option__title">Only Show Members with Office Hours</h3>
@@ -379,7 +382,6 @@ const MembersFilter = (props: IMembersFilter) => {
 
           .team-filter__body__toggle-section {
             display: flex;
-            margin-top: 20px;
             gap: 16px;
             flex-direction: column;
           }

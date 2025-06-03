@@ -63,7 +63,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
 
   const onClearSearchClicked = () => {
     setSearchInput('');
-    if(searchParams["searchBy"]) {
+    if (searchParams['searchBy']) {
       triggerLoader(true);
     }
     updateQueryParams('searchBy', '', searchParams);
@@ -203,7 +203,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
             box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
           }
 
-           .toolbar__left__search-container__searchfrm__optns__clrbtn {
+          .toolbar__left__search-container__searchfrm__optns__clrbtn {
             background: inherit;
             outline: none;
             position: absolute;
@@ -223,6 +223,7 @@ const MembersToolbar = (props: IMembersToolbar) => {
             background: #fff;
             box-shadow: 0px 1px 2px 0px #0f172a29;
             background: #fff;
+            display: none;
           }
 
           .toolbar__left__search-container__searchfrm {
@@ -358,7 +359,9 @@ const MembersToolbar = (props: IMembersToolbar) => {
 
               &:focus {
                 border: 1px solid #156ff7;
-                box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16), 0px 0px 0px 2px rgba(21, 111, 247, 0.25);
+                box-shadow:
+                  0px 1px 2px 0px rgba(15, 23, 42, 0.16),
+                  0px 0px 0px 2px rgba(21, 111, 247, 0.25);
               }
             }
 

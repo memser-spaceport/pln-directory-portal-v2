@@ -265,7 +265,7 @@ const IrlLocation = (props: IrlLocation) => {
                             {locations?.slice(4).map((location: { flag: any; location: any; upcomingEvents: any; pastEvents: any }, index: React.Key | null | undefined) => (
                                 <div key={index} className="root__irl__mobileModal__cnt" onClick={() => handleResourceClick(location)}>
                                     <div className="root__irl__mobileModal__cnt__location">
-                                        <div><img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} /></div>
+                                        <div><img src={location.flag ? location.flag : '/images/irl/defaultFlag.svg'} alt="flag" style={{ width: '20px', height: '20px' }} /></div>
                                         <div>{location.location.split(",")[0].trim()}</div>
                                     </div>
                                     <div className="root__irl__mobileModal__cnt__events">

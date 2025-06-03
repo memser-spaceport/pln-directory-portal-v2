@@ -23,7 +23,6 @@ interface IToolbar {
   userInfo: IUserInfo | undefined;
 }
 
-
 /**
  * TeamsToolbar component provides a UI for filtering, sorting, and searching teams.
  * @param props - Contains search parameters, total number of teams, and user information.
@@ -122,7 +121,6 @@ const TeamsToolbar = (props: IToolbar) => {
     updateQueryParams('searchBy', '', searchParams);
   };
 
-
   /**
    * Handles the sort option click event.
    * @param option - The selected sort option.
@@ -167,11 +165,11 @@ const TeamsToolbar = (props: IToolbar) => {
 
               <div className="toolbar__left__search-container__searchfrm__optns">
                 {searchInput && (
-                  <button title='Clear' type="button" onClick={onClearSearchClicked} className="toolbar__left__search-container__searchfrm__optns__clrbtn" data-testid="clear-search-button">
+                  <button title="Clear" type="button" onClick={onClearSearchClicked} className="toolbar__left__search-container__searchfrm__optns__clrbtn" data-testid="clear-search-button">
                     <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
                   </button>
                 )}
-                <button title='Search' className="toolbar__left__search-container__searchfrm__optns__sbtn" type="submit" data-testid="search-button">
+                <button title="Search" className="toolbar__left__search-container__searchfrm__optns__sbtn" type="submit" data-testid="search-button">
                   <Image loading="lazy" alt="search" src="/icons/search.svg" height={16} width={16} />
                 </button>
               </div>
@@ -264,6 +262,8 @@ const TeamsToolbar = (props: IToolbar) => {
             background: #fff;
             box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
             background: #fff;
+
+            display: none;
           }
 
           .toolbar__left__search-container__searchfrm {
@@ -415,8 +415,6 @@ const TeamsToolbar = (props: IToolbar) => {
               border: none;
               box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
               border: 1px solid #fff;
-
-             
             }
 
             .toolbar__right__web__sort-by__name {
@@ -475,6 +473,5 @@ const TeamsToolbar = (props: IToolbar) => {
     </>
   );
 };
-
 
 export default TeamsToolbar;

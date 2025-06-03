@@ -1,0 +1,32 @@
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  gap: 16px;
+  width: 100%;
+
+  padding: 8px;
+  border-radius: 8px;
+  background: #F8FAFC;
+
+  text-transform: capitalize;
+  color: var(--Neutral-Slate-500, #64748B);
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+
+  > span {
+    display: inline-block;
+  }
+
+  &:disabled {
+    pointer-events: none;
+  }
+
+  &:disabled > span {
+    display: none;
+  }
+}

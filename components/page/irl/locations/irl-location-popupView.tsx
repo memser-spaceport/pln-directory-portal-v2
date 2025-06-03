@@ -12,14 +12,14 @@ interface IrlLocationPopupViewProps {
 
 const IrlLocationPopupView = (props: IrlLocationPopupViewProps) => {
     const { location, handleResourceClick } = props;
-
+    const locationUrl = location.flag ? location.flag : '/images/irl/defaultFlag.svg';
     const upcomingEvents = location.upcomingEvents ?? [];
     const pastEvents = location.pastEvents ?? [];
     return (
         <>
             <div key={location.location} className="root__irl__overlay__cnt" onClick={() => handleResourceClick(location)}>
                 <div className="root__irl__overlay__cnt__location">
-                    <div className="root__irl__overlay__cnt__location__icon"><img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} /></div>
+                    <div className="root__irl__overlay__cnt__location__icon"><img src={locationUrl} alt="flag" style={{ width: '20px', height: '20px' }} /></div>
                     <div className="root__irl__overlay__cnt__location__title">{location.location.split(",")[0].trim()}</div>
                 </div>
                 <div className="root__irl__overlay__cnt__events">

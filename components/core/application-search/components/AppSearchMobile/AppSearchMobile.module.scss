@@ -1,0 +1,83 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+$padding-inline: 16px;
+
+.root {
+  @include mixins.centralize;
+  display: flex;
+  position: relative;
+  z-index: 10;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+.toggleButton {
+  @include mixins.centralize;
+  padding-inline: 8px;
+}
+
+.wrapper {
+  @include mixins.hide-scrollbar;
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.top {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 1;
+}
+
+.divider {
+  height: 1px;
+  width: 100%;
+  background: #E2E8F0;
+
+  &.mt1 {
+    margin-top: 16px;
+  }
+}
+
+.header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  color: var(--Neutral-Slate-900, #0F172A);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 40px; /* 222.222% */
+}
+
+.closeButton {
+  margin-left: auto;
+  padding: 8px;
+}
+
+.inputSection {
+  padding: 16px;
+}
+
+.content {
+  padding: 16px;
+  //background-color: red;
+  flex: 1;
+}
+
+.mobileContent {
+  padding-inline: 16px;
+  padding-bottom: 16px;
+}

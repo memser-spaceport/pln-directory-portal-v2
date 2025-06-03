@@ -5,7 +5,7 @@ import { sortPastEvents, transformMembers } from '@/utils/irl.utils';
 import { isError } from 'util';
 
 export const getAllLocations = async () => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations?pagination=false`, {
     cache: 'force-cache',
     next: { tags: ['irl-locations'] },
     method: 'GET',

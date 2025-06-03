@@ -17,6 +17,9 @@ import { AiChatPanel } from '@/components/core/application-search/components/AiC
 import clsx from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
 import { useOnClickOutside } from '@/hooks/useOnClickOutside';
+import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
+import { ChatHistory } from '@/components/core/application-search/components/AiChatPanel/components/ChatHistory';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   userInfo: IUserInfo;
@@ -32,6 +35,7 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
   const queryClient = useQueryClient();
   const [showFullSearch, setShowFullSearch] = useState(false);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
+  const router = useRouter();
 
   const handleFullSearchClose = useCallback(() => {
     setInitialAiPrompt('');
@@ -124,14 +128,8 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
     if (!searchTerm) {
       return (
         <>
-          <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
-          <TryToSearch onSelect={handleTryAiSearch} />
-          {isLoggedIn && (
-            <>
-              <div className={s.divider} />
-              <RecentSearch onSelect={handleChange} />
-            </>
-          )}
+          {isLoggedIn && <AiConversationHistory onClick={handleTryAiSearch} isLoggedIn={isLoggedIn} />}
+          <RecentSearch onSelect={handleChange} />
         </>
       );
     }

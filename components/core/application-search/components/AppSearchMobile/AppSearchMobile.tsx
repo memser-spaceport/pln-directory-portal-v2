@@ -15,6 +15,7 @@ import { SearchResultsSection } from '@/components/core/application-search/compo
 import { FullSearchResults } from '@/components/core/application-search/components/FullSearchResults';
 import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
 import { IUserInfo } from '@/types/shared.types';
+import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
 
 interface Props {
   userInfo: IUserInfo;
@@ -64,14 +65,8 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
       if (!searchTerm) {
         return (
           <>
-            <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
-            <TryToSearch onSelect={handleTryAiSearch} />
-            {isLoggedIn && (
-              <>
-                <div className={clsx(s.divider, s.mt1)} />
-                <RecentSearch onSelect={handleChange} />
-              </>
-            )}
+            {isLoggedIn && <AiConversationHistory onClick={handleTryAiSearch} isLoggedIn={isLoggedIn} />}
+            <RecentSearch onSelect={handleChange} />
           </>
         );
       }

@@ -14,25 +14,32 @@ export const RecentSearch = ({ onSelect }: Props) => {
   const { data } = useRecentSearch();
   const { mutate } = useRemoveRecentSearch();
 
+  if (!data?.length) {
+    return null;
+  }
+
   return (
-    <div className={s.root}>
-      <div className={s.label}>Recent</div>
-      <ul className={s.list}>
-        {data?.map((item) => (
-          <li key={item} className={clsx('chat-recent-search', s.searchItem)} onClick={() => onSelect(item)}>
-            <span className={s.searchItemText}>{item}</span>
-            <button
-              className={clsx(s.removeButton)}
-              onClick={(e) => {
-                e.stopPropagation();
-                mutate({ item });
-              }}
-            >
-              <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} />
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      <div className={s.divider} />
+      <div className={s.root}>
+        <div className={s.label}>Recent</div>
+        <ul className={s.list}>
+          {data?.map((item) => (
+            <li key={item} className={clsx('chat-recent-search', s.searchItem)} onClick={() => onSelect(item)}>
+              <span className={s.searchItemText}>{item}</span>
+              <button
+                className={clsx(s.removeButton)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  mutate({ item });
+                }}
+              >
+                <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 };

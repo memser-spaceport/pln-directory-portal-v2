@@ -48,7 +48,7 @@ $padding-inline: 16px;
   .header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 8px;
   }
 
@@ -66,6 +66,7 @@ $padding-inline: 16px;
   }
 
   .type {
+    display: none;
     margin-left: auto;
     padding: 4px;
     border-radius: 4px;
@@ -79,7 +80,7 @@ $padding-inline: 16px;
   .matchRow {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 8px;
 
     .arrow {
@@ -104,6 +105,7 @@ $padding-inline: 16px;
     }
 
     .matchType {
+      display: none;
       color: #CAD4E0;
       font-size: 12px;
       font-style: normal;

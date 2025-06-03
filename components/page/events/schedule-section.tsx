@@ -22,7 +22,7 @@ export default function ScheduleSection(props: any) {
                 Subscribe for updates
               </ShadowButton>
             </a> */}
-            <a href={`${process.env.PL_EVENTS_SUBMISSION_URL}`} target="_blank" onClick={() => onSubmitEventButtonClicked()}>
+            <a href={`${process.env.IRL_SUBMIT_FORM_URL}/add`} target="_blank" onClick={() => onSubmitEventButtonClicked()}>
               <ShadowButton buttonColor="#ffffff" shadowColor="#156FF7" buttonHeight="48px" buttonWidth="172px" textColor="#0F172A" iconSrc="/icons/doc.svg">
                 Submit an Event
               </ShadowButton>

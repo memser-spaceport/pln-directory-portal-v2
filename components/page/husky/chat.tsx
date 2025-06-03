@@ -59,7 +59,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
     error: chatError,
     stop: stopChat,
   } = useObject({
-    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/contextual`,
+    api: `${process.env.DIRECTORY_API_URL}/v1/husky/chat/contextual-tools`,
     headers: {
       'Content-Type': 'application/json',
     },
@@ -238,7 +238,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
         analytics.trackAiResponse('error', type, false, question);
       }
     },
-    [messages, id, from, isLoggedIn, userInfo, initialMessages, chatError, chatObject, chatIsLoading, checkAndSetThreadId, addMessage, submitChat, analytics]
+    [messages, id, from, isLoggedIn, userInfo, initialMessages, chatError, chatObject, chatIsLoading, checkAndSetThreadId, addMessage, submitChat, analytics],
   );
 
   // handle husky input submission
@@ -259,7 +259,7 @@ const Chat: React.FC<ChatProps> = ({ id, isLoggedIn, userInfo, initialMessages, 
       onHuskyInput(query);
       analytics.trackRegenerate();
     },
-    [chatIsLoading]
+    [chatIsLoading],
   );
 
   const onFollowupClicked = (question: string) => {

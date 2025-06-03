@@ -30,7 +30,18 @@ interface PreviewMessageProps {
   threadId?: string;
 }
 
-const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClicked, isLastIndex, onFeedback, onRegenerate, onQuestionEdit, onCopyAnswer, isLoadingObject, isAnswerLoading, threadId }) => {
+const PreviewMessage: React.FC<PreviewMessageProps> = ({
+  message,
+  onFollowupClicked,
+  isLastIndex,
+  onFeedback,
+  onRegenerate,
+  onQuestionEdit,
+  onCopyAnswer,
+  isLoadingObject,
+  isAnswerLoading,
+  threadId,
+}) => {
   return (
     <div className={`preview-message`}>
       {/* question */}
@@ -162,9 +173,9 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({ message, onFollowupClic
 
         @media (min-width: 1024px) {
           .preview-message__question-text {
-            font-size: 27px;
-            line-height: 39px;
-            font-weight: 400;
+            font-size: 18px;
+            line-height: 20px;
+            font-weight: 600;
           }
         }
       `}</style>

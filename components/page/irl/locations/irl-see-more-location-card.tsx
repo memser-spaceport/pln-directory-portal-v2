@@ -26,7 +26,7 @@ const IrlSeeMoreLocationCard = (props: IrlSeeMoreLocationCardProps) => {
                 <div className="root_irl__expanded__imgcntr">
                     {locations?.slice(count, locationsToSlice).map((location: { flag: any; }, index: React.Key | null | undefined) => (
                         <div key={index} className="root_irl__expanded__imgcntr__img">
-                            <img src={location.flag} alt="flag" style={{ width: '20px', height: '20px' }} />
+                            <img src={location.flag ? location.flag : '/images/irl/defaultFlag.svg'} alt="flag" style={{ width: '20px', height: '20px' }} />
                         </div>
                     ))}
                 </div>

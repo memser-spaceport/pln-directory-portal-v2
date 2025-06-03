@@ -13,12 +13,12 @@ export const PAGE_ROUTES = {
 };
 
 export const NAV_OPTIONS = [
-  {
-    name: 'Home',
-    url: PAGE_ROUTES.HOME,
-    selectedLogo: '/icons/home.svg',
-    unSelectedLogo: '/icons/home-deselected.svg',
-  },
+  // {
+  //   name: 'Home',
+  //   url: PAGE_ROUTES.HOME,
+  //   selectedLogo: '/icons/home.svg',
+  //   unSelectedLogo: '/icons/home-deselected.svg',
+  // },
   {
     name: 'Teams',
     url: PAGE_ROUTES.TEAMS,
@@ -88,13 +88,7 @@ export const EVENTS = {
   TRIGGER_DIALOG_LOADER: 'trigger-dialog-loader',
 };
 
-export const HELPER_MENU_OPTIONS = [
-  // {
-  //   icon: '/icons/submitteam.svg',
-  //   name: 'Submit a Team',
-  //   type: 'button',
-  //   isExternal: false,
-  // },
+export const PROFILE_MENU_OPTIONS = [
   {
     icon: '/icons/message.svg',
     name: 'ProtoSphere',
@@ -102,6 +96,15 @@ export const HELPER_MENU_OPTIONS = [
     url: process.env.PROTOSPHERE_URL,
     isExternal: true,
   },
+];
+
+export const HELPER_MENU_OPTIONS = [
+  // {
+  //   icon: '/icons/submitteam.svg',
+  //   name: 'Submit a Team',
+  //   type: 'button',
+  //   isExternal: false,
+  // },
   {
     icon: '/icons/question-circle-grey.svg',
     name: 'Get Support',
@@ -317,6 +320,11 @@ export const TEAMS_ANALYTICS_EVENTS = {
   CAROUSEL_PREV_BTN_CLICKED: 'carousel-previous-btn-clicked',
   CAROUSEL_NEXT_BTN_CLICKED: 'carousel-next-btn-clicked',
   CAROUSEL_BTN_CLICKED: 'carousel-btn-clicked',
+  ASK_ACTIONS_MENU_OPEN: 'team-ask-actions-menu-open',
+  ASK_SECTION_TAB_CLICK: 'team-ask-section-tab-click',
+  IS_HOST_TOGGLE_CLICKED: 'team-is-host-toggle-clicked',
+  IS_ACTIVE_TOGGLE_CLICKED: 'team-is-active-toggle-clicked',
+  IS_SPONSOR_TOGGLE_CLICKED: 'team-is-sponsor-toggle-clicked',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -535,7 +543,7 @@ export const ChangeLogList = [
     <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Enhanced Member Profiles</span> - Added <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/a7a44c8914f54f549e22062e94fec66e?sid=ee628226-0183-48a4-973f-1e515c934c5e" target="_blank">new Experience section</a> displaying professional background, past roles, and impact created</li>
     </ul>
     </div>`,
-  }, 
+  },
   {
     title: 'Version 4.1.11 - Directory Enhancements',
     tag: 'Improvements',

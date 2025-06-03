@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* importing google reCaptcha v3 */}
         <script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} async defer></script>
       </head>
-      <body className={`${inter.className} layout`} id="body">
+      <body className={`${inter.className} layout root`} id="body">
         <Suspense>
           <PostHogPageview />
         </Suspense>

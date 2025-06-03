@@ -67,7 +67,7 @@ const ProjectsToolbar = (props: any) => {
 
   const onClearSearchClicked = () => {
     setSearchInput('');
-    if(searchParams["searchBy"]) {
+    if (searchParams['searchBy']) {
       triggerLoader(true);
     }
     updateQueryParams('searchBy', '', searchParams);
@@ -100,7 +100,7 @@ const ProjectsToolbar = (props: any) => {
   };
 
   const onSortOptionClickHandler = (option: any) => {
-    if(option.name !== searchParams['sort']) {
+    if (option.name !== searchParams['sort']) {
       triggerLoader(true);
     }
     if (option.name === SORT_OPTIONS.ASCENDING || option.name === SORT_OPTIONS.DESCENDING) {
@@ -180,7 +180,7 @@ const ProjectsToolbar = (props: any) => {
             justify-content: space-between;
             height: 40px;
             gap: 8px;
-              width: 100%;
+            width: 100%;
           }
 
           .toolbar__left {
@@ -219,6 +219,7 @@ const ProjectsToolbar = (props: any) => {
             background: #fff;
             box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
             background: #fff;
+            display: none;
           }
 
           .toolbar__left__search-container__searchfrm {
@@ -362,7 +363,9 @@ const ProjectsToolbar = (props: any) => {
 
             .toolbar__right__web__sort-by:focus {
               border: 1px solid #156ff7;
-              box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16), 0px 0px 0px 2px rgba(21, 111, 247, 0.25);
+              box-shadow:
+                0px 1px 2px 0px rgba(15, 23, 42, 0.16),
+                0px 0px 0px 2px rgba(21, 111, 247, 0.25);
             }
 
             .toolbar__right__web__sort-by__name {

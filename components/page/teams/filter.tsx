@@ -13,6 +13,7 @@ import Image from 'next/image';
 import FocusAreaFilter from '../../core/focus-area-filter/focus-area-filter';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { FiltersSearch } from '@/components/page/teams/FiltersSearch';
 
 export interface ITeamFilterWeb {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -30,7 +31,7 @@ const Filter = (props: ITeamFilterWeb) => {
   const filterValues = props?.filterValues;
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
-  
+
   const selectedItems: any = {
     tags: filterValues?.tags.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
     membershipSources: filterValues?.membershipSources?.filter((item: IFilterSelectedItem) => item?.selected).map((item: IFilterSelectedItem) => item.value),
@@ -50,7 +51,7 @@ const Filter = (props: ITeamFilterWeb) => {
   const isSponsor = searchParams['isSponsor'] === 'true' || false;
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
-  
+
   const onIncludeFriendsToggle = () => {
     triggerLoader(true);
     if (searchParams?.page) {
@@ -79,6 +80,7 @@ const Filter = (props: ITeamFilterWeb) => {
 
   const onIsHostToggle = () => {
     triggerLoader(true);
+    analytics.onIsHostToggleClicked();
     if (searchParams?.page) {
       searchParams.page = '1';
     }
@@ -87,10 +89,11 @@ const Filter = (props: ITeamFilterWeb) => {
       return;
     }
     updateQueryParams('isHost', '', searchParams);
-  }
+  };
 
   const onIsSponsorToggle = () => {
     triggerLoader(true);
+    analytics.onIsSponsorToggleClicked();
     if (searchParams?.page) {
       searchParams.page = '1';
     }
@@ -99,21 +102,22 @@ const Filter = (props: ITeamFilterWeb) => {
       return;
     }
     updateQueryParams('isSponsor', '', searchParams);
-  }
+  };
 
   const onIsActiveToggle = () => {
     triggerLoader(true);
+    analytics.onIsActiveToggleClicked();
     if (searchParams?.page) {
       searchParams.page = '1';
     }
-    
+
     const newIsActive = query.asks === 'all' ? '' : 'all';
     if (!query.asks) {
       updateQueryParams('asks', newIsActive, searchParams);
       return;
     }
     updateQueryParams('asks', newIsActive, searchParams);
-  }
+  };
 
   const onOfficeHoursToogle = () => {
     triggerLoader(true);
@@ -143,7 +147,7 @@ const Filter = (props: ITeamFilterWeb) => {
       updateQueryParams(key, currentTags.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
       analytics.onFilterApplied(from, value);
       return;
-    } catch (error) { }
+    } catch (error) {}
   };
 
   const onClearAllClicked = () => {
@@ -152,7 +156,7 @@ const Filter = (props: ITeamFilterWeb) => {
       const current = new URLSearchParams(Object.entries(searchParams));
       const pathname = window?.location?.pathname;
       analytics.onClearAllFiltersClicked(getAnalyticsUserInfo(userInfo));
-      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost', 'isSponsor', 'asks'];
+      const clearQuery = ['tags', 'membershipSources', 'fundingStage', 'technology', 'includeFriends', 'focusAreas', 'officeHoursOnly', 'isRecent', 'isHost', 'isSponsor', 'asks', 'searchBy'];
       clearQuery.forEach((query) => {
         if (current.has(query)) {
           current.delete(query);
@@ -161,7 +165,7 @@ const Filter = (props: ITeamFilterWeb) => {
       const search = current.toString();
       const query = search ? `?${search}` : '';
       router.push(`${pathname}/${query}`);
-      router.refresh()
+      router.refresh();
     }
   };
 
@@ -194,6 +198,8 @@ const Filter = (props: ITeamFilterWeb) => {
 
         {/* Body */}
         <div className="team-filter__body">
+          <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
+
           <div className="team-filter__body__ohonly">
             <h3 className="team-filter__body__ohonly__title">Only Show Teams with Office Hours</h3>
             <div className="team-filter__body__ohonly__toogle">
@@ -247,7 +253,7 @@ const Filter = (props: ITeamFilterWeb) => {
 
           {/* Border line */}
           <div className="team-filter__bl"></div>
-          {filterValues?.asks && filterValues.asks.length > 0 &&
+          {filterValues?.asks && filterValues.asks.length > 0 && (
             <TagContainer
               page={PAGE_ROUTES.TEAMS}
               label="Asks"
@@ -257,29 +263,27 @@ const Filter = (props: ITeamFilterWeb) => {
               initialCount={18}
               userInfo={userInfo}
               info="Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project."
-              toggleTitle='Show all asks'
+              toggleTitle="Show all asks"
               IsToggleActive={query.asks === 'all'}
               onIsActiveToggle={onIsActiveToggle}
             />
-          }
+          )}
 
-          {filterValues?.asks && (filterValues?.asks?.length ?? 0) < 1 &&
+          {filterValues?.asks && (filterValues?.asks?.length ?? 0) < 1 && (
             <>
-              <div className='tags-container__title'>
+              <div className="tags-container__title">
                 Asks
                 <Tooltip
                   asChild
-                  trigger={
-                    <Image alt='left' height={16} width={16} src='/icons/info.svg' style={{ marginLeft: "5px" }} />
+                  trigger={<Image alt="left" height={16} width={16} src="/icons/info.svg" style={{ marginLeft: '5px' }} />}
+                  content={
+                    'Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project.'
                   }
-                  content={'Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project.'}
                 />
               </div>
-              <div className="team-filter__no-data">
-                No open asks or requests at this time
-              </div>
+              <div className="team-filter__no-data">No open asks or requests at this time</div>
             </>
-          }
+          )}
 
           {/* Border line */}
           <div className="team-filter__bl"></div>
@@ -408,15 +412,17 @@ const Filter = (props: ITeamFilterWeb) => {
           }
 
           .team-filter__body__ohonly {
-            margin-top: 20px;
-            padding: 16px 0px 0px 0px;
+            padding: 0;
             display: flex;
             align-items: center;
             gap: 12px;
             justify-content: space-between;
           }
 
-          .team-filter__body__includes, .team-filter__body__recent, .team-filter__body__host, .team-filter__body__sponsor {
+          .team-filter__body__includes,
+          .team-filter__body__recent,
+          .team-filter__body__host,
+          .team-filter__body__sponsor {
             // padding: 0px 0px 16px 0px;
             display: flex;
             align-items: center;
@@ -424,7 +430,10 @@ const Filter = (props: ITeamFilterWeb) => {
             justify-content: space-between;
           }
 
-          .team-filter__body__includes__title, .team-filter__body__recent__title, .team-filter__body__host__title, .team-filter__body__sponsor__title {
+          .team-filter__body__includes__title,
+          .team-filter__body__recent__title,
+          .team-filter__body__host__title,
+          .team-filter__body__sponsor__title {
             color: #475569;
             font-size: 14px;
             font-weight: 400;

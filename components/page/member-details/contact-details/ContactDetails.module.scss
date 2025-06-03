@@ -1,0 +1,153 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  padding: 20px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0;
+  text-align: left;
+  color: #64748b;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.social,
+.socialPreview {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  gap: 8px;
+  padding-inline: 12px;
+  padding-block: 12px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #E2E8F0;
+  width: 100%;
+  z-index: 1;
+  padding-top: 12px;
+  padding-bottom: 4px;
+  padding-inline: 6px;
+}
+
+.social {
+  border-radius: 12px;
+  background: #F8FAFC;
+  flex-wrap: wrap;
+}
+
+.socialPreview {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+
+  .bg1, .bg2 {
+    position: absolute;
+    inset: 0;
+  }
+
+  .bg1 {
+    z-index: 0;
+    border-radius: 12px;
+    border: 2px solid rgba(21, 111, 247, 0.20);
+    background: rgba(255, 255, 255, 0.01);
+    backdrop-filter: blur(4px);
+  }
+
+  .bg2 {
+    border-radius: 12px;
+    border: 2px solid rgba(21, 111, 247, 0.20);
+    background: url('/images/members/contact-details-overlay.png');
+    background-blend-mode: soft-light, normal;
+    box-shadow: 4px 4px 26px 0 rgba(255, 255, 255, 0.25) inset, 0 40px 80px 0 rgba(0, 0, 0, 0.10);
+    opacity: 0.1;
+  }
+
+  .loginButton {
+    position: relative;
+    border-radius: 40px;
+    display: inline-flex;
+    height: 40px;
+    padding: 5px 16px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    border: 0.5px solid #CBD5E1;
+    background: #156FF7;
+    white-space: nowrap;
+
+    color: #FFF;
+    font-feature-settings: 'liga' off, 'clig' off;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
+
+    @include media.mobile-only {
+      width: 100%;
+    }
+  }
+
+  .control {
+    &.tablet {
+      display: none;
+
+      @include media.tablet-portrait {
+        display: flex;
+      }
+    }
+
+    &.mobileOnly {
+     display: flex;
+      width: 100%;
+
+      @include media.tablet-portrait {
+        display: none;
+      }
+    }
+  }
+}
+
+.content {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.divider {
+  height: 24px;
+  background: #E2E8F0;
+  width: 1px;
+  margin-inline: 8px;
+  display: none;
+
+  @include media.tablet-portrait {
+    display: block;
+  }
+}

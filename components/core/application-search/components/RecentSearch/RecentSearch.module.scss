@@ -1,6 +1,8 @@
 @use "styles/mixins";
 @use 'styles/media';
 
+$padding-inline: 16px;
+
 .root {
   display: flex;
   flex-direction: column;
@@ -52,4 +54,12 @@
       filter: brightness(0.5);
     }
   }
+}
+
+.divider {
+  height: 1px;
+  width: calc(100% + $padding-inline * 2);
+  margin-inline: -$padding-inline;
+  margin-block: 8px;
+  background: #E2E8F0;
 }

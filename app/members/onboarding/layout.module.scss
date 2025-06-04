@@ -2,16 +2,21 @@
 
 .root {
   @include mixins.centralize;
+  @include mixins.hide-scrollbar;
+  align-items: flex-start;
   position: fixed;
   inset: 0;
   z-index: 5;
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.60) 0%, rgba(0, 0, 0, 0.60) 100%), #FFF;
   padding: 48px;
+  overflow: auto;
 }
 
 .content {
+  @include mixins.hide-scrollbar;
   background-color: #fff;
-  height: 100%;
+  //height: 100%;
+  min-height: 100%;
   width: 100%;
   border-radius: 16px;
   padding: 24px;

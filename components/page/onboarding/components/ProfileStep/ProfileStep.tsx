@@ -8,18 +8,19 @@ import { useOnboardingState } from '@/services/onboarding/store';
 import s from './ProfileStep.module.scss';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useDropzone } from 'react-dropzone';
+import { useFormContext } from 'react-hook-form';
+import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
 
 interface Props {
   userInfo: IUserInfo;
 }
 
 export const ProfileStep = ({ userInfo }: Props) => {
-  const {
-    actions: { setStep },
-  } = useOnboardingState();
-
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const defaultPreview = useDefaultAvatar(userInfo.name);
+
+  const { setValue } = useFormContext<OnboardingForm>();
+  // const { image } = watch();
 
   const { getInputProps, getRootProps } = useDropzone({
     onError: (err) => {
@@ -41,6 +42,8 @@ export const ProfileStep = ({ userInfo }: Props) => {
         };
 
         reader.readAsDataURL(file);
+
+        setValue('image', file, { shouldValidate: true, shouldDirty: true });
       }
     },
     maxFiles: 1,

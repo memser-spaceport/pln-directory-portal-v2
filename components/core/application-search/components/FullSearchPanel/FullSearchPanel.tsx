@@ -6,10 +6,10 @@ import { ContentLoader } from '@/components/core/application-search/components/C
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { FullSearchResults } from '@/components/core/application-search/components/FullSearchResults';
-import { useApplicationSearch } from '@/services/search/hooks/useApplicationSearch';
 
 import s from './FullSearchPanel.module.scss';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
+import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 
 interface Props {
   initialSearchTerm: string;
@@ -20,7 +20,7 @@ interface Props {
 export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose }: Props) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [isFocused, setFocused] = useState(!initialSearchTerm);
-  const { data, isLoading } = useApplicationSearch(searchTerm);
+  const { data, isLoading } = useFullApplicationSearch(searchTerm);
   const analyticsRef = useRef<boolean>(false);
 
   const analytics = useUnifiedSearchAnalytics();

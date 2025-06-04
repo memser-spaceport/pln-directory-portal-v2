@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useRef } from 'react';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
@@ -12,6 +12,7 @@ const AuthInfo = () => {
   // Reference to the dialog element
   const dialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { logout } = usePrivyWrapper();
   const analytics = useAuthAnalytics();
 
@@ -30,6 +31,14 @@ const AuthInfo = () => {
       if (response.ok) {
         const result = response.data;
         localStorage.setItem('stateUid', result);
+
+        const isOnboardingLoginFlow = searchParams.get('loginFlow') === 'onboarding';
+        const onboardingEmail = searchParams.get('prefillEmail');
+
+        if (isOnboardingLoginFlow && onboardingEmail) {
+          localStorage.setItem('prefillEmail', onboardingEmail);
+        }
+
         document.dispatchEvent(new CustomEvent('privy-init-login'));
         router.push(`${window.location.pathname}${window.location.search}`);
       }
@@ -61,27 +70,27 @@ const AuthInfo = () => {
     onClose();
     window.location.href = PAGE_ROUTES.SIGNUP;
   };
-  
+
   return (
     <>
       <div className="authinfo" data-testid="authinfo-container">
         <dialog open className="authinfo__dialog" ref={dialogRef}>
-            <div className="authinfo__dialog__box">
-              <img src="/images/login/login-banner.png" className="authinfo__dialog__box__img" alt="login banner" />
-              <button onClick={onLogin} className="authinfo__dialog__actions__login">
-                Proceed to Login
-                <img src="/icons/arrow-right-white.svg" alt="arrow" />
-              </button>
-              <div className="authinfo__dialog__box__signup">
-                <span>Not registered yet?</span>
-                <div style={{ color: '#156FF7', fontWeight: 500, cursor: 'pointer' }} onClick={handleSignUpClick}>
-                  Click here to sign up
-                </div>
+          <div className="authinfo__dialog__box">
+            <img src="/images/login/login-banner.png" className="authinfo__dialog__box__img" alt="login banner" />
+            <button onClick={onLogin} className="authinfo__dialog__actions__login">
+              Proceed to Login
+              <img src="/icons/arrow-right-white.svg" alt="arrow" />
+            </button>
+            <div className="authinfo__dialog__box__signup">
+              <span>Not registered yet?</span>
+              <div style={{ color: '#156FF7', fontWeight: 500, cursor: 'pointer' }} onClick={handleSignUpClick}>
+                Click here to sign up
               </div>
-              <button onClick={onClose} data-testid="close-button">
-                <img width={20} height={20} src="/icons/close-rounded-black.svg" className="authinfo__dialog__box__close" alt="close" />
-              </button>
             </div>
+            <button onClick={onClose} data-testid="close-button">
+              <img width={20} height={20} src="/icons/close-rounded-black.svg" className="authinfo__dialog__box__close" alt="close" />
+            </button>
+          </div>
         </dialog>
       </div>
 

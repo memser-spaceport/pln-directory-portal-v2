@@ -95,7 +95,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           <div className="nb__right__drawerandprofilesec" onClick={onNavDrawerIconClickHandler}>
             <button className="nb__right__drawerandprofile__drawerbtn">
               <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
-              {notifications?.length > 0 && <div className="nb__right_notifications_count">{notifications?.length}</div>}
+              {isLoggedIn && notifications?.length > 0 && <div className="nb__right_notifications_count">{notifications?.length}</div>}
             </button>
 
             {isLoggedIn && (

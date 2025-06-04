@@ -8,6 +8,7 @@
   min-width: unset;
   position: relative;
   background: linear-gradient(0deg, #F1F5F9 0%, #F1F5F9 100%), #FFF;
+  border-radius: 8px;
 
   @include media.tablet-landscape {
     min-width: 380px;

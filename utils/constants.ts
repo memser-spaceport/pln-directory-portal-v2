@@ -378,6 +378,17 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED: 'member_detail_delete_experience_save_clicked',
 };
 
+export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
+  AUTOCOMPLETE_SEARCH: 'autocomplete-search',
+  FULL_SEARCH: 'full-search',
+  SEARCH_RESULT_CLICK: 'search-result-click',
+  FULL_SEARCH_OPEN: 'full-search-open',
+  RECENT_SEARCH_CLICK: 'recent-search-click',
+  RECENT_SEARCH_DELETE_CLICK: 'recent-search-delete-click',
+  AI_CONVERSATION_HISTORY_CLICK: 'ai-conversation-history-click',
+  AI_CONVERSATION_HISTORY_OPEN_CLICK: 'ai-conversation-history-open-click',
+};
+
 export const IRL_ANALYTICS_EVENTS = {};
 
 export const HOME_ANALYTICS_EVENTS = {

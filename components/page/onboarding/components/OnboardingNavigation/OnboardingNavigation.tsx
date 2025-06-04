@@ -4,6 +4,8 @@ import s from './OnboardingNavigation.module.scss';
 import { OnboardingWizardStep, useOnboardingState } from '@/services/onboarding/store';
 import { IUserInfo } from '@/types/shared.types';
 import clsx from 'clsx';
+import { useFormContext } from 'react-hook-form';
+import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
 
 interface Props {
   userInfo: IUserInfo;
@@ -43,11 +45,11 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
       case 'profile': {
         return (
           <div className={s.withControls}>
-            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick}>
+            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick} type="button">
               Back
             </button>
             <span className={clsx(s.info)}>These details are needed for login and notifications.</span>
-            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick}>
+            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick} type="button">
               Next
             </button>
           </div>
@@ -56,11 +58,11 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
       case 'contacts': {
         return (
           <div className={s.withControls}>
-            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick}>
+            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick} type="button">
               Back
             </button>
             <span className={clsx(s.info)}>Office Hours are times when you&apos;re available to connect with others in the network.</span>
-            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick}>
+            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick} type="button">
               Next
             </button>
           </div>
@@ -69,11 +71,11 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
       case 'expertise': {
         return (
           <div className={s.withControls}>
-            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick}>
+            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick} type="button">
               Back
             </button>
             <span className={clsx(s.info)}>You can change them anytime.</span>
-            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick}>
+            <button className={clsx(s.btn, s.primary)} type="submit">
               Finish
             </button>
           </div>

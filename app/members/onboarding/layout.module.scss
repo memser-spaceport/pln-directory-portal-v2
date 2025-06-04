@@ -1,0 +1,38 @@
+@use 'styles/mixins';
+
+.root {
+  @include mixins.centralize;
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.60) 0%, rgba(0, 0, 0, 0.60) 100%), #FFF;
+  padding: 48px;
+}
+
+.content {
+  background-color: #fff;
+  height: 100%;
+  width: 100%;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.closeButton {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-left: 24px;
+  height: 32px;
+
+  &:hover {
+    filter:  brightness(120%);
+  }
+}

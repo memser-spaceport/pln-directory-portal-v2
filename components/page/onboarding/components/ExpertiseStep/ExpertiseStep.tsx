@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { Toggle } from '@base-ui-components/react/toggle';
 
 import { IUserInfo } from '@/types/shared.types';
-import { useOnboardingState } from '@/services/onboarding/store';
 
 import { LEARN_MORE_URL } from '@/utils/constants';
 
@@ -71,6 +70,7 @@ export const ExpertiseStep = ({ userInfo }: Props) => {
           </li>
         ))}
       </ul>
+      <div className={s.counter}>3/3</div>
     </div>
   );
 };

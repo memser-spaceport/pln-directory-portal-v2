@@ -4,18 +4,16 @@ import Image from 'next/image';
 import s from './AppSearchMobile.module.scss';
 import { SearchModeToggle } from '@/components/core/application-search/components/SearchModeToggle';
 import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
-import { useApplicationSearch } from '@/services/search/hooks/useApplicationSearch';
 import { TryAiSearch } from '@/components/core/application-search/components/TryAiSearch';
-import { TryToSearch } from '@/components/core/application-search/components/TryToSearch';
 import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
 import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
-import { clsx } from 'clsx';
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { FullSearchResults } from '@/components/core/application-search/components/FullSearchResults';
 import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
 import { IUserInfo } from '@/types/shared.types';
 import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
+import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 
 interface Props {
   userInfo: IUserInfo;
@@ -28,7 +26,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
   const [mode, setMode] = useState<'regular' | 'ai'>('regular');
   const [searchTerm, setSearchTerm] = useState('');
   const [isFocused, setFocused] = useState(true);
-  const { data, isLoading } = useApplicationSearch(searchTerm);
+  const { data, isLoading } = useFullApplicationSearch(searchTerm);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
 
   const handleClose = useCallback(() => {

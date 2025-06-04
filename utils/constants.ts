@@ -376,6 +376,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_EDIT_EXPERIENCE_SAVE_CLICKED: 'member_detail_edit_experience_save_clicked',
   MEMBER_DETAIL_ADD_EXPERIENCE_SAVE_CLICKED: 'member_detail_add_experience_save_clicked',
   MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED: 'member_detail_delete_experience_save_clicked',
+
+  MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK: 'member-details-by-recommendation-email-link',
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {

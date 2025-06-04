@@ -273,63 +273,61 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_LIST_CLOSE_FILTER_PANEL_CLICKED, params);
   }
 
-  function onMemberEditBySelf(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,) {
+  function onMemberEditBySelf(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_BY_SELF, params);
   }
 
-  function onMemberEditByAdmin(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,) {
+  function onMemberEditByAdmin(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_BY_ADMIN, params);
   }
 
-  
-  function onMemberDetailsBioReadMoreClicked(member: IAnalyticsMemberInfo | null,) {
+  function onMemberDetailsBioReadMoreClicked(member: IAnalyticsMemberInfo | null) {
     const params = {
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_READ_MORE_CLICKED, params);
   }
 
-  
-  function onMemberDetailsBioReadLessClicked(member: IAnalyticsMemberInfo | null,) {
+  function onMemberDetailsBioReadLessClicked(member: IAnalyticsMemberInfo | null) {
     const params = {
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_READ_LESS_CLICKED, params);
   }
 
-  function onMemberDetailsBioEditClicked(member: IAnalyticsMemberInfo | null,user: IAnalyticsUserInfo | null) {
+  function onMemberDetailsBioEditClicked(member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_CLICKED, params);
   }
 
-  function onMemberDetailsBioEditCancelClicked(member: IAnalyticsMemberInfo | null,user: IAnalyticsUserInfo | null) {
+  function onMemberDetailsBioEditCancelClicked(member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_CANCEL_CLICKED, params);
   }
 
-  function onMemberDetailsBioEditSaveClicked(member: IAnalyticsMemberInfo | null,user: IAnalyticsUserInfo | null) {
+  function onMemberDetailsBioEditSaveClicked(member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null) {
     const params = {
       user,
-      ...member
+      ...member,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_SAVE_CLICKED, params);
   }
 
-  function recordBioSave(type: string,member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null, payload?: any){
+  function recordBioSave(type: string, member: IAnalyticsMemberInfo | null, user: IAnalyticsUserInfo | null, payload?: any) {
     const params = {
       type,
       user,
@@ -339,21 +337,21 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BIO_EDIT_RECORD_SAVE, params);
   }
 
-  function onClickSeeMoreIrlContribution(user: IAnalyticsUserInfo | null){
+  function onClickSeeMoreIrlContribution(user: IAnalyticsUserInfo | null) {
     const params = {
       user,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.ON_CLICK_SEE_MORE_BUTTON_IRL_CONTRIBUTIONS, params);
   }
 
-  function onClickEventIrlContribution(user: IAnalyticsUserInfo | null){
+  function onClickEventIrlContribution(user: IAnalyticsUserInfo | null) {
     const params = {
       user,
     };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_IRL_CONTRIBUTIONS, params);
   }
 
-  function onEditExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,experience: any,status: string) {
+  function onEditExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, experience: any, status: string) {
     const params = {
       user,
       ...member,
@@ -363,7 +361,7 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_EXPERIENCE_SAVE_CLICKED, params);
   }
 
-  function onAddExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,experience: any,status: string) {
+  function onAddExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, experience: any, status: string) {
     const params = {
       user,
       ...member,
@@ -373,14 +371,23 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_ADD_EXPERIENCE_SAVE_CLICKED, params);
   }
 
-  function onDeleteExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null,experience: any,status: string) {
+  function onDeleteExperienceSaveClicked(user: IAnalyticsUserInfo | null, member: IAnalyticsMemberInfo | null, experience: any, status: string) {
     const params = {
       user,
       ...member,
       experience,
       status,
-    };  
+    };
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED, params);
+  }
+
+  function onOpenProfileByRecommendationEmailLink(utmSource: string, utmMedium: string, utmCode: string, targetId: string) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK, {
+      utmSource,
+      utmMedium,
+      utmCode,
+      targetId,
+    });
   }
 
   return {
@@ -425,6 +432,7 @@ export const useMemberAnalytics = () => {
     onAddExperienceClicked,
     onEditExperienceSaveClicked,
     onAddExperienceSaveClicked,
-    onDeleteExperienceSaveClicked
+    onDeleteExperienceSaveClicked,
+    onOpenProfileByRecommendationEmailLink,
   };
 };

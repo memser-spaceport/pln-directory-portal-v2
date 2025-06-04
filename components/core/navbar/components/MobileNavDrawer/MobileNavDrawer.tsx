@@ -120,25 +120,29 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                 <Separator className={s.Separator} />
               </div>
 
-              <Link onClick={() => onHelpItemClickHandler('My Profile')} target="" href="/settings/profile">
-                <li className="md__container__bdy__supandset__optn">
-                  <UserIcon />
-                  <div className="nb__right__helpc__opts__optn__name">{userInfo.name ?? userInfo.email}</div>
-                </li>
-              </Link>
+              {isLoggedIn && (
+                <Link onClick={() => onHelpItemClickHandler('My Profile')} target="" href="/settings/profile">
+                  <li className="md__container__bdy__supandset__optn">
+                    <UserIcon />
+                    <div className="nb__right__helpc__opts__optn__name">{userInfo.name ?? userInfo.email}</div>
+                  </li>
+                </Link>
+              )}
 
-              <li
-                role="button"
-                onClick={() => {
-                  props.onShowNotifications();
-                  onNavMenuClick();
-                }}
-                className="md__container__bdy__supandset__optn"
-              >
-                <NotificationsIcon />
-                <div className="md__container__bdy__supandset__optn__name">Notifications</div>
-                {props.notificationsCount && props.notificationsCount > 0 && <div className="nb__right_notifications_count">{props.notificationsCount}</div>}
-              </li>
+              {isLoggedIn && (
+                <li
+                  role="button"
+                  onClick={() => {
+                    props.onShowNotifications();
+                    onNavMenuClick();
+                  }}
+                  className="md__container__bdy__supandset__optn"
+                >
+                  <NotificationsIcon />
+                  <div className="md__container__bdy__supandset__optn__name">Notifications</div>
+                  {props.notificationsCount && props.notificationsCount > 0 && <div className="nb__right_notifications_count">{props.notificationsCount}</div>}
+                </li>
+              )}
 
               <Link onClick={() => onHelpItemClickHandler('ProtoSphere')} target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>
                 <li className="md__container__bdy__supandset__optn">
@@ -173,18 +177,19 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                 }
               })}
 
-              <div className={s.SeparatorWrapper}>
-                Settings
-                <Separator className={s.Separator} />
-              </div>
-
               {isLoggedIn && (
-                <Link href={settingsUrl} onClick={() => onAccountOptionClickHandler('settings')}>
-                  <li className="md__container__bdy__supandset__optn">
-                    <Image width={16} height={16} alt={'Setting'} src="/icons/settings.svg" />
-                    <div className="nb__right__helpc__opts__optn__name">Account Settings</div>
-                  </li>
-                </Link>
+                <>
+                  <div className={s.SeparatorWrapper}>
+                    Settings
+                    <Separator className={s.Separator} />
+                  </div>
+                  <Link href={settingsUrl} onClick={() => onAccountOptionClickHandler('settings')}>
+                    <li className="md__container__bdy__supandset__optn">
+                      <Image width={16} height={16} alt={'Setting'} src="/icons/settings.svg" />
+                      <div className="nb__right__helpc__opts__optn__name">Account Settings</div>
+                    </li>
+                  </Link>
+                </>
               )}
             </div>
           </div>

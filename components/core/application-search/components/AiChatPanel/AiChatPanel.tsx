@@ -21,6 +21,7 @@ import Messages from '@/components/page/husky/messages';
 import ChatFeedback from '@/components/page/husky/chat-feedback';
 import RegisterFormLoader from '@/components/core/register/register-form-loader';
 import { clsx } from 'clsx';
+import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 
 interface Props {
   isLoggedIn?: boolean;
@@ -51,6 +52,7 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
   const fromRef = useRef<string>(from ?? '');
   const endRef = useRef<HTMLDivElement | null>(null);
   const analytics = useHuskyAnalytics();
+  const searchAnalytics = useUnifiedSearchAnalytics();
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
 
   const {
@@ -359,7 +361,19 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
     <div className={clsx(s.root, className)}>
       {!mobileView && <ChatPanelHeader />}
 
-      <ChatSubheader isEmpty lastQuery="" isShowHistory={showHistory} onToggleHistory={() => setShowHistory(!showHistory)} isLoggedIn={isLoggedIn} />
+      <ChatSubheader
+        isEmpty
+        lastQuery=""
+        isShowHistory={showHistory}
+        onToggleHistory={() => {
+          if (!showHistory) {
+            searchAnalytics.onAiConversationHistoryOpenClick();
+          }
+
+          setShowHistory(!showHistory);
+        }}
+        isLoggedIn={isLoggedIn}
+      />
       {showHistory ? (
         <div className={s.messagesWrapper}>
           <ChatHistory

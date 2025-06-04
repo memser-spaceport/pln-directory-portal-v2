@@ -41,6 +41,7 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
     setInitialAiPrompt('');
     setSearchTerm('');
     setShowFullSearch(false);
+    setFocused(false);
   }, []);
 
   const handleInputClickOutside = useCallback(

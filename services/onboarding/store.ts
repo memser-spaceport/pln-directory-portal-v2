@@ -12,7 +12,7 @@ export interface OnboardingStore {
 }
 
 export const useOnboardingState = create<OnboardingStore>((setState) => ({
-  step: 'profile',
+  step: 'welcome',
   actions: {
     setStep: (nextStep) => setState({ step: nextStep }),
   },

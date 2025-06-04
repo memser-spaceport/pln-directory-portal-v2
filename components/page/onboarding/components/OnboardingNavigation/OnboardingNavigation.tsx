@@ -59,9 +59,22 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
             <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick}>
               Back
             </button>
-            <span className={clsx(s.info)}>Office Hours are times when you're available to connect with others in the network.</span>
+            <span className={clsx(s.info)}>Office Hours are times when you&apos;re available to connect with others in the network.</span>
             <button className={clsx(s.btn, s.primary)} onClick={handleNextClick}>
               Next
+            </button>
+          </div>
+        );
+      }
+      case 'expertise': {
+        return (
+          <div className={s.withControls}>
+            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick}>
+              Back
+            </button>
+            <span className={clsx(s.info)}>You can change them anytime.</span>
+            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick}>
+              Finish
             </button>
           </div>
         );

@@ -3,6 +3,7 @@ import { SearchQueryKeys } from '@/services/search/constants';
 import { SearchResult } from '@/services/search/types';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { saveRecentSearch } from '@/services/search/hooks/useRecentSearch';
+import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 
 async function fetcher(searchTerm: string) {
   const { authToken } = getCookiesFromClient();
@@ -23,9 +24,15 @@ async function fetcher(searchTerm: string) {
 }
 
 export function useFullApplicationSearch(searchTerm: string) {
+  const analytics = useUnifiedSearchAnalytics();
+
   return useQuery({
     queryKey: [SearchQueryKeys.GET_FULL_APPLICATION_SEARCH_RESULTS, searchTerm],
-    queryFn: () => fetcher(searchTerm),
+    queryFn: () => {
+      analytics.onFullSearch(searchTerm);
+
+      return fetcher(searchTerm);
+    },
     enabled: Boolean(searchTerm),
   });
 }

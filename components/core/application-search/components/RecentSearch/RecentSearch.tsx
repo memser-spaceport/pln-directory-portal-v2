@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { clsx } from 'clsx';
 import { useRecentSearch } from '@/services/search/hooks/useRecentSearch';
 import { useRemoveRecentSearch } from '@/services/search/hooks/useRemoveRecentSearch';
+import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 
 interface Props {
   onSelect: (text: string) => void;
@@ -13,6 +14,7 @@ interface Props {
 export const RecentSearch = ({ onSelect }: Props) => {
   const { data } = useRecentSearch();
   const { mutate } = useRemoveRecentSearch();
+  const analytics = useUnifiedSearchAnalytics();
 
   if (!data?.length) {
     return null;
@@ -25,12 +27,20 @@ export const RecentSearch = ({ onSelect }: Props) => {
         <div className={s.label}>Recent</div>
         <ul className={s.list}>
           {data?.map((item) => (
-            <li key={item} className={clsx('chat-recent-search', s.searchItem)} onClick={() => onSelect(item)}>
+            <li
+              key={item}
+              className={clsx('chat-recent-search', s.searchItem)}
+              onClick={() => {
+                analytics.onRecentSearchClick(item);
+                onSelect(item);
+              }}
+            >
               <span className={s.searchItemText}>{item}</span>
               <button
                 className={clsx(s.removeButton)}
                 onClick={(e) => {
                   e.stopPropagation();
+                  analytics.onRecentSearchDeleteClick(item);
                   mutate({ item });
                 }}
               >

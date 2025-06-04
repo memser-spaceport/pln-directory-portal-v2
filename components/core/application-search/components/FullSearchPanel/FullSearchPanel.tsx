@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
 import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
@@ -9,6 +9,7 @@ import { FullSearchResults } from '@/components/core/application-search/componen
 import { useApplicationSearch } from '@/services/search/hooks/useApplicationSearch';
 
 import s from './FullSearchPanel.module.scss';
+import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 
 interface Props {
   initialSearchTerm: string;
@@ -20,6 +21,9 @@ export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose }: P
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [isFocused, setFocused] = useState(!initialSearchTerm);
   const { data, isLoading } = useApplicationSearch(searchTerm);
+  const analyticsRef = useRef<boolean>(false);
+
+  const analytics = useUnifiedSearchAnalytics();
 
   const handleChange = useCallback((val: string) => {
     setFocused(true);
@@ -37,6 +41,14 @@ export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose }: P
   const handleTryAiSearch = () => {
     onTryAiSearch(searchTerm);
   };
+
+  useEffect(() => {
+    if (!analyticsRef.current) {
+      analyticsRef.current = true;
+      analytics.onFullSearchOpen();
+    }
+    // eslint-disable-next-line
+  }, []);
 
   function renderContent() {
     if (isFocused) {

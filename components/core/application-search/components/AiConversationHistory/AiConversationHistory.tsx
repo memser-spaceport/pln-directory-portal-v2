@@ -6,6 +6,7 @@ import { getYear, isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { getHuskyThreadById } from '@/services/husky.service';
 import { useRouter } from 'next/navigation';
+import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 
 interface IThread {
   title: string;
@@ -22,6 +23,7 @@ interface Props {
 export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
   const { data: history, isLoading } = useChatHistory();
   const router = useRouter();
+  const analytics = useUnifiedSearchAnalytics();
 
   const groupChatsByDate = useCallback((chats: IThread[]) => {
     const now = new Date();
@@ -116,6 +118,8 @@ export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
                         }
 
                         const thread = await getHuskyThreadById(chat.threadId, authToken);
+
+                        analytics.onAiConversationHistoryClick(thread.title);
 
                         if (!thread) {
                           return;

@@ -13,11 +13,12 @@ import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 import { usePostHog } from 'posthog-js/react';
 
-import s from './AccountMenu.module.scss';
 import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { clsx } from 'clsx';
 import { useRouter } from 'next/navigation';
+
+import s from './HelpMenu.module.scss';
 
 interface Props {
   userInfo: IUserInfo;
@@ -25,7 +26,7 @@ interface Props {
   isLoggedIn: boolean;
 }
 
-export const AccountMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
+export const HelpMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
   const menuTriggerRef = React.useRef<HTMLButtonElement>(null);
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
   const analytics = useCommonAnalytics();
@@ -61,40 +62,36 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
     <>
       <Menu.Root modal={false}>
         <Menu.Trigger className={s.Button} ref={menuTriggerRef}>
-          <Avatar.Root className={s.Avatar}>
-            <Avatar.Image src={userInfo?.profileImageUrl || defaultAvatarImage} width="40" height="40" className={s.Image} />
-            <Avatar.Fallback className={s.Fallback}>{userInfo?.name}</Avatar.Fallback>
-          </Avatar.Root>
-          {notifications?.length > 0 && <div className={clsx(s.notificationsCount, s.absolute)}>{notifications?.length}</div>}
-          <ChevronDownIcon className={s.ButtonIcon} />
+          <LifesafeIcon className={s.ButtonIcon} />
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner className={s.Positioner} align="end" sideOffset={10}>
             <Menu.Popup className={s.Popup}>
-              <Menu.Item
-                className={s.Item}
-                onClick={() => {
-                  router.push('/settings/profile');
-                }}
-              >
-                <UserIcon /> {userInfo.name ?? userInfo.email}
-              </Menu.Item>
-              <Menu.Item className={s.Item} onClick={() => setShowNotifications(true)}>
-                <NotificationsIcon /> Notifications
-                <div className={s.itemSub}>{notifications?.length > 0 && <div className={s.notificationsCount}>{notifications?.length}</div>}</div>
-              </Menu.Item>
-              <div className={s.SeparatorWrapper}>
-                Settings
-                <Menu.Separator className={s.Separator} />
-              </div>
-              <Link href="/settings/profile">
-                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Settings Profile', getAnalyticsUserInfo(userInfo))}>
-                  <SettingsIcon /> Account Settings
+              <Link target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>
+                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('ProtoSphere', getAnalyticsUserInfo(userInfo))}>
+                  <MessageIcon /> ProtoSphere{' '}
+                  <span className={s.itemSub}>
+                    Forum <LinkIcon />
+                  </span>
                 </Menu.Item>
               </Link>
-              <Menu.Item className={s.Item} onClick={handleLogout}>
-                <LogoutIcon /> Logout
-              </Menu.Item>
+              <div className={s.SeparatorWrapper}>
+                Support
+                <Menu.Separator className={s.Separator} />
+              </div>
+              <Link target="_blank" href={process.env.GET_SUPPORT_URL ?? ''}>
+                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Get Support', getAnalyticsUserInfo(userInfo))}>
+                  <HelpIcon /> Get Support{' '}
+                  <span className={s.itemSub}>
+                    <LinkIcon />
+                  </span>
+                </Menu.Item>
+              </Link>
+              <Link href="/changelog">
+                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Changelog', getAnalyticsUserInfo(userInfo))}>
+                  <ChangeLogIcon /> Changelog
+                </Menu.Item>
+              </Link>
             </Menu.Popup>
           </Menu.Positioner>
         </Menu.Portal>
@@ -104,10 +101,13 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
   );
 };
 
-function ChevronDownIcon(props: React.ComponentProps<'svg'>) {
+function LifesafeIcon(props: React.ComponentProps<'svg'>) {
   return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" {...props}>
-      <path d="M1 3.5L5 7.5L9 3.5" stroke="currentcolor" strokeWidth="1.5" />
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M15.6875 14.5352C15.9609 14.8086 15.9609 15.2188 15.6875 15.4648C15.4414 15.7383 15.0312 15.7383 14.7852 15.4648L14.457 15.1641C13.2266 16.1484 11.6953 16.75 10 16.75C8.27734 16.75 6.74609 16.1484 5.51562 15.1641L5.1875 15.4648C4.94141 15.7383 4.53125 15.7383 4.28516 15.4648C4.01172 15.2188 4.01172 14.8086 4.28516 14.5352L4.58594 14.2344C3.60156 13.0039 3 11.4727 3 9.75C3 8.05469 3.60156 6.52344 4.58594 5.29297L4.28516 4.96484C4.01172 4.71875 4.01172 4.30859 4.28516 4.0625C4.53125 3.78906 4.94141 3.78906 5.1875 4.0625L5.51562 4.36328C6.74609 3.37891 8.27734 2.75 10 2.75C11.6953 2.75 13.2266 3.37891 14.457 4.36328L14.7852 4.0625C15.0312 3.78906 15.4414 3.78906 15.6875 4.0625C15.9609 4.30859 15.9609 4.71875 15.6875 4.96484L15.3867 5.29297C16.3711 6.52344 17 8.05469 17 9.75C17 11.4727 16.3711 13.0039 15.3867 14.2344L15.6875 14.5352ZM11.3125 12.0195C10.9297 12.2656 10.4648 12.375 10 12.375C9.50781 12.375 9.04297 12.2656 8.66016 12.0195L6.44531 14.2344C7.42969 15 8.66016 15.4375 10 15.4375C11.3125 15.4375 12.543 15 13.5273 14.2344L11.3125 12.0195ZM15.6875 9.75C15.6875 8.4375 15.2227 7.20703 14.457 6.22266L12.2422 8.4375C12.4883 8.82031 12.625 9.28516 12.625 9.75C12.625 10.2422 12.4883 10.707 12.2422 11.0898L14.457 13.3047C15.2227 12.3203 15.6875 11.0898 15.6875 9.75ZM10 4.0625C8.66016 4.0625 7.42969 4.52734 6.44531 5.29297L8.66016 7.50781C9.04297 7.26172 9.50781 7.125 10 7.125C10.4648 7.125 10.9297 7.26172 11.3125 7.50781L13.5273 5.29297C12.543 4.52734 11.3125 4.0625 10 4.0625ZM7.73047 11.0898C7.48438 10.707 7.375 10.2422 7.375 9.75C7.375 9.28516 7.48438 8.82031 7.73047 8.4375L5.51562 6.22266C4.75 7.20703 4.3125 8.4375 4.3125 9.75C4.3125 11.0898 4.75 12.3203 5.51562 13.3047L7.73047 11.0898ZM10 8.4375C9.26172 8.4375 8.6875 9.03906 8.6875 9.75C8.6875 10.4883 9.26172 11.0625 10 11.0625C10.7109 11.0625 11.3125 10.4883 11.3125 9.75C11.3125 9.03906 10.7109 8.4375 10 8.4375Z"
+        fill="#0F172A"
+      />
     </svg>
   );
 }

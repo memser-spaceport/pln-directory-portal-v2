@@ -17,6 +17,18 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
     actions: { setStep },
   } = useOnboardingState();
 
+  const handlePrevClick = () => {
+    const current = steps.findIndex((item) => item === step);
+
+    setStep(steps[current - 1]);
+  };
+
+  const handleNextClick = () => {
+    const current = steps.findIndex((item) => item === step);
+
+    setStep(steps[current + 1]);
+  };
+
   function renderContent() {
     switch (step) {
       case 'welcome': {
@@ -31,25 +43,24 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
       case 'profile': {
         return (
           <div className={s.withControls}>
-            <button
-              className={clsx(s.btn, s.secondary)}
-              onClick={() => {
-                const current = steps.findIndex((item) => item === step);
-
-                setStep(steps[current - 1]);
-              }}
-            >
+            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick}>
               Back
             </button>
             <span className={clsx(s.info)}>These details are needed for login and notifications.</span>
-            <button
-              className={clsx(s.btn, s.primary)}
-              onClick={() => {
-                const current = steps.findIndex((item) => item === step);
-
-                setStep(steps[current + 1]);
-              }}
-            >
+            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick}>
+              Next
+            </button>
+          </div>
+        );
+      }
+      case 'contacts': {
+        return (
+          <div className={s.withControls}>
+            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick}>
+              Back
+            </button>
+            <span className={clsx(s.info)}>Office Hours are times when you're available to connect with others in the network.</span>
+            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick}>
               Next
             </button>
           </div>

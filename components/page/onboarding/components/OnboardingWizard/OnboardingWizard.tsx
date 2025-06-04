@@ -10,6 +10,7 @@ import s from './OnboardingWizard.module.scss';
 import { IUserInfo } from '@/types/shared.types';
 import { WelcomeStep } from '@/components/page/onboarding/components/WelcomeStep';
 import { ProfileStep } from '@/components/page/onboarding/components/ProfileStep';
+import { ContactsStep } from '@/components/page/onboarding/components/ContactsStep';
 
 interface Props {
   userInfo: IUserInfo;
@@ -23,6 +24,7 @@ export const OnboardingWizard = ({ userInfo }: Props) => {
       <div className={s.content}>
         {step === 'welcome' && <WelcomeStep userInfo={userInfo} />}
         {step === 'profile' && <ProfileStep userInfo={userInfo} />}
+        {step === 'contacts' && <ContactsStep userInfo={userInfo} />}
       </div>
       <OnboardingProgress />
       <OnboardingNavigation userInfo={userInfo} />

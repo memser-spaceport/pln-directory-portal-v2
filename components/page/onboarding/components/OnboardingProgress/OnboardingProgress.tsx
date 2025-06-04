@@ -43,6 +43,9 @@ export const OnboardingProgress = () => {
       case 'profile': {
         return 40;
       }
+      case 'contacts': {
+        return 70;
+      }
       default: {
         return 20;
       }

@@ -95,7 +95,7 @@ const FocusAreaItem = (props: FocusArea) => {
     <>
       <div className="fltitemcon">
         <div className={`fltitemcon__item`}>
-          <button disabled={assignedItemsLength === 0} className={`filtitemcon__item__expbtn ${getStyle()}`} onClick={() => onCheckboxClickHandler()}>
+          <button disabled={assignedItemsLength === 0} className={`filtitemcon__item__expbtn ${getStyle()} ${assignedItemsLength === 0 ? 'no-pointer' : ''}`} onClick={() => onCheckboxClickHandler()}>
             {(isParent || isSelectedItem) && <img alt="mode" src={getIcon()} />}
           </button>
           {(isChildrensAvailable || isGrandParent) && (
@@ -154,8 +154,13 @@ const FocusAreaItem = (props: FocusArea) => {
           }
 
           .filteritemcon__expbtn {
-          pointer-events: ${!isChildrensAvailable ? 'none' : 'auto'}}
+            pointer-events: ${!isChildrensAvailable ? 'none' : 'auto'};
+          }
 
+          button.no-pointer {
+            cursor: default;
+          }
+            
           .isParent {
             background-color: #156ff7;
           }

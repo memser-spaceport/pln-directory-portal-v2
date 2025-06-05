@@ -22,7 +22,6 @@ export const RecentSearch = ({ onSelect }: Props) => {
 
   return (
     <>
-      <div className={s.divider} />
       <div className={s.root}>
         <div className={s.label}>Recent</div>
         <ul className={s.list}>
@@ -50,6 +49,7 @@ export const RecentSearch = ({ onSelect }: Props) => {
           ))}
         </ul>
       </div>
+      <div className={s.divider} />
     </>
   );
 };

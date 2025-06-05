@@ -127,8 +127,8 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
     if (!searchTerm) {
       return (
         <>
-          {isLoggedIn && <AiConversationHistory onClick={handleTryAiSearch} isLoggedIn={isLoggedIn} />}
-          <RecentSearch onSelect={handleChange} />
+          {isLoggedIn && <RecentSearch onSelect={handleChange} />}
+          {isLoggedIn && <AiConversationHistory onClick={handleFullSearchClose} isLoggedIn={isLoggedIn} />}
         </>
       );
     }
@@ -142,13 +142,13 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
     }
 
     return (
-      <>
+      <div style={{ padding: '8px 16px' }}>
         <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
         {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={handleFullSearchClose} />}
         {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={handleFullSearchClose} />}
         {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={handleFullSearchClose} />}
         {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={handleFullSearchClose} />}
-      </>
+      </div>
     );
   }
 

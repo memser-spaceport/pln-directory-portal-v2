@@ -5,7 +5,7 @@ export function saveRecentSearch(term: string) {
   try {
     const key = 'recentSearches';
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
-    const updated = [term, ...existing.filter((t: string) => t !== term)].slice(0, 10);
+    const updated = [term, ...existing.filter((t: string) => t !== term)].slice(0, 3);
     localStorage.setItem(key, JSON.stringify(updated));
     window.dispatchEvent(new Event('recent-search-updated'));
   } catch (e) {

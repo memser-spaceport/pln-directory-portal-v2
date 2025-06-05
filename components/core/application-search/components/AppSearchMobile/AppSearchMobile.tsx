@@ -63,8 +63,8 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
       if (!searchTerm) {
         return (
           <>
-            {isLoggedIn && <AiConversationHistory onClick={handleTryAiSearch} isLoggedIn={isLoggedIn} />}
-            <RecentSearch onSelect={handleChange} />
+            {isLoggedIn && <RecentSearch onSelect={handleChange} />}
+            {isLoggedIn && <AiConversationHistory onClick={handleClose} isLoggedIn={isLoggedIn} />}
           </>
         );
       }

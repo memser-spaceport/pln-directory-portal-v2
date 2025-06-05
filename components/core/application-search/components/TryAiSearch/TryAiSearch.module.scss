@@ -1,7 +1,25 @@
 @use "styles/mixins";
 @use 'styles/media';
 
+$padding-inline: 16px;
+
 .root {
+  display: flex;
+  flex-direction: column;
+  //margin-top: 12px;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+.divider {
+  height: 1px;
+  width: calc(100% + $padding-inline * 2);
+  margin-inline: -$padding-inline;
+  margin-block: 8px;
+  background: #E2E8F0;
+}
+
+.btn {
   @include mixins.centralize;
   gap: 8px;
 
@@ -22,12 +40,30 @@
   }
 }
 
+.btnText {
+  @include mixins.centralize;
+  gap: 8px;
+
+  border-radius: 8px;
+  background: #FFF;
+  padding: 10px 8px;
+  height: 40px;
+  width: 100%;
+  color: #427DFF;
+
+  &:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    user-select: none;
+  }
+}
+
 .list {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-block: 16px;
+  //padding-block: 16px;
 }
 
 .label {

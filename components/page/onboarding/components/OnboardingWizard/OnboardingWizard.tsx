@@ -19,15 +19,20 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { onboardingSchema } from '@/components/page/onboarding/components/OnboardingWizard/helpers';
 import { AppLogo } from '@/components/page/onboarding/components/AppLogo';
 import { clsx } from 'clsx';
+import { useMember } from '@/services/members/hooks/useMember';
+import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 
 interface Props {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
 }
 
-export const OnboardingWizard = ({ userInfo, isLoggedIn }: Props) => {
+export const OnboardingWizard = ({ userInfo }: Props) => {
   const { step } = useOnboardingState();
   const router = useRouter();
+
+  const { data: memberData } = useMember(userInfo.uid);
+  const { mutateAsync } = useUpdateMember();
 
   const methods = useForm<OnboardingForm>({
     defaultValues: {
@@ -42,8 +47,26 @@ export const OnboardingWizard = ({ userInfo, isLoggedIn }: Props) => {
   });
   const { handleSubmit } = methods;
 
-  const onSubmit = (formData: OnboardingForm) => {
-    console.log(formData);
+  const onSubmit = async (formData: OnboardingForm) => {
+    if (!memberData) {
+      return;
+    }
+
+    const payload = {
+      participantType: 'MEMBER',
+      referenceUid: memberData.memberInfo.uid,
+      uniqueIdentifier: formData.email,
+      newData: formatPayload(memberData.memberInfo, formData),
+    };
+
+    const res = await mutateAsync({
+      uid: memberData.memberInfo.uid,
+      payload,
+    });
+
+    if (!res.isError) {
+      router.replace(`/members/${memberData.memberInfo.uid}`);
+    }
   };
 
   return (
@@ -87,3 +110,28 @@ export const OnboardingWizard = ({ userInfo, isLoggedIn }: Props) => {
     </div>
   );
 };
+
+function formatPayload(memberInfo: any, formData: OnboardingForm) {
+  return {
+    name: formData.name,
+    email: formData.email,
+    plnStartDate: memberInfo.plnStartDate,
+    city: '',
+    region: '',
+    country: '',
+    teamOrProjectURL: memberInfo.teamOrProjectURL,
+    linkedinHandler: memberInfo.linkedinHandler,
+    discordHandler: memberInfo.discordHandler,
+    twitterHandler: memberInfo.twitterHandler,
+    githubHandler: memberInfo.githubHandler,
+    telegramHandler: formData.telegram,
+    officeHours: formData.officeHours,
+    moreDetails: memberInfo.moreDetails,
+    openToWork: memberInfo.openToWork,
+    plnFriend: memberInfo.plnFriend,
+    teamAndRoles: memberInfo.teamMemberRoles,
+    projectContributions: memberInfo.projectContributions,
+    skills: memberInfo.skills,
+    bio: memberInfo.bio,
+  };
+}

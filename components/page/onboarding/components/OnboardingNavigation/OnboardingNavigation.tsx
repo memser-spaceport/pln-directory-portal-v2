@@ -20,7 +20,7 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
   } = useOnboardingState();
 
   const {
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useFormContext<OnboardingForm>();
 
   const handlePrevClick = () => {
@@ -64,8 +64,8 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
               Back
             </button>
             <span className={clsx(s.info)}>Office Hours are times when you&apos;re available to connect with others in the network.</span>
-            <button className={clsx(s.btn, s.primary)} type="submit" disabled={!!errors.officeHours || !!errors.telegram}>
-              Finish
+            <button className={clsx(s.btn, s.primary)} type="submit" disabled={!!errors.officeHours || !!errors.telegram || isSubmitting}>
+              {isSubmitting ? 'Processing...' : 'Finish'}
             </button>
           </div>
         );

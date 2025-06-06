@@ -1,4 +1,5 @@
 export enum MembersQueryKeys {
   GET_MEMBERS_LIST = 'GET_MEMBERS_LIST',
   GET_ALL_MEMBERS = 'GET_ALL_MEMBERS',
+  GET_MEMBER = 'GET_MEMBER',
 }

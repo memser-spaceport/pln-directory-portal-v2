@@ -3,9 +3,17 @@ import { Progress } from '@base-ui-components/react/progress';
 import { useOnboardingState } from '@/services/onboarding/store';
 
 import s from './OnboardingProgress.module.scss';
+import { useFormContext } from 'react-hook-form';
+import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
 
 export const OnboardingProgress = () => {
   const { step } = useOnboardingState();
+
+  const {
+    watch,
+    formState: { errors },
+  } = useFormContext<OnboardingForm>();
+  const values = watch();
 
   function getTitleLabel() {
     switch (step) {
@@ -33,23 +41,25 @@ export const OnboardingProgress = () => {
   }
 
   function getProgressValue() {
-    switch (step) {
-      case 'welcome': {
-        return 20;
-      }
-      case 'profile': {
-        return 40;
-      }
-      case 'contacts': {
-        return 70;
-      }
-      // case 'expertise': {
-      //   return 90;
-      // }
-      default: {
-        return 20;
-      }
+    let score = 20;
+
+    if (values.name && !errors.name) {
+      score += 20;
     }
+
+    if (values.email && !errors.email) {
+      score += 20;
+    }
+
+    if (values.officeHours && !errors.officeHours) {
+      score += 20;
+    }
+
+    if (values.telegram && !errors.telegram) {
+      score += 20;
+    }
+
+    return score;
   }
 
   return (

@@ -8,6 +8,9 @@ import { useOnboardingState } from '@/services/onboarding/store';
 import { LEARN_MORE_URL } from '@/utils/constants';
 
 import s from './ContactsStep.module.scss';
+import { useFormContext } from 'react-hook-form';
+import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
+import { clsx } from 'clsx';
 
 interface Props {
   userInfo: IUserInfo;
@@ -15,8 +18,9 @@ interface Props {
 
 export const ContactsStep = ({ userInfo }: Props) => {
   const {
-    actions: { setStep },
-  } = useOnboardingState();
+    register,
+    formState: { errors },
+  } = useFormContext<OnboardingForm>();
 
   return (
     <div className={s.root}>
@@ -30,16 +34,38 @@ export const ContactsStep = ({ userInfo }: Props) => {
 
       <Field.Root className={s.field}>
         <Field.Label className={s.label}>Office Hours</Field.Label>
-        <Field.Control required placeholder="User Office Hours" className={s.input} />
-        <Field.Error className={s.error}>Required</Field.Error>
-        <Field.Description className={s.fieldDescription}>We recommend using a Calendly or Google Calendar link.</Field.Description>
+        <Field.Control
+          {...register('officeHours')}
+          placeholder="User Office Hours"
+          className={clsx(s.input, {
+            [s.error]: !!errors.officeHours,
+          })}
+        />
+        {errors.officeHours ? (
+          <Field.Error className={s.errorMsg} match={!!errors.officeHours}>
+            {errors.officeHours?.message}
+          </Field.Error>
+        ) : (
+          <Field.Description className={s.fieldDescription}>We recommend using a Calendly or Google Calendar link.</Field.Description>
+        )}
       </Field.Root>
 
       <Field.Root className={s.field}>
         <Field.Label className={s.label}>Telegram</Field.Label>
-        <Field.Control required placeholder="Enter Telegram Username" className={s.input} />
-        <Field.Error className={s.error}>Required</Field.Error>
-        <Field.Description className={s.fieldDescription}>Copy @username in your profile settings</Field.Description>
+        <Field.Control
+          {...register('telegram')}
+          placeholder="Enter Telegram Username"
+          className={clsx(s.input, {
+            [s.error]: !!errors.telegram,
+          })}
+        />
+        {errors.telegram ? (
+          <Field.Error className={s.errorMsg} match={!!errors.telegram}>
+            {errors.telegram?.message}
+          </Field.Error>
+        ) : (
+          <Field.Description className={s.fieldDescription}>Copy @username in your profile settings</Field.Description>
+        )}
       </Field.Root>
     </div>
   );

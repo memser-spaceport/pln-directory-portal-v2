@@ -134,12 +134,19 @@
     background: #FFF;
     box-shadow: 0 0 0 4px rgba(21, 111, 247, 0.10);
   }
+
+  &.error {
+    border-color: darkred;
+  }
 }
 
-.error {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: var(--color-red-800);
+.errorMsg {
+  font-size: 10px;
+  color: darkred;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 200% */
 }
 
 .fieldDescription {

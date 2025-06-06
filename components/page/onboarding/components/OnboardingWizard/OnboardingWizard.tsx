@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useOnboardingState } from '@/services/onboarding/store';
-import { Dialog } from '@base-ui-components/react/dialog';
 import { OnboardingProgress } from '@/components/page/onboarding/components/OnboardingProgress';
 import { OnboardingNavigation } from '@/components/page/onboarding/components/OnboardingNavigation';
 
@@ -46,37 +45,35 @@ export const OnboardingWizard = ({ userInfo, isLoggedIn }: Props) => {
   };
 
   return (
-    <Dialog.Root
-      open
-      onOpenChange={() => {
-        router.replace(`${window.location.pathname}`);
-      }}
-    >
-      <Dialog.Portal>
-        <Dialog.Backdrop className={s.backdrop} />
-        <Dialog.Popup className={s.popup}>
-          <Dialog.Close className={s.closeBtn}>
-            <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
-          </Dialog.Close>
-          {step === 'welcome' && (
-            <div className={s.illustration}>
-              <Illustration />
+    <div className={s.modal}>
+      <div className={s.modalContent}>
+        <button
+          type="button"
+          className={s.closeButton}
+          onClick={() => {
+            router.replace(`${window.location.pathname}`);
+          }}
+        >
+          <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
+        </button>
+        {step === 'welcome' && (
+          <div className={s.illustration}>
+            <Illustration />
+          </div>
+        )}
+        <FormProvider {...methods}>
+          <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)}>
+            <div className={s.content}>
+              {step === 'welcome' && <WelcomeStep userInfo={userInfo} />}
+              {step === 'profile' && <ProfileStep userInfo={userInfo} />}
+              {step === 'contacts' && <ContactsStep userInfo={userInfo} />}
+              {/*{step === 'expertise' && <ExpertiseStep userInfo={userInfo} />}*/}
             </div>
-          )}
-          <FormProvider {...methods}>
-            <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)}>
-              <div className={s.content}>
-                {step === 'welcome' && <WelcomeStep userInfo={userInfo} />}
-                {step === 'profile' && <ProfileStep userInfo={userInfo} />}
-                {step === 'contacts' && <ContactsStep userInfo={userInfo} />}
-                {/*{step === 'expertise' && <ExpertiseStep userInfo={userInfo} />}*/}
-              </div>
-              <OnboardingProgress />
-              <OnboardingNavigation userInfo={userInfo} />
-            </form>
-          </FormProvider>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+            <OnboardingProgress />
+            <OnboardingNavigation userInfo={userInfo} />
+          </form>
+        </FormProvider>
+      </div>
+    </div>
   );
 };

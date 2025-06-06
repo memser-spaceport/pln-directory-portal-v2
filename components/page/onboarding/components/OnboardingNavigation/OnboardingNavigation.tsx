@@ -21,7 +21,7 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
 
   const {
     formState: { errors },
-  } = useFormContext();
+  } = useFormContext<OnboardingForm>();
 
   const handlePrevClick = () => {
     const current = steps.findIndex((item) => item === step);
@@ -64,7 +64,7 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
               Back
             </button>
             <span className={clsx(s.info)}>Office Hours are times when you&apos;re available to connect with others in the network.</span>
-            <button className={clsx(s.btn, s.primary)} type="submit">
+            <button className={clsx(s.btn, s.primary)} type="submit" disabled={!!errors.officeHours || !!errors.telegram}>
               Finish
             </button>
           </div>

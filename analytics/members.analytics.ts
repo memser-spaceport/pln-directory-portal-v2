@@ -381,12 +381,14 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED, params);
   }
 
-  function onOpenProfileByRecommendationEmailLink(utmSource: string, utmMedium: string, utmCode: string, targetId: string) {
+  function onOpenProfileByRecommendationEmailLink(utmSource: string, utmMedium: string, utmCode: string, recommendedMember: string, targetId: string, targetEmail: string) {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK, {
       utmSource,
       utmMedium,
       utmCode,
+      recommendedMember,
       targetId,
+      targetEmail,
     });
   }
 

@@ -381,14 +381,14 @@ export const MEMBER_ANALYTICS_EVENTS = {
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
-  AUTOCOMPLETE_SEARCH: 'autocomplete-search',
-  FULL_SEARCH: 'full-search',
-  SEARCH_RESULT_CLICK: 'search-result-click',
-  FULL_SEARCH_OPEN: 'full-search-open',
-  RECENT_SEARCH_CLICK: 'recent-search-click',
-  RECENT_SEARCH_DELETE_CLICK: 'recent-search-delete-click',
-  AI_CONVERSATION_HISTORY_CLICK: 'ai-conversation-history-click',
-  AI_CONVERSATION_HISTORY_OPEN_CLICK: 'ai-conversation-history-open-click',
+  AUTOCOMPLETE_SEARCH: 'unified-search-autocomplete-search-requested',
+  FULL_SEARCH: 'unified-search-search-requested',
+  SEARCH_RESULT_CLICK: 'unified-search-result-clicked',
+  FULL_SEARCH_OPEN: 'unified-search-modal-open',
+  RECENT_SEARCH_CLICK: 'unified-search-recent-clicked',
+  RECENT_SEARCH_DELETE_CLICK: 'unified-search-recent-delete-clicked',
+  AI_CONVERSATION_HISTORY_CLICK: 'unified-search-ai-conversation-history-clicked',
+  AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};

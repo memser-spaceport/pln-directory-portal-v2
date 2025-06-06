@@ -32,7 +32,7 @@ export const ContactsStep = ({ userInfo }: Props) => {
         </a>
       </div>
 
-      <Field.Root className={s.field}>
+      <Field.Root className={clsx(s.field, s.inputs)}>
         <Field.Label className={s.label}>Office Hours</Field.Label>
         <Field.Control
           {...register('officeHours')}

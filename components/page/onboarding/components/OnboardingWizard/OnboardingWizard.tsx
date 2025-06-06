@@ -17,6 +17,8 @@ import Image from 'next/image';
 import Illustration from '@/components/page/onboarding/components/Illustartion/Illustration';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { onboardingSchema } from '@/components/page/onboarding/components/OnboardingWizard/helpers';
+import { AppLogo } from '@/components/page/onboarding/components/AppLogo';
+import { clsx } from 'clsx';
 
 interface Props {
   userInfo: IUserInfo;
@@ -47,6 +49,7 @@ export const OnboardingWizard = ({ userInfo, isLoggedIn }: Props) => {
   return (
     <div className={s.modal}>
       <div className={s.modalContent}>
+        {step !== 'welcome' && <AppLogo className={s.logo} />}
         <button
           type="button"
           className={s.closeButton}
@@ -61,8 +64,15 @@ export const OnboardingWizard = ({ userInfo, isLoggedIn }: Props) => {
             <Illustration />
           </div>
         )}
+
         <FormProvider {...methods}>
-          <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)}>
+          <form
+            className={clsx(s.root, {
+              [s.isWelcomeStep]: step === 'welcome',
+            })}
+            noValidate
+            onSubmit={handleSubmit(onSubmit)}
+          >
             <div className={s.content}>
               {step === 'welcome' && <WelcomeStep userInfo={userInfo} />}
               {step === 'profile' && <ProfileStep userInfo={userInfo} />}

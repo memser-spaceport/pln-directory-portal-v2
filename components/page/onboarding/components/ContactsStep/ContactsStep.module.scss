@@ -1,9 +1,20 @@
 @use 'styles/mixins';
+@use 'styles/media';
 
 .root {
   @include mixins.centralize;
   flex-direction: column;
   height: 100%;
+  align-items: flex-start;
+  padding-inline: 16px;
+  flex: 1;
+  padding-top: 32px;
+
+  @include media.tablet-landscape {
+    align-items: center;
+    flex: unset;
+    padding-top: unset;
+  }
 }
 
 .imagePreview {
@@ -13,18 +24,22 @@
 
 .title {
   color: #0F172A;
-  text-align: center;
+  text-align: left;
   font-size: 32px;
   font-style: normal;
   font-weight: 900;
   line-height: 120.462%; /* 38.548px */
   margin-top: 32px;
+
+  @include media.tablet-landscape {
+    text-align: center;
+  }
 }
 
 .subtitle {
   overflow: hidden;
   color: #475569;
-  text-align: center;
+  text-align: left;
   font-feature-settings: 'liga' off, 'clig' off;
   text-overflow: ellipsis;
   font-size: 14px;
@@ -33,6 +48,14 @@
   line-height: 20px; /* 142.857% */
   margin-top: 8px;
   max-width: 500px;
+
+  @include media.tablet-landscape {
+    text-align: center;
+  }
+}
+
+.inputs {
+  margin-top: auto;
 }
 
 .actionButton {

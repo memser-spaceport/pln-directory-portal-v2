@@ -1,6 +1,15 @@
+@use 'styles/mixins';
+@use 'styles/media';
+
 .root {
   display: flex;
   flex-direction: column;
+
+  padding-inline: 16px;
+
+  @include media.tablet-landscape {
+    padding-inline: 0;
+  }
 }
 
 .labels {

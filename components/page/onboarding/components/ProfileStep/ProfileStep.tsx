@@ -10,6 +10,7 @@ import { useDropzone } from 'react-dropzone';
 import { useFormContext } from 'react-hook-form';
 import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
 import { clsx } from 'clsx';
+import { AppLogo } from '@/components/page/onboarding/components/AppLogo';
 
 interface Props {
   userInfo: IUserInfo;

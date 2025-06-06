@@ -20,6 +20,8 @@ const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
   const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo, officeHoursFlag } = await getpageData(memberId);
 
+  console.log(memberId, member);
+
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
   }

@@ -186,6 +186,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
               isOptional={false}
               minYear={1970}
               sort="desc"
+              data-testid="experience-startDate"
               maxYear={new Date().getFullYear()}
               initialDate={experienceRef.current?.startDate
                  ? new Date(experienceRef.current?.startDate).toISOString()
@@ -199,6 +200,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
               label="End Date"
               isOptional={true}
               minYear={1970}
+              data-testid="experience-endDate"
               sort="desc"
               maxYear={new Date().getFullYear()}
               initialDate={experienceRef?.current?.isCurrent
@@ -212,6 +214,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
               <Toggle
                 height="16px"
                 width="28px"
+                data-testid="experience-isCurrent"
                 callback={(e) => {
                   const isCurrent = e.target.checked;
                   updateExperience('isCurrent', isCurrent);
@@ -220,7 +223,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
                 }}
                 isChecked={experienceRef?.current?.isCurrent || false}
               />
-              <input type="hidden" name="isCurrent" value={experienceRef.current?.isCurrent ? 'true' : 'false'} />
+              <input data-testid="experience-isCurrent" type="hidden" name="isCurrent" value={experienceRef.current?.isCurrent ? 'true' : 'false'} />
             </div>
           </div>
           {errors.startDate && <p className="error-text">{errors.startDate}</p>}
@@ -229,6 +232,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
             label="Location"
             defaultValue={experienceRef.current?.location || ''}
             type="text"
+            data-testid="experience-location"
             placeholder="Enter location"
             name="experience-location"
             id="experience-location"

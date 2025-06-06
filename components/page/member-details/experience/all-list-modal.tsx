@@ -44,7 +44,7 @@ export default function AllListModal({member,userInfo}: {member: any,userInfo: a
         >
           <div className="member-detail__experience__modal">
             <div className="member-detail__experience__modal__header">
-              <h2 className="member-detail__experience__modal__header__title">Experience ({experiences.length})</h2>
+              <h2 className="member-detail__experience__modal__header__title" data-testid="experience-modal-header-title">Experience ({experiences.length})</h2>
             </div>
             <div className="member-detail__experience__modal__list">
               {experiences.map((experience: any, index: number) => (

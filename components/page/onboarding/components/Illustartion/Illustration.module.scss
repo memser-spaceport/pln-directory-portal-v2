@@ -1,0 +1,48 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background-size: cover;
+  padding: 24px 24px 48px;
+}
+
+.heroImage {
+  margin: 0 auto;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: flex-start;
+  margin-top: auto;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-inline: 8px;
+  border-left: 8px solid rgba(255, 255, 255, 0.80);
+}
+
+.primary {
+  color: #FFF;
+  font-size: 30px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 120.462%; /* 36.139px */
+  text-transform: uppercase;
+}
+
+.secondary {
+  color: rgba(255, 255, 255, 0.80);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}

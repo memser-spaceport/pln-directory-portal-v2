@@ -11,7 +11,7 @@ interface Props {
   userInfo: IUserInfo;
 }
 
-const steps: OnboardingWizardStep[] = ['welcome', 'profile', 'contacts', 'expertise'];
+const steps: OnboardingWizardStep[] = ['welcome', 'profile', 'contacts'];
 
 export const OnboardingNavigation = ({ userInfo }: Props) => {
   const {
@@ -19,13 +19,17 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
     actions: { setStep },
   } = useOnboardingState();
 
+  const {
+    formState: { errors },
+  } = useFormContext();
+
   const handlePrevClick = () => {
     const current = steps.findIndex((item) => item === step);
 
     setStep(steps[current - 1]);
   };
 
-  const handleNextClick = () => {
+  const handleNextClick = async () => {
     const current = steps.findIndex((item) => item === step);
 
     setStep(steps[current + 1]);
@@ -36,20 +40,18 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
       case 'welcome': {
         return (
           <div className={s.inline}>
-            <span className={s.label}>Confirmed as</span>
-            <span className={clsx(s.label, s.primary)}>{userInfo.email}</span>
-            <button className={s.triggerLoginButton}>Change</button>
+            <span className={s.info}>Should take less than 1 minute. Let&apos;s go!</span>
           </div>
         );
       }
       case 'profile': {
         return (
-          <div className={s.withControls}>
+          <div className={s.withControls} key="profile">
             <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick} type="button">
               Back
             </button>
             <span className={clsx(s.info)}>These details are needed for login and notifications.</span>
-            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick} type="button">
+            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick} type="button" disabled={!!errors.name || !!errors.email}>
               Next
             </button>
           </div>
@@ -57,30 +59,30 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
       }
       case 'contacts': {
         return (
-          <div className={s.withControls}>
+          <div className={s.withControls} key="contacts">
             <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick} type="button">
               Back
             </button>
             <span className={clsx(s.info)}>Office Hours are times when you&apos;re available to connect with others in the network.</span>
-            <button className={clsx(s.btn, s.primary)} onClick={handleNextClick} type="button">
-              Next
-            </button>
-          </div>
-        );
-      }
-      case 'expertise': {
-        return (
-          <div className={s.withControls}>
-            <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick} type="button">
-              Back
-            </button>
-            <span className={clsx(s.info)}>You can change them anytime.</span>
             <button className={clsx(s.btn, s.primary)} type="submit">
               Finish
             </button>
           </div>
         );
       }
+      // case 'expertise': {
+      //   return (
+      //     <div className={s.withControls}>
+      //       <button className={clsx(s.btn, s.secondary)} onClick={handlePrevClick} type="button">
+      //         Back
+      //       </button>
+      //       <span className={clsx(s.info)}>You can change them anytime.</span>
+      //       <button className={clsx(s.btn, s.primary)} type="submit">
+      //         Finish
+      //       </button>
+      //     </div>
+      //   );
+      // }
       default: {
         return null;
       }

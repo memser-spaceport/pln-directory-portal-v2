@@ -131,12 +131,15 @@
     border-radius: 8px;
     border: 1px solid rgba(66, 125, 255, 0.50);
     background: #FFF;
-    box-shadow: 0px 0px 0px 4px rgba(21, 111, 247, 0.10);
+    box-shadow: 0 0 0 4px rgba(21, 111, 247, 0.10);
+  }
+
+  &.error {
+    border-color: darkred;
   }
 }
 
-.error {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: var(--color-red-800);
+.errorMsg {
+  font-size: 10px;
+  color: darkred;
 }

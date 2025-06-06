@@ -1,10 +1,7 @@
 import React from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
-import { AuthTrigger } from '@/components/page/onboarding/components/AuthTrigger';
 import { OnboardingWizard } from '@/components/page/onboarding/components/OnboardingWizard';
-
-import s from './page.module.scss';
 
 interface Props {
   params: { id: string };
@@ -12,14 +9,9 @@ interface Props {
 }
 
 const OnboardingPage = async ({ searchParams }: Props) => {
-  const { name, isLoggedIn, userInfo } = await getPageData(searchParams);
+  const { isLoggedIn, userInfo } = await getPageData(searchParams);
 
-  return (
-    <>
-      <OnboardingWizard userInfo={userInfo} />
-      <AuthTrigger isLoggedIn={isLoggedIn} />
-    </>
-  );
+  return <OnboardingWizard userInfo={userInfo} isLoggedIn={isLoggedIn} />;
 };
 
 export default OnboardingPage;
@@ -33,5 +25,3 @@ async function getPageData(searchParams: Props['searchParams']) {
     userInfo,
   };
 }
-
-// http://localhost:4200/members/onboarding?loginFlow=onboarding&prefillEmail=olegverzunov@gmail.com

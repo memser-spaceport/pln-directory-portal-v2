@@ -9,10 +9,7 @@ export const OnboardingProgress = () => {
 
   function getTitleLabel() {
     switch (step) {
-      case 'welcome': {
-        return `Should take less than 1 minute. Let's go!`;
-      }
-      case 'expertise': {
+      case 'contacts': {
         return 'Finish';
       }
       default: {
@@ -26,9 +23,9 @@ export const OnboardingProgress = () => {
       case 'contacts': {
         return 2;
       }
-      case 'expertise': {
-        return 3;
-      }
+      // case 'expertise': {
+      //   return 3;
+      // }
       default: {
         return 1;
       }
@@ -46,9 +43,9 @@ export const OnboardingProgress = () => {
       case 'contacts': {
         return 70;
       }
-      case 'expertise': {
-        return 90;
-      }
+      // case 'expertise': {
+      //   return 90;
+      // }
       default: {
         return 20;
       }
@@ -61,7 +58,7 @@ export const OnboardingProgress = () => {
         <span className={s.titleLabel}>{getTitleLabel()}</span>
         <span className={s.counter}>
           <span className={s.activeStepLabel}>{getStepLabel()}</span>
-          <span className={s.totalStepsLabel}>/3</span>
+          <span className={s.totalStepsLabel}>/2</span>
         </span>
       </div>
       <Progress.Root className={s.progress} value={getProgressValue()}>

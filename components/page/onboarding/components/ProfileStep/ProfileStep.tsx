@@ -3,13 +3,13 @@ import Image from 'next/image';
 import { Field } from '@base-ui-components/react/field';
 
 import { IUserInfo } from '@/types/shared.types';
-import { useOnboardingState } from '@/services/onboarding/store';
 
 import s from './ProfileStep.module.scss';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useDropzone } from 'react-dropzone';
 import { useFormContext } from 'react-hook-form';
 import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
+import { clsx } from 'clsx';
 
 interface Props {
   userInfo: IUserInfo;
@@ -19,8 +19,11 @@ export const ProfileStep = ({ userInfo }: Props) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const defaultPreview = useDefaultAvatar(userInfo.name);
 
-  const { setValue } = useFormContext<OnboardingForm>();
-  // const { image } = watch();
+  const {
+    setValue,
+    register,
+    formState: { errors },
+  } = useFormContext<OnboardingForm>();
 
   const { getInputProps, getRootProps } = useDropzone({
     onError: (err) => {
@@ -70,14 +73,30 @@ export const ProfileStep = ({ userInfo }: Props) => {
 
       <Field.Root className={s.field}>
         <Field.Label className={s.label}>Name</Field.Label>
-        <Field.Control required placeholder="User Name" className={s.input} />
-        <Field.Error className={s.error}>Required</Field.Error>
+        <Field.Control
+          {...register('name')}
+          placeholder="User Name"
+          className={clsx(s.input, {
+            [s.error]: !!errors.name,
+          })}
+        />
+        <Field.Error className={s.errorMsg} match={!!errors.name}>
+          {errors.name?.message}
+        </Field.Error>
       </Field.Root>
 
       <Field.Root className={s.field}>
         <Field.Label className={s.label}>Email</Field.Label>
-        <Field.Control required placeholder="User@mail.com" className={s.input} />
-        <Field.Error className={s.error}>Required</Field.Error>
+        <Field.Control
+          {...register('email')}
+          placeholder="User@mail.com"
+          className={clsx(s.input, {
+            [s.error]: !!errors.email,
+          })}
+        />
+        <Field.Error className={s.errorMsg} match={!!errors.email}>
+          {errors.email?.message}
+        </Field.Error>
       </Field.Root>
     </div>
   );

@@ -1,9 +1,23 @@
 @use 'styles/mixins';
+@use 'styles/media';
 
 .root {
   @include mixins.centralize;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  position: relative;
+  padding: 48px 24px 24px;
+
+  @include media.tablet-landscape {
+    padding: 24px;
+  }
+}
+
+.logo {
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 
 .imagePreview {
@@ -76,13 +90,16 @@
   align-items: center;
   gap: 20px;
   margin-top: 48px;
-  max-width: 328px;
   width: 100%;
 
   border-radius: 12px;
   border: 1px dashed #CBD5E1;
   background: #FFF;
   box-shadow: 0 0 0 2px #F1F5F9;
+
+  @include media.tablet-landscape {
+    max-width: 328px;
+  }
 }
 
 .uploadRulesHint {
@@ -101,9 +118,11 @@
   align-items: start;
   gap: 0.25rem;
   width: 100%;
-  max-width: 328px;
   margin-top: 24px;
 
+  @include media.tablet-landscape {
+    max-width: 328px;
+  }
 }
 
 .label {

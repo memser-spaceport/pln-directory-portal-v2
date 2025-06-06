@@ -1,14 +1,24 @@
 @use 'styles/mixins';
+@use 'styles/media';
 
 .root {
   @include mixins.centralize;
   flex-direction: column;
   height: 100%;
+  align-items: flex-start;
+  width: 100%;
+  padding-inline: 16px;
+  padding-top: 24px;
+
+  @include media.tablet-landscape {
+    align-items: center;
+    padding-top: 0;
+  }
 }
 
 .title {
   color: #0F172A;
-  text-align: center;
+  text-align: left;
   font-size: 36px;
   font-style: normal;
   font-weight: 900;
@@ -16,6 +26,10 @@
 
   span {
     color: #156FF7;
+  }
+
+  @include media.tablet-landscape {
+    text-align: center;
   }
 }
 
@@ -50,6 +64,10 @@
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
-
   margin-top: 32px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    width: unset;
+  }
 }

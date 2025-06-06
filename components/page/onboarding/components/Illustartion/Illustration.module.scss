@@ -1,3 +1,6 @@
+@use 'styles/mixins';
+@use 'styles/media';
+
 .root {
   display: flex;
   flex-direction: column;
@@ -8,6 +11,13 @@
 
 .heroImage {
   margin: 0 auto;
+  width: 250px;
+  height: 220px;
+
+  @include media.tablet-landscape {
+    width: 428px;
+    height: 375px;
+  };
 }
 
 .list {
@@ -32,17 +42,25 @@
 
 .primary {
   color: #FFF;
-  font-size: 30px;
+  font-size: 24px;
   font-style: normal;
   font-weight: 900;
   line-height: 120.462%; /* 36.139px */
   text-transform: uppercase;
+
+  @include media.tablet-landscape {
+    font-size: 30px;
+  }
 }
 
 .secondary {
   color: rgba(255, 255, 255, 0.80);
-  font-size: 18px;
+  font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: normal;
+
+  @include media.tablet-landscape {
+    font-size: 18px;
+  }
 }

@@ -6,9 +6,10 @@ import { useOnboardingState } from '@/services/onboarding/store';
 
 interface Props {
   userInfo: IUserInfo;
+  name: string;
 }
 
-export const WelcomeStep = ({ userInfo }: Props) => {
+export const WelcomeStep = ({ userInfo, name }: Props) => {
   const {
     actions: { setStep },
   } = useOnboardingState();
@@ -16,7 +17,7 @@ export const WelcomeStep = ({ userInfo }: Props) => {
   return (
     <div className={s.root}>
       <div className={s.title}>
-        Hello, <span>{userInfo.name}</span>!
+        Hello, <span>{name ?? userInfo.name}</span>!
       </div>
       <div className={s.subtitle}>In less than 1 minute, your profile will be ready to view.</div>
       <button className={s.actionButton} onClick={() => setStep('profile')}>

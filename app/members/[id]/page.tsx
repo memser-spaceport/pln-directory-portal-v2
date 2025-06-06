@@ -93,7 +93,7 @@ const getpageData = async (memberId: string) => {
     }
 
     const [memberResponse, memberTeamsResponse] = await Promise.all([
-      getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo),
+      getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo, true, true),
       getAllTeams(
         '',
         {

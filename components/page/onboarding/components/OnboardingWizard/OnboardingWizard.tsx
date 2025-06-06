@@ -19,25 +19,32 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { onboardingSchema } from '@/components/page/onboarding/components/OnboardingWizard/helpers';
 import { AppLogo } from '@/components/page/onboarding/components/AppLogo';
 import { clsx } from 'clsx';
-import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
+import { saveRegistrationImage } from '@/services/registration.service';
 
 interface Props {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
+  memberData:
+    | {
+        isError: boolean;
+        memberInfo?: undefined;
+      }
+    | {
+        memberInfo: any;
+        isError?: undefined;
+      };
 }
 
-export const OnboardingWizard = ({ userInfo }: Props) => {
+export const OnboardingWizard = ({ userInfo, memberData }: Props) => {
   const { step } = useOnboardingState();
   const router = useRouter();
-
-  const { data: memberData } = useMember(userInfo.uid);
   const { mutateAsync } = useUpdateMember();
 
   const methods = useForm<OnboardingForm>({
     defaultValues: {
-      name: userInfo.name,
-      email: userInfo.email,
+      name: memberData?.memberInfo?.name,
+      email: memberData?.memberInfo?.email,
       officeHours: '',
       image: null,
       telegram: '',
@@ -52,11 +59,22 @@ export const OnboardingWizard = ({ userInfo }: Props) => {
       return;
     }
 
+    let image;
+
+    if (formData.image) {
+      const imgResponse = await saveRegistrationImage(formData.image);
+
+      image = imgResponse?.image.uid;
+    }
+
     const payload = {
       participantType: 'MEMBER',
       referenceUid: memberData.memberInfo.uid,
       uniqueIdentifier: formData.email,
-      newData: formatPayload(memberData.memberInfo, formData),
+      newData: {
+        ...formatPayload(memberData.memberInfo, formData),
+        imageUid: image ? image : memberData.memberInfo.imageUid,
+      },
     };
 
     const res = await mutateAsync({
@@ -97,7 +115,7 @@ export const OnboardingWizard = ({ userInfo }: Props) => {
             onSubmit={handleSubmit(onSubmit)}
           >
             <div className={s.content}>
-              {step === 'welcome' && <WelcomeStep userInfo={userInfo} />}
+              {step === 'welcome' && <WelcomeStep userInfo={userInfo} name={memberData?.memberInfo?.name} />}
               {step === 'profile' && <ProfileStep userInfo={userInfo} />}
               {step === 'contacts' && <ContactsStep userInfo={userInfo} />}
               {/*{step === 'expertise' && <ExpertiseStep userInfo={userInfo} />}*/}

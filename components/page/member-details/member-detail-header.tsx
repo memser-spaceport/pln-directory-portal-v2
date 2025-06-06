@@ -44,7 +44,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
 
-  useRecommendationLinkAnalyticsReport();
+  useRecommendationLinkAnalyticsReport(member);
 
   const onEditProfileClick = () => {
     if (isOwner) {

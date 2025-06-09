@@ -1,0 +1,122 @@
+'use client';
+
+import React from 'react';
+import Image from 'next/image';
+
+import s from './UpcomingEventsWidget.module.scss';
+import clsx from 'clsx';
+import { IUserInfo } from '@/types/shared.types';
+import { FloatingWidgets } from '@/components/page/member-info/components/FloatingWidgets';
+import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
+import { format } from 'date-fns-tz';
+
+interface Props {
+  userInfo: IUserInfo;
+}
+
+const events = [
+  {
+    id: '1',
+    image: '',
+    name: 'DeSci Berlinredirect',
+    dates: {
+      from: new Date(),
+      to: new Date(),
+    },
+    location: 'Berlin',
+  },
+  {
+    id: '2',
+    image: '',
+    name: 'ETHCCredirect',
+    dates: {
+      from: new Date(),
+      to: new Date(),
+    },
+    location: 'France',
+  },
+  {
+    id: '3',
+    image: '',
+    name: 'ETHCCredirect',
+    dates: {
+      from: new Date(),
+      to: new Date(),
+    },
+    location: 'Germany',
+  },
+  {
+    id: '4',
+    image: '',
+    name: 'ETHCCredirect',
+    dates: {
+      from: new Date(),
+      to: new Date(),
+    },
+    location: 'Italy',
+  },
+];
+
+export const UpcomingEventsWidget = ({ userInfo }: Props) => {
+  const [open, setOpen] = useLocalStorageParam('upcoming-events-widget', true);
+
+  return (
+    <FloatingWidgets
+      className={clsx(s.container, {
+        [s.open]: open,
+      })}
+    >
+      <div
+        className={clsx(s.root, {
+          [s.open]: open,
+        })}
+      >
+        <div onClick={() => setOpen(!open)} className={clsx(s.top, {})}>
+          <div className={s.mainTitle}>
+            Upcoming Events <ArrowIcon />
+          </div>
+          <ChevronDownIcon />
+        </div>
+        {open ? (
+          <div className={s.content}>
+            <ul className={s.list}>
+              {events.map((item) => (
+                <li key={item.id} className={s.event}>
+                  <Image width={30} height={30} alt={item.name} src={item.image} className={s.eventImage} />
+                  <div className={s.details}>
+                    <div className={s.name}>{item.name}</div>
+                    <div className={s.info}>
+                      {format(item.dates.from, 'MMM d')}-{format(item.dates.to, 'd')}&apos;{format(item.dates.to, 'yy')} - {item.location}
+                    </div>
+                  </div>
+                  <ArrowIcon />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div className={s.desc}>Lorem Ipsum is simply dummy text of the printing typesetting</div>
+        )}
+      </div>
+    </FloatingWidgets>
+  );
+};
+
+const ArrowIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: 'auto' }}>
+    <path
+      d="M0.84375 8.93359C0.953125 9.07031 1.11719 9.125 1.28125 9.125C1.47266 9.125 1.63672 9.07031 1.74609 8.93359L8.0625 2.61719V7.59375C8.0625 7.97656 8.36328 8.25 8.71875 8.25C9.10156 8.25 9.375 7.97656 9.375 7.59375V1.03125C9.375 0.675781 9.10156 0.375 8.71875 0.375H2.15625C1.80078 0.375 1.5 0.675781 1.5 1.03125C1.5 1.41406 1.80078 1.6875 2.15625 1.6875H7.16016L0.84375 8.00391C0.570312 8.27734 0.570312 8.6875 0.84375 8.93359Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+const ChevronDownIcon = () => (
+  <svg className={s.chevron} width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M0.3125 1.49219L5.53516 6.49609C5.69922 6.63281 5.86328 6.6875 6 6.6875C6.16406 6.6875 6.32812 6.63281 6.46484 6.52344L11.7148 1.49219C11.9883 1.24609 11.9883 0.808594 11.7422 0.5625C11.4961 0.289062 11.0586 0.289062 10.8125 0.535156L6 5.12891L1.21484 0.535156C0.96875 0.289062 0.53125 0.289062 0.285156 0.5625C0.0390625 0.808594 0.0390625 1.24609 0.3125 1.49219Z"
+      fill="white"
+      fill-opacity="0.8"
+    />
+  </svg>
+);

@@ -12,3 +12,8 @@ export type MemberNotificationSettings = {
   byRole: boolean;
   byFundingStage: boolean;
 };
+
+export type MemberProfileStatus = {
+  memberUid: string;
+  completeness: number;
+};

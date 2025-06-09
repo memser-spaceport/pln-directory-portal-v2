@@ -129,7 +129,7 @@ export const FiltersSearch = (props: Props) => {
           }
 
           .toolbar__left__search-container {
-            height: inherit;
+            height: unset;
             border-radius: 4px;
             //box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
             background: #fff;

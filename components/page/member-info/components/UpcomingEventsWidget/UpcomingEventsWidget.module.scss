@@ -10,6 +10,9 @@
   @include media.tablet-landscape {
     &.open {
       padding: 24px;
+      inset: unset !important;
+      bottom: 0 !important;
+      left: 0 !important;
     }
 
     padding: 0 16px;

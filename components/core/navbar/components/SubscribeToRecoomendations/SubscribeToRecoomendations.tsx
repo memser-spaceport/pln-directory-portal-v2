@@ -18,6 +18,7 @@ interface Props {
 
 export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
   const [view, setView] = useState<'initial' | 'confirmation'>('initial');
+  const [open, setOpen] = useState(false);
   const { data } = useMemberNotificationsSettings(userInfo?.uid);
   const { mutateAsync, isPending } = useUpdateMemberNotificationsSettings();
   const queryClient = useQueryClient();
@@ -62,8 +63,6 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
     }
   }, [mutateAsync, queryClient, userInfo]);
 
-  console.log(userInfo, pathname, data);
-
   if (!userInfo || pathname.includes('/members') || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog) {
     return null;
   }
@@ -82,9 +81,11 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
               <button className={s.btn} onClick={handleClose}>
                 Not now
               </button>
-              <button className={clsx(s.btn, s.primary)} onClick={handleSubscribe}>
-                Opt in
-              </button>
+              {!open && (
+                <button className={clsx(s.btn, s.primary)} onClick={handleSubscribe}>
+                  Opt in
+                </button>
+              )}
             </div>
           </>
         )}
@@ -99,14 +100,53 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
               <button className={s.btn} onClick={handleClose}>
                 Not now
               </button>
-              <button
-                className={clsx(s.btn, s.primary)}
-                onClick={() => {
-                  router.push(`/members/${userInfo.uid}`);
-                }}
-              >
-                Go to Profile
+              {!open && (
+                <button
+                  className={clsx(s.btn, s.primary)}
+                  onClick={() => {
+                    router.push(`/members/${userInfo.uid}`);
+                  }}
+                >
+                  Go to Profile
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+      <div className={s.mobileDetails}>
+        {!open ? (
+          <button className={s.control} onClick={() => setOpen(!open)}>
+            View More <ChevronDownIcon />
+          </button>
+        ) : (
+          <>
+            <div className={s.mobileDescWrapper}>
+              {view === 'initial' ? (
+                <span className={s.description}>Receive 2x/month email suggestions to meet high-signal peers.</span>
+              ) : (
+                <span className={s.description}>Make sure your profile is as complete as possible to increase the quality of recommended connections.</span>
+              )}
+            </div>
+
+            <div className={s.right}>
+              <button className={s.btn} onClick={handleClose}>
+                Not now
               </button>
+              {view === 'initial' ? (
+                <button className={clsx(s.btn, s.primary)} onClick={handleSubscribe}>
+                  Opt in
+                </button>
+              ) : (
+                <button
+                  className={clsx(s.btn, s.primary)}
+                  onClick={() => {
+                    router.push(`/members/${userInfo.uid}`);
+                  }}
+                >
+                  👉 Go to Profile
+                </button>
+              )}
             </div>
           </>
         )}
@@ -129,6 +169,16 @@ const CheckIcon = () => (
     <path
       d="M21.0312 0.96875C21.6406 1.53125 21.6406 2.51562 21.0312 3.07812L9.03125 15.0781C8.46875 15.6875 7.48438 15.6875 6.92188 15.0781L0.921875 9.07812C0.3125 8.51562 0.3125 7.53125 0.921875 6.96875C1.48438 6.35938 2.46875 6.35938 3.03125 6.96875L8 11.8906L18.9219 0.96875C19.4844 0.359375 20.4688 0.359375 21.0312 0.96875Z"
       fill="white"
+    />
+  </svg>
+);
+
+const ChevronDownIcon = () => (
+  <svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M0.3125 1.49219L5.53516 6.49609C5.69922 6.63281 5.86328 6.6875 6 6.6875C6.16406 6.6875 6.32812 6.63281 6.46484 6.52344L11.7148 1.49219C11.9883 1.24609 11.9883 0.808594 11.7422 0.5625C11.4961 0.289062 11.0586 0.289062 10.8125 0.535156L6 5.12891L1.21484 0.535156C0.96875 0.289062 0.53125 0.289062 0.285156 0.5625C0.0390625 0.808594 0.0390625 1.24609 0.3125 1.49219Z"
+      fill="white"
+      fill-opacity="0.8"
     />
   </svg>
 );

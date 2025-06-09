@@ -22,7 +22,9 @@ async function fetcher(uid: string | undefined) {
     throw new Error('Failed to fetch notifications settings');
   }
 
-  return response as unknown as MemberNotificationSettings;
+  const data: MemberNotificationSettings = await response.json();
+
+  return data;
 }
 
 export function useMemberNotificationsSettings(uid: string | undefined) {

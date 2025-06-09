@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useCallback, useState } from 'react';
 
 import s from './SubscribeToRecommendationsWidget.module.scss';
@@ -8,6 +10,7 @@ import { useParams } from 'next/navigation';
 import { useUpdateMemberNotificationsSettings } from '@/services/members/hooks/useUpdateMemberNotificationsSettings';
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
+import { FloatingWidgets } from '@/components/page/member-info/components/FloatingWidgets';
 
 interface Props {
   userInfo: IUserInfo;
@@ -68,44 +71,46 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
   }
 
   return (
-    <div className={s.root}>
-      {view === 'initial' && (
-        <>
-          <div
-            className={clsx(s.top)}
-            style={{
-              backgroundImage: "url('/images/onboarding/Cubes.svg')",
-            }}
-          >
-            <div className={s.mainTitle}>CONNECT WITH the RIGHT PEOPLE</div>
-          </div>
+    <FloatingWidgets>
+      <div className={s.root}>
+        {view === 'initial' && (
+          <>
+            <div
+              className={clsx(s.top)}
+              style={{
+                backgroundImage: "url('/images/onboarding/Cubes.svg')",
+              }}
+            >
+              <div className={s.mainTitle}>CONNECT WITH the RIGHT PEOPLE</div>
+            </div>
+            <div className={s.content}>
+              <p className={s.desc}>Receive 2x/month email suggestions to meet high-signal peers in the Protocol Labs network.</p>
+              <div className={s.controls}>
+                <button className={s.primaryBtn} onClick={handleSubscribe} disabled={isPending}>
+                  Opt-in for email
+                  <GlowIcon />
+                </button>
+                <button className={s.secondaryBtn} onClick={handleClose} disabled={isPending}>
+                  Not now
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+        {view === 'confirmation' && (
           <div className={s.content}>
-            <p className={s.desc}>Receive 2x/month email suggestions to meet high-signal peers in the Protocol Labs network.</p>
+            <OptedIn />
+            <p className={s.desc}>Make sure your profile is as complete as possible to increase the quality of matches.</p>
             <div className={s.controls}>
-              <button className={s.primaryBtn} onClick={handleSubscribe} disabled={isPending}>
-                Opt-in for email
+              <button className={s.primaryBtn} onClick={handleClose} disabled={isPending}>
+                Complete my profile
                 <GlowIcon />
-              </button>
-              <button className={s.secondaryBtn} onClick={handleClose} disabled={isPending}>
-                Not now
               </button>
             </div>
           </div>
-        </>
-      )}
-      {view === 'confirmation' && (
-        <div className={s.content}>
-          <OptedIn />
-          <p className={s.desc}>Make sure your profile is as complete as possible to increase the quality of matches.</p>
-          <div className={s.controls}>
-            <button className={s.primaryBtn} onClick={handleClose} disabled={isPending}>
-              Complete my profile
-              <GlowIcon />
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </FloatingWidgets>
   );
 };
 

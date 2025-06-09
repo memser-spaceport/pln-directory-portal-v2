@@ -39,12 +39,19 @@ export async function middleware(req: NextRequest) {
 
     const authToken = authTokenFromCookie?.value.replace(/"/g, '');
     if (authToken) {
-      isValidAuthToken = await checkIsValidToken(authToken as string);
+      const validCheckResponse = await checkIsValidToken(authToken as string);
+      isValidAuthToken = validCheckResponse && validCheckResponse?.active || false;
       if (isValidAuthToken) {
         response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
         response.headers.set('authToken', authTokenFromCookie?.value as string);
         response.headers.set('userInfo', userInfo?.value as string);
         response.headers.set('isLoggedIn', 'true');
+        return response;
+      }
+      else if (!isValidAuthToken && validCheckResponse?.forceLogout){
+        response.cookies.delete('refreshToken');
+        response.cookies.delete('authToken');
+        response.cookies.delete('userInfo');
         return response;
       }
     }

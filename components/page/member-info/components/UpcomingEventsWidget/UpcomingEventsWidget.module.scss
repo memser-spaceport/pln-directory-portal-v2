@@ -89,7 +89,7 @@
   position: relative;
   background: #fff;
   border-radius: 12px;
-  padding: 0 16px;
+  padding: 0 16px 12px;
   display: none;
 
   max-height: 450px;
@@ -163,7 +163,7 @@
 
 .list {
   list-style: none;
-  padding: 12px 0;
+  padding: 12px 0 24px;
   margin: 0;
   gap: 8px;
   display: flex;
@@ -178,6 +178,11 @@
   gap: 8px;
   border-radius: 12px;
   background: #F8FAFC;
+  transition: filter 0.2s ease;
+
+  &:hover {
+    filter: brightness(95%);
+  }
 }
 
 .eventImage {

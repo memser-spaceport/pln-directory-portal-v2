@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { IUserInfo } from '@/types/shared.types';
 import { OnboardingWizard } from '@/components/page/onboarding/components/OnboardingWizard';
@@ -10,6 +11,12 @@ interface Props {
   isLoggedIn: boolean;
   userInfo: IUserInfo;
 }
+
+const fade = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 },
+};
 
 export const OnboardingFlowTrigger = ({ isLoggedIn, userInfo }: Props) => {
   const router = useRouter();
@@ -27,5 +34,11 @@ export const OnboardingFlowTrigger = ({ isLoggedIn, userInfo }: Props) => {
     return null;
   }
 
-  return <OnboardingWizard userInfo={userInfo} isLoggedIn={isLoggedIn} memberData={memberData} />;
+  return (
+    <AnimatePresence>
+      <motion.div className="modal" initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.3 }} style={{ zIndex: 10, position: 'fixed', inset: 0 }}>
+        <OnboardingWizard userInfo={userInfo} isLoggedIn={isLoggedIn} memberData={memberData} />
+      </motion.div>
+    </AnimatePresence>
+  );
 };

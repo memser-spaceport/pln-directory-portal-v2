@@ -13,6 +13,7 @@ import HuskySidePanel from '@/components/core/husky/husky-sidepanel';
 import QueryProvider from '@/providers/QueryProvider';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
+import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <QueryProvider>
             <header className="layout__header">
               <SubscribeToRecoomendations userInfo={userInfo} />
+              {/*<CompleteYourProfile userInfo={userInfo} />*/}
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
             <main className="layout__main">{children}</main>

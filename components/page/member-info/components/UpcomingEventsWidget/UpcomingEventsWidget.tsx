@@ -9,56 +9,20 @@ import { IUserInfo } from '@/types/shared.types';
 import { FloatingWidgets } from '@/components/page/member-info/components/FloatingWidgets';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import { format } from 'date-fns-tz';
+import { useUpcomingEvents } from '@/services/events/hooks/useUpcomingEvents';
 
 interface Props {
   userInfo: IUserInfo;
 }
 
-const events = [
-  {
-    id: '1',
-    image: '',
-    name: 'DeSci Berlinredirect',
-    dates: {
-      from: new Date(),
-      to: new Date(),
-    },
-    location: 'Berlin',
-  },
-  {
-    id: '2',
-    image: '',
-    name: 'ETHCCredirect',
-    dates: {
-      from: new Date(),
-      to: new Date(),
-    },
-    location: 'France',
-  },
-  {
-    id: '3',
-    image: '',
-    name: 'ETHCCredirect',
-    dates: {
-      from: new Date(),
-      to: new Date(),
-    },
-    location: 'Germany',
-  },
-  {
-    id: '4',
-    image: '',
-    name: 'ETHCCredirect',
-    dates: {
-      from: new Date(),
-      to: new Date(),
-    },
-    location: 'Italy',
-  },
-];
-
 export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   const [open, setOpen] = useLocalStorageParam('upcoming-events-widget', true);
+
+  const { data, isLoading } = useUpcomingEvents();
+
+  if (isLoading || !data?.length) {
+    return null;
+  }
 
   return (
     <FloatingWidgets
@@ -80,18 +44,23 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
         {open ? (
           <div className={s.content}>
             <ul className={s.list}>
-              {events.map((item) => (
-                <li key={item.id} className={s.event}>
-                  <Image width={30} height={30} alt={item.name} src={item.image} className={s.eventImage} />
-                  <div className={s.details}>
-                    <div className={s.name}>{item.name}</div>
-                    <div className={s.info}>
-                      {format(item.dates.from, 'MMM d')}-{format(item.dates.to, 'd')}&apos;{format(item.dates.to, 'yy')} - {item.location}
+              {data.map((item) => {
+                const from = new Date(item.startDate);
+                const to = new Date(item.endDate);
+
+                return (
+                  <li key={item.uid} className={s.event}>
+                    <Image width={30} height={30} alt={item.name} src={item.logo} className={s.eventImage} />
+                    <div className={s.details}>
+                      <div className={s.name}>{item.name}</div>
+                      <div className={s.info}>
+                        {format(from, 'MMM d')}-{format(to, 'd')}&apos;{format(to, 'yy')} - {item.location}
+                      </div>
                     </div>
-                  </div>
-                  <ArrowIcon />
-                </li>
-              ))}
+                    <ArrowIcon />
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ) : (

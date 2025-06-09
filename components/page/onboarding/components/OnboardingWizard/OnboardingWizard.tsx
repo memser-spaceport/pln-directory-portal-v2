@@ -21,6 +21,7 @@ import { AppLogo } from '@/components/page/onboarding/components/AppLogo';
 import { clsx } from 'clsx';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { saveRegistrationImage } from '@/services/registration.service';
+import { AnimatePresence } from 'framer-motion';
 
 interface Props {
   userInfo: IUserInfo;
@@ -115,10 +116,12 @@ export const OnboardingWizard = ({ userInfo, memberData }: Props) => {
             onSubmit={handleSubmit(onSubmit)}
           >
             <div className={s.content}>
-              {step === 'welcome' && <WelcomeStep userInfo={userInfo} name={memberData?.memberInfo?.name} />}
-              {step === 'profile' && <ProfileStep userInfo={userInfo} />}
-              {step === 'contacts' && <ContactsStep userInfo={userInfo} />}
-              {/*{step === 'expertise' && <ExpertiseStep userInfo={userInfo} />}*/}
+              <AnimatePresence mode="sync">
+                {step === 'welcome' && <WelcomeStep userInfo={userInfo} name={memberData?.memberInfo?.name} key="welcome" />}
+                {step === 'profile' && <ProfileStep userInfo={userInfo} key="profile" />}
+                {step === 'contacts' && <ContactsStep userInfo={userInfo} />}
+                {/*{step === 'expertise' && <ExpertiseStep userInfo={userInfo} />}*/}
+              </AnimatePresence>
             </div>
             <OnboardingProgress />
             <OnboardingNavigation userInfo={userInfo} />

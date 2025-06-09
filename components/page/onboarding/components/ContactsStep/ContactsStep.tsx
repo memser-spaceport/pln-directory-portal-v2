@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { Field } from '@base-ui-components/react/field';
+import { motion } from 'framer-motion';
 
 import { IUserInfo } from '@/types/shared.types';
-import { useOnboardingState } from '@/services/onboarding/store';
 
 import { LEARN_MORE_URL } from '@/utils/constants';
 
@@ -23,7 +23,7 @@ export const ContactsStep = ({ userInfo }: Props) => {
   } = useFormContext<OnboardingForm>();
 
   return (
-    <div className={s.root}>
+    <motion.div className={s.root} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className={s.title}>How others can connect with you</div>
       <div className={s.subtitle}>
         Share your calendar link to enable easy scheduling with team members — you&apos;ll also gain access to book their available office hours.{' '}
@@ -67,6 +67,6 @@ export const ContactsStep = ({ userInfo }: Props) => {
           <Field.Description className={s.fieldDescription}>Copy @username in your profile settings</Field.Description>
         )}
       </Field.Root>
-    </div>
+    </motion.div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Field } from '@base-ui-components/react/field';
+import { motion } from 'framer-motion';
 
 import { IUserInfo } from '@/types/shared.types';
 
@@ -59,7 +60,7 @@ export const ProfileStep = ({ userInfo }: Props) => {
   });
 
   return (
-    <div className={s.root}>
+    <motion.div className={s.root} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Image src={imagePreview ?? defaultPreview} alt="Preview" width={80} height={80} className={s.imagePreview} />
       <div className={s.title}>Let’s get to know you</div>
       <div className={s.subtitle}>Update your name, email and a photo so members can find you easily.</div>
@@ -99,6 +100,6 @@ export const ProfileStep = ({ userInfo }: Props) => {
           {errors.email?.message}
         </Field.Error>
       </Field.Root>
-    </div>
+    </motion.div>
   );
 };

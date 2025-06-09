@@ -11,6 +11,8 @@ import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import HuskySidePanel from '@/components/core/husky/husky-sidepanel';
 import QueryProvider from '@/providers/QueryProvider';
+import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
+import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -62,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StyledJsxRegistry>
           <QueryProvider>
             <header className="layout__header">
+              <SubscribeToRecoomendations userInfo={userInfo} />
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
             <main className="layout__main">{children}</main>

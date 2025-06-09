@@ -16,9 +16,10 @@ async function mutation(params: MutationParams) {
     url,
     {
       method: 'PATCH',
-      body: {
-        ...omit(params, 'memberUid'),
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(omit(params, 'memberUid')),
     },
     true,
   );

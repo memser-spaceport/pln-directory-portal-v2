@@ -118,7 +118,8 @@ export default function Navbar(props: Readonly<INavbar>) {
             background: inherit;
           }
           .nb {
-            height: 100%;
+            //height: 100%;
+            height: 80px;
             width: 100%;
             display: flex;
             align-items: center;

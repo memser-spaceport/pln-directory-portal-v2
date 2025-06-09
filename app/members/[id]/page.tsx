@@ -15,7 +15,7 @@ import MemberProjectContribution from '@/components/page/member-details/member-p
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
-import { FloatingWidgets } from '@/components/page/member-info/components/FloatingWidgets';
+import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -68,7 +68,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
           </div>
         )}
       </div>
-      <FloatingWidgets userInfo={userInfo} />
+      <SubscribeToRecommendationsWidget userInfo={userInfo} />
     </div>
   );
 };

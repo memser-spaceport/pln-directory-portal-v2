@@ -1,11 +1,17 @@
+@use 'styles/media';
+
 .root {
   display: flex;
+  flex-direction: column;
   width: 100%;
   gap: 10px;
   flex: 1 0 0;
   background: #156FF7;
+  min-height: 40px;
 
-  height: 40px;
+  padding: 8px 16px;
 
-  padding: 0 48px;
+  @include media.tablet-landscape {
+    padding: 8px 48px;
+  }
 }

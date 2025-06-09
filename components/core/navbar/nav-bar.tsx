@@ -13,6 +13,7 @@ import { ApplicationSearch } from '@/components/core/application-search';
 import { AccountMenu } from '@/components/core/navbar/components/AccountMenu/AccountMenu';
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
+import { HelpMenu } from '@/components/core/navbar/components/HelpMenu/HelpMenu';
 import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfileStatus';
 
 interface INavbar {
@@ -96,18 +97,20 @@ export default function Navbar(props: Readonly<INavbar>) {
         <div className="nb__right">
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
           <NotificationsMenu isMobileView notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
+
+          <HelpMenu userInfo={userInfo} authToken={authToken} isLoggedIn={isLoggedIn} />
+
           <div className="nb__right__drawerandprofilesec" onClick={onNavDrawerIconClickHandler}>
             <button className="nb__right__drawerandprofile__drawerbtn">
               <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
-              {notifications?.length > 0 && <div className="nb__right_notifications_count">{notifications?.length}</div>}
+              {isLoggedIn && notifications?.length > 0 && <div className="nb__right_notifications_count">{notifications?.length}</div>}
             </button>
-
-            {isLoggedIn && (
-              <div className="nb__right__drawerandprofilesec__userprofile">
-                <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileStatus?.completeness} />
-              </div>
-            )}
           </div>
+          {isLoggedIn && (
+            <div className="nb__right__drawerandprofilesec__userprofile">
+              <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileStatus?.completeness} />
+            </div>
+          )}
           {!isLoggedIn && (
             <div className="nb__right__lgandjoin">
               <LoginBtn />
@@ -279,7 +282,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             border: ${isLoggedIn ? '1px solid #E2E8F0' : 'none'};
             gap: 4px;
             border-radius: 4px;
-            padding: ${isLoggedIn ? '8px' : '0'};
+            padding: ${isLoggedIn ? '0' : '0'};
           }
 
           .nb__right__ntc {
@@ -408,6 +411,7 @@ export default function Navbar(props: Readonly<INavbar>) {
 
           .nb__right__drawerandprofile__drawerbtn {
             position: relative;
+            padding: ${isLoggedIn ? '8px' : '0'};
           }
 
           @media (min-width: 1024px) {

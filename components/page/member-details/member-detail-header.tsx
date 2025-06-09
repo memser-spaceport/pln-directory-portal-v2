@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useEffect } from 'react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/useRecommendationLinkAnalyticsReport';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -42,6 +43,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
+
+  useRecommendationLinkAnalyticsReport(member);
 
   const onEditProfileClick = () => {
     if (isOwner) {

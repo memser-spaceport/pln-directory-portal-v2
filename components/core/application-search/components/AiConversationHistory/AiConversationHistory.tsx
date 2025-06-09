@@ -6,6 +6,7 @@ import { getYear, isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { getHuskyThreadById } from '@/services/husky.service';
 import { useRouter } from 'next/navigation';
+import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 
 interface IThread {
   title: string;
@@ -22,6 +23,7 @@ interface Props {
 export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
   const { data: history, isLoading } = useChatHistory();
   const router = useRouter();
+  const analytics = useUnifiedSearchAnalytics();
 
   const groupChatsByDate = useCallback((chats: IThread[]) => {
     const now = new Date();
@@ -29,7 +31,7 @@ export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
     const oneMonthAgo = subMonths(now, 1);
     const currentYear = getYear(now);
 
-    return (chats ?? []).slice(0, 5).reduce(
+    return (chats ?? []).slice(0, 3).reduce(
       (
         groups: {
           today: IThread[];
@@ -84,54 +86,63 @@ export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
     return [...fixedKeys, ...yearKeys];
   }, [groupedChats]);
 
+  if (!history?.length) {
+    return null;
+  }
+
   return (
     <>
-      <button
-        className={s.root}
-        onClick={() => {
-          router.push(`/husky/chat`);
-        }}
-        id="application-search-try-ai"
-      >
-        <Image src="/icons/ai-search.svg" alt="Search" width={24} height={24} />
-        Conversation History
-      </button>
-      {!!orderedKeys.length && (
-        <div className={s.list}>
-          {orderedKeys.map((key) =>
-            groupedChats[key as keyof typeof groupedChats]?.length > 0 ? (
-              <React.Fragment key={key}>
-                <div className={s.label}>{key === 'lastWeek' ? 'Last 7 days' : key === 'lastMonth' ? 'Last 30 days' : key === 'today' ? 'Today' : key === 'yesterday' ? 'Yesterday' : key}</div>
-                {groupedChats[key as keyof typeof groupedChats]
-                  .sort((a: IThread, b: IThread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by createdAt (newest first)
-                  .map((chat: IThread) => (
-                    <div
-                      key={chat.threadId}
-                      className={s.query}
-                      onClick={async () => {
-                        const { authToken } = await getUserCredentials(isLoggedIn);
+      <div className={s.root}>
+        <div className={s.label}>AI conversations</div>
+        {!!orderedKeys.length && (
+          <div className={s.list}>
+            {orderedKeys.map((key) =>
+              groupedChats[key as keyof typeof groupedChats]?.length > 0 ? (
+                <React.Fragment key={key}>
+                  {/*<div className={s.label}>{key === 'lastWeek' ? 'Last 7 days' : key === 'lastMonth' ? 'Last 30 days' : key === 'today' ? 'Today' : key === 'yesterday' ? 'Yesterday' : key}</div>*/}
+                  {groupedChats[key as keyof typeof groupedChats]
+                    .sort((a: IThread, b: IThread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by createdAt (newest first)
+                    .map((chat: IThread) => (
+                      <div
+                        key={chat.threadId}
+                        className={s.query}
+                        onClick={async () => {
+                          const { authToken } = await getUserCredentials(isLoggedIn);
 
-                        if (!authToken) {
-                          return;
-                        }
+                          if (!authToken) {
+                            return;
+                          }
 
-                        const thread = await getHuskyThreadById(chat.threadId, authToken);
+                          const thread = await getHuskyThreadById(chat.threadId, authToken);
 
-                        if (!thread) {
-                          return;
-                        }
+                          analytics.onAiConversationHistoryClick(thread.title);
 
-                        router.push(`/husky/chat/${thread.threadId}`);
-                      }}
-                    >
-                      {chat.title}
-                    </div>
-                  ))}
-              </React.Fragment>
-            ) : null,
-          )}
-        </div>
-      )}
+                          if (!thread) {
+                            return;
+                          }
+
+                          router.push(`/husky/chat/${thread.threadId}`);
+                        }}
+                      >
+                        {chat.title}
+                      </div>
+                    ))}
+                </React.Fragment>
+              ) : null,
+            )}
+          </div>
+        )}
+        <button
+          className={s.btnText}
+          onClick={() => {
+            router.push(`/husky/chat`);
+            onClick();
+          }}
+          id="application-search-try-ai"
+        >
+          AI Chat History
+        </button>
+      </div>
     </>
   );
 };

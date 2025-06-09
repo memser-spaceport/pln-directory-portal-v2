@@ -16,6 +16,7 @@ import { FullSearchResults } from '@/components/core/application-search/componen
 import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
 import { IUserInfo } from '@/types/shared.types';
 import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
+import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 
 interface Props {
   userInfo: IUserInfo;
@@ -28,7 +29,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
   const [mode, setMode] = useState<'regular' | 'ai'>('regular');
   const [searchTerm, setSearchTerm] = useState('');
   const [isFocused, setFocused] = useState(true);
-  const { data, isLoading } = useApplicationSearch(searchTerm);
+  const { data, isLoading } = useFullApplicationSearch(searchTerm);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
 
   const handleClose = useCallback(() => {
@@ -65,8 +66,8 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
       if (!searchTerm) {
         return (
           <>
-            {isLoggedIn && <AiConversationHistory onClick={handleTryAiSearch} isLoggedIn={isLoggedIn} />}
-            <RecentSearch onSelect={handleChange} />
+            {isLoggedIn && <RecentSearch onSelect={handleChange} />}
+            {isLoggedIn && <AiConversationHistory onClick={handleClose} isLoggedIn={isLoggedIn} />}
           </>
         );
       }

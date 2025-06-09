@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { SearchQueryKeys } from '@/services/search/constants';
 import { SearchResult } from '@/services/search/types';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
+import { saveRecentSearch } from '@/services/search/hooks/useRecentSearch';
 
 async function fetcher(searchTerm: string) {
   const { authToken } = getCookiesFromClient();
@@ -15,15 +17,22 @@ async function fetcher(searchTerm: string) {
 
   if (response?.ok) {
     const result: SearchResult = await response.json();
+    saveRecentSearch(searchTerm);
 
     return result;
   }
 }
 
 export function useApplicationSearch(searchTerm: string) {
+  const analytics = useUnifiedSearchAnalytics();
+
   return useQuery({
     queryKey: [SearchQueryKeys.GET_APPLICATION_SEARCH_RESULTS, searchTerm],
-    queryFn: () => fetcher(searchTerm),
+    queryFn: () => {
+      analytics.onAutocompleteSearch(searchTerm);
+
+      return fetcher(searchTerm);
+    },
     enabled: Boolean(searchTerm),
   });
 }

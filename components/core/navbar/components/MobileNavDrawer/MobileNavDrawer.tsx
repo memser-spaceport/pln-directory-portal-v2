@@ -122,30 +122,34 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                 <Separator className={s.Separator} />
               </div>
 
-              <Link onClick={() => onHelpItemClickHandler('My Profile')} target="" href="/settings/profile">
-                <li className="md__container__bdy__supandset__optn">
-                  <UserIcon />
-                  <div className="nb__right__helpc__opts__optn__name">{userInfo.name ?? userInfo.email}</div>
-                  {isNumber(props.profileFilledPercent) && (
-                    <span className="nb__right_sub">
+              {isLoggedIn && (
+                <Link onClick={() => onHelpItemClickHandler('My Profile')} target="" href="/settings/profile">
+                  <li className="md__container__bdy__supandset__optn">
+                    <UserIcon />
+                    <div className="nb__right__helpc__opts__optn__name">{userInfo.name ?? userInfo.email}</div>
+                    {isNumber(props.profileFilledPercent) && (
+                      <span className="nb__right_sub">
                       Filled <div className="nb__right_notifications_count">{props.profileFilledPercent}%</div>
                     </span>
-                  )}
-                </li>
-              </Link>
+                    )}
+                  </li>
+                </Link>
+              )}
 
-              <li
-                role="button"
-                onClick={() => {
-                  props.onShowNotifications();
-                  onNavMenuClick();
-                }}
-                className="md__container__bdy__supandset__optn"
-              >
-                <NotificationsIcon />
-                <div className="md__container__bdy__supandset__optn__name">Notifications</div>
-                {!!props.notificationsCount && props.notificationsCount > 0 && <div className="nb__right_notifications_count">{props.notificationsCount}</div>}
-              </li>
+              {isLoggedIn && (
+                <li
+                  role="button"
+                  onClick={() => {
+                    props.onShowNotifications();
+                    onNavMenuClick();
+                  }}
+                  className="md__container__bdy__supandset__optn"
+                >
+                  <NotificationsIcon />
+                  <div className="md__container__bdy__supandset__optn__name">Notifications</div>
+                  {props.notificationsCount && props.notificationsCount > 0 && <div className="nb__right_notifications_count">{props.notificationsCount}</div>}
+                </li>
+              )}
 
               <Link onClick={() => onHelpItemClickHandler('ProtoSphere')} target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>
                 <li className="md__container__bdy__supandset__optn">
@@ -186,12 +190,18 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
               </div>
 
               {isLoggedIn && (
-                <Link href={settingsUrl} onClick={() => onAccountOptionClickHandler('settings')}>
-                  <li className="md__container__bdy__supandset__optn">
-                    <Image width={16} height={16} alt={'Setting'} src="/icons/settings.svg" />
-                    <div className="nb__right__helpc__opts__optn__name">Account Settings</div>
-                  </li>
-                </Link>
+                <>
+                  <div className={s.SeparatorWrapper}>
+                    Settings
+                    <Separator className={s.Separator} />
+                  </div>
+                  <Link href={settingsUrl} onClick={() => onAccountOptionClickHandler('settings')}>
+                    <li className="md__container__bdy__supandset__optn">
+                      <Image width={16} height={16} alt={'Setting'} src="/icons/settings.svg" />
+                      <div className="nb__right__helpc__opts__optn__name">Account Settings</div>
+                    </li>
+                  </Link>
+                </>
               )}
             </div>
           </div>
@@ -471,6 +481,31 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
             font-size: 15px;
             font-weight: 600;
             line-height: 24px;
+          }
+
+          .nb__right_notifications_count {
+            background: #ff820e;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            z-index: 2;
+            min-width: 15px;
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding-block: 2px;
+            padding-inline: 4px;
+            flex-direction: column;
+            flex-shrink: 0;
+
+            color: #fff;
+            text-align: center;
+            font-size: 10px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: normal;
+            margin-left: auto;
           }
 
           .nb__right_notifications_count {

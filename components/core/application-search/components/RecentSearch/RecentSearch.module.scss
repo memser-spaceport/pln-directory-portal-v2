@@ -8,6 +8,7 @@ $padding-inline: 16px;
   flex-direction: column;
   margin-top: 12px;
   gap: 8px;
+  padding: 8px 16px;
 
   .label {
     color: #64748B;
@@ -58,8 +59,8 @@ $padding-inline: 16px;
 
 .divider {
   height: 1px;
-  width: calc(100% + $padding-inline * 2);
-  margin-inline: -$padding-inline;
+  width: 100%;
+  //margin-inline: -$padding-inline;
   margin-block: 8px;
   background: #E2E8F0;
 }

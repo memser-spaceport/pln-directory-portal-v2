@@ -376,6 +376,19 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_EDIT_EXPERIENCE_SAVE_CLICKED: 'member_detail_edit_experience_save_clicked',
   MEMBER_DETAIL_ADD_EXPERIENCE_SAVE_CLICKED: 'member_detail_add_experience_save_clicked',
   MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED: 'member_detail_delete_experience_save_clicked',
+
+  MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK: 'recommendation-email-connect_clicked',
+};
+
+export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
+  AUTOCOMPLETE_SEARCH: 'unified-search-autocomplete-search-requested',
+  FULL_SEARCH: 'unified-search-search-requested',
+  SEARCH_RESULT_CLICK: 'unified-search-result-clicked',
+  FULL_SEARCH_OPEN: 'unified-search-modal-open',
+  RECENT_SEARCH_CLICK: 'unified-search-recent-clicked',
+  RECENT_SEARCH_DELETE_CLICK: 'unified-search-recent-delete-clicked',
+  AI_CONVERSATION_HISTORY_CLICK: 'unified-search-ai-conversation-history-clicked',
+  AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};
@@ -528,6 +541,20 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.13 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '03, Jun 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Unified Search</span> - Introduced a faster, general-purpose search that seamlessly integrates with AI-powered search capabilities.</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">User Contact Visibility</span> - Users can now see what types of contact information are associated with a member without logging in. Actual contact details remain hidden until login</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Performance Optimization</span> - Improved AI Search responsiveness and enhanced infinite scroll performance on several pages</li>
+    </ul>
+    </div>`,
+  },
   {
     title: 'Version 4.1.12 - Directory Enhancements',
     tag: 'Improvements',

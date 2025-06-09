@@ -6,6 +6,7 @@ import { FoundItem } from '@/services/search/types';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 // import { HighlightedText } from '@/components/core/application-search/components/HighlightedText';
 import { useRouter } from 'next/navigation';
+import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 
 interface Props {
   title?: string;
@@ -23,6 +24,7 @@ const SECTION_TYPE_ICONS = {
 
 export const SearchResultsSection = ({ title, items, query, onSelect }: Props) => {
   const router = useRouter();
+  const analytics = useUnifiedSearchAnalytics();
 
   return (
     <>
@@ -41,6 +43,7 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
                 key={item.uid}
                 className={s.foundItem}
                 onClick={() => {
+                  analytics.onSearchResultClick(item);
                   router.push(`/${item.index}/${item.uid}`);
                   onSelect?.();
                 }}

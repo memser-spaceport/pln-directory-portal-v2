@@ -9,6 +9,7 @@ type UpcomingEvent = {
   flag: string;
   startDate: string;
   endDate: string;
+  websiteUrl: string;
 };
 
 async function fetcher() {

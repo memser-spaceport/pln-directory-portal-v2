@@ -13,6 +13,7 @@ import { ApplicationSearch } from '@/components/core/application-search';
 import { AccountMenu } from '@/components/core/navbar/components/AccountMenu/AccountMenu';
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
+import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfileStatus';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -47,6 +48,8 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   const { data: notifications, refetch } = useGetAppNotifications(userInfo.uid, authToken);
 
+  const { data: profileFilledPercent } = useMemberProfileStatus(userInfo?.uid);
+
   useEffect(() => {
     function getAllNotifications(status: boolean) {
       if (isLoggedIn && status) {
@@ -72,6 +75,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             authToken={authToken}
             onShowNotifications={() => setShowNotifications(true)}
             notificationsCount={notifications?.length}
+            profileFilledPercent={profileFilledPercent}
           />
         )}
         <div className="nb__left">
@@ -100,7 +104,7 @@ export default function Navbar(props: Readonly<INavbar>) {
 
             {isLoggedIn && (
               <div className="nb__right__drawerandprofilesec__userprofile">
-                <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn />
+                <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileFilledPercent} />
               </div>
             )}
           </div>

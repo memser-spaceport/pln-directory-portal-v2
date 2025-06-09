@@ -18,14 +18,16 @@ import { useGetAppNotifications } from '@/services/notifications/hooks/useGetApp
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { clsx } from 'clsx';
 import { useRouter } from 'next/navigation';
+import { isNumber } from 'lodash';
 
 interface Props {
   userInfo: IUserInfo;
   authToken: string;
   isLoggedIn: boolean;
+  profileFilledPercent?: number | null;
 }
 
-export const AccountMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
+export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPercent }: Props) => {
   const menuTriggerRef = React.useRef<HTMLButtonElement>(null);
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
   const analytics = useCommonAnalytics();
@@ -77,7 +79,12 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
                   router.push('/settings/profile');
                 }}
               >
-                <UserIcon /> {userInfo.name ?? userInfo.email}
+                <UserIcon /> {userInfo.name ?? userInfo.email}{' '}
+                {isNumber(profileFilledPercent) && (
+                  <span className={s.itemSub}>
+                    Filled <div className={s.notificationsCount}>{profileFilledPercent}%</div>
+                  </span>
+                )}
               </Menu.Item>
               <Menu.Item className={s.Item} onClick={() => setShowNotifications(true)}>
                 <NotificationsIcon /> Notifications

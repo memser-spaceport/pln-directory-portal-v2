@@ -1,0 +1,22 @@
+@use 'styles/media';
+
+.root {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 5;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 100%);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+
+  @include media.tablet-landscape {
+    inset: unset;
+    left: 0;
+    bottom: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+}

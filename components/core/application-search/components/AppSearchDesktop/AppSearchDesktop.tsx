@@ -5,7 +5,9 @@ import Image from 'next/image';
 import s from './AppSearchDesktop.module.scss';
 import { useQueryClient } from '@tanstack/react-query';
 import { SearchQueryKeys } from '@/services/search/constants';
+import { useApplicationSearch } from '@/services/search/hooks/useApplicationSearch';
 import { TryAiSearch } from '@/components/core/application-search/components/TryAiSearch';
+import { TryToSearch } from '@/components/core/application-search/components/TryToSearch';
 import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
 import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
@@ -16,6 +18,7 @@ import clsx from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
 import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
+import { ChatHistory } from '@/components/core/application-search/components/AiChatPanel/components/ChatHistory';
 import { useRouter } from 'next/navigation';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 

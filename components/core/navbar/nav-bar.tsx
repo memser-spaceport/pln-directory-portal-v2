@@ -14,6 +14,8 @@ import { AccountMenu } from '@/components/core/navbar/components/AccountMenu/Acc
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
 import { HelpMenu } from '@/components/core/navbar/components/HelpMenu/HelpMenu';
+import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfileStatus';
+import { Signup } from './components/Signup';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -48,6 +50,8 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   const { data: notifications, refetch } = useGetAppNotifications(userInfo.uid, authToken);
 
+  const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
+
   useEffect(() => {
     function getAllNotifications(status: boolean) {
       if (isLoggedIn && status) {
@@ -73,6 +77,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             authToken={authToken}
             onShowNotifications={() => setShowNotifications(true)}
             notificationsCount={notifications?.length}
+            profileFilledPercent={profileStatus?.completeness}
           />
         )}
         <div className="nb__left">
@@ -104,11 +109,12 @@ export default function Navbar(props: Readonly<INavbar>) {
           </div>
           {isLoggedIn && (
             <div className="nb__right__drawerandprofilesec__userprofile">
-              <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn />
+              <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileStatus?.completeness} />
             </div>
           )}
           {!isLoggedIn && (
             <div className="nb__right__lgandjoin">
+              <Signup />
               <LoginBtn />
             </div>
           )}
@@ -121,7 +127,8 @@ export default function Navbar(props: Readonly<INavbar>) {
             background: inherit;
           }
           .nb {
-            height: 100%;
+            //height: 100%;
+            height: 80px;
             width: 100%;
             display: flex;
             align-items: center;

@@ -1,0 +1,127 @@
+@use 'styles/mixins';
+
+.root {
+  @include mixins.centralize;
+  flex-direction: column;
+  height: 100%;
+}
+
+.imagePreview {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.title {
+  color: #0F172A;
+  text-align: center;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 120.462%; /* 38.548px */
+  margin-top: 32px;
+}
+
+.subtitle {
+  overflow: hidden;
+  color: #475569;
+  text-align: center;
+  font-feature-settings: 'liga' off, 'clig' off;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+  margin-top: 8px;
+  max-width: 500px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 48px 0 0;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 1096px;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge {
+  position: relative;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #FFF;
+
+  display: flex;
+  height: 50px;
+  padding: 10px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  color: #475569;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+}
+
+.badgeActive {
+  position: relative;
+  border-radius: 8px;
+  background: #427DFF;
+  border: 1px solid transparent;
+  box-shadow: 0 0 4px 4px rgba(21, 111, 247, 0.25);
+  display: flex;
+  height: 50px;
+  padding: 10px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  color: #FFF;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+}
+
+.count {
+  @include mixins.centralize;
+  width: 24px;
+  height: 24px; /* height = width * sqrt(3)/2 for a perfect hexagon */
+  background-color: #00D37B;
+  clip-path: polygon(
+                  50% 0%,
+                  93.3% 25%,
+                  93.3% 75%,
+                  50% 100%,
+                  6.7% 75%,
+                  6.7% 25%
+  );
+
+  color: #FFF;
+  text-align: center;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 12.868px; /* 91.914% */
+
+  position: absolute;
+  right: -12px;
+  top: -12px;
+}
+
+.counter {
+  color: #A0BEFF;
+  text-align: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  margin-top: 24px;
+}

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { ToastContainer } from 'react-toastify';
 import Navbar from '../components/core/navbar/nav-bar';
 import './globals.css';
 import StyledJsxRegistry from '../providers/registry';
@@ -9,7 +8,6 @@ import { Suspense } from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
-import HuskySidePanel from '@/components/core/husky/husky-sidepanel';
 import QueryProvider from '@/providers/QueryProvider';
 
 // dynamic components:
@@ -18,7 +16,6 @@ const AuthBox = dynamic(() => import('@/components/core/login/auth-box'), { ssr:
 const Toaster = dynamic(() => import('../components/core/toaster'), { ssr: false });
 const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'), { ssr: false });
 const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'), { ssr: false });
-// const TeamRegisterDialog = dynamic(() => import('@/components/page/team-form-info/team-register-dialog'), { ssr: false });
 const CookieChecker = dynamic(() => import('@/components/core/login/cookie-checker'), { ssr: false });
 const PostHogPageview = dynamic(() => import('@/providers/analytics-provider').then((d) => d.PostHogPageview), { ssr: false });
 const RatingContainer = dynamic(() => import('@/components/core/office-hours-rating/rating-container'), { ssr: false });
@@ -62,6 +59,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StyledJsxRegistry>
           <QueryProvider>
             <header className="layout__header">
+              {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}
+              {/*<CompleteYourProfile userInfo={userInfo} />*/}
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
             <main className="layout__main">{children}</main>

@@ -52,7 +52,7 @@ body {
 }
 
 .layout__header {
-  height: 80px;
+  min-height: 80px;
   width: 100%;
   position: sticky;
   top: 0;

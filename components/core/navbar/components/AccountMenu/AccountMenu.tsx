@@ -19,6 +19,8 @@ import { NotificationsMenu } from '@/components/core/navbar/components/Notificat
 import { clsx } from 'clsx';
 import { useRouter } from 'next/navigation';
 import { isNumber } from 'lodash';
+import { useMember } from '@/services/members/hooks/useMember';
+import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 
 interface Props {
   userInfo: IUserInfo;
@@ -34,6 +36,10 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
   const postHogProps = usePostHog();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
+  const { data: member, isLoading } = useMember(userInfo.uid);
+  const [hideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
+  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
+  const hideProfileStatus = !userInfo || isProfileFilled || hideCompleteProfile || isLoading;
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();
@@ -80,7 +86,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                 }}
               >
                 <UserIcon /> {userInfo.name ?? userInfo.email}{' '}
-                {isNumber(profileFilledPercent) && (
+                {!hideProfileStatus && isNumber(profileFilledPercent) && (
                   <span className={s.itemSub}>
                     Filled <div className={s.notificationsCount}>{profileFilledPercent}%</div>
                   </span>

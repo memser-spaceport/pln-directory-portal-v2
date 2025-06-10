@@ -11,6 +11,7 @@ import { useUpdateMemberNotificationsSettings } from '@/services/members/hooks/u
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { FloatingWidgets } from '@/components/page/member-info/components/FloatingWidgets';
+import { useMember } from '@/services/members/hooks/useMember';
 
 interface Props {
   userInfo: IUserInfo;
@@ -20,6 +21,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
   const [view, setView] = useState<'initial' | 'confirmation'>('initial');
   const { data } = useMemberNotificationsSettings(userInfo?.uid);
   const { id } = useParams();
+  const { data: member } = useMember(userInfo.uid);
   const { mutateAsync, isPending } = useUpdateMemberNotificationsSettings();
   const queryClient = useQueryClient();
 
@@ -61,12 +63,14 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
     }
   }, [mutateAsync, queryClient, userInfo]);
 
+  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
+
   // I am authenticated user
   // 1. this is mine profile
   // 2. I have not subscribed to recommendations yet
   // 3. I am a specific user with recommendations enabled
   // 4. if i did not press not now
-  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog) {
+  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog || !isProfileFilled) {
     return null;
   }
 

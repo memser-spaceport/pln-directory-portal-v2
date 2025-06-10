@@ -12,7 +12,7 @@ import { Metadata } from 'next';
 import { getMemberRolesForTeam, getMembersWithRoles } from '@/services/members.service';
 import { sortMemberByRole } from '@/utils/common.utils';
 
-const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean) => {
+const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean,isAdmin:boolean) => {
   const dpResult = await getTeamsInfoForDp();
   let selectedTeam;
   let membersDetail;
@@ -22,7 +22,7 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
   }
 
   let teams = dpResult.data ?? [];
-  if (isTeamLead) {
+  if (isTeamLead && !isAdmin) {
     teams = [...structuredClone(teams)].filter((v) => leadingTeams.includes(v.id));
   }
   // const teamResult = await getTeamInfo(selectedTeamId ?? teams[0].id);
@@ -71,11 +71,11 @@ export default async function ManageTeams(props: any) {
   if (!isAdmin && !isTeamLead) {
     redirect(PAGE_ROUTES.HOME);
   }
-  if (selectedTeamId && isTeamLead && !leadingTeams.includes(selectedTeamId)) {
+  if (!isAdmin && (selectedTeamId && isTeamLead && !leadingTeams.includes(selectedTeamId))) {
     redirect(PAGE_ROUTES.HOME);
   }
 
-  const { teams, isError, selectedTeam, membersDetail, allMembers } = await getPageData(selectedTeamId, leadingTeams, isTeamLead);
+  const { teams, isError, selectedTeam, membersDetail, allMembers } = await getPageData(selectedTeamId, leadingTeams, isTeamLead,isAdmin);
   if (isError) {
     return 'Error';
   }

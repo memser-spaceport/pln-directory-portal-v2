@@ -39,7 +39,18 @@ export async function middleware(req: NextRequest) {
 
     const authToken = authTokenFromCookie?.value.replace(/"/g, '');
     if (authToken) {
-      isValidAuthToken = await checkIsValidToken(authToken as string);
+      const validCheckResponse = await checkIsValidToken(authToken as string);
+      
+      // Priority 1: Check for force logout (regardless of active status)
+      if (validCheckResponse?.forceLogout) {
+        response.cookies.delete('refreshToken');
+        response.cookies.delete('authToken');
+        response.cookies.delete('userInfo');
+        return response;
+      }
+      
+      // Priority 2: Check if token is active
+      isValidAuthToken = validCheckResponse && validCheckResponse?.active || false;
       if (isValidAuthToken) {
         response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
         response.headers.set('authToken', authTokenFromCookie?.value as string);

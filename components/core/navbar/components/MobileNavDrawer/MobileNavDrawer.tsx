@@ -17,6 +17,7 @@ import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 import s from './MobileNavDrawer.module.scss';
 import { isNumber } from 'lodash';
+import { Signup } from '@/components/core/navbar/components/Signup';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
@@ -129,8 +130,8 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                     <div className="nb__right__helpc__opts__optn__name">{userInfo.name ?? userInfo.email}</div>
                     {isNumber(props.profileFilledPercent) && (
                       <span className="nb__right_sub">
-                      Filled <div className="nb__right_notifications_count">{props.profileFilledPercent}%</div>
-                    </span>
+                        Filled <div className="nb__right_notifications_count">{props.profileFilledPercent}%</div>
+                      </span>
                     )}
                   </li>
                 </Link>
@@ -222,6 +223,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                   Feedback
                 </button> */}
                 <LoginBtn />
+                <Signup />
               </div>
             )}
 
@@ -417,7 +419,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
           .md__container__bdy__footer__lgnop {
             display: flex;
             align-items: center;
-            // justify-content: space-between;
+            justify-content: space-between;
             gap: 10px;
             width: 100%;
           }

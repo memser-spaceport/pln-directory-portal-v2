@@ -15,6 +15,7 @@ import { NotificationsMenu } from '@/components/core/navbar/components/Notificat
 import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
 import { HelpMenu } from '@/components/core/navbar/components/HelpMenu/HelpMenu';
 import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfileStatus';
+import { Signup } from './components/Signup';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -113,6 +114,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           )}
           {!isLoggedIn && (
             <div className="nb__right__lgandjoin">
+              <Signup />
               <LoginBtn />
             </div>
           )}

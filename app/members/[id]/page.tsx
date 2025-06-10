@@ -15,6 +15,7 @@ import MemberProjectContribution from '@/components/page/member-details/member-p
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
+import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 // import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 // import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 
@@ -39,12 +40,8 @@ const MemberDetails = async ({ params }: { params: any }) => {
         <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
       </div>
       <div className={styles?.memberDetail__container}>
-        <div>
-          <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
-            <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo} />}
-          </div>
-        </div>
+        <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
         <div className={styles?.memberDetail__container__contact}>
           {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
           <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />

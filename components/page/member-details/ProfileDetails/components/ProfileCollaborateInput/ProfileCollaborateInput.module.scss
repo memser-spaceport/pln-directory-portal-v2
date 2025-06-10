@@ -1,0 +1,71 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.Label {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+
+  color: #0F172A;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+}
+
+.Checkbox {
+  box-sizing: border-box;
+  display: flex;
+  width: 1.25rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  outline: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+
+  &[data-unchecked] {
+    border: 1px solid var(--Neutral-Slate-300);
+    background-color: transparent;
+  }
+
+  &[data-checked] {
+    background-color: #156FF7;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #156FF7;
+    outline-offset: 2px;
+  }
+}
+
+.Indicator {
+  display: flex;
+  color: var(--Neutral-White);
+
+  &[data-unchecked] {
+    display: none;
+  }
+}
+
+.Icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.hint {
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; /* 116.667% */
+  letter-spacing: 0.12px;
+  margin-top: 8px;
+}

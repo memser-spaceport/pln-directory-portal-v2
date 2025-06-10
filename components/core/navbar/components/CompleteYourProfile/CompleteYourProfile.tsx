@@ -11,6 +11,8 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { usePathname, useRouter } from 'next/navigation';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { clsx } from 'clsx';
+import { useMember } from '@/services/members/hooks/useMember';
+import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 
 interface Props {
   userInfo: IUserInfo;
@@ -18,10 +20,8 @@ interface Props {
 
 export const CompleteYourProfile = ({ userInfo }: Props) => {
   const [open, setOpen] = useState(false);
-  const { data } = useMemberNotificationsSettings(userInfo?.uid);
-  const { mutateAsync, isPending } = useUpdateMemberNotificationsSettings();
-  const queryClient = useQueryClient();
-  const pathname = usePathname();
+  const { data: member, isLoading } = useMember(userInfo.uid);
+  const [hideCompleteProfile, setHideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
   const router = useRouter();
 
   const handleClose = useCallback(async () => {
@@ -29,19 +29,12 @@ export const CompleteYourProfile = ({ userInfo }: Props) => {
       return;
     }
 
-    const res = await mutateAsync({
-      memberUid: userInfo.uid,
-      showInvitationDialog: false,
-    });
+    setHideCompleteProfile(true);
+  }, [setHideCompleteProfile, userInfo]);
 
-    if (res) {
-      queryClient.invalidateQueries({
-        queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
-      });
-    }
-  }, [mutateAsync, queryClient, userInfo]);
+  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
 
-  if (!userInfo || pathname.includes('/members') || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog) {
+  if (!userInfo || isProfileFilled || hideCompleteProfile || isLoading) {
     return null;
   }
 

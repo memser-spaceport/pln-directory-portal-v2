@@ -11,6 +11,7 @@ import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import { format } from 'date-fns-tz';
 import { useUpcomingEvents } from '@/services/events/hooks/useUpcomingEvents';
 import Link from 'next/link';
+import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
 
 interface Props {
   userInfo: IUserInfo;
@@ -20,8 +21,9 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   const [open, setOpen] = useLocalStorageParam('upcoming-events-widget', true);
 
   const { data, isLoading } = useUpcomingEvents();
+  const { data: settings } = useMemberNotificationsSettings(userInfo?.uid);
 
-  if (isLoading || !data?.length) {
+  if (!userInfo || isLoading || !data?.length || !settings?.subscribed) {
     return null;
   }
 

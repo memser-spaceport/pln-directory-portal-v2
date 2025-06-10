@@ -11,6 +11,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { usePathname, useRouter } from 'next/navigation';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { clsx } from 'clsx';
+import { useMember } from '@/services/members/hooks/useMember';
 
 interface Props {
   userInfo: IUserInfo;
@@ -19,8 +20,9 @@ interface Props {
 export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
   const [view, setView] = useState<'initial' | 'confirmation'>('initial');
   const [open, setOpen] = useState(false);
+  const { data: member, isLoading } = useMember(userInfo.uid);
   const { data } = useMemberNotificationsSettings(userInfo?.uid);
-  const { mutateAsync, isPending } = useUpdateMemberNotificationsSettings();
+  const { mutateAsync } = useUpdateMemberNotificationsSettings();
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const router = useRouter();
@@ -63,7 +65,9 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
     }
   }, [mutateAsync, queryClient, userInfo]);
 
-  if (!userInfo || pathname.includes('/members') || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog) {
+  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
+
+  if (!userInfo || pathname.includes(`/members/${userInfo.uid}`) || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog || !isProfileFilled || isLoading) {
     return null;
   }
 

@@ -15,6 +15,8 @@ import MemberProjectContribution from '@/components/page/member-details/member-p
 import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
+import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
+import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 // import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 // import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 
@@ -69,8 +71,8 @@ const MemberDetails = async ({ params }: { params: any }) => {
           </div>
         )}
       </div>
-      {/*<SubscribeToRecommendationsWidget userInfo={userInfo} />*/}
-      {/*<UpcomingEventsWidget userInfo={userInfo} />*/}
+      <SubscribeToRecommendationsWidget userInfo={userInfo} />
+      <UpcomingEventsWidget userInfo={userInfo} />
     </div>
   );
 };

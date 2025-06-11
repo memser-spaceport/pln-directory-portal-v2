@@ -42,6 +42,7 @@ export async function middleware(req: NextRequest) {
       const validCheckResponse = await checkIsValidToken(authToken as string);
       
       // Priority 1: Check for force logout (regardless of active status)
+      console.log('middleware validCheckResponse', validCheckResponse);
       if (validCheckResponse?.forceLogout) {
         response.cookies.delete('refreshToken');
         response.cookies.delete('authToken');

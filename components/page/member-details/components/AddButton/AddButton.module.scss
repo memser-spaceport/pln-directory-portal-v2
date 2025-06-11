@@ -1,0 +1,20 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0;
+  gap: 8px;
+
+  color: var(--Icon-icon-link, #156FF7);
+  text-align: center;
+  font-feature-settings: 'liga' off, 'clig' off;
+
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+
+  &:hover {
+    filter: brightness(120%);
+  }
+}

@@ -16,6 +16,7 @@ import IrlMemberContribution from '@/components/page/member-details/member-irl-c
 import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
+import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 // import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 // import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 
@@ -44,7 +45,8 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
         <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        {isLoggedIn && <ExperienceList member={member} isEditable={isExperienceEditable} />}
+        <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
         </div>

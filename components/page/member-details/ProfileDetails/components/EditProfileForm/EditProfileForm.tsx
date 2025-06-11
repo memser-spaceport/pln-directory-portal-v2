@@ -12,13 +12,16 @@ import { TEditProfileForm } from '@/components/page/member-details/ProfileDetail
 import s from './EditProfileForm.module.scss';
 import { ProfileCollaborateInput } from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput';
 import { IMember } from '@/types/members.types';
+import { userInfo } from 'node:os';
+import { IUserInfo } from '@/types/shared.types';
 
 interface Props {
   onClose: () => void;
   member: IMember;
+  userInfo: IUserInfo;
 }
 
-export const EditProfileForm = ({ onClose, member }: Props) => {
+export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
       image: null,
@@ -27,8 +30,12 @@ export const EditProfileForm = ({ onClose, member }: Props) => {
       country: member.location?.country || '',
       state: member.location?.region || '',
       city: member.location?.city || '',
-      skills: member.skills ?? [],
-      openToCollaborate: false,
+      skills:
+        member.skills.map((item) => ({
+          id: item.uid,
+          name: item.title,
+        })) ?? [],
+      openToCollaborate: member.openToWork,
     },
   });
   const { handleSubmit, reset } = methods;
@@ -60,7 +67,7 @@ export const EditProfileForm = ({ onClose, member }: Props) => {
         </div>
         <div className={s.body}>
           <div className={s.row}>
-            <ProfileImageInput />
+            <ProfileImageInput userInfo={userInfo} />
             <FormField name="name" label="Name*" placeholder="Text" />
           </div>
           <div className={s.row}>

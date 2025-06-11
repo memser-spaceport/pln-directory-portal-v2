@@ -48,7 +48,7 @@ export interface IMember {
   profile?: string | null;
   id: string;
   name: string;
-  skills: [{ title: string }];
+  skills: [{ uid: string; title: string }];
   teamMemberRoles?: ITeamMemberRole[];
   projectContributions: [];
   location: IMemberLocation;

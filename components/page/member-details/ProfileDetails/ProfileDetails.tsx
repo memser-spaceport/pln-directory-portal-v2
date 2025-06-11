@@ -31,7 +31,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       })}
     >
       {editView ? (
-        <EditProfileForm onClose={() => setEditView(false)} member={member} />
+        <EditProfileForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
       ) : (
         <>
           <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} onEdit={() => setEditView(true)} />

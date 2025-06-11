@@ -17,6 +17,7 @@ import ExperienceList from '@/components/page/member-details/experience/experien
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
+import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
 // import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 // import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 
@@ -50,16 +51,15 @@ const MemberDetails = async ({ params }: { params: any }) => {
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
         </div>
-        {isLoggedIn && (
-          <div className={styles?.memberDetail__projectContribution}>
-            <MemberProjectContribution member={member} userInfo={userInfo} />
-          </div>
-        )}
+
+        <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
         {member.eventGuests.length > 0 && (
           <div className={styles?.memberDetail__irlContribution}>
             <IrlMemberContribution member={member} userInfo={userInfo} />
           </div>
         )}
+
         {isLoggedIn && (
           <div className={styles?.memberDetail__container__repositories}>
             <MemberRepositories member={member} userInfo={userInfo} />

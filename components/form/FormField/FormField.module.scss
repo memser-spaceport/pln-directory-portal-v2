@@ -50,3 +50,16 @@
   font-weight: 500;
   line-height: 20px; /* 200% */
 }
+
+.fieldDescription {
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 200% */
+  color: #878B94;
+
+  &[data-focused] {
+    color: #A0BEFF;
+  }
+}

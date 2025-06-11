@@ -5,7 +5,6 @@ import styles from './page.module.css';
 import { BreadCrumb } from '@/components/core/bread-crumb';
 import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
 import { MemberProfileLoginStrip } from '@/components/page/member-details/member-details-login-strip';
-import { ContactDetails } from '@/components/page/member-details/contact-details';
 import MemberTeams from '@/components/page/member-details/member-teams';
 import MemberRepositories from '@/components/page/member-details/member-repositories';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -16,6 +15,7 @@ import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
+import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 // import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 // import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 
@@ -42,10 +42,8 @@ const MemberDetails = async ({ params }: { params: any }) => {
       <div className={styles?.memberDetail__container}>
         <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <div className={styles?.memberDetail__container__contact}>
-          {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
-          <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-        </div>
+        <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
         {isLoggedIn && <ExperienceList member={member} isEditable={isExperienceEditable} />}
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />

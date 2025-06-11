@@ -2,7 +2,13 @@
 @use 'styles/mixins';
 
 .root {
-  padding: 20px;
+  //padding: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .title {

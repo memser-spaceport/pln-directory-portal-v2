@@ -9,9 +9,10 @@ interface Props {
   name: string;
   placeholder: string;
   label: string;
+  description?: string;
 }
 
-export const FormField = ({ name, placeholder, label }: Props) => {
+export const FormField = ({ name, placeholder, label, description }: Props) => {
   const {
     register,
     formState: { errors },
@@ -27,9 +28,13 @@ export const FormField = ({ name, placeholder, label }: Props) => {
           [s.error]: !!errors[name],
         })}
       />
-      <Field.Error className={s.errorMsg} match={!!errors[name]}>
-        {(errors?.[name]?.message as string) ?? ''}
-      </Field.Error>
+      {!errors[name] && description ? (
+        <Field.Description className={s.fieldDescription}>{description}</Field.Description>
+      ) : (
+        <Field.Error className={s.errorMsg} match={!!errors[name]}>
+          {(errors?.[name]?.message as string) ?? ''}
+        </Field.Error>
+      )}
     </Field.Root>
   );
 };

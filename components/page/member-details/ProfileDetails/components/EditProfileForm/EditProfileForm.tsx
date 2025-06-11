@@ -12,8 +12,8 @@ import { TEditProfileForm } from '@/components/page/member-details/ProfileDetail
 import s from './EditProfileForm.module.scss';
 import { ProfileCollaborateInput } from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput';
 import { IMember } from '@/types/members.types';
-import { userInfo } from 'node:os';
 import { IUserInfo } from '@/types/shared.types';
+import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
 
 interface Props {
   onClose: () => void;
@@ -47,24 +47,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <div className={s.header}>
-          <div className={s.title}>Edit Profile Details</div>
-          <div className={s.controls}>
-            <button
-              className={s.secondaryButton}
-              onClick={() => {
-                reset();
-                onClose();
-              }}
-              type="button"
-            >
-              Cancel
-            </button>
-            <button className={s.primaryButton} type="submit">
-              Save
-            </button>
-          </div>
-        </div>
+        <EditFormControls onClose={onClose} title="Edit Profile Details" />
         <div className={s.body}>
           <div className={s.row}>
             <ProfileImageInput userInfo={userInfo} />

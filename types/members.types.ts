@@ -112,7 +112,15 @@ export interface IMember {
   mainTeam: IMemberTeam | null;
   openToWork: boolean;
   linkedinHandle?: string | null;
-  repositories?: [];
+  repositories?:
+    | {
+        createdAt: string;
+        description: null;
+        name: string;
+        updatedAt: string;
+        url: string;
+      }[]
+    | { statusCode: number; message: string };
   preferences: IMemberPreferences;
   bio?: string;
   isVerified?: boolean;

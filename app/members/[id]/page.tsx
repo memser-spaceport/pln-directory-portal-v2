@@ -3,23 +3,16 @@ import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/uti
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { BreadCrumb } from '@/components/core/bread-crumb';
-import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
-import { MemberProfileLoginStrip } from '@/components/page/member-details/member-details-login-strip';
 import MemberTeams from '@/components/page/member-details/member-teams';
-import MemberRepositories from '@/components/page/member-details/member-repositories';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMember, getMemberUidByAirtableId } from '@/services/members.service';
 import { getAllTeams } from '@/services/teams.service';
-import MemberProjectContribution from '@/components/page/member-details/member-project-contribution';
-import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
-import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
-// import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
-// import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
+import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -28,9 +21,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
   }
-
-  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
-  const isExperienceEditable = isLoggedIn && (member?.id === userInfo?.uid || isAdmin);
 
   if (isError) {
     return <Error />;
@@ -60,11 +50,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
           </div>
         )}
 
-        {isLoggedIn && (
-          <div className={styles?.memberDetail__container__repositories}>
-            <MemberRepositories member={member} userInfo={userInfo} />
-          </div>
-        )}
+        <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
       </div>
       {/*<SubscribeToRecommendationsWidget userInfo={userInfo} />*/}
       {/*<UpcomingEventsWidget userInfo={userInfo} />*/}

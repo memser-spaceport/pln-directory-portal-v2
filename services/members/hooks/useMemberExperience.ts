@@ -35,7 +35,6 @@ const formatExperience = (experiences: any): FormattedMemberExperience[] => {
 async function fetcher(id: string) {
   const experiences = await getAllMemberExperiences(id);
 
-  console.log(experiences);
   return formatExperience(experiences);
 }
 

@@ -29,6 +29,7 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     <>
       {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
       <div
+        id="contact-details"
         className={clsx(s.root, {
           [s.editView]: editView,
         })}

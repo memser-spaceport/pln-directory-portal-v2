@@ -106,6 +106,10 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED, contributor);
   }
 
+  function onUpcomingEventsWidgetShowAllClicked() {
+    captureEvent(EVENTS_ANALYTICS.UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED);
+  }
+
   return {
     onIrlLocationClicked,
     onEventCardClicked,
@@ -125,5 +129,6 @@ export const useEventsAnalytics = () => {
     onContributeModalIRLProceedButtonClicked,
     onContributingTeamClicked,
     onContributingMembersClicked,
+    onUpcomingEventsWidgetShowAllClicked,
   };
 };

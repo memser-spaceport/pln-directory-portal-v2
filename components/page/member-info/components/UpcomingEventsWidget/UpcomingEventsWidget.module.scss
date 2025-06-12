@@ -236,3 +236,9 @@
     filter: drop-shadow(0 0 6px rgba(21, 111, 247, 0.6));
   }
 }
+
+.toggleBtn {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}

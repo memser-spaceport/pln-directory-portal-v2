@@ -12,6 +12,7 @@ import { format } from 'date-fns-tz';
 import { useUpcomingEvents } from '@/services/events/hooks/useUpcomingEvents';
 import Link from 'next/link';
 import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
+import { useEventsAnalytics } from '@/analytics/events.analytics';
 
 interface Props {
   userInfo: IUserInfo;
@@ -22,6 +23,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
 
   const { data, isLoading } = useUpcomingEvents();
   const { data: settings } = useMemberNotificationsSettings(userInfo?.uid);
+  const { onUpcomingEventsWidgetShowAllClicked } = useEventsAnalytics();
 
   if (!userInfo || isLoading || !data?.length || !settings?.subscribed) {
     return null;
@@ -38,11 +40,19 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
           [s.open]: open,
         })}
       >
-        <div onClick={() => setOpen(!open)} className={clsx(s.top, {})}>
-          <div className={s.mainTitle}>
+        <div className={clsx(s.top, {})}>
+          <Link
+            href={'/events'}
+            className={s.mainTitle}
+            onClick={() => {
+              onUpcomingEventsWidgetShowAllClicked();
+            }}
+          >
             Upcoming Events <ArrowIcon />
-          </div>
-          <ChevronDownIcon />
+          </Link>
+          <button onClick={() => setOpen(!open)} className={s.toggleBtn}>
+            <ChevronDownIcon />
+          </button>
         </div>
         {open ? (
           <div className={s.content}>
@@ -69,7 +79,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
             </ul>
           </div>
         ) : (
-          <div className={s.desc}>Lorem Ipsum is simply dummy text of the printing typesetting</div>
+          <div className={s.desc}>Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem</div>
         )}
       </div>
     </FloatingWidgets>

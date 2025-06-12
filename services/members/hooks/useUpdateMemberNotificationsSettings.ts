@@ -21,7 +21,7 @@ async function mutation(params: MutationParams) {
       },
       body: JSON.stringify(omit(params, 'memberUid')),
     },
-    true,
+    false,
   );
 
   if (!response?.ok) {

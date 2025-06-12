@@ -10,6 +10,8 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import QueryProvider from '@/providers/QueryProvider';
+import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
+import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -60,8 +62,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StyledJsxRegistry>
           <QueryProvider>
             <header className="layout__header">
-              {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}
-              {/*<CompleteYourProfile userInfo={userInfo} />*/}
+              <SubscribeToRecoomendations userInfo={userInfo} />
+              <CompleteYourProfile userInfo={userInfo} />
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
             <main className="layout__main">{children}</main>

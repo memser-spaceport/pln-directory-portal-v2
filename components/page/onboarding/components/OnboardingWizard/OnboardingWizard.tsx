@@ -22,6 +22,7 @@ import { clsx } from 'clsx';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { AnimatePresence } from 'framer-motion';
+import { omit } from 'lodash';
 
 interface Props {
   userInfo: IUserInfo;
@@ -151,8 +152,13 @@ function formatPayload(memberInfo: any, formData: OnboardingForm) {
     openToWork: memberInfo.openToWork,
     plnFriend: memberInfo.plnFriend,
     teamAndRoles: memberInfo.teamMemberRoles,
-    projectContributions: memberInfo.projectContributions,
-    skills: memberInfo.skills,
+    projectContributions: memberInfo.projectContributions?.map((contribution: any) => ({
+      ...omit(contribution, 'projectName'),
+    })),
+    skills: memberInfo.skills?.map((skill: any) => ({
+      title: skill.name,
+      uid: skill.id,
+    })),
     bio: memberInfo.bio,
   };
 }

@@ -13,6 +13,8 @@ import { ContactDetails } from '@/components/page/member-details/ContactDetails'
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
+import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
+import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -52,8 +54,8 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
         <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
       </div>
-      {/*<SubscribeToRecommendationsWidget userInfo={userInfo} />*/}
-      {/*<UpcomingEventsWidget userInfo={userInfo} />*/}
+      <SubscribeToRecommendationsWidget userInfo={userInfo} />
+      <UpcomingEventsWidget userInfo={userInfo} />
     </div>
   );
 };

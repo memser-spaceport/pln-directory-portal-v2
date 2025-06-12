@@ -15,7 +15,7 @@ async function fetcher(uid: string | undefined) {
     {
       method: 'GET',
     },
-    false,
+    true,
   );
 
   if (!response?.ok) {

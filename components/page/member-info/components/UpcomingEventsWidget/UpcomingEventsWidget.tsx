@@ -12,6 +12,7 @@ import { format } from 'date-fns-tz';
 import { useUpcomingEvents } from '@/services/events/hooks/useUpcomingEvents';
 import Link from 'next/link';
 import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
+import { useEventsAnalytics } from '@/analytics/events.analytics';
 
 interface Props {
   userInfo: IUserInfo;
@@ -22,6 +23,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
 
   const { data, isLoading } = useUpcomingEvents();
   const { data: settings } = useMemberNotificationsSettings(userInfo?.uid);
+  const { onUpcomingEventsWidgetShowAllClicked } = useEventsAnalytics();
 
   if (!userInfo || isLoading || !data?.length || !settings?.subscribed) {
     return null;
@@ -39,7 +41,13 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
         })}
       >
         <div className={clsx(s.top, {})}>
-          <Link href={'/events'} className={s.mainTitle}>
+          <Link
+            href={'/events'}
+            className={s.mainTitle}
+            onClick={() => {
+              onUpcomingEventsWidgetShowAllClicked();
+            }}
+          >
             Upcoming Events <ArrowIcon />
           </Link>
           <button onClick={() => setOpen(!open)} className={s.toggleBtn}>

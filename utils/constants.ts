@@ -442,6 +442,7 @@ export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_CONTRIBUTE_MODAL_IRL_PROCEED_BUTTON_CLICKED: 'events-page-contribute-modal-irl-proceed-button-clicked',
   EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED: 'events-page-contributing-team-clicked',
   EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED: 'events-page-contributing-members-clicked',
+  UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED: 'upcoming-events-widget-show-all-clicked',
 };
 
 export const HOME = {

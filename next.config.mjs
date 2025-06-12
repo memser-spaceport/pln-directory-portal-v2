@@ -16,7 +16,7 @@ const nextConfig = {
         source: '/irl',
         destination: 'events/irl',
         permanent: true,
-      }
+      },
     ];
   },
   env: {
@@ -49,9 +49,10 @@ const nextConfig = {
       },
     ],
   },
-  experimental:{
-    serverSourceMaps:false
+  experimental: {
+    serverSourceMaps: false,
   },
+  productionBrowserSourceMaps: true,
 };
 
 export default nextConfig;

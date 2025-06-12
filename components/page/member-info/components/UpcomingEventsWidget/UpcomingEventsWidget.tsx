@@ -58,23 +58,33 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
           <div className={s.content}>
             <ul className={s.list}>
               {data.map((item) => {
-                const from = new Date(item.startDate);
-                const to = new Date(item.endDate);
+                try {
+                  const from = new Date(item.startDate);
+                  const to = new Date(item.endDate);
 
-                return (
-                  <Link key={item.uid} className={s.event} href={item.websiteUrl} target="_blank">
-                    <Image width={30} height={30} alt={item.name} src={item.logo} className={s.eventImage} />
-                    <div className={s.details}>
-                      <div className={s.name}>{item.name}</div>
-                      <div className={s.info}>
-                        {format(from, 'MMM d')}-{format(to, 'd')}&apos;{format(to, 'yy')} -&nbsp;
-                        <Image src={item.flag} width={16} height={16} alt={item.location} />
-                        &nbsp;{item.location}
+                  const _from = format(from, 'MMM d');
+                  const _to = format(to, 'd');
+                  const _year = format(to, 'yy');
+
+                  return (
+                    <Link key={item.uid} className={s.event} href={item.websiteUrl} target="_blank">
+                      <Image width={30} height={30} alt={item.name} src={item.logo} className={s.eventImage} />
+                      <div className={s.details}>
+                        <div className={s.name}>{item.name}</div>
+                        <div className={s.info}>
+                          {_from}-{_to}&apos;{_year} -&nbsp;
+                          <Image src={item.flag} width={16} height={16} alt={item.location} />
+                          &nbsp;{item.location}
+                        </div>
                       </div>
-                    </div>
-                    <ArrowIcon />
-                  </Link>
-                );
+                      <ArrowIcon />
+                    </Link>
+                  );
+                } catch (e) {
+                  console.error(e);
+
+                  return null;
+                }
               })}
             </ul>
           </div>

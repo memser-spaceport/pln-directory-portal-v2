@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useOnboardingState } from '@/services/onboarding/store';
 import { OnboardingProgress } from '@/components/page/onboarding/components/OnboardingProgress';
 import { OnboardingNavigation } from '@/components/page/onboarding/components/OnboardingNavigation';
@@ -23,6 +23,7 @@ import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { AnimatePresence } from 'framer-motion';
 import { omit } from 'lodash';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   userInfo: IUserInfo;
@@ -42,6 +43,7 @@ export const OnboardingWizard = ({ userInfo, memberData }: Props) => {
   const { step } = useOnboardingState();
   const router = useRouter();
   const { mutateAsync } = useUpdateMember();
+  const { onOnboardingWizardOpen, onOnboardingWizardClose, onOnboardingWizardComplete } = useMemberAnalytics();
 
   const methods = useForm<OnboardingForm>({
     defaultValues: {
@@ -85,9 +87,15 @@ export const OnboardingWizard = ({ userInfo, memberData }: Props) => {
     });
 
     if (!res.isError) {
+      onOnboardingWizardComplete();
       router.replace(`/members/${memberData.memberInfo.uid}`);
     }
   };
+
+  useEffect(() => {
+    onOnboardingWizardOpen();
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <div className={s.modal}>
@@ -97,6 +105,7 @@ export const OnboardingWizard = ({ userInfo, memberData }: Props) => {
           type="button"
           className={s.closeButton}
           onClick={() => {
+            onOnboardingWizardClose(step);
             router.replace(`${window.location.pathname}`);
           }}
         >

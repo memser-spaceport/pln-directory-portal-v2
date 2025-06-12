@@ -378,6 +378,14 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED: 'member_detail_delete_experience_save_clicked',
 
   MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK: 'recommendation-email-connect_clicked',
+
+  ONBOARDING_WIZARD_OPEN: 'onboarding-wizard-open',
+  ONBOARDING_WIZARD_CLOSE: 'onboarding-wizard-close',
+  ONBOARDING_WIZARD_COMPLETE: 'onboarding-wizard-complete',
+  ONBOARDING_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-subscribe-to-recommendations-clicked',
+  ONBOARDING_CLOSE_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-close-subscribe-to-recommendations-clicked',
+  ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED: 'onboarding-go-to-complete-profile-clicked',
+  ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED: 'onboarding-close-complete-profile-clicked',
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {

@@ -2,17 +2,15 @@
 
 import React, { useCallback, useState } from 'react';
 
-import s from './CompleteYourProfile.module.scss';
-import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
 import { IUserInfo } from '@/types/shared.types';
-import { useUpdateMemberNotificationsSettings } from '@/services/members/hooks/useUpdateMemberNotificationsSettings';
-import { useQueryClient } from '@tanstack/react-query';
-import { MembersQueryKeys } from '@/services/members/constants';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { clsx } from 'clsx';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
+
+import s from './CompleteYourProfile.module.scss';
 
 interface Props {
   userInfo: IUserInfo;
@@ -23,14 +21,15 @@ export const CompleteYourProfile = ({ userInfo }: Props) => {
   const { data: member, isLoading } = useMember(userInfo.uid);
   const [hideCompleteProfile, setHideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
   const router = useRouter();
+  const { onGoToCompleteProfileClicked, onCloseCompleteProfileClicked } = useMemberAnalytics();
 
   const handleClose = useCallback(async () => {
     if (!userInfo) {
       return;
     }
-
+    onCloseCompleteProfileClicked();
     setHideCompleteProfile(true);
-  }, [setHideCompleteProfile, userInfo]);
+  }, [onCloseCompleteProfileClicked, setHideCompleteProfile, userInfo]);
 
   const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
 
@@ -80,6 +79,7 @@ export const CompleteYourProfile = ({ userInfo }: Props) => {
               <button
                 className={clsx(s.btn, s.primary)}
                 onClick={() => {
+                  onGoToCompleteProfileClicked();
                   router.push(`/members/${userInfo.uid}`);
                 }}
               >

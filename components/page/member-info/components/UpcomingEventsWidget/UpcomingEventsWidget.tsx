@@ -38,11 +38,13 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
           [s.open]: open,
         })}
       >
-        <div onClick={() => setOpen(!open)} className={clsx(s.top, {})}>
-          <div className={s.mainTitle}>
+        <div className={clsx(s.top, {})}>
+          <Link href={'/events'} className={s.mainTitle}>
             Upcoming Events <ArrowIcon />
-          </div>
-          <ChevronDownIcon />
+          </Link>
+          <button onClick={() => setOpen(!open)} className={s.toggleBtn}>
+            <ChevronDownIcon />
+          </button>
         </div>
         {open ? (
           <div className={s.content}>
@@ -69,7 +71,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
             </ul>
           </div>
         ) : (
-          <div className={s.desc}>Lorem Ipsum is simply dummy text of the printing typesetting</div>
+          <div className={s.desc}>Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem</div>
         )}
       </div>
     </FloatingWidgets>

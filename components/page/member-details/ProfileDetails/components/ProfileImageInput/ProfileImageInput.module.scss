@@ -10,3 +10,9 @@
   height: 72px;
   overflow: hidden;
 }
+
+.dropzoneHint {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}

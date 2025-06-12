@@ -1,5 +1,5 @@
 import Error from '@/components/core/error';
-import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { BreadCrumb } from '@/components/core/bread-crumb';
@@ -18,7 +18,7 @@ import { UpcomingEventsWidget } from '@/components/page/member-info/components/U
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
-  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo, officeHoursFlag } = await getpageData(memberId);
+  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo } = await getpageData(memberId);
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);

@@ -15,11 +15,12 @@
   display: flex;
   padding: 16px;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 16px;
   align-self: stretch;
   border-radius: 12px;
   background: var(--Neutral-Slate-50, #F8FAFC);
+  font-size: 14px;
 }
 
 .row {

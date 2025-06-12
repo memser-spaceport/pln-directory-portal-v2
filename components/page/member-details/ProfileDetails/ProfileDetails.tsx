@@ -1,16 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-
-import s from './ProfileDetails.module.scss';
-import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
-import Bio from '@/components/page/member-details/bio';
 import { clsx } from 'clsx';
+import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { EditProfileForm } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm';
 import { ProfileBio } from '@/components/page/member-details/ProfileDetails/components/ProfileBio';
 import { ADMIN_ROLE } from '@/utils/constants';
+
+import s from './ProfileDetails.module.scss';
 
 interface Props {
   member: IMember;

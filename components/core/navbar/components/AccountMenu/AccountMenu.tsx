@@ -36,10 +36,6 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
   const postHogProps = usePostHog();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
-  const { data: member, isLoading } = useMember(userInfo.uid);
-  const [hideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
-  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
-  const hideProfileStatus = !userInfo || isProfileFilled || hideCompleteProfile || isLoading;
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();
@@ -65,6 +61,8 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
     };
   }, [isLoggedIn, refetch]);
 
+  console.log(profileFilledPercent);
+
   return (
     <>
       <Menu.Root modal={false}>
@@ -82,11 +80,11 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
               <Menu.Item
                 className={s.Item}
                 onClick={() => {
-                  router.push('/settings/profile');
+                  router.push(`/members/${userInfo.uid}`);
                 }}
               >
                 <UserIcon /> {userInfo.name ?? userInfo.email}{' '}
-                {!hideProfileStatus && isNumber(profileFilledPercent) && (
+                {isNumber(profileFilledPercent) && profileFilledPercent !== 100 && (
                   <span className={s.itemSub}>
                     Filled <div className={s.notificationsCount}>{profileFilledPercent}%</div>
                   </span>

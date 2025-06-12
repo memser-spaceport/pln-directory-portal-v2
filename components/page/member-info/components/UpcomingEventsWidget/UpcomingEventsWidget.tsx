@@ -69,12 +69,11 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
                   return (
                     <Link key={item.uid} className={s.event} href={item.websiteUrl ?? ''} target="_blank">
                       {item.logo ? <Image width={30} height={30} alt={item.name} src={item.logo ?? ''} className={s.eventImage} /> : <DefaultEventImage />}
-
                       <div className={s.details}>
                         <div className={s.name}>{item.name}</div>
                         <div className={s.info}>
                           {_from}-{_to}&apos;{_year} -&nbsp;
-                          <Image src={item.flag ?? ''} width={16} height={16} alt={item.location} />
+                          {item.flag && <Image src={item.flag ?? ''} width={16} height={16} alt={item.location} />}
                           &nbsp;{item.location}
                         </div>
                       </div>

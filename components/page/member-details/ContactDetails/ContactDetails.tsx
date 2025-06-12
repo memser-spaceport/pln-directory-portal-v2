@@ -1,17 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-
 import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { EditProfileForm } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm';
-import { ADMIN_ROLE } from '@/utils/constants';
 import { ContactDetails as ContactDetailsView } from '@/components/page/member-details/contact-details';
-
-import s from './ContactDetails.module.scss';
 import { MemberProfileLoginStrip } from '@/components/page/member-details/member-details-login-strip';
 import { EditContactForm } from '@/components/page/member-details/ContactDetails/components/EditContactForm';
+
+import s from './ContactDetails.module.scss';
 
 interface Props {
   member: IMember;
@@ -21,9 +18,6 @@ interface Props {
 
 export const ContactDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
-  const isOwner = userInfo?.uid === member.id;
-  const isEditable = isOwner || isAdmin;
 
   return (
     <>

@@ -79,7 +79,6 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       router.refresh();
       reset();
       onClose();
-      // router.replace(`/members/${memberData.memberInfo.uid}`);
     }
   };
 

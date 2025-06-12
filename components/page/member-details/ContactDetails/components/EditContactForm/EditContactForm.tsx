@@ -1,16 +1,17 @@
 import React from 'react';
-
+import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-
 import { TEditContactForm } from '@/components/page/member-details/ContactDetails/types';
-
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import Image from 'next/image';
+import { omit } from 'lodash';
+import { useMember } from '@/services/members/hooks/useMember';
+import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 
 import s from './EditContactForm.module.scss';
-import Image from 'next/image';
 
 interface Props {
   onClose: () => void;
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
+  const router = useRouter();
   const methods = useForm<TEditContactForm>({
     defaultValues: {
       officeHours: member.officeHours,
@@ -30,9 +32,31 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
     },
   });
   const { handleSubmit, reset } = methods;
+  const { mutateAsync } = useUpdateMember();
+  const { data: memberData } = useMember(userInfo.uid);
 
-  const onSubmit = (formData: TEditContactForm) => {
-    console.log(formData);
+  const onSubmit = async (formData: TEditContactForm) => {
+    if (!memberData) {
+      return;
+    }
+
+    const payload = {
+      participantType: 'MEMBER',
+      referenceUid: member.id,
+      uniqueIdentifier: member.email,
+      newData: formatPayload(memberData.memberInfo, formData),
+    };
+
+    const res = await mutateAsync({
+      uid: memberData.memberInfo.uid,
+      payload,
+    });
+
+    if (!res.isError) {
+      router.refresh();
+      reset();
+      onClose();
+    }
   };
 
   return (
@@ -105,4 +129,35 @@ function getLogoByProvider(provider: string): string {
       return '/icons/contact/website-contact-logo.svg';
     }
   }
+}
+
+function formatPayload(memberInfo: any, formData: TEditContactForm) {
+  return {
+    imageUid: memberInfo.imageUid,
+    name: memberInfo.name,
+    email: memberInfo.email,
+    plnStartDate: memberInfo.plnStartDate,
+    city: '',
+    region: '',
+    country: '',
+    teamOrProjectURL: memberInfo.teamOrProjectURL,
+    linkedinHandler: formData.linkedin,
+    discordHandler: formData.discord,
+    twitterHandler: formData.twitter,
+    githubHandler: formData.github,
+    telegramHandler: formData.telegram,
+    officeHours: formData.officeHours,
+    moreDetails: memberInfo.moreDetails,
+    openToWork: memberInfo.openToWork,
+    plnFriend: memberInfo.plnFriend,
+    teamAndRoles: memberInfo.teamMemberRoles,
+    projectContributions: memberInfo.projectContributions?.map((contribution: any) => ({
+      ...omit(contribution, 'projectName'),
+    })),
+    skills: memberInfo.skills?.map((skill: any) => ({
+      title: skill.name,
+      uid: skill.id,
+    })),
+    bio: memberInfo.bio,
+  };
 }

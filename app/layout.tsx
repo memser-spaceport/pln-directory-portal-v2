@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import HuskySidePanel from '@/components/core/husky/husky-sidepanel';
 import QueryProvider from '@/providers/QueryProvider';
+import PostHogIdentifier from '@/components/page/posthog-identifier';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <StyledJsxRegistry>
           <QueryProvider>
+            <PostHogIdentifier />
             <header className="layout__header">
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>

@@ -19,6 +19,8 @@ import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useRouter } from 'next/navigation';
 import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { editContributionsSchema } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm/helpers';
 
 interface Props {
   onClose: () => void;
@@ -37,12 +39,13 @@ export const EditContributionsForm = ({ onClose, member, userInfo, initialData }
             label: initialData.project.name,
             value: initialData.project.uid,
           }
-        : null,
+        : undefined,
       role: initialData?.role ?? '',
       description: initialData?.description ?? '',
       startDate: initialData?.startDate || null,
       endDate: initialData?.endDate || null,
     },
+    resolver: yupResolver(editContributionsSchema),
   });
   const { handleSubmit, reset } = methods;
   const { data: memberData } = useMember(userInfo.uid);

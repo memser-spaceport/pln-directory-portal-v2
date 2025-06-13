@@ -1,5 +1,5 @@
 export interface TEditContributionsForm {
-  name: { label: string; value: string } | null;
+  name: Record<string, string>;
   role: string;
   description: string;
   startDate: string | null;

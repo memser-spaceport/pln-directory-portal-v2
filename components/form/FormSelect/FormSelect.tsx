@@ -22,6 +22,8 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
     setValue,
   } = useFormContext();
 
+  console.log(errors);
+
   const value = watch(name);
 
   return (
@@ -61,7 +63,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
             },
             ...(!!errors[name]
               ? {
-                  borderColor: '#FF0000',
+                  borderColor: 'darkred !important',
                 }
               : {}),
           }),

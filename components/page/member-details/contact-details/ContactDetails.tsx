@@ -39,6 +39,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const showOfficeHours = visibleHandles?.includes('officeHours');
+  const hasMissingRequiredData = !member?.telegramHandle || !member?.officeHours;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
 
@@ -58,11 +59,12 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   };
 
   return (
-    <div className={s.root}>
-      <div className={s.header}>
-        <h2 className={s.title}>Contact Details</h2>
-        {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} />}
-      </div>
+    <div
+      className={clsx(s.root, {
+        [s.missingData]: hasMissingRequiredData,
+      })}
+    >
+      <h2 className={s.title}>Contact Details</h2>
       <div className={s.container}>
         {isLoggedIn ? (
           <div className={s.social}>

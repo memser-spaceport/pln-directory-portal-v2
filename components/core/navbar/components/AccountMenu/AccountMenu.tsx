@@ -82,11 +82,11 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
               <Menu.Item
                 className={s.Item}
                 onClick={() => {
-                  router.push('/settings/profile');
+                  router.push(`/members/${userInfo.uid}`);
                 }}
               >
                 <UserIcon /> {userInfo.name ?? userInfo.email}{' '}
-                {!hideProfileStatus && isNumber(profileFilledPercent) && (
+                {isNumber(profileFilledPercent) && profileFilledPercent !== 100 && (
                   <span className={s.itemSub}>
                     Filled <div className={s.notificationsCount}>{profileFilledPercent}%</div>
                   </span>

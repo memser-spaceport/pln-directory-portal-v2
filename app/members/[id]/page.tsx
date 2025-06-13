@@ -15,6 +15,9 @@ import { ContributionsDetails } from '@/components/page/member-details/Contribut
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
+import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
+import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
+import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;

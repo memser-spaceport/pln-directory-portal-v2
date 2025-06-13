@@ -3,6 +3,7 @@ import React, { PropsWithChildren } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import s from './HighlightsBar.module.scss';
+import { clsx } from 'clsx';
 
 const fade = {
   hidden: { opacity: 0 },
@@ -10,10 +11,23 @@ const fade = {
   exit: { opacity: 0 },
 };
 
-export const HighlightsBar = ({ children }: PropsWithChildren) => {
+interface Props extends PropsWithChildren {
+  variant?: 'primary' | 'secondary';
+}
+
+export const HighlightsBar = ({ children, variant = 'primary' }: Props) => {
   return (
     <AnimatePresence>
-      <motion.div initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.3 }} className={s.root}>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        variants={fade}
+        transition={{ duration: 0.3 }}
+        className={clsx(s.root, {
+          [s.secondary]: variant === 'secondary',
+        })}
+      >
         <motion.div
           transition={{
             delay: 0.5,

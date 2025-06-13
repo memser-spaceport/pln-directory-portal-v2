@@ -1,7 +1,9 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { MemberNotificationSettings } from '@/services/members/types';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { omit } from 'lodash';
+import { MembersQueryKeys } from '@/services/members/constants';
+import { EventsQueryKeys } from '@/services/events/constants';
 
 type MutationParams = Partial<MemberNotificationSettings>;
 
@@ -21,7 +23,7 @@ async function mutation(params: MutationParams) {
       },
       body: JSON.stringify(omit(params, 'memberUid')),
     },
-    false,
+    true,
   );
 
   if (!response?.ok) {
@@ -32,7 +34,14 @@ async function mutation(params: MutationParams) {
 }
 
 export function useUpdateMemberNotificationsSettings() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: mutation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [MembersQueryKeys.GET_MEMBER],
+      });
+    },
   });
 }

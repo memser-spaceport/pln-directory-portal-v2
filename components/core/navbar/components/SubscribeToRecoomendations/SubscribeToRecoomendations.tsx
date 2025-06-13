@@ -12,6 +12,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { clsx } from 'clsx';
 import { useMember } from '@/services/members/hooks/useMember';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   userInfo: IUserInfo;
@@ -26,6 +27,7 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const router = useRouter();
+  const { onSubscribeToRecommendationsClicked, onCloseSubscribeToRecommendationsClicked } = useMemberAnalytics();
 
   const handleSubscribe = useCallback(async () => {
     if (!userInfo) {
@@ -38,6 +40,7 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
     });
 
     if (res) {
+      onSubscribeToRecommendationsClicked('bar');
       setView('confirmation');
 
       setTimeout(() => {
@@ -46,7 +49,7 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
         });
       }, 15000);
     }
-  }, [mutateAsync, queryClient, userInfo]);
+  }, [mutateAsync, onSubscribeToRecommendationsClicked, queryClient, userInfo]);
 
   const handleClose = useCallback(async () => {
     if (!userInfo) {
@@ -59,13 +62,14 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
     });
 
     if (res) {
+      onCloseSubscribeToRecommendationsClicked('bar');
       queryClient.invalidateQueries({
         queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
       });
     }
-  }, [mutateAsync, queryClient, userInfo]);
+  }, [mutateAsync, onCloseSubscribeToRecommendationsClicked, queryClient, userInfo]);
 
-  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
+  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
 
   if (!userInfo || pathname.includes(`/members/${userInfo.uid}`) || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog || !isProfileFilled || isLoading) {
     return null;

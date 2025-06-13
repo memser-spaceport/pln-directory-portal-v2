@@ -12,7 +12,7 @@ const fade = {
 };
 
 interface Props extends PropsWithChildren {
-  variant: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary';
 }
 
 export const HighlightsBar = ({ children, variant = 'primary' }: Props) => {

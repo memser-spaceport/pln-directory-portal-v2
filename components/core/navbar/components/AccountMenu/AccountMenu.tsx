@@ -61,8 +61,6 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
     };
   }, [isLoggedIn, refetch]);
 
-  console.log(profileFilledPercent);
-
   return (
     <>
       <Menu.Root modal={false}>

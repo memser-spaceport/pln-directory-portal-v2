@@ -47,11 +47,11 @@ export const OnboardingWizard = ({ userInfo, memberData }: Props) => {
 
   const methods = useForm<OnboardingForm>({
     defaultValues: {
-      name: memberData?.memberInfo?.name,
-      email: memberData?.memberInfo?.email,
-      officeHours: '',
+      name: memberData?.memberInfo?.name || '',
+      email: memberData?.memberInfo?.email || '',
+      officeHours: memberData?.memberInfo?.officeHours || '',
       image: null,
-      telegram: '',
+      telegram: memberData?.memberInfo?.telegramHandler || '',
     },
     mode: 'all',
     resolver: yupResolver(onboardingSchema),

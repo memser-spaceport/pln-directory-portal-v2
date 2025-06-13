@@ -36,7 +36,7 @@ export const OnboardingFlowTrigger = ({ isLoggedIn, userInfo }: Props) => {
 
   return (
     <AnimatePresence>
-      <motion.div className="modal" initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.3 }} style={{ zIndex: 10, position: 'fixed', inset: 0 }}>
+      <motion.div className="modal" initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.7 }} style={{ zIndex: 10, position: 'fixed', inset: 0 }}>
         <OnboardingWizard userInfo={userInfo} isLoggedIn={isLoggedIn} memberData={memberData} />
       </motion.div>
     </AnimatePresence>

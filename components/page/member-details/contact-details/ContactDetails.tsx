@@ -35,7 +35,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
   const { visibleHandles } = member;
 
   const showOfficeHours = visibleHandles?.includes('officeHours');
-
+  const hasMissingRequiredData = !member?.telegramHandle || !member?.officeHours;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
 
@@ -55,7 +55,11 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
   };
 
   return (
-    <div className={s.root}>
+    <div
+      className={clsx(s.root, {
+        [s.missingData]: hasMissingRequiredData,
+      })}
+    >
       <h2 className={s.title}>Contact Details</h2>
       <div className={s.container}>
         {isLoggedIn ? (

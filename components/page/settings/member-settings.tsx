@@ -21,6 +21,8 @@ import Modal from '@/components/core/modal';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import AlertMessage from './alert-message';
+import { useQueryClient } from '@tanstack/react-query';
+import { MembersQueryKeys } from '@/services/members/constants';
 
 interface MemberSettingsProps {
   memberInfo: any;
@@ -28,13 +30,19 @@ interface MemberSettingsProps {
 }
 
 function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
-  const steps = [{ name: 'basic', label:"BASIC" }, { name: 'skills', label:"SKILLS" }, { name: 'contributions', label:"CONTRIBUTIONS" }, { name: 'social', label:"SOCIAL" }];
-  const [activeTab, setActiveTab] = useState({ name: 'basic', label:"BASIC" });
+  const steps = [
+    { name: 'basic', label: 'BASIC' },
+    { name: 'skills', label: 'SKILLS' },
+    { name: 'contributions', label: 'CONTRIBUTIONS' },
+    { name: 'social', label: 'SOCIAL' },
+  ];
+  const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
+  const queryClient = useQueryClient();
 
   const [allErrors, setAllErrors] = useState<any[]>([]);
   const tabsWithError = {
@@ -248,6 +256,12 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         triggerLoader(false);
         toast.success('Profile has been updated successfully');
         analytics.recordManageMemberSave('save-success', getAnalyticsUserInfo(userInfo), bodyData);
+        queryClient.invalidateQueries({
+          queryKey: [MembersQueryKeys.GET_MEMBER],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
+        });
         router.refresh();
       } else {
         triggerLoader(false);

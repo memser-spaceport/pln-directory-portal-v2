@@ -64,7 +64,10 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
         [s.missingData]: hasMissingRequiredData,
       })}
     >
-      <h2 className={s.title}>Contact Details</h2>
+      <div className={s.header}>
+        <h2 className={s.title}>Contact Details</h2>
+        {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} />}
+      </div>
       <div className={s.container}>
         {isLoggedIn ? (
           <div className={s.social}>

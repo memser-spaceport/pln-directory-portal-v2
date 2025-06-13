@@ -1,17 +1,23 @@
 import React from 'react';
 
 import s from './ProfileBio.module.scss';
+import clsx from 'clsx';
 
 interface Props {
   bio: string | undefined;
   isEditable: boolean;
+  hasMissingData?: boolean;
 }
 
-export const ProfileBio = ({ bio, isEditable }: Props) => {
+export const ProfileBio = ({ bio, isEditable, hasMissingData }: Props) => {
   return (
     <div className={s.root}>
       <div className={s.label}>Bio</div>
-      <div className={s.body}>
+      <div
+        className={clsx(s.body, {
+          [s.missingData]: hasMissingData,
+        })}
+      >
         {bio ? (
           <div dangerouslySetInnerHTML={{ __html: bio }} />
         ) : (

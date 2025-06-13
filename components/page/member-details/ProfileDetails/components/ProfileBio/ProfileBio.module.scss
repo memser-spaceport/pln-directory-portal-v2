@@ -21,6 +21,12 @@
   border-radius: 12px;
   background: var(--Neutral-Slate-50, #F8FAFC);
   font-size: 14px;
+
+  &.missingData {
+    border-radius: 12px;
+    border: 1px solid rgba(238, 189, 108, 0.25);
+    background: #FFF;
+  }
 }
 
 .row {

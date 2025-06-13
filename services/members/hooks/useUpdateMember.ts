@@ -31,6 +31,10 @@ export function useUpdateMember() {
       queryClient.invalidateQueries({
         queryKey: [MembersQueryKeys.GET_MEMBERS_LIST],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [MembersQueryKeys.GET_MEMBER_REPOSITORIES],
+      });
     },
   });
 }

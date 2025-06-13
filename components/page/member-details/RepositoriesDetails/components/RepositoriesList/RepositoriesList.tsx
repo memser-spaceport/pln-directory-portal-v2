@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 import s from './RepositoriesList.module.scss';
+import { useMemberRepositories } from '@/services/members/hooks/useMemberRepositories';
 
 interface Props {
   isEditable: boolean;
@@ -18,7 +19,9 @@ interface Props {
 export const RepositoriesList = ({ isEditable, member }: Props) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { repositories, githubHandle } = member;
+  const { githubHandle } = member;
+
+  const { data: repositories } = useMemberRepositories(member?.id);
 
   const { data, isError } = useMemo(() => {
     if (!repositories) {
@@ -51,7 +54,7 @@ export const RepositoriesList = ({ isEditable, member }: Props) => {
   return (
     <div className={s.root}>
       <div className={s.header}>
-        <h2 className={s.title}>Repositories {data?.length ? `(${data?.length})` : ''}</h2>
+        <h2 className={s.title}>Repositories</h2>
         {!isError && githubHandle && (
           <Link href={`https://github.com/${githubHandle}`} className={s.profileLink}>
             <Image src="/icons/contact/github-contact-logo.svg" alt="GitHub" height={24} width={24} />
@@ -62,7 +65,7 @@ export const RepositoriesList = ({ isEditable, member }: Props) => {
       </div>
       {!!data?.length && (
         <ul className={s.list}>
-          {data?.map((item) => (
+          {data?.slice(0, 5).map((item) => (
             <li key={item.url} className={s.expItem}>
               <ExpIcon />
               <div className={s.details}>

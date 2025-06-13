@@ -22,11 +22,13 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
+  const hasMissingRequiredData = !member?.name || !member?.email || !member.skills.length;
 
   return (
     <div
       className={clsx(s.root, {
         [s.editView]: editView,
+        [s.missingData]: !editView && hasMissingRequiredData,
       })}
     >
       {editView ? (
@@ -34,7 +36,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       ) : (
         <>
           <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} onEdit={() => setEditView(true)} />
-          <ProfileBio bio={member.bio} isEditable={isEditable} />
+          <ProfileBio bio={member.bio} isEditable={isEditable} hasMissingData={hasMissingRequiredData} />
         </>
       )}
     </div>

@@ -10,6 +10,9 @@ import { TEditContributionsForm } from '@/components/page/member-details/Contrib
 import { ContributionsDescriptionInput } from '@/components/page/member-details/ContributionsDetails/components/ContributionsDescriptionInput';
 import { ContributionsDatesInput } from '@/components/page/member-details/ContributionsDetails/components/ContributionsDatesInput';
 
+import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+import { FormSelect } from '@/components/form/FormSelect';
+
 import s from './EditContributionsForm.module.scss';
 
 interface Props {
@@ -30,7 +33,9 @@ export const EditContributionsForm = ({ onClose, member, userInfo, initialData }
       endDate: initialData?.endDate || null,
     },
   });
-  const { handleSubmit, reset } = methods;
+  const { handleSubmit } = methods;
+
+  const { data } = useMemberFormOptions();
 
   const onSubmit = (formData: TEditContributionsForm) => {
     console.log(formData);
@@ -42,7 +47,17 @@ export const EditContributionsForm = ({ onClose, member, userInfo, initialData }
         <EditFormControls onClose={onClose} title={isNew ? 'Add Project Contribution' : 'Edit Project Contribution'} />
         <div className={s.body}>
           <div className={s.row}>
-            <FormField name="name" label="Project Name*" placeholder="Enter project name" />
+            <FormSelect
+              name="name"
+              placeholder="Project"
+              label="Project Name*"
+              options={
+                data?.projects.map((item: { projectUid: string; projectName: string }) => ({
+                  value: item.projectUid,
+                  label: item.projectName,
+                })) ?? []
+              }
+            />
           </div>
           <div className={s.row}>
             <FormField name="role" label="Role*" placeholder="Enter role" />

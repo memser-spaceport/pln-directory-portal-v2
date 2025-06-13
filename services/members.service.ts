@@ -321,6 +321,7 @@ export const getMemberInfo = async (memberUid: string) => {
 
   const projectContributions = result.projectContributions.map((pc: any) => {
     return {
+      uid: pc.uid,
       role: pc?.role,
       projectName: pc?.project?.name ?? '',
       projectUid: pc?.project?.uid,

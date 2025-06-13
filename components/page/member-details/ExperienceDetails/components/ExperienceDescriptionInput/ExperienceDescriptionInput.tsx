@@ -13,7 +13,7 @@ export const ExperienceDescriptionInput = () => {
       <div className={s.header}>
         <span className={s.label}>Impact or Work Description</span>
       </div>
-      <TextEditor id="exp-description" text={description} setContent={(txt) => setValue('description', txt, { shouldValidate: true })} height={150} />
+      <TextEditor id="exp-description" text={description} setContent={(txt) => setValue('description', txt, { shouldValidate: true })} height={150} isToolbarSticky />
     </div>
   );
 };

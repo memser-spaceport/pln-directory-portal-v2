@@ -10,9 +10,10 @@ interface Props {
   onConfirm: () => void;
   isOpen: boolean;
   confirmTitle?: string;
+  disabled?: boolean;
 }
 
-export const ConfirmDialog: FC<Props> = ({ title, desc, onClose, isOpen, onConfirm, confirmTitle }) => {
+export const ConfirmDialog: FC<Props> = ({ title, desc, onClose, isOpen, onConfirm, confirmTitle, disabled }) => {
   return (
     <>
       {isOpen && (
@@ -27,7 +28,7 @@ export const ConfirmDialog: FC<Props> = ({ title, desc, onClose, isOpen, onConfi
               <button type="button" className={s.secondaryButton} onClick={onClose}>
                 Cancel
               </button>
-              <button type="button" className={s.errorButton} onClick={onConfirm}>
+              <button type="button" className={s.errorButton} onClick={onConfirm} disabled={disabled}>
                 {confirmTitle}
               </button>
             </div>

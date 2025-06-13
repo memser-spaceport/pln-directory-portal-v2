@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { Fragment, useEffect } from 'react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/useRecommendationLinkAnalyticsReport';
+import clsx from 'clsx';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -43,6 +44,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
+  const hasMissingRequiredData = !member?.name || !member?.email || !member.skills.length;
 
   useRecommendationLinkAnalyticsReport(member);
 
@@ -60,7 +62,11 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
 
   return (
     <>
-      <div className="header">
+      <div
+        className={clsx('header', {
+          header__missing_data: hasMissingRequiredData,
+        })}
+      >
         <div className="header__profile">
           <img loading="lazy" className="header__profile__img" src={profile} alt="project image" />
         </div>
@@ -184,6 +190,15 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           grid-template-columns: 48px auto;
           column-gap: 8px;
           padding: 16px 16px 24px 16px;
+        }
+
+        .header__missing_data {
+          border-radius: 8px;
+          border: 1px solid rgba(238, 189, 108, 0.25);
+          background: linear-gradient(0deg, #fcfaed 0%, #fcfaed 100%), #fff;
+          box-shadow:
+            0 0 1px 0 rgba(255, 130, 14, 0.12),
+            0 4px 4px 0 rgba(255, 130, 14, 0.04);
         }
 
         .header__profile {

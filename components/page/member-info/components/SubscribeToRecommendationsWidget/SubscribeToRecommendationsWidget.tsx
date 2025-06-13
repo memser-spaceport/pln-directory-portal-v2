@@ -45,7 +45,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
         queryClient.invalidateQueries({
           queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
         });
-      }, 15000);
+      }, 5000);
     }
   }, [mutateAsync, onSubscribeToRecommendationsClicked, queryClient, userInfo]);
 
@@ -67,13 +67,8 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
     }
   }, [mutateAsync, onCloseSubscribeToRecommendationsClicked, queryClient, userInfo]);
 
-  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
+  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
 
-  // I am authenticated user
-  // 1. this is mine profile
-  // 2. I have not subscribed to recommendations yet
-  // 3. I am a specific user with recommendations enabled
-  // 4. if i did not press not now
   if (!userInfo || userInfo.uid !== id || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog || !isProfileFilled) {
     return null;
   }

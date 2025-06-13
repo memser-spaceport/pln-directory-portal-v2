@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import Navbar from '../components/core/navbar/nav-bar';
 import './globals.css';
 import StyledJsxRegistry from '../providers/registry';
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import dynamic from 'next/dynamic';
@@ -11,6 +11,7 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import QueryProvider from '@/providers/QueryProvider';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
+import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -72,6 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BroadCastChannel />
             <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
             <MemberRegisterDialog />
+            <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
             {/* <TeamRegisterDialog /> */}
             <CookieChecker isLoggedIn={isLoggedIn} />
           </QueryProvider>

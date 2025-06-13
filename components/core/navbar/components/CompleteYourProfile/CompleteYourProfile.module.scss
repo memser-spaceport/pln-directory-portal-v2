@@ -21,20 +21,20 @@
 }
 
 .title {
-  color: #FFF;
+  color: #0F172A;
   font-size: 14px;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 500;
   line-height: normal;
+  text-transform: uppercase;
 
   @include media.tablet-landscape {
     font-size: 16px;
-    font-weight: 700;
   }
 }
 
 .description {
-  color: #FFF;
+  color: #475569;
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -53,15 +53,12 @@
   font-style: normal;
   font-weight: 400;
   line-height: normal;
-  display: none;
-
-  @include  media.tablet-landscape {
-    display: inline;
-  }
+  display: inline;
+  text-decoration: underline;
 
   &.primary {
     font-weight: 600;
-    color: #FFF;
+    color: #FF820E;
     display: inline;
   }
 }
@@ -72,13 +69,19 @@
   flex-direction: column;
   justify-content: center;
 
+  color: #475569;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+
   @include media.tablet-landscape {
     display: none;
   }
 
   .control {
     @include mixins.centralize;
-    color: rgba(255, 255, 255, 0.70);
+    color: #FF820E;
     text-align: center;
     font-size: 14px;
     font-style: normal;

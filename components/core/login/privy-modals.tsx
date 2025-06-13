@@ -62,7 +62,6 @@ function PrivyModals() {
 
     if (output.userInfo?.isFirstTimeLogin) {
       showSuccessMessage();
-      window.location.href = '/settings/profile';
       return;
     }
 

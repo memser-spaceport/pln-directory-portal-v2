@@ -18,6 +18,8 @@ import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useRouter } from 'next/navigation';
 
 import s from './EditProfileForm.module.scss';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
 
 interface Props {
   onClose: () => void;
@@ -42,6 +44,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         })) ?? [],
       openToCollaborate: member.openToWork,
     },
+    resolver: yupResolver(editProfileSchema),
   });
   const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();
@@ -84,7 +87,15 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
   return (
     <FormProvider {...methods}>
-      <form noValidate onSubmit={handleSubmit(onSubmit)}>
+      <form
+        noValidate
+        onSubmit={handleSubmit(onSubmit)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+          }
+        }}
+      >
         <EditFormControls onClose={onClose} title="Edit Profile Details" />
         <div className={s.body}>
           <div className={s.row}>

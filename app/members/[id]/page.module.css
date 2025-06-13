@@ -3,9 +3,9 @@
   flex-direction: column;
   gap: 8px;
   padding-bottom: 40px;
-  min-height: 100px;
+  /*min-height: 100px;*/
   background-color: #f1f5f9;
-  min-height: calc(100vh - 80px);
+  /*min-height: calc(100vh - 80px);*/
 }
 
 .memberDetail__breadcrumb {

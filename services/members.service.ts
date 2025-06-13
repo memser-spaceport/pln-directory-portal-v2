@@ -74,8 +74,8 @@ export const getMemberUidByAirtableId = async (id: string) => {
   return result;
 };
 
-export const getMemberRepositories = async (id: string) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['member-repositories'] } };
+export const getMemberRepositories = async (id: string, options = {}) => {
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['member-repositories'] }, ...options };
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${id}/git-projects`, requestOPtions);
   if (!response?.ok) {
     return { error: { status: response?.status, statusText: response?.statusText } };
@@ -321,6 +321,7 @@ export const getMemberInfo = async (memberUid: string) => {
 
   const projectContributions = result.projectContributions.map((pc: any) => {
     return {
+      uid: pc.uid,
       role: pc?.role,
       projectName: pc?.project?.name ?? '',
       projectUid: pc?.project?.uid,

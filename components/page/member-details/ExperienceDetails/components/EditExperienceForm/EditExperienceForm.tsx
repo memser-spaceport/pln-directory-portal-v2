@@ -16,6 +16,8 @@ import { useRouter } from 'next/navigation';
 
 import s from './EditExperienceForm.module.scss';
 import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { editExperienceSchema } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm/helpers';
 
 interface Props {
   onClose: () => void;
@@ -37,6 +39,7 @@ export const EditExperienceForm = ({ onClose, member, userInfo, initialData }: P
       isCurrent: initialData?.isCurrent ?? false,
       location: initialData?.location ?? '',
     },
+    resolver: yupResolver(editExperienceSchema),
   });
   const { handleSubmit, reset } = methods;
 

@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import HuskySidePanel from '@/components/core/husky/husky-sidepanel';
 import QueryProvider from '@/providers/QueryProvider';
+import StoreInitializer from '@/providers/StoreInitializer';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
 
 // dynamic components:
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StyledJsxRegistry>
           <QueryProvider>
             <PostHogIdentifier />
+            <StoreInitializer userInfo={userInfo} />
             <header className="layout__header">
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
@@ -73,7 +75,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BroadCastChannel />
             <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
             <MemberRegisterDialog />
-            {/* <TeamRegisterDialog /> */}
             <CookieChecker isLoggedIn={isLoggedIn} />
           </QueryProvider>
         </StyledJsxRegistry>

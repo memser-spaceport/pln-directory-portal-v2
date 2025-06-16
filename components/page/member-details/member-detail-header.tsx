@@ -64,7 +64,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
     <>
       <div
         className={clsx('header', {
-          header__missing_data: hasMissingRequiredData,
+          header__missing_data: hasMissingRequiredData && isLoggedIn,
         })}
       >
         <div className="header__profile">

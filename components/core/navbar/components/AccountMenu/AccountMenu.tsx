@@ -81,12 +81,11 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                   router.push(`/members/${userInfo.uid}`);
                 }}
               >
-                <UserIcon /> {userInfo.name ?? userInfo.email}{' '}
-                {isNumber(profileFilledPercent) && profileFilledPercent !== 100 && (
-                  <span className={s.itemSub}>
-                    Filled <div className={s.notificationsCount}>{profileFilledPercent}%</div>
-                  </span>
-                )}
+                <UserIcon /> {userInfo.name ?? userInfo.email} {/*{isNumber(profileFilledPercent) && profileFilledPercent !== 100 && (*/}
+                {/*  <span className={s.itemSub}>*/}
+                {/*    Filled <div className={s.notificationsCount}>{profileFilledPercent}%</div>*/}
+                {/*  </span>*/}
+                {/*)}*/}
               </Menu.Item>
               <Menu.Item className={s.Item} onClick={() => setShowNotifications(true)}>
                 <NotificationsIcon /> Notifications

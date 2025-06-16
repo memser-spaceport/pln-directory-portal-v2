@@ -36,8 +36,6 @@ export const ProfileBioInput = ({ generateBio }: Props) => {
     }
   }, [generateBio, mutateAsync, reset, setValue]);
 
-  console.log(status, isPending, isSuccess);
-
   return (
     <div className={s.root}>
       <div className={s.header}>

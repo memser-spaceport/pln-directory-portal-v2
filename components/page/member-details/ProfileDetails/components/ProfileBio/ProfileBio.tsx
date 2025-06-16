@@ -24,11 +24,11 @@ export const ProfileBio = ({ bio, isEditable, hasMissingData, onEdit }: Props) =
         ) : (
           <div className={s.row}>
             <p>Tell who you are and what you do. A clear bio helps others understand you and connect better.</p>
-            {isEditable && (
-              <button className={s.btn} onClick={onEdit}>
-                Gen Bio with AI
-              </button>
-            )}
+            {/*{isEditable && (*/}
+            {/*  <button className={s.btn} onClick={onEdit}>*/}
+            {/*    Gen Bio <span className={s.desktopOnly}>with AI</span>*/}
+            {/*  </button>*/}
+            {/*)}*/}
           </div>
         )}
       </div>

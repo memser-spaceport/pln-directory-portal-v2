@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .root {
 
 }
@@ -74,4 +76,13 @@
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
+  white-space: nowrap;
+
+  .desktopOnly {
+    display: none;
+
+    @include media.tablet-landscape {
+      display: inline;
+    }
+  }
 }

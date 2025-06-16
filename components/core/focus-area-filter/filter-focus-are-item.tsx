@@ -154,12 +154,7 @@ const FocusAreaItem = (props: FocusArea) => {
           }
 
           .filteritemcon__expbtn {
-            pointer-events: ${!isChildrensAvailable ? 'none' : 'auto'};
-          }
-
-          .filtitemcon__item__expbtn:disabled {
-            cursor: default;
-          }
+          pointer-events: ${!isChildrensAvailable ? 'none' : 'auto'}}
 
           .isParent {
             background-color: #156ff7;

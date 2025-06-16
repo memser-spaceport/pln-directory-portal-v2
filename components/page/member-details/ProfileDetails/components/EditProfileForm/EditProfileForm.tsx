@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -25,9 +25,10 @@ interface Props {
   onClose: () => void;
   member: IMember;
   userInfo: IUserInfo;
+  generateBio?: boolean;
 }
 
-export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
+export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Props) => {
   const router = useRouter();
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
@@ -103,7 +104,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
             <FormField name="name" label="Name*" placeholder="Text" />
           </div>
           <div className={s.row}>
-            <ProfileBioInput />
+            <ProfileBioInput generateBio={generateBio} />
           </div>
           <div className={s.row}>
             <ProfileLocationInput />

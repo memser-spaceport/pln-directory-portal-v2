@@ -19,6 +19,7 @@ interface Props {
 
 export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
+  const [generateBio, setGenerateBio] = useState(false);
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
@@ -32,11 +33,27 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       })}
     >
       {editView ? (
-        <EditProfileForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
+        <EditProfileForm
+          onClose={() => {
+            setGenerateBio(false);
+            setEditView(false);
+          }}
+          member={member}
+          userInfo={userInfo}
+          generateBio={generateBio}
+        />
       ) : (
         <>
           <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} onEdit={() => setEditView(true)} />
-          <ProfileBio bio={member.bio} isEditable={isEditable} hasMissingData={hasMissingRequiredData} />
+          <ProfileBio
+            bio={member.bio}
+            isEditable={isEditable}
+            hasMissingData={hasMissingRequiredData}
+            onEdit={() => {
+              setGenerateBio(true);
+              setEditView(true);
+            }}
+          />
         </>
       )}
     </div>

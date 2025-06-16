@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import TextEditor from '@/components/ui/text-editor';
 import { useFormContext } from 'react-hook-form';
 
@@ -6,11 +6,37 @@ import s from './ProfileBioInput.module.scss';
 import { useGenerateBioWithAi } from '@/services/members/hooks/useGenerateBioWithAi';
 import { clsx } from 'clsx';
 
-export const ProfileBioInput = () => {
+interface Props {
+  generateBio?: boolean;
+}
+
+export const ProfileBioInput = ({ generateBio }: Props) => {
   const { watch, setValue } = useFormContext();
   const { bio } = watch();
+  const generateBioRef = useRef(false);
 
-  const { mutateAsync, isPending } = useGenerateBioWithAi();
+  const { mutateAsync, isPending, status, isSuccess, reset } = useGenerateBioWithAi();
+
+  useEffect(() => {
+    async function prefillBio() {
+      const res = await mutateAsync();
+
+      reset();
+
+      if (!res.bio) {
+        return;
+      }
+
+      setValue('bio', res.bio, { shouldValidate: true });
+    }
+
+    if (generateBio && !generateBioRef.current) {
+      generateBioRef.current = true;
+      prefillBio();
+    }
+  }, [generateBio, mutateAsync, reset, setValue]);
+
+  console.log(status, isPending, isSuccess);
 
   return (
     <div className={s.root}>
@@ -24,6 +50,10 @@ export const ProfileBioInput = () => {
           disabled={isPending}
           onClick={async () => {
             const res = await mutateAsync();
+
+            if (!res.bio) {
+              return;
+            }
 
             setValue('bio', res.bio, { shouldValidate: true });
           }}

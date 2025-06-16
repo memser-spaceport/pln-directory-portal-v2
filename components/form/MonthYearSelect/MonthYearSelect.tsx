@@ -31,9 +31,10 @@ interface Props {
   value: string | null; // ISO string like "2025-03-01T00:00:00.000Z"
   label: string;
   disabled?: boolean;
+  error?: boolean;
 }
 
-export const MonthYearSelect = ({ label, value, onChange, disabled }: Props) => {
+export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Props) => {
   const [month, setMonth] = useState<{ value: string; label: string } | null>(null);
   const [year, setYear] = useState<{ value: string; label: string } | null>(null);
   const justSynced = useRef(false);
@@ -95,18 +96,51 @@ export const MonthYearSelect = ({ label, value, onChange, disabled }: Props) => 
           onChange={handleMonthChange}
           isDisabled={disabled}
           styles={{
+            container: (base) => ({
+              ...base,
+              width: '100%',
+            }),
             control: (baseStyles) => ({
               ...baseStyles,
+              alignItems: 'center',
+              gap: '8px',
+              alignSelf: 'stretch',
               borderRadius: '8px',
               border: '1px solid rgba(203, 213, 225, 0.50)',
-              background: '#FFF',
-              outline: 'none;',
+              background: '#fff',
+              outline: 'none',
               fontSize: '14px',
               minWidth: '140px',
+              width: '100%',
+              position: 'relative',
+              '&:hover': {
+                border: '1px solid rgba(66, 125, 255, 0.50)',
+                boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+              },
+              '&:focus-visible, &:focus': {
+                border: '1px solid rgba(203, 213, 225, 0.50)',
+                boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+              },
+              ...(error
+                ? {
+                    borderColor: 'darkred !important',
+                  }
+                : {}),
+            }),
+            input: (baseStyles) => ({
+              ...baseStyles,
+              height: '42px',
+              padding: 0,
+              // background: 'tomato',
             }),
             option: (baseStyles) => ({
               ...baseStyles,
               fontSize: '14px',
+            }),
+            menu: (baseStyles) => ({
+              ...baseStyles,
+              outline: 'none',
+              zIndex: 3,
             }),
           }}
         />
@@ -117,18 +151,51 @@ export const MonthYearSelect = ({ label, value, onChange, disabled }: Props) => 
           onChange={handleYearChange}
           isDisabled={disabled}
           styles={{
+            container: (base) => ({
+              ...base,
+              width: '100%',
+            }),
             control: (baseStyles) => ({
               ...baseStyles,
+              alignItems: 'center',
+              gap: '8px',
+              alignSelf: 'stretch',
               borderRadius: '8px',
               border: '1px solid rgba(203, 213, 225, 0.50)',
-              background: '#FFF',
-              outline: 'none;',
+              background: '#fff',
+              outline: 'none',
               fontSize: '14px',
-              minWidth: '100px',
+              minWidth: '140px',
+              width: '100%',
+              position: 'relative',
+              '&:hover': {
+                border: '1px solid rgba(66, 125, 255, 0.50)',
+                boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+              },
+              '&:focus-visible, &:focus': {
+                border: '1px solid rgba(203, 213, 225, 0.50)',
+                boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+              },
+              ...(error
+                ? {
+                    borderColor: 'darkred !important',
+                  }
+                : {}),
+            }),
+            input: (baseStyles) => ({
+              ...baseStyles,
+              height: '42px',
+              padding: 0,
+              // background: 'tomato',
             }),
             option: (baseStyles) => ({
               ...baseStyles,
               fontSize: '14px',
+            }),
+            menu: (baseStyles) => ({
+              ...baseStyles,
+              outline: 'none',
+              zIndex: 3,
             }),
           }}
         />

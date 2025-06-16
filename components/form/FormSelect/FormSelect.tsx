@@ -22,8 +22,6 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
     setValue,
   } = useFormContext();
 
-  console.log(errors);
-
   const value = watch(name);
 
   return (

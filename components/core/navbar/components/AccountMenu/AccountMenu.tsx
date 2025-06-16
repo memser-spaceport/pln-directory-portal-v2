@@ -36,6 +36,10 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
   const postHogProps = usePostHog();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
+  const { data: member, isLoading } = useMember(userInfo.uid);
+  const [hideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
+  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
+  const hideProfileStatus = !userInfo || isProfileFilled || hideCompleteProfile || isLoading;
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();

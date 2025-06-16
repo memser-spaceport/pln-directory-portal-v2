@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Navbar from '../components/core/navbar/nav-bar';
 import './globals.css';
+import '../styles/index.scss';
 import StyledJsxRegistry from '../providers/registry';
 import React, { Suspense } from 'react';
 

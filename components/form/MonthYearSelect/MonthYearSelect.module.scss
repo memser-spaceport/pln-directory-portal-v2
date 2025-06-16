@@ -1,0 +1,40 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  color: #475569;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+}
+
+.body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control {
+  border-radius: 8px;
+  border: 1px solid rgba(203, 213, 225, 0.50);
+  background: #FFF;
+  outline: none;
+
+  border-color: orange;
+
+  &:focus {
+    border-radius: 8px;
+    border: 1px solid rgba(66, 125, 255, 0.50);
+    background: #FFF;
+    box-shadow: 0 0 0 4px rgba(21, 111, 247, 0.10);
+  }
+
+  &.error {
+    border-color: darkred;
+  }
+}

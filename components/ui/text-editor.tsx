@@ -23,7 +23,7 @@ const TextEditor = (props: ITextEditorProps) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const isRequired = props?.isRequired ?? false;
   const errorMessage = props?.errorMessage;
-  const isToolbarSticky  = props?.isToolbarSticky ?? true;
+  const isToolbarSticky = props?.isToolbarSticky ?? true;
 
   const [linkObj, setlinkObj] = useState<{ text: string; url: string }>({ text: '', url: '' });
   // const wordcount = tinymce.activeEditor?.plugins.wordcount;
@@ -159,7 +159,7 @@ const TextEditor = (props: ITextEditorProps) => {
                 editor.dom.setAttrib(selectedNode, 'href', link);
                 editor.dom.setAttrib(selectedNode, 'target', '_blank');
                 editor.dom.setHTML(selectedNode, txt); // Updates the text inside <a>
-          
+
                 // Force TinyMCE to recognize the change
                 editor.undoManager.add(); // Add to the undo stack
               } else {
@@ -167,12 +167,11 @@ const TextEditor = (props: ITextEditorProps) => {
                 const linkMarkup = `<a href="${link}" target="_blank" rel="noopener noreferrer">${txt}</a>`;
                 editor.execCommand('mceInsertContent', false, linkMarkup);
               }
-          
+
               // Ensure the new link is stored in state
               setlinkObj({ text: txt, url: link });
             }
           }}
-          
         />
       </div>
       <div className="editor__count">

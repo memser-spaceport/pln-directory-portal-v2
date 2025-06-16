@@ -1,4 +1,5 @@
 'use client';
+
 import { ProfileSocialLink } from '../profile-social-link';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getProfileFromURL } from '@/utils/common.utils';
 import { IMember } from '@/types/members.types';
@@ -8,17 +9,19 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import s from './ContactDetails.module.scss';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
-import { TOAST_MESSAGES } from '@/utils/constants';
+import { ADMIN_ROLE, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { OfficeHoursHandle } from '@/components/page/member-details/office-hours-handle';
 import { Fragment } from 'react';
 import { clsx } from 'clsx';
+import { EditButton } from '@/components/page/member-details/components/EditButton';
 
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
+  onEdit: () => void;
 }
 
 const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
@@ -30,10 +33,11 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
   telegram: 'telegramHandle',
 };
 
-export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
+export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) => {
   const router = useRouter();
   const { visibleHandles } = member;
-
+  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const isOwner = userInfo?.uid === member.id;
   const showOfficeHours = visibleHandles?.includes('officeHours');
   const hasMissingRequiredData = !member?.telegramHandle || !member?.officeHours;
   const authAnalytics = useAuthAnalytics();
@@ -57,10 +61,13 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
   return (
     <div
       className={clsx(s.root, {
-        [s.missingData]: hasMissingRequiredData && isLoggedIn && member?.id === userInfo?.uid,
+        [s.missingData]: hasMissingRequiredData && isLoggedIn && isOwner,
       })}
     >
-      <h2 className={s.title}>Contact Details</h2>
+      <div className={s.header}>
+        <h2 className={s.title}>Contact Details</h2>
+        {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} />}
+      </div>
       <div className={s.container}>
         {isLoggedIn ? (
           <div className={s.social}>

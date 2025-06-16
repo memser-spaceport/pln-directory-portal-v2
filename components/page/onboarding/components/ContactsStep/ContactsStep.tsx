@@ -64,7 +64,7 @@ export const ContactsStep = ({ userInfo }: Props) => {
             {errors.telegram?.message}
           </Field.Error>
         ) : (
-          <Field.Description className={s.fieldDescription}>Copy @username in your profile settings</Field.Description>
+          <Field.Description className={s.fieldDescription}>Copy @username in your Telegram profile settings</Field.Description>
         )}
       </Field.Root>
     </motion.div>

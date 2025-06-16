@@ -21,13 +21,13 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member }: Props) => {
 
   return (
     <>
-      {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
       <div
         id="contact-details"
         className={clsx(s.root, {
           [s.editView]: editView,
         })}
       >
+        {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
         {editView ? (
           <EditContactForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
         ) : (

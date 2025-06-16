@@ -29,7 +29,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     <div
       className={clsx(s.root, {
         [s.editView]: editView,
-        [s.missingData]: !editView && hasMissingRequiredData,
+        [s.missingData]: !editView && hasMissingRequiredData && isOwner,
       })}
     >
       {editView ? (

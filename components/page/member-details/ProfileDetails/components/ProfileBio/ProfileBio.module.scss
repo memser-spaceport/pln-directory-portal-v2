@@ -20,7 +20,13 @@
   align-self: stretch;
   border-radius: 12px;
   background: var(--Neutral-Slate-50, #F8FAFC);
-  font-size: 14px;
+
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0.12px;
 
   &.missingData {
     border-radius: 12px;

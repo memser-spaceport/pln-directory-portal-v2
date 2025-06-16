@@ -60,12 +60,6 @@ function PrivyModals() {
       document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
     };
 
-    if (output.userInfo?.isFirstTimeLogin) {
-      showSuccessMessage();
-      return;
-    }
-
-    // For subsequent logins
     showSuccessMessage();
 
     // Reload the page after a delay

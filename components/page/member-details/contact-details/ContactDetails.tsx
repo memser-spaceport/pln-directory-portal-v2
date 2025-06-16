@@ -57,7 +57,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo }: Props) => {
   return (
     <div
       className={clsx(s.root, {
-        [s.missingData]: hasMissingRequiredData,
+        [s.missingData]: hasMissingRequiredData && isLoggedIn && member?.id === userInfo?.uid,
       })}
     >
       <h2 className={s.title}>Contact Details</h2>

@@ -44,7 +44,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
-  const hasMissingRequiredData = !member?.name || !member?.email || !member.skills.length;
+  const hasMissingRequiredData = !member?.name || !member?.email;
 
   useRecommendationLinkAnalyticsReport(member);
 

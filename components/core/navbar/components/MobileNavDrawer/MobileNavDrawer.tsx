@@ -18,8 +18,6 @@ import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import s from './MobileNavDrawer.module.scss';
 import { isNumber } from 'lodash';
 import { Signup } from '@/components/core/navbar/components/Signup';
-import { useMember } from '@/services/members/hooks/useMember';
-import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
@@ -41,11 +39,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
   const postHogProps = usePostHog();
   const drawerRef = useRef(null);
   const router = useRouter();
-  const { data: member, isLoading } = useMember(userInfo.uid);
-  const [hideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
-  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
-  const hideProfileStatus = !userInfo || isProfileFilled || hideCompleteProfile || isLoading;
 
   useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
 
@@ -133,7 +127,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                   <li className="md__container__bdy__supandset__optn">
                     <UserIcon />
                     <div className="nb__right__helpc__opts__optn__name">{userInfo.name ?? userInfo.email}</div>
-                    {!hideProfileStatus && isNumber(props.profileFilledPercent) && (
+                    {isNumber(props.profileFilledPercent) && props.profileFilledPercent !== 100 && (
                       <span className="nb__right_sub">
                         Filled <div className="nb__right_notifications_count">{props.profileFilledPercent}%</div>
                       </span>

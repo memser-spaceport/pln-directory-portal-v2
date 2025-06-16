@@ -1,7 +1,7 @@
 import Error from '@/components/core/error';
 import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { RedirectType, redirect } from 'next/navigation';
-import styles from './page.module.css';
+import styles from './page.module.scss';
 import { BreadCrumb } from '@/components/core/bread-crumb';
 import MemberTeams from '@/components/page/member-details/member-teams';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';

@@ -127,11 +127,11 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                   <li className="md__container__bdy__supandset__optn">
                     <UserIcon />
                     <div className="nb__right__helpc__opts__optn__name">{userInfo.name ?? userInfo.email}</div>
-                    {isNumber(props.profileFilledPercent) && props.profileFilledPercent !== 100 && (
-                      <span className="nb__right_sub">
-                        Filled <div className="nb__right_notifications_count">{props.profileFilledPercent}%</div>
-                      </span>
-                    )}
+                    {/*{isNumber(props.profileFilledPercent) && props.profileFilledPercent !== 100 && (*/}
+                    {/*  <span className="nb__right_sub">*/}
+                    {/*    Filled <div className="nb__right_notifications_count">{props.profileFilledPercent}%</div>*/}
+                    {/*  </span>*/}
+                    {/*)}*/}
                   </li>
                 </Link>
               )}

@@ -27,9 +27,10 @@
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 166.667% */
-  display: flex;
+  //display: flex;
   align-items: center;
   gap: 8px;
+  display: none;
 
   &.loading {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;

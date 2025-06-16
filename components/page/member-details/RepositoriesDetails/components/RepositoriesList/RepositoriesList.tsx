@@ -90,17 +90,17 @@ export const RepositoriesList = ({ isEditable, member }: Props) => {
             {!isError && githubHandle && 'No repositories to display, add new ones to your GitHub profile.'}
             {!isError && !githubHandle && 'Connect your GitHub profile to see your repositories.'}
           </span>
-          {!githubHandle && (
-            <button
-              className={s.connectButton}
-              onClick={() => {
-                scrollToId('contact-details');
-              }}
-            >
-              <Image src="/icons/contact/github-contact-logo.svg" alt="GitHub" height={24} width={24} />
-              Connect GitHub
-            </button>
-          )}
+          {/*{!githubHandle && (*/}
+          {/*  <button*/}
+          {/*    className={s.connectButton}*/}
+          {/*    onClick={() => {*/}
+          {/*      scrollToId('contact-details');*/}
+          {/*    }}*/}
+          {/*  >*/}
+          {/*    <Image src="/icons/contact/github-contact-logo.svg" alt="GitHub" height={24} width={24} />*/}
+          {/*    Connect GitHub*/}
+          {/*  </button>*/}
+          {/*)}*/}
         </div>
       )}
     </div>

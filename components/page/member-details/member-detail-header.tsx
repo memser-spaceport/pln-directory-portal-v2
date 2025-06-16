@@ -46,6 +46,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
+  const hasMissingRequiredData = !member?.name || !member?.email;
 
   useRecommendationLinkAnalyticsReport(member);
 
@@ -65,7 +66,11 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
 
   return (
     <>
-      <div className={clsx('header')}>
+      <div
+        className={clsx('header', {
+          header__missing_data: hasMissingRequiredData && isLoggedIn,
+        })}
+      >
         <div className="header__profile">
           <img loading="lazy" className="header__profile__img" src={profile} alt="project image" />
         </div>

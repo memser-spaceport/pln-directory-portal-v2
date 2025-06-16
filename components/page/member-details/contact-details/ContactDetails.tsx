@@ -61,7 +61,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   return (
     <div
       className={clsx(s.root, {
-        [s.missingData]: hasMissingRequiredData,
+        [s.missingData]: hasMissingRequiredData && isLoggedIn && member?.id === userInfo?.uid,
       })}
     >
       <div className={s.header}>

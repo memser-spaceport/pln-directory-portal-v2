@@ -5,9 +5,6 @@ import s from './ProfileLocationInput.module.scss';
 import { FormField } from '@/components/form/FormField';
 
 export const ProfileLocationInput = () => {
-  const { watch, setValue } = useFormContext();
-  const { bio } = watch();
-
   return (
     <div className={s.root}>
       <div className={s.header}>

@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .root {
   display: flex;
   flex-direction: column;
@@ -7,7 +9,12 @@
 .body {
   display: flex;
   align-items: flex-start;
+  flex-direction: column;
   gap: 24px;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
 }
 
 .Label {

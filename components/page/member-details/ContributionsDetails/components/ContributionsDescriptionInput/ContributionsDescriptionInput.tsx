@@ -13,7 +13,7 @@ export const ContributionsDescriptionInput = () => {
       <div className={s.header}>
         <span className={s.label}>Description</span>
       </div>
-      <TextEditor id="contr-description" text={description} setContent={(txt) => setValue('description', txt, { shouldValidate: true })} height={150} isToolbarSticky />
+      <TextEditor id="contr-description" text={description} setContent={(txt) => setValue('description', txt, { shouldValidate: true })} height={150} isToolbarSticky statusBar={false} />
     </div>
   );
 };

@@ -1,12 +1,26 @@
+@use 'styles/media';
+
 .body {
   display: flex;
-  padding: 32px;
+  padding: 16px;
   flex-direction: column;
   align-items: flex-start;
   gap: 24px;
   align-self: stretch;
   border-radius: 16px;
   background: #FFF;
+
+  img {
+    display: none;
+  }
+
+  @include media.tablet-landscape {
+    padding: 32px;
+
+    img {
+      display: block;
+    }
+  }
 }
 
 .row {

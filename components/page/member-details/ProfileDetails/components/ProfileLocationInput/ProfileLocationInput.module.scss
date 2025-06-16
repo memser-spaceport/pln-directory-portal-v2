@@ -1,3 +1,6 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
 .root {
   display: flex;
   flex-direction: column;
@@ -33,8 +36,13 @@
 .row {
   display: flex;
   align-items: flex-start;
+  flex-direction: column;
   gap: 24px;
   width: 100%;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
 }
 
 .hint {

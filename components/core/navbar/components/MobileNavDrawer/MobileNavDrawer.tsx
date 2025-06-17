@@ -147,7 +147,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                 >
                   <NotificationsIcon />
                   <div className="md__container__bdy__supandset__optn__name">Notifications</div>
-                  {props.notificationsCount && props.notificationsCount > 0 && <div className="nb__right_notifications_count">{props.notificationsCount}</div>}
+                  {!!props.notificationsCount && props.notificationsCount > 0 && <div className="nb__right_notifications_count">{props.notificationsCount}</div>}
                 </li>
               )}
 

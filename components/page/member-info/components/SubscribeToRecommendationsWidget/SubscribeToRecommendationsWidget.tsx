@@ -11,7 +11,7 @@ import { useUpdateMemberNotificationsSettings } from '@/services/members/hooks/u
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { FloatingWidgets } from '@/components/page/member-info/components/FloatingWidgets';
-import { useMember } from '@/services/members/hooks/useMember';
+// import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
@@ -22,7 +22,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
   const [view, setView] = useState<'initial' | 'confirmation'>('initial');
   const { data } = useMemberNotificationsSettings(userInfo?.uid);
   const { id } = useParams();
-  const { data: member } = useMember(userInfo.uid);
+  // const { data: member } = useMember(userInfo.uid);
   const { mutateAsync, isPending } = useUpdateMemberNotificationsSettings();
   const queryClient = useQueryClient();
   const { onSubscribeToRecommendationsClicked, onCloseSubscribeToRecommendationsClicked } = useMemberAnalytics();
@@ -67,9 +67,9 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
     }
   }, [mutateAsync, onCloseSubscribeToRecommendationsClicked, queryClient, userInfo]);
 
-  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
+  // const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
 
-  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog || !isProfileFilled) {
+  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog) {
     return null;
   }
 

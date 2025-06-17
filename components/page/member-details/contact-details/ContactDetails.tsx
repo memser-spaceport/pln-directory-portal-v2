@@ -108,6 +108,20 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                 })
                   .sort((a, b) => (a.completed ? -1 : 1))
                   .map((item) => item.content)}
+                {!member?.officeHours && (
+                  <ProfileSocialLink
+                    profile=""
+                    height={24}
+                    width={24}
+                    callback={callback}
+                    type=""
+                    handle=""
+                    logo={getLogoByProvider('officeHours')}
+                    className={clsx({
+                      [s.incomplete]: true,
+                    })}
+                  />
+                )}
               </div>
             </div>
             {showOfficeHours && (

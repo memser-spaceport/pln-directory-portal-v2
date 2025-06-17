@@ -38,8 +38,8 @@ button {
 }
 
 .layout {
-  height: 100dvh;
-  position: relative;
+  /*height: 100dvh;*/
+  /*position: relative;*/
   background-color: #f1f5f9;
 }
 
@@ -49,6 +49,10 @@ body {
   min-height: 100dvh;
   height: 100dvh;
   overflow-x: hidden;
+  /*overflow: auto;*/
+  /*height: auto !important;*/
+  /*overflow: initial !important;*/
+  overscroll-behavior: none;
 }
 
 .layout__header {
@@ -61,7 +65,8 @@ body {
 }
 
 .layout__main {
-  min-height: calc(100vh - 80px);
+  /*min-height: calc(100vh - 80px);*/
+  /*padding-top: 80px;*/
 }
 
 .toast__body {
@@ -86,11 +91,11 @@ textarea {
 }
 
 body {
-  overflow-y: auto;
+  /*overflow-y: auto;*/
 }
 
 body:has(dialog[open]) {
-  overflow: hidden !important; /* Disable scrolling when dialog is open */
+  /*overflow: hidden !important; !* Disable scrolling when dialog is open *!*/
 }
 
 a {

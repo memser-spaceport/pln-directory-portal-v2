@@ -50,7 +50,7 @@ const TeamList = (props: any) => {
       <div className="team-list__titlesec">
         <h1 className="team-list__titlesec__title">Teams</h1> <div className="team-list__title__count">({totalTeams})</div>
       </div>
-      <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage}>
+      <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
         <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid' : 'team-list__list'}`}>
           {userInfo && data?.length > 0 && <TeamAddCard userInfo={userInfo} viewType={viewType} />}
           {data?.map((team: ITeam, index: number) => (
@@ -85,8 +85,8 @@ const TeamList = (props: any) => {
           gap: 4px;
           align-items: baseline;
           padding: 12px 16px;
-          position: sticky;
-          top: 150px;
+          //position: sticky;
+          //top: 150px;
           z-index: 3;
           background: #f1f5f9;
         }

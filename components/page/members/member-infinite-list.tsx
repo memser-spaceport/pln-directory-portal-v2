@@ -41,34 +41,34 @@ const MemberInfiniteList = (props: any) => {
 
   return (
     <>
-      <div>
-        <div className="members-list">
-          <div className="members-list__titlesec">
-            <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
-          </div>
-          <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage}>
-            <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
-              {data?.map((member) => (
-                <Link
-                  prefetch={false}
-                  href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
-                  key={member.id}
-                  className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
-                  onClick={(e) => onMemberOnClickHandler(e, member)}
-                >
-                  {VIEW_TYPE_OPTIONS.GRID === viewType && <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />}
-                  {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
-                </Link>
-              ))}
-              {isFetchingNextPage && <Loader />}
-            </div>
-          </InfiniteScroll>
+      <div className="members-list">
+        <div className="members-list__titlesec">
+          <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
         </div>
+        <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
+          <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
+            {data?.map((member) => (
+              <Link
+                prefetch={false}
+                href={`${PAGE_ROUTES.MEMBERS}/${member?.id}`}
+                key={member.id}
+                className={`members-list__member ${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid__member' : 'members-list__list__member'}`}
+                onClick={(e) => onMemberOnClickHandler(e, member)}
+              >
+                {VIEW_TYPE_OPTIONS.GRID === viewType && <MemberGridView isUserLoggedIn={isUserLoggedIn} member={member} />}
+                {VIEW_TYPE_OPTIONS.LIST === viewType && <MemberListView isUserLoggedIn={isUserLoggedIn} member={member} />}
+              </Link>
+            ))}
+            {isFetchingNextPage && <Loader />}
+          </div>
+        </InfiniteScroll>
       </div>
       <style jsx>{`
         .members-list {
           width: 100%;
           margin-bottom: 10px;
+          height: 100%;
+          overflow-y: auto;
         }
 
         .members-list__titlesec {
@@ -76,8 +76,8 @@ const MemberInfiniteList = (props: any) => {
           gap: 4px;
           align-items: baseline;
           padding: 12px 16px;
-          position: sticky;
-          top: 150px;
+          //position: sticky;
+          //top: 150px;
           z-index: 3;
           background: #f1f5f9;
         }
@@ -106,7 +106,7 @@ const MemberInfiniteList = (props: any) => {
           row-gap: 24px;
           column-gap: 16px;
           width: 100%;
-          padding: 2px;
+          padding: 8px 0;
         }
 
         .members-list__list {
@@ -114,7 +114,7 @@ const MemberInfiniteList = (props: any) => {
           flex-direction: column;
           gap: 16px;
           margin-bottom: 16px;
-          padding: 0 8px;
+          padding: 8px;
         }
 
         .members-list__list__member {
@@ -128,7 +128,7 @@ const MemberInfiniteList = (props: any) => {
 
           .members-list__grid {
             grid-template-columns: repeat(auto-fit, 289px);
-            padding: unset;
+            //padding: unset;
           }
 
           .members-list__titlesec {

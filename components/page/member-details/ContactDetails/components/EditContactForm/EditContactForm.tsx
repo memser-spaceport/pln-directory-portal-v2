@@ -65,7 +65,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
         <EditFormControls onClose={onClose} title="Edit Contact Details" />
         <div className={s.body}>
           <div className={s.row}>
-            <Image src={getLogoByProvider('officeHours')} alt="Office hours" height={24} width={24} />
+            <Image src={getLogoByProvider('officeHours')} alt="Office hours" height={24} width={24} style={{ marginBottom: 36 }} />
             <FormField
               name="officeHours"
               label="Office Hours"

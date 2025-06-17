@@ -212,7 +212,7 @@ export const FiltersSearch = (props: Props) => {
 
           .toolbar__left__search-container__searchfrm__input {
             border: none;
-            width: 84px;
+            width: 100%;
             background-color: #fff;
             color: black;
           }
@@ -224,7 +224,6 @@ export const FiltersSearch = (props: Props) => {
           .toolbar__left__search-container__searchfrm__optns__sbtn {
             border: none;
             background: #fff;
-            height: inherit;
             height: 16px;
           }
 

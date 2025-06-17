@@ -8,10 +8,10 @@ import { IUserInfo } from '@/types/shared.types';
 import { useUpdateMemberNotificationsSettings } from '@/services/members/hooks/useUpdateMemberNotificationsSettings';
 import { useQueryClient } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { clsx } from 'clsx';
-import { useMember } from '@/services/members/hooks/useMember';
+// import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
@@ -21,13 +21,15 @@ interface Props {
 export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
   const [view, setView] = useState<'initial' | 'confirmation'>('initial');
   const [open, setOpen] = useState(false);
-  const { data: member, isLoading } = useMember(userInfo.uid);
+  // const { data: member, isLoading } = useMember(userInfo.uid);
   const { data } = useMemberNotificationsSettings(userInfo?.uid);
   const { mutateAsync } = useUpdateMemberNotificationsSettings();
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const router = useRouter();
   const { onSubscribeToRecommendationsClicked, onCloseSubscribeToRecommendationsClicked } = useMemberAnalytics();
+  const searchParams = useSearchParams();
+  const isOnboardingLoginFlow = searchParams.get('loginFlow') === 'onboarding';
 
   const handleSubscribe = useCallback(async () => {
     if (!userInfo) {
@@ -69,9 +71,9 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
     }
   }, [mutateAsync, onCloseSubscribeToRecommendationsClicked, queryClient, userInfo]);
 
-  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
+  // const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
 
-  if (!userInfo || pathname.includes(`/members/${userInfo.uid}`) || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog || !isProfileFilled || isLoading) {
+  if (!userInfo || pathname.includes(`/members/${userInfo.uid}`) || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog || isOnboardingLoginFlow) {
     return null;
   }
 

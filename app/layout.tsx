@@ -64,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <QueryProvider>
             <header className="layout__header">
               <SubscribeToRecoomendations userInfo={userInfo} />
-              <CompleteYourProfile userInfo={userInfo} />
+              {/*<CompleteYourProfile userInfo={userInfo} />*/}
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
             <main className="layout__main">{children}</main>

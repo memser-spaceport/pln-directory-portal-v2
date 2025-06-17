@@ -150,6 +150,7 @@
 .content {
   position: relative;
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
 }
@@ -164,4 +165,8 @@
   @include media.tablet-portrait {
     display: block;
   }
+}
+
+.incomplete {
+  opacity: 0.35;
 }

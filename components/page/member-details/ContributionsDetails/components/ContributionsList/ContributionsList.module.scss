@@ -111,8 +111,11 @@
 }
 
 .editBtn {
-  padding: 8px 4px;
+  padding: 8px 0 8px 16px;
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 
   &:hover {
     filter: brightness(120%);

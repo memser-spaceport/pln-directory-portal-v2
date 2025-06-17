@@ -33,6 +33,8 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
   telegram: 'telegramHandle',
 };
 
+const VISIBLE_HANDLES = ['linkedin', 'github', 'twitter', 'email', 'discord', 'telegram'];
+
 export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) => {
   const router = useRouter();
   const { visibleHandles } = member;
@@ -73,18 +75,32 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
           <div className={s.social}>
             <div className={s.top}>
               <div className={s.content}>
-                {visibleHandles
-                  ?.filter((item) => item !== 'officeHours')
-                  .map((item, i, arr) => {
-                    const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
+                {VISIBLE_HANDLES?.map((item, i, arr) => {
+                  const handle = (member as unknown as Record<string, string>)[SOCIAL_TO_HANDLE_MAP[item]];
 
-                    return (
+                  return {
+                    completed: !!handle,
+                    content: (
                       <Fragment key={item}>
-                        <ProfileSocialLink profile={getProfileFromURL(handle, item)} height={24} width={24} callback={callback} type={item} handle={handle} logo={getLogoByProvider(item)} />
+                        <ProfileSocialLink
+                          profile={getProfileFromURL(handle, item)}
+                          height={24}
+                          width={24}
+                          callback={callback}
+                          type={item}
+                          handle={handle}
+                          logo={getLogoByProvider(item)}
+                          className={clsx({
+                            [s.incomplete]: !handle,
+                          })}
+                        />
                         {i === arr.length - 1 ? null : <div className={s.divider} />}
                       </Fragment>
-                    );
-                  })}
+                    ),
+                  };
+                })
+                  .sort((a, b) => (a.completed ? -1 : 1))
+                  .map((item) => item.content)}
               </div>
             </div>
             {showOfficeHours && (

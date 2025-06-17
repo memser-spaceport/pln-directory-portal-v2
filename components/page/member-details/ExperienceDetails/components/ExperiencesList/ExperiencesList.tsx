@@ -5,7 +5,6 @@ import { AddButton } from '@/components/page/member-details/components/AddButton
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { FormattedMemberExperience, useMemberExperience } from '@/services/members/hooks/useMemberExperience';
-import Image from 'next/image';
 import { Separator } from '@base-ui-components/react/separator';
 import { format } from 'date-fns-tz';
 
@@ -54,15 +53,15 @@ export const ExperiencesList = ({ isEditable, onAdd, onEdit, member }: Props) =>
           ))}
         </ul>
       )}
-      {/*{!isLoading && !data?.length && (*/}
-      {/*  <div className={s.emptyData}>*/}
-      {/*    <span className={s.label}>No experience to display, add new ones to your LinkedIn profile.</span>*/}
-      {/*    <button className={s.connectButton}>*/}
-      {/*      <Image src="/icons/contact/linkedIn-contact-logo.svg" alt="Linkedin" height={24} width={24} />*/}
-      {/*      Connect LinkedIn*/}
-      {/*    </button>*/}
-      {/*  </div>*/}
-      {/*)}*/}
+      {!isLoading && !data?.length && (
+        <div className={s.emptyData}>
+          <span className={s.label}>No experience to display, add new ones to your LinkedIn profile.</span>
+          {/*<button className={s.connectButton}>*/}
+          {/*  <Image src="/icons/contact/linkedIn-contact-logo.svg" alt="Linkedin" height={24} width={24} />*/}
+          {/*  Connect LinkedIn*/}
+          {/*</button>*/}
+        </div>
+      )}
     </div>
   );
 };

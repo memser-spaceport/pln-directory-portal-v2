@@ -51,10 +51,10 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
       {!data?.length && (
         <div className={s.emptyData}>
           <span className={s.label}>Add project experience & contribution details.</span>
-          <button className={s.connectButton}>
-            <AddIcon />
-            Add Project
-          </button>
+          {/*<button className={s.connectButton}>*/}
+          {/*  <AddIcon />*/}
+          {/*  Add Project*/}
+          {/*</button>*/}
         </div>
       )}
     </div>

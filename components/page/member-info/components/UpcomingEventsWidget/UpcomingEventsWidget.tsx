@@ -13,6 +13,7 @@ import { useUpcomingEvents } from '@/services/events/hooks/useUpcomingEvents';
 import Link from 'next/link';
 import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
+import { useParams } from 'next/navigation';
 
 interface Props {
   userInfo: IUserInfo;
@@ -21,11 +22,18 @@ interface Props {
 export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   const [open, setOpen] = useLocalStorageParam('upcoming-events-widget', true);
 
+  const { id } = useParams();
   const { data, isLoading } = useUpcomingEvents();
   const { data: settings } = useMemberNotificationsSettings(userInfo?.uid);
   const { onUpcomingEventsWidgetShowAllClicked } = useEventsAnalytics();
 
-  if (!userInfo || isLoading || !data?.length || !settings?.subscribed) {
+  if (!userInfo || isLoading || !data?.length) {
+    return null;
+  }
+
+  if (!settings?.showInvitationDialog) {
+    // do nothing
+  } else if (!settings?.subscribed && userInfo.uid === id) {
     return null;
   }
 

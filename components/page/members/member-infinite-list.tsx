@@ -45,7 +45,7 @@ const MemberInfiniteList = (props: any) => {
         <div className="members-list__titlesec">
           <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
         </div>
-        <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage}>
+        <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
             {data?.map((member) => (
               <Link
@@ -76,8 +76,8 @@ const MemberInfiniteList = (props: any) => {
           gap: 4px;
           align-items: baseline;
           padding: 12px 16px;
-          position: sticky;
-          top: 150px;
+          //position: sticky;
+          //top: 150px;
           z-index: 3;
           background: #f1f5f9;
         }

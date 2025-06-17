@@ -52,7 +52,7 @@ export default function FilterWrapper(props: IFilterwrapper) {
         .fw__mob {
         position: fixed;
         top: 0;
-        z-index: 5;
+        z-index: 6;
         height: 100%;
         width: 100%;
         }

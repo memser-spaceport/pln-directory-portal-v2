@@ -29,7 +29,6 @@ export default function FilterWrapper(props: IFilterwrapper) {
     document.removeEventListener(EVENTS.SHOW_FILTER, () => {});
   }, []);
 
-
   useEffect(() => {
     triggerLoader(false);
   }, [router, searchParams]);
@@ -55,7 +54,7 @@ export default function FilterWrapper(props: IFilterwrapper) {
         .fw__mob {
         position: fixed;
         top: 0;
-        z-index: 5;
+        z-index: 6;
         height: 100%;
         width: 100%;
         }
@@ -77,8 +76,9 @@ export default function FilterWrapper(props: IFilterwrapper) {
 
       <style jsx global>
         {`
-        html {
-        overflow: ${isMobileFilter ? 'hidden' : 'auto'}}
+          html {
+            overflow: ${isMobileFilter ? 'hidden' : 'auto'};
+          }
         `}
       </style>
     </div>

@@ -50,7 +50,7 @@ const ProjectlistWrapper = (props: any) => {
         <div className="project-list__titlesec">
           <h1 className="project-list__titlesec__title">Projects</h1> <div className="project-list__title__count">({totalProjects})</div>
         </div>
-        <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage}>
+        <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid' : 'project-list__list'}`}>
             {isLoggedIn && totalProjects > 0 && <ProjectAddCard userInfo={userInfo} viewType={viewType} />}
             {data?.map((project: any, index: number) => (
@@ -80,8 +80,8 @@ const ProjectlistWrapper = (props: any) => {
           gap: 4px;
           align-items: baseline;
           padding: 12px 16px;
-          position: sticky;
-          top: 150px;
+          //position: sticky;
+          //top: 150px;
           z-index: 3;
           background: #f1f5f9;
         }
@@ -140,7 +140,7 @@ const ProjectlistWrapper = (props: any) => {
           }
 
           .project-list__grid {
-            padding: unset;
+            padding: 8px 0;
           }
 
           .project-list__list {

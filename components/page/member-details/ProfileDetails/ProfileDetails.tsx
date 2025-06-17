@@ -23,7 +23,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
-  const hasMissingRequiredData = !member?.name || !member?.email || !member.skills.length;
+  const hasMissingRequiredData = !member?.name || !member?.email;
   const showIncomplete = !editView && hasMissingRequiredData && isOwner;
 
   return (

@@ -11,7 +11,7 @@ interface IFilterwrapper {
   userInfo: IUserInfo;
   searchParams: ITeamsSearchParams;
   focusAreas: any;
-  selectedTeam: any
+  selectedTeam: any;
   initialTeams: any;
   filters: any;
 }
@@ -20,7 +20,7 @@ export default function FilterWrapper(props: IFilterwrapper) {
   const [isMobileFilter, setIsMobileFilter] = useState(false);
   const selectedTeam = props?.selectedTeam;
   const router = useRouter();
-  
+
   useEffect(() => {
     document.addEventListener(EVENTS.SHOW_PROJECTS_FILTER, (e: any) => {
       setIsMobileFilter(e.detail);
@@ -54,7 +54,7 @@ export default function FilterWrapper(props: IFilterwrapper) {
         .fw__mob {
         position: fixed;
         top: 0;
-        z-index: 5;
+        z-index: 6;
         height: 100%;
         width: 100%;
         }

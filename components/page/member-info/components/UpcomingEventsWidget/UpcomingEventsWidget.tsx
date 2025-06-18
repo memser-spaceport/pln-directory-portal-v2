@@ -21,6 +21,7 @@ interface Props {
 
 export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   const [open, setOpen] = useLocalStorageParam('upcoming-events-widget', true);
+  const [visible, setVisible] = useLocalStorageParam('upcoming-events-widget-visibility', true);
 
   const { id } = useParams();
   const { data, isLoading } = useUpcomingEvents();
@@ -34,6 +35,10 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   if (!settings?.showInvitationDialog) {
     // do nothing
   } else if (!settings?.subscribed && userInfo.uid === id) {
+    return null;
+  }
+
+  if (!visible) {
     return null;
   }
 
@@ -58,6 +63,9 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
           >
             Upcoming Events <ArrowIcon />
           </Link>
+          <button onClick={() => setVisible(false)} className={s.toggleBtn}>
+            Not now
+          </button>
           <button onClick={() => setOpen(!open)} className={s.toggleBtn}>
             <ChevronDownIcon />
           </button>

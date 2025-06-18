@@ -91,7 +91,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                 {/*  </span>*/}
                 {/*)}*/}
               </Menu.Item>
-              <Menu.Item className={s.Item} onClick={() => setShowNotifications(true)}>
+              <Menu.Item className={clsx(s.Item)} onClick={() => setShowNotifications(true)} disabled={!notifications?.length}>
                 <NotificationsIcon /> Notifications
                 <div className={s.itemSub}>{notifications?.length > 0 && <div className={s.notificationsCount}>{notifications?.length}</div>}</div>
               </Menu.Item>

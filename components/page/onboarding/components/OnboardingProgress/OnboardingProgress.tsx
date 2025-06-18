@@ -31,6 +31,9 @@ export const OnboardingProgress = () => {
       case 'contacts': {
         return 2;
       }
+      case 'welcome': {
+        return 0;
+      }
       // case 'expertise': {
       //   return 3;
       // }
@@ -41,26 +44,32 @@ export const OnboardingProgress = () => {
   }
 
   function getProgressValue() {
-    let score = 20;
+    if (step === 'welcome') {
+      return 0;
+    }
+
+    let score = 0;
 
     if (values.name && !errors.name) {
-      score += 20;
+      score += 25;
     }
 
     if (values.email && !errors.email) {
-      score += 20;
+      score += 25;
     }
 
     if (values.officeHours && !errors.officeHours) {
-      score += 20;
+      score += 25;
     }
 
     if (values.telegram && !errors.telegram) {
-      score += 20;
+      score += 25;
     }
 
     return score;
   }
+
+  console.log(step);
 
   return (
     <div className={s.root}>

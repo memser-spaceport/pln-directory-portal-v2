@@ -41,13 +41,13 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
       onSubscribeToRecommendationsClicked('widget');
       setView('confirmation');
 
-      setTimeout(() => {
-        queryClient.invalidateQueries({
-          queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
-        });
-      }, 5000);
+      // setTimeout(() => {
+      //   queryClient.invalidateQueries({
+      //     queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
+      //   });
+      // }, 5000);
     }
-  }, [mutateAsync, onSubscribeToRecommendationsClicked, queryClient, userInfo]);
+  }, [mutateAsync, onSubscribeToRecommendationsClicked, userInfo]);
 
   const handleClose = useCallback(async () => {
     if (!userInfo) {
@@ -61,6 +61,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
 
     if (res) {
       onCloseSubscribeToRecommendationsClicked('widget');
+
       queryClient.invalidateQueries({
         queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
       });

@@ -239,8 +239,12 @@
 }
 
 .toggleBtn {
-  flex: 1;
   display: flex;
   justify-content: flex-end;
-  padding: 16px;
+  padding: 12px;
+  color: #ffffff;
+
+  &:hover {
+    filter: brightness(90%);
+  }
 }

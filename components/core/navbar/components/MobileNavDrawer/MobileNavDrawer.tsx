@@ -123,7 +123,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
               </div>
 
               {isLoggedIn && (
-                <Link onClick={() => onHelpItemClickHandler('My Profile')} target="" href="/settings/profile">
+                <Link onClick={() => onHelpItemClickHandler('My Profile')} target="" href={`/members/${userInfo.uid}`}>
                   <li className="md__container__bdy__supandset__optn">
                     <UserIcon />
                     <div className="nb__right__helpc__opts__optn__name">{userInfo.name ?? userInfo.email}</div>

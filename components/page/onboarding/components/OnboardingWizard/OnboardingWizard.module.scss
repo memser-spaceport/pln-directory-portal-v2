@@ -7,7 +7,7 @@
   flex: 1;
   background-color: #fff;
   border-radius: 16px 16px 0 0;
-  padding-bottom: 16px;
+  //padding-bottom: 16px;
 
   @include media.tablet-landscape {
     border-radius: 0;
@@ -28,7 +28,7 @@
   align-items: flex-start;
   justify-content: center;
   flex: 1;
-  padding-bottom: 24px;
+  padding-bottom: clamp(12px, 4vw, 24px); // 24px;
 
   @include media.tablet-landscape {
     align-items: center;
@@ -39,7 +39,7 @@
   background: linear-gradient(180deg, #204BBA 0%, #156FF7 100%);
   flex: 1;
   display: flex;
-  min-height: 400px;
+  //min-height: 400px;
 
   @include media.tablet-landscape {
     border-radius: 16px;

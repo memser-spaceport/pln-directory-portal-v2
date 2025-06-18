@@ -23,7 +23,7 @@ export const ProfileBio = ({ bio, isEditable, hasMissingData, onEdit }: Props) =
           <div dangerouslySetInnerHTML={{ __html: bio }} />
         ) : (
           <div className={s.row}>
-            <p>Tell who you are and what you do. A clear bio helps others understand you and connect better.</p>
+            <p>Tell others who you are, what you’re working on, and what you’re looking to connect around.</p>
             {/*{isEditable && (*/}
             {/*  <button className={s.btn} onClick={onEdit}>*/}
             {/*    Gen Bio <span className={s.desktopOnly}>with AI</span>*/}

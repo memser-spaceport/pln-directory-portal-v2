@@ -15,7 +15,6 @@ import { ADMIN_ROLE, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
-import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 
 export default async function Home() {
   const { featuredData, discoverData, isLoggedIn, isError, userInfo, focusAreas } = await getPageData();
@@ -45,7 +44,6 @@ export default async function Home() {
       </div>
       <HuskyDialog isLoggedIn={isLoggedIn} />
       <HuskyDiscover isLoggedIn={isLoggedIn} />
-      <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
     </>
   );
 }

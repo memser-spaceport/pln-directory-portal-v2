@@ -29,7 +29,7 @@ export const ProfileStep = ({ userInfo }: Props) => {
 
   const { getInputProps, getRootProps } = useDropzone({
     onError: (err) => {
-      console.log(err);
+      console.error(err);
     },
     onDrop: (acceptedFiles) => {
       console.log(acceptedFiles);

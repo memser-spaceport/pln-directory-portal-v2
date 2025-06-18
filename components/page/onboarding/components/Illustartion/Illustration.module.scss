@@ -12,7 +12,7 @@
 .heroImage {
   margin: 0 auto;
   width: 250px;
-  height: 220px;
+  height: calc(100vh * 0.2); // 220px;
 
   @include media.tablet-landscape {
     width: 428px;
@@ -22,14 +22,13 @@
 
 .list {
   list-style: none;
-  padding: 0;
-  margin: 0;
-  gap: 24px;
+  padding: 12px 0 0 0;
+  margin: auto  0 0 0;
+  gap: clamp(12px, 4vw, 24px); // 24px;
   display: flex;
   flex-direction: column;
   width: 100%;
   align-items: flex-start;
-  margin-top: auto;
 }
 
 .item {
@@ -42,7 +41,7 @@
 
 .primary {
   color: #FFF;
-  font-size: 24px;
+  font-size: clamp(18px, 5vw, 24px); // 24px;
   font-style: normal;
   font-weight: 900;
   line-height: 120.462%; /* 36.139px */

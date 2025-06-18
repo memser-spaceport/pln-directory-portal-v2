@@ -96,7 +96,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                           callback={callback}
                           type={item}
                           handle={handle}
-                          logo={getLogoByProvider(item)}
+                          logo={getLogoByProvider(item, !handle)}
                           className={clsx({
                             [s.incomplete]: !handle,
                           })}
@@ -116,7 +116,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                     callback={callback}
                     type=""
                     handle=""
-                    logo={getLogoByProvider('officeHours')}
+                    logo={getLogoByProvider('officeHours', true)}
                     className={clsx({
                       [s.incomplete]: true,
                     })}
@@ -180,7 +180,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   );
 };
 
-function getLogoByProvider(provider: string): string {
+function getLogoByProvider(provider: string, isIncomplete?: boolean): string {
   switch (provider) {
     case 'linkedin': {
       return '/icons/contact/linkedIn-contact-logo.svg';
@@ -198,12 +198,18 @@ function getLogoByProvider(provider: string): string {
       return '/icons/contact/team-contact-logo.svg';
     }
     case 'telegram': {
+      if (isIncomplete) {
+        return '/icons/contact/telegram-contact-logo-orange.svg';
+      }
       return '/icons/contact/telegram-contact-logo.svg';
     }
     case 'twitter': {
       return '/icons/contact/twitter-contact-logo.svg';
     }
     case 'officeHours': {
+      if (isIncomplete) {
+        return '/icons/contact/meet-contact-logo-orange.svg';
+      }
       return '/icons/contact/meet-contact-logo.svg';
     }
     default: {

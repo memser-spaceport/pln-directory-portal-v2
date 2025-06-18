@@ -41,7 +41,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const showOfficeHours = visibleHandles?.includes('officeHours');
-  const hasMissingRequiredData = !member?.telegramHandle || !member?.officeHours;
+  const hasMissingRequiredData = false; // !member?.telegramHandle || !member?.officeHours;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
   const showIncomplete = hasMissingRequiredData && isOwner;
@@ -96,12 +96,12 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                           callback={callback}
                           type={item}
                           handle={handle}
-                          logo={getLogoByProvider(item, !handle)}
+                          logo={getLogoByProvider(item)}
                           className={clsx({
                             [s.incomplete]: !handle,
                           })}
                         />
-                        {i === arr.length - 1 ? null : <div className={s.divider} />}
+                        <div className={s.divider} />
                       </Fragment>
                     ),
                   };
@@ -116,7 +116,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                     callback={callback}
                     type=""
                     handle=""
-                    logo={getLogoByProvider('officeHours', true)}
+                    logo={getLogoByProvider('officeHours', false)}
                     className={clsx({
                       [s.incomplete]: true,
                     })}

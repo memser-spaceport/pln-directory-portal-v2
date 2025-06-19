@@ -46,9 +46,11 @@ export const ExperiencesList = ({ isEditable, onAdd, onEdit, member }: Props) =>
                   </div>
                 </div>
               </div>
-              <button className={s.editBtn} onClick={() => onEdit(item)}>
-                <EditIcon />
-              </button>
+              {isEditable && (
+                <button className={s.editBtn} onClick={() => onEdit(item)}>
+                  <EditIcon />
+                </button>
+              )}
             </li>
           ))}
         </ul>

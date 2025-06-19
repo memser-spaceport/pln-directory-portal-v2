@@ -13,6 +13,7 @@ import QueryProvider from '@/providers/QueryProvider';
 import { SubscribeToRecoomendations } from '@/components/core/navbar/components/SubscribeToRecoomendations';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
+import PostHogIdentifier from '@/components/page/posthog-identifier';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <StyledJsxRegistry>
           <QueryProvider>
+            <PostHogIdentifier />
             <header className="layout__header">
               <SubscribeToRecoomendations userInfo={userInfo} />
               {/*<CompleteYourProfile userInfo={userInfo} />*/}

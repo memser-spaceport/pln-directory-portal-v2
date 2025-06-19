@@ -28,7 +28,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   const { data: settings } = useMemberNotificationsSettings(userInfo?.uid);
   const { onUpcomingEventsWidgetShowAllClicked } = useEventsAnalytics();
 
-  if (!userInfo || isLoading || !data?.length) {
+  if (!userInfo || isLoading || !data?.length || userInfo.uid !== id || !settings?.recommendationsEnabled) {
     return null;
   }
 

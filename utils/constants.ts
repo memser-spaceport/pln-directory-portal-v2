@@ -561,7 +561,6 @@ export const ChangeLogList = [
     <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Onboarding Wizard</span> - Introduced a step-by-step onboarding wizard to guide users through setting up their profile quickly and easily.</li>
     <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Inline Profile Editing</span> - Users can now edit profile sections directly on the page without navigating to separate forms.</li>
     <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Profile Widgets</span> - Added new profile widgets for showcasing upcoming events and personalized recommendations.</li>
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">AI-Powered Bio Generation</span> - Users can generate a professional bio automatically using AI, making profile setup faster and smarter.</li>
     </ul>
     </div>`,
   },

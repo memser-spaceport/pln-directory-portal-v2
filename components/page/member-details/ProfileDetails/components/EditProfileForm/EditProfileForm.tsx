@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import s from './EditProfileForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   onClose: () => void;
@@ -50,8 +51,11 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
   const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();
   const { data: memberData } = useMember(userInfo.uid);
+  const { onSaveProfileDetailsClicked } = useMemberAnalytics();
 
   const onSubmit = async (formData: TEditProfileForm) => {
+    onSaveProfileDetailsClicked();
+
     if (!memberData) {
       return;
     }

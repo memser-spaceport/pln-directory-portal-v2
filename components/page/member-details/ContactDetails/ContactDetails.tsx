@@ -9,6 +9,7 @@ import { MemberProfileLoginStrip } from '@/components/page/member-details/member
 import { EditContactForm } from '@/components/page/member-details/ContactDetails/components/EditContactForm';
 
 import s from './ContactDetails.module.scss';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   member: IMember;
@@ -18,6 +19,7 @@ interface Props {
 
 export const ContactDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
+  const { onEditContactDetailsClicked } = useMemberAnalytics();
 
   return (
     <>
@@ -31,7 +33,15 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member }: Props) => {
         {editView ? (
           <EditContactForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
         ) : (
-          <ContactDetailsView member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} onEdit={() => setEditView(true)} />
+          <ContactDetailsView
+            member={member}
+            isLoggedIn={isLoggedIn}
+            userInfo={userInfo}
+            onEdit={() => {
+              onEditContactDetailsClicked();
+              setEditView(true);
+            }}
+          />
         )}
       </div>
     </>

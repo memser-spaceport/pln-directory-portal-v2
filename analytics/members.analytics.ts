@@ -427,6 +427,54 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED);
   }
 
+  function onEditProfileDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_PROFILE_DETAILS_EDIT_CLICKED);
+  }
+
+  function onSaveProfileDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED);
+  }
+
+  function onEditContactDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTACT_DETAILS_EDIT_CLICKED);
+  }
+
+  function onSaveContactDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTACT_DETAILS_SAVE_CLICKED);
+  }
+
+  function onAddExperienceDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_ADD_CLICKED);
+  }
+
+  function onEditExperienceDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_EDIT_CLICKED);
+  }
+
+  function onDeleteExperienceDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_DELETE_CLICKED);
+  }
+
+  function onSaveExperienceDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_SAVE_CLICKED);
+  }
+
+  function onAddContributionDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED);
+  }
+
+  function onEditContributionDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED);
+  }
+
+  function onDeleteContributionDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_DELETE_CLICKED);
+  }
+
+  function onSaveContributionDetailsClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_SAVE_CLICKED);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -478,5 +526,17 @@ export const useMemberAnalytics = () => {
     onCloseSubscribeToRecommendationsClicked,
     onGoToCompleteProfileClicked,
     onCloseCompleteProfileClicked,
+    onEditProfileDetailsClicked,
+    onSaveProfileDetailsClicked,
+    onEditContactDetailsClicked,
+    onSaveContactDetailsClicked,
+    onAddExperienceDetailsClicked,
+    onDeleteExperienceDetailsClicked,
+    onSaveExperienceDetailsClicked,
+    onEditExperienceDetailsClicked,
+    onAddContributionDetailsClicked,
+    onSaveContributionDetailsClicked,
+    onDeleteContributionDetailsClicked,
+    onEditContributionDetailsClicked,
   };
 };

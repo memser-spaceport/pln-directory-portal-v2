@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { editContributionsSchema } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm/helpers';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   onClose: () => void;
@@ -52,8 +53,10 @@ export const EditContributionsForm = ({ onClose, member, userInfo, initialData }
   const { data } = useMemberFormOptions();
   const { mutateAsync, isPending } = useUpdateMember();
   const [isOpenDelete, setIsOpenDelete] = useState(false);
+  const { onDeleteContributionDetailsClicked, onSaveContributionDetailsClicked } = useMemberAnalytics();
 
   const onSubmit = async (formData: TEditContributionsForm) => {
+    onSaveContributionDetailsClicked();
     if (!memberData) {
       return;
     }
@@ -78,6 +81,7 @@ export const EditContributionsForm = ({ onClose, member, userInfo, initialData }
   };
 
   const onDelete = async () => {
+    onDeleteContributionDetailsClicked();
     if (!memberData) {
       return;
     }

@@ -18,6 +18,7 @@ import s from './EditExperienceForm.module.scss';
 import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { editExperienceSchema } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm/helpers';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   onClose: () => void;
@@ -47,8 +48,10 @@ export const EditExperienceForm = ({ onClose, member, userInfo, initialData }: P
   const initialState = { success: false, message: '', errorCode: '', errors: {} };
   const [state, formAction] = useFormState(MemberExperienceFormAction, initialState);
   const [, startTransition] = useTransition();
+  const { onSaveExperienceDetailsClicked, onDeleteExperienceDetailsClicked } = useMemberAnalytics();
 
   const onSubmit = (formData: TEditExperienceForm) => {
+    onSaveExperienceDetailsClicked();
     const _formData = new FormData();
     _formData.append('actionType', 'save');
     _formData.append('experience-title', formData.title);
@@ -70,6 +73,7 @@ export const EditExperienceForm = ({ onClose, member, userInfo, initialData }: P
   };
 
   const onDelete = () => {
+    onDeleteExperienceDetailsClicked();
     if (!initialData) {
       return;
     }

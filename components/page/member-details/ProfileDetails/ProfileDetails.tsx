@@ -10,6 +10,7 @@ import { ProfileBio } from '@/components/page/member-details/ProfileDetails/comp
 import { ADMIN_ROLE } from '@/utils/constants';
 
 import s from './ProfileDetails.module.scss';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   member: IMember;
@@ -25,6 +26,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isEditable = isOwner || isAdmin;
   const hasMissingRequiredData = !member?.name || !member?.email;
   const showIncomplete = !editView && hasMissingRequiredData && isOwner;
+  const { onEditProfileDetailsClicked } = useMemberAnalytics();
 
   return (
     <div
@@ -51,7 +53,15 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
               Please complete your profile to get full access to the platform.
             </div>
           )}
-          <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} onEdit={() => setEditView(true)} />
+          <MemberDetailHeader
+            member={member}
+            isLoggedIn={isLoggedIn}
+            userInfo={userInfo}
+            onEdit={() => {
+              onEditProfileDetailsClicked();
+              setEditView(true);
+            }}
+          />
           <ProfileBio
             bio={member.bio}
             isEditable={isEditable}

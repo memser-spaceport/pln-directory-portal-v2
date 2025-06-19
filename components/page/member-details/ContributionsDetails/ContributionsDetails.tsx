@@ -11,6 +11,7 @@ import { EditExperienceForm } from '@/components/page/member-details/ExperienceD
 import s from './ContributionsDetails.module.scss';
 import { ContributionsList } from '@/components/page/member-details/ContributionsDetails/components/ContributionsList';
 import { EditContributionsForm } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   member: IMember;
@@ -24,6 +25,7 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
+  const { onEditContributionDetailsClicked, onAddContributionDetailsClicked } = useMemberAnalytics();
 
   if (!isLoggedIn) {
     return null;
@@ -40,8 +42,12 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
           member={member}
           userInfo={userInfo}
           isEditable={isEditable}
-          onAdd={() => setView('add')}
+          onAdd={() => {
+            onAddContributionDetailsClicked();
+            setView('add');
+          }}
           onEdit={(item) => {
+            onEditContributionDetailsClicked();
             setSelectedItem(item);
             setView('edit');
           }}

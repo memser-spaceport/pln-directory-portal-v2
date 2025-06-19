@@ -151,14 +151,16 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     member = { ...member, repositories: respositorymemberResponse };
   }
 
-  if (isLoggedIn && (!userInfo?.roles?.includes(ADMIN_ROLE) || userInfo?.uid === member?.id)) {
+  if (isLoggedIn && (!userInfo?.roles?.includes(ADMIN_ROLE) || userInfo?.uid !== member?.id)) {
     let memberPreferences = member?.preferences;
     let preferences;
+
     if (!memberPreferences) {
       preferences = JSON.parse(JSON.stringify(PRIVACY_CONSTANTS.DEFAULT_SETTINGS));
     } else {
       preferences = memberPreferences;
     }
+
     if (isHidePref) {
       hidePreferences(preferences, member);
     }

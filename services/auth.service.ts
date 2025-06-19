@@ -23,10 +23,13 @@ export const checkIsValidToken = async (token: string) => {
     cache: 'no-store',
   });
   const validateResult = await validateResponse.json();
-  if (!validateResponse?.ok || !validateResult?.active) {
-    return false;
+  console.log('auth.service validateResult', validateResult);
+
+  if (!validateResponse?.ok) {
+    return null; 
   }
-  return true;
+
+  return validateResult;
 };
 
 export const createStateUid = async () => {

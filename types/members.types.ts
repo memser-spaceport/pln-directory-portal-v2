@@ -44,13 +44,62 @@ export interface IMemberResponse {
   bio?: string;
 }
 
+export interface IProjectContribution {
+  currentProject: boolean;
+  description: string;
+  endDate: string;
+  memberUid: string;
+  project: {
+    contactEmail: string;
+    createdAt: string;
+    createdBy: string;
+    description: string;
+    isDeleted: boolean;
+    isFeatured: boolean;
+    logoUid: string;
+    lookingForFunding: boolean;
+    maintainingTeamUid: string;
+    name: string;
+    osoProjectName: string;
+    kpis: { key: string; value: string }[];
+    logo: {
+      cid: string;
+      createdAt: string;
+      filename: string;
+      height: number;
+      size: number;
+      thumbnailToUid: null;
+      type: string;
+      uid: string;
+      updatedAt: string;
+      url: string;
+      version: string;
+      width: number;
+    };
+    projectLinks: {
+      url: string;
+      name: string;
+    }[];
+    readMe: string;
+    tagline: string;
+    score: number;
+    tags: string[];
+    uid: string;
+    updatedAt: string;
+  };
+  projectUid: string;
+  role: string;
+  startDate: string;
+  uid: string;
+}
+
 export interface IMember {
   profile?: string | null;
   id: string;
   name: string;
-  skills: [{ title: string }];
+  skills: [{ uid: string; title: string }];
   teamMemberRoles?: ITeamMemberRole[];
-  projectContributions: [];
+  projectContributions: IProjectContribution[];
   location: IMemberLocation;
   email?: string | null;
   githubHandle?: string | null;
@@ -63,7 +112,15 @@ export interface IMember {
   mainTeam: IMemberTeam | null;
   openToWork: boolean;
   linkedinHandle?: string | null;
-  repositories?: [];
+  repositories?:
+    | {
+        createdAt: string;
+        description: null;
+        name: string;
+        updatedAt: string;
+        url: string;
+      }[]
+    | { statusCode: number; message: string };
   preferences: IMemberPreferences;
   bio?: string;
   isVerified?: boolean;

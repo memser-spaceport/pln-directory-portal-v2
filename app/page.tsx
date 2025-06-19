@@ -1,3 +1,4 @@
+import React from 'react';
 import styles from './page.module.css';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDiscoverData } from '@/services/discovery.service';

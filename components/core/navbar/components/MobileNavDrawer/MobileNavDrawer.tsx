@@ -16,6 +16,8 @@ import { usePostHog } from 'posthog-js/react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 import s from './MobileNavDrawer.module.scss';
+import { isNumber } from 'lodash';
+import { Signup } from '@/components/core/navbar/components/Signup';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
@@ -24,6 +26,7 @@ interface IMobileNavDrawer {
   authToken: string;
   onShowNotifications: () => void;
   notificationsCount?: number;
+  profileFilledPercent?: number | null;
 }
 
 export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
@@ -36,7 +39,6 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
   const postHogProps = usePostHog();
   const drawerRef = useRef(null);
   const router = useRouter();
-
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
 
   useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
@@ -121,10 +123,15 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
               </div>
 
               {isLoggedIn && (
-                <Link onClick={() => onHelpItemClickHandler('My Profile')} target="" href="/settings/profile">
+                <Link onClick={() => onHelpItemClickHandler('My Profile')} target="" href={`/members/${userInfo.uid}`}>
                   <li className="md__container__bdy__supandset__optn">
                     <UserIcon />
                     <div className="nb__right__helpc__opts__optn__name">{userInfo.name ?? userInfo.email}</div>
+                    {/*{isNumber(props.profileFilledPercent) && props.profileFilledPercent !== 100 && (*/}
+                    {/*  <span className="nb__right_sub">*/}
+                    {/*    Filled <div className="nb__right_notifications_count">{props.profileFilledPercent}%</div>*/}
+                    {/*  </span>*/}
+                    {/*)}*/}
                   </li>
                 </Link>
               )}
@@ -140,7 +147,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                 >
                   <NotificationsIcon />
                   <div className="md__container__bdy__supandset__optn__name">Notifications</div>
-                  {props.notificationsCount && props.notificationsCount > 0 && <div className="nb__right_notifications_count">{props.notificationsCount}</div>}
+                  {!!props.notificationsCount && props.notificationsCount > 0 && <div className="nb__right_notifications_count">{props.notificationsCount}</div>}
                 </li>
               )}
 
@@ -177,6 +184,11 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                 }
               })}
 
+              <div className={s.SeparatorWrapper}>
+                Settings
+                <Separator className={s.Separator} />
+              </div>
+
               {isLoggedIn && (
                 <>
                   <div className={s.SeparatorWrapper}>
@@ -210,6 +222,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                   Feedback
                 </button> */}
                 <LoginBtn />
+                <Signup />
               </div>
             )}
 
@@ -405,7 +418,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
           .md__container__bdy__footer__lgnop {
             display: flex;
             align-items: center;
-            // justify-content: space-between;
+            justify-content: space-between;
             gap: 10px;
             width: 100%;
           }
@@ -494,6 +507,47 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
             font-weight: 600;
             line-height: normal;
             margin-left: auto;
+          }
+
+          .nb__right_notifications_count {
+            background: #ff820e;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            z-index: 2;
+            min-width: 15px;
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding-block: 2px;
+            padding-inline: 4px;
+            flex-direction: column;
+            flex-shrink: 0;
+
+            color: #fff;
+            text-align: center;
+            font-size: 10px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: normal;
+            margin-left: auto;
+          }
+
+          .nb__right_sub {
+            display: flex;
+            align-items: center;
+            color: #cad3df;
+            font-feature-settings:
+              'liga' off,
+              'clig' off;
+            font-size: 10px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 14px; /* 140% */
+            margin-left: auto;
+            gap: 4px;
+            position: relative;
           }
 
           @media (min-width: 1024px) {

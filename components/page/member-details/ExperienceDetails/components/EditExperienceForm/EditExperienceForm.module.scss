@@ -1,0 +1,36 @@
+@use 'styles/media';
+
+.body {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  align-self: stretch;
+  border-radius: 16px;
+  background: #FFF;
+
+  @include media.tablet-landscape {
+    padding: 32px;
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #F71515;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  padding: 8px 24px;
+  margin: 0 auto;
+}

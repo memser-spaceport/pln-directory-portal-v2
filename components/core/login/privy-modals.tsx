@@ -52,29 +52,21 @@ function PrivyModals() {
 
   const loginInUser = (output: any) => {
     clearPrivyParams();
-  
+
     const showSuccessMessage = () => {
       setLinkAccountKey('');
       toast.success(TOAST_MESSAGES.LOGIN_MSG);
       Cookies.set('showNotificationPopup', JSON.stringify(true));
       document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
     };
-  
-    if (output.userInfo?.isFirstTimeLogin) {
-      showSuccessMessage();
-      window.location.href = '/settings/profile';
-      return;
-    }
-  
-    // For subsequent logins
+
     showSuccessMessage();
-    
+
     // Reload the page after a delay
     setTimeout(() => {
       window.location.reload();
     }, 500);
   };
-  
 
   const saveTokensAndUserInfo = (output: any, user: User) => {
     const authLinkedAccounts = getLinkedAccounts(user);
@@ -274,8 +266,20 @@ function PrivyModals() {
     }
     async function initPrivyLogin() {
       const stateUid = localStorage.getItem('stateUid');
+      const prefillEmail = localStorage.getItem('prefillEmail');
+
       if (stateUid) {
-        login();
+        login(
+          prefillEmail
+            ? {
+                prefill: {
+                  type: 'email',
+                  value: prefillEmail,
+                },
+                loginMethods: ['email'],
+              }
+            : undefined,
+        );
       }
     }
     function addAccountToPrivy(e: CustomEvent) {

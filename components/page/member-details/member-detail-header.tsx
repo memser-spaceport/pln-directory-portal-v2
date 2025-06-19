@@ -8,16 +8,18 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
 import { parseMemberLocation } from '@/utils/member.utils';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useEffect } from 'react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/useRecommendationLinkAnalyticsReport';
+import { EditButton } from '@/components/page/member-details/components/EditButton';
+import clsx from 'clsx';
 
 interface IMemberDetailHeader {
   member: IMember;
   userInfo: IUserInfo;
   isLoggedIn: boolean;
+  onEdit: () => void;
 }
 const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const member = props?.member;
@@ -29,6 +31,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const isOpenToWork = member?.openToWork;
   const skills = member?.skills;
   const userInfo = props?.userInfo;
+  const { onEdit } = props;
   const router = useRouter();
 
   const mainTeam = member?.mainTeam;
@@ -43,6 +46,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
+  const hasMissingRequiredData = !member?.name || !member?.email;
+  const showIncomplete = hasMissingRequiredData && isLoggedIn && isOwner;
 
   useRecommendationLinkAnalyticsReport(member);
 
@@ -52,6 +57,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
     } else if (isAdmin) {
       analytics.onMemberEditByAdmin(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
     }
+
+    onEdit();
   };
 
   useEffect(() => {
@@ -60,7 +67,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
 
   return (
     <>
-      <div className="header">
+      <div className={clsx('header')}>
         <div className="header__profile">
           <img loading="lazy" className="header__profile__img" src={profile} alt="project image" />
         </div>
@@ -115,13 +122,12 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
               <img loading="lazy" src="/icons/notification.svg" alt="notification icon" />
             </button> */}
             {isLoggedIn && (isAdmin || isOwner) && (
-              <Link legacyBehavior passHref href={editUrl}>
-                <a href={editUrl} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
-                  <img loading="lazy" alt="Edit" src="/icons/edit.svg" />
-                  <span className="header__detials__edit-and-notification__edit__txt--mob">Edit</span>
-                  <span className="header__detials__edit-and-notification__edit__txt--desc">Edit Profile</span>
-                </a>
-              </Link>
+              <EditButton onClick={onEditProfileClick} />
+              // <Link legacyBehavior passHref href={editUrl}>
+              //   <a href={editUrl} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
+              //     <EditIcon /> Edit
+              //   </a>
+              // </Link>
             )}
           </div>
         </div>
@@ -183,7 +189,16 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           color: #000;
           grid-template-columns: 48px auto;
           column-gap: 8px;
-          padding: 16px 16px 24px 16px;
+          //padding: 16px 16px 24px 16px;
+        }
+
+        .header__missing_data {
+          border-radius: 8px;
+          border: 1px solid rgba(238, 189, 108, 0.25);
+          background: linear-gradient(0deg, #fcfaed 0%, #fcfaed 100%), #fff;
+          box-shadow:
+            0 0 1px 0 rgba(255, 130, 14, 0.12),
+            0 4px 4px 0 rgba(255, 130, 14, 0.04);
         }
 
         .header__profile {
@@ -307,15 +322,19 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
         }
 
         .header__detials__edit-and-notification__edit {
-          color: #156ff7;
-          font-size: 15px;
-          line-height: 24px;
-          display: flex;
           display: flex;
           align-items: center;
           gap: 8px;
           white-space: nowrap;
-          font-weight: 600;
+
+          color: #156ff7;
+          text-align: center;
+          font-feature-settings:
+            'liga' off,
+            'clig' off;
+          font-size: 14px;
+          font-style: normal;
+          font-weight: 500;
         }
         .header__tags {
           grid-row: span 1 / span 1;
@@ -361,7 +380,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
             // grid-template-columns: repeat(10, minmax(0, 1fr));
             grid-template-columns: 80px auto;
             column-gap: 24px;
-            padding: 20px;
+            //padding: 20px;
           }
 
           .header__profile {

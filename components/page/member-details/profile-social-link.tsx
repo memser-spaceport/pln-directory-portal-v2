@@ -17,10 +17,11 @@ interface IProfileSocialLink {
   callback: (type: string, url: string) => void;
   isPreview?: boolean;
   suffix?: ReactNode;
+  className?: string;
 }
 
 export function ProfileSocialLink(props: IProfileSocialLink) {
-  const { suffix, isPreview, profile, type, logo, height, width, handle, preferred = false, callback } = props;
+  const { suffix, isPreview, profile, type, logo, height, width, handle, preferred = false, callback, className } = props;
 
   const href = getSocialLinkUrl(profile, type, handle);
 
@@ -29,7 +30,7 @@ export function ProfileSocialLink(props: IProfileSocialLink) {
       <Tooltip
         asChild
         trigger={
-          <div className="profile-social-link__suffix">
+          <div className={clsx('profile-social-link__suffix', className)}>
             <a
               onClick={(e) => {
                 if (isPreview) {

@@ -62,7 +62,7 @@ export const FiltersSearch = (props: Props) => {
             value={searchInput}
             onChange={(e) => onInputChange(e)}
             className="toolbar__left__search-container__searchfrm__input"
-            placeholder="Search by Member Name, Team, or Project"
+            placeholder="Search for a project"
             onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
             data-testid="search-input"
           />
@@ -211,7 +211,7 @@ export const FiltersSearch = (props: Props) => {
 
           .toolbar__left__search-container__searchfrm__input {
             border: none;
-            width: 84px;
+            width: 100%;
             background-color: #fff;
             color: black;
           }

@@ -18,20 +18,28 @@ import { useGetAppNotifications } from '@/services/notifications/hooks/useGetApp
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { clsx } from 'clsx';
 import { useRouter } from 'next/navigation';
+import { isNumber } from 'lodash';
+import { useMember } from '@/services/members/hooks/useMember';
+import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 
 interface Props {
   userInfo: IUserInfo;
   authToken: string;
   isLoggedIn: boolean;
+  profileFilledPercent?: number | null;
 }
 
-export const AccountMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
+export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPercent }: Props) => {
   const menuTriggerRef = React.useRef<HTMLButtonElement>(null);
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
   const analytics = useCommonAnalytics();
   const postHogProps = usePostHog();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
+  const { data: member, isLoading } = useMember(userInfo.uid);
+  const [hideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
+  const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
+  const hideProfileStatus = !userInfo || isProfileFilled || hideCompleteProfile || isLoading;
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();
@@ -74,15 +82,44 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
               <Menu.Item
                 className={s.Item}
                 onClick={() => {
-                  router.push('/settings/profile');
+                  router.push(`/members/${userInfo.uid}`);
                 }}
               >
-                <UserIcon /> {userInfo.name ?? userInfo.email}
+                <UserIcon /> {userInfo.name ?? userInfo.email} {/*{isNumber(profileFilledPercent) && profileFilledPercent !== 100 && (*/}
+                {/*  <span className={s.itemSub}>*/}
+                {/*    Filled <div className={s.notificationsCount}>{profileFilledPercent}%</div>*/}
+                {/*  </span>*/}
+                {/*)}*/}
               </Menu.Item>
-              <Menu.Item className={s.Item} onClick={() => setShowNotifications(true)}>
+              <Menu.Item className={clsx(s.Item)} onClick={() => setShowNotifications(true)} disabled={!notifications?.length}>
                 <NotificationsIcon /> Notifications
                 <div className={s.itemSub}>{notifications?.length > 0 && <div className={s.notificationsCount}>{notifications?.length}</div>}</div>
               </Menu.Item>
+              <Link target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>
+                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('ProtoSphere', getAnalyticsUserInfo(userInfo))}>
+                  <MessageIcon /> ProtoSphere{' '}
+                  <span className={s.itemSub}>
+                    Forum <LinkIcon />
+                  </span>
+                </Menu.Item>
+              </Link>
+              <div className={s.SeparatorWrapper}>
+                Support
+                <Menu.Separator className={s.Separator} />
+              </div>
+              <Link target="_blank" href={process.env.GET_SUPPORT_URL ?? ''}>
+                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Get Support', getAnalyticsUserInfo(userInfo))}>
+                  <HelpIcon /> Get Support{' '}
+                  <span className={s.itemSub}>
+                    <LinkIcon />
+                  </span>
+                </Menu.Item>
+              </Link>
+              <Link href="/changelog">
+                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Changelog', getAnalyticsUserInfo(userInfo))}>
+                  <ChangeLogIcon /> Changelog
+                </Menu.Item>
+              </Link>
               <div className={s.SeparatorWrapper}>
                 Settings
                 <Menu.Separator className={s.Separator} />

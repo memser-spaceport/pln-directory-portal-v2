@@ -4,6 +4,7 @@ import { IAnalyticsTeamInfo, IAnalyticsUserInfo } from '@/types/shared.types';
 import { MEMBER_ANALYTICS_EVENTS } from '@/utils/constants';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
+import { OnboardingWizardStep } from '@/services/onboarding/store';
 
 export const useMemberAnalytics = () => {
   const postHogProps = usePostHog();
@@ -392,6 +393,40 @@ export const useMemberAnalytics = () => {
     });
   }
 
+  function onOnboardingWizardOpen() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_OPEN);
+  }
+
+  function onOnboardingWizardClose(step: OnboardingWizardStep) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_CLOSE, {
+      step,
+    });
+  }
+
+  function onOnboardingWizardComplete() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_COMPLETE);
+  }
+
+  function onSubscribeToRecommendationsClicked(element: 'bar' | 'widget') {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED, {
+      element,
+    });
+  }
+
+  function onCloseSubscribeToRecommendationsClicked(element: 'bar' | 'widget') {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CLOSE_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED, {
+      element,
+    });
+  }
+
+  function onGoToCompleteProfileClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED);
+  }
+
+  function onCloseCompleteProfileClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -436,5 +471,12 @@ export const useMemberAnalytics = () => {
     onAddExperienceSaveClicked,
     onDeleteExperienceSaveClicked,
     onOpenProfileByRecommendationEmailLink,
+    onOnboardingWizardOpen,
+    onOnboardingWizardClose,
+    onOnboardingWizardComplete,
+    onSubscribeToRecommendationsClicked,
+    onCloseSubscribeToRecommendationsClicked,
+    onGoToCompleteProfileClicked,
+    onCloseCompleteProfileClicked,
   };
 };

@@ -3,6 +3,22 @@
 
 .root {
   padding: 20px;
+  position: relative;
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &.missingData {
+    border-radius: 8px;
+    background: linear-gradient(0deg, #fcfaed 0%, #fcfaed 100%), #fff;
+    box-shadow:
+            0 0 1px 0 rgba(255, 130, 14, 0.12),
+            0 4px 4px 0 rgba(255, 130, 14, 0.04);
+    padding-top: 48px;
+  }
 }
 
 .title {
@@ -136,6 +152,7 @@
 .content {
   position: relative;
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
 }
@@ -149,5 +166,36 @@
 
   @include media.tablet-portrait {
     display: block;
+  }
+}
+
+.incomplete {
+  opacity: 0.35;
+  pointer-events: none;
+  user-select: none;
+}
+
+.missingDataHeader {
+  border-radius: 0;
+  background: #EEBD6C;
+  display: flex;
+  padding: 8px 16px;
+  justify-content: center;
+  align-items: center;
+  align-self: stretch;
+  gap: 8px;
+
+  color: #0F172A;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.12px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    border-radius: 8px 8px 0 0;
   }
 }

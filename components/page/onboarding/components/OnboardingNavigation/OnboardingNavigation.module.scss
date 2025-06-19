@@ -1,0 +1,123 @@
+@use 'styles/mixins';
+@use 'styles/media';
+
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(8px, 3vw, 16px); // 16px;
+
+
+  @include media.tablet-landscape {
+    padding: 0;
+    height: 40px;
+    margin-top: 24px;
+  }
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.label {
+  color: #475569;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 166.667% */
+
+  &.primary {
+    color: #0F172A;
+    font-weight: 500;
+  }
+}
+
+.info {
+  color: #156FF7;
+  text-align: center;
+  font-size: clamp(10px, 3vw, 14px);
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+
+.triggerLoginButton {
+  color: #156FF7;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 166.667% */
+}
+
+.withControls {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  flex: 1;
+  grid-gap: 12px;
+  grid-template-areas:
+          'prev next'
+          'info info';
+
+  @include media.tablet-landscape {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+  }
+
+  .secondary {
+    grid-area: prev;
+  }
+
+  .primary {
+    grid-area: next;
+  }
+
+  .info {
+    grid-area: info;
+  }
+}
+
+.btn {
+  display: flex;
+  width: 100px;
+  height: 40px;
+  padding: 10px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  margin-left: auto;
+
+  &.primary {
+    box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
+    background: #156FF7;
+    color: #FFF;
+    width: 100%;
+
+    &:disabled {
+      background: rgba(21, 111, 247, 0.50);
+    }
+
+    @include media.tablet-landscape {
+      width: initial;
+      margin-left: 0;
+    }
+  }
+
+  &.secondary {
+    background: var(--Surface-surface-light, #FFF);
+    color: var(--Text-text-dark, #0F172A);
+    margin-left: 0;
+  }
+}

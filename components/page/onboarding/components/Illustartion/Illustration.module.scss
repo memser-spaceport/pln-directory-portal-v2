@@ -1,0 +1,65 @@
+@use 'styles/mixins';
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background-size: cover;
+  padding: 24px 24px 48px;
+}
+
+.heroImage {
+  margin: 0 auto;
+  width: 250px;
+  height: calc(100vh * 0.2); // 220px;
+
+  @include media.tablet-landscape {
+    width: 428px;
+    height: 375px;
+  };
+}
+
+.list {
+  list-style: none;
+  padding: 12px 0 0 0;
+  margin: auto  0 0 0;
+  gap: clamp(12px, 4vw, 24px); // 24px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-inline: 8px;
+  border-left: 8px solid rgba(255, 255, 255, 0.80);
+}
+
+.primary {
+  color: #FFF;
+  font-size: clamp(18px, 5vw, 24px); // 24px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 120.462%; /* 36.139px */
+  text-transform: uppercase;
+
+  @include media.tablet-landscape {
+    font-size: 30px;
+  }
+}
+
+.secondary {
+  color: rgba(255, 255, 255, 0.80);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+
+  @include media.tablet-landscape {
+    font-size: 18px;
+  }
+}

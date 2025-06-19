@@ -6,9 +6,9 @@
 
 .team__right__toolbar {
   height: 72px;
-  position: sticky;
+  /*position: sticky;*/
   z-index: 4;
-  top: 80px;
+  /*top: 80px;*/
   padding: 16px;
   border-bottom: 1px solid #e2e8f0;
   background: #fff;

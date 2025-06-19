@@ -378,6 +378,14 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED: 'member_detail_delete_experience_save_clicked',
 
   MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK: 'recommendation-email-connect_clicked',
+
+  ONBOARDING_WIZARD_OPEN: 'onboarding-wizard-open',
+  ONBOARDING_WIZARD_CLOSE: 'onboarding-wizard-close',
+  ONBOARDING_WIZARD_COMPLETE: 'onboarding-wizard-complete',
+  ONBOARDING_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-subscribe-to-recommendations-clicked',
+  ONBOARDING_CLOSE_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-close-subscribe-to-recommendations-clicked',
+  ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED: 'onboarding-go-to-complete-profile-clicked',
+  ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED: 'onboarding-close-complete-profile-clicked',
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
@@ -434,6 +442,7 @@ export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_CONTRIBUTE_MODAL_IRL_PROCEED_BUTTON_CLICKED: 'events-page-contribute-modal-irl-proceed-button-clicked',
   EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED: 'events-page-contributing-team-clicked',
   EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED: 'events-page-contributing-members-clicked',
+  UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED: 'upcoming-events-widget-show-all-clicked',
 };
 
 export const HOME = {

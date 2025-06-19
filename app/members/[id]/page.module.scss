@@ -1,15 +1,18 @@
+@use 'styles/media';
+
 .memberDetail {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-bottom: 40px;
-  min-height: 100px;
+  padding-bottom: 110px;
   background-color: #f1f5f9;
-  min-height: calc(100vh - 80px);
+
+  @include media.tablet-landscape {
+    padding-bottom: 40px;
+  }
 }
 
 .memberDetail__breadcrumb {
-  display: unset;
   height: 48px;
   width: 100%;
   position: sticky;

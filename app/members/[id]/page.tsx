@@ -1,31 +1,28 @@
 import Error from '@/components/core/error';
-import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { RedirectType, redirect } from 'next/navigation';
-import styles from './page.module.css';
+import styles from './page.module.scss';
 import { BreadCrumb } from '@/components/core/bread-crumb';
-import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
-import { MemberProfileLoginStrip } from '@/components/page/member-details/member-details-login-strip';
-import { ContactDetails } from '@/components/page/member-details/contact-details';
 import MemberTeams from '@/components/page/member-details/member-teams';
-import MemberRepositories from '@/components/page/member-details/member-repositories';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMember, getMemberUidByAirtableId } from '@/services/members.service';
 import { getAllTeams } from '@/services/teams.service';
-import MemberProjectContribution from '@/components/page/member-details/member-project-contribution';
-import Bio from '@/components/page/member-details/bio';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
-import ExperienceList from '@/components/page/member-details/experience/experience-list-card';
+import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
+import { ContactDetails } from '@/components/page/member-details/ContactDetails';
+import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
+import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
+import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
+import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
+import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
-  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo, officeHoursFlag } = await getpageData(memberId);
+  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo } = await getpageData(memberId);
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
   }
-
-  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
-  const isExperienceEditable = isLoggedIn && (member?.id === userInfo?.uid || isAdmin);
 
   if (isError) {
     return <Error />;
@@ -37,36 +34,28 @@ const MemberDetails = async ({ params }: { params: any }) => {
         <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
       </div>
       <div className={styles?.memberDetail__container}>
-        <div>
-          <div className={`${styles?.memberDetail__container__header} ${isLoggedIn ? styles?.memberDetail__container__header__isLoggedIn : styles?.memberDetail__container__header__loggedOut}`}>
-            <MemberDetailHeader member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            {member?.bio && isLoggedIn && <Bio member={member} userInfo={userInfo} />}
-          </div>
-        </div>
-        <div className={styles?.memberDetail__container__contact}>
-          {!isLoggedIn && <MemberProfileLoginStrip member={member} variant="secondary" />}
-          <ContactDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-        </div>
-        {isLoggedIn && <ExperienceList member={member} isEditable={isExperienceEditable} />}
+        <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
+        <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
+        <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
         <div className={styles?.memberDetail__container__teams}>
           <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
         </div>
-        {isLoggedIn && (
-          <div className={styles?.memberDetail__projectContribution}>
-            <MemberProjectContribution member={member} userInfo={userInfo} />
-          </div>
-        )}
+
+        <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
         {member.eventGuests.length > 0 && (
           <div className={styles?.memberDetail__irlContribution}>
             <IrlMemberContribution member={member} userInfo={userInfo} />
           </div>
         )}
-        {isLoggedIn && (
-          <div className={styles?.memberDetail__container__repositories}>
-            <MemberRepositories member={member} userInfo={userInfo} />
-          </div>
-        )}
+
+        <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
       </div>
+      <SubscribeToRecommendationsWidget userInfo={userInfo} />
+      <UpcomingEventsWidget userInfo={userInfo} />
     </div>
   );
 };
@@ -91,7 +80,7 @@ const getpageData = async (memberId: string) => {
     }
 
     const [memberResponse, memberTeamsResponse] = await Promise.all([
-      getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo),
+      getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo, true, true),
       getAllTeams(
         '',
         {

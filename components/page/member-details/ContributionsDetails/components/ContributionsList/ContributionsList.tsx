@@ -41,9 +41,11 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
                   <div className={s.secondaryLabel}>{item.role}</div>
                 </div>
               </div>
-              <button className={s.editBtn} onClick={() => onEdit(item)}>
-                <EditIcon />
-              </button>
+              {isEditable && (
+                <button className={s.editBtn} onClick={() => onEdit(item)}>
+                  <EditIcon />
+                </button>
+              )}
             </li>
           ))}
         </ul>

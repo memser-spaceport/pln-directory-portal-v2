@@ -386,6 +386,21 @@ export const MEMBER_ANALYTICS_EVENTS = {
   ONBOARDING_CLOSE_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-close-subscribe-to-recommendations-clicked',
   ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED: 'onboarding-go-to-complete-profile-clicked',
   ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED: 'onboarding-close-complete-profile-clicked',
+
+  INLINE_PROFILE_EDITOR_PROFILE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-profile-details-edit-clicked',
+  INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-profile-details-save-clicked',
+  INLINE_PROFILE_EDITOR_CONTACT_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contact-details-edit-clicked',
+  INLINE_PROFILE_EDITOR_CONTACT_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contact-details-save-clicked',
+
+  INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_ADD_CLICKED: 'inline-profile-editor-experience-details-add-clicked',
+  INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-experience-details-save-clicked',
+  INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_DELETE_CLICKED: 'inline-profile-editor-experience-details-delete-clicked',
+  INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-experience-details-edit-clicked',
+
+  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED: 'inline-profile-editor-contribution-details-add-clicked',
+  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',
+  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_DELETE_CLICKED: 'inline-profile-editor-contribution-details-delete-clicked',
+  INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contribution-details-save-clicked',
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {

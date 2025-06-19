@@ -12,6 +12,7 @@ import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 
 import s from './EditContactForm.module.scss';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   onClose: () => void;
@@ -34,8 +35,11 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
   const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();
   const { data: memberData } = useMember(userInfo.uid);
+  const { onSaveContactDetailsClicked } = useMemberAnalytics();
 
   const onSubmit = async (formData: TEditContactForm) => {
+    onSaveContactDetailsClicked();
+
     if (!memberData) {
       return;
     }

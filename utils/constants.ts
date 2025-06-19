@@ -551,6 +551,21 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.14 - Directory Enhancements',
+    tag: 'Improvements',
+    date: '19, Jun 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Onboarding Wizard</span> - Introduced a step-by-step onboarding wizard to guide users through setting up their profile quickly and easily.</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Inline Profile Editing</span> - Users can now edit profile sections directly on the page without navigating to separate forms.</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Profile Widgets</span> - Added new profile widgets for showcasing upcoming events and personalized recommendations.</li>
+    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">AI-Powered Bio Generation</span> - Users can generate a professional bio automatically using AI, making profile setup faster and smarter.</li>
+    </ul>
+    </div>`,
+  },
+  {
     title: 'Version 4.1.13 - Directory Enhancements',
     tag: 'Improvements',
     date: '03, Jun 2025',

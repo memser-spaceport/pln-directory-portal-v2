@@ -5,6 +5,7 @@ import EventsBanner from '@/components/page/events/events-banner';
 import HuskyBanner from '@/components/page/events/husky-banner';
 import ScheduleSection from '@/components/page/events/schedule-section';
 import ScrollObserver from '@/components/page/events/scroll-observer';
+import CreateEventSchedule from '@/components/page/irl/create-event-schedule/create-event-schedule';
 
 import s from './layout.module.css';
 
@@ -21,6 +22,9 @@ export default function Layout({
     <>
       <div className={s.top}>
         <EventsBanner userInfo={userInfo} />
+      </div>
+      <div className={s.createSchedule}>
+        <CreateEventSchedule currentLocation={""} />
       </div>
       <div id="events">
         {events}

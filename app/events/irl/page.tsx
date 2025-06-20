@@ -14,6 +14,7 @@ import IrlErrorPage from '@/components/core/irl-error-page';
 import { getFilteredEventsForUser, parseSearchParams } from '@/utils/irl.utils';
 import IrlFollowGathering from '@/components/page/irl/follow-gathering/irl-follow-gathering';
 import IrlHuskyIntegration from '@/components/page/irl/irl-husky/irl-husky-integration';
+import CreateEventSchedule from '@/components/page/irl/create-event-schedule/create-event-schedule';
 
 export default async function Page({ searchParams }: any) {
   const {
@@ -46,6 +47,10 @@ export default async function Page({ searchParams }: any) {
         <section className={styles.irlGatherings__header}>
           <IrlHeader/>
         </section>
+        {/* Create Schedule */}
+        <section className={styles.irlGatherings__createSchedule}>
+          <CreateEventSchedule currentLocation={eventLocationSummary} />
+        </section>
         {/* Locations */}
         <section className={styles.irlGatheings__locations}>
           <IrlLocation locationDetails={locationDetails} searchParams={searchParams} />
@@ -54,7 +59,8 @@ export default async function Page({ searchParams }: any) {
         <section className={styles.irlGatherings__events}>
           <IrlEvents isUserGoing={isUserGoing as boolean} userInfo={userInfo} isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} guestDetails={guestDetails} locationDetails={locationDetails}/>
         </section>
-        <section className={styles.irlGatheings__huskyIntegration}>
+        {/* Husky Integration */}
+        <section className={styles.irlGatherings__huskyIntegration}>
           <IrlHuskyIntegration currentLocation={eventLocationSummary} />
         </section>
         {/* Follow Gathering */}

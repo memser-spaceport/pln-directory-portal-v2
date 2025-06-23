@@ -39,7 +39,7 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
   const onSubmit = async (formData: TRecommendationsSettingsForm) => {
     const res = await mutateAsync({
       memberUid: userInfo.uid,
-      recommendationsEnabled: formData.enabled,
+      subscribed: formData.enabled,
       emailFrequency: formData.frequency.value,
       industryTagList: formData.industryTags.map((tag) => tag.value),
       roleList: formData.roles.map((role) => role.value),

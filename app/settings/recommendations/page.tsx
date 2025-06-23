@@ -28,7 +28,7 @@ const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean
     _notificationSettings = null;
   } else {
     _notificationSettings = {
-      enabled: notificationSettings.recommendationsEnabled,
+      enabled: notificationSettings.subscribed,
       frequency: getSelectedFrequency(notificationSettings.emailFrequency),
       industryTags: notificationSettings.industryTagList.map((tag) => {
         const industry = formOptions.industryTags.find((industry: { id: string }) => industry.id === tag);

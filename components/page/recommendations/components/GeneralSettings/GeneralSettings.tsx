@@ -4,7 +4,7 @@ import { Switch } from '@base-ui-components/react/switch';
 import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
 
-import { FormSelect } from '@/components/form/FormSelect';
+// import { FormSelect } from '@/components/form/FormSelect';
 import { GroupBase, OptionsOrGroups } from 'react-select';
 
 import s from './GeneralSettings.module.scss';
@@ -31,7 +31,7 @@ export const GeneralSettings = () => {
           <div className={s.secondary}>Would you like to receive emails recommending useful contacts?</div>
         </div>
       </label>
-      <FormSelect name="frequency" placeholder="Frequency" options={OPTIONS} disabled={!enabled} />
+      {/*<FormSelect name="frequency" placeholder="Frequency" options={OPTIONS} disabled={!enabled} />*/}
     </div>
   );
 };

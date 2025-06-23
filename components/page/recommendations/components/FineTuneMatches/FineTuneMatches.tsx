@@ -7,6 +7,7 @@ import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions'
 import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
 import { useMemberRolesOptions } from '@/services/members/hooks/useMemberRolesOptions';
+import { MatchesEditor } from '@/components/page/recommendations/components/MatchesEditor';
 
 export const FineTuneMatches = () => {
   const { data } = useTeamsFormOptions();
@@ -89,12 +90,21 @@ export const FineTuneMatches = () => {
             isColorfulBadges={false}
           />
           <MatchesSelector
-            desc="New project Reached the stage you are tracking."
-            hint="Select the stage of project funding to get more relevant advice."
+            desc="[PLACEHOLDER]"
+            hint="[PLACEHOLDER]"
             icon={<HashIcon />}
             title="Team technologies"
             options={options.teamTechnologiesOptions}
             name="teamTechnology"
+            isColorfulBadges={false}
+          />
+          <MatchesEditor
+            desc="[PLACEHOLDER]"
+            hint="[PLACEHOLDER]"
+            icon={<HashIcon />}
+            title="Keywords"
+            options={options.teamTechnologiesOptions}
+            name="keywords"
             isColorfulBadges={false}
             menuPlacement="top"
           />

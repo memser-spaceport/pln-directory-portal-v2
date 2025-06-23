@@ -13,7 +13,7 @@ export const FineTuneMatches = () => {
   const { data } = useTeamsFormOptions();
   const { data: rolesData } = useMemberRolesOptions();
   const { getValues } = useFormContext<TRecommendationsSettingsForm>();
-  const { industryTags, roles, fundingStage } = getValues();
+  const { industryTags, roles, fundingStage, teamTechnology, keywords } = getValues();
 
   const options = useMemo(() => {
     if (!data) {
@@ -61,7 +61,7 @@ export const FineTuneMatches = () => {
 
         <ChevronDownIcon className={s.Icon} />
       </Collapsible.Trigger>
-      <Collapsible.Panel className={s.Panel} key={industryTags.length + roles.length + fundingStage.length}>
+      <Collapsible.Panel className={s.Panel} key={industryTags.length + roles.length + fundingStage.length + teamTechnology.length + keywords.length}>
         <div className={s.Content}>
           <MatchesSelector
             desc="The project is a leader in the industry you are tracking."

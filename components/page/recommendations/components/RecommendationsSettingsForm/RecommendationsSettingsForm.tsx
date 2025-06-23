@@ -41,10 +41,11 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
       memberUid: userInfo.uid,
       subscribed: formData.enabled,
       emailFrequency: formData.frequency.value,
-      industryTagList: formData.industryTags.map((tag) => tag.value),
-      roleList: formData.roles.map((role) => role.value),
-      fundingStageList: formData.fundingStage.map((stage) => stage.value),
-      technologyList: formData.teamTechnology.map((stage) => stage.value),
+      industryTagList: formData.industryTags.map((tag) => tag.label),
+      roleList: formData.roles.map((role) => role.label),
+      fundingStageList: formData.fundingStage.map((stage) => stage.label),
+      technologyList: formData.teamTechnology.map((stage) => stage.label),
+      keywordList: formData.keywords,
     });
 
     if (res) {

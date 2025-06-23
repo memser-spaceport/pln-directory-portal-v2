@@ -26,15 +26,15 @@ export const FineTuneMatches = () => {
 
     return {
       industryTagsOptions: data.industryTags.map((val: { id: any; name: any }) => ({
-        value: val.id,
+        value: val.name,
         label: val.name,
       })),
       fundingStageOptions: data.fundingStage.map((val: { id: any; name: any }) => ({
-        value: val.id,
+        value: val.name,
         label: val.name,
       })),
       teamTechnologiesOptions: data.technologies.map((val: { id: any; name: any }) => ({
-        value: val.id,
+        value: val.name,
         label: val.name,
       })),
     };

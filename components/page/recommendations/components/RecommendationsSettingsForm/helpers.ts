@@ -13,12 +13,12 @@ export function getSelectedFrequency(freq: number = 7) {
   }
 }
 
-export function getInitialValues(initialData: MemberNotificationSettings | null) {
+export function getInitialValues() {
   return {
-    enabled: initialData?.recommendationsEnabled ?? false,
-    frequency: initialData ? getSelectedFrequency(initialData.emailFrequency) : { value: 7, label: 'Weekly' },
-    industryTags: initialData?.industryTagList ? initialData.industryTagList.map((tag) => ({ value: tag, label: tag })) : [],
-    roles: initialData?.roleList ? initialData.roleList.map((role) => ({ value: role, label: role })) : [],
-    fundingStage: initialData?.fundingStageList ? initialData.fundingStageList.map((stage) => ({ value: stage, label: stage })) : [],
+    enabled: false,
+    frequency: { value: 7, label: 'Weekly' },
+    industryTags: [], // ? initialData.industryTagList.map((tag) => ({ value: tag, label: tag })) : [],
+    roles: [], // ? initialData.roleList.map((role) => ({ value: role, label: role })) : [],
+    fundingStage: [], // ? initialData.fundingStageList.map((stage) => ({ value: stage, label: stage })) : [],
   };
 }

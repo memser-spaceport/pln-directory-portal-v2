@@ -8,17 +8,47 @@ import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
-import { getMember } from '@/services/members.service';
+import { getMember, getMemberRoles } from '@/services/members.service';
 import { RecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm';
+import { getTeamsFormOptions } from '@/services/registration.service';
+import { getSelectedFrequency } from '@/components/page/recommendations/components/RecommendationsSettingsForm/helpers';
 
 const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean) => {
-  const [memberResponse, preferences, notificationSettings] = await Promise.all([
+  const [memberResponse, preferences, notificationSettings, memberRoles, formOptions] = await Promise.all([
     getMember(userInfo?.uid, {}, isLoggedIn, userInfo),
     getMemberPreferences(userInfo.uid, authToken),
     getMemberNotificationSettings(userInfo?.uid, authToken),
+    getMemberRoles({}),
+    getTeamsFormOptions(),
   ]);
 
-  return { memberDetails: memberResponse, preferences, notificationSettings: notificationSettings && 'isError' in notificationSettings ? null : notificationSettings };
+  let _notificationSettings;
+
+  if (notificationSettings && 'isError' in notificationSettings) {
+    _notificationSettings = null;
+  } else {
+    _notificationSettings = {
+      enabled: notificationSettings.recommendationsEnabled,
+      frequency: getSelectedFrequency(notificationSettings.emailFrequency),
+      industryTags: notificationSettings.industryTagList.map((tag) => {
+        const industry = formOptions.industryTags.find((industry: { id: string }) => industry.id === tag);
+
+        return { value: industry.id, label: industry.name };
+      }),
+      roles: notificationSettings.roleList.map((role) => {
+        const roleObj = memberRoles.find((roleObj: { role: string }) => roleObj.role === role);
+
+        return { value: roleObj.role, label: roleObj.role };
+      }),
+      fundingStage: notificationSettings.fundingStageList.map((stage) => {
+        const stageObj = formOptions.fundingStage.find((stageObj: { id: string }) => stageObj.id === stage);
+
+        return { value: stageObj.id, label: stageObj.name };
+      }),
+    };
+  }
+
+  return { memberDetails: memberResponse, preferences, notificationSettings: _notificationSettings };
 };
 
 async function RecommendationsPage() {

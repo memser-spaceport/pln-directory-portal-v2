@@ -1,8 +1,7 @@
-import React, { ReactNode, useCallback, useRef } from 'react';
+import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
 
 import s from './MatchesSelector.module.scss';
-import { useToggle } from 'react-use';
-import Select, { GroupBase, MenuPlacement, OptionsOrGroups } from 'react-select';
+import Select, { MenuPlacement } from 'react-select';
 import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
@@ -14,7 +13,7 @@ interface Props {
   icon: ReactNode;
   hint: string;
   desc: string;
-  options?: OptionsOrGroups<string, GroupBase<string>>;
+  options?: { value: string; label: string }[];
   name: string;
   isColorfulBadges?: boolean;
   menuPlacement?: MenuPlacement;
@@ -73,6 +72,7 @@ export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColo
             options={options}
             isClearable={false}
             placeholder="Write new interest"
+            controlShouldRenderValue={false}
             // @ts-ignore
             value={val}
             onChange={(val) => {
@@ -83,9 +83,9 @@ export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColo
                 ...base,
                 color: '#CBD5E1',
               }),
-              multiValue: () => ({
-                display: 'none',
-              }),
+              // multiValue: () => ({
+              //   display: 'none',
+              // }),
               dropdownIndicator: () => ({
                 display: 'none',
               }),

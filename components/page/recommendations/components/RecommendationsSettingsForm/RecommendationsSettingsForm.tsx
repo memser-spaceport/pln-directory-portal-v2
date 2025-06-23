@@ -2,28 +2,28 @@
 
 import React, { useEffect } from 'react';
 
-import s from './RecommendationsSettingsForm.module.scss';
 import { FormProvider, useForm } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
 import { GeneralSettings } from '@/components/page/recommendations/components/GeneralSettings';
 import { FineTuneMatches } from '@/components/page/recommendations/components/FineTuneMatches';
 import { IUserInfo } from '@/types/shared.types';
 import { RecommendationSettingsFormControls } from '@/components/page/recommendations/components/RecommendationSettingsFormControls';
-import { MemberNotificationSettings } from '@/services/members/types';
 import { getInitialValues } from '@/components/page/recommendations/components/RecommendationsSettingsForm/helpers';
 import { useUpdateMemberNotificationsSettings } from '@/services/members/hooks/useUpdateMemberNotificationsSettings';
 import { useRouter } from 'next/navigation';
 
+import s from './RecommendationsSettingsForm.module.scss';
+
 interface Props {
   uid: string;
   userInfo: IUserInfo;
-  initialData: MemberNotificationSettings | null;
+  initialData: TRecommendationsSettingsForm | null;
 }
 
 export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Props) => {
   const router = useRouter();
   const methods = useForm<TRecommendationsSettingsForm>({
-    defaultValues: getInitialValues(initialData),
+    defaultValues: initialData ?? getInitialValues(),
   });
 
   const { handleSubmit, reset } = methods;
@@ -32,7 +32,7 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
 
   useEffect(() => {
     if (initialData) {
-      reset(getInitialValues(initialData));
+      reset(initialData);
     }
   }, [initialData, reset]);
 

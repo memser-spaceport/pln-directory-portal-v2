@@ -4,6 +4,8 @@ import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { usePathname, useRouter } from 'next/navigation';
+import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
+import { useMemo } from 'react';
 
 interface SettingsMenuProps {
   activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams' | 'recommendations';
@@ -16,11 +18,20 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
   const router = useRouter();
   const pathname = usePathname();
   const analytics = useSettingsAnalytics();
-  const preferences = [
-    { name: 'profile', url: '/settings/profile', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
-    { name: 'privacy', url: '/settings/privacy', icon: '/icons/privacy.svg', activeIcon: '/icons/privacy-blue.svg' },
-    { name: 'recommendations', url: '/settings/recommendations', icon: '/icons/recommendations.svg', activeIcon: '/icons/recommendations-blue.svg' },
-  ];
+  const { data: notificationSettings } = useMemberNotificationsSettings(userInfo.uid);
+  const preferences = useMemo(() => {
+    const options = [
+      { name: 'profile', url: '/settings/profile', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
+      { name: 'privacy', url: '/settings/privacy', icon: '/icons/privacy.svg', activeIcon: '/icons/privacy-blue.svg' },
+    ];
+
+    if (notificationSettings?.recommendationsEnabled) {
+      options.push({ name: 'recommendations', url: '/settings/recommendations', icon: '/icons/recommendations.svg', activeIcon: '/icons/recommendations-blue.svg' });
+    }
+
+    return options;
+  }, [notificationSettings?.recommendationsEnabled]);
+
   const teamAdminSettings = [{ name: 'manage teams', url: '/settings/teams', icon: '/icons/team.svg', activeIcon: '/icons/teams-blue.svg' }];
 
   const appAdminSettings = [{ name: 'manage members', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' }];

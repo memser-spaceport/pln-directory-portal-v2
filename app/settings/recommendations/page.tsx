@@ -20,9 +20,11 @@ const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean
   ]);
 
   let _notificationSettings;
+  let recommendationsEnabled;
 
   if (notificationSettings && 'isError' in notificationSettings) {
     _notificationSettings = null;
+    recommendationsEnabled = false;
   } else {
     _notificationSettings = {
       enabled: notificationSettings.subscribed,
@@ -41,9 +43,10 @@ const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean
       }),
       keywords: notificationSettings.keywordList,
     };
+    recommendationsEnabled = notificationSettings.recommendationsEnabled;
   }
 
-  return { memberDetails: memberResponse, preferences, notificationSettings: _notificationSettings };
+  return { memberDetails: memberResponse, preferences, notificationSettings: _notificationSettings, recommendationsEnabled };
 };
 
 async function RecommendationsPage() {
@@ -57,7 +60,11 @@ async function RecommendationsPage() {
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
-  const { memberDetails, preferences, notificationSettings } = await getPageData(userInfo, authToken, isLoggedIn);
+  const { memberDetails, preferences, notificationSettings, recommendationsEnabled } = await getPageData(userInfo, authToken, isLoggedIn);
+
+  if (!recommendationsEnabled) {
+    redirect(PAGE_ROUTES.HOME);
+  }
 
   if (preferences.memberPreferences) {
     preferences.memberPreferences.newsLetter = memberDetails?.data?.formattedData?.isSubscribedToNewsletter;

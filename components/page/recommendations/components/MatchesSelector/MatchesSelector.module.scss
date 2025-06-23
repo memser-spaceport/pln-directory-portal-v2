@@ -2,6 +2,14 @@
   border-radius: 8px;
   background: #FFF;
   width: 100%;
+
+  &.disabled {
+    pointer-events: none;
+
+    .addButton {
+      opacity: 0.5;
+    }
+  }
 }
 
 .header {
@@ -118,6 +126,13 @@
 
     svg {
       stroke: #fff;
+    }
+  }
+
+  &.disabled {
+    button {
+      pointer-events: none;
+      display: none;
     }
   }
 }

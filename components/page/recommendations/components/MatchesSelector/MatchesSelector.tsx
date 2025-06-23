@@ -33,7 +33,11 @@ export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColo
   useOnClickOutside([ref], handleClickOutside);
 
   return (
-    <div className={s.root}>
+    <div
+      className={clsx(s.root, {
+        [s.disabled]: !values.enabled,
+      })}
+    >
       <div className={s.header}>
         <div className={s.row}>
           <div className={s.title}>
@@ -51,6 +55,7 @@ export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColo
                 key={item.value}
                 label={item.label}
                 isColorful={isColorfulBadges}
+                disabled={!values.enabled}
                 onDelete={() => {
                   setValue(
                     name,
@@ -159,15 +164,16 @@ const PlusIcon = () => (
   </svg>
 );
 
-const Badge = ({ label, onDelete, isColorful }: { label: string; onDelete: () => void; isColorful: boolean }) => {
+const Badge = ({ label, onDelete, isColorful, disabled }: { label: string; onDelete: () => void; isColorful: boolean; disabled: boolean }) => {
   return (
     <div
       className={clsx(s.badge, {
         [s.colorful]: isColorful,
+        [s.disabled]: disabled,
       })}
     >
       {label}{' '}
-      <button type="button" onClick={onDelete}>
+      <button type="button" onClick={onDelete} disabled={disabled}>
         <CloseIcon />
       </button>
     </div>

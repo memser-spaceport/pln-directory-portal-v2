@@ -44,6 +44,7 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
       industryTagList: formData.industryTags.map((tag) => tag.value),
       roleList: formData.roles.map((role) => role.value),
       fundingStageList: formData.fundingStage.map((stage) => stage.value),
+      technologyList: formData.teamTechnology.map((stage) => stage.value),
     });
 
     if (res) {

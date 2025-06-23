@@ -19,6 +19,7 @@ export const FineTuneMatches = () => {
       return {
         industryTagsOptions: [],
         fundingStageOptions: [],
+        teamTechnologiesOptions: [],
       };
     }
 
@@ -28,6 +29,10 @@ export const FineTuneMatches = () => {
         label: val.name,
       })),
       fundingStageOptions: data.fundingStage.map((val: { id: any; name: any }) => ({
+        value: val.id,
+        label: val.name,
+      })),
+      teamTechnologiesOptions: data.technologies.map((val: { id: any; name: any }) => ({
         value: val.id,
         label: val.name,
       })),
@@ -81,6 +86,15 @@ export const FineTuneMatches = () => {
             title="Funding Stage"
             options={options.fundingStageOptions}
             name="fundingStage"
+            isColorfulBadges={false}
+          />
+          <MatchesSelector
+            desc="New project Reached the stage you are tracking."
+            hint="Select the stage of project funding to get more relevant advice."
+            icon={<HashIcon />}
+            title="Team technologies"
+            options={options.teamTechnologiesOptions}
+            name="teamTechnology"
             isColorfulBadges={false}
             menuPlacement="top"
           />

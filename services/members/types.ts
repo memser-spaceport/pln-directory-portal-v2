@@ -14,7 +14,9 @@ export type MemberNotificationSettings = {
   byIndustryTag: boolean;
   focusAreaList: string[];
   fundingStageList: string[];
+  technologyList: string[];
   industryTagList: string[];
+  keywordList: string[];
   roleList: string[];
 };
 

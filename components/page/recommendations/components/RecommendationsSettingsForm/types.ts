@@ -4,4 +4,5 @@ export type TRecommendationsSettingsForm = {
   industryTags: { value: string; label: string }[];
   roles: { value: string; label: string }[];
   fundingStage: { value: string; label: string }[];
+  teamTechnology: { value: string; label: string }[];
 };

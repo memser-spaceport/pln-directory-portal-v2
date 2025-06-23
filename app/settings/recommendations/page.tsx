@@ -45,6 +45,12 @@ const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean
 
         return { value: stageObj.id, label: stageObj.name };
       }),
+      teamTechnology: notificationSettings.technologyList.map((item) => {
+        const technology = formOptions.technologies.find((tec: { id: string }) => tec.id === item);
+
+        return { value: technology.id, label: technology.name };
+      }),
+      keywords: notificationSettings.keywordList,
     };
   }
 

@@ -10,9 +10,10 @@ import { GroupBase, OptionsOrGroups } from 'react-select';
 import s from './GeneralSettings.module.scss';
 
 const OPTIONS = [
-  { value: 'daily' as string, label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
+  { value: 1, label: 'Daily' },
+  { value: 7, label: 'Weekly' },
+  { value: 14, label: 'Every 2 weeks' },
+  { value: 30, label: 'Monthly' },
 ] as unknown as OptionsOrGroups<string, GroupBase<string>>;
 
 export const GeneralSettings = () => {

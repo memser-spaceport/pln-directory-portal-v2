@@ -11,6 +11,11 @@ export type MemberNotificationSettings = {
   byFocusArea: boolean;
   byRole: boolean;
   byFundingStage: boolean;
+  byIndustryTag: boolean;
+  focusAreaList: string[];
+  fundingStageList: string[];
+  industryTagList: string[];
+  roleList: string[];
 };
 
 export type MemberProfileStatus = {

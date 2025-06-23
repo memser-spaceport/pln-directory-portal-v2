@@ -56,7 +56,7 @@ export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColo
                   setValue(
                     name,
                     val.filter((i) => i.value !== item.value),
-                    { shouldValidate: true },
+                    { shouldValidate: true, shouldDirty: true },
                   );
                 }}
               />
@@ -69,6 +69,7 @@ export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColo
           <Select
             menuPlacement={menuPlacement}
             isMulti
+            autoFocus
             options={options}
             isClearable={false}
             placeholder="Write new interest"

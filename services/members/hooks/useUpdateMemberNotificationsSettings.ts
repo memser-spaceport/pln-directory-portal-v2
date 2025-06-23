@@ -30,7 +30,7 @@ async function mutation(params: MutationParams) {
     throw new Error('Failed to fetch notifications settings');
   }
 
-  return response as unknown as MemberNotificationSettings;
+  return true; // response as unknown as MemberNotificationSettings;
 }
 
 export function useUpdateMemberNotificationsSettings() {

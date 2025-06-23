@@ -35,8 +35,6 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
     analytics.recordSettingsSideMenuClick(name, url, getAnalyticsUserInfo(userInfo));
   };
 
-  console.log(activeItem);
-
   return (
     <>
       <div className="sm">

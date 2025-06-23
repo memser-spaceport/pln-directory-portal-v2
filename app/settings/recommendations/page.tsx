@@ -1,6 +1,6 @@
 import SettingsMenu from '@/components/page/settings/menu';
 import Breadcrumbs from '@/components/ui/breadcrumbs';
-import { getMemberPreferences } from '@/services/preferences.service';
+import { getMemberNotificationSettings, getMemberPreferences } from '@/services/preferences.service';
 import styles from './page.module.css';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -12,9 +12,13 @@ import { getMember } from '@/services/members.service';
 import { RecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm';
 
 const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean) => {
-  const [memberResponse, preferences] = await Promise.all([getMember(userInfo?.uid, {}, isLoggedIn, userInfo), getMemberPreferences(userInfo.uid, authToken)]);
+  const [memberResponse, preferences, notificationSettings] = await Promise.all([
+    getMember(userInfo?.uid, {}, isLoggedIn, userInfo),
+    getMemberPreferences(userInfo.uid, authToken),
+    getMemberNotificationSettings(userInfo?.uid, authToken),
+  ]);
 
-  return { memberDetails: memberResponse, preferences };
+  return { memberDetails: memberResponse, preferences, notificationSettings: notificationSettings && 'isError' in notificationSettings ? null : notificationSettings };
 };
 
 async function RecommendationsPage() {
@@ -28,7 +32,7 @@ async function RecommendationsPage() {
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
-  const { memberDetails, preferences } = await getPageData(userInfo, authToken, isLoggedIn);
+  const { memberDetails, preferences, notificationSettings } = await getPageData(userInfo, authToken, isLoggedIn);
 
   if (preferences.memberPreferences) {
     preferences.memberPreferences.newsLetter = memberDetails?.data?.formattedData?.isSubscribedToNewsletter;
@@ -57,7 +61,7 @@ async function RecommendationsPage() {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="recommendations" userInfo={userInfo} />
           </aside>
           <div className={styles.privacy__main__content}>
-            <RecommendationsSettingsForm uid={userInfo.uid} userInfo={userInfo} />
+            <RecommendationsSettingsForm uid={userInfo.uid} userInfo={userInfo} initialData={notificationSettings} />
           </div>
         </div>
       </div>

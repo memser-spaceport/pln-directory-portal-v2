@@ -12,7 +12,7 @@ export const FineTuneMatches = () => {
   const { data } = useTeamsFormOptions();
   const { data: rolesData } = useMemberRolesOptions();
   const { getValues } = useFormContext<TRecommendationsSettingsForm>();
-  const { industryTags, roles, fundingStage, enabled } = getValues();
+  const { industryTags, roles, fundingStage } = getValues();
 
   const options = useMemo(() => {
     if (!data) {

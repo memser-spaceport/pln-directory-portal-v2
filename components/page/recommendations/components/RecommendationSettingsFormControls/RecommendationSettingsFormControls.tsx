@@ -3,14 +3,13 @@ import React from 'react';
 import s from './RecommendationSettingsFormControls.module.scss';
 import { useFormContext } from 'react-hook-form';
 import clsx from 'clsx';
+import { Spinner } from '@/components/ui/Spinner';
 
 export const RecommendationSettingsFormControls = () => {
   const {
     reset,
-    formState: { isDirty, isSubmitting, dirtyFields },
+    formState: { isDirty, isSubmitting },
   } = useFormContext();
-
-  console.log(isDirty, dirtyFields);
 
   return (
     <div
@@ -26,7 +25,13 @@ export const RecommendationSettingsFormControls = () => {
           Reset
         </button>
         <button type="submit" className={s.primaryBtn} disabled={!isDirty || isSubmitting}>
-          Save Changes
+          {isSubmitting ? (
+            <>
+              <Spinner /> Saving...
+            </>
+          ) : (
+            'Save Changes'
+          )}
         </button>
       </div>
     </div>

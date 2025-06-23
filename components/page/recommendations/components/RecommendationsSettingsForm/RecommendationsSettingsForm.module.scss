@@ -1,0 +1,28 @@
+@use "styles/media.scss";
+
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  min-height: calc(100dvh - 129px);
+  position: relative;
+
+  border-left: 1px solid var(--Border-border-dark, #CBD5E1);
+  background: var(--Surface-surface-light, #FFF);
+
+  @include media.tablet-landscape {
+    padding: 40px;
+  }
+}
+
+.title {
+  color: var(--Text-Dark, #0F172A);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 20px; /* 125% */
+  padding-bottom: 12px;
+}

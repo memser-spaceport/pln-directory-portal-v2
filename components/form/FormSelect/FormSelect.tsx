@@ -9,7 +9,7 @@ import s from './FormSelect.module.scss';
 interface Props {
   name: string;
   placeholder: string;
-  label: string;
+  label?: string;
   description?: string;
   options: OptionsOrGroups<string, GroupBase<string>>;
   disabled?: boolean;
@@ -26,12 +26,13 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
 
   return (
     <Field.Root className={s.field}>
-      <Field.Label className={s.label}>{label}</Field.Label>
+      {label && <Field.Label className={s.label}>{label}</Field.Label>}
       <Select
         placeholder="Project"
         options={options}
         value={value}
-        onChange={(val) => setValue(name, val, { shouldValidate: true })}
+        defaultValue={value}
+        onChange={(val) => setValue(name, val, { shouldValidate: true, shouldDirty: true })}
         isDisabled={disabled}
         styles={{
           container: (base) => ({

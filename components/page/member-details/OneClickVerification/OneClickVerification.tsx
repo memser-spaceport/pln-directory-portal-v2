@@ -13,7 +13,7 @@ interface Props {
   userInfo: IUserInfo;
 }
 
-export const OneClickVerification = ({ isLoggedIn, userInfo, member }: Props) => {
+export const OneClickVerification = ({ userInfo, member }: Props) => {
   const isOwner = userInfo?.uid === member.id;
   const hasMissingRequiredData = !member?.linkedinHandle;
   const showIncomplete = hasMissingRequiredData && isOwner;

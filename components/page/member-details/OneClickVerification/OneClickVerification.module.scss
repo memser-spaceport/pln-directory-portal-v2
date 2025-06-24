@@ -112,7 +112,7 @@
   background: var(--action-background-base-white, #FFF);
 
   /* Button/regular/border */
-  box-shadow: 0px 2px 8px 0px var(--transparent-dark-4, rgba(14, 15, 17, 0.04)) inset, 0px 1px 4px 0px var(--transparent-dark-16, rgba(14, 15, 17, 0.16));
+  box-shadow: 0 2px 8px 0 var(--transparent-dark-4, rgba(14, 15, 17, 0.04)) inset, 0 1px 4px 0 var(--transparent-dark-16, rgba(14, 15, 17, 0.16));
 
   color: var(--action-foreground-warning-normal, #D97706);
 

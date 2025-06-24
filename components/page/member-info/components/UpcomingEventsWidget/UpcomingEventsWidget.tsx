@@ -26,7 +26,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   const { id } = useParams();
   const { data, isLoading } = useUpcomingEvents();
   const { data: settings } = useMemberNotificationsSettings(userInfo?.uid);
-  const { onUpcomingEventsWidgetShowAllClicked } = useEventsAnalytics();
+  const { onUpcomingEventsWidgetShowAllClicked, onUpcomingEventsWidgetDismissClicked, onUpcomingEventsItemClicked } = useEventsAnalytics();
 
   if (!userInfo || isLoading || !data?.length || userInfo.uid !== id || !settings?.recommendationsEnabled) {
     return null;
@@ -63,7 +63,13 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
           >
             Upcoming Events <ArrowIcon />
           </Link>
-          <button onClick={() => setVisible(false)} className={s.toggleBtn}>
+          <button
+            onClick={() => {
+              onUpcomingEventsWidgetDismissClicked();
+              setVisible(false);
+            }}
+            className={s.toggleBtn}
+          >
             Not now
           </button>
           <button onClick={() => setOpen(!open)} className={s.toggleBtn}>
@@ -83,7 +89,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
                   const _year = format(to, 'yy');
 
                   return (
-                    <Link key={item.uid} className={s.event} href={item.websiteUrl ?? ''} target="_blank">
+                    <Link key={item.uid} className={s.event} href={item.websiteUrl ?? ''} target="_blank" onClick={() => onUpcomingEventsItemClicked(item)}>
                       {item.logo ? <Image width={30} height={30} alt={item.name} src={item.logo ?? ''} className={s.eventImage} /> : <DefaultEventImage />}
                       <div className={s.details}>
                         <div className={s.name}>{item.name}</div>

@@ -407,6 +407,22 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_COMPLETE);
   }
 
+  function onOnboardingWizardFinishClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_FINISH_CLICKED);
+  }
+
+  function onOnboardingWizardNextClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_NEXT_CLICKED);
+  }
+
+  function onOnboardingWizardStartClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_START_CLICKED);
+  }
+
+  function onOnboardingWizardBrowseFilesClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_WIZARD_START_CLICKED);
+  }
+
   function onSubscribeToRecommendationsClicked(element: 'bar' | 'widget') {
     captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED, {
       element,
@@ -538,5 +554,9 @@ export const useMemberAnalytics = () => {
     onSaveContributionDetailsClicked,
     onDeleteContributionDetailsClicked,
     onEditContributionDetailsClicked,
+    onOnboardingWizardFinishClicked,
+    onOnboardingWizardNextClicked,
+    onOnboardingWizardStartClicked,
+    onOnboardingWizardBrowseFilesClicked,
   };
 };

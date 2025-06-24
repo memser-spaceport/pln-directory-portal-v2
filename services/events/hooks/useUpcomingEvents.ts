@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { EventsQueryKeys } from '@/services/events/constants';
 
-type UpcomingEvent = {
+export type UpcomingEvent = {
   uid: string;
   name: string;
   logo: string;

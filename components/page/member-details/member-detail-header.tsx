@@ -122,7 +122,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
               <img loading="lazy" src="/icons/notification.svg" alt="notification icon" />
             </button> */}
             {isLoggedIn && (isAdmin || isOwner) && (
-              <EditButton onClick={onEditProfileClick} />
+              <EditButton onClick={onEditProfileClick} incomplete={showIncomplete} />
               // <Link legacyBehavior passHref href={editUrl}>
               //   <a href={editUrl} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
               //     <EditIcon /> Edit

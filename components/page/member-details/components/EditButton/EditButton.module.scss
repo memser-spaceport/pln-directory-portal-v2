@@ -17,4 +17,8 @@
   &:hover {
     filter: brightness(120%);
   }
+
+  &.incomplete {
+    color: #D97706;
+  }
 }

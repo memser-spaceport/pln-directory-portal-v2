@@ -41,7 +41,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const showOfficeHours = visibleHandles?.includes('officeHours');
-  const hasMissingRequiredData = false; // !member?.telegramHandle || !member?.officeHours;
+  const hasMissingRequiredData = !member?.telegramHandle || !member?.officeHours;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
   const showIncomplete = hasMissingRequiredData && isOwner;
@@ -64,18 +64,18 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   return (
     <div
       className={clsx(s.root, {
-        [s.missingData]: hasMissingRequiredData && isLoggedIn && isOwner,
+        [s.missingData]: showIncomplete && isLoggedIn && isOwner,
       })}
     >
-      {showIncomplete && (
-        <div className={s.missingDataHeader}>
-          <WarningIcon />
-          Please complete your profile to get full access to the platform.
-        </div>
-      )}
+      {/*{showIncomplete && (*/}
+      {/*  <div className={s.missingDataHeader}>*/}
+      {/*    <WarningIcon />*/}
+      {/*    Please complete your profile to get full access to the platform.*/}
+      {/*  </div>*/}
+      {/*)}*/}
       <div className={s.header}>
         <h2 className={s.title}>Contact Details</h2>
-        {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} />}
+        {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} incomplete={showIncomplete} />}
       </div>
       <div className={s.container}>
         {isLoggedIn ? (
@@ -96,7 +96,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                           callback={callback}
                           type={item}
                           handle={handle}
-                          logo={getLogoByProvider(item)}
+                          logo={getLogoByProvider(item, !handle)}
                           className={clsx({
                             [s.incomplete]: !handle,
                           })}

@@ -47,12 +47,12 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
         />
       ) : (
         <>
-          {showIncomplete && (
-            <div className={s.missingDataHeader}>
-              <WarningIcon />
-              Please complete your profile to get full access to the platform.
-            </div>
-          )}
+          {/*{showIncomplete && (*/}
+          {/*  <div className={s.missingDataHeader}>*/}
+          {/*    <WarningIcon />*/}
+          {/*    Please complete your profile to get full access to the platform.*/}
+          {/*  </div>*/}
+          {/*)}*/}
           <MemberDetailHeader
             member={member}
             isLoggedIn={isLoggedIn}

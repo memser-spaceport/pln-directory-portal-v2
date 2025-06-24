@@ -131,11 +131,11 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
             //   analytics.recordSignUpSave('submit-clicked-fail', result?.errors);
             //   setErrors(result?.errors);
             // } else {
-              if (result?.message) {
-                toast.error(result?.message);
-              } else {
-                toast.error('Something went wrong. Please try again.');
-              }
+            if (result?.message) {
+              toast.error(result?.message);
+            } else {
+              toast.error('Something went wrong. Please try again.');
+            }
             // }
           }
         }

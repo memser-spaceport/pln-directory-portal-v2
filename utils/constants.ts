@@ -382,6 +382,10 @@ export const MEMBER_ANALYTICS_EVENTS = {
   ONBOARDING_WIZARD_OPEN: 'onboarding-wizard-open',
   ONBOARDING_WIZARD_CLOSE: 'onboarding-wizard-close',
   ONBOARDING_WIZARD_COMPLETE: 'onboarding-wizard-complete',
+  ONBOARDING_WIZARD_FINISH_CLICKED: 'onboarding-wizard-finish-clicked',
+  ONBOARDING_WIZARD_NEXT_CLICKED: 'onboarding-wizard-next-clicked',
+  ONBOARDING_WIZARD_START_CLICKED: 'onboarding-wizard-start-clicked',
+  ONBOARDING_WIZARD_BROWSE_FILES_CLICKED: 'onboarding-wizard-browse-files-clicked',
   ONBOARDING_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-subscribe-to-recommendations-clicked',
   ONBOARDING_CLOSE_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-close-subscribe-to-recommendations-clicked',
   ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED: 'onboarding-go-to-complete-profile-clicked',
@@ -458,6 +462,8 @@ export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED: 'events-page-contributing-team-clicked',
   EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED: 'events-page-contributing-members-clicked',
   UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED: 'upcoming-events-widget-show-all-clicked',
+  UPCOMING_EVENTS_WIDGET_DISMISS_CLICKED: 'upcoming-events-widget-dismiss-clicked',
+  UPCOMING_EVENTS_WIDGET_ITEM_CLICKED: 'upcoming-events-widget-item-clicked',
 };
 
 export const HOME = {

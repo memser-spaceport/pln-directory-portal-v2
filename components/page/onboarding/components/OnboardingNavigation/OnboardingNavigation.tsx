@@ -6,6 +6,7 @@ import { IUserInfo } from '@/types/shared.types';
 import clsx from 'clsx';
 import { useFormContext } from 'react-hook-form';
 import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   userInfo: IUserInfo;
@@ -19,6 +20,8 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
     actions: { setStep },
   } = useOnboardingState();
 
+  const { onOnboardingWizardFinishClicked, onOnboardingWizardNextClicked } = useMemberAnalytics();
+
   const {
     formState: { errors, isSubmitting },
   } = useFormContext<OnboardingForm>();
@@ -30,6 +33,7 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
   };
 
   const handleNextClick = async () => {
+    onOnboardingWizardNextClicked();
     const current = steps.findIndex((item) => item === step);
 
     setStep(steps[current + 1]);
@@ -64,7 +68,14 @@ export const OnboardingNavigation = ({ userInfo }: Props) => {
               Back
             </button>
             <span className={clsx(s.info)}>Office Hours are times when you&apos;re available to connect with others in the network.</span>
-            <button className={clsx(s.btn, s.primary)} type="submit" disabled={!!errors.officeHours || !!errors.telegram || isSubmitting}>
+            <button
+              className={clsx(s.btn, s.primary)}
+              type="submit"
+              disabled={!!errors.officeHours || !!errors.telegram || isSubmitting}
+              onClick={() => {
+                onOnboardingWizardFinishClicked();
+              }}
+            >
               {isSubmitting ? 'Processing...' : 'Finish'}
             </button>
           </div>

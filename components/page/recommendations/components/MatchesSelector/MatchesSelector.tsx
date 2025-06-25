@@ -1,75 +1,43 @@
-import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
+import React, { ReactNode } from 'react';
 
 import s from './MatchesSelector.module.scss';
 import Select, { MenuPlacement } from 'react-select';
 import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
-import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import clsx from 'clsx';
-import { useOnClickOutside } from '@/hooks/useOnClickOutside';
+import { Collapsible } from '@base-ui-components/react/collapsible';
+import { useToggle } from 'react-use';
 
 interface Props {
   title: string;
   icon: ReactNode;
   hint: string;
-  desc: string;
   options?: { value: string; label: string }[];
   name: string;
-  isColorfulBadges?: boolean;
   menuPlacement?: MenuPlacement;
+  selectLabel: string;
 }
 
-export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColorfulBadges = true, menuPlacement = 'bottom' }: Props) => {
-  const [inputMode, toggleInputMode] = useLocalStorageParam(`matchesSelectorInputMode-${name}`, false);
+export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacement = 'bottom', selectLabel }: Props) => {
+  const [open, toggleOpen] = useToggle(false);
   const { setValue, watch, getValues } = useFormContext();
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as { value: string; label: string }[];
-  const ref = useRef(null);
-
-  const handleClickOutside = useCallback(() => {
-    toggleInputMode(false);
-  }, [toggleInputMode]);
-
-  useOnClickOutside([ref], handleClickOutside);
 
   return (
-    <div
-      className={clsx(s.root, {
-        [s.disabled]: !values.enabled,
-      })}
-    >
-      <div className={s.header}>
-        <div className={s.row}>
-          <div className={s.title}>
-            {icon} {title}
+    <Collapsible.Root className={s.Collapsible} open={open} onOpenChange={toggleOpen}>
+      <Collapsible.Trigger className={s.Trigger}>
+        <div className={s.title}>
+          {icon} {title}
+        </div>
+        <ChevronIcon className={s.Icon} />
+      </Collapsible.Trigger>
+      <Collapsible.Panel className={s.Panel}>
+        <div className={s.Content}>
+          <div className={s.header}>
+            <div className={s.hint}>{hint}</div>
           </div>
-          <div className={s.hint}>{hint}</div>
-        </div>
-        <div className={s.desc}>{desc}</div>
-      </div>
-      {val && val.length > 0 && (
-        <div className={s.selectedList}>
-          {val.map((item: { value: string; label: string }) => {
-            return (
-              <Badge
-                key={item.value}
-                label={item.label}
-                isColorful={isColorfulBadges}
-                disabled={!values.enabled}
-                onDelete={() => {
-                  setValue(
-                    name,
-                    val.filter((i) => i.value !== item.value),
-                    { shouldValidate: true, shouldDirty: true },
-                  );
-                }}
-              />
-            );
-          })}
-        </div>
-      )}
-      <div className={s.input} ref={ref}>
-        {inputMode ? (
+          <div className={s.inputLabel}>{selectLabel}</div>
           <Select
             menuPlacement={menuPlacement}
             isMulti
@@ -77,32 +45,14 @@ export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColo
             options={options}
             isClearable={false}
             placeholder="Write new interest"
-            controlShouldRenderValue={false}
             // @ts-ignore
             value={val}
             onChange={(val) => {
               setValue(name, val, { shouldValidate: true, shouldDirty: true });
             }}
             styles={{
-              placeholder: (base) => ({
-                ...base,
-                color: '#CBD5E1',
-              }),
-              // multiValue: () => ({
-              //   display: 'none',
-              // }),
-              dropdownIndicator: () => ({
-                display: 'none',
-              }),
-              clearIndicator: () => ({
-                color: 'red',
-              }),
-              indicatorSeparator: () => ({
-                display: 'none',
-              }),
               container: (base) => ({
                 ...base,
-                outline: 'none',
                 width: '100%',
               }),
               control: (baseStyles) => ({
@@ -110,29 +60,31 @@ export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColo
                 alignItems: 'center',
                 gap: '8px',
                 alignSelf: 'stretch',
-                border: 'none !important',
+                borderRadius: '8px',
+                border: '1px solid rgba(203, 213, 225, 0.50)',
                 background: '#fff',
                 outline: 'none',
                 fontSize: '14px',
                 minWidth: '140px',
                 width: '100%',
-                height: '25px',
-                minHeight: '25px',
+                borderColor: 'rgba(203, 213, 225, 0.50) !important',
                 position: 'relative',
-                boxShadow: 'none',
+                boxShadow: 'none !important',
                 '&:hover': {
-                  border: 'none !important',
-                  outline: 'none',
+                  border: '1px solid #5E718D',
+                  boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
+                  borderColor: '#5E718D !important',
                 },
                 '&:focus-visible, &:focus': {
-                  border: 'none !important',
-                  outline: 'none',
+                  borderColor: '#5E718D !important',
+                  boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
                 },
               }),
               input: (baseStyles) => ({
                 ...baseStyles,
-                // height: '25px',
+                height: '32px',
                 padding: 0,
+                // background: 'tomato',
               }),
               option: (baseStyles) => ({
                 ...baseStyles,
@@ -143,15 +95,34 @@ export const MatchesSelector = ({ icon, title, hint, desc, options, name, isColo
                 outline: 'none',
                 zIndex: 3,
               }),
+              multiValueRemove: (base) => ({
+                ...base,
+                height: '100%',
+                cursor: 'pointer',
+                '&:hover': {
+                  background: 'transparent',
+                },
+              }),
+              multiValue: (base) => ({
+                ...base,
+                display: 'flex',
+                padding: 'var(--spacing-4xs, 4px) var(--spacing-3xs, 6px)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 'var(--spacing-5xs, 2px)',
+                borderRadius: 'var(--corner-radius-sm, 6px)',
+                border: '1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12))',
+                background: 'var(--background-base-white, #FFF)',
+                boxShadow: '0px 1px 2px 0px var(--transparent-dark-6, rgba(14, 15, 17, 0.06))',
+              }),
+              indicatorSeparator: (base) => ({
+                display: 'none',
+              }),
             }}
           />
-        ) : (
-          <button className={s.addButton} type="button" onClick={() => toggleInputMode(!inputMode)}>
-            <PlusIcon /> Add new
-          </button>
-        )}
-      </div>
-    </div>
+        </div>
+      </Collapsible.Panel>
+    </Collapsible.Root>
   );
 };
 
@@ -188,3 +159,11 @@ const CloseIcon = () => (
     />
   </svg>
 );
+
+export function ChevronIcon(props: React.ComponentProps<'svg'>) {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" {...props}>
+      <path d="M3.5 9L7.5 5L3.5 1" stroke="currentcolor" />
+    </svg>
+  );
+}

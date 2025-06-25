@@ -9,6 +9,7 @@
   padding: 16px;
   min-height: calc(100dvh - 129px);
   position: relative;
+  gap: 16px;
 
   border-left: 1px solid var(--Border-border-dark, #CBD5E1);
   background: var(--Surface-surface-light, #FFF);
@@ -19,10 +20,10 @@
 }
 
 .title {
-  color: var(--Text-Dark, #0F172A);
-  font-size: 16px;
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 20px;
   font-style: normal;
-  font-weight: 700;
-  line-height: 20px; /* 125% */
-  padding-bottom: 12px;
+  font-weight: 500;
+  line-height: 27px; /* 135% */
+  letter-spacing: -0.4px;
 }

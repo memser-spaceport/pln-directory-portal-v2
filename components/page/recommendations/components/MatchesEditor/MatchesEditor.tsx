@@ -1,109 +1,116 @@
 'use client';
 
-import React, { ReactNode, useCallback, useMemo, useRef, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 
-import Select, { MenuPlacement } from 'react-select';
+import { MenuPlacement } from 'react-select';
 import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import clsx from 'clsx';
-import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 
 import s from './MatchesEditor.module.scss';
 import { Field } from '@base-ui-components/react/field';
+import { Collapsible } from '@base-ui-components/react/collapsible';
+import { ChevronIcon } from '@/components/page/recommendations/components/MatchesSelector';
+import { useToggle } from 'react-use';
 
 interface Props {
   title: string;
   icon: ReactNode;
   hint: string;
-  desc: string;
   options?: { value: string; label: string }[];
   name: string;
   isColorfulBadges?: boolean;
   menuPlacement?: MenuPlacement;
+  selectLabel: string;
 }
 
-export const MatchesEditor = ({ icon, title, hint, desc, options, name, isColorfulBadges = true, menuPlacement = 'bottom' }: Props) => {
+export const MatchesEditor = ({ icon, title, hint, selectLabel, options, name, isColorfulBadges = true, menuPlacement = 'bottom' }: Props) => {
+  const [open, toggleOpen] = useToggle(false);
   const [inputText, setInputText] = useState('');
   const [inputMode, toggleInputMode] = useLocalStorageParam(`matchesSelectorInputMode-${name}`, false);
   const { setValue, getValues } = useFormContext();
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as string[];
-  const ref = useRef(null);
-
-  const handleClickOutside = useCallback(() => {
-    toggleInputMode(false);
-  }, [toggleInputMode]);
-
-  useOnClickOutside([ref], handleClickOutside);
 
   return (
-    <div
-      className={clsx(s.root, {
-        [s.disabled]: !values.enabled,
-      })}
-    >
-      <div className={s.header}>
-        <div className={s.row}>
-          <div className={s.title}>
-            {icon} {title}
-          </div>
-          <div className={s.hint}>{hint}</div>
+    <Collapsible.Root className={s.Collapsible} open={open} onOpenChange={toggleOpen}>
+      <Collapsible.Trigger className={s.Trigger}>
+        <div className={s.title}>
+          {icon} {title}
         </div>
-        <div className={s.desc}>{desc}</div>
-      </div>
-      {val && val.length > 0 && (
-        <div className={s.selectedList}>
-          {val.map((item: string) => {
-            return (
-              <Badge
-                key={item}
-                label={item}
-                isColorful={isColorfulBadges}
-                disabled={!values.enabled}
-                onDelete={() => {
-                  setValue(
-                    name,
-                    val.filter((i) => i !== item),
-                    { shouldValidate: true, shouldDirty: true },
-                  );
+        <ChevronIcon className={s.Icon} />
+      </Collapsible.Trigger>
+      <Collapsible.Panel className={s.Panel}>
+        <div className={s.Content}>
+          <div className={s.header}>
+            <div className={s.hint}>{hint}</div>
+          </div>
+          <div className={s.inputLabel}>{selectLabel}</div>
+          <div className={s.input}>
+            <div className={s.inputContent}>
+              {val?.map((item: string) => {
+                return (
+                  <Badge
+                    key={item}
+                    label={item}
+                    isColorful={isColorfulBadges}
+                    disabled={!values.enabled}
+                    onDelete={() => {
+                      setValue(
+                        name,
+                        val.filter((i) => i !== item),
+                        { shouldValidate: true, shouldDirty: true },
+                      );
+                    }}
+                  />
+                );
+              })}
+              <Field.Control
+                placeholder="Write new interest"
+                className={clsx(s.textInput)}
+                value={inputText}
+                onChange={(e) => {
+                  setInputText(e.target.value);
+                }}
+                onKeyUp={(event) => {
+                  if (event.key === 'Enter') {
+                    if (inputText.trim() === '') {
+                      return;
+                    }
+
+                    setValue(name, [...val, inputText], { shouldValidate: true, shouldDirty: true });
+                    setInputText('');
+                  }
                 }}
               />
-            );
-          })}
-        </div>
-      )}
-      <div className={s.input} ref={ref}>
-        {inputMode ? (
-          <Field.Control
-            placeholder="Write new interest"
-            className={clsx(s.textInput)}
-            value={inputText}
-            onChange={(e) => {
-              setInputText(e.target.value);
-            }}
-            onKeyUp={(event) => {
-              if (event.key === 'Enter') {
+            </div>
+            <button
+              type="button"
+              className={s.addButton}
+              onClick={() => {
+                if (inputText.trim() === '') {
+                  return;
+                }
+
                 setValue(name, [...val, inputText], { shouldValidate: true, shouldDirty: true });
                 setInputText('');
-              }
-            }}
-          />
-        ) : (
-          <button className={s.addButton} type="button" onClick={() => toggleInputMode(!inputMode)}>
-            <PlusIcon /> Add new
-          </button>
-        )}
-      </div>
-    </div>
+              }}
+            >
+              <PlusIcon />
+            </button>
+          </div>
+        </div>
+      </Collapsible.Panel>
+    </Collapsible.Root>
   );
 };
 
 const PlusIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
-      d="M13.5 7C13.5 7.4375 13.1562 7.75 12.75 7.75H7.75V12.75C7.75 13.1875 7.40625 13.5312 7 13.5312C6.5625 13.5312 6.25 13.1875 6.25 12.75V7.75H1.25C0.8125 7.75 0.5 7.4375 0.5 7.03125C0.5 6.59375 0.8125 6.25 1.25 6.25H6.25V1.25C6.25 0.84375 6.5625 0.53125 7 0.53125C7.40625 0.53125 7.75 0.84375 7.75 1.25V6.25H12.75C13.1562 6.25 13.5 6.59375 13.5 7Z"
-      fill="#156FF7"
+      d="M14.25 8C14.25 8.19891 14.171 8.38968 14.0303 8.53033C13.8897 8.67098 13.6989 8.75 13.5 8.75H8.75V13.5C8.75 13.6989 8.67098 13.8897 8.53033 14.0303C8.38968 14.171 8.19891 14.25 8 14.25C7.80109 14.25 7.61032 14.171 7.46967 14.0303C7.32902 13.8897 7.25 13.6989 7.25 13.5V8.75H2.5C2.30109 8.75 2.11032 8.67098 1.96967 8.53033C1.82902 8.38968 1.75 8.19891 1.75 8C1.75 7.80109 1.82902 7.61032 1.96967 7.46967C2.11032 7.32902 2.30109 7.25 2.5 7.25H7.25V2.5C7.25 2.30109 7.32902 2.11032 7.46967 1.96967C7.61032 1.82902 7.80109 1.75 8 1.75C8.19891 1.75 8.38968 1.82902 8.53033 1.96967C8.67098 2.11032 8.75 2.30109 8.75 2.5V7.25H13.5C13.6989 7.25 13.8897 7.32902 14.0303 7.46967C14.171 7.61032 14.25 7.80109 14.25 8Z"
+      fill="#8897AE"
     />
   </svg>
 );

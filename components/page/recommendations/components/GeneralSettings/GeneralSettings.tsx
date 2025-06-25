@@ -23,12 +23,15 @@ export const GeneralSettings = () => {
   return (
     <div className={s.root}>
       <label className={s.Label}>
-        <Switch.Root defaultChecked className={s.Switch} checked={enabled} onCheckedChange={() => setValue('enabled', !enabled, { shouldValidate: true, shouldDirty: true })}>
-          <Switch.Thumb className={s.Thumb} />
-        </Switch.Root>
         <div className={s.col}>
-          <div className={s.primary}>Receive Recommendation</div>
-          <div className={s.secondary}>Would you like to receive emails recommending useful contacts?</div>
+          <div className={s.row}>
+            <div className={s.primary}>Receive Recommendation</div>
+            <Switch.Root defaultChecked className={s.Switch} checked={enabled} onCheckedChange={() => setValue('enabled', !enabled, { shouldValidate: true, shouldDirty: true })}>
+              <Switch.Thumb className={s.Thumb} />
+            </Switch.Root>
+          </div>
+
+          <div className={s.secondary}>Receive suggestions on members you may want to connect with, delivered via email twice per month.</div>
         </div>
       </label>
       {/*<FormSelect name="frequency" placeholder="Frequency" options={OPTIONS} disabled={!enabled} />*/}

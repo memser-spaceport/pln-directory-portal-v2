@@ -65,7 +65,7 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
           }
         }}
       >
-        <h5 className={s.title}>Recommendation Email Frequency</h5>
+        <h5 className={s.title}>Recommendations</h5>
         <GeneralSettings />
         <FineTuneMatches />
         <RecommendationSettingsFormControls />

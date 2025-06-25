@@ -1,0 +1,120 @@
+@use 'styles/media';
+
+.root {
+  border-radius: 8px;
+  border: 2px solid var(--Element-state-warning, #FF820E);
+  background: var(--Surface-surface-light, #FFF);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0px 0px 1px 0px rgba(15, 23, 42, 0.12), 0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+
+  position: sticky;
+  bottom: 24px;
+  margin-top: 32px;
+  width: 100%;
+
+  opacity: 0;
+  transform: translateY(40px);
+
+  transition: all 0.3s ease-in-out;
+
+  &.visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
+}
+
+.message {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--Text-text-info-dark, #64748B);
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 18px; /* 128.571% */
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    width: fit-content;
+  }
+}
+
+.btn {
+  display: flex;
+  height: 40px;
+  padding: 10px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  border-radius: 8px;
+  border: 1px solid var(--Border-border-dark, #CBD5E1);
+  background: var(--Surface-surface-light, #FFF);
+
+  /* Button Shadow */
+  box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
+
+  color: var(--Text-text-dark, #0F172A);
+  font-feature-settings: 'liga' off, 'clig' off;
+
+  /* Body 2/Medium */
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+
+  &:disabled {
+    pointer-events: none;
+    cursor: default;
+  }
+}
+
+.primaryBtn {
+  display: flex;
+  height: 40px;
+  padding: 10px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-width: 142px;
+  flex: 1;
+
+  border-radius: 8px;
+  border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
+  background: var(--Button-surface-brand-button, #156FF7);
+
+  /* Button Shadow */
+  box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
+
+  color: var(--Text-text-lightest, #FFF);
+  font-feature-settings: 'liga' off, 'clig' off;
+
+  /* Body 2/Medium */
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+
+  &:disabled {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.5;
+  }
+}

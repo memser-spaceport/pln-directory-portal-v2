@@ -1,0 +1,251 @@
+@use 'styles/mixins.scss';
+
+.root {
+  border-radius: 8px;
+  background: #FFF;
+  width: 100%;
+
+  &.disabled {
+    pointer-events: none;
+
+    .addButton {
+      opacity: 0.5;
+    }
+  }
+}
+
+.header {
+  padding: 0 0 16px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--Text-Dark, #0F172A);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+
+  svg {
+    color: #1B4DFF;
+  }
+
+  &.warning {
+    svg {
+      color: #FF820E;
+    }
+  }
+}
+
+.hint {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
+}
+
+.selectedList {
+  border-top: 1px solid #E5E5E5;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+}
+
+.input {
+  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(203, 213, 225, 0.50);
+  border-radius: 8px;
+  gap: 12px;
+  min-height: 40px;
+  background: rgba(14, 15, 17, 0.02);
+
+
+  &:hover {
+    border: 1px solid #5E718D;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12) !important;
+  }
+
+  &:focus-visible, &:focus {
+    border-color: #5E718D !important;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12) !important;
+  }
+}
+
+.inputContent {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+}
+
+.textInput {
+  border: none;
+  outline: none;
+  //width: 100%;
+  height: 32px;
+  flex: 1;
+  background: transparent;
+}
+
+.addButton {
+  color: #156FF7;
+  font-feature-settings: 'liga' off, 'clig' off;
+
+  /* Body 2/Medium */
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  @include mixins.ellipse-text;
+  display: flex;
+  padding: 4px 6px;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  border-radius: 6px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1;
+  margin: 2px 0;
+  width: fit-content;
+  min-height: 27px;
+
+  svg {
+    stroke: #64748B;
+  }
+
+  > button {
+    @include mixins.centralize;
+    padding: 2px 4px;
+    height: 17px;
+  }
+
+  &.disabled {
+    button {
+      pointer-events: none;
+      display: none;
+    }
+  }
+}
+
+.Collapsible {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  align-items: flex-start;
+  align-self: stretch;
+
+  transition: background 150ms ease-out;
+
+  border-radius: var(--corner-radius-xl, 12px);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--action-background-base-white, #FFF);
+}
+
+.Icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  transition: transform 150ms ease-out;
+}
+
+.Trigger {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-sm, 12px) var(--spacing-sm, 12px) var(--spacing-sm, 12px) var(--spacing-md, 16px);
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  width: 100%;
+
+  color: var(--foreground-neutral-secondary, #455468);
+
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+
+  .primary {
+    color: var(--foreground-neutral-secondary, #455468);
+
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px; /* 150% */
+    letter-spacing: -0.3px;
+  }
+
+  .secondary {
+    color: var(--Neutral-Slate-600, #475569);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 14px; /* 116.667% */
+    text-align: left;
+  }
+}
+
+.Panel {
+  display: flex;
+  padding: 8px 16px 16px 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-sm, 12px);
+  align-self: stretch;
+}
+
+.Content {
+  display: flex;
+  flex-direction: column;
+  cursor: text;
+  width: 100%;
+}
+
+.inputLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  margin-bottom: 8px;
+}

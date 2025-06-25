@@ -9,7 +9,7 @@ import s from './FormSelect.module.scss';
 interface Props {
   name: string;
   placeholder: string;
-  label: string;
+  label?: string;
   description?: string;
   options: OptionsOrGroups<string, GroupBase<string>>;
   disabled?: boolean;
@@ -26,12 +26,13 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
 
   return (
     <Field.Root className={s.field}>
-      <Field.Label className={s.label}>{label}</Field.Label>
+      {label && <Field.Label className={s.label}>{label}</Field.Label>}
       <Select
         placeholder="Project"
         options={options}
         value={value}
-        onChange={(val) => setValue(name, val, { shouldValidate: true })}
+        defaultValue={value}
+        onChange={(val) => setValue(name, val, { shouldValidate: true, shouldDirty: true })}
         isDisabled={disabled}
         styles={{
           container: (base) => ({
@@ -50,14 +51,16 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
             fontSize: '14px',
             minWidth: '140px',
             width: '100%',
+            borderColor: 'rgba(203, 213, 225, 0.50) !important',
             position: 'relative',
             '&:hover': {
               border: '1px solid rgba(66, 125, 255, 0.50)',
               boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+              borderColor: 'rgba(66, 125, 255, 0.50) !important',
             },
             '&:focus-visible, &:focus': {
-              border: '1px solid rgba(203, 213, 225, 0.50)',
-              boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+              borderColor: 'rgba(66, 125, 255, 0.50) !important',
+              boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10) !important',
             },
             ...(!!errors[name]
               ? {

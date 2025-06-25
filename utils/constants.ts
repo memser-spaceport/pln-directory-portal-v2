@@ -165,6 +165,10 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_MEMBER_PROFILE_EDIT_FORM: 'settings-member-profile-edit-form',
   SETTINGS_TEAM_PROFILE_EDIT_FORM: 'settings-team-profile-edit-form',
 
+  SETTINGS_RECOMMENDATIONS_PAGE_OPEN_FROM_MAIL: 'settings-recommendations-page-open-from-mail',
+  SETTINGS_RECOMMENDATIONS_SAVE_CLICKED: 'settings-recommendations-save-clicked',
+  SETTINGS_RECOMMENDATIONS_RESET_CLICKED: 'settings-recommendations-reset-clicked',
+
   PR_CONRTIBUTIONS_LIST_ITEM_ADD: 'pr-contributions-list-item-add',
   PR_CONRTIBUTIONS_LIST_ITEM_DELETE: 'pr-contributions-list-item-delete',
   PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT: 'pr-contributions-list-item-addproject',

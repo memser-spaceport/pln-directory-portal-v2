@@ -14,6 +14,8 @@ import { useRouter } from 'next/navigation';
 
 import s from './RecommendationsSettingsForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useRecommendationsSettingsEvents } from '@/components/page/recommendations/components/RecommendationsSettingsForm/hooks';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 
 interface Props {
   uid: string;
@@ -32,6 +34,9 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
 
   const { mutateAsync } = useUpdateMemberNotificationsSettings();
 
+  useRecommendationsSettingsEvents();
+  const { onRecommendationsSettingsSaveClicked } = useSettingsAnalytics();
+
   useEffect(() => {
     if (initialData) {
       reset(initialData);
@@ -39,7 +44,7 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
   }, [initialData, reset]);
 
   const onSubmit = async (formData: TRecommendationsSettingsForm) => {
-    const res = await mutateAsync({
+    const payload = {
       memberUid: userInfo.uid,
       subscribed: formData.enabled,
       emailFrequency: formData.frequency.value,
@@ -48,7 +53,11 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
       fundingStageList: formData.fundingStage.map((stage) => stage.label),
       technologyList: formData.teamTechnology.map((stage) => stage.label),
       keywordList: formData.keywords,
-    });
+    };
+
+    onRecommendationsSettingsSaveClicked(payload);
+
+    const res = await mutateAsync(payload);
 
     if (res) {
       router.refresh();

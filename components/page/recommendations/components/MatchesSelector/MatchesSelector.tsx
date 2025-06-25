@@ -16,9 +16,10 @@ interface Props {
   name: string;
   menuPlacement?: MenuPlacement;
   selectLabel: string;
+  warning: boolean;
 }
 
-export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacement = 'bottom', selectLabel }: Props) => {
+export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacement = 'bottom', selectLabel, warning }: Props) => {
   const [open, toggleOpen] = useToggle(false);
   const { setValue, watch, getValues } = useFormContext();
   const values = getValues();
@@ -27,7 +28,11 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
   return (
     <Collapsible.Root className={s.Collapsible} open={open} onOpenChange={toggleOpen}>
       <Collapsible.Trigger className={s.Trigger}>
-        <div className={s.title}>
+        <div
+          className={clsx(s.title, {
+            [s.warning]: warning,
+          })}
+        >
           {icon} {title}
         </div>
         <ChevronIcon className={s.Icon} />
@@ -89,6 +94,11 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
               option: (baseStyles) => ({
                 ...baseStyles,
                 fontSize: '14px',
+                fontWeight: 300,
+                color: '#455468',
+                '&:hover': {
+                  background: 'rgba(27, 56, 96, 0.12)',
+                },
               }),
               menu: (baseStyles) => ({
                 ...baseStyles,

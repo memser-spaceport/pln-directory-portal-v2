@@ -33,6 +33,16 @@
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
+
+  svg {
+    color: #1B4DFF;
+  }
+
+  &.warning {
+    svg {
+      color: #FF820E;
+    }
+  }
 }
 
 .hint {

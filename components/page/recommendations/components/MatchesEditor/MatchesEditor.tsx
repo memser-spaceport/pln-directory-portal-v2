@@ -5,7 +5,6 @@ import React, { ReactNode, useState } from 'react';
 import { MenuPlacement } from 'react-select';
 import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
-import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import clsx from 'clsx';
 
 import s from './MatchesEditor.module.scss';
@@ -23,20 +22,25 @@ interface Props {
   isColorfulBadges?: boolean;
   menuPlacement?: MenuPlacement;
   selectLabel: string;
+  warning: boolean;
 }
 
-export const MatchesEditor = ({ icon, title, hint, selectLabel, options, name, isColorfulBadges = true, menuPlacement = 'bottom' }: Props) => {
+export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, isColorfulBadges = true, menuPlacement = 'bottom' }: Props) => {
   const [open, toggleOpen] = useToggle(false);
   const [inputText, setInputText] = useState('');
-  const [inputMode, toggleInputMode] = useLocalStorageParam(`matchesSelectorInputMode-${name}`, false);
   const { setValue, getValues } = useFormContext();
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as string[];
+  const isDisabled = !values.enabled;
 
   return (
     <Collapsible.Root className={s.Collapsible} open={open} onOpenChange={toggleOpen}>
       <Collapsible.Trigger className={s.Trigger}>
-        <div className={s.title}>
+        <div
+          className={clsx(s.title, {
+            [s.warning]: warning,
+          })}
+        >
           {icon} {title}
         </div>
         <ChevronIcon className={s.Icon} />
@@ -55,7 +59,6 @@ export const MatchesEditor = ({ icon, title, hint, selectLabel, options, name, i
                     key={item}
                     label={item}
                     isColorful={isColorfulBadges}
-                    disabled={!values.enabled}
                     onDelete={() => {
                       setValue(
                         name,
@@ -115,7 +118,7 @@ const PlusIcon = () => (
   </svg>
 );
 
-const Badge = ({ label, onDelete, isColorful, disabled }: { label: string; onDelete: () => void; isColorful: boolean; disabled: boolean }) => {
+const Badge = ({ label, onDelete, isColorful, disabled }: { label: string; onDelete: () => void; isColorful: boolean; disabled?: boolean }) => {
   return (
     <div
       className={clsx(s.badge, {

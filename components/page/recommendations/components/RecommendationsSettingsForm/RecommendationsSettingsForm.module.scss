@@ -15,7 +15,7 @@
   background: var(--Surface-surface-light, #FFF);
 
   @include media.tablet-landscape {
-    padding: 40px;
+    padding: 40px 40px 24px;
   }
 }
 

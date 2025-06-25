@@ -66,7 +66,7 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
         }}
       >
         <h5 className={s.title}>Recommendations</h5>
-        <GeneralSettings />
+        <GeneralSettings uid={uid} />
         <FineTuneMatches />
         <RecommendationSettingsFormControls />
       </form>

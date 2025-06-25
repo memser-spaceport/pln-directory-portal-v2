@@ -1,7 +1,19 @@
+@use 'styles/media';
+
 .root {
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  border-radius: var(--corner-radius-xl, 12px);
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  background: var(--background-base-white, #FFF);
+
+  padding: 12px;
+
+  @include media.tablet-landscape {
+    padding: var(--spacing-lg, 20px) var(--spacing-md, 16px);
+  }
 }
 
 .Label {
@@ -12,19 +24,13 @@
   font-weight: 500;
   line-height: 20px; /* 166.667% */
   display: flex;
-  padding-block: 12px 0;
   user-select: none;
   cursor: pointer;
 
-  padding: var(--spacing-lg, 20px) var(--spacing-md, 16px);
   flex-direction: column;
   align-items: flex-start;
   gap: var(--spacing-sm, 12px);
   align-self: stretch;
-
-  border-radius: var(--corner-radius-xl, 12px);
-  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
-  background: var(--background-base-white, #FFF);
 
   /* Shadow/xs */
   box-shadow: 0px 1px 2px 0px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
@@ -153,4 +159,62 @@
   gap: 12px;
   align-items: center;
   justify-content: space-between;
+}
+
+.notification {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 96px;
+  border-radius: 12px;
+  background: var(--Neutral-Slate-50, #F8FAFC);
+  gap: 8px;
+  align-items: center;
+
+  svg {
+    display: none;
+  }
+
+  @include media.tablet-landscape {
+    padding: 16px;
+    grid-template-columns: 24px 1fr 124px;
+    svg {
+      display: block;
+    }
+  }
+}
+
+.text {
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 142.857% */
+  letter-spacing: 0.14px;
+
+  @include media.tablet-landscape {
+    font-size: 14px;
+    line-height: 20px; /* 142.857% */
+  }
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--transparent-brand-2, rgba(27, 77, 255, 0.02));
+  background: var(--action-background-brand-light_normal, rgba(27, 77, 255, 0.04));
+  box-shadow: 0px -1px 4px 0px var(--transparent-brand-8, rgba(27, 77, 255, 0.08)) inset;
+
+  padding: 10px var(--global-size-size-200, 16px);
+  gap: var(--spacing-zero, 0px);
 }

@@ -75,21 +75,25 @@ function PrivyModals() {
     localStorage.removeItem('stateUid');
     Cookies.set('authToken', JSON.stringify(output.accessToken), {
       expires: new Date(accessTokenExpiry.exp * 1000),
+      domain: process.env.COOKIE_DOMAIN || '',
     });
 
     Cookies.set('refreshToken', JSON.stringify(output.refreshToken), {
       expires: new Date(refreshTokenExpiry.exp * 1000),
       path: '/',
+      domain: process.env.COOKIE_DOMAIN || '',
     });
 
     Cookies.set('userInfo', JSON.stringify(output.userInfo), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       path: '/',
+      domain: process.env.COOKIE_DOMAIN || '',
     });
 
     Cookies.set('authLinkedAccounts', JSON.stringify(authLinkedAccounts), {
       expires: new Date(refreshTokenExpiry.exp * 1000),
       path: '/',
+      domain: process.env.COOKIE_DOMAIN || '',
     });
     postHogProps.identify(output?.userInfo?.uid, {
       email: output?.userInfo?.email,

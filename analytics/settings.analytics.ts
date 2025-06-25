@@ -186,6 +186,10 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_RECOMMENDATIONS_RESET_CLICKED);
   }
 
+  function onRecommendationEmailFeedbackClicked(params: any) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.RECOMMENDATION_EMAIL_FEEDBACK_CLICKED, params);
+  }
+
   return {
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
@@ -209,5 +213,6 @@ export const useSettingsAnalytics = () => {
     onRecommendationsPageOpenFromMail,
     onRecommendationsSettingsSaveClicked,
     onRecommendationsSettingsResetClicked,
+    onRecommendationEmailFeedbackClicked
   };
 };

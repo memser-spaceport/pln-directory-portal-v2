@@ -22,6 +22,14 @@ export function useRecommendationsSettingsEvents() {
 
     reportedRef.current = true;
 
-    onRecommendationsPageOpenFromMail(searchParams);
+    const searchParamsObj = {
+      utmSource: searchParams.get('utm_source'),
+      utmMedium: searchParams.get('utm_medium'),
+      utmCode: searchParams.get('utm_code'),
+      targetUid: searchParams.get('target_uid'),
+      targetEmail: searchParams.get('target_email'),
+    };
+
+    onRecommendationsPageOpenFromMail(searchParamsObj);
   }, [isFromExampleMail, isFromRecommendationMail, onRecommendationsPageOpenFromMail, searchParams]);
 }

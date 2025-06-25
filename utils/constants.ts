@@ -168,6 +168,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_RECOMMENDATIONS_PAGE_OPEN_FROM_MAIL: 'settings-recommendations-page-open-from-mail',
   SETTINGS_RECOMMENDATIONS_SAVE_CLICKED: 'settings-recommendations-save-clicked',
   SETTINGS_RECOMMENDATIONS_RESET_CLICKED: 'settings-recommendations-reset-clicked',
+  RECOMMENDATION_EMAIL_FEEDBACK_CLICKED: 'recommendation-email-feedback-clicked',
 
   PR_CONRTIBUTIONS_LIST_ITEM_ADD: 'pr-contributions-list-item-add',
   PR_CONRTIBUTIONS_LIST_ITEM_DELETE: 'pr-contributions-list-item-delete',

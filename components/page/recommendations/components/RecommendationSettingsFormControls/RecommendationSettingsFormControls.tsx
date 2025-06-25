@@ -4,12 +4,15 @@ import s from './RecommendationSettingsFormControls.module.scss';
 import { useFormContext } from 'react-hook-form';
 import clsx from 'clsx';
 import { Spinner } from '@/components/ui/Spinner';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 
 export const RecommendationSettingsFormControls = () => {
   const {
     reset,
     formState: { isDirty, isSubmitting },
   } = useFormContext();
+
+  const { onRecommendationsSettingsResetClicked } = useSettingsAnalytics();
 
   return (
     <div
@@ -21,7 +24,15 @@ export const RecommendationSettingsFormControls = () => {
         <SaveIcon /> Attention! You have unsaved changes!
       </div>
       <div className={s.right}>
-        <button type="button" className={s.btn} disabled={!isDirty || isSubmitting} onClick={() => reset()}>
+        <button
+          type="button"
+          className={s.btn}
+          disabled={!isDirty || isSubmitting}
+          onClick={() => {
+            onRecommendationsSettingsResetClicked();
+            reset();
+          }}
+        >
           Reset
         </button>
         <button type="submit" className={s.primaryBtn} disabled={!isDirty || isSubmitting}>

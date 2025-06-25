@@ -37,6 +37,7 @@ function LinkAuthAccounts() {
         Cookies.set('authLinkedAccounts', JSON.stringify(e.detail), {
           expires: new Date(refreshTokenExpiry.exp * 1000),
           path: '/',
+          domain: process.env.COOKIE_DOMAIN || '',
         });
         const accounts = e.detail.split(',');
         setUserLinkedAccounts(accounts);

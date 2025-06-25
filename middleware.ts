@@ -73,12 +73,15 @@ export async function middleware(req: NextRequest) {
       if (accessToken && refreshToken && userInfo) {
         response.cookies.set('refreshToken', JSON.stringify(refreshToken), {
           maxAge: calculateExpiry(refreshTokenExpiry?.exp),
+          domain: process.env.COOKIE_DOMAIN,
         });
         response.cookies.set('authToken', JSON.stringify(accessToken), {
           maxAge: calculateExpiry(accessTokenExpiry?.exp),
+          domain: process.env.COOKIE_DOMAIN,
         });
         response.cookies.set('userInfo', JSON.stringify(userInfo), {
           maxAge: calculateExpiry(accessTokenExpiry?.exp),
+          domain: process.env.COOKIE_DOMAIN,
         });
         response.headers.set('refreshToken', JSON.stringify(refreshToken));
         response.headers.set('authToken', JSON.stringify(accessToken));

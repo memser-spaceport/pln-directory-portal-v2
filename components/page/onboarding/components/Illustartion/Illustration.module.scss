@@ -13,10 +13,12 @@
   margin: 0 auto;
   width: 250px;
   height: calc(100vh * 0.2); // 220px;
+  display: none;
 
   @include media.tablet-landscape {
     width: 428px;
     height: 375px;
+    display: block;
   };
 }
 
@@ -25,10 +27,14 @@
   padding: 12px 0 0 0;
   margin: auto  0 0 0;
   gap: clamp(12px, 4vw, 24px); // 24px;
-  display: flex;
+  display: none;
   flex-direction: column;
   width: 100%;
   align-items: flex-start;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
 }
 
 .item {

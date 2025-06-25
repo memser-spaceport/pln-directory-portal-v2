@@ -1,0 +1,29 @@
+@use 'styles/mixins';
+
+.dropzone {
+  @include mixins.centralize;
+  position: relative;
+  border-radius: 72px;
+  width: 72px;
+  min-width: 72px;
+  height: 72px;
+  overflow: hidden;
+
+  background: #E8F1FE;
+}
+
+.dropzoneHint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+
+  color: #A0BEFF;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 200% */
+}

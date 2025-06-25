@@ -25,6 +25,7 @@ interface SearchWithSuggestionsProps {
   title?: string;
   id: string;
   name: string;
+  onSelect?: (suggestion: any) => void;
 }
 
 /**
@@ -36,8 +37,7 @@ interface SearchWithSuggestionsProps {
  * @returns {JSX.Element} The rendered SearchWithSuggestions component.
  *
  */
-const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: SearchWithSuggestionsProps) => {
-
+const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id, onSelect }: SearchWithSuggestionsProps) => {
   const [inputValue, setInputValue] = useState('');
   const [searchInputValue, setSearchInputValue] = useState('');
   const [isAddMode, setAddMode] = useState(false);
@@ -49,13 +49,12 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
 
   const clrObj = getColorObject(selectedSuggestion?.group || '');
 
-
   /**
    * Handles the input change event for the search input field.
-   * 
+   *
    * @param {React.ChangeEvent<HTMLInputElement>} e - The change event triggered by the input field.
    * @returns {Promise<void>} - A promise that resolves when the input change handling is complete.
-   * 
+   *
    * This function updates the search input value state and fetches suggestions if the input length is greater than 2.
    * It sets the filtered suggestions and displays the dropdown if suggestions are available.
    * If the input length is 2 or less, it hides the dropdown and clears the filtered suggestions.
@@ -74,6 +73,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
   const handleAddInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
+    onSelect?.(value);
   };
 
   /**
@@ -94,7 +94,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
 
   /**
    * Enables the add mode for giving custom data.
-   * 
+   *
    * @function
    */
   const enableAddMode = () => {
@@ -115,6 +115,8 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
     setSelectedSuggestion(suggestion);
     setDropdownStatus(false);
     setSearchInputValue('');
+
+    onSelect?.(suggestion);
   };
 
   const searchTextChange = async (value: string) => {
@@ -126,7 +128,7 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
       setDropdownStatus(false);
       setFilteredSuggestions([]);
     }
-  }
+  };
 
   useEffect(() => {
     searchTextChange(debouncedSearchText);
@@ -179,26 +181,26 @@ const SearchWithSuggestions = ({ addNew, placeHolder = 'Search', title, id }: Se
           )}
 
           {/* search text input */}
-            {!isAddMode && !selectedSuggestion && (
+          {!isAddMode && !selectedSuggestion && (
             <input
               type="text"
               tabIndex={0}
               value={searchInputValue}
               onChange={handleInputChange}
               onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-              }
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
               }}
               className="suggestions__input__field"
               placeholder={placeHolderText}
               name="search"
             />
-            )}
+          )}
         </div>
 
         {/* dropdown to show suggestions */}
-        {enableDropdown && <SuggestionDropdown suggestions={filteredSuggestions} addNew={addNew} enableAddMode={enableAddMode} onSelect={onSuggestionSelect} setDropdownStatus={setDropdownStatus}/>}
+        {enableDropdown && <SuggestionDropdown suggestions={filteredSuggestions} addNew={addNew} enableAddMode={enableAddMode} onSelect={onSuggestionSelect} setDropdownStatus={setDropdownStatus} />}
 
         {/* hidden form field */}
         <input type="hidden" value={selectedSuggestion ? JSON.stringify(selectedSuggestion) : inputValue} name={'selected-team-or-project'} />

@@ -11,6 +11,8 @@ import { useDropzone } from 'react-dropzone';
 import { useFormContext } from 'react-hook-form';
 import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
 import { clsx } from 'clsx';
+import { AppLogo } from '@/components/page/onboarding/components/AppLogo';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   userInfo: IUserInfo;
@@ -26,12 +28,13 @@ export const ProfileStep = ({ userInfo }: Props) => {
     formState: { errors },
   } = useFormContext<OnboardingForm>();
 
+  const { onOnboardingWizardBrowseFilesClicked } = useMemberAnalytics();
+
   const { getInputProps, getRootProps } = useDropzone({
     onError: (err) => {
       console.error(err);
     },
     onDrop: (acceptedFiles) => {
-      console.log(acceptedFiles);
       if (acceptedFiles && acceptedFiles.length > 0) {
         const file = acceptedFiles[0];
 
@@ -67,7 +70,14 @@ export const ProfileStep = ({ userInfo }: Props) => {
       <div className={s.dropzone} {...getRootProps()}>
         <input {...getInputProps()} />
         <div className={s.dropzoneHint}>
-          {imagePreview ? 'To change drop new here or' : 'Drop your pic here or'} <span>browse</span>
+          {imagePreview ? 'To change drop new here or' : 'Drop your pic here or'}{' '}
+          <span
+            onClick={() => {
+              onOnboardingWizardBrowseFilesClicked();
+            }}
+          >
+            browse
+          </span>
           <p className={s.uploadRulesHint}>Upload a PNG or JPEG up to 4 MB.</p>
         </div>
       </div>

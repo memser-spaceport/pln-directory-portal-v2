@@ -73,18 +73,15 @@ export const setNewTokenAndUserInfoAtClientSide = (details: any) => {
     Cookies.set('authToken', JSON.stringify(accessToken), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       path: '/',
-      domain: process.env.COOKIE_DOMAIN || '',
     });
 
     Cookies.set('refreshToken', JSON.stringify(refreshToken), {
       expires: new Date(refreshTokenExpiry.exp * 1000),
       path: '/',
-      domain: process.env.COOKIE_DOMAIN || '',
     });
     Cookies.set('userInfo', JSON.stringify(userInfo), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       path: '/',
-      domain: process.env.COOKIE_DOMAIN || '',
     });
   }
 };

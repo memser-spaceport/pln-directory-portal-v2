@@ -9,7 +9,7 @@ import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 export const RecommendationSettingsFormControls = () => {
   const {
     reset,
-    formState: { isDirty, isSubmitting },
+    formState: { isDirty, isSubmitting, isValid },
   } = useFormContext();
 
   const { onRecommendationsSettingsResetClicked } = useSettingsAnalytics();
@@ -35,7 +35,7 @@ export const RecommendationSettingsFormControls = () => {
         >
           Reset
         </button>
-        <button type="submit" className={s.primaryBtn} disabled={!isDirty || isSubmitting}>
+        <button type="submit" className={s.primaryBtn} disabled={!isDirty || isSubmitting || !isValid}>
           {isSubmitting ? (
             <>
               <Spinner /> Saving...

@@ -1,4 +1,4 @@
-import { MemberNotificationSettings } from '@/services/members/types';
+import * as yup from 'yup';
 
 export function getSelectedFrequency(freq: number = 7) {
   switch (freq) {
@@ -17,8 +17,40 @@ export function getInitialValues() {
   return {
     enabled: false,
     frequency: { value: 7, label: 'Weekly' },
-    industryTags: [], // ? initialData.industryTagList.map((tag) => ({ value: tag, label: tag })) : [],
-    roles: [], // ? initialData.roleList.map((role) => ({ value: role, label: role })) : [],
-    fundingStage: [], // ? initialData.fundingStageList.map((stage) => ({ value: stage, label: stage })) : [],
+    // industryTags: [],
+    keywords: [],
+    teamTechnology: [],
+    roles: [],
+    fundingStage: [],
   };
 }
+
+const selectOptionSchema = yup.object({
+  value: yup.string().defined().required(),
+  label: yup.string().defined().required(),
+});
+
+export const recommendationsSettingsSchema = yup
+  .object({
+    enabled: yup.boolean().required(),
+
+    frequency: yup
+      .object({
+        value: yup.number().required('Frequency value is required'),
+        label: yup.string().required('Frequency label is required'),
+      })
+      .required('Frequency is required'),
+
+    // industryTags: yup.array().of(selectOptionSchema).min(1, 'Select at least one industry tag').required('Industry tags are required'),
+
+    roles: yup.array().of(selectOptionSchema).default([]),
+    fundingStage: yup.array().of(selectOptionSchema).default([]),
+    teamTechnology: yup.array().of(selectOptionSchema).default([]),
+    keywords: yup.array().of(yup.string().defined()).default([]),
+  })
+  .test('require-one-when-enabled', 'At least one of Roles, Funding Stage, Team Technology, or Keywords must be filled when enabled', function (values) {
+    const { enabled, roles, fundingStage, teamTechnology, keywords } = values || {};
+    if (!enabled) return true;
+
+    return (roles && roles.length > 0) || (fundingStage && fundingStage.length > 0) || (teamTechnology && teamTechnology.length > 0) || (keywords && keywords.length > 0);
+  });

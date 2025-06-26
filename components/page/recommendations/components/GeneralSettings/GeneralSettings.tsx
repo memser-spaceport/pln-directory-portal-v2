@@ -39,9 +39,9 @@ export const GeneralSettings = ({ uid }: { uid: string }) => {
       <div className={s.notification}>
         <InfoIcon />
         <p className={s.text}>Make sure your profile is up-to-date to get the best recommendations.</p>
-        <button className={s.btn} onClick={() => router.push(`/members/${uid}`)}>
+        <a className={s.btn} href={`${window.location.origin}/members/${uid}`} target="_blank" rel="noreferrer">
           My Profile <ArrowIcon />
-        </button>
+        </a>
       </div>
       {/*<FormSelect name="frequency" placeholder="Frequency" options={OPTIONS} disabled={!enabled} />*/}
     </div>

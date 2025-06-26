@@ -17,9 +17,10 @@ interface Props {
   menuPlacement?: MenuPlacement;
   selectLabel: string;
   warning: boolean;
+  placeholder: string;
 }
 
-export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacement = 'bottom', selectLabel, warning }: Props) => {
+export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacement = 'bottom', selectLabel, warning, placeholder }: Props) => {
   const [open, toggleOpen] = useToggle(false);
   const { setValue, watch, getValues } = useFormContext();
   const values = getValues();
@@ -49,7 +50,7 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
             autoFocus
             options={options}
             isClearable={false}
-            placeholder="Write new interest"
+            placeholder={placeholder}
             // @ts-ignore
             value={val}
             onChange={(val) => {
@@ -90,6 +91,13 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
                 height: '32px',
                 padding: 0,
                 // background: 'tomato',
+              }),
+              placeholder: (base) => ({
+                ...base,
+                // border: '1px solid red',
+                width: 'fit-content',
+                fontSize: '14px',
+                color: '#455468A0',
               }),
               option: (baseStyles) => ({
                 ...baseStyles,

@@ -65,14 +65,14 @@
 }
 
 .input {
-  padding: 2px 8px;
+  padding: 2px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border: 1px solid rgba(203, 213, 225, 0.50);
   border-radius: 8px;
   gap: 12px;
-  min-height: 40px;
+  min-height: 42px;
   background: rgba(14, 15, 17, 0.02);
 
 
@@ -102,6 +102,11 @@
   height: 32px;
   flex: 1;
   background: transparent;
+
+  @include mixins.placeholder {
+    color: #455468A0;
+    font-size: 14px;
+  }
 }
 
 .addButton {

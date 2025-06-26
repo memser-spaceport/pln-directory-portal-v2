@@ -70,7 +70,7 @@ export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, i
                 );
               })}
               <Field.Control
-                placeholder="Write new interest"
+                placeholder="Add keyword"
                 className={clsx(s.textInput)}
                 value={inputText}
                 onChange={(e) => {

@@ -17,7 +17,7 @@ export const RecommendationSettingsFormControls = () => {
   return (
     <div
       className={clsx(s.root, {
-        [s.visible]: isDirty,
+        [s.visible]: isDirty && isValid,
       })}
     >
       <div className={s.message}>

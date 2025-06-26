@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isValidURL, getURLErrorMessage, URLType } from '../utils/url-validation';
 
 export const basicInfoSchema = z.object({
   requestorEmail: z
@@ -43,10 +44,44 @@ export const socialSchema = z.object({
     .string({ errorMap: () => ({ message: 'Please add Preferred method of contact' }) })
     .trim()
     .min(1)
-    .max(200),
+    .max(200)
+    .refine((value): value is string => isValidURL(value, 'contactMethod'), {
+      message: getURLErrorMessage('contactMethod'),
+    }),
   website: z
     .string({ errorMap: () => ({ message: 'Please add website' }) })
     .trim()
     .min(1)
-    .max(1000),
+    .max(1000)
+    .refine((value): value is string => isValidURL(value, 'website'), {
+      message: getURLErrorMessage('website'),
+    }),
+  linkedinHandler: z
+    .string()
+    .trim()
+    .max(200)
+    .refine((value): value is string => !value || isValidURL(value, 'linkedin'), {
+      message: getURLErrorMessage('linkedin'),
+    }),
+  twitterHandler: z
+    .string()
+    .trim()
+    .max(200)
+    .refine((value): value is string => !value || isValidURL(value, 'twitter'), {
+      message: getURLErrorMessage('twitter'),
+    }),
+  telegramHandler: z
+    .string()
+    .trim()
+    .max(200)
+    .refine((value): value is string => !value || isValidURL(value, 'telegram'), {
+      message: getURLErrorMessage('telegram'),
+    }),
+  blog: z
+    .string()
+    .trim()
+    .max(1000)
+    .refine((value): value is string => !value || isValidURL(value, 'blog'), {
+      message: getURLErrorMessage('blog'),
+    }),
 });

@@ -27,7 +27,7 @@ export const GeneralSettings = ({ uid }: { uid: string }) => {
       <label className={s.Label}>
         <div className={s.col}>
           <div className={s.row}>
-            <div className={s.primary}>Receive Recommendation</div>
+            <div className={s.primary}>Receive Recommendations</div>
             <Switch.Root defaultChecked className={s.Switch} checked={enabled} onCheckedChange={() => setValue('enabled', !enabled, { shouldValidate: true, shouldDirty: true })}>
               <Switch.Thumb className={s.Thumb} />
             </Switch.Root>

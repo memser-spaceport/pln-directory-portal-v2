@@ -17,7 +17,13 @@ export const getAllLocations = async () => {
   }
 
   const result = await response.json();
-  result.sort((a: { priority: number }, b: { priority: number }) => a.priority - b.priority);
+  result.sort((a: { priority: number | null }, b: { priority: number | null }) => {
+    if (a.priority === null && b.priority === null) return 0;
+    if (a.priority === null) return 1; 
+    if (b.priority === null) return -1; 
+    return a.priority - b.priority;
+  });
+  
 
   const filteredResult = result.filter(
     (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[]; }) =>

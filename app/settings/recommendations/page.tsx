@@ -49,11 +49,12 @@ const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean
   return { memberDetails: memberResponse, preferences, notificationSettings: _notificationSettings, recommendationsEnabled };
 };
 
-async function RecommendationsPage() {
+async function RecommendationsPage({ searchParams }: { searchParams: any }) {
   const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
+  const params = new URLSearchParams(searchParams as Record<string, string>).toString();
 
   if (!isLoggedIn) {
-    redirect(PAGE_ROUTES.HOME);
+    redirect(`/${params ? `?${params}` : '?'}&returnTo=settings-recommendations#login`);
   }
 
   const roles = userInfo.roles ?? [];

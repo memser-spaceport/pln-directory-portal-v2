@@ -378,6 +378,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             display: flex;
             align-items: center;
             gap: 4px;
+            text-transform: capitalize;
           }
 
           .popup__footer {

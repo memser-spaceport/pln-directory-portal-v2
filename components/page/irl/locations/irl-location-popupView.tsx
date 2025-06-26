@@ -45,6 +45,7 @@ const IrlLocationPopupView = (props: IrlLocationPopupViewProps) => {
                     padding: 5px;
                     color: #0F172A;
                     cursor: pointer;
+                    text-transform: capitalize;
                 }
 
                 .root__irl__overlay__cnt:hover {

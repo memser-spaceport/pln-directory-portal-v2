@@ -26,12 +26,12 @@ interface Props {
 }
 
 export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, isColorfulBadges = true, menuPlacement = 'bottom' }: Props) => {
-  const [open, toggleOpen] = useToggle(false);
   const [inputText, setInputText] = useState('');
   const { setValue, getValues } = useFormContext();
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as string[];
   const isDisabled = !values.enabled;
+  const [open, toggleOpen] = useToggle(val?.length > 0);
 
   return (
     <Collapsible.Root className={s.Collapsible} open={open} onOpenChange={toggleOpen}>
@@ -70,7 +70,7 @@ export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, i
                 );
               })}
               <Field.Control
-                placeholder="Write new interest"
+                placeholder={val?.length > 0 ? '' : 'Add keyword'}
                 className={clsx(s.textInput)}
                 value={inputText}
                 onChange={(e) => {
@@ -126,7 +126,7 @@ const Badge = ({ label, onDelete, isColorful, disabled }: { label: string; onDel
         [s.disabled]: disabled,
       })}
     >
-      {label}{' '}
+      <span>{label}</span>{' '}
       <button type="button" onClick={onDelete} disabled={disabled}>
         <CloseIcon />
       </button>
@@ -135,10 +135,7 @@ const Badge = ({ label, onDelete, isColorful, disabled }: { label: string; onDel
 };
 
 const CloseIcon = () => (
-  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M9.85354 9.14628C9.9 9.19274 9.93684 9.24789 9.96199 9.30859C9.98713 9.36928 10.0001 9.43434 10.0001 9.50003C10.0001 9.56573 9.98713 9.63079 9.96199 9.69148C9.93684 9.75218 9.9 9.80733 9.85354 9.85378C9.80709 9.90024 9.75194 9.93709 9.69124 9.96223C9.63054 9.98737 9.56549 10.0003 9.49979 10.0003C9.43409 10.0003 9.36904 9.98737 9.30834 9.96223C9.24765 9.93709 9.1925 9.90024 9.14604 9.85378L4.99979 5.70691L0.85354 9.85378C0.759719 9.94761 0.632472 10.0003 0.49979 10.0003C0.367108 10.0003 0.23986 9.94761 0.14604 9.85378C0.0522194 9.75996 -0.000488279 9.63272 -0.000488281 9.50003C-0.000488284 9.36735 0.0522194 9.2401 0.14604 9.14628L4.29291 5.00003L0.14604 0.853784C0.0522194 0.759964 -0.000488281 0.632716 -0.000488281 0.500034C-0.000488281 0.367352 0.0522194 0.240104 0.14604 0.146284C0.23986 0.0524635 0.367108 -0.000244141 0.49979 -0.000244141C0.632472 -0.000244141 0.759719 0.0524635 0.85354 0.146284L4.99979 4.29316L9.14604 0.146284C9.23986 0.0524635 9.36711 -0.000244143 9.49979 -0.000244141C9.63247 -0.000244138 9.75972 0.0524635 9.85354 0.146284C9.94736 0.240104 10.0001 0.367352 10.0001 0.500034C10.0001 0.632716 9.94736 0.759964 9.85354 0.853784L5.70666 5.00003L9.85354 9.14628Z"
-      fill="white"
-    />
+  <svg height="14" width="14" viewBox="0 0 20 20" aria-hidden="true" focusable="false" className="css-tj5bde-Svg">
+    <path d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"></path>
   </svg>
 );

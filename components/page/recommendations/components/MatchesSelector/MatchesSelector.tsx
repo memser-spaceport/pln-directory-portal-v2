@@ -17,13 +17,14 @@ interface Props {
   menuPlacement?: MenuPlacement;
   selectLabel: string;
   warning: boolean;
+  placeholder: string;
 }
 
-export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacement = 'bottom', selectLabel, warning }: Props) => {
-  const [open, toggleOpen] = useToggle(false);
+export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacement = 'bottom', selectLabel, warning, placeholder }: Props) => {
   const { setValue, watch, getValues } = useFormContext();
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as { value: string; label: string }[];
+  const [open, toggleOpen] = useToggle(val?.length > 0);
 
   return (
     <Collapsible.Root className={s.Collapsible} open={open} onOpenChange={toggleOpen}>
@@ -49,7 +50,7 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
             autoFocus
             options={options}
             isClearable={false}
-            placeholder="Write new interest"
+            placeholder={placeholder}
             // @ts-ignore
             value={val}
             onChange={(val) => {
@@ -91,6 +92,13 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
                 padding: 0,
                 // background: 'tomato',
               }),
+              placeholder: (base) => ({
+                ...base,
+                // border: '1px solid red',
+                width: 'fit-content',
+                fontSize: '14px',
+                color: '#455468A0',
+              }),
               option: (baseStyles) => ({
                 ...baseStyles,
                 fontSize: '14px',
@@ -115,6 +123,7 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
               }),
               multiValue: (base) => ({
                 ...base,
+                marginBlock: 0,
                 display: 'flex',
                 padding: 'var(--spacing-4xs, 4px) var(--spacing-3xs, 6px)',
                 justifyContent: 'center',
@@ -124,6 +133,14 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
                 border: '1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12))',
                 background: 'var(--background-base-white, #FFF)',
                 boxShadow: '0px 1px 2px 0px var(--transparent-dark-6, rgba(14, 15, 17, 0.06))',
+              }),
+              multiValueLabel: (base) => ({
+                ...base,
+                fontSize: '14px',
+                color: '#455468',
+                fontWeight: 300,
+                fontStyle: 'normal',
+                letterSpacing: '-0.2px',
               }),
               indicatorSeparator: (base) => ({
                 display: 'none',

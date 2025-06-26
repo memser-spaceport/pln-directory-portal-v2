@@ -126,6 +126,7 @@ const IrlLocationCard = ({ isActive, onCardClick, ...props }: IrlLocationCardPro
           font-weight: 500;
           line-height: 20px;
           text-align: left;
+          text-transform: capitalize;
           // padding-bottom: 2px;
         }
 

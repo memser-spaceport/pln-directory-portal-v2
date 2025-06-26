@@ -21,7 +21,6 @@ import { ENROLLMENT_TYPE } from '@/utils/constants';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import AlertMessage from './alert-message';
 import TeamsMemberInfo from './teams-member-info';
-import URLTextField from '../../form/url-text-field';
 import { isValidURL, URLType } from '../../../utils/url-validation';
 
 function ManageTeamsSettings(props: any) {

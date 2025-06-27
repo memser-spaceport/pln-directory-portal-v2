@@ -17,6 +17,11 @@ const nextConfig = {
         destination: 'events/irl',
         permanent: true,
       },
+      {
+        source: '/signup',
+        destination: '/?dialog=signup',
+        permanent: true,
+      },
     ];
   },
   env: {

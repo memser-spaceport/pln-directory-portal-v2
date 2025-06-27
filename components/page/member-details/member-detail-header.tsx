@@ -79,7 +79,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
                 asChild
                 trigger={
                   <h1 className="header__details__specifics__name">
-                    {name} <VerifiedIcon />
+                    {name} {member?.linkedinProfile ? <VerifiedIcon /> : null}
                   </h1>
                 }
                 content={name}

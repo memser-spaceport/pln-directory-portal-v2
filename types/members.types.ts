@@ -93,6 +93,30 @@ export interface IProjectContribution {
   uid: string;
 }
 
+export interface ILinkedinProfile {
+  uid: string;
+  memberUid: string;
+  linkedinProfileId: string;
+  linkedinHandler: null;
+  profileData: {
+    sub: string;
+    name: string;
+    email: string;
+    locale: {
+      country: string;
+      language: string;
+    };
+    picture: string;
+    given_name: string;
+    family_name: string;
+    email_verified: boolean;
+  };
+  isVerified: boolean;
+  verifiedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface IMember {
   profile?: string | null;
   id: string;
@@ -126,6 +150,7 @@ export interface IMember {
   isVerified?: boolean;
   eventGuests?: [];
   visibleHandles?: string[];
+  linkedinProfile: ILinkedinProfile;
 }
 
 export interface ILoggedoutMember {}

@@ -1,5 +1,5 @@
 // This component renders a modal for verifying email with error messages and actions.
-import { RefObject, useEffect, } from 'react';
+import { RefObject, useEffect } from 'react';
 
 interface IVerifyEmailModalProps {
   handleModalClose: () => void;
@@ -20,16 +20,24 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
           <div className="verifyEmail__cn__box">
             <div className="verifyEmail__cn__box__info">
               <div className="verifyEmail__cn__box__info__hdr">
-                <h6 className="verifyEmail__cn__box__info__hdr__ttl" data-testid="modal-title">{title}</h6>
+                <h6 className="verifyEmail__cn__box__info__hdr__ttl" data-testid="modal-title">
+                  {title}
+                </h6>
                 <button onClick={handleModalClose} className="verifyEmail__cn__box__info__hdr__clsBtn" data-testid="close-button">
                   <img width={22} height={22} src="/icons/close.svg" alt="close" />
                 </button>
               </div>
               <div className="verifyEmail__cn__box__info__errmsg">
                 <img width={16} height={16} src="/icons/warning-red.svg" alt="warn icon" />
-                <p className="verifyEmail__cn__box__info__errmsg__text" data-testid="error-message">{errorMessage}</p>
+                <p className="verifyEmail__cn__box__info__errmsg__text" data-testid="error-message">
+                  {errorMessage}
+                </p>
               </div>
-              {description && <p className="verifyEmail__cn__box__info__text" data-testid="description-text">{description}</p>}
+              {description && (
+                <p className="verifyEmail__cn__box__info__text" data-testid="description-text">
+                  {description}
+                </p>
+              )}
               <div className="verifyEmail__cn__box__info__actions">
                 <button onClick={handleModalClose} className="verifyEmail__cn__box__info__actions__cls__btn" data-testid="close-action-button">
                   Close
@@ -46,6 +54,7 @@ export function VerifyEmailModal({ content, handleModalClose, dialogRef }: IVeri
             border-radius: 8px;
             border: none;
             width: 656px;
+            min-height: 220px;
             margin: auto;
             outline: none;
           }

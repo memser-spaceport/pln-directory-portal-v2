@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
 
 import s from './ProfileImageInput.module.scss';
+import clsx from 'clsx';
 
 export const ProfileImageInput = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -46,7 +47,11 @@ export const ProfileImageInput = () => {
     <div className={s.dropzone} {...getRootProps()}>
       <input {...getInputProps()} />
       {imagePreview && <Image src={imagePreview} alt="Preview" className={s.imagePreview} fill />}
-      <div className={s.dropzoneHint}>
+      <div
+        className={clsx(s.dropzoneHint, {
+          [s.withPreview]: !!imagePreview,
+        })}
+      >
         <EditIcon />
         Add Image
       </div>

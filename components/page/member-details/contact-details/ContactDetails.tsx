@@ -116,7 +116,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                     callback={callback}
                     type=""
                     handle=""
-                    logo={getLogoByProvider('officeHours', false)}
+                    logo={getLogoByProvider('officeHours', true)}
                     className={clsx({
                       [s.incomplete]: true,
                     })}

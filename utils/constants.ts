@@ -260,6 +260,7 @@ export const TOAST_MESSAGES = {
   INTERACTION_RESTRICTED: 'Action restricted: Try scheduling after some time',
   FEEDBACK__ALREADY__RECORDED: 'Thanks, we have already recorded your feedback',
   SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed',
+  FAILED_TO_LINK_LINKEDIN: 'Failed to link LinkedIn account',
 };
 
 export const AUTH_ANALYTICS = {
@@ -395,6 +396,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
   ONBOARDING_CLOSE_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-close-subscribe-to-recommendations-clicked',
   ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED: 'onboarding-go-to-complete-profile-clicked',
   ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED: 'onboarding-close-complete-profile-clicked',
+  ONBOARDING_CONNECT_LINKEDIN_CLICKED: 'onboarding-connect-linkedin-clicked',
 
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-profile-details-edit-clicked',
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-profile-details-save-clicked',
@@ -466,9 +468,9 @@ export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_CONTRIBUTE_MODAL_IRL_PROCEED_BUTTON_CLICKED: 'events-page-contribute-modal-irl-proceed-button-clicked',
   EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED: 'events-page-contributing-team-clicked',
   EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED: 'events-page-contributing-members-clicked',
-  UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED: 'upcoming-events-widget-show-all-clicked',
-  UPCOMING_EVENTS_WIDGET_DISMISS_CLICKED: 'upcoming-events-widget-dismiss-clicked',
-  UPCOMING_EVENTS_WIDGET_ITEM_CLICKED: 'upcoming-events-widget-item-clicked',
+  UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED: 'onboarding-upcoming-events-widget-show-all-clicked',
+  UPCOMING_EVENTS_WIDGET_DISMISS_CLICKED: 'onboarding-upcoming-events-widget-dismiss-clicked',
+  UPCOMING_EVENTS_WIDGET_ITEM_CLICKED: 'onboarding-upcoming-events-widget-item-clicked',
 };
 
 export const HOME = {

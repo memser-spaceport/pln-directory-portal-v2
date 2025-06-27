@@ -32,13 +32,7 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
     return null;
   }
 
-  if (!settings?.showInvitationDialog) {
-    // do nothing
-  } else if (!settings?.subscribed && userInfo.uid === id) {
-    return null;
-  }
-
-  if (!visible) {
+  if (!settings?.showInvitationDialog || (!settings?.subscribed && userInfo.uid === id) || !visible) {
     return null;
   }
 

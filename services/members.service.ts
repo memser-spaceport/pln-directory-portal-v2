@@ -118,6 +118,9 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
 
   const mainTeam = teams.find((team: any) => team?.mainTeam);
   const teamLead = teams.some((team: any) => team?.teamLead);
+
+  console.log(result);
+
   member = {
     id: result.uid,
     name: result.name,
@@ -144,6 +147,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     isSubscribedToNewsletter: result?.isSubscribedToNewsletter ?? false,
     isVerified: result?.isVerified,
     eventGuests: result?.eventGuests ?? [],
+    linkedinProfile: result?.linkedinProfile,
   };
 
   if (isLoggedIn) {

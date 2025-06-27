@@ -491,6 +491,10 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_SAVE_CLICKED);
   }
 
+  function onConnectLinkedInClicked() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_CLICKED);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -558,5 +562,6 @@ export const useMemberAnalytics = () => {
     onOnboardingWizardNextClicked,
     onOnboardingWizardStartClicked,
     onOnboardingWizardBrowseFilesClicked,
+    onConnectLinkedInClicked,
   };
 };

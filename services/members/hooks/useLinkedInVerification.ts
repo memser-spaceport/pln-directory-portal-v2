@@ -8,7 +8,7 @@ async function mutation({ uid }: { uid: string }) {
   const url = `${process.env.DIRECTORY_API_URL}/v1/linkedin-verification/auth-url`;
   const payload = {
     memberUid: uid,
-    redirectUrl: `${window.location.origin}/members/${uid}?verified=true`,
+    redirectUrl: `${window.location.origin}/members/${uid}`,
   };
 
   const response = await customFetch(

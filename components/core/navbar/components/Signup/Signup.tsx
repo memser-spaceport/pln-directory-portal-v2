@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { SignupWizard } from '@/components/page/sign-up/components/SignupWizard';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import s from './Signup.module.scss';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const fade = {
   hidden: { opacity: 0 },
@@ -12,8 +13,10 @@ const fade = {
 };
 
 export const Signup = () => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const analytics = useAuthAnalytics();
+  const searchParams = useSearchParams();
 
   const handleSignUpClick = () => {
     analytics.onSignUpBtnClicked();
@@ -23,6 +26,17 @@ export const Signup = () => {
   const handleClose = useCallback(() => {
     setOpen(false);
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('dialog') === 'signup' && !open) {
+      setOpen(true);
+      const params = new URLSearchParams(searchParams.toString());
+
+      params.delete('dialog');
+
+      router.replace(`?${params.toString()}`);
+    }
+  }, [open, router, searchParams]);
 
   return (
     <>

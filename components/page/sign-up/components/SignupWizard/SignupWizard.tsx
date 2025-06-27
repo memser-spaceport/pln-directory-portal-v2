@@ -46,7 +46,7 @@ export const SignupWizard = ({ onClose }: Props) => {
     handleSubmit,
     setValue,
     watch,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isValid, submitCount },
   } = methods;
   const { subscribe, agreed } = watch();
 
@@ -199,7 +199,7 @@ export const SignupWizard = ({ onClose }: Props) => {
                   network members and will not be available to any individuals or entities outside the network.
                 </p>
 
-                <button type="submit" className={s.actionButton} disabled={isSubmitting}>
+                <button type="submit" className={s.actionButton} disabled={isSubmitting || !agreed || (submitCount > 0 && !isValid)}>
                   {isSubmitting ? (
                     <>
                       <LoaderIcon /> <span>Creating profile</span>

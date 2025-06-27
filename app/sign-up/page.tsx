@@ -12,9 +12,9 @@ const getPageData = async () => {
   const { isLoggedIn, userInfo } = getCookiesFromHeaders();
   let canAccess = false;
   let isLoggedInAndHaveAccess = false;
-  if(userInfo) {
+  if (userInfo) {
     const roles = userInfo.roles ?? [];
-    const isAdmin = roles.includes('DIRECTORYADMIN')
+    const isAdmin = roles.includes('DIRECTORYADMIN');
     const isTeamLead = (userInfo.leadingTeams ?? []).length > 0;
     isLoggedInAndHaveAccess = isAdmin || isTeamLead;
   }
@@ -28,21 +28,20 @@ const getPageData = async () => {
 
   return {
     skillsInfo: memberInfo.skills,
-    canAccess
+    canAccess,
   };
 };
 
 export default async function Page() {
-
   const { skillsInfo, canAccess } = await getPageData();
 
-  if(!canAccess) {
-        redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
+  if (!canAccess) {
+    redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
   }
 
   return (
     <>
-    <Script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} strategy="lazyOnload"></Script>
+      <Script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} strategy="lazyOnload"></Script>
       <div className={styles.signup}>
         <div className={styles.signup__cn}>
           <SignUp skillsInfo={skillsInfo} />

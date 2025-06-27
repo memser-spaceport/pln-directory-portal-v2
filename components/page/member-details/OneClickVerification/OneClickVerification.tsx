@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import s from './OneClickVerification.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { toast } from 'react-toastify';
 
 interface Props {
   member: IMember;
@@ -35,7 +36,13 @@ export const OneClickVerification = ({ userInfo, member }: Props) => {
 
   const { mutate, isPending } = useLinkedInVerification();
 
-  if (!hasMissingRequiredData && searchParams.get('verified') === 'true') {
+  useEffect(() => {
+    if (searchParams.get('status') === 'error') {
+      toast.error(searchParams.get('error_message') || 'Something went wrong. Please try again later.');
+    }
+  }, [searchParams]);
+
+  if (!hasMissingRequiredData && searchParams.get('status') === 'success') {
     return (
       <AnimatePresence>
         <motion.div className="modal" initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.7 }} style={{ zIndex: 10, position: 'fixed', inset: 0 }}>

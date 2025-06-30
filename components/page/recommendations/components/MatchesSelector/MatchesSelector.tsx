@@ -89,6 +89,7 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
               input: (baseStyles) => ({
                 ...baseStyles,
                 height: '32px',
+                fontSize: '14px',
                 padding: 0,
                 // background: 'tomato',
               }),

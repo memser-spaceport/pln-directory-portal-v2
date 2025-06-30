@@ -142,7 +142,7 @@
 .notification {
   padding: 12px;
   display: grid;
-  grid-template-columns: 1fr 96px;
+  grid-template-columns: 1fr 116px;
   border-radius: 12px;
   background: var(--Neutral-Slate-50, #F8FAFC);
   gap: 8px;
@@ -179,6 +179,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 
   color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
 
@@ -193,6 +194,11 @@
   background: var(--action-background-brand-light_normal, rgba(27, 77, 255, 0.04));
   box-shadow: 0px -1px 4px 0px var(--transparent-brand-8, rgba(27, 77, 255, 0.08)) inset;
 
-  padding: 10px var(--global-size-size-200, 16px);
-  gap: var(--spacing-zero, 0px);
+  padding: 10px var(--global-size-size-200, 12px);
+  gap: var(--spacing-zero, 4px);
+
+   > svg {
+     display: block !important;
+     min-width: 18px;
+   }
 }

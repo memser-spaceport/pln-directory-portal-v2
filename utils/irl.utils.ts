@@ -2,6 +2,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE, URL_QUERY_VALUE_SEPARATOR } from './constants';
 import { format, toZonedTime } from 'date-fns-tz';
 import { isSameDay } from 'date-fns';
+import { CalendarDate, EventDuration } from '@/types/irl.types';
 
 export const isPastDate = (date: any) => {
   const currentDate = new Date();
@@ -203,30 +204,68 @@ export const getAttendingStartAndEndDate = (events: any) => {
   
 };
 
-export function sortPastEvents(events: any[]) {
-  // Sort the events array
-  events.sort((a: any, b: any) => {
-    // Compare by start date (latest start first)
-    const startDateComparison = new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+export function sortEvents(events: any[], type: 'past' | 'upcoming' | 'all' = 'all'): any[] {
+  if (!events || events.length === 0) return [];
 
-    if (startDateComparison !== 0) {
-      return startDateComparison;
+  const currentDate = new Date().toISOString().split('T')[0];
+  
+  return [...events].sort((eventA, eventB) => {
+    // First: Sort by priority (null priorities go to the end)
+    if ((eventA.priority !== null || eventB.priority !== null) && eventA.priority !== eventB.priority) {
+      if (eventA.priority === null) return 1;
+      if (eventB.priority === null) return -1;
+      return eventA.priority - eventB.priority;
     }
 
-    // If start dates are equal, compare by duration (shorter duration first)
-    const durationA = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
-    const durationB = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
+    // Extract dates (handle both ISO strings and date objects)
+    const getDateString = (date: any) => {
+      if (typeof date === 'string') return date.split('T')[0];
+      return date.toISOString().split('T')[0];
+    };
 
-    return durationA - durationB;
+    const eventAStartDate = getDateString(eventA.startDate);
+    const eventAEndDate = getDateString(eventA.endDate);
+    const eventBStartDate = getDateString(eventB.startDate);
+    const eventBEndDate = getDateString(eventB.endDate);
+
+    // Determine event status
+    const isEventAPast = eventAEndDate < currentDate;
+    const isEventBPast = eventBEndDate < currentDate;
+    const isEventAOngoing = eventAStartDate <= currentDate && eventAEndDate >= currentDate;
+    const isEventBOngoing = eventBStartDate <= currentDate && eventBEndDate >= currentDate;
+
+    // Handle different sorting types
+    if (type === 'past') {
+      // For past events: sort by end date (most recent first)
+      return eventBEndDate.localeCompare(eventAEndDate);
+    }
+    
+    if (type === 'upcoming') {
+      // Ongoing events come first
+      if (isEventAOngoing && !isEventBOngoing) return -1;
+      if (!isEventAOngoing && isEventBOngoing) return 1;
+      
+      // Then sort by start date (earliest first)
+      return eventAStartDate.localeCompare(eventBStartDate);
+    }
+    
+    // For 'all' type: upcoming first, then past
+    if (!isEventAPast && isEventBPast) return -1;
+    if (isEventAPast && !isEventBPast) return 1;
+    
+    // If both are upcoming
+    if (!isEventAPast && !isEventBPast) {
+      // Ongoing events come first
+      if (isEventAOngoing && !isEventBOngoing) return -1;
+      if (!isEventAOngoing && isEventBOngoing) return 1;
+      
+      // Then sort by start date (earliest first)
+      return eventAStartDate.localeCompare(eventBStartDate);
+    }
+    
+    // If both are past, sort by end date (most recent first)
+    return eventBEndDate.localeCompare(eventAEndDate);
   });
-
-  // Use forEach to perform actions on each sorted event
-  events.forEach((event: any) => {
-    // Perform any additional actions needed for each event
-    // Example: log the event or perform some processing
-  });
-
-  return events; // Return the sorted array if needed
 }
 
 export const transformMembers = (result: any, currentEvents: string[]) => {
@@ -487,4 +526,78 @@ export function abbreviateString(inputString: string) {
 export function formatHtml(html: string) {
   if (!html) return '';
   return html.replace(/<[^>]+>/g, '');
+}
+
+export function parseDateString(dateString: string): CalendarDate {
+  const [dateOnly] = dateString.split('T');
+  const [year, month, day] = dateOnly.split('-').map(Number);
+  return { year, month, day };
+}
+
+export function getEventDates(event: any): EventDuration {
+  return {
+    startDate: parseDateString(event.startDate),
+    endDate: parseDateString(event.endDate)
+  };
+}
+
+export function compareDates(date1: CalendarDate, date2: CalendarDate): number {
+  if (date1.year !== date2.year) return date1.year - date2.year;
+  if (date1.month !== date2.month) return date1.month - date2.month;
+  return date1.day - date2.day;
+}
+
+export function isDateBefore(date1: CalendarDate, date2: CalendarDate): boolean {
+  return compareDates(date1, date2) < 0;
+}
+
+export function isDateAfter(date1: CalendarDate, date2: CalendarDate): boolean {
+  return compareDates(date1, date2) > 0;
+}
+
+export function isDateEqual(date1: CalendarDate, date2: CalendarDate): boolean {
+  return compareDates(date1, date2) === 0;
+}
+
+export function isDateBeforeOrEqual(date1: CalendarDate, date2: CalendarDate): boolean {
+  return compareDates(date1, date2) <= 0;
+}
+
+export function isDateAfterOrEqual(date1: CalendarDate, date2: CalendarDate): boolean {
+  return compareDates(date1, date2) >= 0;
+}
+
+export function comparePriority(eventA: any, eventB: any): number {
+  if ((eventA.priority !== null || eventB.priority !== null) && eventA.priority !== eventB.priority) {
+    if (eventA.priority === null) return 1;
+    if (eventB.priority === null) return -1;
+    return eventA.priority - eventB.priority;
+  }
+  return 0;
+}
+
+export function getEventStatus(event: any, today: CalendarDate) {
+  const { startDate, endDate } = getEventDates(event);
+  const isUpcoming = isDateAfterOrEqual(endDate, today);
+  const isPast = isDateBefore(endDate, today);
+  return { isUpcoming, isPast };
+}
+
+export function compareEventDates(eventA: any, eventB: any, type: 'upcoming' | 'past'): number {
+  const { startDate: startA, endDate: endA } = getEventDates(eventA);
+  const { startDate: startB, endDate: endB } = getEventDates(eventB);
+
+  switch (type) {
+    case 'upcoming':
+      // For upcoming events (including current), sort by start date (ascending)
+      const startDateComparison = compareDates(startA, startB);
+      if (startDateComparison !== 0) return startDateComparison;
+      // If start dates are same, sort by end date
+      return compareDates(endA, endB);
+    case 'past':
+      // For past events, sort by end date (descending)
+      return compareDates(endB, endA);
+    default:
+      return 0;
+  }
 }

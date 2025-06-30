@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
-import { getMemberInfoFormValues } from '@/utils/member.utils';
-import { getMemberRoles } from '@/services/members.service';
+import { getRecommendationRoles } from '@/services/recommendations.service';
 
 async function fetcher() {
-  return getMemberRoles({});
+  return getRecommendationRoles();
 }
 
 export function useMemberRolesOptions() {

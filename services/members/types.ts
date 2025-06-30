@@ -7,6 +7,7 @@ export type MemberNotificationSettings = {
   recommendationsEnabled: boolean;
   subscribed: boolean;
   showInvitationDialog: boolean;
+  exampleSent: boolean;
   emailFrequency: number;
   byFocusArea: boolean;
   byRole: boolean;

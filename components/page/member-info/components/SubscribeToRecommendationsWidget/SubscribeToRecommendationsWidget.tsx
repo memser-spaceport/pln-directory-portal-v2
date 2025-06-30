@@ -70,7 +70,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
 
   // const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
 
-  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog) {
+  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || data.exampleSent || !data.recommendationsEnabled || !data.showInvitationDialog) {
     return null;
   }
 

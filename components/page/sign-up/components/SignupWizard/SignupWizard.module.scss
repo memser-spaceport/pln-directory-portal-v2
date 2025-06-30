@@ -24,13 +24,13 @@
   width: 100%;
   padding-inline: 16px;
   padding-top: clamp(12px, 4vw, 24px);
-  gap: clamp(8px, 4vh, 32px);
+  gap: clamp(8px, 3vh, 32px);
 
   @include media.tablet-landscape {
     align-items: center;
     padding-top: 0;
     padding-inline: 32px;
-    //gap: clamp(12px, 4vh, 32px);
+    gap: clamp(12px, 4vh, 32px);
   }
 }
 
@@ -38,7 +38,6 @@
   background: linear-gradient(180deg, #204BBA 0%, #156FF7 100%);
   flex: 1;
   display: flex;
-  //min-height: 400px;
 
   @include media.tablet-landscape {
     border-radius: 16px;
@@ -197,6 +196,10 @@
        color: #156FF7;
     }
   }
+
+  button {
+    pointer-events: none;
+  }
 }
 
 .Checkbox {
@@ -248,7 +251,11 @@
   font-size: 10px;
   font-style: normal;
   font-weight: 500;
-  line-height: 20px; /* 200% */
+  line-height: 14px; /* 200% */
+
+  @include media.tablet-landscape {
+    line-height: 20px; /* 200% */
+  }
 }
 
 .col {

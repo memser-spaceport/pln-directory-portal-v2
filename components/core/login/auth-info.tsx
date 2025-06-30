@@ -29,10 +29,9 @@ const AuthInfo = () => {
         const result = response.data;
         localStorage.setItem('stateUid', result);
 
-        const isOnboardingLoginFlow = searchParams.get('loginFlow') === 'onboarding';
         const onboardingEmail = searchParams.get('prefillEmail');
 
-        if (isOnboardingLoginFlow && onboardingEmail) {
+        if (onboardingEmail) {
           localStorage.setItem('prefillEmail', onboardingEmail);
         }
 

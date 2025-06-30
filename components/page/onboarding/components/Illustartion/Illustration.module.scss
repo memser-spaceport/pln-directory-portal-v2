@@ -6,7 +6,11 @@
   flex-direction: column;
   flex: 1;
   background-size: cover;
-  padding: 24px 24px 48px;
+  padding: 12px 12px 24px;
+
+  @include media.tablet-landscape {
+    padding: 24px 24px 48px;
+  }
 }
 
 .heroImage {

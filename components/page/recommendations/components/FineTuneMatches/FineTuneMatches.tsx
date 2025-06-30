@@ -29,10 +29,12 @@ export const FineTuneMatches = () => {
         value: val.name,
         label: val.name,
       })),
-      fundingStageOptions: data.fundingStage.map((val: { id: any; name: any }) => ({
-        value: val.name,
-        label: val.name,
-      })),
+      fundingStageOptions: data.fundingStage
+        .filter((val: { id: any; name: any }) => val.name !== 'Not Applicable')
+        .map((val: { id: any; name: any }) => ({
+          value: val.name,
+          label: val.name,
+        })),
       teamTechnologiesOptions: data.technologies.map((val: { id: any; name: any }) => ({
         value: val.name,
         label: val.name,
@@ -41,13 +43,13 @@ export const FineTuneMatches = () => {
   }, [data]);
 
   const rolesOptions = useMemo(() => {
-    if (!rolesData) {
+    if (!rolesData || 'isError' in rolesData) {
       return [];
     }
 
-    return rolesData.map((val: { role: string }) => ({
-      value: val.role,
-      label: val.role,
+    return rolesData.map((val: string) => ({
+      value: val,
+      label: val,
     }));
   }, [rolesData]);
 
@@ -80,7 +82,7 @@ export const FineTuneMatches = () => {
         />
         <MatchesSelector
           placeholder="Add role"
-          hint="We’ll prioritize members who match these roles."
+          hint="We'll prioritize members who match these roles."
           icon={<RoleIcon />}
           title="Preferred Roles"
           selectLabel="Select Role"
@@ -90,7 +92,7 @@ export const FineTuneMatches = () => {
         />
         <MatchesSelector
           placeholder="Add technology used"
-          hint="We’ll highlight members working with these technologies."
+          hint="We'll highlight members working with these technologies."
           icon={<TechIcon />}
           title="Technologies used"
           selectLabel="Select Technology"

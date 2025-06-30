@@ -73,7 +73,16 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
 
   // const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
 
-  if (!userInfo || pathname.includes(`/members/${userInfo.uid}`) || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog || isOnboardingLoginFlow) {
+  if (
+    !userInfo ||
+    pathname.includes(`/members/${userInfo.uid}`) ||
+    !data ||
+    data.subscribed ||
+    data.exampleSent ||
+    !data.recommendationsEnabled ||
+    !data.showInvitationDialog ||
+    isOnboardingLoginFlow
+  ) {
     return null;
   }
 

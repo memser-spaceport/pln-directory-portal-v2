@@ -1,7 +1,11 @@
 import { IPastEvents, IUpcomingEvents } from '@/types/irl.types';
 import { getHeader } from '@/utils/common.utils';
 import { customFetch } from '@/utils/fetch-wrapper';
-import { sortPastEvents, transformMembers } from '@/utils/irl.utils';
+import { 
+  transformMembers, 
+  sortEvents,
+  parseDateString
+} from '@/utils/irl.utils';
 import { isError } from 'util';
 
 export const getAllLocations = async () => {
@@ -30,6 +34,20 @@ export const getAllLocations = async () => {
       item.pastEvents.length > 0 || item.upcomingEvents.length > 0
   );
 
+  filteredResult.forEach((location: any) => {
+    if (location.events && location.events.length > 0) {
+      location.events = sortEvents(location.events, 'all');
+    }
+    
+    if (location.pastEvents && location.pastEvents.length > 0) {
+      location.pastEvents = sortEvents(location.pastEvents, 'past');
+    }
+    
+    if (location.upcomingEvents && location.upcomingEvents.length > 0) {
+      location.upcomingEvents = sortEvents(location.upcomingEvents, 'upcoming');
+    }
+  });
+  
   return filteredResult;
 };
 

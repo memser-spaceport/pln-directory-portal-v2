@@ -239,3 +239,14 @@ export interface ILocationDetails {
   endDate: string;
   resources: AdditionalResource[];
 }
+
+export interface CalendarDate {
+  year: number;
+  month: number;
+  day: number;
+}
+
+export interface EventDuration {
+  startDate: CalendarDate;
+  endDate: CalendarDate;
+}

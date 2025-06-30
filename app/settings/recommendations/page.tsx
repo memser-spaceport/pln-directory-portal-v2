@@ -87,7 +87,7 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
           </div>
         </div>
         <div className={styles.privacy__backbtn}>
-          <SettingsBackButton title="Member Privacy" />
+          <SettingsBackButton title="Recommendations" />
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>

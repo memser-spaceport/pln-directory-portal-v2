@@ -16,6 +16,7 @@ import s from './RecommendationsSettingsForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRecommendationsSettingsEvents } from '@/components/page/recommendations/components/RecommendationsSettingsForm/hooks';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { triggerLoader } from '@/utils/common.utils';
 
 interface Props {
   uid: string;
@@ -30,7 +31,11 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
     resolver: yupResolver(recommendationsSettingsSchema),
   });
 
-  const { handleSubmit, reset } = methods;
+  const {
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = methods;
 
   const { mutateAsync } = useUpdateMemberNotificationsSettings();
 
@@ -42,6 +47,36 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
       reset(initialData);
     }
   }, [initialData, reset]);
+
+  useEffect(() => {
+    triggerLoader(false);
+    function handleNavigate(e: any) {
+      const url = e.detail.url;
+
+      let proceed = true;
+
+      const isSame = !isDirty;
+
+      if (!isSame) {
+        proceed = confirm('There are some unsaved changed. Do you want to proceed?');
+      }
+
+      if (!proceed) {
+        return;
+      }
+
+      triggerLoader(true);
+
+      router.push(url);
+      router.refresh();
+    }
+
+    document.addEventListener('settings-navigate', handleNavigate);
+
+    return function () {
+      document.removeEventListener('settings-navigate', handleNavigate);
+    };
+  }, [isDirty, router]);
 
   const onSubmit = async (formData: TRecommendationsSettingsForm) => {
     const payload = {

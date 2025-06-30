@@ -106,7 +106,15 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
             <OptedIn />
             <p className={s.desc}>Make sure your profile is as complete as possible to increase the quality of matches.</p>
             <div className={s.controls}>
-              <button className={s.primaryBtn} onClick={handleClose} disabled={isPending}>
+              <button
+                className={s.primaryBtn}
+                onClick={() => {
+                  queryClient.invalidateQueries({
+                    queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
+                  });
+                }}
+                disabled={isPending}
+              >
                 Complete my profile
                 <GlowIcon />
               </button>

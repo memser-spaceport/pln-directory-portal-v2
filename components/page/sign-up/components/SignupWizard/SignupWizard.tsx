@@ -23,12 +23,14 @@ import SearchWithSuggestions from '@/components/form/suggestions';
 import s from './SignupWizard.module.scss';
 import { useSignup } from '@/services/signup/hooks/useSignup';
 import { GROUP_TYPES } from '@/utils/constants';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   onClose: () => void;
 }
 
 export const SignupWizard = ({ onClose }: Props) => {
+  const router = useRouter();
   const analytics = useSignUpAnalytics();
   const methods = useForm<SignupForm>({
     defaultValues: {
@@ -113,7 +115,13 @@ export const SignupWizard = ({ onClose }: Props) => {
     if (res.success) {
       analytics.recordSignUpSave('submit-clicked-success', formData);
       toast.success('Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.');
-      onClose();
+
+      // todo - use case C
+      // router.replace(`${window.location.origin}?prefillEmail=${encodeURIComponent(payload.email)}#login`);
+
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     } else {
       if (res?.message) {
         toast.error(res?.message);

@@ -13,6 +13,7 @@ import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar
 import { clsx } from 'clsx';
 // import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   userInfo: IUserInfo;
@@ -30,6 +31,7 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
   const { onSubscribeToRecommendationsClicked, onCloseSubscribeToRecommendationsClicked } = useMemberAnalytics();
   const searchParams = useSearchParams();
   const isOnboardingLoginFlow = searchParams.get('loginFlow') === 'onboarding';
+  const accessLevel = getAccessLevel(userInfo, true);
 
   const handleSubscribe = useCallback(async () => {
     if (!userInfo) {
@@ -81,7 +83,8 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
     data.exampleSent ||
     !data.recommendationsEnabled ||
     !data.showInvitationDialog ||
-    isOnboardingLoginFlow
+    isOnboardingLoginFlow ||
+    accessLevel === 'base'
   ) {
     return null;
   }

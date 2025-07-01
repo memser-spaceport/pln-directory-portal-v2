@@ -15,7 +15,7 @@ export function getSelectedFrequency(freq: number = 7) {
 
 export function getInitialValues() {
   return {
-    enabled: false,
+    enabled: true,
     frequency: { value: 7, label: 'Weekly' },
     // industryTags: [],
     keywords: [],

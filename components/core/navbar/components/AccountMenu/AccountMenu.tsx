@@ -18,6 +18,7 @@ import { useGetAppNotifications } from '@/services/notifications/hooks/useGetApp
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
 import { clsx } from 'clsx';
 import { useRouter } from 'next/navigation';
+import { useUserStore } from '@/services/members/store';
 import { isNumber } from 'lodash';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
@@ -36,6 +37,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
   const postHogProps = usePostHog();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
+  const { profileImage } = useUserStore();
   const { data: member, isLoading } = useMember(userInfo.uid);
   const [hideCompleteProfile] = useLocalStorageParam('complete_profile_bar', false);
   const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours && member?.memberInfo.skills.length > 0;
@@ -70,7 +72,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
       <Menu.Root modal={false}>
         <Menu.Trigger className={s.Button} ref={menuTriggerRef}>
           <Avatar.Root className={s.Avatar}>
-            <Avatar.Image src={userInfo?.profileImageUrl || defaultAvatarImage} width="40" height="40" className={s.Image} />
+            <Avatar.Image src={profileImage ?? defaultAvatarImage} width="40" height="40" className={s.Image} />
             <Avatar.Fallback className={s.Fallback}>{userInfo?.name}</Avatar.Fallback>
           </Avatar.Root>
           {notifications?.length > 0 && <div className={clsx(s.notificationsCount, s.absolute)}>{notifications?.length}</div>}

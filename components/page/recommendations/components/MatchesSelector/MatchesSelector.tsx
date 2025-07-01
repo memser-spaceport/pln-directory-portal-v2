@@ -47,7 +47,7 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
           <Select
             menuPlacement={menuPlacement}
             isMulti
-            autoFocus
+            // autoFocus
             options={options}
             isClearable={false}
             placeholder={placeholder}

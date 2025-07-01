@@ -76,7 +76,7 @@ export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, i
                 onChange={(e) => {
                   setInputText(e.target.value);
                 }}
-                onKeyUp={(event) => {
+                onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     if (inputText.trim() === '') {
                       return;

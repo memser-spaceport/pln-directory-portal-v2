@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 
 import s from './MatchesSelector.module.scss';
 import Select, { MenuPlacement } from 'react-select';
@@ -12,7 +12,7 @@ interface Props {
   title: string;
   icon: ReactNode;
   hint: string;
-  options?: { value: string; label: string }[];
+  options: { value: string; label: string }[];
   name: string;
   menuPlacement?: MenuPlacement;
   selectLabel: string;
@@ -20,11 +20,21 @@ interface Props {
   placeholder: string;
 }
 
+const filterAndSort = (option: { value: string; label: string }, input: string) => {
+  if (!input) return true;
+
+  return option.label.toLowerCase().includes(input.toLowerCase());
+};
+
 export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacement = 'bottom', selectLabel, warning, placeholder }: Props) => {
+  const [inputValue, setInputValue] = useState('');
   const { setValue, watch, getValues } = useFormContext();
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as { value: string; label: string }[];
   const [open, toggleOpen] = useToggle(val?.length > 0);
+
+  // Sort filtered options by label dynamically
+  const sortedOptions = [...options].filter((option) => filterAndSort(option, inputValue)).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
 
   return (
     <Collapsible.Root className={s.Collapsible} open={open} onOpenChange={toggleOpen}>
@@ -47,8 +57,11 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
           <Select
             menuPlacement={menuPlacement}
             isMulti
+            onInputChange={(value) => setInputValue(value)}
+            inputValue={inputValue}
             // autoFocus
-            options={options}
+            options={sortedOptions}
+            filterOption={() => true}
             isClearable={false}
             placeholder={placeholder}
             // @ts-ignore

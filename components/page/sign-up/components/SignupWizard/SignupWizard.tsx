@@ -114,14 +114,15 @@ export const SignupWizard = ({ onClose }: Props) => {
 
     if (res.success) {
       analytics.recordSignUpSave('submit-clicked-success', formData);
-      toast.success('Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.');
+      // toast.success('Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.');
 
       // todo - use case C
       // router.replace(`${window.location.origin}?prefillEmail=${encodeURIComponent(payload.email)}#login`);
 
+      onClose();
       setTimeout(() => {
-        onClose();
-      }, 1000);
+        router.replace(`${window.location.origin}/sign-up/review`);
+      }, 700);
     } else {
       if (res?.message) {
         toast.error(res?.message);

@@ -3,64 +3,34 @@
 import React from 'react';
 
 import { IUserInfo } from '@/types/shared.types';
-import { useRouter } from 'next/navigation';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
-import { clsx } from 'clsx';
-import { useMember } from '@/services/members/hooks/useMember';
-import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 import s from './CompleteYourProfile.module.scss';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   userInfo: IUserInfo;
 }
 
 export const CompleteYourProfile = ({ userInfo }: Props) => {
-  const { data: member, isLoading } = useMember(userInfo.uid);
-  const router = useRouter();
-  const { onGoToCompleteProfileClicked } = useMemberAnalytics();
+  const accessLevel = getAccessLevel(userInfo, true);
 
-  const hasTelegram = !!member?.memberInfo.telegramHandler;
-  const hasOfficeHours = !!member?.memberInfo.officeHours;
-  const isProfileFilled = hasTelegram && hasOfficeHours;
-
-  let filledCount = 0;
-
-  if (hasOfficeHours) {
-    filledCount += 1;
-  }
-
-  if (hasTelegram) {
-    filledCount += 1;
-  }
-
-  if (!userInfo || isProfileFilled || isLoading) {
-    return null;
-  }
-
-  return (
-    <HighlightsBar variant="secondary">
-      <div className={s.root}>
-        <div className={s.left}>
-          <UserIcon />
-          <span className={s.title}>Complete profile {filledCount}/2</span>
-          <span className={s.description}>Get Access to the platform in one minute!</span>
+  if (userInfo && accessLevel === 'base') {
+    return (
+      <HighlightsBar variant="secondary">
+        <div className={s.root}>
+          <div className={s.left}>
+            <UserIcon />
+            {/*<span className={s.title}>Info</span>*/}
+            <span className={s.description}>Your profile is under review. You will have limited access to functionality until it is approved.</span>
+          </div>
         </div>
-        <div className={s.right}>
-          <button
-            className={clsx(s.btn, s.primary)}
-            onClick={() => {
-              onGoToCompleteProfileClicked();
-              router.push(`/members/${userInfo.uid}`);
-            }}
-          >
-            Fill out the profile
-          </button>
-        </div>
-      </div>
-      <div className={s.mobileDetails}>Get Access to the platform in one minute!</div>
-    </HighlightsBar>
-  );
+        {/*<div className={s.mobileDetails}>Your profile is under review. You will have limited access to functionality until it is approved.</div>*/}
+      </HighlightsBar>
+    );
+  }
+
+  return null;
 };
 
 const UserIcon = () => (

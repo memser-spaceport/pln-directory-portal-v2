@@ -16,6 +16,7 @@ import { OfficeHoursHandle } from '@/components/page/member-details/office-hours
 import React, { Fragment } from 'react';
 import { clsx } from 'clsx';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   member: IMember;
@@ -45,6 +46,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
   const showIncomplete = hasMissingRequiredData && isOwner;
+  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
   const onLoginClickHandler = () => {
     const userInfo = Cookies.get('userInfo');
@@ -78,7 +80,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
         {isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEdit} incomplete={showIncomplete} />}
       </div>
       <div className={s.container}>
-        {isLoggedIn ? (
+        {isLoggedIn && (accessLevel === 'advanced' || isOwner) ? (
           <div className={s.social}>
             <div className={s.top}>
               <div className={s.content}>
@@ -157,22 +159,26 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                     );
                   })}
               </div>
-              <div className={clsx(s.control, s.tablet)}>
-                <button className={s.loginButton} onClick={onLoginClickHandler}>
-                  Login for access
-                </button>
-              </div>
+              {accessLevel === 'advanced' && (
+                <div className={clsx(s.control, s.tablet)}>
+                  <button className={s.loginButton} onClick={onLoginClickHandler}>
+                    Login for access
+                  </button>
+                </div>
+              )}
             </div>
-            {showOfficeHours && (
+            {showOfficeHours && accessLevel === 'advanced' && (
               <div className={s.bottom}>
                 <OfficeHoursHandle member={member} userInfo={userInfo} isLoggedIn={false} />
               </div>
             )}
-            <div className={clsx(s.control, s.mobileOnly)}>
-              <button className={s.loginButton} onClick={onLoginClickHandler}>
-                Login for access
-              </button>
-            </div>
+            {accessLevel === 'advanced' && (
+              <div className={clsx(s.control, s.mobileOnly)}>
+                <button className={s.loginButton} onClick={onLoginClickHandler}>
+                  Login for access
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

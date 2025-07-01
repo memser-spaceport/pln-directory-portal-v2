@@ -13,6 +13,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import s from './OneClickVerification.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from 'react-toastify';
+import { useCookie } from 'react-use';
 
 interface Props {
   member: IMember;
@@ -33,6 +34,7 @@ export const OneClickVerification = ({ userInfo, member }: Props) => {
   const showIncomplete = hasMissingRequiredData && isOwner;
   const searchParams = useSearchParams();
   const { onConnectLinkedInClicked } = useMemberAnalytics();
+  const [userInfoCookie, setUserInfoCookie] = useCookie('userInfo');
 
   const { mutate, isPending } = useLinkedInVerification();
 
@@ -54,6 +56,15 @@ export const OneClickVerification = ({ userInfo, member }: Props) => {
               <button
                 className={s.backBtn}
                 onClick={() => {
+                  if (userInfoCookie) {
+                    try {
+                      const _userInfo = JSON.parse(userInfoCookie);
+                      setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: 'L1' }));
+                    } catch (e) {
+                      console.error('Failed to parse userInfo cookie: ', e);
+                    }
+                  }
+
                   router.replace(`/members/${member.id}`);
                 }}
               >

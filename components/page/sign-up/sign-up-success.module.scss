@@ -1,0 +1,25 @@
+@use 'styles/media';
+
+.root {
+  flex-direction: column;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
+}
+
+.content {
+  align-items: center;
+
+  @include media.tablet-landscape {
+    align-items: flex-start;
+  }
+}
+
+.text {
+  text-align: center;
+
+  @include media.tablet-landscape {
+    text-align: left;
+  }
+}

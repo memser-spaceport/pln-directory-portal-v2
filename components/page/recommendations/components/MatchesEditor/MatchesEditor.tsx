@@ -76,7 +76,24 @@ export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, i
                 onChange={(e) => {
                   setInputText(e.target.value);
                 }}
+                onBlur={() => {
+                  if (inputText.trim() === '') {
+                    return;
+                  }
+
+                  if (val.includes(inputText.trim())) {
+                    return;
+                  }
+
+                  setValue(name, [...val, inputText], { shouldValidate: true, shouldDirty: true });
+                  setInputText('');
+                }}
                 onKeyDown={(event) => {
+                  if (event.key === 'Escape') {
+                    setInputText('');
+                    return;
+                  }
+
                   if (event.key === 'Enter') {
                     if (inputText.trim() === '') {
                       return;

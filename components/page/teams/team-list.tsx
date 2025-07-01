@@ -12,6 +12,7 @@ import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ListLoader } from '@/components/core/loaders/ListLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface ITeamList {
   totalTeams: number;
@@ -23,6 +24,7 @@ const TeamList = (props: any) => {
   const userInfo = props?.userInfo;
   const searchParams = props?.searchParams;
   const totalTeams = props?.totalTeams;
+  const accessLevel = getAccessLevel(userInfo, true);
 
   const analytics = useTeamAnalytics();
   const viewType = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
@@ -52,7 +54,7 @@ const TeamList = (props: any) => {
       </div>
       <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
         <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'team-list__grid' : 'team-list__list'}`}>
-          {userInfo && data?.length > 0 && <TeamAddCard userInfo={userInfo} viewType={viewType} />}
+          {userInfo && accessLevel === 'advanced' && data?.length > 0 && <TeamAddCard userInfo={userInfo} viewType={viewType} />}
           {data?.map((team: ITeam, index: number) => (
             <div
               key={`teamitem-${team.id}-${index}`}

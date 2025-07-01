@@ -11,6 +11,7 @@ import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ListLoader } from '@/components/core/loaders/ListLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteProjectsList } from '@/services/projects/hooks/useInfiniteProjectsList';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 const ProjectlistWrapper = (props: any) => {
   const searchParams = props?.searchParams;
@@ -19,6 +20,7 @@ const ProjectlistWrapper = (props: any) => {
   const userInfo = props?.userInfo;
   const totalProjects = props?.totalProjects;
   const isLoggedIn = props?.isLoggedIn;
+  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
   const analytics = useProjectAnalytics();
 
@@ -52,7 +54,7 @@ const ProjectlistWrapper = (props: any) => {
         </div>
         <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'project-list__grid' : 'project-list__list'}`}>
-            {isLoggedIn && totalProjects > 0 && <ProjectAddCard userInfo={userInfo} viewType={viewType} />}
+            {isLoggedIn && accessLevel === 'advanced' && totalProjects > 0 && <ProjectAddCard userInfo={userInfo} viewType={viewType} />}
             {data?.map((project: any, index: number) => (
               <Link
                 href={`/projects/${project.id}`}

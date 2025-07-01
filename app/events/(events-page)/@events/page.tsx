@@ -1,10 +1,9 @@
-import React from 'react'
-import EventsSection from '@/components/page/events/events-section'
-import { getCookiesFromHeaders } from '@/utils/next-helpers'
-import { getAggregatedEventsData } from '@/services/events.service'
+import React from 'react';
+import EventsSection from '@/components/page/events/events-section';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { getAggregatedEventsData } from '@/services/events.service';
 import Error from '@/components/core/error';
-import { formatFeaturedData } from '@/utils/home.utils'
-
+import { formatFeaturedData } from '@/utils/home.utils';
 
 export default async function Events() {
   const { aggregatedEventsData, userInfo, isError } = await getPageData();
@@ -13,10 +12,8 @@ export default async function Events() {
     return <Error />;
   }
 
-  return (
-    <EventsSection eventLocations={aggregatedEventsData} userInfo={userInfo}/>
-  )
-} 
+  return <EventsSection eventLocations={aggregatedEventsData} userInfo={userInfo} />;
+}
 
 const getPageData = async () => {
   const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
@@ -35,5 +32,5 @@ const getPageData = async () => {
     isLoggedIn,
     aggregatedEventsData,
     isError,
-  }
+  };
 };

@@ -62,6 +62,7 @@ export const getFormattedEvents = (events: any) => {
       type: event?.type,
       attendees: event?.eventGuests?.length,
       priority: event?.priority,
+      aggregatedPriority: event?.aggregatedPriority,
     };
   });
 };
@@ -79,6 +80,7 @@ export const getFormattedLocations = (location: any) => {
       pastEvents: loc.pastEvents,
       upcomingEvents: loc.upcomingEvents,
       followers: loc.subscribers,
+      aggregatedPriority: loc.aggregatedPriority,
     };
   })
 }
@@ -196,3 +198,21 @@ export function formatFeaturedData(featuredData: any) {
 
   return prioritizedData;
 }
+
+export const compareEventsByPriority = (a: any, b: any): number => {
+  // Handle missing priorities first (they come last)
+  const aHasPriority = a.aggregatedPriority != null;
+  const bHasPriority = b.aggregatedPriority != null;
+  
+  if (!aHasPriority || !bHasPriority) {
+    return aHasPriority ? -1 : bHasPriority ? 1 : 0;
+  }
+  
+  // If priorities differ, sort by priority
+  if (a.aggregatedPriority !== b.aggregatedPriority) {
+    return a.aggregatedPriority - b.aggregatedPriority;
+  }
+  
+  // Equal priorities - same category maintains order, otherwise location first
+  return a.category === b.category ? 0 : (a.category === 'location' ? -1 : 1);
+};

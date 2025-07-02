@@ -1,7 +1,7 @@
 "use server"
 import { getHeader } from "@/utils/common.utils";
 import { EVENTS_TEAM_UID } from "@/utils/constants";
-import { getFormattedEvents, getFormattedLocations } from "@/utils/home.utils";
+import { compareEventsByPriority, getFormattedEvents, getFormattedLocations } from "@/utils/home.utils";
 
 export const getAggregatedEventsData = async (authToken?: any) => {
     let url = `${process.env.DIRECTORY_API_URL}/v1/irl/aggregated-data`;
@@ -34,14 +34,7 @@ export const getAggregatedEventsData = async (authToken?: any) => {
         if (aHasImage && !bHasImage) return -1;
         return a.category.localeCompare(b.category);
       });
-      
-      const maxLength = Math.max(formattedEvents.length, formattedLocations.length);
-    
-      const combinedData = [];
-      for (let i = 0; i < maxLength; i++) {
-        if (formattedEvents[i] !== undefined) combinedData.push(formattedEvents[i]);
-        if (formattedLocations[i] !== undefined) combinedData.push(formattedLocations[i]);
-      }
+      const combinedData = [...formattedEvents, ...formattedLocations].sort(compareEventsByPriority);
     
       return { data: combinedData };
     } catch (error) {

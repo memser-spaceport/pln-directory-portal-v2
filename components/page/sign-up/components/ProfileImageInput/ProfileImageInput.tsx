@@ -39,7 +39,7 @@ export const ProfileImageInput = () => {
     maxSize: 4 * 1024 * 1024,
     accept: {
       'image/png': ['.png'],
-      'image/jpg': ['.jpg'],
+      'image/jpg': ['.jpg', '.jpeg'],
     },
   });
 

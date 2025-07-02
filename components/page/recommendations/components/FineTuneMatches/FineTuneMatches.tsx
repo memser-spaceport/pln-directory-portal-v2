@@ -1,16 +1,15 @@
 import React, { useMemo } from 'react';
 
-import s from './FineTuneMatches.module.scss';
 import { MatchesSelector } from '@/components/page/recommendations/components/MatchesSelector';
 import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
-import { useMemberRolesOptions } from '@/services/members/hooks/useMemberRolesOptions';
 import { MatchesEditor } from '@/components/page/recommendations/components/MatchesEditor';
+
+import s from './FineTuneMatches.module.scss';
 
 export const FineTuneMatches = () => {
   const { data } = useTeamsFormOptions();
-  const { data: rolesData } = useMemberRolesOptions();
   const { getValues } = useFormContext<TRecommendationsSettingsForm>();
   const { roles, fundingStage, teamTechnology, keywords, enabled } = getValues();
   const isInvalid = !fundingStage.length && !teamTechnology.length && !keywords.length && !roles.length && enabled;
@@ -42,17 +41,6 @@ export const FineTuneMatches = () => {
     };
   }, [data]);
 
-  const rolesOptions = useMemo(() => {
-    if (!rolesData || 'isError' in rolesData) {
-      return [];
-    }
-
-    return rolesData.map((val: string) => ({
-      value: val,
-      label: val,
-    }));
-  }, [rolesData]);
-
   return (
     <div className={s.Collapsible}>
       {isInvalid && (
@@ -80,13 +68,12 @@ export const FineTuneMatches = () => {
           name="fundingStage"
           warning={isInvalid && !fundingStage.length}
         />
-        <MatchesSelector
+        <MatchesEditor
           placeholder="Add role"
+          selectLabel="Select Role"
           hint="We'll prioritize members who match these roles."
           icon={<RoleIcon />}
           title="Preferred Roles"
-          selectLabel="Select Role"
-          options={rolesOptions}
           name="roles"
           warning={isInvalid && !roles.length}
         />
@@ -99,6 +86,7 @@ export const FineTuneMatches = () => {
           options={options.teamTechnologiesOptions}
           name="teamTechnology"
           warning={isInvalid && !teamTechnology.length}
+          menuPlacement="top"
         />
       </div>
     </div>
@@ -107,7 +95,7 @@ export const FineTuneMatches = () => {
 
 function WarningIcon(props: React.ComponentProps<'svg'>) {
   return (
-    <svg width="15" height="13" viewBox="0 0 15 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="15" height="13" viewBox="0 0 15 13" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path
         d="M7.5 0.625C7.88281 0.625 8.23828 0.84375 8.42969 1.17188L14.3359 11.2344C14.5273 11.5898 14.5273 12 14.3359 12.3281C14.1445 12.6836 13.7891 12.875 13.4062 12.875H1.59375C1.18359 12.875 0.828125 12.6836 0.636719 12.3281C0.445312 12 0.445312 11.5898 0.636719 11.2344L6.54297 1.17188C6.73438 0.84375 7.08984 0.625 7.5 0.625ZM7.5 4.125C7.11719 4.125 6.84375 4.42578 6.84375 4.78125V7.84375C6.84375 8.22656 7.11719 8.5 7.5 8.5C7.85547 8.5 8.15625 8.22656 8.15625 7.84375V4.78125C8.15625 4.42578 7.85547 4.125 7.5 4.125ZM8.375 10.25C8.375 9.78516 7.96484 9.375 7.5 9.375C7.00781 9.375 6.625 9.78516 6.625 10.25C6.625 10.7422 7.00781 11.125 7.5 11.125C7.96484 11.125 8.375 10.7422 8.375 10.25Z"
         fill="#0F172A"
@@ -116,17 +104,9 @@ function WarningIcon(props: React.ComponentProps<'svg'>) {
   );
 }
 
-function ChevronDownIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" {...props}>
-      <path d="M1 3.5L5 7.5L9 3.5" stroke="currentcolor" strokeWidth="1.5" />
-    </svg>
-  );
-}
-
 function TechIcon(props: React.ComponentProps<'svg'>) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path
         d="M8.95236 14.6876C8.72215 15.6559 8.14444 16.5061 7.32887 17.0767C6.51331 17.6472 5.51665 17.8986 4.52804 17.7829C3.53943 17.6673 2.62768 17.1927 1.96581 16.4493C1.30395 15.7059 0.938036 14.7454 0.937517 13.7501C0.934954 12.8703 1.22061 12.0139 1.7508 11.3118C1.82319 11.2094 1.91539 11.1226 2.02193 11.0565C2.12848 10.9903 2.2472 10.9463 2.37108 10.9269C2.49496 10.9074 2.62147 10.9131 2.74314 10.9434C2.8648 10.9738 2.97914 11.0282 3.07939 11.1035C3.17964 11.1788 3.26376 11.2735 3.32678 11.3819C3.38979 11.4903 3.43042 11.6103 3.44626 11.7346C3.46209 11.859 3.45282 11.9853 3.41898 12.1061C3.38513 12.2268 3.32741 12.3395 3.24924 12.4376C2.9642 12.8156 2.81081 13.2766 2.81252 13.7501C2.81252 14.3302 3.04298 14.8866 3.45322 15.2969C3.86346 15.7071 4.41986 15.9376 5.00002 15.9376C5.58018 15.9376 6.13658 15.7071 6.54681 15.2969C6.95705 14.8866 7.18752 14.3302 7.18752 13.7501C7.18752 13.5014 7.28629 13.263 7.4621 13.0871C7.63792 12.9113 7.87638 12.8126 8.12502 12.8126H15C15.2487 12.8126 15.4871 12.9113 15.6629 13.0871C15.8387 13.263 15.9375 13.5014 15.9375 13.7501C15.9375 13.9987 15.8387 14.2372 15.6629 14.413C15.4871 14.5888 15.2487 14.6876 15 14.6876H8.95236ZM4.50861 14.5485C4.61346 14.613 4.73 14.6563 4.85156 14.6758C4.97313 14.6953 5.09735 14.6906 5.21712 14.6621C5.3369 14.6336 5.44988 14.5818 5.54963 14.5096C5.64937 14.4374 5.73393 14.3463 5.79845 14.2415L9.15783 8.7774C9.22237 8.67255 9.26562 8.55602 9.28512 8.43445C9.30462 8.31288 9.29998 8.18866 9.27147 8.06889C9.24295 7.94911 9.19113 7.83613 9.11895 7.73638C9.04677 7.63664 8.95565 7.55209 8.8508 7.48756C8.55862 7.30755 8.31289 7.06133 8.13347 6.76879C7.95406 6.47625 7.84598 6.14561 7.81799 5.80358C7.79 5.46154 7.84287 5.11772 7.97233 4.7999C8.10179 4.48208 8.30421 4.19918 8.56323 3.97406C8.82225 3.74895 9.13061 3.58793 9.46337 3.50402C9.79613 3.42012 10.144 3.41568 10.4788 3.49107C10.8135 3.56646 11.1259 3.71956 11.3906 3.938C11.6553 4.15644 11.8648 4.43408 12.0024 4.7485C12.0509 4.86226 12.1216 4.96528 12.2101 5.05162C12.2987 5.13797 12.4035 5.20593 12.5185 5.25158C12.6335 5.29724 12.7563 5.3197 12.88 5.31765C13.0037 5.31561 13.1257 5.28911 13.2391 5.23968C13.3525 5.19025 13.455 5.11887 13.5407 5.02965C13.6264 4.94042 13.6936 4.83513 13.7384 4.71982C13.7832 4.60452 13.8047 4.48149 13.8018 4.35783C13.7988 4.23416 13.7714 4.1123 13.7211 3.99928C13.4814 3.45241 13.1241 2.96511 12.6747 2.57204C12.2252 2.17898 11.6946 1.88983 11.1207 1.72516C10.5467 1.5605 9.94356 1.52438 9.35407 1.61936C8.76459 1.71434 8.20328 1.9381 7.71012 2.27471C7.21695 2.61131 6.80405 3.05249 6.50079 3.56684C6.19754 4.08118 6.01139 4.65605 5.9556 5.25053C5.89981 5.84501 5.97574 6.44448 6.178 7.00627C6.38026 7.56806 6.70387 8.07835 7.1258 8.50084L4.19845 13.2587C4.13405 13.3637 4.09099 13.4804 4.07172 13.6021C4.05246 13.7238 4.05737 13.8481 4.08617 13.9679C4.11498 14.0877 4.16711 14.2006 4.2396 14.3002C4.31208 14.3999 4.4035 14.4842 4.50861 14.5485ZM15 9.68756C14.5673 9.68739 14.1374 9.7565 13.7266 9.89225L10.7985 5.13287C10.6681 4.92111 10.459 4.7698 10.2171 4.71222C9.97523 4.65464 9.72037 4.69551 9.50861 4.82584C9.29685 4.95617 9.14554 5.16528 9.08796 5.40717C9.03038 5.64907 9.07125 5.90392 9.20158 6.11568L12.561 11.579C12.6255 11.6839 12.7101 11.7751 12.8099 11.8474C12.9097 11.9196 13.0228 11.9715 13.1426 12C13.2625 12.0285 13.3868 12.0331 13.5084 12.0136C13.6301 11.994 13.7467 11.9507 13.8516 11.886C14.1395 11.7092 14.4645 11.6015 14.801 11.5713C15.1375 11.5411 15.4765 11.5893 15.7913 11.7121C16.1061 11.8349 16.3881 12.029 16.6153 12.279C16.8426 12.5291 17.0088 12.8284 17.1009 13.1535C17.193 13.4786 17.2086 13.8206 17.1464 14.1527C17.0842 14.4848 16.946 14.798 16.7424 15.0677C16.5389 15.3374 16.2757 15.5563 15.9734 15.7072C15.6711 15.8582 15.3379 15.937 15 15.9376C14.7514 15.9376 14.5129 16.0363 14.3371 16.2121C14.1613 16.388 14.0625 16.6264 14.0625 16.8751C14.0625 17.1237 14.1613 17.3622 14.3371 17.538C14.5129 17.7138 14.7514 17.8126 15 17.8126C16.0775 17.8126 17.1108 17.3845 17.8726 16.6227C18.6345 15.8608 19.0625 14.8275 19.0625 13.7501C19.0625 12.6726 18.6345 11.6393 17.8726 10.8774C17.1108 10.1156 16.0775 9.68756 15 9.68756Z"
         fill="currentColor"

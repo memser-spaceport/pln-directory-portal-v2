@@ -7,11 +7,12 @@ import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
 import clsx from 'clsx';
 
-import s from './MatchesEditor.module.scss';
 import { Field } from '@base-ui-components/react/field';
 import { Collapsible } from '@base-ui-components/react/collapsible';
 import { ChevronIcon } from '@/components/page/recommendations/components/MatchesSelector';
 import { useToggle } from 'react-use';
+
+import s from './MatchesEditor.module.scss';
 
 interface Props {
   title: string;
@@ -23,14 +24,14 @@ interface Props {
   menuPlacement?: MenuPlacement;
   selectLabel: string;
   warning: boolean;
+  placeholder?: string;
 }
 
-export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, isColorfulBadges = true, menuPlacement = 'bottom' }: Props) => {
+export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, isColorfulBadges = true, placeholder = 'Add keyword' }: Props) => {
   const [inputText, setInputText] = useState('');
   const { setValue, getValues } = useFormContext();
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as string[];
-  const isDisabled = !values.enabled;
   const [open, toggleOpen] = useToggle(val?.length > 0);
 
   return (
@@ -70,7 +71,7 @@ export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, i
                 );
               })}
               <Field.Control
-                placeholder={val?.length > 0 ? '' : 'Add keyword'}
+                placeholder={val?.length > 0 ? '' : placeholder}
                 className={clsx(s.textInput)}
                 value={inputText}
                 onChange={(e) => {

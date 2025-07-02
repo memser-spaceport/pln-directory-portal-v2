@@ -21,10 +21,12 @@
   transform: translateY(40px);
 
   transition: all 0.3s ease-in-out;
+  pointer-events: none;
 
   &.visible {
     transform: translateY(0);
     opacity: 1;
+    pointer-events: all;
   }
 
   @include media.tablet-landscape {

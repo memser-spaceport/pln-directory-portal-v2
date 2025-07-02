@@ -1,16 +1,15 @@
 import React, { useMemo } from 'react';
 
-import s from './FineTuneMatches.module.scss';
 import { MatchesSelector } from '@/components/page/recommendations/components/MatchesSelector';
 import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
 import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
-import { useMemberRolesOptions } from '@/services/members/hooks/useMemberRolesOptions';
 import { MatchesEditor } from '@/components/page/recommendations/components/MatchesEditor';
+
+import s from './FineTuneMatches.module.scss';
 
 export const FineTuneMatches = () => {
   const { data } = useTeamsFormOptions();
-  const { data: rolesData } = useMemberRolesOptions();
   const { getValues } = useFormContext<TRecommendationsSettingsForm>();
   const { roles, fundingStage, teamTechnology, keywords, enabled } = getValues();
   const isInvalid = !fundingStage.length && !teamTechnology.length && !keywords.length && !roles.length && enabled;
@@ -42,17 +41,6 @@ export const FineTuneMatches = () => {
     };
   }, [data]);
 
-  const rolesOptions = useMemo(() => {
-    if (!rolesData || 'isError' in rolesData) {
-      return [];
-    }
-
-    return rolesData.map((val: string) => ({
-      value: val,
-      label: val,
-    }));
-  }, [rolesData]);
-
   return (
     <div className={s.Collapsible}>
       {isInvalid && (
@@ -80,13 +68,12 @@ export const FineTuneMatches = () => {
           name="fundingStage"
           warning={isInvalid && !fundingStage.length}
         />
-        <MatchesSelector
+        <MatchesEditor
           placeholder="Add role"
+          selectLabel="Select Role"
           hint="We'll prioritize members who match these roles."
           icon={<RoleIcon />}
           title="Preferred Roles"
-          selectLabel="Select Role"
-          options={rolesOptions}
           name="roles"
           warning={isInvalid && !roles.length}
         />
@@ -99,6 +86,7 @@ export const FineTuneMatches = () => {
           options={options.teamTechnologiesOptions}
           name="teamTechnology"
           warning={isInvalid && !teamTechnology.length}
+          menuPlacement="top"
         />
       </div>
     </div>

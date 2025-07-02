@@ -1,23 +1,21 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef } from 'react';
 import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createStateUid } from '@/services/auth.service';
-import { PAGE_ROUTES } from '@/utils/constants';
+import { useAsync } from 'react-use';
 
 const AuthInfo = () => {
-  // Reference to the dialog element
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { logout } = usePrivyWrapper();
   const analytics = useAuthAnalytics();
 
   // Initiate Privy Login and get the auth code for state
-  const onLogin = async () => {
+  useAsync(async () => {
     try {
+      console.log('login triggered');
       analytics.onProceedToLogin();
       localStorage.clear();
       await logout();
@@ -31,10 +29,9 @@ const AuthInfo = () => {
         const result = response.data;
         localStorage.setItem('stateUid', result);
 
-        const isOnboardingLoginFlow = searchParams.get('loginFlow') === 'onboarding';
         const onboardingEmail = searchParams.get('prefillEmail');
 
-        if (isOnboardingLoginFlow && onboardingEmail) {
+        if (onboardingEmail) {
           localStorage.setItem('prefillEmail', onboardingEmail);
         }
 
@@ -44,183 +41,94 @@ const AuthInfo = () => {
     } catch (err) {
       console.log('Login Failed', err);
     }
-  };
-
-  // Reset Url
-  const onClose = () => {
-    try {
-      analytics.onAuthInfoClosed();
-      const queryString = window.location.search.substring(1);
-      const params = new URLSearchParams(queryString);
-      let queryParams = `?`;
-      params?.forEach((value, key) => {
-        if (!key.includes('privy_')) {
-          queryParams = `${queryParams}${queryParams === '?' ? '' : '&'}${key}=${value}`;
-        }
-      });
-      router.push(`${window.location.pathname}${queryParams === '?' ? '' : queryParams}`);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleSignUpClick = () => {
-    analytics.onSignUpBtnClicked();
-    onClose();
-    window.location.href = PAGE_ROUTES.SIGNUP;
-  };
-
-  useEffect(() => {
-    onLogin();
   }, []);
 
-  return null;
+  return (
+    <>
+      <div className="loaderc">
+        <div className="loaderc__lo">
+          <svg aria-hidden="true" className="loaderc__lo__spinner" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+              fill="currentColor"
+            />
+            <path
+              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+              fill="currentFill"
+            />
+          </svg>
+          Loading...
+        </div>
+      </div>
 
-  // return (
-  //   <>
-  //     <div className="authinfo" data-testid="authinfo-container">
-  //       <dialog open className="authinfo__dialog" ref={dialogRef}>
-  //         <div className="authinfo__dialog__box">
-  //           <img src="/images/login/login-banner.png" className="authinfo__dialog__box__img" alt="login banner" />
-  //           <button onClick={onLogin} className="authinfo__dialog__actions__login">
-  //             Proceed to Login
-  //             <img src="/icons/arrow-right-white.svg" alt="arrow" />
-  //           </button>
-  //           <div className="authinfo__dialog__box__signup">
-  //             <span>Not registered yet?</span>
-  //             <div style={{ color: '#156FF7', fontWeight: 500, cursor: 'pointer' }} onClick={handleSignUpClick}>
-  //               Click here to sign up
-  //             </div>
-  //           </div>
-  //           <button onClick={onClose} data-testid="close-button">
-  //             <img width={20} height={20} src="/icons/close-rounded-black.svg" className="authinfo__dialog__box__close" alt="close" />
-  //           </button>
-  //         </div>
-  //       </dialog>
-  //     </div>
-  //
-  //     <style global>{`
-  //         body:has(dialog[open]) {
-  //           overflow: auto !important;
-  //         }
-  //         .authinfo {
-  //           position: fixed;
-  //           top: 0;
-  //           z-index: 2000;
-  //           right: 0;
-  //           left: 0;
-  //           width: 100svw;
-  //           height: 100%;
-  //           // background: rgb(0, 0, 0, 0.6);
-  //           display:grid;
-  //           place-items:center;
-  //           overflow: hidden;
-  //           transition: backdrop-filter 100ms ease;
-  //           backdrop-filter: blur(3px);
-  //         }
-  //         .authinfo__dialog {
-  //           background: white;
-  //           padding: 10px 5px 10px 10px;
-  //           max-height: 90vh;
-  //           width: 351px;
-  //           border-radius: 24px;
-  //           border:none;
-  //           position:relative;
-  //           display: flex;
-  //           flex-direction: column;
-  //           box-shadow: 0px 8px 36px rgba(55, 65, 81, 0.15);
-  //         }
-  //         .authinfo__dialog__box {
-  //           height: auto;
-  //           padding: 0 5px 0 0;
-  //           overflow:auto;
-  //           width: 100%;
-  //           flex-grow: 1;
-  //           display: flex;
-  //           flex-direction: column;
-  //           align-items: center;
-  //         }
-  //         .authinfo__dialog__box__info {
-  //           padding: 24px;
-  //           display: flex;
-  //           flex-direction: column;
-  //           align-items: center;
-  //           justify-content: center;
-  //         }
-  //         .authinfo__dialog__box__img {
-  //           width: 100%;
-  //           border-radius: 16px;
-  //           height: 280px;
-  //           background-color:#dbeafe;
-  //           object-fit:cover;
-  //         }
-  //         .authinfo__dialog__box__info__text {
-  //           font-size: 12px;
-  //           font-weight: 400;
-  //           text-align: center;
-  //           line-height: 18px;
-  //           padding: 16px 0;
-  //         }
-  //         .authinfo__dialog__actions__login {
-  //           margin: 20px 0 0 0;
-  //           padding: 10px 24px;
-  //           border-radius: 8px;
-  //           background: #156ff7;
-  //           color: white;
-  //           line-height: 20px;
-  //           font-size: 14px;
-  //           font-weight: 500;
-  //           display: flex;
-  //           align-items: center;
-  //           justify-content:center;
-  //           width: 216px;
-  //           border: 1px solid #CBD5E1;
-  //           height: 40px;
-  //           box-shadow: 0px 1px 1px 0px #0F172A14;
-  //           gap: 2px;
-  //         }
-  //         .authinfo__dialog__box__signup {
-  //           font-size: 14px;
-  //           line-height: 22px;
-  //           height: 42px;
-  //           display: flex;
-  //           align-items: end;
-  //           justify-content: center;
-  //           border-top: 1px solid #E2E8F0;
-  //           width: 291px;
-  //           margin: 24px 0px 20px 0px;
-  //           gap: 4px;
-  //         }
-  //         .authinfo__dialog__box__close {
-  //           position: absolute;
-  //           top: 16px;
-  //           right: 16px;
-  //           display: block;
-  //           cursor: pointer;
-  //         }
-  //
-  //         @media (max-width: 380px) {
-  //          .authinfo__dialog {
-  //             width: calc(100% - 40px);
-  //           }
-  //         }
-  //
-  //         dialog[open] {
-  //           animation: open 0.3s forwards;
-  //         }
-  //
-  //         @keyframes open {
-  //           from {
-  //           opacity: 0;
-  //           }
-  //           to {
-  //             opacity: 1;
-  //           }
-  //         }
-  //
-  //     `}</style>
-  //   </>
-  // );
+      <style jsx>
+        {`
+          .loaderc {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            z-index: 999;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #000;
+            animation: fadeIn 0.5s ease-in-out;
+          }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+
+          @keyframes fadeOut {
+            from {
+              opacity: 1;
+            }
+            to {
+              opacity: 0;
+            }
+          }
+
+          .fade-out {
+            animation: fadeOut 1s ease-in-out;
+          }
+
+          .loaderc__lo {
+            display: flex;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            align-items: center;
+          }
+
+          .loaderc__lo__spinner {
+            margin-right: 8px;
+            height: 20px;
+            width: 20px;
+            fill: blue;
+            color: gray;
+            animation: spin 1s linear infinite;
+          }
+
+          @keyframes spin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+        `}
+      </style>
+    </>
+  );
 };
 
 export default AuthInfo;

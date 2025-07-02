@@ -165,6 +165,11 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_MEMBER_PROFILE_EDIT_FORM: 'settings-member-profile-edit-form',
   SETTINGS_TEAM_PROFILE_EDIT_FORM: 'settings-team-profile-edit-form',
 
+  SETTINGS_RECOMMENDATIONS_PAGE_OPEN_FROM_MAIL: 'settings-recommendations-page-open-from-mail',
+  SETTINGS_RECOMMENDATIONS_SAVE_CLICKED: 'settings-recommendations-save-clicked',
+  SETTINGS_RECOMMENDATIONS_RESET_CLICKED: 'settings-recommendations-reset-clicked',
+  RECOMMENDATION_EMAIL_FEEDBACK_CLICKED: 'recommendation-email-feedback-clicked',
+
   PR_CONRTIBUTIONS_LIST_ITEM_ADD: 'pr-contributions-list-item-add',
   PR_CONRTIBUTIONS_LIST_ITEM_DELETE: 'pr-contributions-list-item-delete',
   PR_CONRTIBUTIONS_LIST_ITEM_ADDPROJECT: 'pr-contributions-list-item-addproject',
@@ -255,6 +260,7 @@ export const TOAST_MESSAGES = {
   INTERACTION_RESTRICTED: 'Action restricted: Try scheduling after some time',
   FEEDBACK__ALREADY__RECORDED: 'Thanks, we have already recorded your feedback',
   SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed',
+  FAILED_TO_LINK_LINKEDIN: 'Failed to link LinkedIn account',
 };
 
 export const AUTH_ANALYTICS = {
@@ -382,10 +388,15 @@ export const MEMBER_ANALYTICS_EVENTS = {
   ONBOARDING_WIZARD_OPEN: 'onboarding-wizard-open',
   ONBOARDING_WIZARD_CLOSE: 'onboarding-wizard-close',
   ONBOARDING_WIZARD_COMPLETE: 'onboarding-wizard-complete',
+  ONBOARDING_WIZARD_FINISH_CLICKED: 'onboarding-wizard-finish-clicked',
+  ONBOARDING_WIZARD_NEXT_CLICKED: 'onboarding-wizard-next-clicked',
+  ONBOARDING_WIZARD_START_CLICKED: 'onboarding-wizard-start-clicked',
+  ONBOARDING_WIZARD_BROWSE_FILES_CLICKED: 'onboarding-wizard-browse-files-clicked',
   ONBOARDING_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-subscribe-to-recommendations-clicked',
   ONBOARDING_CLOSE_SUBSCRIBE_TO_RECOMMENDATIONS_CLICKED: 'onboarding-close-subscribe-to-recommendations-clicked',
   ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED: 'onboarding-go-to-complete-profile-clicked',
   ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED: 'onboarding-close-complete-profile-clicked',
+  ONBOARDING_CONNECT_LINKEDIN_CLICKED: 'onboarding-connect-linkedin-clicked',
 
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-profile-details-edit-clicked',
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-profile-details-save-clicked',
@@ -457,7 +468,9 @@ export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_CONTRIBUTE_MODAL_IRL_PROCEED_BUTTON_CLICKED: 'events-page-contribute-modal-irl-proceed-button-clicked',
   EVENTS_PAGE_CONTRIBUTING_TEAM_CLICKED: 'events-page-contributing-team-clicked',
   EVENTS_PAGE_CONTRIBUTING_MEMBERS_CLICKED: 'events-page-contributing-members-clicked',
-  UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED: 'upcoming-events-widget-show-all-clicked',
+  UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED: 'onboarding-upcoming-events-widget-show-all-clicked',
+  UPCOMING_EVENTS_WIDGET_DISMISS_CLICKED: 'onboarding-upcoming-events-widget-dismiss-clicked',
+  UPCOMING_EVENTS_WIDGET_ITEM_CLICKED: 'onboarding-upcoming-events-widget-item-clicked',
 };
 
 export const HOME = {
@@ -565,6 +578,21 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.1.15 - Recommendations & Onboarding Enhancements',
+    tag: 'Improvements',
+    date: '02, Jul 2025',
+    shortContent: `
+    <div style="font-size: 14px; line-height:23px;">
+    <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Recommendations Settings</span> – Added a dedicated section in Account Settings that lets users fine-tune and enable AI-powered connection suggestions.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bi-Monthly Recommendation Emails</span> – Opt-in users now receive connection recommendations via email every two weeks, tailored to their preferences.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Redesigned Sign-Up Form</span> – Introduced a streamlined sign-up experience with an updated layout for quicker and clearer onboarding.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile Completeness Highlights</span> – Missing fields on member profiles are now visually highlighted, guiding users to complete their information more easily.</li>
+    </ul>
+    </div>`,
+  },
   {
     title: 'Version 4.1.14 - Directory Enhancements',
     tag: 'Improvements',

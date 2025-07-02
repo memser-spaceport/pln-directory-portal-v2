@@ -1,0 +1,104 @@
+.Collapsible {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  align-items: flex-start;
+  align-self: stretch;
+
+  transition: background 150ms ease-out;
+
+  border-radius: var(--corner-radius-xl, 12px);
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  background: var(--background-base-white, #FFF);
+
+  /* Shadow/xs */
+  box-shadow: 0px 1px 2px 0px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.Icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  transition: transform 150ms ease-out;
+}
+
+.Trigger {
+  display: flex;
+  padding: var(--spacing-sm, 12px) var(--spacing-sm, 12px) var(--spacing-sm, 12px) var(--spacing-md, 16px);
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  width: 100%;
+
+  color: var(--foreground-neutral-secondary, #455468);
+
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+
+  .primary {
+    color: var(--foreground-neutral-secondary, #455468);
+
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px; /* 150% */
+    letter-spacing: -0.3px;
+  }
+
+  .secondary {
+    color: var(--Neutral-Slate-600, #475569);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 14px; /* 116.667% */
+    text-align: left;
+  }
+}
+
+.Panel {
+  display: flex;
+  padding: var(--spacing-md, 16px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-sm, 12px);
+  align-self: stretch;
+}
+
+.Content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+  cursor: text;
+  width: 100%;
+}
+
+.warningStrip {
+  border-radius: 8px 8px 0 0;
+  background: #FDE68A;
+  display: flex;
+  padding: 8px 16px;
+  justify-content: center;
+  align-items: center;
+  align-self: stretch;
+  gap: 8px;
+  min-height: 36px;
+
+  color: #0F172A;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.12px;
+}

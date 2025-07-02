@@ -15,7 +15,7 @@ import { ContributionsDetails } from '@/components/page/member-details/Contribut
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
-// import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
+import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -35,7 +35,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
         <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
       </div>
       <div className={styles?.memberDetail__container}>
-        {/*<OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />*/}
+        <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
         <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 

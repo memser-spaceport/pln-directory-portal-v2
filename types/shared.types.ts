@@ -8,7 +8,7 @@ export interface IUserInfo {
   uid?: string;
   roles?: string[];
   leadingTeams?: string[];
-  accessLevel: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'Rejected';
+  accessLevel?: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'Rejected';
 }
 export interface Option {
   label: string;

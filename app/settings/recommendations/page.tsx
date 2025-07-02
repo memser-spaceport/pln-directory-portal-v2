@@ -29,12 +29,7 @@ const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean
     _notificationSettings = {
       enabled: notificationSettings.subscribed,
       frequency: getSelectedFrequency(notificationSettings.emailFrequency),
-      industryTags: notificationSettings.industryTagList.map((tag) => {
-        return { value: tag, label: tag };
-      }),
-      roles: notificationSettings.roleList.map((role) => {
-        return { value: role, label: role };
-      }),
+      roles: notificationSettings.roleList,
       fundingStage: notificationSettings.fundingStageList.map((stage) => {
         return { value: stage, label: stage };
       }),

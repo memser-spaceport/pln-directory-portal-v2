@@ -2,6 +2,8 @@ import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { EVENTS_ANALYTICS, HOME_ANALYTICS_EVENTS } from '@/utils/constants';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
+import { IUpcomingEvents } from '@/types/irl.types';
+import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
 
 export const useEventsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -110,6 +112,14 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.UPCOMING_EVENTS_WIDGET_SHOW_ALL_CLICKED);
   }
 
+  function onUpcomingEventsWidgetDismissClicked() {
+    captureEvent(EVENTS_ANALYTICS.UPCOMING_EVENTS_WIDGET_DISMISS_CLICKED);
+  }
+
+  function onUpcomingEventsItemClicked(item: UpcomingEvent) {
+    captureEvent(EVENTS_ANALYTICS.UPCOMING_EVENTS_WIDGET_ITEM_CLICKED, item);
+  }
+
   return {
     onIrlLocationClicked,
     onEventCardClicked,
@@ -130,5 +140,7 @@ export const useEventsAnalytics = () => {
     onContributingTeamClicked,
     onContributingMembersClicked,
     onUpcomingEventsWidgetShowAllClicked,
+    onUpcomingEventsWidgetDismissClicked,
+    onUpcomingEventsItemClicked,
   };
 };

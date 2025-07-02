@@ -3,37 +3,49 @@
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
+import { useMemo } from 'react';
 
 interface SettingsMenuProps {
-  activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams';
-  isAdmin?:boolean
-  isTeamLead?: boolean
+  activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams' | 'recommendations';
+  isAdmin?: boolean;
+  isTeamLead?: boolean;
   userInfo: IUserInfo;
 }
 
 function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInfo }: SettingsMenuProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const analytics = useSettingsAnalytics();
-  const preferences = [
-    { name: 'profile', url: '/settings/profile', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
-    { name: 'privacy', url: '/settings/privacy', icon: '/icons/privacy.svg', activeIcon: '/icons/privacy-blue.svg' },
-  ];
+  const { data: notificationSettings } = useMemberNotificationsSettings(userInfo.uid);
+  const preferences = useMemo(() => {
+    const options = [
+      { name: 'profile', url: '/settings/profile', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
+      { name: 'privacy', url: '/settings/privacy', icon: '/icons/privacy.svg', activeIcon: '/icons/privacy-blue.svg' },
+    ];
+
+    if (notificationSettings?.recommendationsEnabled) {
+      options.push({ name: 'recommendations', url: '/settings/recommendations', icon: '/icons/recommendations.svg', activeIcon: '/icons/recommendations-blue.svg' });
+    }
+
+    return options;
+  }, [notificationSettings?.recommendationsEnabled]);
+
   const teamAdminSettings = [{ name: 'manage teams', url: '/settings/teams', icon: '/icons/team.svg', activeIcon: '/icons/teams-blue.svg' }];
 
-  const appAdminSettings = [
-    { name: 'manage members', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
-  ];
+  const appAdminSettings = [{ name: 'manage members', url: '/settings/members', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' }];
 
   const onItemClicked = (url: string, name: string) => {
-    if(window.innerWidth < 1024) {
-      triggerLoader(true)
+    if (window.innerWidth < 1024 || pathname.includes('recommendations')) {
+      triggerLoader(true);
       router.push(url);
     } else {
-      document.dispatchEvent(new CustomEvent('settings-navigate', {detail: {url: url}}))
+      document.dispatchEvent(new CustomEvent('settings-navigate', { detail: { url: url } }));
     }
-    analytics.recordSettingsSideMenuClick(name, url, getAnalyticsUserInfo(userInfo))
+    analytics.recordSettingsSideMenuClick(name, url, getAnalyticsUserInfo(userInfo));
   };
+
   return (
     <>
       <div className="sm">
@@ -41,7 +53,11 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
           <h3 className="sm__group__title">Preferences</h3>
           <div className="sm__group__list">
             {preferences.map((pref) => (
-              <div onClick={() => onItemClicked(pref.url, pref.name)} key={`settings-${pref.name}`} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
+              <div
+                onClick={() => onItemClicked(pref.url, pref.name)}
+                key={`settings-${pref.name}`}
+                className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}
+              >
                 {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
                 {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
                 <p className="sm__group__list__item__text">{pref.name}</p>
@@ -50,30 +66,39 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
             ))}
           </div>
         </div>
-       {(isAdmin || isTeamLead) &&   <div className="sm__group">
-          <h3 className="sm__group__title">Admin Settings</h3>
-          <div className="sm__group__list">
-            
-            {isAdmin &&
-              appAdminSettings.map((pref) => (
-                <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url, pref.name)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
-                  {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
-                  {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
-                  <p className="sm__group__list__item__text">{pref.name}</p>
-                  <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
-                </div>
-              ))}
+        {(isAdmin || isTeamLead) && (
+          <div className="sm__group">
+            <h3 className="sm__group__title">Admin Settings</h3>
+            <div className="sm__group__list">
+              {isAdmin &&
+                appAdminSettings.map((pref) => (
+                  <div
+                    key={`settings-${pref.name}`}
+                    onClick={() => onItemClicked(pref.url, pref.name)}
+                    className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}
+                  >
+                    {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
+                    {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
+                    <p className="sm__group__list__item__text">{pref.name}</p>
+                    <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
+                  </div>
+                ))}
               {(isTeamLead || isAdmin) &&
-              teamAdminSettings.map((pref) => (
-                <div key={`settings-${pref.name}`} onClick={() => onItemClicked(pref.url, pref.name)} className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}>
-                  {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
-                  {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
-                  <p className="sm__group__list__item__text">{pref.name}</p>
-                  <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
-                </div>
-              ))}
+                teamAdminSettings.map((pref) => (
+                  <div
+                    key={`settings-${pref.name}`}
+                    onClick={() => onItemClicked(pref.url, pref.name)}
+                    className={`sm__group__list__item ${activeItem === pref.name ? 'sm__group__list__item--active' : ''}`}
+                  >
+                    {activeItem === pref.name && <img width="16" height="16" alt={pref.name} src={pref.activeIcon} />}
+                    {activeItem !== pref.name && <img width="16" height="16" alt={pref.name} src={pref.icon} />}
+                    <p className="sm__group__list__item__text">{pref.name}</p>
+                    <img className="sm__group__list__item__arrow" width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
+                  </div>
+                ))}
+            </div>
           </div>
-        </div>}
+        )}
       </div>
       <style jsx>
         {`
@@ -94,7 +119,7 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
           }
           .sm__group__list__item {
             font-size: 16px;
-            line-height: 16px;
+            line-height: 1;
             padding: 16px 24px;
             cursor: pointer;
             display: flex;
@@ -106,7 +131,6 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
             text-transform: capitalize;
           }
           .sm__group__list__item__text {
-            padding-top: 2.5px;
             flex: 1;
           }
           .sm__group__list__item__arrow {

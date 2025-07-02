@@ -1,7 +1,11 @@
+'use client';
+
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { clsx } from 'clsx';
+import s from './sign-up-success.module.scss';
 
 /**
  * SignUpSuccess component displays a success message after a user has signed up.
@@ -40,13 +44,13 @@ const SignUpSuccess = () => {
 
   return (
     <>
-      <div className="sign-up-success__cn">
+      <div className={clsx('sign-up-success__cn', s.root)}>
         <div>
           <Image src="/images/sign-up/under-review.svg" alt="under-review" width={148} height={148} />
         </div>
-        <div className="sign-up-success__cn__info">
+        <div className={clsx('sign-up-success__cn__info', s.content)}>
           <div className="sign-up-success__cn__info__title">Profile Under Review</div>
-          <div className="sign-up-success__cn__info__text">Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.</div>
+          <div className={clsx('sign-up-success__cn__info__text', s.text)}>Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.</div>
           <div>
             <button className="sign-up-success__cn__info__action" onClick={onBackToHomeClick}>
               Back to Home

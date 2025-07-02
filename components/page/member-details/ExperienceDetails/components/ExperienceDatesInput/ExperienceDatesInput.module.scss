@@ -37,12 +37,11 @@
   margin: 0;
   padding: 1px;
   width: 2.5rem;
+  min-width: 2.5rem;
   height: 1.5rem;
   border-radius: 1.5rem;
-  outline: 1px solid;
   outline-offset: -1px;
   background-color: transparent;
-  //background-image: linear-gradient(to right, var(--Neutral-Slate-600) 35%, var(--Neutral-Slate-900) 65%);
   background-size: 6.5rem 100%;
   background-position-x: 100%;
   background-repeat: no-repeat;
@@ -50,35 +49,27 @@
   transition-timing-function: cubic-bezier(0.26, 0.75, 0.38, 0.45);
   transition-duration: 125ms;
 
+  outline: rgb(255 255 255 / 15%) solid 1px;
+  background-image: linear-gradient(
+                  to right,
+                  #156FF7 35%,
+                  var(--Neutral-Slate-200) 65%
+  );
+
+  &[data-checked] {
+    box-shadow: none;
+  }
+
   &:active {
     background-color: var(--Neutral-Slate-200);
   }
 
   &[data-checked] {
-    background-position-x: 0%;
+    background-position-x: 0;
   }
 
   &[data-checked]:active {
-    background-color: var(--color-gray-500);
-  }
-
-  @media (prefers-color-scheme: light) {
-    //box-shadow: var(--color-gray-200) 0 1.5px 2px inset;
-    outline-color: var(--color-gray-200);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    //box-shadow: rgb(0 0 0 / 75%) 0 1.5px 2px inset;
-    outline-color: rgb(255 255 255 / 15%);
-    background-image: linear-gradient(
-                    to right,
-                    #156FF7 35%,
-                    var(--Neutral-Slate-200) 65%
-    );
-
-    &[data-checked] {
-      box-shadow: none;
-    }
+    background-color: #455468;
   }
 
   &:focus-visible {
@@ -87,7 +78,7 @@
       inset: 0;
       position: absolute;
       border-radius: inherit;
-      outline: 2px solid var(--color-blue);
+      outline: 2px solid #156FF7;
       outline-offset: 2px;
     }
   }
@@ -99,22 +90,12 @@
   border-radius: 100%;
   background-color: white;
   transition: translate 150ms ease;
+  box-shadow:
+          0 0 1px 1px rgb(0 0 0 / 25%),
+          0 1px 1px rgb(0 0 0 / 25%),
+          1px 2px 4px -1px rgb(0 0 0 / 25%);
 
   &[data-checked] {
     translate: 1rem 0;
-  }
-
-  @media (prefers-color-scheme: light) {
-    box-shadow:
-            0 0 1px 1px var(--color-gray-100),
-            0 1px 1px var(--color-gray-100),
-            1px 2px 4px -1px var(--color-gray-100);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    box-shadow:
-            0 0 1px 1px rgb(0 0 0 / 25%),
-            0 1px 1px rgb(0 0 0 / 25%),
-            1px 2px 4px -1px rgb(0 0 0 / 25%);
   }
 }

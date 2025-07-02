@@ -7,10 +7,18 @@ export type MemberNotificationSettings = {
   recommendationsEnabled: boolean;
   subscribed: boolean;
   showInvitationDialog: boolean;
+  exampleSent: boolean;
   emailFrequency: number;
   byFocusArea: boolean;
   byRole: boolean;
   byFundingStage: boolean;
+  byIndustryTag: boolean;
+  focusAreaList: string[];
+  fundingStageList: string[];
+  technologyList: string[];
+  industryTagList: string[];
+  keywordList: string[];
+  roleList: string[];
 };
 
 export type MemberProfileStatus = {

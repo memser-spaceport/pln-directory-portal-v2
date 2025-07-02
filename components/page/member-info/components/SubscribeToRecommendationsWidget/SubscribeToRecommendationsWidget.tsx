@@ -70,7 +70,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
 
   // const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
 
-  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || !data.recommendationsEnabled || !data.showInvitationDialog) {
+  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || data.exampleSent || !data.recommendationsEnabled || !data.showInvitationDialog) {
     return null;
   }
 
@@ -106,7 +106,15 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
             <OptedIn />
             <p className={s.desc}>Make sure your profile is as complete as possible to increase the quality of matches.</p>
             <div className={s.controls}>
-              <button className={s.primaryBtn} onClick={handleClose} disabled={isPending}>
+              <button
+                className={s.primaryBtn}
+                onClick={() => {
+                  queryClient.invalidateQueries({
+                    queryKey: [MembersQueryKeys.GET_NOTIFICATIONS_SETTINGS],
+                  });
+                }}
+                disabled={isPending}
+              >
                 Complete my profile
                 <GlowIcon />
               </button>

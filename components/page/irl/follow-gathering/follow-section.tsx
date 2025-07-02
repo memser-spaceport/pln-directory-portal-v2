@@ -49,8 +49,8 @@ const FollowSection = (props: IFollowSectionProps) => {
   const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const topicsAndReason = props?.topicsAndReason;
 
-  
 
+  
   function getFollowProperties(followers: any) {
     return {
       followers: followers ?? [],
@@ -212,7 +212,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             <div className="root__irl__follwcnt__imgsec__desccnt">
               <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.followers.length} {followProperties.followers.length > 1 ? "members" : "member"} </span>
               following gatherings at
-              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt__location'><img src={eventLocationSummary.flag} alt="flag" style={{ width: '17px', height: '17px' }} /> {eventLocationSummary.name} </span>
+              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt__location'><img src={eventLocationSummary?.flag || "/images/irl/defaultFlag.svg"}  alt="flag" style={{ width: '17px', height: '17px' }} /> {eventLocationSummary.name} </span>
             </div>
           </div>
         </div>

@@ -84,7 +84,7 @@ export const RecommendationsSettingsForm = ({ uid, userInfo, initialData }: Prop
       subscribed: formData.enabled,
       emailFrequency: formData.frequency.value,
       // industryTagList: formData.industryTags.map((tag) => tag.label),
-      roleList: formData.roles.map((role) => role.label),
+      roleList: formData.roles,
       fundingStageList: formData.fundingStage.map((stage) => stage.label),
       technologyList: formData.teamTechnology.map((stage) => stage.label),
       keywordList: formData.keywords,

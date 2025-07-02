@@ -43,7 +43,7 @@ export const recommendationsSettingsSchema = yup
 
     // industryTags: yup.array().of(selectOptionSchema).min(1, 'Select at least one industry tag').required('Industry tags are required'),
 
-    roles: yup.array().of(selectOptionSchema).default([]),
+    roles: yup.array().of(yup.string().defined()).default([]),
     fundingStage: yup.array().of(selectOptionSchema).default([]),
     teamTechnology: yup.array().of(selectOptionSchema).default([]),
     keywords: yup.array().of(yup.string().defined()).default([]),

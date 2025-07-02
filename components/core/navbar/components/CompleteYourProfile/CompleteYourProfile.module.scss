@@ -39,11 +39,11 @@
   font-style: normal;
   font-weight: 400;
   line-height: normal;
-  display: none;
+  display: inline;
 
-  @include media.tablet-landscape {
-    display: inline;
-  }
+  //@include media.tablet-landscape {
+  //  display: inline;
+  //}
 }
 
 .btn {

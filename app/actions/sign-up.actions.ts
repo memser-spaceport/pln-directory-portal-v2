@@ -1,7 +1,7 @@
 'use server';
 
 import validateCaptcha from '@/services/google-recaptcha.service';
-import { createParticipantRequest } from '@/services/participants-request.service';
+import { createMemberRequest, createParticipantRequest } from '@/services/participants-request.service';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/services/sign-up.service';
 import { cookies } from 'next/headers';
@@ -94,11 +94,13 @@ export async function signUpFormAction(data: any, recaptchaToken: string | undef
       newData: { ...data, openToWork: false },
     };
 
-    const formResult = await createParticipantRequest(bodyData);
+    const formResult = await createMemberRequest(bodyData);
 
     // Returns the form submission result
     if (formResult.ok) {
-      return { success: true, message: 'Form submitted successfully!' };
+      console.log(formResult);
+
+      return { success: true, message: 'Form submitted successfully!', data: await formResult.json() };
     } else {
       return { success: false, message: 'Form submission failed!' };
     }

@@ -15,6 +15,7 @@ import { SubscribeToRecoomendations } from '@/components/core/navbar/components/
 import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
+import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -68,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PostHogIdentifier />
             <header className="layout__header">
               <SubscribeToRecoomendations userInfo={userInfo} />
-              {/*<CompleteYourProfile userInfo={userInfo} />*/}
+              <CompleteYourProfile userInfo={userInfo} />
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
             <main className="layout__main">{children}</main>

@@ -14,6 +14,7 @@ import s from './OneClickVerification.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from 'react-toastify';
 import { useCookie } from 'react-use';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   member: IMember;
@@ -30,7 +31,7 @@ const fade = {
 export const OneClickVerification = ({ userInfo, member }: Props) => {
   const router = useRouter();
   const isOwner = userInfo?.uid === member.id;
-  const hasMissingRequiredData = !member?.linkedinProfile;
+  const hasMissingRequiredData = !member?.linkedinProfile && getAccessLevel(userInfo, true) === 'base';
   const showIncomplete = hasMissingRequiredData && isOwner;
   const searchParams = useSearchParams();
   const { onConnectLinkedInClicked } = useMemberAnalytics();

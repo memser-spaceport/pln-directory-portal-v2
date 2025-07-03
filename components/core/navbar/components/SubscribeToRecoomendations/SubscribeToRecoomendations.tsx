@@ -84,7 +84,7 @@ export const SubscribeToRecoomendations = ({ userInfo }: Props) => {
     !data.recommendationsEnabled ||
     !data.showInvitationDialog ||
     isOnboardingLoginFlow ||
-    accessLevel === 'base'
+    accessLevel !== 'advanced'
   ) {
     return null;
   }

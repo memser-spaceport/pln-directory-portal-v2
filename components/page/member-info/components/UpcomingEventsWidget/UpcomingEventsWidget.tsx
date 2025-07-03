@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import { useParams } from 'next/navigation';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   userInfo: IUserInfo;
@@ -27,12 +28,13 @@ export const UpcomingEventsWidget = ({ userInfo }: Props) => {
   const { data, isLoading } = useUpcomingEvents();
   const { data: settings } = useMemberNotificationsSettings(userInfo?.uid);
   const { onUpcomingEventsWidgetShowAllClicked, onUpcomingEventsWidgetDismissClicked, onUpcomingEventsItemClicked } = useEventsAnalytics();
+  const accessLevel = getAccessLevel(userInfo, true);
 
   if (!userInfo || isLoading || !data?.length || userInfo.uid !== id || !settings?.recommendationsEnabled) {
     return null;
   }
 
-  if (!settings?.showInvitationDialog || (!settings?.subscribed && userInfo.uid === id) || !visible) {
+  if (!settings?.showInvitationDialog || (!settings?.subscribed && userInfo.uid === id) || !visible || accessLevel !== 'advanced') {
     return null;
   }
 

@@ -34,16 +34,19 @@ export const OneClickVerification = ({ userInfo, member }: Props) => {
   const hasMissingRequiredData = !member?.linkedinProfile && getAccessLevel(userInfo, true) === 'base';
   const showIncomplete = hasMissingRequiredData && isOwner;
   const searchParams = useSearchParams();
-  const { onConnectLinkedInClicked } = useMemberAnalytics();
+  const { onConnectLinkedInClicked, onSuccessLinkedInVerification, onErrorLinkedInVerification } = useMemberAnalytics();
   const [userInfoCookie, setUserInfoCookie] = useCookie('userInfo');
 
   const { mutate, isPending } = useLinkedInVerification();
 
   useEffect(() => {
     if (searchParams.get('status') === 'error') {
+      onErrorLinkedInVerification();
       toast.error(searchParams.get('error_message') || 'Something went wrong. Please try again later.');
+    } else if (searchParams.get('status') === 'success') {
+      onSuccessLinkedInVerification();
     }
-  }, [searchParams]);
+  }, [onErrorLinkedInVerification, onSuccessLinkedInVerification, searchParams]);
 
   if (!hasMissingRequiredData && searchParams.get('status') === 'success') {
     return (

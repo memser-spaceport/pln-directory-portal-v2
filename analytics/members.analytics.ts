@@ -499,6 +499,14 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_CLICKED);
   }
 
+  function onSuccessLinkedInVerification() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_SUCCESS);
+  }
+
+  function onErrorLinkedInVerification() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_FAILED);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -568,5 +576,7 @@ export const useMemberAnalytics = () => {
     onOnboardingWizardBrowseFilesClicked,
     onConnectLinkedInClicked,
     onExplorePlNetworkCLicked,
+    onSuccessLinkedInVerification,
+    onErrorLinkedInVerification,
   };
 };

@@ -397,6 +397,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED: 'onboarding-go-to-complete-profile-clicked',
   ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED: 'onboarding-close-complete-profile-clicked',
   ONBOARDING_CONNECT_LINKEDIN_CLICKED: 'onboarding-connect-linkedin-clicked',
+  ONBOARDING_CONNECT_LINKEDIN_SUCCESS: 'onboarding-connect-linkedin-success',
+  ONBOARDING_CONNECT_LINKEDIN_FAILED: 'onboarding-connect-linkedin-failed',
 
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-profile-details-edit-clicked',
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-profile-details-save-clicked',

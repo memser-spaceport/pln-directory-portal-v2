@@ -384,7 +384,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED: 'member_detail_delete_experience_save_clicked',
 
   MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK: 'recommendation-email-connect_clicked',
-  ONBOARDING_EXPLORE_PL_NETWORK_CLICKED: 'onboarding-explore-pl-network-clicked',
+  ONBOARDING_EXPLORE_PL_NETWORK_CLICKED: 'onboarding-email-explore-pl-network-clicked',
   ONBOARDING_WIZARD_OPEN: 'onboarding-wizard-open',
   ONBOARDING_WIZARD_CLOSE: 'onboarding-wizard-close',
   ONBOARDING_WIZARD_COMPLETE: 'onboarding-wizard-complete',
@@ -397,6 +397,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   ONBOARDING_GO_TO_COMPLETE_PROFILE_CLICKED: 'onboarding-go-to-complete-profile-clicked',
   ONBOARDING_CLOSE_COMPLETE_PROFILE_CLICKED: 'onboarding-close-complete-profile-clicked',
   ONBOARDING_CONNECT_LINKEDIN_CLICKED: 'onboarding-connect-linkedin-clicked',
+  ONBOARDING_CONNECT_LINKEDIN_SUCCESS: 'onboarding-connect-linkedin-success',
+  ONBOARDING_CONNECT_LINKEDIN_FAILED: 'onboarding-connect-linkedin-failed',
 
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-profile-details-edit-clicked',
   INLINE_PROFILE_EDITOR_PROFILE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-profile-details-save-clicked',

@@ -17,6 +17,7 @@ import PostHogIdentifier from '@/components/page/posthog-identifier';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
+import { UserInfoChecker } from '@/components/core/login/UserInfoChecker';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
             {/* <TeamRegisterDialog /> */}
+            <UserInfoChecker userInfo={userInfo} />
             <CookieChecker isLoggedIn={isLoggedIn} />
           </QueryProvider>
         </StyledJsxRegistry>

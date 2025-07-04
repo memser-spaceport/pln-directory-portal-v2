@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -36,17 +36,21 @@ export const OneClickVerification = ({ userInfo, member }: Props) => {
   const searchParams = useSearchParams();
   const { onConnectLinkedInClicked, onSuccessLinkedInVerification, onErrorLinkedInVerification } = useMemberAnalytics();
   const [userInfoCookie, setUserInfoCookie] = useCookie('userInfo');
+  const errorReported = useRef(false);
 
   const { mutate, isPending } = useLinkedInVerification();
 
   useEffect(() => {
-    if (searchParams.get('status') === 'error') {
+    if (searchParams.get('status') === 'error' && !errorReported.current) {
+      errorReported.current = true;
       onErrorLinkedInVerification();
       toast.error(searchParams.get('error_message') || 'Something went wrong. Please try again later.');
+
+      router.replace(`/members/${member.id}`);
     } else if (searchParams.get('status') === 'success') {
       onSuccessLinkedInVerification();
     }
-  }, [onErrorLinkedInVerification, onSuccessLinkedInVerification, searchParams]);
+  }, [member.id, onErrorLinkedInVerification, onSuccessLinkedInVerification, router, searchParams]);
 
   if (!hasMissingRequiredData && searchParams.get('status') === 'success') {
     return (

@@ -75,15 +75,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
         <div className="header__details">
           <div className="header__details__specifics">
             <div className="header__details__specifics__hdr">
-              <Tooltip
-                asChild
-                trigger={
-                  <h1 className="header__details__specifics__name">
-                    {name} {member?.linkedinProfile ? <VerifiedIcon /> : null}
-                  </h1>
-                }
-                content={name}
-              />
+              <Tooltip asChild trigger={<h1 className="header__details__specifics__name">{name}</h1>} content={name} />
             </div>
             <div className="header__details__roleandlocation">
               {member?.teams[0]?.name && (

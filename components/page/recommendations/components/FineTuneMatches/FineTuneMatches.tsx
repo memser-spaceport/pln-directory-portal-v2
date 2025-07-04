@@ -51,15 +51,16 @@ export const FineTuneMatches = () => {
       <div className={s.Trigger}>Fine-tune matches</div>
       <div className={s.Panel}>
         <MatchesEditor
-          selectLabel="Select keywords"
+          selectLabel="Add keywords"
           hint="Used to match you with members with similar keywords in their profiles."
           icon={<KeyIcon />}
           title="Keywords"
           name="keywords"
           warning={isInvalid && !keywords.length}
+          placeholder="AI, Payments, Staking, Governance..."
         />
         <MatchesSelector
-          placeholder="Add funding stage"
+          placeholder="Pick 1 or several funding stages"
           hint="Used to match you with members on the teams at funding stage(s) of your interest."
           icon={<LeafIcon />}
           selectLabel="Select stage"
@@ -69,8 +70,8 @@ export const FineTuneMatches = () => {
           warning={isInvalid && !fundingStage.length}
         />
         <MatchesEditor
-          placeholder="Add role"
-          selectLabel="Select Role"
+          placeholder="Founder, CTO, VP Marketing ..."
+          selectLabel="Add roles"
           hint="We'll prioritize members who match these roles."
           icon={<RoleIcon />}
           title="Preferred Roles"
@@ -78,11 +79,11 @@ export const FineTuneMatches = () => {
           warning={isInvalid && !roles.length}
         />
         <MatchesSelector
-          placeholder="Add technology used"
+          placeholder="Pick 1 or several technologies"
           hint="We'll highlight members working with these technologies."
           icon={<TechIcon />}
           title="Technologies used"
-          selectLabel="Select Technology"
+          selectLabel="Select technology"
           options={options.teamTechnologiesOptions}
           name="teamTechnology"
           warning={isInvalid && !teamTechnology.length}

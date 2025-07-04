@@ -72,7 +72,9 @@ export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, i
               })}
               <Field.Control
                 placeholder={val?.length > 0 ? '' : placeholder}
-                className={clsx(s.textInput)}
+                className={clsx(s.textInput, {
+                  [s.hidePlaceholder]: val?.length > 0,
+                })}
                 value={inputText}
                 onChange={(e) => {
                   setInputText(e.target.value);

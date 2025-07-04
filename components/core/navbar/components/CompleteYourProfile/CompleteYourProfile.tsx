@@ -4,33 +4,42 @@ import React from 'react';
 
 import { IUserInfo } from '@/types/shared.types';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 import s from './CompleteYourProfile.module.scss';
-import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   userInfo: IUserInfo;
 }
 
+const MESSAGES: Record<string, string> = {
+  L0: 'Access limited - please verify your identity to begin the review process.',
+  L1: "Access limited - profile under review. You'll be notified once approved.",
+};
+
 export const CompleteYourProfile = ({ userInfo }: Props) => {
   const accessLevel = getAccessLevel(userInfo, true);
 
-  if (userInfo && accessLevel === 'base') {
-    return (
-      <HighlightsBar variant="secondary">
-        <div className={s.root}>
-          <div className={s.left}>
-            <UserIcon />
-            {/*<span className={s.title}>Info</span>*/}
-            <span className={s.description}>Your profile is under review. You will have limited access to functionality until it is approved.</span>
-          </div>
-        </div>
-        {/*<div className={s.mobileDetails}>Your profile is under review. You will have limited access to functionality until it is approved.</div>*/}
-      </HighlightsBar>
-    );
+  if (!userInfo || accessLevel !== 'base' || !userInfo.accessLevel) {
+    return null;
   }
 
-  return null;
+  const message = MESSAGES[userInfo.accessLevel];
+
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <HighlightsBar variant="secondary">
+      <div className={s.root}>
+        <div className={s.left}>
+          <UserIcon />
+          <span className={s.description}>{message}</span>
+        </div>
+      </div>
+    </HighlightsBar>
+  );
 };
 
 const UserIcon = () => (

@@ -16,7 +16,6 @@ export const ProfileImageInput = () => {
       console.log(err);
     },
     onDrop: (acceptedFiles) => {
-      console.log(acceptedFiles);
       if (acceptedFiles && acceptedFiles.length > 0) {
         const file = acceptedFiles[0];
 

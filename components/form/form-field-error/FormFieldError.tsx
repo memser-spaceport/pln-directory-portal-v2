@@ -12,7 +12,6 @@ export const FormFieldError: FC<Props> = ({ name }) => {
     <FormErrorMessage
       name={name}
       render={({ message }) => {
-        console.log(message, name);
         return (
           <div className={s.root}>
             <p className={s.message}>{message}</p>

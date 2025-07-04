@@ -4,11 +4,10 @@ import { Switch } from '@base-ui-components/react/switch';
 import { useFormContext } from 'react-hook-form';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
 
-// import { FormSelect } from '@/components/form/FormSelect';
+import Link from 'next/link';
 import { GroupBase, OptionsOrGroups } from 'react-select';
 
 import s from './GeneralSettings.module.scss';
-import { useRouter } from 'next/navigation';
 
 const OPTIONS = [
   { value: 1, label: 'Daily' },
@@ -18,7 +17,6 @@ const OPTIONS = [
 ] as unknown as OptionsOrGroups<string, GroupBase<string>>;
 
 export const GeneralSettings = ({ uid }: { uid: string }) => {
-  const router = useRouter();
   const { watch, setValue } = useFormContext<TRecommendationsSettingsForm>();
   const { enabled } = watch();
 
@@ -39,9 +37,9 @@ export const GeneralSettings = ({ uid }: { uid: string }) => {
       <div className={s.notification}>
         <InfoIcon />
         <p className={s.text}>Make sure your profile is up-to-date to get the best recommendations.</p>
-        <a className={s.btn} href={`${window.location.origin}/members/${uid}`} target="_blank" rel="noreferrer">
+        <Link className={s.btn} href={`/members/${uid}`} target="_blank" rel="noreferrer">
           My Profile <ArrowIcon />
-        </a>
+        </Link>
       </div>
       {/*<FormSelect name="frequency" placeholder="Frequency" options={OPTIONS} disabled={!enabled} />*/}
     </div>

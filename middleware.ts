@@ -34,13 +34,16 @@ export async function middleware(req: NextRequest) {
 
   try {
     if (!refreshTokenFromCookie) {
+      response.cookies.delete('refreshToken');
+      response.cookies.delete('authToken');
+      response.cookies.delete('userInfo');
       return response;
     }
 
     const authToken = authTokenFromCookie?.value.replace(/"/g, '');
     if (authToken) {
       const validCheckResponse = await checkIsValidToken(authToken as string);
-      
+
       // Priority 1: Check for force logout (regardless of active status)
       console.log('middleware validCheckResponse', validCheckResponse);
       if (validCheckResponse?.forceLogout) {
@@ -50,9 +53,9 @@ export async function middleware(req: NextRequest) {
         response.cookies.delete('userInfo');
         return response;
       }
-      
+
       // Priority 2: Check if token is active
-      isValidAuthToken = validCheckResponse && validCheckResponse?.active || false;
+      isValidAuthToken = (validCheckResponse && validCheckResponse?.active) || false;
       if (isValidAuthToken) {
         console.log('middleware inside isValidAuthToken');
         response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
@@ -90,6 +93,9 @@ export async function middleware(req: NextRequest) {
         return response;
       }
     } else {
+      response.cookies.delete('refreshToken');
+      response.cookies.delete('authToken');
+      response.cookies.delete('userInfo');
       return response;
     }
   } catch (err) {

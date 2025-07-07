@@ -57,7 +57,7 @@ export const ExperiencesList = ({ isEditable, onAdd, onEdit, member }: Props) =>
       )}
       {!isLoading && !data?.length && (
         <div className={s.emptyData}>
-          <span className={s.label}>Add your work experience</span>
+          <span className={s.label}>{isEditable ? 'Add your work experience' : 'Not provided'}</span>
           {/*<button className={s.connectButton}>*/}
           {/*  <Image src="/icons/contact/linkedIn-contact-logo.svg" alt="Linkedin" height={24} width={24} />*/}
           {/*  Connect LinkedIn*/}

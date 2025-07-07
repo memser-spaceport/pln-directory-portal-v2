@@ -16,6 +16,8 @@ import { saveRegistrationImage } from '@/services/registration.service';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useRouter } from 'next/navigation';
+import { useUserStore } from '@/services/members/store';
+import { updateMemberInfoCookie } from '@/utils/member.utils';
 
 import s from './EditProfileForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -32,6 +34,7 @@ interface Props {
 
 export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Props) => {
   const router = useRouter();
+  const { actions } = useUserStore();
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
       image: null,
@@ -62,11 +65,15 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
     }
 
     let image;
+    let imageUrl = '';
 
     if (formData.image) {
       const imgResponse = await saveRegistrationImage(formData.image);
-
       image = imgResponse?.image.uid;
+      imageUrl = imgResponse?.image.url;
+      
+      actions.setProfileImage(imageUrl);
+      updateMemberInfoCookie(imageUrl);
     }
 
     const payload = {

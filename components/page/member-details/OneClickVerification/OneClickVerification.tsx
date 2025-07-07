@@ -67,7 +67,9 @@ export const OneClickVerification = ({ userInfo, member }: Props) => {
                   if (userInfoCookie) {
                     try {
                       const _userInfo = JSON.parse(userInfoCookie);
-                      setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: 'L1' }));
+                      setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: 'L1' }), {
+                        domain: process.env.COOKIE_DOMAIN || '',
+                      });
                     } catch (e) {
                       console.error('Failed to parse userInfo cookie: ', e);
                     }

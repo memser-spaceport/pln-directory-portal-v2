@@ -21,6 +21,7 @@ import { getAccessLevel } from '@/utils/auth.utils';
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
   const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo } = await getpageData(memberId);
+  const isOwner = userInfo?.uid === member.id;
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
@@ -44,7 +45,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
         <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        {isLoggedIn && getAccessLevel(userInfo, isLoggedIn) === 'advanced' && (
+        {isLoggedIn && (getAccessLevel(userInfo, isLoggedIn) === 'advanced' || isOwner) && (
           <div className={styles?.memberDetail__container__teams}>
             <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
           </div>

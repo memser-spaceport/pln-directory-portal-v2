@@ -26,6 +26,8 @@ export const CompleteYourProfile = ({ userInfo }: Props) => {
 
   const message = MESSAGES[userInfo.accessLevel];
 
+  console.log(userInfo);
+
   if (!message) {
     return null;
   }

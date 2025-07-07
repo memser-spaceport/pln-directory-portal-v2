@@ -31,7 +31,7 @@ interface Props {
   value: string | null; // ISO string like "2025-03-01T00:00:00.000Z"
   label: string;
   disabled?: boolean;
-  error?: boolean;
+  error?: string | undefined;
 }
 
 export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Props) => {
@@ -200,6 +200,7 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
           }}
         />
       </div>
+      {error && <div className={s.errorMsg}>{error}</div>}
     </div>
   );
 };

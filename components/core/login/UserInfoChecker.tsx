@@ -12,7 +12,7 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (userInfoCookie && userInfo && member && member.memberInfo.accessLevel !== userInfo.accessLevel) {
+    if (userInfoCookie && userInfo && member && userInfo.accessLevel && member.memberInfo.accessLevel !== userInfo.accessLevel) {
       try {
         const _userInfo = JSON.parse(userInfoCookie);
 

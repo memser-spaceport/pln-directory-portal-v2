@@ -549,7 +549,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
             position: relative;
           }
 
-          @media (min-width: 1024px) {
+          @media (min-width: 1025px) {
             .md {
               display: none;
             }

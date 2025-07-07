@@ -14,6 +14,7 @@ import s from './ExperienceDetails.module.scss';
 import { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { EditExperienceForm } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   member: IMember;
@@ -29,7 +30,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isEditable = isOwner || isAdmin;
   const { onAddExperienceDetailsClicked, onEditExperienceDetailsClicked } = useMemberAnalytics();
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn || getAccessLevel(userInfo, isLoggedIn) !== 'advanced') {
     return null;
   }
 

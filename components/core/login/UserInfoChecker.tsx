@@ -17,7 +17,9 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
         const _userInfo = JSON.parse(userInfoCookie);
 
         if (_userInfo.uid === member.memberInfo.uid) {
-          setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: member.memberInfo.accessLevel }));
+          setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: member.memberInfo.accessLevel }), {
+            domain: process.env.COOKIE_DOMAIN || '',
+          });
           router.refresh();
         }
       } catch (e) {

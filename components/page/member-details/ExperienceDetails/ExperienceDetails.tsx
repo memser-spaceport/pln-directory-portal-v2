@@ -30,7 +30,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isEditable = isOwner || isAdmin;
   const { onAddExperienceDetailsClicked, onEditExperienceDetailsClicked } = useMemberAnalytics();
 
-  if (!isLoggedIn || getAccessLevel(userInfo, isLoggedIn) !== 'advanced') {
+  if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
     return null;
   }
 

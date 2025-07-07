@@ -23,7 +23,7 @@ export const RepositoriesDetails = ({ isLoggedIn, userInfo, member }: Props) => 
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
 
-  if (!isLoggedIn || getAccessLevel(userInfo, isLoggedIn) !== 'advanced') {
+  if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
     return null;
   }
 

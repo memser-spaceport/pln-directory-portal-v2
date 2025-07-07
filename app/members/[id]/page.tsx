@@ -16,6 +16,7 @@ import { RepositoriesDetails } from '@/components/page/member-details/Repositori
 import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -43,9 +44,11 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
         <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <div className={styles?.memberDetail__container__teams}>
-          <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
-        </div>
+        {isLoggedIn && getAccessLevel(userInfo, isLoggedIn) === 'advanced' && (
+          <div className={styles?.memberDetail__container__teams}>
+            <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
+          </div>
+        )}
 
         <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 

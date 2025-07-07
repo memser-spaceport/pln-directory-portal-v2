@@ -159,26 +159,26 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                     );
                   })}
               </div>
-              {accessLevel === 'advanced' && (
-                <div className={clsx(s.control, s.tablet)}>
+              <div className={clsx(s.control, s.tablet)}>
+                {!isLoggedIn && (
                   <button className={s.loginButton} onClick={onLoginClickHandler}>
                     Login for access
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-            {showOfficeHours && accessLevel === 'advanced' && (
+            {showOfficeHours && (
               <div className={s.bottom}>
                 <OfficeHoursHandle member={member} userInfo={userInfo} isLoggedIn={false} />
               </div>
             )}
-            {accessLevel === 'advanced' && (
-              <div className={clsx(s.control, s.mobileOnly)}>
+            <div className={clsx(s.control, s.mobileOnly)}>
+              {!isLoggedIn && (
                 <button className={s.loginButton} onClick={onLoginClickHandler}>
                   Login for access
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>

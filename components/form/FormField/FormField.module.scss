@@ -18,6 +18,13 @@
   line-height: 20px; /* 166.667% */
 }
 
+.labelWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .input {
   display: flex;
   height: 50px;

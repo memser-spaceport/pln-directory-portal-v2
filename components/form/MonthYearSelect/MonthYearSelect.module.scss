@@ -38,3 +38,12 @@
     border-color: darkred;
   }
 }
+
+.errorMsg {
+  font-size: 10px;
+  color: darkred;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 200% */
+}

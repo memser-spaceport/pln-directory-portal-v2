@@ -117,7 +117,7 @@ export const SignupWizard = ({ onClose }: Props) => {
       // toast.success('Thank you for signing up! Your profile is currently under review. You’ll receive an email as soon as it’s approved.');
 
       // todo - use case C
-      router.replace(`${window.location.origin}?prefillEmail=${encodeURIComponent(payload.email)}&returnTo=members-${res.data.uid}#login`);
+      router.replace(`${window.location.origin}/members/${res.data.uid}?prefillEmail=${encodeURIComponent(payload.email)}&returnTo=members-${res.data.uid}#login`);
 
       setTimeout(() => {
         onClose();

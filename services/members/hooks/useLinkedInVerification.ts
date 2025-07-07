@@ -1,6 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
-import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { TOAST_MESSAGES } from '@/utils/constants';
 
@@ -35,13 +34,8 @@ async function mutation({ uid }: { uid: string }) {
 }
 
 export function useLinkedInVerification() {
-  const router = useRouter();
-
   return useMutation({
     mutationFn: mutation,
-    onSuccess: () => {
-      router.refresh();
-    },
     onError: (error) => {
       console.error(error?.message);
       toast.error(TOAST_MESSAGES.FAILED_TO_LINK_LINKEDIN);

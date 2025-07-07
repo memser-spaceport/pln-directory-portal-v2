@@ -98,11 +98,10 @@ export async function signUpFormAction(data: any, recaptchaToken: string | undef
 
     // Returns the form submission result
     if (formResult.ok) {
-      console.log(formResult);
-
       return { success: true, message: 'Form submitted successfully!', data: await formResult.json() };
     } else {
-      return { success: false, message: 'Form submission failed!' };
+      const error = await formResult.json();
+      return { success: false, message: error?.message || 'Form submission failed!' };
     }
     //   }
     // }

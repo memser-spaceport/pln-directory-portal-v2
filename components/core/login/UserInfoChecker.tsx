@@ -16,8 +16,10 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
       try {
         const _userInfo = JSON.parse(userInfoCookie);
 
-        setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: member.memberInfo.accessLevel }));
-        router.refresh();
+        if (_userInfo.uid === member.memberInfo.uid) {
+          setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: member.memberInfo.accessLevel }));
+          router.refresh();
+        }
       } catch (e) {
         console.error('Failed to parse userInfo cookie: ', e);
       }

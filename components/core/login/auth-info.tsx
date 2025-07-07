@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import usePrivyWrapper from '@/hooks/auth/usePrivyWrapper';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { createStateUid } from '@/services/auth.service';
 import { useAsync } from 'react-use';
@@ -9,7 +8,6 @@ import { useAsync } from 'react-use';
 const AuthInfo = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { logout } = usePrivyWrapper();
   const analytics = useAuthAnalytics();
 
   // Initiate Privy Login and get the auth code for state
@@ -18,7 +16,6 @@ const AuthInfo = () => {
       console.log('login triggered');
       analytics.onProceedToLogin();
       localStorage.clear();
-      await logout();
 
       const response = await createStateUid();
       if (!response.ok) {

@@ -66,7 +66,7 @@ const MemberTeams = (props: IMemberTeams) => {
                 See all
               </button>
             )}
-            {isLoggedIn && getAccessLevel(userInfo, isLoggedIn) === 'advanced' && (
+            {isLoggedIn && getAccessLevel(userInfo, isLoggedIn) === 'advanced' && userInfo?.uid === member?.id && (
               <button onClick={() => router.push('/settings/profile?tab=skills')} className="member-teams__controls_add">
                 <AddIcon /> Add
               </button>

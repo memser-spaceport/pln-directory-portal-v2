@@ -1,6 +1,5 @@
 'use client';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
-import TextEditor from '@/components/ui/text-editor';
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
 import { getAnalyticsTeamInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';

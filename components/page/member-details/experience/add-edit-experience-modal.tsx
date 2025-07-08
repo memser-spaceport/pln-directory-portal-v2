@@ -12,8 +12,6 @@ import { toast } from 'react-toastify';
 import { triggerDialogLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import TextArea from '@/components/form/text-area';
-import TextEditor from '@/components/ui/text-editor';
 import HiddenField from '@/components/form/hidden-field';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 interface Experience {

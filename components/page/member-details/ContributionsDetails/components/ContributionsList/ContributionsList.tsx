@@ -32,7 +32,7 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
         <ul className={s.list}>
           {data?.map((item) => (
             <li key={item.uid} className={s.expItem}>
-              <Image src={item.project.logo.url} alt={item.project.name} width={40} height={40} className={s.logo} />
+              <Image src={item.project.logo?.url ?? '/icons/default-project.svg'} alt={item.project.name} width={40} height={40} className={s.logo} />
               <div className={s.details}>
                 <div className={s.row}>
                   <div className={s.primaryLabel}>{item.project.name}</div>

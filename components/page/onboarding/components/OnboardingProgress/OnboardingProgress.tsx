@@ -69,8 +69,6 @@ export const OnboardingProgress = () => {
     return score;
   }
 
-  console.log(step);
-
   return (
     <div className={s.root}>
       <div className={s.labels}>

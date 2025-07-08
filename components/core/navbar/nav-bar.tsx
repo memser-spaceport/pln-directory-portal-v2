@@ -416,7 +416,7 @@ export default function Navbar(props: Readonly<INavbar>) {
             padding: ${isLoggedIn ? '8px' : '0'};
           }
 
-          @media (min-width: 1024px) {
+          @media (min-width: 1025px) {
             .nb {
               padding: 0 48px 0 48px;
             }

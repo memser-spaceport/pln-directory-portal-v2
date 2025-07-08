@@ -1,6 +1,6 @@
 'use client';
 import { PAGE_ROUTES } from '@/utils/constants';
-import { Fragment, useRef, useState } from 'react';
+import React, { Fragment, useRef, useState } from 'react';
 import MemberDetailsTeamCard from './member-details-team-card';
 import Modal from '@/components/core/modal';
 import AllTeams from './all-teams';
@@ -9,6 +9,8 @@ import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAccessLevel } from '@/utils/auth.utils';
+import { useRouter } from 'next/navigation';
 
 interface IMemberTeams {
   member: IMember;
@@ -25,6 +27,7 @@ const MemberTeams = (props: IMemberTeams) => {
 
   const userInfo = props?.userInfo;
   const teamsRef = useRef<HTMLDialogElement>(null);
+  const router = useRouter();
 
   const analytics = useMemberAnalytics();
 
@@ -57,11 +60,18 @@ const MemberTeams = (props: IMemberTeams) => {
       <div className="member-teams">
         <div className="member-teams__header">
           <h2 className="member-teams__title">Teams ({totalTeams})</h2>
-          {teams?.length > 3 && (
-            <button className="member-teams__header__seeall-btn" onClick={onSeeAllClickHandler}>
-              See all
-            </button>
-          )}
+          <div className="member-teams__controls">
+            {teams?.length > 3 && (
+              <button className="member-teams__header__seeall-btn" onClick={onSeeAllClickHandler}>
+                See all
+              </button>
+            )}
+            {isLoggedIn && getAccessLevel(userInfo, isLoggedIn) === 'advanced' && userInfo?.uid === member?.id && (
+              <button onClick={() => router.push('/settings/profile?tab=skills')} className="member-teams__controls_add">
+                <AddIcon /> Add
+              </button>
+            )}
+          </div>
         </div>
 
         {itemsToShow.length > 0 ? (
@@ -114,9 +124,33 @@ const MemberTeams = (props: IMemberTeams) => {
             color: #64748b;
           }
 
+          .member-teams__controls {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+          }
+
+          .member-teams__controls_add {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #156ff7;
+            text-align: center;
+            font-feature-settings:
+              'liga' off,
+              'clig' off;
+
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 20px; /* 142.857% */
+          }
+
           .member-teams__teams-container {
             border-radius: 12px;
-            box-shadow: 0px 4px 4px 0px #0f172a0a, 0px 0px 1px 0px #0f172a1f;
+            box-shadow:
+              0px 4px 4px 0px #0f172a0a,
+              0px 0px 1px 0px #0f172a1f;
             border: 1px solid #e2e8f0;
           }
 
@@ -171,3 +205,12 @@ const MemberTeams = (props: IMemberTeams) => {
 };
 
 export default MemberTeams;
+
+const AddIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: 'translateY(-1px)' }}>
+    <path
+      d="M14.3438 7.09375C14.6992 7.09375 15 7.39453 15 7.75C15 8.13281 14.6992 8.40625 14.3438 8.40625H8.65625V14.0938C8.65625 14.4766 8.35547 14.75 7.97266 14.75C7.61719 14.75 7.31641 14.4766 7.31641 14.0938V8.40625H1.62891C1.27344 8.40625 0.972656 8.13281 0.972656 7.75C0.972656 7.39453 1.27344 7.09375 1.62891 7.09375H7.31641V1.40625C7.31641 1.05078 7.61719 0.75 7.97266 0.75C8.35547 0.75 8.65625 1.05078 8.65625 1.40625V7.09375H14.3438Z"
+      fill="#156FF7"
+    />
+  </svg>
+);

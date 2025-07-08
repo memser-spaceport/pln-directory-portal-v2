@@ -35,7 +35,7 @@ export const EditExperienceForm = ({ onClose, member, userInfo, initialData }: P
       title: initialData?.title ?? '',
       company: initialData?.company ?? '',
       description: initialData?.description ?? '',
-      startDate: initialData?.startDate || null,
+      startDate: initialData?.startDate || new Date().toISOString(),
       endDate: initialData?.endDate || null,
       isCurrent: initialData?.isCurrent ?? false,
       location: initialData?.location ?? '',

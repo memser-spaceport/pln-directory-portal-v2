@@ -7,13 +7,21 @@ import { TEditExperienceForm } from '@/components/page/member-details/Experience
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
 
 export const ExperienceDatesInput = () => {
-  const { watch, setValue } = useFormContext<TEditExperienceForm>();
+  const {
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext<TEditExperienceForm>();
   const { startDate, endDate, isCurrent } = watch();
+
+  const error0 = errors.startDate;
+  const error1 = errors.endDate;
 
   return (
     <div className={s.root}>
       <div className={s.body}>
         <MonthYearSelect
+          error={error0?.message}
           label="Start Date*"
           value={startDate}
           onChange={(val) => {
@@ -25,6 +33,7 @@ export const ExperienceDatesInput = () => {
           }}
         />
         <MonthYearSelect
+          error={error1?.message}
           disabled={isCurrent}
           label="End Date"
           value={endDate}

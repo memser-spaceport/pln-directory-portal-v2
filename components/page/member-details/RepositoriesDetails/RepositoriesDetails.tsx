@@ -10,6 +10,7 @@ import { ADMIN_ROLE } from '@/utils/constants';
 import { RepositoriesList } from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList';
 
 import s from './RepositoriesDetails.module.scss';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   member: IMember;
@@ -22,7 +23,7 @@ export const RepositoriesDetails = ({ isLoggedIn, userInfo, member }: Props) => 
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
     return null;
   }
 

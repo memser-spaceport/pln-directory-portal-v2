@@ -9,6 +9,7 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import { canUserPerformEditAction } from '@/utils/irl.utils';
 import PresenceRequestSuccess from './presence-request-success';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { getAccessLevel } from '@/utils/auth.utils';
 interface IFollowSectionProps {
   userInfo: any;
   eventLocationSummary: any;
@@ -40,7 +41,7 @@ const FollowSection = (props: IFollowSectionProps) => {
   const locationEvents = props?.locationEvents;
   const pastEvents = locationEvents?.pastEvents;
   const upcomingEvents = locationEvents?.upcomingEvents;
-  const inPastEvents = type ? type === 'past' : (pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0);
+  const inPastEvents = type ? type === 'past' : pastEvents && pastEvents.length > 0 && upcomingEvents && upcomingEvents.length === 0;
   const inPastEventsAndHaveEvents = inPastEvents && pastEvents && pastEvents.length > 0;
   const onLogin = props.onLogin;
   const isUserLoggedIn = props?.isLoggedIn;
@@ -48,9 +49,8 @@ const FollowSection = (props: IFollowSectionProps) => {
   const roles = userInfo?.roles ?? [];
   const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const topicsAndReason = props?.topicsAndReason;
+  const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
 
-
-  
   function getFollowProperties(followers: any) {
     return {
       followers: followers ?? [],
@@ -93,15 +93,15 @@ const FollowSection = (props: IFollowSectionProps) => {
 
   const onIAmGoingClick = (from?: string) => {
     let formData: any = { member: userInfo };
-    if(typeof topicsAndReason === 'object' && topicsAndReason !== null) {
+    if (typeof topicsAndReason === 'object' && topicsAndReason !== null) {
       formData['topicsAndReason'] = topicsAndReason;
     }
-   
-    let props:any = { detail: { isOpen: true, formdata: { ...formData }, mode: IAM_GOING_POPUP_MODES.ADD } }
-    if(from === 'mark-presence') {
+
+    let props: any = { detail: { isOpen: true, formdata: { ...formData }, mode: IAM_GOING_POPUP_MODES.ADD } };
+    if (from === 'mark-presence') {
       props['detail']['from'] = EVENTS_SUBMIT_FORM_TYPES.MARK_PRESENCE;
     }
-    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP,props ));
+    document.dispatchEvent(new CustomEvent(EVENTS.OPEN_IAM_GOING_POPUP, props));
     analytics.trackImGoingBtnClick(location);
   };
 
@@ -122,7 +122,7 @@ const FollowSection = (props: IFollowSectionProps) => {
           isOpen: true,
           type: 'self-delete',
         },
-      })
+      }),
     );
   };
 
@@ -178,7 +178,7 @@ const FollowSection = (props: IFollowSectionProps) => {
         root: null, // Default is the viewport
         threshold: 0, // Trigger as soon as the element exits the viewport
         rootMargin: '-247px 0px 0px 0px',
-      }
+      },
     );
 
     observer.observe(element);
@@ -187,9 +187,9 @@ const FollowSection = (props: IFollowSectionProps) => {
   return (
     <>
       <AllFollowers location={eventLocationSummary.name} onClose={onFollowersCloseClicHandler} followersList={followProperties.followers} onFollowerClickHandler={onFollowerClickHandler} />
-      <div className={`root__irl__follwcnt ${isShrunk ? 'showCntr' : ''}`} id='actionCn'>
+      <div className={`root__irl__follwcnt ${isShrunk ? 'showCntr' : ''}`} id="actionCn">
         <div className={`root__irl__follwcnt__cnt ${!isShrunk ? 'hideCnt' : 'showCnt'}`}>
-          <div className='root__irl__follcnt__update__web'>Planning to attend? Enroll yourselves & follow to get event updates & reminders.</div>
+          <div className="root__irl__follcnt__update__web">Planning to attend? Enroll yourselves & follow to get event updates & reminders.</div>
           <div className={`root__irl__follwcnt__imgsec ${!isShrunk ? 'hideCnt-mob' : 'showCnt'}`}>
             <div onClick={onFollowersClickHandler} className="root__irl__follwcnt__imgsec__images">
               {followProperties.followers?.slice(0, 3).map((follower: any, index: number) => {
@@ -210,18 +210,21 @@ const FollowSection = (props: IFollowSectionProps) => {
               })}
             </div>
             <div className="root__irl__follwcnt__imgsec__desccnt">
-              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt' onClick={onFollowersClickHandler}>{followProperties.followers.length} {followProperties.followers.length > 1 ? "members" : "member"} </span>
+              <span className="root__irl__follwcnt__imgsec__desccnt__desc__cnt" onClick={onFollowersClickHandler}>
+                {followProperties.followers.length} {followProperties.followers.length > 1 ? 'members' : 'member'}{' '}
+              </span>
               following gatherings at
-              <span className='root__irl__follwcnt__imgsec__desccnt__desc__cnt__location'><img src={eventLocationSummary?.flag || "/images/irl/defaultFlag.svg"}  alt="flag" style={{ width: '17px', height: '17px' }} /> {eventLocationSummary.name} </span>
+              <span className="root__irl__follwcnt__imgsec__desccnt__desc__cnt__location">
+                <img src={eventLocationSummary?.flag || '/images/irl/defaultFlag.svg'} alt="flag" style={{ width: '17px', height: '17px' }} /> {eventLocationSummary.name}{' '}
+              </span>
             </div>
           </div>
         </div>
 
-
         <div className="toolbar__actionCn">
           <FollowButton eventLocationSummary={location} userInfo={userInfo} followProperties={followProperties} expand={canUserAddAttendees} />
 
-          {canUserAddAttendees && (
+          {canUserAddAttendees && accessLevel === 'advanced' && (
             <div className="toolbar__actionCn__add">
               <button className="toolbar__actionCn__add__btn" onClick={onAddMemberClick}>
                 <img src="/icons/add.svg" width={16} height={16} alt="add" />
@@ -230,15 +233,13 @@ const FollowSection = (props: IFollowSectionProps) => {
             </div>
           )}
 
-          {
-            isUserLoggedIn && !canUserAddAttendees && type === 'past' && !isUserGoing && (
-              <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
-               Claim Attendance
+          {isUserLoggedIn && !canUserAddAttendees && type === 'past' && !isUserGoing && accessLevel === 'advanced' && (
+            <button onClick={() => onIAmGoingClick('mark-presence')} className="toolbar__actionCn__imGoingBtn">
+              Claim Attendance
             </button>
-            )
-          }
+          )}
 
-          {!isUserGoing && isUserLoggedIn && !inPastEvents && (
+          {!isUserGoing && isUserLoggedIn && !inPastEvents && accessLevel === 'advanced' && (
             <button onClick={() => onIAmGoingClick('upcoming')} className="toolbar__actionCn__imGoingBtn">
               I&apos;m Going
             </button>
@@ -250,7 +251,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             </button>
           )}
 
-          {isUserGoing && isUserLoggedIn && (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) && (
+          {isUserGoing && isUserLoggedIn && (!inPastEvents || (inPastEvents && inPastEventsAndHaveEvents)) && accessLevel === 'advanced' && (
             <div className="toolbar__actionCn__edit__wrpr">
               <button ref={editResponseRef} onClick={onEditResponseClick} className="toolbar__actionCn__edit">
                 <img src="/icons/edit-white.svg" alt="arrow" width={18} height={18} />
@@ -280,13 +281,13 @@ const FollowSection = (props: IFollowSectionProps) => {
             display: flex;
             padding: 10px;
             transition: all 0.3s ease-in-out;
-            padding-top: ${!isShrunk ? "0px" : ""};
-            padding-bottom: ${!isShrunk ? "0px" : ""};
+            padding-top: ${!isShrunk ? '0px' : ''};
+            padding-bottom: ${!isShrunk ? '0px' : ''};
             width: 100%;
           }
 
           .showCntr {
-            // padding-block: 0px; 
+            // padding-block: 0px;
           }
 
           .root__irl__follwcnt__cnt {
@@ -307,26 +308,32 @@ const FollowSection = (props: IFollowSectionProps) => {
             text-align: left;
             opacity: 1;
             transition: opacity 0.4s ease;
-            
           }
 
-          .hideCnt, .hideCnt-mob {
+          .hideCnt,
+          .hideCnt-mob {
             opacity: 0;
-            visibility:hidden !important;
+            visibility: hidden !important;
             height: 0px;
-            transition: height 0.3s ease-in-out, padding 0.3s ease, opacity 0.3s ease-in-out;
+            transition:
+              height 0.3s ease-in-out,
+              padding 0.3s ease,
+              opacity 0.3s ease-in-out;
           }
 
           .showCnt {
             opacity: 1;
-            transition: opacity 0.4s ease-in-out, height 0.6s ease-in-out, padding 0.6s ease-in-out;
+            transition:
+              opacity 0.4s ease-in-out,
+              height 0.6s ease-in-out,
+              padding 0.6s ease-in-out;
           }
 
           .root__irl__follwcnt__imgsec__images {
             display: flex;
             justify-content: end;
             cursor: pointer;
-            min-height: ${followProperties?.followers?.length > 0 ? '25px' : ''}
+            min-height: ${followProperties?.followers?.length > 0 ? '25px' : ''};
           }
 
           .root__irl__follwcnt__followbtn {
@@ -338,7 +345,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             display: flex;
             gap: 8px;
             align-items: center;
-            color: #0F172A;
+            color: #0f172a;
             font-weight: 500;
             line-height: 20px;
             font-size: 14px;
@@ -366,10 +373,10 @@ const FollowSection = (props: IFollowSectionProps) => {
             font-size: 14px;
             font-weight: 500;
             line-height: 20px;
-            gap:4px;
+            gap: 4px;
           }
 
-          .root__irl__follwcnt__imgsec__desccnt__desc__cnt{
+          .root__irl__follwcnt__imgsec__desccnt__desc__cnt {
             color: #156ff7;
             cursor: pointer;
           }
@@ -404,30 +411,31 @@ const FollowSection = (props: IFollowSectionProps) => {
             justify-content: center;
           }
 
-        .popup__footer__confirm {
-          height: 40px;
-          border-radius: 8px;
-          padding: 10px 24px;
-          background: #dd2c5a;
-          font-size: 14px;
-          font-weight: 500;
-          line-height: 20px;
-          color: #ffffff;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
+          .popup__footer__confirm {
+            height: 40px;
+            border-radius: 8px;
+            padding: 10px 24px;
+            background: #dd2c5a;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #ffffff;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
 
-        .root__irl__follcnt__update__web, .root__irl__follcnt__update__mob {
-          font-size: 14px;
-          font-weight: 400;
-          line-height: 20px;
-          letter-spacing: 0.01em;
-          text-align: left;
-        }
-          
-        .toolbar__actionCn {
+          .root__irl__follcnt__update__web,
+          .root__irl__follcnt__update__mob {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+            letter-spacing: 0.01em;
+            text-align: left;
+          }
+
+          .toolbar__actionCn {
             display: flex;
             gap: 8px;
             width: auto;
@@ -518,7 +526,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             cursor: pointer;
             background: #156ff7;
             color: #fff;
-            width: ${!canUserAddAttendees ? "162px" : "127px"};
+            width: ${!canUserAddAttendees ? '162px' : '127px'};
           }
           .toolbar__actionCn__imGoingBtn:hover {
             background: #1d4ed8;
@@ -533,7 +541,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             gap: 6px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
-            padding: ${canUserAddAttendees ? "10px 8px" : "10px 25px"};
+            padding: ${canUserAddAttendees ? '10px 8px' : '10px 25px'};
             font-size: 14px;
             font-weight: 500;
             height: 40px;
@@ -572,8 +580,8 @@ const FollowSection = (props: IFollowSectionProps) => {
           .toolbar__actionCn__edit:hover {
             background: #1d4ed8;
           }
-          
-          .toolbar__actionCn__login{
+
+          .toolbar__actionCn__login {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -598,7 +606,6 @@ const FollowSection = (props: IFollowSectionProps) => {
           }
 
           @media (min-width: 360px) {
-              
             .root__irl__follcnt__update__web {
               display: none;
             }
@@ -635,7 +642,8 @@ const FollowSection = (props: IFollowSectionProps) => {
               left: unset;
             }
 
-            .toolbar__actionCn__webView, .toolbar__actionCn__webView__follCnt {
+            .toolbar__actionCn__webView,
+            .toolbar__actionCn__webView__follCnt {
               display: none;
             }
 
@@ -648,7 +656,7 @@ const FollowSection = (props: IFollowSectionProps) => {
               align-items: flex-start;
             }
           }
-            
+
           @media (min-width: 768px) {
             .root__irl__follwcnt {
               width: 100%;
@@ -681,11 +689,14 @@ const FollowSection = (props: IFollowSectionProps) => {
               opacity: 1;
               visibility: visible !important;
               height: 100%;
-              transition: opacity 0.8s ease-in-out, height 0.8s ease-in-out 0.2s, padding 0.8s ease-in-out 1s;
+              transition:
+                opacity 0.8s ease-in-out,
+                height 0.8s ease-in-out 0.2s,
+                padding 0.8s ease-in-out 1s;
             }
 
             .root__irl__follwcnt__cnt {
-              margin-top: ${!isShrunk ? "15px" : ""}
+              margin-top: ${!isShrunk ? '15px' : ''};
             }
 
             .toolbar__actionCn__imGoingBtn {
@@ -703,7 +714,10 @@ const FollowSection = (props: IFollowSectionProps) => {
               opacity: 1;
               visibility: visible !important;
               height: 100%;
-              transition: opacity 0.6s ease-in-out, height 0.8s ease-in-out 0.2s, padding 0.8s ease-in-out 0.2s;
+              transition:
+                opacity 0.6s ease-in-out,
+                height 0.8s ease-in-out 0.2s,
+                padding 0.8s ease-in-out 0.2s;
             }
 
             .root__irl__follwcnt__cnt {
@@ -717,7 +731,8 @@ const FollowSection = (props: IFollowSectionProps) => {
               overflow-y: auto;
             }
 
-            .toolbar__actionCn__webView, .toolbar__actionCn__webView__follCnt {
+            .toolbar__actionCn__webView,
+            .toolbar__actionCn__webView__follCnt {
               display: flex;
             }
 
@@ -769,7 +784,7 @@ const FollowSection = (props: IFollowSectionProps) => {
             .toolbar__actionCn__download__btn-mob {
               display: none;
             }
-           
+
             .toolbar__actionCn__login {
               display: flex;
               align-items: center;

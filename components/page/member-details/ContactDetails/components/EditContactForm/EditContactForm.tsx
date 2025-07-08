@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
@@ -13,6 +13,12 @@ import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 
 import s from './EditContactForm.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { toast } from 'react-toastify';
+import { updateUserDirectoryEmail } from '@/services/members.service';
+import { decodeToken } from '@/utils/auth.utils';
 
 interface Props {
   onClose: () => void;
@@ -30,12 +36,14 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
       linkedin: member.linkedinHandle,
       discord: member.discordHandle,
       twitter: member.twitter,
+      email: member.email,
     },
   });
   const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();
   const { data: memberData } = useMember(userInfo.uid);
   const { onSaveContactDetailsClicked } = useMemberAnalytics();
+  const analytics = useAuthAnalytics();
 
   const onSubmit = async (formData: TEditContactForm) => {
     onSaveContactDetailsClicked();
@@ -63,6 +71,73 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
     }
   };
 
+  const onEmailEdit = (e: any) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    analytics.onUpdateEmailClicked(getAnalyticsUserInfo(userInfo));
+    const authToken = Cookies.get('authToken');
+    if (!authToken) {
+      return;
+    }
+
+    document.dispatchEvent(new CustomEvent('auth-link-account', { detail: 'updateEmail' }));
+  };
+
+  useEffect(() => {
+    async function updateUserEmail(e: any) {
+      try {
+        const newEmail = e.detail.newEmail;
+        const oldAccessToken = Cookies.get('authToken');
+        if (!oldAccessToken) {
+          return;
+        }
+        const header = {
+          Authorization: `Bearer ${JSON.parse(oldAccessToken)}`,
+          'Content-Type': 'application/json',
+        };
+        if (newEmail === member.email) {
+          analytics.onUpdateSameEmailProvided({ newEmail, oldEmail: member.email });
+          toast.error('New and current email cannot be same');
+          return;
+        }
+        const result = await updateUserDirectoryEmail({ newEmail }, member.id, header);
+
+        const { refreshToken, accessToken, userInfo: newUserInfo } = result;
+        if (refreshToken && accessToken) {
+          const accessTokenExpiry = decodeToken(accessToken);
+          const refreshTokenExpiry = decodeToken(refreshToken);
+          Cookies.set('authToken', JSON.stringify(accessToken), {
+            expires: new Date(accessTokenExpiry.exp * 1000),
+            domain: process.env.COOKIE_DOMAIN || '',
+          });
+          Cookies.set('refreshToken', JSON.stringify(refreshToken), {
+            expires: new Date(refreshTokenExpiry.exp * 1000),
+            domain: process.env.COOKIE_DOMAIN || '',
+          });
+          Cookies.set('userInfo', JSON.stringify(newUserInfo), {
+            expires: new Date(refreshTokenExpiry.exp * 1000),
+            domain: process.env.COOKIE_DOMAIN || '',
+          });
+          document.dispatchEvent(new CustomEvent('app-loader-status'));
+          analytics.onUpdateEmailSuccess({ newEmail, oldEmail: member.email });
+          toast.success('Email Updated Successfully');
+          window.location.reload();
+        }
+      } catch (err) {
+        const newEmail = e.detail.newEmail;
+        analytics.onUpdateEmailFailure({ newEmail, oldEmail: member.email });
+        document.dispatchEvent(new CustomEvent('app-loader-status'));
+        toast.error('Email Update Failed');
+      }
+    }
+
+    document.addEventListener('directory-update-email', updateUserEmail);
+    return function () {
+      document.removeEventListener('directory-update-email', updateUserEmail);
+    };
+  }, []);
+
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
@@ -76,6 +151,14 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
               placeholder="Enter Office Hours link"
               description="Drop your calendar link here so others can get in touch with you at a time that is convenient. We recommend 15-min meetings scheduled."
             />
+          </div>
+          <div className={s.row}>
+            <Image src={getLogoByProvider('email')} alt="Email" height={24} width={24} />
+            <FormField name="email" label="Email" placeholder="Enter your email" disabled>
+              <button type="button" className={s.editEmailBtn} onClick={onEmailEdit}>
+                Edit Email
+              </button>
+            </FormField>
           </div>
           <div className={s.row}>
             <Image src={getLogoByProvider('telegram')} alt="Telegram" height={24} width={24} />

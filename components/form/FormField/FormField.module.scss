@@ -4,7 +4,7 @@
 .field {
   display: flex;
   flex-direction: column;
-  align-items: start;
+  align-items: flex-start;
   gap: 0.25rem;
   width: 100%;
 }
@@ -16,6 +16,13 @@
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 166.667% */
+}
+
+.labelWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .input {

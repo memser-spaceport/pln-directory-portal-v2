@@ -6,7 +6,6 @@ import React, { useRef } from 'react';
 import { Separator } from '@base-ui-components/react/separator';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { IUserInfo } from '@/types/shared.types';
-import useClickedOutside from '@/hooks/useClickedOutside';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from 'react-toastify';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
@@ -16,8 +15,8 @@ import { usePostHog } from 'posthog-js/react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 import s from './MobileNavDrawer.module.scss';
-import { isNumber } from 'lodash';
 import { Signup } from '@/components/core/navbar/components/Signup';
+import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 
 interface IMobileNavDrawer {
   userInfo: IUserInfo;
@@ -41,7 +40,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
   const router = useRouter();
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
 
-  useClickedOutside({ callback: () => onNavMenuClick(), ref: drawerRef });
+  useOnClickOutside([drawerRef], onNavMenuClick);
 
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
@@ -545,7 +544,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
             position: relative;
           }
 
-          @media (min-width: 1024px) {
+          @media (min-width: 1025px) {
             .md {
               display: none;
             }

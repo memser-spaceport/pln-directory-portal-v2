@@ -13,6 +13,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { FloatingWidgets } from '@/components/page/member-info/components/FloatingWidgets';
 // import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   userInfo: IUserInfo;
@@ -26,6 +27,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
   const { mutateAsync, isPending } = useUpdateMemberNotificationsSettings();
   const queryClient = useQueryClient();
   const { onSubscribeToRecommendationsClicked, onCloseSubscribeToRecommendationsClicked } = useMemberAnalytics();
+  const accessLevel = getAccessLevel(userInfo, true);
 
   const handleSubscribe = useCallback(async () => {
     if (!userInfo) {
@@ -70,7 +72,7 @@ export const SubscribeToRecommendationsWidget = ({ userInfo }: Props) => {
 
   // const isProfileFilled = member?.memberInfo.telegramHandler && member?.memberInfo.officeHours;
 
-  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || data.exampleSent || !data.recommendationsEnabled || !data.showInvitationDialog) {
+  if (!userInfo || userInfo.uid !== id || !data || data.subscribed || data.exampleSent || !data.recommendationsEnabled || !data.showInvitationDialog || accessLevel !== 'advanced') {
     return null;
   }
 

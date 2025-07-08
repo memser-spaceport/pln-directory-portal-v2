@@ -36,14 +36,14 @@ const MemberCard = (props: any) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const userInfo = Cookies.get('userInfo') as IUserInfo;
+    const userInfo = Cookies.get('userInfo') as unknown as IUserInfo;
     analytics.onMemberBioSeeMoreClicked({ ...getAnalyticsMemberInfo(member), bio }, getAnalyticsUserInfo(userInfo));
     document.dispatchEvent(
       new CustomEvent(EVENTS.OPEN_MEMBER_BIO_POPUP, {
         detail: {
           member,
         },
-      })
+      }),
     );
   };
 
@@ -52,25 +52,38 @@ const MemberCard = (props: any) => {
       <div className="member">
         <div className="member__profile__cn">
           <div className="member__profile__cn__outer-section">
-            <div data-testid='profile-outline' className={`${isBorder ? 'gradiant-border-rounded' : ''} member__profile__cn__outer-section__inner-circle`}>
-              <img className="member__profile__cn__outer-section__inner-circle__profile" src={profileUrl} alt='member image' />
+            <div data-testid="profile-outline" className={`${isBorder ? 'gradiant-border-rounded' : ''} member__profile__cn__outer-section__inner-circle`}>
+              <img className="member__profile__cn__outer-section__inner-circle__profile" src={profileUrl} alt="member image" />
               {isTeamLead && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" className="member__profile__cn__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" alt='team lead' />}
+                  trigger={<img loading="lazy" className="member__profile__cn__outer-section__inner-circle__lead" height={20} width={20} src="/icons/badge/team-lead.svg" alt="team lead" />}
                   content={'Team Lead'}
                 />
               )}
               {isOpenToWork && (
                 <Tooltip
                   asChild
-                  trigger={<img loading="lazy" alt='open to collaborate' className="member__profile__cn__outer-section__inner-circle__opento-work" height={20} width={20} src="/icons/badge/open-to-work.svg" />}
+                  trigger={
+                    <img
+                      loading="lazy"
+                      alt="open to collaborate"
+                      className="member__profile__cn__outer-section__inner-circle__opento-work"
+                      height={20}
+                      width={20}
+                      src="/icons/badge/open-to-work.svg"
+                    />
+                  }
                   content={'Open To Collaborate'}
                 />
               )}
             </div>
           </div>
-          {isNew && <div data-testid='new badge' className="projectCard__header__badge">New</div>}
+          {isNew && (
+            <div data-testid="new badge" className="projectCard__header__badge">
+              New
+            </div>
+          )}
         </div>
         <div className="member__details">
           <div className="member__details__primary">

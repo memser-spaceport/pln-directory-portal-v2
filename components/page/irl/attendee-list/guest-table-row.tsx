@@ -20,6 +20,7 @@ import IrlSpeakerTag from '@/components/ui/irl-speaker-tag';
 import IrlHostTag from '@/components/ui/irl-host-tag';
 import IrlSponsorTag from '@/components/ui/irl-sponsor-tag';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface IGuestTableRow {
   guest: IGuest;
@@ -69,6 +70,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
   const analytics = useIrlAnalytics();
   const canUserAddAttendees = isAdminInAllEvents && canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const isLoggedIn = props.isLoggedIn;
+  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
   const onLogin = props.onLogin;
   const isEventAvailable = guest.events.filter((event: IIrlEvent) => event.slugURL === newSearchParams.event);
   const onTeamClick = (teamUid: string, teamName: string) => {
@@ -234,7 +236,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
         </div>
 
         {/* Connect */}
-        {isLoggedIn ? (
+        {isLoggedIn && accessLevel === 'advanced' && (
           <div className="gtr__connect">
             {!showTelegram && userInfo.uid === guestUid ? (
               <Tooltip
@@ -276,19 +278,19 @@ const GuestTableRow = (props: IGuestTableRow) => {
                   <button onClick={() => handleAddOfficeHoursClick(canUserAddAttendees ? guest.memberUid : (userInfo.uid as string))} className="gtr__connect__add">
                     <img loading="lazy" src="/icons/add-rounded.svg" height={16} width={16} alt="plus" />
                     <span className="gtr__connect__add__txt">Add Office Hours</span>
-                      <Tooltip
-                        asChild
-                        align="start"
-                        content={
-                          <div className="gtr__connect__add__info">
-                            Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to
-                            book time with you for face-to-face connections.
-                          </div>
-                        }
-                        trigger={<img style={{ display: 'flex' }} loading="lazy" src="/icons/info.svg" height={16} width={16} alt="plus" />}
-                      />
-                    </button>
-                  )}
+                    <Tooltip
+                      asChild
+                      align="start"
+                      content={
+                        <div className="gtr__connect__add__info">
+                          Please share your calendar link to facilitate scheduling for in-person meetings during the conference. Updating your availability for the conference week allows others to
+                          book time with you for face-to-face connections.
+                        </div>
+                      }
+                      trigger={<img style={{ display: 'flex' }} loading="lazy" src="/icons/info.svg" height={16} width={16} alt="plus" />}
+                    />
+                  </button>
+                )}
               </>
             ) : userInfo.uid !== guestUid && officeHours ? (
               <div className="gtr__connect__book" onClick={() => handleOfficeHoursLinkClick(officeHours, guestUid, guestName)}>
@@ -297,7 +299,19 @@ const GuestTableRow = (props: IGuestTableRow) => {
               </div>
             ) : null}
           </div>
-        ) : (
+        )}
+        {isLoggedIn && accessLevel !== 'advanced' && (
+          <div
+            className="gtr__connect__loggedOut__cntr"
+            onClick={(e: SyntheticEvent) => {
+              e.preventDefault();
+            }}
+          >
+            <img src="/icons/video-cam.svg" height={22} width={22} loading="lazy" alt="cam" />
+            <img src="/icons/telegram-rounded.svg" height={22} width={22} loading="lazy" alt="cam" />
+          </div>
+        )}
+        {!isLoggedIn && (
           <div className="gtr__connect__loggedOut">
             <Popover
               asChild

@@ -5,4 +5,5 @@ export interface TEditContactForm {
   linkedin: string | null;
   discord: string | null;
   twitter: string | null;
+  email: string | null;
 }

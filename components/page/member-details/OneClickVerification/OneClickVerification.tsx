@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -13,6 +13,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import s from './OneClickVerification.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from 'react-toastify';
+import { useCookie } from 'react-use';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   member: IMember;
@@ -29,18 +31,26 @@ const fade = {
 export const OneClickVerification = ({ userInfo, member }: Props) => {
   const router = useRouter();
   const isOwner = userInfo?.uid === member.id;
-  const hasMissingRequiredData = !member?.linkedinProfile;
+  const hasMissingRequiredData = !member?.linkedinProfile && getAccessLevel(userInfo, true) === 'base';
   const showIncomplete = hasMissingRequiredData && isOwner;
   const searchParams = useSearchParams();
-  const { onConnectLinkedInClicked } = useMemberAnalytics();
+  const { onConnectLinkedInClicked, onSuccessLinkedInVerification, onErrorLinkedInVerification } = useMemberAnalytics();
+  const [userInfoCookie, setUserInfoCookie] = useCookie('userInfo');
+  const errorReported = useRef(false);
 
   const { mutate, isPending } = useLinkedInVerification();
 
   useEffect(() => {
-    if (searchParams.get('status') === 'error') {
+    if (searchParams.get('status') === 'error' && !errorReported.current) {
+      errorReported.current = true;
+      onErrorLinkedInVerification();
       toast.error(searchParams.get('error_message') || 'Something went wrong. Please try again later.');
+
+      router.replace(`/members/${member.id}`);
+    } else if (searchParams.get('status') === 'success') {
+      onSuccessLinkedInVerification();
     }
-  }, [searchParams]);
+  }, [member.id, onErrorLinkedInVerification, onSuccessLinkedInVerification, router, searchParams]);
 
   if (!hasMissingRequiredData && searchParams.get('status') === 'success') {
     return (
@@ -54,6 +64,17 @@ export const OneClickVerification = ({ userInfo, member }: Props) => {
               <button
                 className={s.backBtn}
                 onClick={() => {
+                  if (userInfoCookie) {
+                    try {
+                      const _userInfo = JSON.parse(userInfoCookie);
+                      setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: 'L1' }), {
+                        domain: process.env.COOKIE_DOMAIN || '',
+                      });
+                    } catch (e) {
+                      console.error('Failed to parse userInfo cookie: ', e);
+                    }
+                  }
+
                   router.replace(`/members/${member.id}`);
                 }}
               >

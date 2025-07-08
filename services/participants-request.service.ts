@@ -36,3 +36,14 @@ export const createParticipantRequest = async (payload: any) => {
     },
   });
 };
+
+export const createMemberRequest = async (payload: any) => {
+  return await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request/member`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};

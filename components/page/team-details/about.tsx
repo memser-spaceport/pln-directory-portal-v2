@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { updateTeam } from '@/services/teams.service';
 import { toast } from 'react-toastify';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 interface IAbout {
   about: string;
   team: ITeam;
@@ -22,14 +23,14 @@ const About = (props: IAbout) => {
   const [showEditor, setEditor] = useState(false);
   const userInfo = props?.userInfo;
   const team = props?.team;
-  
-  const getContent = (cnt:string) => {
+
+  const getContent = (cnt: string) => {
     if (cnt.length > contentLength) {
       return cnt.substring(0, contentLength) + '...';
     }
     return cnt;
-  }
-  
+  };
+
   const [about, setAbout] = useState(getContent(aboutContent));
   const analytics = useTeamAnalytics();
 
@@ -55,8 +56,8 @@ const About = (props: IAbout) => {
   };
 
   const onSaveClickHandler = async () => {
-    if(aboutEditedContent === ''){
-      toast.error("About field cannot be empty");
+    if (aboutEditedContent === '') {
+      toast.error('About field cannot be empty');
       return;
     }
     setEditor(false);
@@ -119,7 +120,7 @@ const About = (props: IAbout) => {
           </div>
           {showEditor && (
             <div className="about__content">
-              <TextEditor text={aboutEditedContent} setContent={setAboutEditedContent} />
+              <RichTextEditor value={aboutEditedContent} onChange={setAboutEditedContent} />
             </div>
           )}
           {!showEditor && (

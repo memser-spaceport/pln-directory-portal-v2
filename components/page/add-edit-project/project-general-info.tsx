@@ -1,13 +1,11 @@
 import CustomToggle from '@/components/form/custom-toggle';
-import MultiSelect from '@/components/form/multi-select';
 import MultiSelectWithSearch from '@/components/form/multi-select-with-search';
-import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
-import TextEditor from '@/components/ui/text-editor';
 import { IProjectLinks, IProjectResponse } from '@/types/project.types';
 import { DEFAULT_PROJECT_TAGS } from '@/utils/constants';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 interface ProjectBasicInfoProps {
   errors: string[];
@@ -19,7 +17,7 @@ interface ProjectBasicInfoProps {
 function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
   const errors = props.errors;
   const project = props.project;
-  
+
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string>(project?.logo);
 
@@ -31,10 +29,10 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
     return DEFAULT_PROJECT_TAGS.filter((tag) => {
       return props.project?.tags.some((t) => t.toLowerCase() === tag.label.toLowerCase());
     });
-  }
+  };
 
   const tags = props.project?.tags?.length > 0 ? generateMultiSelectTags() : [];
-  
+
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -110,7 +108,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
                   </span>
                 )}
               </label>
-              <input readOnly id="team-info-basic-image" value={profileImage} hidden name="imageFile"  />
+              <input readOnly id="team-info-basic-image" value={profileImage} hidden name="imageFile" />
               <input onChange={onImageUpload} id="Project-image-upload" name="projectProfile" ref={uploadImageRef} hidden type="file" accept="image/png, image/jpeg" />
 
               <p className="profileInfo__mob">
@@ -146,25 +144,15 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
           </div>
 
           {/* Tags */}
-          <MultiSelectWithSearch 
-            label="Tags"
-            mandatory={true}
-            options={DEFAULT_PROJECT_TAGS} 
-            selectedOptions={tags} 
-            onChange={() => {}} 
-          />
+          <MultiSelectWithSearch label="Tags" mandatory={true} options={DEFAULT_PROJECT_TAGS} selectedOptions={tags} onChange={() => {}} />
           <p className="profileInfo__web">
             <img src="/icons/info.svg" alt="name info" width="16" height="16px" />{' '}
             <span className="profileInfo__web__text">Add tags to your project to help other network members & teams connect with you.</span>
           </p>
 
-          {
-            <label className={`tf__label`}>
-              Long Description*
-            </label>
-          }
+          {<label className={`tf__label`}>Long Description*</label>}
           <div className="projectinfo__form__item__description">
-          <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id='register-project-longDescription'/>
+            <RichTextEditor value={props?.longDesc} onChange={props.setLongDesc} id="register-project-longDescription" />
             {/* <TextArea
               defaultValue={project.description}
               maxLength={1000}
@@ -253,7 +241,7 @@ function ProjectGeneralInfo(props: ProjectBasicInfoProps) {
       </div>
       <style jsx>
         {`
-        .tf__label {
+          .tf__label {
             font-weight: 600;
             font-size: 14px;
             margin-top: 20px;

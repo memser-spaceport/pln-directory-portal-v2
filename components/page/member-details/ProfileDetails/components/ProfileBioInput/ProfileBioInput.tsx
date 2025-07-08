@@ -1,10 +1,12 @@
+'use client';
+
 import React, { useEffect, useRef } from 'react';
-import TextEditor from '@/components/ui/text-editor';
 import { useFormContext } from 'react-hook-form';
 
 import s from './ProfileBioInput.module.scss';
 import { useGenerateBioWithAi } from '@/services/members/hooks/useGenerateBioWithAi';
 import { clsx } from 'clsx';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 interface Props {
   generateBio?: boolean;
@@ -65,7 +67,8 @@ export const ProfileBioInput = ({ generateBio }: Props) => {
           )}
         </button>
       </div>
-      <TextEditor id="member-bio" text={bio} setContent={(txt) => setValue('bio', txt, { shouldValidate: true })} height={200} isToolbarSticky statusBar={false} />
+
+      <RichTextEditor value={bio} onChange={(txt) => setValue('bio', txt, { shouldValidate: true })} />
     </div>
   );
 };

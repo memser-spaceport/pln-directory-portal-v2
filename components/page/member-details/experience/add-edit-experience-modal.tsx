@@ -15,6 +15,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import TextArea from '@/components/form/text-area';
 import TextEditor from '@/components/ui/text-editor';
 import HiddenField from '@/components/form/hidden-field';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 interface Experience {
   uid?: string;
   memberId?: string;
@@ -27,9 +28,9 @@ interface Experience {
   description?: string;
 }
 
-export default function AddEditExperienceModal({member,userInfo}: {member: any,userInfo: any}) {
+export default function AddEditExperienceModal({ member, userInfo }: { member: any; userInfo: any }) {
   const modalRef = useRef<HTMLDialogElement>(null);
-  const initialState = { success: false, message: '', errorCode: '', errors: {} }
+  const initialState = { success: false, message: '', errorCode: '', errors: {} };
   const router = useRouter();
 
   const experienceRef = useRef<Experience>({});
@@ -41,16 +42,15 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
   const formRef = useRef<HTMLFormElement>(null);
   const [forceUpdate, setForceUpdate] = useState(0);
 
-
-  const [state, formAction] = useFormState(MemberExperienceFormAction, initialState)
+  const [state, formAction] = useFormState(MemberExperienceFormAction, initialState);
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (formData: any) => {
     startTransition(() => {
       formAction(formData);
     });
-  }
-  
+  };
+
   useEffect(() => {
     isPending ? triggerDialogLoader(true) : triggerDialogLoader(false);
   }, [isPending]);
@@ -58,18 +58,17 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
   useEffect(() => {
     const handler = (e: any) => {
       const exp = e.detail?.experience || {};
-            
+
       experienceRef.current = exp;
-      
+
       setErrors({});
       formRef.current?.reset();
       setTimeout(() => modalRef.current?.showModal(), 0);
     };
-    
+
     document.addEventListener(EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL, handler);
     return () => document.removeEventListener(EVENTS.TRIGGER_ADD_EDIT_EXPERIENCE_MODAL, handler);
   }, []);
-
 
   const closeModal = () => {
     modalRef.current?.close();
@@ -77,55 +76,53 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
     formRef.current?.reset();
     setIsConfirming(false);
   };
-  
 
   useEffect(() => {
-    if(state?.success){
+    if (state?.success) {
       closeModal();
       router.refresh();
       toast.success(state?.message);
-     if(formActionType === 'save'){
-      if(isEdit){
-        analytics.onEditExperienceSaveClicked(userInfo, member,experienceRef.current,'success');
-      }else{
-        analytics.onAddExperienceSaveClicked(userInfo, member,experienceRef.current,'success');
-      }
-     }else if(formActionType === 'delete'){
-      analytics.onDeleteExperienceSaveClicked(userInfo, member,experienceRef.current,'success');
-     }
-    }else if(state?.errorCode === 'validation'){
-      setErrors(state?.errors);
-      if(formActionType === 'save'){
-        if(isEdit){
-          analytics.onEditExperienceSaveClicked(userInfo, member,experienceRef.current,'validation-error');
-        }else{
-          analytics.onAddExperienceSaveClicked(userInfo, member,experienceRef.current,'validation-error');
+      if (formActionType === 'save') {
+        if (isEdit) {
+          analytics.onEditExperienceSaveClicked(userInfo, member, experienceRef.current, 'success');
+        } else {
+          analytics.onAddExperienceSaveClicked(userInfo, member, experienceRef.current, 'success');
         }
-      } 
-    }else{
-      if(state?.message){
+      } else if (formActionType === 'delete') {
+        analytics.onDeleteExperienceSaveClicked(userInfo, member, experienceRef.current, 'success');
+      }
+    } else if (state?.errorCode === 'validation') {
+      setErrors(state?.errors);
+      if (formActionType === 'save') {
+        if (isEdit) {
+          analytics.onEditExperienceSaveClicked(userInfo, member, experienceRef.current, 'validation-error');
+        } else {
+          analytics.onAddExperienceSaveClicked(userInfo, member, experienceRef.current, 'validation-error');
+        }
+      }
+    } else {
+      if (state?.message) {
         closeModal();
         toast.error(state?.message);
         router.refresh();
-        if(formActionType === 'save'){
-          if(isEdit){
-            analytics.onEditExperienceSaveClicked(userInfo, member,experienceRef.current,'error');
-          }else{
-            analytics.onAddExperienceSaveClicked(userInfo, member,experienceRef.current,'error');
+        if (formActionType === 'save') {
+          if (isEdit) {
+            analytics.onEditExperienceSaveClicked(userInfo, member, experienceRef.current, 'error');
+          } else {
+            analytics.onAddExperienceSaveClicked(userInfo, member, experienceRef.current, 'error');
           }
-        }else if(formActionType === 'delete'){
-          analytics.onDeleteExperienceSaveClicked(userInfo, member,experienceRef.current,'error');
+        } else if (formActionType === 'delete') {
+          analytics.onDeleteExperienceSaveClicked(userInfo, member, experienceRef.current, 'error');
         }
       }
     }
   }, [state, router]);
 
   const handleDelete = async () => {
-    if(isConfirming) {
+    if (isConfirming) {
       await setFormActionType('delete');
       formRef.current?.requestSubmit();
-
-    }else{
+    } else {
       setIsConfirming(true);
     }
   };
@@ -137,12 +134,12 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
 
   // Helper to update experience ref
   const updateExperience = (key: string, value: any) => {
-    if(key === 'startDate' || key === 'endDate' || key === 'description'){
-      setForceUpdate(prev => prev + 1);
+    if (key === 'startDate' || key === 'endDate' || key === 'description') {
+      setForceUpdate((prev) => prev + 1);
     }
     experienceRef.current = {
       ...experienceRef.current,
-      [key]: value
+      [key]: value,
     };
   };
 
@@ -153,20 +150,12 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
       <form className="add-edit-experience__modal" action={handleSubmit} autoComplete="off" noValidate ref={formRef}>
         {experienceRef.current?.uid && <input type="hidden" name="experience-uid" value={experienceRef.current.uid} />}
         <input type="hidden" name="actionType" value={formActionType} />
-        {experienceRef.current?.memberId && <input type="hidden" name="memberId" value={experienceRef.current.memberId} />}  
+        {experienceRef.current?.memberId && <input type="hidden" name="memberId" value={experienceRef.current.memberId} />}
         <div className="add-edit-experience__modal__header">
           <h2>{isEdit ? 'Edit' : 'Add'} Experience</h2>
         </div>
         <div className="add-edit-experience__modal__body">
-          <TextField
-            label="Role*"
-            defaultValue={experienceRef.current?.title || ''}
-            type="text"
-            name="experience-title"
-            required={true}
-            id="experience-title"
-            placeholder="Enter role"
-          />
+          <TextField label="Role*" defaultValue={experienceRef.current?.title || ''} type="text" name="experience-title" required={true} id="experience-title" placeholder="Enter role" />
           {errors.title && <span className="error-text">{errors.title}</span>}
 
           <TextField
@@ -182,16 +171,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
 
           <div className="add-edit-experience__modal__description">
             <label className="add-edit-experience__modal__description__label">Impact or Work Description</label>
-            <TextEditor
-              maxLength={2000}
-              height={165}
-              isRequired={false}
-              statusBar={false}
-              toolbarOptions="bold italic underline strikethrough customLinkButton bullist numlist"
-              text={experienceRef.current?.description || ''}
-              setContent={(value: string) => updateExperience('description', value)}
-              isToolbarSticky={false}
-            />
+            <RichTextEditor value={experienceRef.current?.description || ''} onChange={(value: string) => updateExperience('description', value)} />
             <HiddenField value={experienceRef.current?.description || ''} defaultValue={experienceRef.current?.description || ''} name={`description`} />
           </div>
           {errors.description && <p className="error-text">{errors.description}</p>}
@@ -207,9 +187,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
               minYear={1970}
               sort="desc"
               maxYear={new Date().getFullYear()}
-              initialDate={experienceRef.current?.startDate
-                 ? new Date(experienceRef.current?.startDate).toISOString()
-                  : undefined}
+              initialDate={experienceRef.current?.startDate ? new Date(experienceRef.current?.startDate).toISOString() : undefined}
             />
             <MonthYearPicker
               onDateChange={(value: string) => updateExperience('endDate', value)}
@@ -221,11 +199,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
               minYear={1970}
               sort="desc"
               maxYear={new Date().getFullYear()}
-              initialDate={experienceRef?.current?.isCurrent
-                 ? undefined
-                  : (experienceRef?.current?.endDate 
-                    ? new Date(experienceRef.current?.endDate).toISOString()
-                     : undefined)}
+              initialDate={experienceRef?.current?.isCurrent ? undefined : experienceRef?.current?.endDate ? new Date(experienceRef.current?.endDate).toISOString() : undefined}
             />
             <div className="add-edit-experience__modal__dates__current">
               <span>Present</span>
@@ -236,7 +210,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
                   const isCurrent = e.target.checked;
                   updateExperience('isCurrent', isCurrent);
                   updateExperience('endDate', isCurrent ? null : experienceRef.current?.startDate);
-                  setForceUpdate(prev => prev + 1);
+                  setForceUpdate((prev) => prev + 1);
                 }}
                 isChecked={experienceRef?.current?.isCurrent || false}
               />
@@ -245,16 +219,8 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
           </div>
           {errors.startDate && <p className="error-text">{errors.startDate}</p>}
           {errors.endDate && <p className="error-text">{errors.endDate}</p>}
-          <TextField
-            label="Location"
-            defaultValue={experienceRef.current?.location || ''}
-            type="text"
-            placeholder="Enter location"
-            name="experience-location"
-            id="experience-location"
-          />
+          <TextField label="Location" defaultValue={experienceRef.current?.location || ''} type="text" placeholder="Enter location" name="experience-location" id="experience-location" />
           {errors.location && <p className="error-text">{errors.location}</p>}
-          
         </div>
         <div className="add-edit-experience__modal__footer">
           {isEdit && (
@@ -265,12 +231,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
           <button type="button" className="cancel-btn" onClick={closeModal}>
             Cancel
           </button>
-          <button 
-            type="button" 
-            className="save-btn"
-            style={{ background: '#156ff7', color: '#fff' }}
-            onClick={handleSave}
-          >
+          <button type="button" className="save-btn" style={{ background: '#156ff7', color: '#fff' }} onClick={handleSave}>
             Save
           </button>
         </div>
@@ -314,8 +275,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
             font-weight: 600 !important;
             font-size: 14px;
           }
-          
-          
+
           .add-edit-experience__modal__body input,
           .add-edit-experience__modal__body select {
             padding: 8px;
@@ -359,7 +319,7 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
             margin-top: 16px;
           }
           .delete-btn {
-            background: #DD2C5A;
+            background: #dd2c5a;
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -368,29 +328,29 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
             font-size: 14px;
             line-height: 20px;
             margin-right: auto;
-            box-shadow: 0px 1px 1px 0px #0F172A14;
+            box-shadow: 0px 1px 1px 0px #0f172a14;
           }
           .cancel-btn {
             background: #fff;
-            color: #0F172A;
-            border: 1px solid #CBD5E1;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
             border-radius: 8px;
             padding: 8px 16px;
             font-weight: 500;
             font-size: 14px;
             line-height: 20px;
-            box-shadow: 0px 1px 1px 0px #0F172A14;
+            box-shadow: 0px 1px 1px 0px #0f172a14;
           }
           .save-btn {
             background: #156ff7;
             color: #fff;
-            border: 1px solid #CBD5E1;
+            border: 1px solid #cbd5e1;
             border-radius: 8px;
             padding: 8px 16px;
             font-weight: 500;
             font-size: 14px;
             line-height: 20px;
-            box-shadow: 0px 1px 1px 0px #0F172A14;
+            box-shadow: 0px 1px 1px 0px #0f172a14;
           }
           .add-edit-experience__modal__dates__current {
             display: flex;
@@ -406,12 +366,14 @@ export default function AddEditExperienceModal({member,userInfo}: {member: any,u
             .add-edit-experience__modal {
               padding: 16px;
             }
-            
+
             .add-edit-experience__modal__footer {
               flex-wrap: wrap;
             }
-            
-            .delete-btn, .cancel-btn, .save-btn {
+
+            .delete-btn,
+            .cancel-btn,
+            .save-btn {
               padding: 8px 12px;
               font-size: 12px;
             }

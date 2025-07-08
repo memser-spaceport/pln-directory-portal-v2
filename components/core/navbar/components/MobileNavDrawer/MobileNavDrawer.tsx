@@ -184,11 +184,6 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                 }
               })}
 
-              <div className={s.SeparatorWrapper}>
-                Settings
-                <Separator className={s.Separator} />
-              </div>
-
               {isLoggedIn && (
                 <>
                   <div className={s.SeparatorWrapper}>
@@ -232,7 +227,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
                   className="md__container__bdy__footer__usrop__profilesec"
                   onClick={() => {
                     onHelpItemClickHandler('My Profile');
-                    router.push('/settings/profile');
+                    router.push(`/members/${userInfo.uid}`);
                   }}
                 >
                   <img className="md__container__bdy__footer__usrop__profilesec__profile" src={userInfo?.profileImageUrl || defaultAvatarImage} alt="profile" height={40} width={40} />

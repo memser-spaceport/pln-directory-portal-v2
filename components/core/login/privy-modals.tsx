@@ -156,6 +156,14 @@ function PrivyModals() {
         return;
       }
 
+      if (response.status === 403) {
+        triggerLoader(false);
+        document.dispatchEvent(new CustomEvent('auth-invalid-email', { detail: 'rejected_access_level' }));
+        setLinkAccountKey('');
+        await logout();
+        return;
+      }
+
       if (response.ok) {
         const result = await response.json();
         if (result?.isEmailChanged) {

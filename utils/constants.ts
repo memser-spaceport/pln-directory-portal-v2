@@ -581,6 +581,19 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.1.16 - Sign-Up & Verification Enhancements',
+    tag: 'Improvements',
+    date: '08, Jul 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Immediate Profile Access Post Sign-Up</span> - Users can now log in right after signing up, giving them instant access to their profile so they can complete their information without delay.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined LinkedIn Verification</span> - A simplified flow lets users connect their LinkedIn account during onboarding. Once an admin approves the connection, they automatically receive full access.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.1.15 - Recommendations & Onboarding Enhancements',
     tag: 'Improvements',
     date: '02, Jul 2025',
@@ -588,10 +601,10 @@ export const ChangeLogList = [
     <div style="font-size: 14px; line-height:23px;">
     <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
     <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Recommendations Settings</span> – Added a dedicated section in Account Settings that lets users fine-tune and enable AI-powered connection suggestions.</li>
-      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bi-Monthly Recommendation Emails</span> – Opt-in users now receive connection recommendations via email every two weeks, tailored to their preferences.</li>
-      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Redesigned Sign-Up Form</span> – Introduced a streamlined sign-up experience with an updated layout for quicker and clearer onboarding.</li>
-      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile Completeness Highlights</span> – Missing fields on member profiles are now visually highlighted, guiding users to complete their information more easily.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Recommendations Settings</span> - Added a dedicated section in Account Settings that lets users fine-tune and enable AI-powered connection suggestions.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bi-Monthly Recommendation Emails</span> - Opt-in users now receive connection recommendations via email every two weeks, tailored to their preferences.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Redesigned Sign-Up Form</span> - Introduced a streamlined sign-up experience with an updated layout for quicker and clearer onboarding.</li>
+      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile Completeness Highlights</span> - Missing fields on member profiles are now visually highlighted, guiding users to complete their information more easily.</li>
     </ul>
     </div>`,
   },

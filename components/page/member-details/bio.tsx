@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import TextEditor from '@/components/ui/text-editor';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { useState } from 'react';
 import clip from 'text-clipper';
@@ -11,6 +10,7 @@ import { updateMember, updateMemberBio } from '@/services/members.service';
 import { ADMIN_ROLE } from '@/utils/constants';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
   const contentLength = 1000;
@@ -168,7 +168,7 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         )}
         {showEditor && (
           <div className="bioCn__content">
-            <TextEditor id="member-bio" text={content} setContent={setContent} />
+            <RichTextEditor id="member-bio" value={content} onChange={setContent} />
           </div>
         )}
       </div>

@@ -1,0 +1,27 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.error {
+  font-size: 10px;
+  color: darkred;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 200% */
+  margin-top: 2px;
+}
+
+.editor {
+  :global(.ql-toolbar) {
+    border-color: rgba(203, 213, 225, 0.50);
+    border-radius: 8px 8px 0 0;
+  }
+
+  :global(.ql-container) {
+    border-color: rgba(203, 213, 225, 0.50);
+    border-radius: 0 0 8px 8px;
+  }
+}

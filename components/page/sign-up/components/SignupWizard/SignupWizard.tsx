@@ -26,7 +26,7 @@ import { GROUP_TYPES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 
 interface Props {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export const SignupWizard = ({ onClose }: Props) => {
@@ -120,7 +120,9 @@ export const SignupWizard = ({ onClose }: Props) => {
       router.replace(`${window.location.origin}/members/${res.data.uid}?prefillEmail=${encodeURIComponent(payload.email)}&returnTo=members-${res.data.uid}#login`);
 
       setTimeout(() => {
-        onClose();
+        if (onClose) {
+          onClose();
+        }
       }, 700);
     } else {
       if (res?.message) {
@@ -139,7 +141,11 @@ export const SignupWizard = ({ onClose }: Props) => {
             type="button"
             className={s.closeButton}
             onClick={() => {
-              onClose();
+              if (onClose) {
+                onClose();
+              } else {
+                router.replace('/');
+              }
             }}
           >
             <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />

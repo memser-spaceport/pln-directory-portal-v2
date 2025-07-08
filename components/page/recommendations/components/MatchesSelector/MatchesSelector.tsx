@@ -104,14 +104,11 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
                 height: '32px',
                 fontSize: '14px',
                 padding: 0,
-                // background: 'tomato',
               }),
               placeholder: (base) => ({
                 ...base,
-                // border: '1px solid red',
                 width: 'fit-content',
                 fontSize: '14px',
-                color: '#455468A0',
               }),
               option: (baseStyles) => ({
                 ...baseStyles,
@@ -159,6 +156,13 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
               indicatorSeparator: (base) => ({
                 display: 'none',
               }),
+            }}
+            classNames={{
+              placeholder: () =>
+                clsx(s.placeholder, {
+                  [s.hidePlaceholder]: val.length > 0,
+                }),
+              control: () => s.control,
             }}
           />
         </div>

@@ -15,6 +15,9 @@ import { SubscribeToRecoomendations } from '@/components/core/navbar/components/
 import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
+import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
+import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
+import { UserInfoChecker } from '@/components/core/login/UserInfoChecker';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -57,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* importing google reCaptcha v3 */}
         <script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} async defer></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
       <body className={`${inter.className} layout root`} id="body">
         <Suspense>
@@ -68,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PostHogIdentifier />
             <header className="layout__header">
               <SubscribeToRecoomendations userInfo={userInfo} />
-              {/*<CompleteYourProfile userInfo={userInfo} />*/}
+              <CompleteYourProfile userInfo={userInfo} />
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
             <main className="layout__main">{children}</main>
@@ -79,8 +83,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
             <MemberRegisterDialog />
             <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
             {/* <TeamRegisterDialog /> */}
+            <UserInfoChecker userInfo={userInfo} />
             <CookieChecker isLoggedIn={isLoggedIn} />
           </QueryProvider>
         </StyledJsxRegistry>

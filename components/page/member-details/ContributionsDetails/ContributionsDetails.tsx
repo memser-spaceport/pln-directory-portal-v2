@@ -12,6 +12,7 @@ import s from './ContributionsDetails.module.scss';
 import { ContributionsList } from '@/components/page/member-details/ContributionsDetails/components/ContributionsList';
 import { EditContributionsForm } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface Props {
   member: IMember;
@@ -27,7 +28,7 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
   const isEditable = isOwner || isAdmin;
   const { onEditContributionDetailsClicked, onAddContributionDetailsClicked } = useMemberAnalytics();
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
     return null;
   }
 

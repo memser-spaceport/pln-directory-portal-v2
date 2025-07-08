@@ -15,11 +15,13 @@ import { ContributionsDetails } from '@/components/page/member-details/Contribut
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
-// import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
+import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
   const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo } = await getpageData(memberId);
+  const isOwner = userInfo?.uid === member.id;
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
@@ -35,7 +37,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
         <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
       </div>
       <div className={styles?.memberDetail__container}>
-        {/*<OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />*/}
+        <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
         <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
@@ -43,9 +45,11 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
         <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <div className={styles?.memberDetail__container__teams}>
-          <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
-        </div>
+        {isLoggedIn && (getAccessLevel(userInfo, isLoggedIn) === 'advanced' || isOwner) && (
+          <div className={styles?.memberDetail__container__teams}>
+            <MemberTeams member={member} isLoggedIn={isLoggedIn} teams={teams ?? []} userInfo={userInfo} />
+          </div>
+        )}
 
         <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 

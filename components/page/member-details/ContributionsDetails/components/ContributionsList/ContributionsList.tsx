@@ -52,7 +52,7 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
       )}
       {!data?.length && (
         <div className={s.emptyData}>
-          <span className={s.label}>Add project experience & contribution details.</span>
+          <span className={s.label}>{isEditable ? 'Add project experience & contribution details.' : 'Not provided'}</span>
           {/*<button className={s.connectButton}>*/}
           {/*  <AddIcon />*/}
           {/*  Add Project*/}

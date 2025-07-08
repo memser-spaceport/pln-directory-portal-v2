@@ -2,7 +2,7 @@ export interface TEditExperienceForm {
   title: string;
   company: string;
   description: string;
-  startDate: string | null;
+  startDate: string;
   endDate: string | null;
   isCurrent: boolean;
   location: string;

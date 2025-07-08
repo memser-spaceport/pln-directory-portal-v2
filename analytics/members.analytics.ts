@@ -382,6 +382,10 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_DELETE_EXPERIENCE_SAVE_CLICKED, params);
   }
 
+  function onExplorePlNetworkCLicked(params: Record<string, string | null>) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_EXPLORE_PL_NETWORK_CLICKED, params);
+  }
+
   function onOpenProfileByRecommendationEmailLink(utmSource: string, utmMedium: string, utmCode: string, recommendedMember: string, targetId: string, targetEmail: string) {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_BY_RECOMMENDATION_EMAIL_LINK, {
       utmSource,
@@ -495,6 +499,14 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_CLICKED);
   }
 
+  function onSuccessLinkedInVerification() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_SUCCESS);
+  }
+
+  function onErrorLinkedInVerification() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_FAILED);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -563,5 +575,8 @@ export const useMemberAnalytics = () => {
     onOnboardingWizardStartClicked,
     onOnboardingWizardBrowseFilesClicked,
     onConnectLinkedInClicked,
+    onExplorePlNetworkCLicked,
+    onSuccessLinkedInVerification,
+    onErrorLinkedInVerification,
   };
 };

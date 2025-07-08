@@ -1,10 +1,11 @@
-"use client";
-import { useCommonAnalytics } from "@/analytics/common.analytics";
-import { IFilterSelectedItem, IUserInfo } from "@/types/shared.types";
-import { triggerLoader } from "@/utils/common.utils";
-import { PAGE_ROUTES, PRIVATE_FILTERS } from "@/utils/constants";
-import { useEffect, useState } from "react";
-import { Tag } from "./tag";
+'use client';
+import { useCommonAnalytics } from '@/analytics/common.analytics';
+import { IFilterSelectedItem, IUserInfo } from '@/types/shared.types';
+import { triggerLoader } from '@/utils/common.utils';
+import { PAGE_ROUTES, PRIVATE_FILTERS } from '@/utils/constants';
+import { useEffect, useState } from 'react';
+import { Tag } from './tag';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface ITagContainer {
   onTagClickHandler: (key: string, value: string, isSelected: boolean) => void;
@@ -14,7 +15,7 @@ interface ITagContainer {
   initialCount: number;
   userInfo: IUserInfo | undefined;
   isUserLoggedIn?: boolean;
-  page: string
+  page: string;
 }
 
 const TagContainer = (props: ITagContainer) => {
@@ -25,6 +26,7 @@ const TagContainer = (props: ITagContainer) => {
   const initialCount = props?.initialCount;
   const userInfo = props?.userInfo;
   const isUserLoggedIn = props?.isUserLoggedIn ?? false;
+  const accessLevel = getAccessLevel(userInfo ?? null, isUserLoggedIn);
 
   // const analytics = useCommonAnalytics();
 
@@ -51,14 +53,14 @@ const TagContainer = (props: ITagContainer) => {
   const onMouseLeave = (id: string) => {
     const accessElement = document?.getElementById(id);
     if (accessElement) {
-      accessElement.style.display = "none";
+      accessElement.style.display = 'none';
     }
   };
 
   const onMouseEnter = (id: string) => {
     const accessElement = document?.getElementById(id);
-    if (accessElement && !isUserLoggedIn && PRIVATE_FILTERS.includes(keyValue)) {
-      accessElement.style.display = "flex";
+    if (accessElement && (!isUserLoggedIn || accessLevel === 'base') && PRIVATE_FILTERS.includes(keyValue)) {
+      accessElement.style.display = 'flex';
     }
   };
 
@@ -66,15 +68,25 @@ const TagContainer = (props: ITagContainer) => {
     // analytics.onLogInClicked(props?.page, "filter section")
     triggerLoader(true);
     // redirectToLogin();
-  }
+  };
 
   return (
     <>
       <div className="tags-container" onMouseEnter={() => onMouseEnter(`tags-container__access-container${label}`)} onMouseLeave={() => onMouseLeave(`tags-container__access-container${label}`)}>
         <div className="tags-container__access-container" id={`tags-container__access-container${label}`}>
           <div className="tags-container__access-container__content">
-            <img loading="lazy" alt="lock" src="/icons/lock.svg"/>
-            <button onClick={onLoginClickHandler} className="tags-container__access-container__content__login-btn">Login </button> to access</div>
+            <img loading="lazy" alt="lock" src="/icons/lock.svg" />
+            {accessLevel === 'base' ? (
+              <>Limited access</>
+            ) : (
+              <>
+                <button onClick={onLoginClickHandler} className="tags-container__access-container__content__login-btn">
+                  Login{' '}
+                </button>{' '}
+                to access
+              </>
+            )}
+          </div>
         </div>
         <h2 className="tags-container__title">{label}</h2>
         <div className="tags-container__tags">
@@ -88,7 +100,7 @@ const TagContainer = (props: ITagContainer) => {
         {items?.length > 10 && (
           <div className="tags-container__show-more">
             <button className="tags-container__show-more__btn" onClick={onShoreMoreAndLessClickHandler}>
-              {items?.length > totalItems?.length ? "Show more" : "Show less"}
+              {items?.length > totalItems?.length ? 'Show more' : 'Show less'}
               <img loading="lazy" src="/icons/filter-dropdown.svg" height={16} width={16} />
             </button>
             {showMoreOrLessCount !== 0 && <Tag variant="primary" value={showMoreOrLessCount.toString()} />}
@@ -124,7 +136,7 @@ const TagContainer = (props: ITagContainer) => {
             z-index: 10;
             margin: auto;
             display: flex;
-            gap: 4px; 
+            gap: 4px;
             align-items: center;
             font-size: 12px;
             position: absolute;

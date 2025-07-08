@@ -1,21 +1,20 @@
 'use client';
 import Tabs from '@/components/ui/tabs';
 import MemberBasicInfo from '../member-info/member-basic-info';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import MemberSkillsInfo from '../member-info/member-skills-info';
 import MemberContributionInfo from '../member-info/member-contributions-info';
 import MemberSocialInfo from '../member-info/member-social-info';
-import { compareObjects, getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, utcDateToDateFieldString, getInitialMemberFormValues,  updateMemberInfoCookie } from '@/utils/member.utils';
+import { getMemberInfoFormValues, apiObjsToMemberObj, formInputsToMemberObj, getInitialMemberFormValues, updateMemberInfoCookie } from '@/utils/member.utils';
 import SettingsAction from './actions';
 import SingleSelect from '@/components/form/single-select';
 import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { toast } from 'react-toastify';
 import { updateMember } from '@/services/members.service';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
-import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { validateLocation } from '@/services/location.service';
 import Modal from '@/components/core/modal';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
@@ -40,6 +39,7 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   const [activeTab, setActiveTab] = useState({ name: 'basic', label: 'BASIC' });
   const [allData, setAllData] = useState({ teams: [], projects: [], skills: [], isError: false });
   const router = useRouter();
+  const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement | null>(null);
   const errorDialogRef = useRef<HTMLDialogElement>(null);
   const [errors, setErrors] = useState<any>({ basicErrors: [], socialErrors: [], contributionErrors: {}, skillsErrors: [] });
@@ -53,7 +53,9 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
   };
   const initialValues = useMemo(() => getInitialMemberFormValues(memberInfo), [memberInfo]);
   const analytics = useSettingsAnalytics();
-  const { actions: { setProfileImage } } = useUserStore();
+  const {
+    actions: { setProfileImage },
+  } = useUserStore();
 
   const handleTabClick = (v: string) => {
     analytics.recordUserProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
@@ -329,6 +331,19 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
       document.removeEventListener('settings-navigate', handleNavigate);
     };
   }, [initialValues]);
+
+  useLayoutEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+      setActiveTab({ name: tab, label: tab.toUpperCase() });
+
+      // Remove 'tab' param from URL without reloading the page
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('tab');
+
+      router.replace(`?${params.toString()}`);
+    }
+  }, [router, searchParams]);
 
   return (
     <>

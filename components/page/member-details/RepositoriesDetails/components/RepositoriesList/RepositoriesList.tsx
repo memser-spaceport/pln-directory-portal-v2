@@ -86,7 +86,8 @@ export const RepositoriesList = ({ isEditable, member }: Props) => {
       {!data?.length && (
         <div className={s.emptyData}>
           <span className={s.label}>
-            {isError && 'Unable to fetch repositories at the time.'}
+            {isError && isEditable && 'Unable to fetch repositories at the time.'}
+            {isError && !isEditable && 'Not provided'}
             {!isError && githubHandle && 'No repositories to display, add new ones to your GitHub profile.'}
             {!isError && !githubHandle && 'Add your Github handle in the Contact Details section to see your repositories.'}
           </span>

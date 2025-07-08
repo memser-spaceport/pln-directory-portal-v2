@@ -3,11 +3,8 @@
 import React from 'react';
 
 import { IUserInfo } from '@/types/shared.types';
-import { useRouter } from 'next/navigation';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
-import { clsx } from 'clsx';
-import { useMember } from '@/services/members/hooks/useMember';
-import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 import s from './CompleteYourProfile.module.scss';
 
@@ -15,26 +12,21 @@ interface Props {
   userInfo: IUserInfo;
 }
 
+const MESSAGES: Record<string, string> = {
+  L0: 'Access limited - please verify your identity to begin the review process.',
+  L1: "Access limited - profile under review. You'll be notified once approved.",
+};
+
 export const CompleteYourProfile = ({ userInfo }: Props) => {
-  const { data: member, isLoading } = useMember(userInfo.uid);
-  const router = useRouter();
-  const { onGoToCompleteProfileClicked } = useMemberAnalytics();
+  const accessLevel = getAccessLevel(userInfo, true);
 
-  const hasTelegram = !!member?.memberInfo.telegramHandler;
-  const hasOfficeHours = !!member?.memberInfo.officeHours;
-  const isProfileFilled = hasTelegram && hasOfficeHours;
-
-  let filledCount = 0;
-
-  if (hasOfficeHours) {
-    filledCount += 1;
+  if (!userInfo || accessLevel !== 'base' || !userInfo.accessLevel) {
+    return null;
   }
 
-  if (hasTelegram) {
-    filledCount += 1;
-  }
+  const message = MESSAGES[userInfo.accessLevel];
 
-  if (!userInfo || isProfileFilled || isLoading) {
+  if (!message) {
     return null;
   }
 
@@ -43,22 +35,9 @@ export const CompleteYourProfile = ({ userInfo }: Props) => {
       <div className={s.root}>
         <div className={s.left}>
           <UserIcon />
-          <span className={s.title}>Complete profile {filledCount}/2</span>
-          <span className={s.description}>Get Access to the platform in one minute!</span>
-        </div>
-        <div className={s.right}>
-          <button
-            className={clsx(s.btn, s.primary)}
-            onClick={() => {
-              onGoToCompleteProfileClicked();
-              router.push(`/members/${userInfo.uid}`);
-            }}
-          >
-            Fill out the profile
-          </button>
+          <span className={s.description}>{message}</span>
         </div>
       </div>
-      <div className={s.mobileDetails}>Get Access to the platform in one minute!</div>
     </HighlightsBar>
   );
 };

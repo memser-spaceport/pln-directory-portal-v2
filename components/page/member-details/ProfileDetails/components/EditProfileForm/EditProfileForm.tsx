@@ -21,6 +21,7 @@ import s from './EditProfileForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { toast } from 'react-toastify';
 
 interface Props {
   onClose: () => void;
@@ -87,6 +88,8 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
       router.refresh();
       reset();
       onClose();
+    } else if (res?.errorData?.message) {
+      toast.error(res.errorData.message);
     }
   };
 

@@ -1,11 +1,11 @@
 import React from 'react';
 import { FormField } from '@/components/form/form-field';
 import TextField from '@/components/form/text-field';
-import TextEditor from '@/components/ui/text-editor';
 import HiddenField from '@/components/form/hidden-field';
 import { TagsSelector } from '@/components/core/tags-selector/TagsSelector';
 import { useFormContext } from 'react-hook-form';
 import s from '@/components/core/submit-ask-dialog/SubmitAskDialog.module.scss';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 export const AskDetails = () => {
   const {
@@ -37,17 +37,7 @@ export const AskDetails = () => {
           {disabled ? (
             <p className={s.content} dangerouslySetInnerHTML={{ __html: description }} />
           ) : (
-            <TextEditor
-              maxLength={200}
-              height={165}
-              isRequired={!!errors['description']}
-              statusBar={false}
-              toolbarOptions="bold italic underline strikethrough customLinkButton"
-              text={description}
-              setContent={(v) => setValue('description', v, { shouldValidate: true })}
-              errorMessage={(errors['description']?.message as string) ?? ''}
-              isToolbarSticky={false}
-            />
+            <RichTextEditor value={description} onChange={(v) => setValue('description', v, { shouldValidate: true })} errorMessage={(errors['description']?.message as string) ?? ''} />
           )}
 
           <HiddenField value={description.trim()} defaultValue={description} name={`description`} />

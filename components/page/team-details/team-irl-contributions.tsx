@@ -53,12 +53,17 @@ const TeamIrlContributions = (props: ITeamMembers) => {
   const transformData = (event: IEventGuest[]): GroupedEvents => {
     return event.reduce(
       (acc: GroupedEvents, item) => {
-        if (item.isHost) acc.Host.push(item.event);
-        if (item.isSponsor) acc.Host.push(item.event);
+        if (item.isHost) {
+          acc.Host.push(item.event);
+        }
+
+        if (item.isSponsor) {
+          acc.Sponsor.push(item.event);
+        }
 
         return acc;
       },
-      { Host: [], Sponsor: [] }
+      { Host: [], Sponsor: [] },
     );
   };
 
@@ -108,6 +113,8 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     const dateInTargetTimezone = toZonedTime(date, timeZone);
     return format(dateInTargetTimezone, 'MMM yyyy', { timeZone });
   };
+
+  console.log(sortedEvents);
 
   return (
     <>
@@ -167,7 +174,9 @@ const TeamIrlContributions = (props: ITeamMembers) => {
             .map(([role, events]) => (
               <>
                 <div className="root__irl__modalHeader">
-                  <div className="root__irl__modalHeader__title">Contributions - {role} ({events.length})</div>
+                  <div className="root__irl__modalHeader__title">
+                    Contributions - {role} ({events.length})
+                  </div>
                 </div>
                 <div className="root__irl__popupCntr">
                   {events.map((resource: { link: any; name: any }, index: number) => (
@@ -282,7 +291,9 @@ const TeamIrlContributions = (props: ITeamMembers) => {
             border-radius: 4px;
             border: 1px solid transparent;
             background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
-            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask:
+              linear-gradient(#fff 0 0) padding-box,
+              linear-gradient(#fff 0 0);
             -webkit-mask-composite: destination-out;
             mask-composite: exclude;
             pointer-events: none;

@@ -28,6 +28,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
     <Field.Root className={s.field}>
       {label && <Field.Label className={s.label}>{label}</Field.Label>}
       <Select
+        menuPlacement="auto"
         placeholder="Project"
         options={options}
         value={value}

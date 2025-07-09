@@ -26,11 +26,10 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 interface Props {
   onClose: () => void;
   member: IMember;
-  userInfo: IUserInfo;
   initialData?: IProjectContribution | null;
 }
 
-export const EditContributionsForm = ({ onClose, member, userInfo, initialData }: Props) => {
+export const EditContributionsForm = ({ onClose, member, initialData }: Props) => {
   const router = useRouter();
   const isNew = !initialData;
   const methods = useForm<TEditContributionsForm>({
@@ -49,7 +48,7 @@ export const EditContributionsForm = ({ onClose, member, userInfo, initialData }
     resolver: yupResolver(editContributionsSchema),
   });
   const { handleSubmit, reset } = methods;
-  const { data: memberData } = useMember(userInfo.uid);
+  const { data: memberData } = useMember(member.id);
   const { data } = useMemberFormOptions();
   const { mutateAsync, isPending } = useUpdateMember();
   const [isOpenDelete, setIsOpenDelete] = useState(false);

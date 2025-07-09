@@ -90,6 +90,7 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
       <div className={s.label}>{label}</div>
       <div className={s.body}>
         <Select
+          menuPlacement="auto"
           placeholder="Month"
           options={monthOptions}
           value={month}
@@ -145,6 +146,7 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
           }}
         />
         <Select
+          menuPlacement="auto"
           placeholder="Year"
           options={yearOptions}
           value={year}

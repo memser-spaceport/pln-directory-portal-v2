@@ -68,6 +68,7 @@ export const FineTuneMatches = () => {
           options={options.fundingStageOptions}
           name="fundingStage"
           warning={isInvalid && !fundingStage.length}
+          menuPlacement="auto"
         />
         <MatchesEditor
           placeholder="Founder, CTO, VP Marketing ..."

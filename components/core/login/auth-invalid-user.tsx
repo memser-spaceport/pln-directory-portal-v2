@@ -4,7 +4,6 @@ import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 
 function AuthInvalidUser() {
-
   const dialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
 
@@ -47,6 +46,12 @@ function AuthInvalidUser() {
           });
         } else if (e.detail === 'unexpected_error') {
           setContent({ title: 'Something went wrong', errorMessage: 'We are unable to authenticate you at the moment due to technical issues. Please try again later', description: '' });
+        } else if (e.detail === 'rejected_access_level') {
+          setContent({
+            title: 'Access rejected',
+            errorMessage: 'Your application to join the Protocol Labs network was not approved.',
+            description: 'Your application to join the Protocol Labs network was not approved. You may reapply in the future.',
+          });
         }
         // } else if (e.detail === 'email-changed') {
         //   setContent({ title: 'Email Changed recently', errorMessage: 'Your email in our directory has been changed recently. Please login with your updated email id.', description: '' });

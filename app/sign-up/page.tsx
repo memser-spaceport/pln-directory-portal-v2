@@ -1,11 +1,10 @@
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata } from 'next';
-import styles from './page.module.css';
 import { getSkillsData } from '@/services/sign-up.service';
-import SignUp from '@/components/page/sign-up/sign-up';
 import Script from 'next/script';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { redirect, RedirectType } from 'next/navigation';
+import { SignupWizard } from '@/components/page/sign-up/components/SignupWizard';
 
 const getPageData = async () => {
   const memberInfo = await getSkillsData();
@@ -42,11 +41,7 @@ export default async function Page() {
   return (
     <>
       <Script src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`} strategy="lazyOnload"></Script>
-      <div className={styles.signup}>
-        <div className={styles.signup__cn}>
-          <SignUp skillsInfo={skillsInfo} />
-        </div>
-      </div>
+      <SignupWizard />
     </>
   );
 }

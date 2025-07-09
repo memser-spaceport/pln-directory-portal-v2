@@ -234,6 +234,9 @@ function MemberSettings({ memberInfo, userInfo }: MemberSettingsProps) {
         setProfileImage(image.url);
       } else if (memberInfo?.image?.uid && memberInfo?.image?.url && formattedForms.imageFile === memberInfo?.image?.url) {
         formattedForms.imageUid = memberInfo?.image?.uid;
+      } else {
+        setProfileImage(null);
+        updateMemberInfoCookie('');
       }
 
       delete formattedForms.memberProfile;

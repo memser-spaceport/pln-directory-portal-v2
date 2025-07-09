@@ -4,7 +4,6 @@ import { getHeader } from '@/utils/common.utils';
 
 const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
 
-
 // get all teams filters
 export const getTeamListFilters = async (options: any) => {
   const queries = { ...options, pagination: false, select: 'industryTags.title,membershipSources.title,fundingStage.title,technologies.title' } as any;
@@ -27,7 +26,13 @@ export const getTeamListFilters = async (options: any) => {
   const asks = result?.askTags.map(function (item: any) {
     return item['tag'];
   });
-  const formattedData = { tags: result?.industryTags || [], fundingStage: result?.fundingStages || [], membershipSources: result?.membershipSources || [], technology: result?.technologies || [], askTags: asks || [] };
+  const formattedData = {
+    tags: result?.industryTags || [],
+    fundingStage: result?.fundingStages || [],
+    membershipSources: result?.membershipSources || [],
+    technology: result?.technologies || [],
+    askTags: asks || [],
+  };
 
   return { data: formattedData };
 };
@@ -94,7 +99,7 @@ export const updateTeam = async (payload: any, authToken: string, teamUid: strin
 };
 
 export const getTeam = async (id: string, options: string | string[][] | Record<string, string> | URLSearchParams | undefined) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'force-cache', next: { tags: ['team-detail'] }, };
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(''), cache: 'default', next: { tags: ['team-detail'] } };
   const response = await fetch(`${teamsAPI}/${id}?${new URLSearchParams(options)}`, requestOPtions);
   const result = await response?.json();
   if (!response?.ok) {
@@ -121,7 +126,7 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
     officeHours: result?.officeHours,
     teamFocusAreas: result?.teamFocusAreas,
     eventGuests: result?.eventGuests,
-    asks: result?.asks ?? []
+    asks: result?.asks ?? [],
   };
   return { data: { formatedData } };
 };

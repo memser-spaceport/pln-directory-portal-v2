@@ -1,8 +1,8 @@
 import React from 'react';
-import TextEditor from '@/components/ui/text-editor';
 import { useFormContext } from 'react-hook-form';
 
 import s from './ContributionsDescriptionInput.module.scss';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 export const ContributionsDescriptionInput = () => {
   const { watch, setValue } = useFormContext();
@@ -13,7 +13,7 @@ export const ContributionsDescriptionInput = () => {
       <div className={s.header}>
         <span className={s.label}>Description</span>
       </div>
-      <TextEditor id="contr-description" text={description} setContent={(txt) => setValue('description', txt, { shouldValidate: true })} height={150} isToolbarSticky statusBar={false} />
+      <RichTextEditor id="contr-description" value={description} onChange={(txt) => setValue('description', txt, { shouldValidate: true })} />
     </div>
   );
 };

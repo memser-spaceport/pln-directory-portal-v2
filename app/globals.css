@@ -556,5 +556,9 @@ dialog {
 
 .root {
   isolation: isolate;
+
+  input {
+    font-size: 16px !important;
+  }
 }
 

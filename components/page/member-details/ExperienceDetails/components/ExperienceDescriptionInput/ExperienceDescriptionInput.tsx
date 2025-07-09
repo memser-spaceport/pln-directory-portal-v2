@@ -1,8 +1,8 @@
 import React from 'react';
-import TextEditor from '@/components/ui/text-editor';
 import { useFormContext } from 'react-hook-form';
 
 import s from './ExperienceDescriptionInput.module.scss';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 export const ExperienceDescriptionInput = () => {
   const { watch, setValue } = useFormContext();
@@ -13,7 +13,7 @@ export const ExperienceDescriptionInput = () => {
       <div className={s.header}>
         <span className={s.label}>Impact or Work Description</span>
       </div>
-      <TextEditor id="exp-description" text={description} setContent={(txt) => setValue('description', txt, { shouldValidate: true })} height={150} isToolbarSticky statusBar={false} />
+      <RichTextEditor id="exp-description" value={description} onChange={(txt) => setValue('description', txt, { shouldValidate: true })} />
     </div>
   );
 };

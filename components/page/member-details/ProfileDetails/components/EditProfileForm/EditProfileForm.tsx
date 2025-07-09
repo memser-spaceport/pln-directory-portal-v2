@@ -54,7 +54,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
   });
   const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();
-  const { data: memberData } = useMember(userInfo.uid);
+  const { data: memberData } = useMember(member.id);
   const { onSaveProfileDetailsClicked } = useMemberAnalytics();
 
   const onSubmit = async (formData: TEditProfileForm) => {
@@ -71,7 +71,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
       const imgResponse = await saveRegistrationImage(formData.image);
       image = imgResponse?.image.uid;
       imageUrl = imgResponse?.image.url;
-      
+
       actions.setProfileImage(imageUrl);
       updateMemberInfoCookie(imageUrl);
     }

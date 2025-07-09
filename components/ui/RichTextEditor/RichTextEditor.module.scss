@@ -24,4 +24,9 @@
     border-color: rgba(203, 213, 225, 0.50);
     border-radius: 0 0 8px 8px;
   }
+
+  :global(.ql-editor) {
+    min-height: 100px;
+    font-size: 16px;
+  }
 }

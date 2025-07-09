@@ -53,8 +53,13 @@ const TeamIrlContributions = (props: ITeamMembers) => {
   const transformData = (event: IEventGuest[]): GroupedEvents => {
     return event.reduce(
       (acc: GroupedEvents, item) => {
-        if (item.isHost) acc.Host.push(item.event);
-        if (item.isSponsor) acc.Host.push(item.event);
+        if (item.isHost) {
+          acc.Host.push(item.event);
+        }
+
+        if (item.isSponsor) {
+          acc.Sponsor.push(item.event);
+        }
 
         return acc;
       },
@@ -108,6 +113,8 @@ const TeamIrlContributions = (props: ITeamMembers) => {
     const dateInTargetTimezone = toZonedTime(date, timeZone);
     return format(dateInTargetTimezone, 'MMM yyyy', { timeZone });
   };
+
+  console.log(sortedEvents);
 
   return (
     <>

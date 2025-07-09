@@ -77,3 +77,16 @@
     opacity: 0.5;
   }
 }
+
+
+.editor {
+  :global(.ql-toolbar) {
+    border-color: rgba(203, 213, 225, 0.50);
+    border-radius: 8px 8px 0 0;
+  }
+
+  :global(.ql-container) {
+    border-color: rgba(203, 213, 225, 0.50);
+    border-radius: 0 0 8px 8px;
+  }
+}

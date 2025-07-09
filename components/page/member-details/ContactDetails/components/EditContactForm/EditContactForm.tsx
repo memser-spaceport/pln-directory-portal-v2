@@ -41,7 +41,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
   });
   const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();
-  const { data: memberData } = useMember(userInfo.uid);
+  const { data: memberData } = useMember(member.id);
   const { onSaveContactDetailsClicked } = useMemberAnalytics();
   const analytics = useAuthAnalytics();
 
@@ -155,9 +155,11 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.row}>
             <Image src={getLogoByProvider('email')} alt="Email" height={24} width={24} />
             <FormField name="email" label="Email" placeholder="Enter your email" disabled>
-              <button type="button" className={s.editEmailBtn} onClick={onEmailEdit}>
-                Edit Email
-              </button>
+              {member.id === userInfo.uid && (
+                <button type="button" className={s.editEmailBtn} onClick={onEmailEdit}>
+                  Edit Email
+                </button>
+              )}
             </FormField>
           </div>
           <div className={s.row}>

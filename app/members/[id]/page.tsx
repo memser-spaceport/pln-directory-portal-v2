@@ -21,7 +21,6 @@ import { getAccessLevel } from '@/utils/auth.utils';
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
   const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo } = await getpageData(memberId);
-  const isOwner = userInfo?.uid === member.id;
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
@@ -30,6 +29,8 @@ const MemberDetails = async ({ params }: { params: any }) => {
   if (isError) {
     return <Error />;
   }
+
+  const isOwner = userInfo?.uid === member.id;
 
   return (
     <div className={styles?.memberDetail}>
@@ -108,7 +109,7 @@ const getpageData = async (memberId: string) => {
       delete member['officeHours'];
     }
 
-    if (memberResponse?.error) {
+    if (memberResponse?.error || member.accessLevel === 'Rejected') {
       isError = true;
       return { isError, isLoggedIn };
     }

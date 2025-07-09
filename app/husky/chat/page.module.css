@@ -2,10 +2,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: inherit;
   background-color: #F4FAFF;
   flex: 1;
   position: relative;
+  min-height: calc(100dvh - 80px);
 }
 
 .husky__container {

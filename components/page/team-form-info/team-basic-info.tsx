@@ -1,9 +1,9 @@
 'use client';
 import TextArea from '@/components/form/text-area';
 import TextField from '@/components/form/text-field';
-import TextEditor from '@/components/ui/text-editor';
 import { useEffect, useRef, useState } from 'react';
 import Toggle from '@/components/ui/toogle';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -162,7 +162,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         </div>
         <div className="teaminfo__form__item">
           {<label className={`tf__label`}>Long Description*</label>}
-          <TextEditor text={props?.longDesc} setContent={props.setLongDesc} id="register-team-longDescription" />
+          <RichTextEditor value={props?.longDesc} onChange={props.setLongDesc} />
           {/* <TextArea
             defaultValue={initialValues?.longDescription}
             maxLength={2000}
@@ -315,7 +315,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             font-size: 14px;
             font-weight: 400;
             line-height: 20px;
-            color: #0F172A;
+            color: #0f172a;
             flex: 1;
           }
         `}

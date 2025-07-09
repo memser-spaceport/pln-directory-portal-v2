@@ -23,11 +23,10 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 interface Props {
   onClose: () => void;
   member: IMember;
-  userInfo: IUserInfo;
   initialData?: FormattedMemberExperience | null;
 }
 
-export const EditExperienceForm = ({ onClose, member, userInfo, initialData }: Props) => {
+export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
   const isNew = !initialData;
   const router = useRouter();
   const methods = useForm<TEditExperienceForm>({

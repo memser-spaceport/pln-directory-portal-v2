@@ -1,12 +1,11 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import Modal from '../modal';
+import { useEffect, useRef, useState } from 'react';
 import TextField from '@/components/form/text-field';
-import TextEditor from '@/components/ui/text-editor';
 import { DEFAULT_ASK_TAGS } from '@/utils/constants';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import HiddenField from '@/components/form/hidden-field';
 import { EVENTS } from '@/utils/constants';
 import Image from 'next/image';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 interface IAddEditAsks {
   onClose: (e?: any) => void;
@@ -74,7 +73,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
       setTags((prevItems: any) => prevItems.slice(0, -1));
       setFilteredTags((prev: any) => {
         const finalTags = [...prev, tags[tags.length - 1]];
-        return DEFAULT_ASK_TAGS.filter((defaultTag: string) => finalTags.includes(defaultTag) );
+        return DEFAULT_ASK_TAGS.filter((defaultTag: string) => finalTags.includes(defaultTag));
       });
     }
   };
@@ -82,7 +81,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
   const onTagSectionClickHandler = () => {
     setIsTagsDropdown(true);
     setFilteredTags((prev: any) => {
-      return DEFAULT_ASK_TAGS.filter((initialTag: string) => (!tags.includes(initialTag)));
+      return DEFAULT_ASK_TAGS.filter((initialTag: string) => !tags.includes(initialTag));
     });
 
     scrollToBottom();
@@ -123,7 +122,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
     setTitle(defaultValues?.title ?? '');
     setTags(defaultValues?.tags ?? []);
     setDescription(defaultValues.description ?? '');
-    setFilteredTags(DEFAULT_ASK_TAGS.filter((defaultTag: string) => !defaultValues?.tags?.includes(defaultTag)))
+    setFilteredTags(DEFAULT_ASK_TAGS.filter((defaultTag: string) => !defaultValues?.tags?.includes(defaultTag)));
   }, [defaultValues]);
 
   useEffect(() => {
@@ -195,17 +194,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
                     <div className="addaskcnt__desc">
                       <label className="addaskcnt__desc__lbl">Describe what you need help with*</label>
                       <div className="addaskcnt__desc__edtr">
-                        <TextEditor
-                          maxLength={200}
-                          height={165}
-                          isRequired={description.trim().length ? false : true}
-                          statusBar={false}
-                          toolbarOptions="bold italic underline strikethrough customLinkButton"
-                          text={description}
-                          setContent={onEditorChange}
-                          errorMessage={errors.includes('Description') ? 'Please enter description' : ''}
-                          isToolbarSticky={false}
-                        />
+                        <RichTextEditor value={description} onChange={onEditorChange} errorMessage={errors.includes('Description') ? 'Please enter description' : ''} />
                         <HiddenField value={description.trim()} defaultValue={description} name={`description`} />
                       </div>
                     </div>
@@ -234,7 +223,7 @@ const AddEditAsk = (props: IAddEditAsks) => {
                               ref={tagSearchRef}
                               onChange={onTagsChangeHandler}
                               className="addaskcnt__tagscnt__tagsandinput__input"
-                              placeholder={`${(tags?.length === 0) ? "Select tags" : ""}`}
+                              placeholder={`${tags?.length === 0 ? 'Select tags' : ''}`}
                               type="text"
                             />
                           </div>

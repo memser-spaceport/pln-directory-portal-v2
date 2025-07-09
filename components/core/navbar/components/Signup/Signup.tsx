@@ -20,7 +20,7 @@ export const Signup = () => {
 
   const handleSignUpClick = () => {
     analytics.onSignUpBtnClicked();
-    setOpen(true);
+    router.replace('/sign-up');
   };
 
   const handleClose = useCallback(() => {

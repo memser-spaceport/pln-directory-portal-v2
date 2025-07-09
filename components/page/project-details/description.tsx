@@ -1,6 +1,5 @@
 'use client';
 
-import TextEditor from '@/components/ui/text-editor';
 import { updateProject } from '@/services/projects.service';
 import { getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
 import Image from 'next/image';
@@ -8,6 +7,7 @@ import { useState } from 'react';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 
 interface IDescription {
   description: string;
@@ -21,21 +21,21 @@ const Description = (props: IDescription) => {
   /**
    * @description - This is the state to store the description content without trimming.
    */
-  const [description,setDescription] = useState(props?.description ?? '');
+  const [description, setDescription] = useState(props?.description ?? '');
   /**
    * @unChangedDescription - This is the state to store the description content before editing.
    */
-  const [unChangedDescription,setUnChangedDescription] = useState(props?.description ?? '');
+  const [unChangedDescription, setUnChangedDescription] = useState(props?.description ?? '');
   const project = props?.project;
   const analytics = useProjectAnalytics();
   const isDeleted = project?.isDeleted ?? false;
   const [showEditor, setEditor] = useState(false);
-  const getContent = (cnt:string) => {
+  const getContent = (cnt: string) => {
     if (cnt.length > contentLength) {
       return cnt.substring(0, contentLength) + '...';
     }
     return cnt;
-  }
+  };
   /**
    * @desc - This is the state to store the description content truncated.
    */
@@ -61,12 +61,12 @@ const Description = (props: IDescription) => {
   const onEditClickHandler = () => {
     setUnChangedDescription(description);
     setEditor(true);
-     analytics.onProjectDetailDescEditClicked(getAnalyticsUserInfo(props?.user), project?.id);
+    analytics.onProjectDetailDescEditClicked(getAnalyticsUserInfo(props?.user), project?.id);
   };
 
   const onSaveClickHandler = async () => {
-    if(description === ''){
-      toast.error("Description field cannot be empty");
+    if (description === '') {
+      toast.error('Description field cannot be empty');
       return;
     }
     setEditor(false);
@@ -77,17 +77,17 @@ const Description = (props: IDescription) => {
       if (!authToken) {
         return;
       }
-      const res = await updateProject(project?.id, { ...project,description: description }, authToken);
+      const res = await updateProject(project?.id, { ...project, description: description }, authToken);
       if (res.status === 200 || res.status === 201) {
         setDescription(description);
         setDesc(getContent(description));
         triggerLoader(false);
         toast.success('Description updated successfully.');
-        analytics.recordDescSave('save-success', getAnalyticsUserInfo(props?.user), { ...project,description: description });
+        analytics.recordDescSave('save-success', getAnalyticsUserInfo(props?.user), { ...project, description: description });
       }
     } catch (er) {
       triggerLoader(false);
-      analytics.recordDescSave('save-error', getAnalyticsUserInfo(props?.user), { ...project,description: description });
+      analytics.recordDescSave('save-error', getAnalyticsUserInfo(props?.user), { ...project, description: description });
       toast.error('Something went wrong. Please try again later.');
     } finally {
       triggerLoader(false);
@@ -118,7 +118,7 @@ const Description = (props: IDescription) => {
           </div>
           {showEditor && (
             <div className="desc__content">
-              <TextEditor text={description} setContent={setDescription} />
+              <RichTextEditor value={description} onChange={setDescription} />
             </div>
           )}
           {!showEditor && (

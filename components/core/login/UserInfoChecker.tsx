@@ -24,7 +24,7 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
   }, [postHogProps]);
 
   useEffect(() => {
-    if (!userInfoCookie || !userInfo || !member || !userInfo.accessLevel) {
+    if (!userInfoCookie || !userInfo || !member?.memberInfo || !userInfo.accessLevel) {
       return;
     }
 
@@ -32,7 +32,7 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
       try {
         const _userInfo = JSON.parse(userInfoCookie);
 
-        if (_userInfo.uid === member.memberInfo.uid) {
+        if (_userInfo.uid === member?.memberInfo.uid) {
           setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: member.memberInfo.accessLevel }), {
             domain: process.env.COOKIE_DOMAIN || '',
           });

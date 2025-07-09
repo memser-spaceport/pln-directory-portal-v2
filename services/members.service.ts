@@ -146,6 +146,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     isVerified: result?.isVerified,
     eventGuests: result?.eventGuests ?? [],
     linkedinProfile: result?.linkedinProfile,
+    accessLevel: result?.accessLevel,
   };
 
   if (isLoggedIn) {

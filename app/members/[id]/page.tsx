@@ -109,7 +109,7 @@ const getpageData = async (memberId: string) => {
       delete member['officeHours'];
     }
 
-    if (memberResponse?.error) {
+    if (memberResponse?.error || member.accessLevel === 'Rejected') {
       isError = true;
       return { isError, isLoggedIn };
     }

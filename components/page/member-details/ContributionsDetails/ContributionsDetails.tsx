@@ -54,8 +54,8 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
           }}
         />
       )}
-      {view === 'edit' && <EditContributionsForm onClose={() => setView('view')} member={member} userInfo={userInfo} initialData={selectedItem} />}
-      {view === 'add' && <EditContributionsForm onClose={() => setView('view')} member={member} userInfo={userInfo} />}
+      {view === 'edit' && <EditContributionsForm onClose={() => setView('view')} member={member} initialData={selectedItem} />}
+      {view === 'add' && <EditContributionsForm onClose={() => setView('view')} member={member} />}
     </div>
   );
 };

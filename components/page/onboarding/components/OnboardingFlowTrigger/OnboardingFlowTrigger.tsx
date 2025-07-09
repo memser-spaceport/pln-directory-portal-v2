@@ -30,7 +30,7 @@ export const OnboardingFlowTrigger = ({ isLoggedIn, userInfo }: Props) => {
     }
   }, [isLoggedIn, router, isOnboardingLoginFlow]);
 
-  if (!isLoggedIn || !isOnboardingLoginFlow || !memberData?.memberInfo) {
+  if (!isLoggedIn || !isOnboardingLoginFlow || !memberData?.memberInfo || memberData?.memberInfo?.accessLevel !== 'L4') {
     return null;
   }
 

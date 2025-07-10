@@ -6,17 +6,15 @@ import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
 
 import s from './ProfileImageInput.module.scss';
-import { IUserInfo } from '@/types/shared.types';
-import { useMember } from '@/services/members/hooks/useMember';
+import { IMember } from '@/types/members.types';
 
 interface Props {
-  userInfo: IUserInfo;
+  member: IMember;
 }
 
-export const ProfileImageInput = ({ userInfo }: Props) => {
-  const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
+export const ProfileImageInput = ({ member }: Props) => {
+  const defaultAvatarImage = useDefaultAvatar(member?.name);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const { data: memberData } = useMember(userInfo.uid);
   const { setValue } = useFormContext<OnboardingForm>();
 
   const { getInputProps, getRootProps } = useDropzone({
@@ -54,7 +52,7 @@ export const ProfileImageInput = ({ userInfo }: Props) => {
   return (
     <div className={s.dropzone} {...getRootProps()}>
       <input {...getInputProps()} />
-      <Image src={imagePreview || memberData?.memberInfo?.image?.url || defaultAvatarImage} alt="Preview" className={s.imagePreview} fill />
+      <Image src={imagePreview || member?.profile || defaultAvatarImage} alt="Preview" className={s.imagePreview} fill />
       <div className={s.dropzoneHint}>
         <EditIcon />
       </div>

@@ -57,7 +57,7 @@ export const FineTuneMatches = () => {
           title="Keywords"
           name="keywords"
           warning={isInvalid && !keywords.length}
-          placeholder="AI, Payments, Staking, Governance..."
+          placeholder="E.g. AI, Staking, Governance..."
         />
         <MatchesSelector
           placeholder="Pick 1 or several funding stages"
@@ -71,7 +71,7 @@ export const FineTuneMatches = () => {
           menuPlacement="auto"
         />
         <MatchesEditor
-          placeholder="Founder, CTO, VP Marketing ..."
+          placeholder="E.g. Founder, VP Marketing..."
           selectLabel="Add roles"
           hint="We'll prioritize members who match these roles."
           icon={<RoleIcon />}

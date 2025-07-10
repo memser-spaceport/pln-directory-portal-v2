@@ -108,6 +108,7 @@ export const MatchesSelector = ({ icon, title, hint, options, name, menuPlacemen
               placeholder: (base) => ({
                 ...base,
                 width: 'fit-content',
+                color: '#AFBACA',
                 fontSize: '14px',
               }),
               option: (baseStyles) => ({

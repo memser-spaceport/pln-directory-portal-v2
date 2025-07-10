@@ -72,8 +72,10 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
       image = imgResponse?.image.uid;
       imageUrl = imgResponse?.image.url;
 
-      actions.setProfileImage(imageUrl);
-      updateMemberInfoCookie(imageUrl);
+      if (member.id === userInfo.uid) {
+        actions.setProfileImage(imageUrl);
+        updateMemberInfoCookie(imageUrl);
+      }
     }
 
     const payload = {
@@ -114,7 +116,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
         <EditFormControls onClose={onClose} title="Edit Profile Details" />
         <div className={s.body}>
           <div className={s.row}>
-            <ProfileImageInput userInfo={userInfo} />
+            <ProfileImageInput member={member} />
             <FormField name="name" label="Name*" placeholder="Text" />
           </div>
           <div className={s.row}>

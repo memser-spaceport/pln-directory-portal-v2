@@ -32,7 +32,7 @@ export const createParticipantRequest = async (payload: any, authToken?: string)
   };
 
   if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
+    headers['Authorization'] = `Bearer ${JSON.parse(authToken)}`;
   }
 
   return await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request`, {

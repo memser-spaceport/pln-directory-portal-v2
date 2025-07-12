@@ -67,7 +67,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
     const formData = new FormData(addFormRef.current);
     const formattedData = transformObject(Object.fromEntries(formData));
 
-    // formattedData['description'] = content;
+    formattedData['description'] = content;
     if (currentStep === 'General') {
       let errors: string[] = [];
       const result = generalInfoSchema.safeParse(formattedData);

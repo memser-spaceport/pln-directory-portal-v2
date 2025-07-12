@@ -26,14 +26,20 @@ export const validatePariticipantsEmail = async (emailid: string, participantTyp
   };
 };
 
-export const createParticipantRequest = async (payload: any) => {
+export const createParticipantRequest = async (payload: any, authToken?: string) => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${JSON.parse(authToken)}`;
+  }
+
   return await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request`, {
     method: 'POST',
     body: JSON.stringify(payload),
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
   });
 };
 

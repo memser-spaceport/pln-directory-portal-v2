@@ -11,10 +11,10 @@ import { saveRegistrationImage } from '@/services/registration.service';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { formInputsToMemberObj, getMemberInfoFormValues, memberRegistrationDefaults, validateBasicForms, validateContributionErrors, validateTeamsAndSkills } from '@/utils/member.utils';
 import { toast } from 'react-toastify';
+import Cookies from 'js-cookie';
 import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
-
 
 interface RegisterFormProps {
   onCloseForm: () => void;
@@ -58,7 +58,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
       if (formRef.current) {
         const formData = new FormData(formRef.current);
         const formValues = formInputsToMemberObj(Object.fromEntries(formData));
-        analytics.recordMemberJoinNetworkSave("save-click", formValues);
+        analytics.recordMemberJoinNetworkSave('save-click', formValues);
 
         // Upload image if available
         if (formValues.memberProfile && formValues.memberProfile.size > 0) {
@@ -82,21 +82,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
           uniqueIdentifier: formValues.email,
           newData: { ...formValues, openToWork: false },
         };
-        const formResult = await createParticipantRequest(bodyData);
+        const authToken = Cookies.get('authToken') || '';
+        const formResult = await createParticipantRequest(bodyData, authToken);
         document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
         if (formResult.ok) {
           formRef.current.reset();
           setCurrentStep('success');
-          analytics.recordMemberJoinNetworkSave("save-success", bodyData);
+          analytics.recordMemberJoinNetworkSave('save-success', bodyData);
         } else {
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-          analytics.recordMemberJoinNetworkSave("save-error", bodyData);
+          analytics.recordMemberJoinNetworkSave('save-error', bodyData);
         }
       }
     } catch (err) {
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-      analytics.recordMemberJoinNetworkSave("save-error");
+      analytics.recordMemberJoinNetworkSave('save-error');
     }
   };
 

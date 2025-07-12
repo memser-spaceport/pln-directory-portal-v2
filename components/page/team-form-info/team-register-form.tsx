@@ -10,6 +10,7 @@ import TeamSocialInfo from './team-social-info';
 import { createParticipantRequest, validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { toast } from 'react-toastify';
+import Cookies from 'js-cookie';
 import { teamRegisterDefault, transformRawInputsToFormObj } from '@/utils/team.utils';
 import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';
@@ -23,7 +24,7 @@ interface ITeamRegisterForm {
   userInfo: any;
 }
 
-function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
+function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
   // const onCloseForm = props.onCloseForm;
   const { currentStep, goToNextStep, goToPreviousStep, setCurrentStep } = useStepsIndicator({ steps: TEAM_FORM_STEPS, defaultStep: TEAM_FORM_STEPS[0], uniqueKey: STEP_INDICATOR_KEY });
   const formRef = useRef<HTMLFormElement>(null);
@@ -32,15 +33,15 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
   const [projectDetailsErrors, setProjectDetailsErrors] = useState<string[]>([]);
   const [socialErrors, setSocialErrors] = useState<string[]>([]);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
-  if(userInfo?.email){
+  if (userInfo?.email) {
     teamRegisterDefault.basicInfo.requestorEmail = userInfo.email;
   }
 
-  const [initialValues, setInitialValues] = useState({...teamRegisterDefault});
+  const [initialValues, setInitialValues] = useState({ ...teamRegisterDefault });
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
 
   const router = useRouter();
-  
+
   const analytics = useJoinNetworkAnalytics();
 
   // const scrollToTop = () => {
@@ -54,27 +55,26 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
     document.body.scrollTop = 0;
   }
 
-  const onCloseForm = ()=>{
+  const onCloseForm = () => {
     router.push('/');
-  }
+  };
 
   const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
-      analytics.recordTeamJoinNetworkSave("save-click", formattedData);
+      analytics.recordTeamJoinNetworkSave('save-click', formattedData);
       if (currentStep === TEAM_FORM_STEPS[2]) {
         const validationResponse = validateForm(socialSchema, formattedData);
         if (!validationResponse?.success) {
           setSocialErrors(validationResponse.errors);
           scrollToTop();
-          analytics.recordTeamJoinNetworkSave("validation-error", formattedData);
+          analytics.recordTeamJoinNetworkSave('validation-error', formattedData);
           return;
         }
         setSocialErrors([]);
 
-        
         try {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
           if (formattedData?.teamProfile && formattedData.teamProfile.size > 0) {
@@ -93,22 +93,23 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
             newData: { ...formattedData },
           };
 
-          const response = await createParticipantRequest(data);
+          const authToken = Cookies.get('authToken') || '';
+          const response = await createParticipantRequest(data, authToken);
 
           if (response.ok) {
             // goToNextStep();
             onSuccess();
             document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-            analytics.recordTeamJoinNetworkSave("save-success", data);
+            analytics.recordTeamJoinNetworkSave('save-success', data);
           } else {
             document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
             toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-            analytics.recordTeamJoinNetworkSave("save-error", data);
+            analytics.recordTeamJoinNetworkSave('save-error', data);
           }
         } catch (err) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-          analytics.recordTeamJoinNetworkSave("save-error");
+          analytics.recordTeamJoinNetworkSave('save-error');
         }
       }
     }
@@ -148,8 +149,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
     }
 
     return errors;
-
-  }
+  };
 
   const onNextClicked = async () => {
     if (formRef.current) {
@@ -158,7 +158,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
       formattedData['longDescription'] = content;
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: true }));
       if (currentStep === TEAM_FORM_STEPS[0]) {
-        const teamBasicInfoErrors = await validateTeamBasicErrors(formattedData)
+        const teamBasicInfoErrors = await validateTeamBasicErrors(formattedData);
         if (teamBasicInfoErrors.length > 0) {
           document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
           setBasicErrors([...teamBasicInfoErrors]);
@@ -220,11 +220,11 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
 
   return (
     <>
-      {(
+      {
         <form className="trf" onSubmit={onFormSubmit} ref={formRef} noValidate>
           <div ref={formContainerRef} className="trf__form">
             <div className={currentStep !== TEAM_FORM_STEPS[0] ? 'hidden' : 'form'}>
-              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent}/>
+              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent} />
             </div>
             <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>
               <TeamProjectsInfo
@@ -242,7 +242,7 @@ function TeamRegisterForm({onSuccess,userInfo}: ITeamRegisterForm) {
           </div>
           <RegisterActions currentStep={currentStep} onNextClicked={onNextClicked} onBackClicked={onBackClicked} onCloseForm={onCloseForm} />
         </form>
-      )}
+      }
 
       {/* {currentStep === 'success' && <RegisterSuccess onCloseForm={onCloseForm} />} */}
 

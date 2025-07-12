@@ -26,11 +26,11 @@ const MemberDetails = async ({ params }: { params: any }) => {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
   }
 
-  if (isError) {
+  if (isError || !member) {
     return <Error />;
   }
 
-  const isOwner = userInfo?.uid === member.id;
+  const isOwner = userInfo?.uid === member?.id;
 
   return (
     <div className={styles?.memberDetail}>

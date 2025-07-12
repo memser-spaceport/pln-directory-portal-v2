@@ -10,13 +10,13 @@ import TeamSocialInfo from './team-social-info';
 import { createParticipantRequest, validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { toast } from 'react-toastify';
+import Cookies from 'js-cookie';
 import { teamRegisterDefault, transformRawInputsToFormObj } from '@/utils/team.utils';
 import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';
 import { useJoinNetworkAnalytics } from '@/analytics/join-network.analytics';
 import { useRouter } from 'next/navigation';
 import { STEP_INDICATOR_KEY, TEAM_FORM_STEPS } from '@/utils/constants/team-constants';
-import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 interface ITeamRegisterForm {
   // onCloseForm: () => void;
@@ -93,7 +93,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
             newData: { ...formattedData },
           };
 
-          const { authToken } = getCookiesFromHeaders();
+          const authToken = Cookies.get('authToken') || '';
           const response = await createParticipantRequest(data, authToken);
 
           if (response.ok) {

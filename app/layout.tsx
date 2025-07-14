@@ -18,6 +18,7 @@ import PostLoginRedirectHandler from '@/components/page/recommendations/componen
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
 import { UserInfoChecker } from '@/components/core/login/UserInfoChecker';
+import { ForumProvider } from '@/providers/ForumProvider';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -68,26 +69,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <StyledJsxRegistry>
           <QueryProvider>
-            <StoreInitializer userInfo={userInfo} />
-            <PostHogIdentifier />
-            <header className="layout__header">
-              <SubscribeToRecoomendations userInfo={userInfo} />
-              <CompleteYourProfile userInfo={userInfo} />
-              <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-            </header>
-            <main className="layout__main">{children}</main>
-            <Loader />
-            <AuthBox />
-            <Toaster />
-            <BroadCastChannel />
-            <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
-            <MemberRegisterDialog />
-            <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
-            <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
-            {/* <TeamRegisterDialog /> */}
-            <UserInfoChecker userInfo={userInfo} />
-            <CookieChecker isLoggedIn={isLoggedIn} />
+            <ForumProvider>
+              <StoreInitializer userInfo={userInfo} />
+              <PostHogIdentifier />
+              <header className="layout__header">
+                <SubscribeToRecoomendations userInfo={userInfo} />
+                <CompleteYourProfile userInfo={userInfo} />
+                <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+              </header>
+              <main className="layout__main">{children}</main>
+              <Loader />
+              <AuthBox />
+              <Toaster />
+              <BroadCastChannel />
+              <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+              <MemberRegisterDialog />
+              <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+              <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />
+              <PostLoginRedirectHandler isLoggedIn={isLoggedIn} />
+              {/* <TeamRegisterDialog /> */}
+              <UserInfoChecker userInfo={userInfo} />
+              <CookieChecker isLoggedIn={isLoggedIn} />
+            </ForumProvider>
           </QueryProvider>
         </StyledJsxRegistry>
       </body>

@@ -101,10 +101,10 @@ export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
         <EditFormControls onClose={onClose} title={isNew ? 'Add Experience' : 'Edit Experience'} />
         <div className={s.body}>
           <div className={s.row}>
-            <FormField name="title" label="Role*" placeholder="Enter role" />
+            <FormField name="title" label="Role" isRequired placeholder="Enter role" />
           </div>
           <div className={s.row}>
-            <FormField name="company" label="Team or Organization*" placeholder="Enter team or organization" />
+            <FormField name="company" label="Team or Organization" isRequired placeholder="Enter team or organization" />
           </div>
           <div className={s.row}>
             <ExperienceDescriptionInput />

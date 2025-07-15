@@ -118,7 +118,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
         <div className={s.body}>
           <div className={s.row}>
             <ProfileImageInput member={member} />
-            <FormField name="name" label="Name*" placeholder="Text" />
+            <FormField name="name" label="Name" isRequired placeholder="Text" />
           </div>
           <div className={s.row}>
             <ProfileBioInput generateBio={generateBio} />

@@ -5,6 +5,7 @@ import { useFormContext } from 'react-hook-form';
 import Select, { GroupBase, OptionsOrGroups } from 'react-select';
 
 import s from './FormSelect.module.scss';
+import { clsx } from 'clsx';
 
 interface Props {
   name: string;
@@ -13,9 +14,10 @@ interface Props {
   description?: string;
   options: OptionsOrGroups<string, GroupBase<string>>;
   disabled?: boolean;
+  isRequired?: boolean;
 }
 
-export const FormSelect = ({ name, placeholder, label, description, options, disabled }: Props) => {
+export const FormSelect = ({ name, placeholder, label, description, options, disabled, isRequired }: Props) => {
   const {
     watch,
     formState: { errors },
@@ -26,7 +28,15 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
 
   return (
     <Field.Root className={s.field}>
-      {label && <Field.Label className={s.label}>{label}</Field.Label>}
+      {label && (
+        <Field.Label
+          className={clsx(s.label, {
+            [s.required]: isRequired,
+          })}
+        >
+          {label}
+        </Field.Label>
+      )}
       <Select
         menuPlacement="auto"
         placeholder={placeholder}

@@ -46,8 +46,8 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
       city: member.location?.city || '',
       skills:
         member.skills.map((item) => ({
-          id: item.uid,
-          name: item.title,
+          value: item.uid,
+          label: item.title,
         })) ?? [],
       openToCollaborate: member.openToWork,
     },
@@ -162,8 +162,8 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
       ...omit(contribution, 'projectName'),
     })),
     skills: formData.skills?.map((skill: any) => ({
-      title: skill.name,
-      uid: skill.id,
+      title: skill.label,
+      uid: skill.value,
     })),
     bio: formData.bio,
   };

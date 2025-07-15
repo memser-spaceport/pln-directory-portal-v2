@@ -24,7 +24,7 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
   }, [postHogProps]);
 
   useEffect(() => {
-    if (!userInfoCookie || !userInfo || !member?.memberInfo || !userInfo.accessLevel) {
+    if (!userInfoCookie || !userInfo || !member?.memberInfo) {
       return;
     }
 

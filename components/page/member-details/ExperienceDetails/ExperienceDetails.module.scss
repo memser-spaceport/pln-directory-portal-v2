@@ -6,19 +6,31 @@
   border-radius: 8px;
   box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
   padding: 16px;
+  position: relative;
 
   display: flex;
   flex-direction: column;
   gap: 24px;
 
+  @include media.tablet-landscape {
+    padding: 16px;
+  }
+
   &.editView {
-    padding: 16px 8px;
+    padding: 0;
     border-radius: 8px;
-    background: linear-gradient(0deg, rgba(21, 111, 247, 0.20) 0%, rgba(21, 111, 247, 0.20) 100%), #FFF;
-    box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+    position: fixed;
+    inset: 0;
+    z-index: 10;
 
     @include media.tablet-landscape {
       padding: 16px;
+
+      position: relative;
+      inset: unset;
+      z-index: unset;
+      background: linear-gradient(0deg, rgba(21, 111, 247, 0.20) 0%, rgba(21, 111, 247, 0.20) 100%), #FFF;
+      box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
     }
   }
 }

@@ -29,7 +29,7 @@ export const ExperienceDatesInput = () => {
               return;
             }
 
-            setValue('startDate', val, { shouldValidate: true });
+            setValue('startDate', val, { shouldValidate: true, shouldDirty: true });
           }}
         />
         <MonthYearSelect
@@ -42,12 +42,12 @@ export const ExperienceDatesInput = () => {
               return;
             }
 
-            setValue('endDate', val, { shouldValidate: true });
+            setValue('endDate', val, { shouldValidate: true, shouldDirty: true });
           }}
         />
         <label className={s.Label}>
           Present
-          <Switch.Root defaultChecked className={s.Switch} checked={isCurrent} onCheckedChange={() => setValue('isCurrent', !isCurrent, { shouldValidate: true })}>
+          <Switch.Root defaultChecked className={s.Switch} checked={isCurrent} onCheckedChange={() => setValue('isCurrent', !isCurrent, { shouldValidate: true, shouldDirty: true })}>
             <Switch.Thumb className={s.Thumb} />
           </Switch.Root>
         </label>

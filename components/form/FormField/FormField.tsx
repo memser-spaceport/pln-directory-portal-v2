@@ -11,9 +11,10 @@ interface Props extends PropsWithChildren {
   label: string;
   description?: string;
   disabled?: boolean;
+  isRequired?: boolean;
 }
 
-export const FormField = ({ name, placeholder, label, description, disabled, children }: Props) => {
+export const FormField = ({ name, placeholder, label, description, disabled, children, isRequired }: Props) => {
   const {
     register,
     formState: { errors },
@@ -22,7 +23,13 @@ export const FormField = ({ name, placeholder, label, description, disabled, chi
   return (
     <Field.Root className={s.field}>
       <div className={s.labelWrapper}>
-        <Field.Label className={s.label}>{label}</Field.Label>
+        <Field.Label
+          className={clsx(s.label, {
+            [s.required]: isRequired,
+          })}
+        >
+          {label}
+        </Field.Label>
       </div>
       <div
         className={clsx(s.input, {

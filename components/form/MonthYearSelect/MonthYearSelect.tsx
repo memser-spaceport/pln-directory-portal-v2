@@ -32,9 +32,10 @@ interface Props {
   label: string;
   disabled?: boolean;
   error?: string | undefined;
+  isRequired?: boolean;
 }
 
-export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Props) => {
+export const MonthYearSelect = ({ label, value, onChange, disabled, error, isRequired }: Props) => {
   const [month, setMonth] = useState<{ value: string; label: string } | null>(null);
   const [year, setYear] = useState<{ value: string; label: string } | null>(null);
   const justSynced = useRef(false);
@@ -87,7 +88,13 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
         [s.disabled]: disabled,
       })}
     >
-      <div className={s.label}>{label}</div>
+      <div
+        className={clsx(s.label, {
+          [s.required]: isRequired,
+        })}
+      >
+        {label}
+      </div>
       <div className={s.body}>
         <Select
           menuPlacement="auto"

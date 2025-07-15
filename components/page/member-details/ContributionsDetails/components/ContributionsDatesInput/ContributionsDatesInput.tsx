@@ -14,7 +14,8 @@ export const ContributionsDatesInput = () => {
     <div className={s.root}>
       <div className={s.body}>
         <MonthYearSelect
-          label="Start Date*"
+          isRequired
+          label="Start Date"
           value={startDate}
           onChange={(val) => {
             if (val === null) {

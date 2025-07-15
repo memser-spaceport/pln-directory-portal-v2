@@ -114,7 +114,8 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
             <FormSelect
               name="name"
               placeholder="Project"
-              label="Project Name*"
+              label="Project Name"
+              isRequired
               options={
                 data?.projects.map((item: { projectUid: string; projectName: string }) => ({
                   value: item.projectUid,
@@ -124,7 +125,7 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
             />
           </div>
           <div className={s.row}>
-            <FormField name="role" label="Role*" placeholder="Enter role" />
+            <FormField name="role" label="Role" isRequired placeholder="Enter role" />
           </div>
           <div className={s.row}>
             <ContributionsDatesInput />

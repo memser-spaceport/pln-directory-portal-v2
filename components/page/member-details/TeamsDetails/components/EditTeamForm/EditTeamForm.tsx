@@ -111,7 +111,8 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
             <FormSelect
               name="name"
               placeholder="Enter your team"
-              label="Team*"
+              label="Team"
+              isRequired
               options={
                 data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
                   value: item.teamUid,

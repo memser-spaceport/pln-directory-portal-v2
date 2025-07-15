@@ -22,7 +22,8 @@ export const ExperienceDatesInput = () => {
       <div className={s.body}>
         <MonthYearSelect
           error={error0?.message}
-          label="Start Date*"
+          isRequired
+          label="Start Date"
           value={startDate}
           onChange={(val) => {
             if (val === null) {
@@ -33,6 +34,7 @@ export const ExperienceDatesInput = () => {
           }}
         />
         <MonthYearSelect
+          isRequired
           error={error1?.message}
           disabled={isCurrent}
           label="End Date"

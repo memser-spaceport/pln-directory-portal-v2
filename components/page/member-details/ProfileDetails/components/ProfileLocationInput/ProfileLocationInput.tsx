@@ -3,6 +3,7 @@ import { useFormContext } from 'react-hook-form';
 
 import s from './ProfileLocationInput.module.scss';
 import { FormField } from '@/components/form/FormField';
+import { LocationSelect } from '@/components/ui/LocationSelect';
 
 export const ProfileLocationInput = () => {
   return (
@@ -11,6 +12,11 @@ export const ProfileLocationInput = () => {
         <span className={s.label}>Location</span>
       </div>
       <div className={s.body}>
+        <LocationSelect
+          onSelect={(place) => {
+            console.log(place);
+          }}
+        />
         <div className={s.row}>
           <FormField name="country" placeholder="Enter country" label="Country" />
           <FormField name="state" placeholder="Enter state or province" label="State or Province" />

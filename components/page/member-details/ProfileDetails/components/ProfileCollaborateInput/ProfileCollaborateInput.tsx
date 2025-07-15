@@ -12,7 +12,7 @@ export const ProfileCollaborateInput = () => {
   return (
     <div className={s.root}>
       <label className={s.Label}>
-        <Checkbox.Root className={s.Checkbox} checked={openToCollaborate} onCheckedChange={(val) => setValue('openToCollaborate', val, { shouldValidate: true })}>
+        <Checkbox.Root className={s.Checkbox} checked={openToCollaborate} onCheckedChange={(val) => setValue('openToCollaborate', val, { shouldValidate: true, shouldDirty: true })}>
           <Checkbox.Indicator className={s.Indicator}>
             <CheckIcon className={s.Icon} />
           </Checkbox.Indicator>

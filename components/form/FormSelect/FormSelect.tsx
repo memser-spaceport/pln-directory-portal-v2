@@ -29,7 +29,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
       {label && <Field.Label className={s.label}>{label}</Field.Label>}
       <Select
         menuPlacement="auto"
-        placeholder="Project"
+        placeholder={placeholder}
         options={options}
         value={value}
         defaultValue={value}
@@ -49,19 +49,21 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
             border: '1px solid rgba(203, 213, 225, 0.50)',
             background: '#fff',
             outline: 'none',
-            fontSize: '14px',
             minWidth: '140px',
             width: '100%',
             borderColor: 'rgba(203, 213, 225, 0.50) !important',
             position: 'relative',
+            fontSize: '16px',
+            color: '#455468',
+            boxShadow: 'none !important',
             '&:hover': {
-              border: '1px solid rgba(66, 125, 255, 0.50)',
-              boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
-              borderColor: 'rgba(66, 125, 255, 0.50) !important',
+              border: '1px solid #5E718D',
+              boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
+              borderColor: '#5E718D !important',
             },
             '&:focus-visible, &:focus': {
-              borderColor: 'rgba(66, 125, 255, 0.50) !important',
-              boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10) !important',
+              borderColor: '#5E718D !important',
+              boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
             },
             ...(!!errors[name]
               ? {
@@ -73,6 +75,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
             ...baseStyles,
             height: '42px',
             padding: 0,
+            fontSize: 16,
             // background: 'tomato',
           }),
           option: (baseStyles) => ({
@@ -83,6 +86,13 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
             ...baseStyles,
             outline: 'none',
             zIndex: 3,
+          }),
+          placeholder: (baseStyles) => ({
+            ...baseStyles,
+            color: '#CBD5E1',
+          }),
+          indicatorSeparator: (base) => ({
+            display: 'none',
           }),
         }}
       />

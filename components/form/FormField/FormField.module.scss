@@ -28,7 +28,7 @@
 .input {
   display: flex;
   height: 50px;
-  padding: 10px 16px;
+  padding: 0 16px 0 0;
   align-items: center;
   gap: 8px;
   align-self: stretch;
@@ -37,16 +37,36 @@
   background: #FFF;
   outline: none;
 
-  &:focus {
+  &:focus-within {
     border-radius: 8px;
-    border: 1px solid rgba(66, 125, 255, 0.50);
     background: #FFF;
-    box-shadow: 0 0 0 4px rgba(21, 111, 247, 0.10);
+    border: 1px solid #5E718D !important;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12) !important;
   }
 
   &.error {
     border-color: darkred;
   }
+}
+
+.inputContent {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+}
+
+.inputElement {
+  @include mixins.placeholder {
+    color: #CBD5E1;
+  }
+  padding: 10px 12px;
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #455468;
 }
 
 .errorMsg {

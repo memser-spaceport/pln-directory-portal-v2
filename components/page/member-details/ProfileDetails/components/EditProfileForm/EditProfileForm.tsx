@@ -24,6 +24,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from 'react-toastify';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 interface Props {
   onClose: () => void;
@@ -132,6 +133,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
             <ProfileCollaborateInput />
           </div>
         </div>
+        <EditFormMobileControls />
       </form>
     </FormProvider>
   );

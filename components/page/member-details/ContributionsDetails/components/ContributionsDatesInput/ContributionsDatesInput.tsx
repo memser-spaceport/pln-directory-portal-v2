@@ -21,7 +21,7 @@ export const ContributionsDatesInput = () => {
               return;
             }
 
-            setValue('startDate', val, { shouldValidate: true });
+            setValue('startDate', val, { shouldValidate: true, shouldDirty: true });
           }}
         />
         <MonthYearSelect
@@ -32,7 +32,7 @@ export const ContributionsDatesInput = () => {
               return;
             }
 
-            setValue('endDate', val, { shouldValidate: true });
+            setValue('endDate', val, { shouldValidate: true, shouldDirty: true });
           }}
         />
       </div>

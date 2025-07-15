@@ -29,7 +29,7 @@ export const ProfileBioInput = ({ generateBio }: Props) => {
         return;
       }
 
-      setValue('bio', res.bio, { shouldValidate: true });
+      setValue('bio', res.bio, { shouldValidate: true, shouldDirty: true });
     }
 
     if (generateBio && !generateBioRef.current) {
@@ -55,7 +55,7 @@ export const ProfileBioInput = ({ generateBio }: Props) => {
               return;
             }
 
-            setValue('bio', res.bio, { shouldValidate: true });
+            setValue('bio', res.bio, { shouldValidate: true, shouldDirty: true });
           }}
         >
           {isPending ? (
@@ -68,7 +68,7 @@ export const ProfileBioInput = ({ generateBio }: Props) => {
         </button>
       </div>
 
-      <RichTextEditor value={bio} onChange={(txt) => setValue('bio', txt, { shouldValidate: true })} />
+      <RichTextEditor value={bio} onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })} />
     </div>
   );
 };

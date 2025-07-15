@@ -13,13 +13,13 @@ export const ProfileSkillsInput = () => {
   const { skills } = watch();
 
   const onAddSkill = (val: TEditProfileForm['skills'][0]) => {
-    setValue('skills', [...skills, val], { shouldValidate: true });
+    setValue('skills', [...skills, val], { shouldValidate: true, shouldDirty: true });
   };
 
   const onRemoveSkill = (item: TEditProfileForm['skills'][0]) => {
     const newItems = [...skills].filter((v) => v.id !== item.id);
 
-    setValue('skills', newItems, { shouldValidate: true });
+    setValue('skills', newItems, { shouldValidate: true, shouldDirty: true });
   };
 
   return (

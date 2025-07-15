@@ -19,6 +19,7 @@ import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { editExperienceSchema } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm/helpers';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 interface Props {
   onClose: () => void;
@@ -131,6 +132,7 @@ export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
             </>
           )}
         </div>
+        <EditFormMobileControls />
       </form>
     </FormProvider>
   );

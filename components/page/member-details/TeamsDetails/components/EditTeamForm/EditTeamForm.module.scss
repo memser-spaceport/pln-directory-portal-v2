@@ -12,17 +12,32 @@
 
   overflow: auto;
   max-height: calc(100dvh - 56px);
+  min-height: calc(100dvh - 56px);
 
   @include media.tablet-landscape {
     padding: 32px;
     max-height: unset;
+    min-height: unset;
     overflow: unset;
   }
 }
 
 .row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   width: 100%;
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #F71515;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  padding: 8px 24px;
+  margin: 0 auto;
 }

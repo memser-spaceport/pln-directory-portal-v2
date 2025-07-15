@@ -61,11 +61,12 @@
   @include mixins.placeholder {
     color: #CBD5E1;
   }
-  padding: 10px 16px;
+  padding: 10px 12px;
   flex: 1;
   border: none;
   background: transparent;
   outline: none;
+  color: #455468;
 }
 
 .errorMsg {

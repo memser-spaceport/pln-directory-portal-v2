@@ -30,6 +30,10 @@
   background: #FFF;
   outline: none;
 
+  @include mixins.placeholder {
+    color: #CBD5E1;
+  }
+
   &:focus {
     border-radius: 8px;
     border: 1px solid rgba(66, 125, 255, 0.50);

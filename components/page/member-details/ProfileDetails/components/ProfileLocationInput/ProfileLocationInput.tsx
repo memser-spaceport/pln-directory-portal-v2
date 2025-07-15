@@ -2,28 +2,29 @@ import React from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import s from './ProfileLocationInput.module.scss';
-import { FormField } from '@/components/form/FormField';
 import { LocationSelect } from '@/components/ui/LocationSelect';
+import { TEditProfileForm } from '@/components/page/member-details/ProfileDetails/types';
 
 export const ProfileLocationInput = () => {
+  const { setValue, watch } = useFormContext<TEditProfileForm>();
+  const { country, city, state } = watch();
+
   return (
     <div className={s.root}>
       <div className={s.header}>
         <span className={s.label}>Location</span>
       </div>
-      <div className={s.body}>
-        <LocationSelect
-          onSelect={(place) => {
-            console.log(place);
-          }}
-        />
-        <div className={s.row}>
-          <FormField name="country" placeholder="Enter country" label="Country" />
-          <FormField name="state" placeholder="Enter state or province" label="State or Province" />
-          <FormField name="city" placeholder="Enter your metro area or city" label="Metro Area/City" />
-        </div>
-        <p className={s.hint}>Please share location details to receive invitations for the network events happening in your area.</p>
-      </div>
+      <LocationSelect
+        resolvedCountry={country}
+        resolvedCity={city}
+        resolvedState={state}
+        onSelect={(place) => {
+          setValue('city', place.city ?? '', { shouldValidate: true, shouldDirty: true });
+          setValue('state', place.metroArea ?? '', { shouldValidate: true, shouldDirty: true });
+          setValue('country', place.country ?? '', { shouldValidate: true, shouldDirty: true });
+        }}
+      />
+      <p className={s.hint}>Please share location details to receive invitations for the network events happening in your area.</p>
     </div>
   );
 };

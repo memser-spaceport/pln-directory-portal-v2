@@ -91,6 +91,11 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
           option: (baseStyles) => ({
             ...baseStyles,
             fontSize: '14px',
+            fontWeight: 300,
+            color: '#455468',
+            '&:hover': {
+              background: 'rgba(27, 56, 96, 0.12)',
+            },
           }),
           menu: (baseStyles) => ({
             ...baseStyles,

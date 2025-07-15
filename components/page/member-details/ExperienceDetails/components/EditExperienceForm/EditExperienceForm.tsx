@@ -47,10 +47,14 @@ export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
   const [isOpenDelete, setIsOpenDelete] = React.useState(false);
   const initialState = { success: false, message: '', errorCode: '', errors: {} };
   const [state, formAction] = useFormState(MemberExperienceFormAction, initialState);
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
   const { onSaveExperienceDetailsClicked, onDeleteExperienceDetailsClicked } = useMemberAnalytics();
 
   const onSubmit = (formData: TEditExperienceForm) => {
+    if (isPending) {
+      return;
+    }
+
     onSaveExperienceDetailsClicked();
     const _formData = new FormData();
     _formData.append('actionType', 'save');
@@ -73,6 +77,10 @@ export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
   };
 
   const onDelete = () => {
+    if (isPending) {
+      return;
+    }
+
     onDeleteExperienceDetailsClicked();
     if (!initialData) {
       return;

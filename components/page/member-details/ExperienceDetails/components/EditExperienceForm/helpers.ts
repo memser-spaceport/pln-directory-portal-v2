@@ -1,4 +1,5 @@
 import * as yup from 'yup';
+import { isAfter } from 'date-fns';
 
 export const editExperienceSchema = yup.object().shape({
   title: yup.string().required('Required'),
@@ -11,7 +12,20 @@ export const editExperienceSchema = yup.object().shape({
     .defined()
     .when('isCurrent', {
       is: false,
-      then: (s) => s.required('Required'),
+      then: (s) =>
+        s
+          .test({
+            name: 'datesOrder',
+            test: (value, context) => {
+              if (!context.parent.startDate || !value) {
+                return true;
+              }
+
+              return isAfter(new Date(value), context.parent.startDate);
+            },
+            message: 'Cannot be earlier than start date',
+          })
+          .required('Required'),
     }),
   isCurrent: yup.boolean().defined(),
   location: yup.string().defined(),

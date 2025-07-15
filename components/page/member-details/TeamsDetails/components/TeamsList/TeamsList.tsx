@@ -20,8 +20,6 @@ interface Props {
 }
 
 export const TeamsList = ({ isEditable, onAdd, onEdit, member }: Props) => {
-  console.log(member.teams);
-
   return (
     <div className={s.root}>
       <div className={s.header}>

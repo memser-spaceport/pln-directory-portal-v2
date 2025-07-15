@@ -199,6 +199,9 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
               outline: 'none',
               zIndex: 3,
             }),
+            indicatorSeparator: (base) => ({
+              display: 'none',
+            }),
           }}
         />
       </div>

@@ -22,6 +22,7 @@ import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { editContributionsSchema } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm/helpers';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 interface Props {
   onClose: () => void;
@@ -126,12 +127,11 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
             <FormField name="role" label="Role*" placeholder="Enter role" />
           </div>
           <div className={s.row}>
-            <ContributionsDescriptionInput />
-          </div>
-          <div className={s.row}>
             <ContributionsDatesInput />
           </div>
-          <br />
+          <div className={s.row}>
+            <ContributionsDescriptionInput />
+          </div>
           {!isNew && (
             <>
               <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
@@ -149,6 +149,7 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
             </>
           )}
         </div>
+        <EditFormMobileControls />
       </form>
     </FormProvider>
   );

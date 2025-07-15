@@ -6,7 +6,7 @@
   inset: initial;
   bottom: 0 !important;
   left: 0;
-  z-index: 1;
+  z-index: 11;
 
   @include media.tablet-landscape {
     &.open {

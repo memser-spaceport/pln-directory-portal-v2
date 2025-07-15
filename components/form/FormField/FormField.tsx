@@ -23,16 +23,17 @@ export const FormField = ({ name, placeholder, label, description, disabled, chi
     <Field.Root className={s.field}>
       <div className={s.labelWrapper}>
         <Field.Label className={s.label}>{label}</Field.Label>
-        {children}
       </div>
-      <Field.Control
-        {...register(name)}
-        disabled={disabled}
-        placeholder={placeholder}
+      <div
         className={clsx(s.input, {
           [s.error]: !!errors[name],
         })}
-      />
+      >
+        <div className={s.inputContent}>
+          <Field.Control {...register(name)} disabled={disabled} placeholder={placeholder} className={s.inputElement} />
+        </div>
+        {children}
+      </div>
       {!errors[name] && description ? (
         <Field.Description className={s.fieldDescription}>{description}</Field.Description>
       ) : (

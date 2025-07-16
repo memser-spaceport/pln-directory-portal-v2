@@ -45,9 +45,9 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
         <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
         <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+
+        <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
         <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 

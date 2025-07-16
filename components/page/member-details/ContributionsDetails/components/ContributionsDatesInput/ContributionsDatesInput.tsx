@@ -5,6 +5,7 @@ import { MonthYearSelect } from '@/components/form/MonthYearSelect';
 
 import { TEditContributionsForm } from '@/components/page/member-details/ContributionsDetails/types';
 import s from './ContributionsDatesInput.module.scss';
+import { FormSwitch } from '@/components/form/FormSwitch/FormSwitch';
 
 export const ContributionsDatesInput = () => {
   const {
@@ -12,7 +13,7 @@ export const ContributionsDatesInput = () => {
     setValue,
     formState: { errors },
   } = useFormContext<TEditContributionsForm>();
-  const { startDate, endDate } = watch();
+  const { startDate, endDate, isCurrent } = watch();
 
   const error0 = errors.startDate;
   const error1 = errors.endDate;
@@ -37,6 +38,7 @@ export const ContributionsDatesInput = () => {
           error={error1?.message}
           label="End Date"
           value={endDate}
+          disabled={isCurrent}
           onChange={(val) => {
             if (val === null) {
               return;
@@ -45,6 +47,7 @@ export const ContributionsDatesInput = () => {
             setValue('endDate', val, { shouldValidate: true, shouldDirty: true });
           }}
         />
+        <FormSwitch name="isCurrent" label="Present" />
       </div>
     </div>
   );

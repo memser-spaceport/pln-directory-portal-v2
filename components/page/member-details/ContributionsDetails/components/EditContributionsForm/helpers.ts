@@ -29,4 +29,5 @@ export const editContributionsSchema = yup.object().shape({
       },
       message: 'Cannot be earlier than start date',
     }),
+  isCurrent: yup.boolean().defined(),
 });

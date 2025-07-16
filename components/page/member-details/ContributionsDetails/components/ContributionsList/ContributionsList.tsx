@@ -36,6 +36,7 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
               <div className={s.details}>
                 <div className={s.row}>
                   <div className={s.primaryLabel}>{item.project.name}</div>
+                  {item.currentProject && <div className={s.currentProjectBadge}>Current project</div>}
                 </div>
                 <div className={s.row}>
                   <div className={s.secondaryLabel}>{item.role}</div>

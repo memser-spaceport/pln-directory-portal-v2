@@ -290,7 +290,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           line-height: 20px;
           letter-spacing: 0px;
           text-align: left;
-          color: #000;
+          color: #0f172a;
           padding-right: 24px;
           max-width: 200px;
           cursor: default;
@@ -313,7 +313,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           letter-spacing: 0px;
           text-align: left;
           cursor: default;
-          color: #000;
+          color: #475569;
         }
 
         .header__details__notice__button {

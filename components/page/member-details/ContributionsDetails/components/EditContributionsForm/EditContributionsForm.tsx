@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { IMember, IProjectContribution } from '@/types/members.types';
-import { IUserInfo } from '@/types/shared.types';
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
 
 import { TEditContributionsForm } from '@/components/page/member-details/ContributionsDetails/types';
@@ -45,6 +44,7 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
       description: initialData?.description ?? '',
       startDate: initialData?.startDate || null,
       endDate: initialData?.endDate || null,
+      isCurrent: initialData?.currentProject ?? false,
     },
     resolver: yupResolver(editContributionsSchema),
   });
@@ -165,7 +165,7 @@ function formatPayload(memberInfo: any, formData: TEditContributionsForm, isNew?
         ...omit(contribution, 'projectName', 'uid'),
       })),
       {
-        currentProject: false,
+        currentProject: formData.isCurrent,
         description: formData.description,
         endDate: formData.endDate,
         projectUid: formData.name?.value,
@@ -184,7 +184,7 @@ function formatPayload(memberInfo: any, formData: TEditContributionsForm, isNew?
       if (contribution.uid === uid) {
         return {
           ...omit(contribution, 'projectName', 'uid'),
-          currentProject: false,
+          currentProject: formData.isCurrent,
           description: formData.description,
           endDate: formData.endDate,
           projectUid: formData.name?.value,

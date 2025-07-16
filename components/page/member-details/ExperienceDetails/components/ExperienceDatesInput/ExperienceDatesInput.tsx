@@ -1,10 +1,10 @@
 import React from 'react';
-import { Switch } from '@base-ui-components/react/switch';
 import { useFormContext } from 'react-hook-form';
 
 import s from './ExperienceDatesInput.module.scss';
 import { TEditExperienceForm } from '@/components/page/member-details/ExperienceDetails/types';
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
+import { FormSwitch } from '@/components/form/FormSwitch';
 
 export const ExperienceDatesInput = () => {
   const {
@@ -47,12 +47,7 @@ export const ExperienceDatesInput = () => {
             setValue('endDate', val, { shouldValidate: true, shouldDirty: true });
           }}
         />
-        <label className={s.Label}>
-          Present
-          <Switch.Root defaultChecked className={s.Switch} checked={isCurrent} onCheckedChange={() => setValue('isCurrent', !isCurrent, { shouldValidate: true, shouldDirty: true })}>
-            <Switch.Thumb className={s.Thumb} />
-          </Switch.Root>
-        </label>
+        <FormSwitch name="isCurrent" label="Present" />
       </div>
     </div>
   );

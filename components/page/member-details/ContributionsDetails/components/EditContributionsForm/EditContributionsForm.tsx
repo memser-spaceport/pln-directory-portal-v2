@@ -127,7 +127,7 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
               notFoundContent={
                 <div className={s.secondaryLabel}>
                   If you don&apos;t see your project on this list, please{' '}
-                  <Link href="/projects/add" className={s.link}>
+                  <Link href="/projects/add" className={s.link} target="_blank">
                     add your project
                   </Link>{' '}
                   first.

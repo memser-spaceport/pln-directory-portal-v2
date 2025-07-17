@@ -171,7 +171,7 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
               notFoundContent={
                 <div className={s.secondaryLabel}>
                   If you don&apos;t see your team on this list, please{' '}
-                  <Link href="/teams/add" className={s.link}>
+                  <Link href="/teams/add" className={s.link} target="_blank">
                     add your team
                   </Link>{' '}
                   first.

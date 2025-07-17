@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
 
@@ -15,9 +15,10 @@ interface Props {
   options: OptionsOrGroups<string, GroupBase<string>>;
   disabled?: boolean;
   isRequired?: boolean;
+  notFoundContent?: ReactNode;
 }
 
-export const FormSelect = ({ name, placeholder, label, description, options, disabled, isRequired }: Props) => {
+export const FormSelect = ({ name, placeholder, label, description, options, disabled, isRequired, notFoundContent }: Props) => {
   const {
     watch,
     formState: { errors },
@@ -109,6 +110,16 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
           indicatorSeparator: (base) => ({
             display: 'none',
           }),
+        }}
+        components={{
+          NoOptionsMessage: () => {
+            return (
+              <div className={s.notFound}>
+                <span>No options found</span>
+                {notFoundContent}
+              </div>
+            );
+          },
         }}
       />
       {!errors[name] && description ? (

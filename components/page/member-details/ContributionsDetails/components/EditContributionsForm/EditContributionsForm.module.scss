@@ -27,6 +27,19 @@
   width: 100%;
 }
 
+.secondaryLabel {
+  color: var(--Neutral-Slate-600);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; /* 116.667% */
+  letter-spacing: 0.12px;
+
+  .link {
+    color: #1B4DFF;
+  }
+}
+
 .deleteBtn {
   display: flex;
   align-items: center;

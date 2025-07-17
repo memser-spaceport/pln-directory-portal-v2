@@ -8,7 +8,7 @@ import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemb
 import { useMemo } from 'react';
 
 interface SettingsMenuProps {
-  activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams' | 'recommendations';
+  activeItem?: 'profile' | 'privacy' | 'manage members' | 'manage teams' | 'recommendations' | 'connected accounts';
   isAdmin?: boolean;
   isTeamLead?: boolean;
   userInfo: IUserInfo;
@@ -21,7 +21,7 @@ function SettingsMenu({ activeItem, isAdmin = false, isTeamLead = false, userInf
   const { data: notificationSettings } = useMemberNotificationsSettings(userInfo.uid);
   const preferences = useMemo(() => {
     const options = [
-      { name: 'profile', url: '/settings/profile', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
+      { name: 'connected accounts', url: '/settings/accounts', icon: '/icons/profile.svg', activeIcon: '/icons/profile-blue.svg' },
       { name: 'privacy', url: '/settings/privacy', icon: '/icons/privacy.svg', activeIcon: '/icons/privacy-blue.svg' },
     ];
 

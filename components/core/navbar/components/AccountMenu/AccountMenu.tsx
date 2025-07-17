@@ -51,21 +51,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
     postHogProps.reset();
   }, [postHogProps]);
 
-  const { data: notifications, refetch } = useGetAppNotifications(userInfo.uid, authToken);
-
-  useEffect(() => {
-    function getAllNotifications(status: boolean) {
-      if (isLoggedIn && status) {
-        refetch();
-      }
-    }
-
-    document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
-
-    return function () {
-      document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
-    };
-  }, [isLoggedIn, refetch]);
+  const { data: notifications } = useGetAppNotifications(userInfo.uid, authToken);
 
   return (
     <>

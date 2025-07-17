@@ -13,5 +13,6 @@ export function useGetAppNotifications(userId: string | undefined, authToken: st
     queryKey: [NotificationsQueryKeys.GET_ALL_NOTIFICATIONS, userId, authToken],
     queryFn: () => fetcher(userId ?? '', authToken),
     enabled: Boolean(userId && authToken),
+    staleTime: 15000,
   });
 }

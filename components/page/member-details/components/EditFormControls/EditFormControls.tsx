@@ -11,7 +11,7 @@ interface Props {
 export const EditFormControls = ({ title, onClose }: Props) => {
   const {
     reset,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty, isValid },
   } = useFormContext();
 
   return (
@@ -28,7 +28,7 @@ export const EditFormControls = ({ title, onClose }: Props) => {
         >
           Cancel
         </button>
-        <button className={s.primaryButton} type="submit" disabled={isSubmitting}>
+        <button className={s.primaryButton} type="submit" disabled={isSubmitting || !isDirty}>
           {isSubmitting ? 'Processing... ' : 'Save'}
         </button>
       </div>

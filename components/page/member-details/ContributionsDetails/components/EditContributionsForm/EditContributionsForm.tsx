@@ -42,7 +42,7 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
         : undefined,
       role: initialData?.role ?? '',
       description: initialData?.description ?? '',
-      startDate: initialData?.startDate || null,
+      startDate: initialData?.startDate || new Date().toISOString(),
       endDate: initialData?.endDate || null,
       isCurrent: initialData?.currentProject ?? false,
     },

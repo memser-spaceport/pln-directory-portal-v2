@@ -60,7 +60,7 @@ export async function middleware(req: NextRequest) {
         console.log('middleware inside isValidAuthToken');
         response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
         response.headers.set('authToken', authTokenFromCookie?.value as string);
-        response.headers.set('userInfo', userInfo?.value as string);
+        response.headers.set('userInfo', encodeURIComponent(userInfo?.value as string));
         response.headers.set('isLoggedIn', 'true');
         return response;
       }
@@ -88,7 +88,7 @@ export async function middleware(req: NextRequest) {
         });
         response.headers.set('refreshToken', JSON.stringify(refreshToken));
         response.headers.set('authToken', JSON.stringify(accessToken));
-        response.headers.set('userInfo', JSON.stringify(userInfo));
+        response.headers.set('userInfo', encodeURIComponent(JSON.stringify(userInfo)));
         response.headers.set('isLoggedIn', 'true');
         return response;
       }

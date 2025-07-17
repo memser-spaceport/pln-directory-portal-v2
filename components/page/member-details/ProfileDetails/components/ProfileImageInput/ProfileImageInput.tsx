@@ -45,7 +45,7 @@ export const ProfileImageInput = ({ member }: Props) => {
     maxSize: 4 * 1024 * 1024,
     accept: {
       'image/png': ['.png'],
-      'image/jpg': ['.jpg'],
+      'image/jpeg': ['.jpg', '.jpeg'],
     },
   });
 

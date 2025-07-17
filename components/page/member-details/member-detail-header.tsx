@@ -14,6 +14,7 @@ import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/useRecommendationLinkAnalyticsReport';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
 import clsx from 'clsx';
+import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 
 interface IMemberDetailHeader {
   member: IMember;
@@ -75,19 +76,18 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
         <div className="header__details">
           <div className="header__details__specifics">
             <div className="header__details__specifics__hdr">
-              <Tooltip asChild trigger={<h1 className="header__details__specifics__name">{name}</h1>} content={name} />
+              <CustomTooltip trigger={<h1 className="header__details__specifics__name">{name}</h1>} content={name} />
             </div>
             <div className="header__details__roleandlocation">
               {member?.teams[0]?.name && (
                 <div className="header__details__roleandlocation__teams">
-                  <Tooltip
-                    asChild
+                  <CustomTooltip
                     trigger={<p className="header__details__roleandlocation__teams__name"> {member?.teams?.length > 0 ? mainTeam?.name : ''} </p>}
                     content={member?.teams?.length > 0 ? mainTeam?.name : ''}
                   />
                   {member?.teams?.length > 1 && (
-                    <Tooltip
-                      asChild
+                    <CustomTooltip
+                      forceTooltip
                       trigger={
                         <button onClick={(e) => e.preventDefault()} className="header__details__roleandlocation__teams__count">
                           +{(member?.teams?.length - 1).toString()}
@@ -107,7 +107,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
                   )}
                 </div>
               )}
-              <Tooltip asChild trigger={<p className="header__details__roleandlocation__role">{role}</p>} content={role} />
+              <CustomTooltip trigger={<p className="header__details__roleandlocation__role">{role}</p>} content={role} />
               {isLoggedIn && (
                 <div className="header__details__roleandlocation__location">
                   <img loading="lazy" src="/icons/location.svg" height={13} width={11} />
@@ -150,8 +150,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           {skills?.map((skill: any, index: number) => (
             <Fragment key={`${skill} + ${index}`}>
               {index < 3 && (
-                <Tooltip
-                  asChild
+                <CustomTooltip
                   trigger={
                     <div>
                       <Tag value={skill?.title} tagsLength={skills?.length} />
@@ -163,8 +162,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
             </Fragment>
           ))}
           {skills?.length > 3 && (
-            <Tooltip
-              asChild
+            <CustomTooltip
               trigger={
                 <div>
                   <Tag variant="primary" value={'+' + (skills?.length - 3).toString()}></Tag>{' '}

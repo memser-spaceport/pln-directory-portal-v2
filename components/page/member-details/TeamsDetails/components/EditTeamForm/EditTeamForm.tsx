@@ -22,6 +22,7 @@ import Image from 'next/image';
 import { useGetTeam } from '@/services/teams/hooks/useGetTeam';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import Link from 'next/link';
 
 interface Props {
   onClose: () => void;
@@ -151,9 +152,9 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
             )
           )}
 
-          <div className={s.row}>
-            <FormField name="url" label="Team URL" placeholder="Enter team url" />
-          </div>
+          {/*<div className={s.row}>*/}
+          {/*  <FormField name="url" label="Team URL" placeholder="Enter team url" />*/}
+          {/*</div>*/}
           <div className={s.row}>
             <FormSelect
               name="name"
@@ -165,6 +166,15 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
                   value: item.teamUid,
                   label: item.teamTitle,
                 })) ?? []
+              }
+              notFoundContent={
+                <div className={s.secondaryLabel}>
+                  If you don&apos;t see your team on this list, please{' '}
+                  <Link href="/teams/add" className={s.link}>
+                    add your team
+                  </Link>{' '}
+                  first.
+                </div>
               }
             />
           </div>

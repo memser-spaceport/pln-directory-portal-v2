@@ -22,6 +22,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { editContributionsSchema } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm/helpers';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
+import Link from 'next/link';
 
 interface Props {
   onClose: () => void;
@@ -121,6 +122,15 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
                   value: item.projectUid,
                   label: item.projectName,
                 })) ?? []
+              }
+              notFoundContent={
+                <div className={s.secondaryLabel}>
+                  If you don&apos;t see your project on this list, please{' '}
+                  <Link href="/projects/add" className={s.link}>
+                    add your project
+                  </Link>{' '}
+                  first.
+                </div>
               }
             />
           </div>

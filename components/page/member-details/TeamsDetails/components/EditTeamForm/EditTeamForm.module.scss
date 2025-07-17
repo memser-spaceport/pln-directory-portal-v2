@@ -42,7 +42,6 @@
   margin: 0 auto;
 }
 
-
 .expItem {
   display: flex;
   padding: 16px 32px 16px 16px;
@@ -70,6 +69,10 @@
   font-weight: 400;
   line-height: 14px; /* 116.667% */
   letter-spacing: 0.12px;
+
+  .link {
+    color: #1B4DFF;
+  }
 }
 
 .Separator {

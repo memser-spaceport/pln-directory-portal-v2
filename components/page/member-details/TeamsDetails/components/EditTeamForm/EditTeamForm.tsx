@@ -159,6 +159,7 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
             <FormSelect
               name="name"
               placeholder="Enter your team"
+              backLabel="Teams"
               label="Team"
               isRequired
               options={

@@ -115,6 +115,7 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
             <FormSelect
               name="name"
               placeholder="Project"
+              backLabel="Projects"
               label="Project Name"
               isRequired
               options={

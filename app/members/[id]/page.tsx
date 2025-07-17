@@ -3,7 +3,6 @@ import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.scss';
 import { BreadCrumb } from '@/components/core/bread-crumb';
-import MemberTeams from '@/components/page/member-details/member-teams';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMember, getMemberUidByAirtableId } from '@/services/members.service';
 import { getAllTeams } from '@/services/teams.service';
@@ -16,7 +15,6 @@ import { RepositoriesDetails } from '@/components/page/member-details/Repositori
 import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/components/SubscribeToRecommendationsWidget';
 import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
-import { getAccessLevel } from '@/utils/auth.utils';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 
 const MemberDetails = async ({ params }: { params: any }) => {
@@ -30,8 +28,6 @@ const MemberDetails = async ({ params }: { params: any }) => {
   if (isError || !member) {
     return <Error />;
   }
-
-  const isOwner = userInfo?.uid === member?.id;
 
   return (
     <div className={styles?.memberDetail}>

@@ -17,6 +17,8 @@ export const ExperienceDatesInput = () => {
   const error0 = errors.startDate;
   const error1 = errors.endDate;
 
+  console.log(errors);
+
   return (
     <div className={s.root}>
       <div className={s.body}>

@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { IMember, IProjectContribution } from '@/types/members.types';
-import { IUserInfo } from '@/types/shared.types';
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
 
 import { TEditContributionsForm } from '@/components/page/member-details/ContributionsDetails/types';
@@ -22,6 +21,9 @@ import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { editContributionsSchema } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm/helpers';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
+import Link from 'next/link';
+import { toast } from 'react-toastify';
 
 interface Props {
   onClose: () => void;
@@ -42,8 +44,9 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
         : undefined,
       role: initialData?.role ?? '',
       description: initialData?.description ?? '',
-      startDate: initialData?.startDate || null,
+      startDate: initialData?.startDate || new Date().toISOString(),
       endDate: initialData?.endDate || null,
+      isCurrent: initialData?.currentProject ?? false,
     },
     resolver: yupResolver(editContributionsSchema),
   });
@@ -57,6 +60,21 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
   const onSubmit = async (formData: TEditContributionsForm) => {
     onSaveContributionDetailsClicked();
     if (!memberData) {
+      return;
+    }
+
+    const hasSame = member.projectContributions.some((contribution: any) => {
+      return (
+        contribution.project.name === formData.name?.label &&
+        contribution.role === formData.role &&
+        contribution.startDate === formData.startDate &&
+        contribution.endDate === formData.endDate &&
+        contribution.currentProject === formData.isCurrent
+      );
+    });
+
+    if (hasSame) {
+      toast.error('Project contribution with selected parameters already exists. Please try again with different parameters.');
       return;
     }
 
@@ -113,25 +131,35 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
             <FormSelect
               name="name"
               placeholder="Project"
-              label="Project Name*"
+              backLabel="Projects"
+              label="Project Name"
+              isRequired
               options={
                 data?.projects.map((item: { projectUid: string; projectName: string }) => ({
                   value: item.projectUid,
                   label: item.projectName,
                 })) ?? []
               }
+              notFoundContent={
+                <div className={s.secondaryLabel}>
+                  If you don&apos;t see your project on this list, please{' '}
+                  <Link href="/projects/add" className={s.link} target="_blank">
+                    add your project
+                  </Link>{' '}
+                  first.
+                </div>
+              }
             />
           </div>
           <div className={s.row}>
-            <FormField name="role" label="Role*" placeholder="Enter role" />
-          </div>
-          <div className={s.row}>
-            <ContributionsDescriptionInput />
+            <FormField name="role" label="Role" isRequired placeholder="Enter role" />
           </div>
           <div className={s.row}>
             <ContributionsDatesInput />
           </div>
-          <br />
+          <div className={s.row}>
+            <ContributionsDescriptionInput />
+          </div>
           {!isNew && (
             <>
               <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
@@ -149,6 +177,7 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
             </>
           )}
         </div>
+        <EditFormMobileControls />
       </form>
     </FormProvider>
   );
@@ -163,7 +192,7 @@ function formatPayload(memberInfo: any, formData: TEditContributionsForm, isNew?
         ...omit(contribution, 'projectName', 'uid'),
       })),
       {
-        currentProject: false,
+        currentProject: formData.isCurrent,
         description: formData.description,
         endDate: formData.endDate,
         projectUid: formData.name?.value,
@@ -182,7 +211,7 @@ function formatPayload(memberInfo: any, formData: TEditContributionsForm, isNew?
       if (contribution.uid === uid) {
         return {
           ...omit(contribution, 'projectName', 'uid'),
-          currentProject: false,
+          currentProject: formData.isCurrent,
           description: formData.description,
           endDate: formData.endDate,
           projectUid: formData.name?.value,

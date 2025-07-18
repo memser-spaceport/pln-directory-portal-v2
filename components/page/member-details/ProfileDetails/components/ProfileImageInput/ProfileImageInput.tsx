@@ -7,6 +7,7 @@ import Image from 'next/image';
 
 import s from './ProfileImageInput.module.scss';
 import { IMember } from '@/types/members.types';
+import { toast } from 'react-toastify';
 
 interface Props {
   member: IMember;
@@ -20,6 +21,19 @@ export const ProfileImageInput = ({ member }: Props) => {
   const { getInputProps, getRootProps } = useDropzone({
     onError: (err) => {
       console.log(err);
+    },
+    onDropRejected: (e) => {
+      if (e?.length) {
+        const el = e[0];
+        el.errors.forEach((item) => {
+          if (item.code === 'file-too-large') {
+            toast.error('File is larger than 4Mb');
+            return;
+          }
+
+          toast.error(item.message);
+        });
+      }
     },
     onDrop: (acceptedFiles) => {
       console.log(acceptedFiles);
@@ -45,7 +59,7 @@ export const ProfileImageInput = ({ member }: Props) => {
     maxSize: 4 * 1024 * 1024,
     accept: {
       'image/png': ['.png'],
-      'image/jpg': ['.jpg'],
+      'image/jpeg': ['.jpg', '.jpeg'],
     },
   });
 

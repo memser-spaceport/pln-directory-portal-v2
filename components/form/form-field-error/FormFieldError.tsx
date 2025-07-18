@@ -7,6 +7,7 @@ interface Props {
   name: string;
 }
 
+// DEPRECATED
 export const FormFieldError: FC<Props> = ({ name }) => {
   return (
     <FormErrorMessage

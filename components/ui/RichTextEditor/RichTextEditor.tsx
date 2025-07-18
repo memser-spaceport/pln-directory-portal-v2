@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import ReactQuill from 'react-quill';
 import { clsx } from 'clsx';

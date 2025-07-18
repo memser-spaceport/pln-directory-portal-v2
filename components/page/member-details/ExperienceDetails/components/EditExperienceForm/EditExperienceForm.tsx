@@ -3,7 +3,6 @@ import React, { useEffect, useTransition } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { IMember } from '@/types/members.types';
-import { IUserInfo } from '@/types/shared.types';
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
 import { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { TEditExperienceForm } from '@/components/page/member-details/ExperienceDetails/types';
@@ -19,6 +18,7 @@ import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { editExperienceSchema } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm/helpers';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 interface Props {
   onClose: () => void;
@@ -46,10 +46,14 @@ export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
   const [isOpenDelete, setIsOpenDelete] = React.useState(false);
   const initialState = { success: false, message: '', errorCode: '', errors: {} };
   const [state, formAction] = useFormState(MemberExperienceFormAction, initialState);
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
   const { onSaveExperienceDetailsClicked, onDeleteExperienceDetailsClicked } = useMemberAnalytics();
 
   const onSubmit = (formData: TEditExperienceForm) => {
+    if (isPending) {
+      return;
+    }
+
     onSaveExperienceDetailsClicked();
     const _formData = new FormData();
     _formData.append('actionType', 'save');
@@ -72,6 +76,10 @@ export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
   };
 
   const onDelete = () => {
+    if (isPending) {
+      return;
+    }
+
     onDeleteExperienceDetailsClicked();
     if (!initialData) {
       return;
@@ -100,10 +108,10 @@ export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
         <EditFormControls onClose={onClose} title={isNew ? 'Add Experience' : 'Edit Experience'} />
         <div className={s.body}>
           <div className={s.row}>
-            <FormField name="title" label="Role*" placeholder="Enter role" />
+            <FormField name="title" label="Role" isRequired placeholder="Enter role" />
           </div>
           <div className={s.row}>
-            <FormField name="company" label="Team or Organization*" placeholder="Enter team or organization" />
+            <FormField name="company" label="Team or Organization" isRequired placeholder="Enter team or organization" />
           </div>
           <div className={s.row}>
             <ExperienceDescriptionInput />
@@ -131,6 +139,7 @@ export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
             </>
           )}
         </div>
+        <EditFormMobileControls />
       </form>
     </FormProvider>
   );

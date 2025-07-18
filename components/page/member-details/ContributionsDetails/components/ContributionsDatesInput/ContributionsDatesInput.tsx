@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
@@ -11,12 +11,19 @@ export const ContributionsDatesInput = () => {
   const {
     watch,
     setValue,
-    formState: { errors },
+    trigger,
+    formState: { errors, dirtyFields, touchedFields },
   } = useFormContext<TEditContributionsForm>();
   const { startDate, endDate, isCurrent } = watch();
 
   const error0 = errors.startDate;
   const error1 = errors.endDate;
+
+  useEffect(() => {
+    if (dirtyFields.isCurrent && errors.endDate) {
+      trigger();
+    }
+  }, [isCurrent, trigger, dirtyFields.isCurrent, errors.endDate]);
 
   return (
     <div className={s.root}>
@@ -35,6 +42,7 @@ export const ContributionsDatesInput = () => {
           }}
         />
         <MonthYearSelect
+          isRequired={!isCurrent}
           error={error1?.message}
           label="End Date"
           value={endDate}

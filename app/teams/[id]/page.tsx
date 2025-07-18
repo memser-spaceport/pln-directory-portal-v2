@@ -227,12 +227,14 @@ async function getPageData(teamId: string) {
       }
     }
     teamProjectList = [...maintainingProjects, ...contributingProjects];
-    teamProjectList = teamProjectList?.map((project: any) => {
-      return {
-        ...project,
-        hasEditAccess: hasProjectEditAccess(userInfo, project, isLoggedIn, memberTeams),
-      };
-    });
+    teamProjectList = teamProjectList
+      ?.filter((project) => !project.isDeleted)
+      .map((project: any) => {
+        return {
+          ...project,
+          hasEditAccess: hasProjectEditAccess(userInfo, project, isLoggedIn, memberTeams),
+        };
+      });
     if (userInfo?.roles && userInfo?.roles?.length && userInfo?.roles?.includes(ADMIN_ROLE) && authToken) {
       hasProjectsEditAccess = true;
     }

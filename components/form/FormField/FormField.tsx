@@ -4,6 +4,7 @@ import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
 
 import s from './FormField.module.scss';
+import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 interface Props extends PropsWithChildren {
   name: string;
@@ -19,6 +20,8 @@ export const FormField = ({ name, placeholder, label, description, disabled, chi
     register,
     formState: { errors },
   } = useFormContext();
+
+  useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 
   return (
     <Field.Root className={s.field}>
@@ -37,7 +40,7 @@ export const FormField = ({ name, placeholder, label, description, disabled, chi
         })}
       >
         <div className={s.inputContent}>
-          <Field.Control {...register(name)} disabled={disabled} placeholder={placeholder} className={s.inputElement} />
+          <Field.Control {...register(name)} disabled={disabled} placeholder={placeholder} className={s.inputElement} id={name} />
         </div>
         {children}
       </div>

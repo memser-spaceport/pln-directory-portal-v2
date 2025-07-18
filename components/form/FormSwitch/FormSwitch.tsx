@@ -2,19 +2,25 @@ import React from 'react';
 import { Switch } from '@base-ui-components/react/switch';
 import { useFormContext } from 'react-hook-form';
 import s from './FormSwitch.module.scss';
+import { clsx } from 'clsx';
 
 interface Props {
   name: string;
   label?: string;
+  variant?: 'primary' | 'secondary';
 }
 
-export const FormSwitch = ({ name, label }: Props) => {
+export const FormSwitch = ({ name, label, variant = 'primary' }: Props) => {
   const { watch, setValue } = useFormContext();
   const values = watch();
   const val = values[name];
 
   return (
-    <label className={s.Label}>
+    <label
+      className={clsx(s.Label, {
+        [s.secondary]: variant === 'secondary',
+      })}
+    >
       {label}
       <Switch.Root defaultChecked className={s.Switch} checked={val} onCheckedChange={() => setValue(name, !val, { shouldValidate: true, shouldDirty: true })}>
         <CloseIcon />
@@ -40,7 +46,7 @@ const CloseIcon = () => (
     <path
       d="M6.51627 5.98499C6.58672 6.05543 6.6263 6.15098 6.6263 6.25061C6.6263 6.35024 6.58672 6.44579 6.51627 6.51624C6.44583 6.58668 6.35028 6.62626 6.25065 6.62626C6.15102 6.62626 6.05547 6.58668 5.98502 6.51624L4.00096 4.53155L2.01628 6.51561C1.94583 6.58606 1.85028 6.62564 1.75065 6.62564C1.65102 6.62564 1.55547 6.58606 1.48503 6.51561C1.41458 6.44516 1.375 6.34962 1.375 6.24999C1.375 6.15036 1.41458 6.05481 1.48503 5.98436L3.46971 4.0003L1.48565 2.01561C1.4152 1.94516 1.37563 1.84962 1.37563 1.74999C1.37563 1.65036 1.4152 1.55481 1.48565 1.48436C1.5561 1.41391 1.65165 1.37434 1.75128 1.37434C1.8509 1.37434 1.94645 1.41391 2.0169 1.48436L4.00096 3.46905L5.98565 1.48405C6.0561 1.4136 6.15165 1.37402 6.25127 1.37402C6.3509 1.37402 6.44645 1.4136 6.5169 1.48405C6.58735 1.5545 6.62692 1.65005 6.62692 1.74967C6.62692 1.8493 6.58735 1.94485 6.5169 2.0153L4.53221 4.0003L6.51627 5.98499Z"
       fill="white"
-      fill-opacity="0.32"
+      fillOpacity="0.32"
     />
   </svg>
 );

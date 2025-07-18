@@ -61,7 +61,7 @@
 .expItem {
   display: flex;
   padding: 16px 32px 16px 16px;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   align-self: stretch;
 
@@ -102,7 +102,8 @@
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .editBtn {

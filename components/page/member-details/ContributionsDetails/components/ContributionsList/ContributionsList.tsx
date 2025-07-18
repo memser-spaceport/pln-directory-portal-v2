@@ -17,7 +17,7 @@ interface Props {
 }
 
 export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) => {
-  const allContributions = member?.projectContributions ?? [];
+  const allContributions = (member?.projectContributions ?? []).filter((item) => !item.project.isDeleted);
   const presentContributions = [...allContributions].filter((v) => v.endDate === null).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
   const pastContributions = [...allContributions].filter((v) => v.endDate !== null).sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   const data = [...presentContributions, ...pastContributions];
@@ -36,6 +36,7 @@ export const ContributionsList = ({ isEditable, onAdd, onEdit, member }: Props) 
               <div className={s.details}>
                 <div className={s.row}>
                   <div className={s.primaryLabel}>{item.project.name}</div>
+                  {item.currentProject && <div className={s.currentProjectBadge}>Current project</div>}
                 </div>
                 <div className={s.row}>
                   <div className={s.secondaryLabel}>{item.role}</div>

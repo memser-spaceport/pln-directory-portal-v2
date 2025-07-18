@@ -35,10 +35,18 @@ export const ExperiencesList = ({ isEditable, onAdd, onEdit, member }: Props) =>
               <div className={s.details}>
                 <div className={s.row}>
                   <div className={s.primaryLabel}>{item.title}</div>
-                  <Separator orientation="vertical" className={s.Separator} />
-                  <div className={s.primaryLabel}>{item.company}</div>
-                  <Separator orientation="vertical" className={s.Separator} />
-                  <div className={s.primaryLabel}>{item.location}</div>
+                  {item.company && (
+                    <>
+                      <Separator orientation="vertical" className={s.Separator} />
+                      <div className={s.primaryLabel}>{item.company}</div>
+                    </>
+                  )}
+                  {item.location && (
+                    <>
+                      <Separator orientation="vertical" className={s.Separator} />
+                      <div className={s.primaryLabel}>{item.location}</div>
+                    </>
+                  )}
                 </div>
                 <div className={s.row}>
                   <div className={s.secondaryLabel}>

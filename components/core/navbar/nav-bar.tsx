@@ -16,6 +16,8 @@ import { useGetAppNotifications } from '@/services/notifications/hooks/useGetApp
 import { HelpMenu } from '@/components/core/navbar/components/HelpMenu/HelpMenu';
 import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfileStatus';
 import { Signup } from './components/Signup';
+import { NotificationsQueryKeys } from '@/services/notifications/constants';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -31,6 +33,7 @@ export default function Navbar(props: Readonly<INavbar>) {
   const authToken = props?.authToken;
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMobileDrawerOpen, setIsMobilDrawerOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
@@ -48,14 +51,16 @@ export default function Navbar(props: Readonly<INavbar>) {
     analytics.onAppLogoClicked();
   };
 
-  const { data: notifications, refetch } = useGetAppNotifications(userInfo.uid, authToken);
+  const { data: notifications } = useGetAppNotifications(userInfo.uid, authToken);
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
   useEffect(() => {
     function getAllNotifications(status: boolean) {
       if (isLoggedIn && status) {
-        refetch();
+        queryClient.invalidateQueries({
+          queryKey: [NotificationsQueryKeys.GET_ALL_NOTIFICATIONS],
+        });
       }
     }
 
@@ -64,7 +69,7 @@ export default function Navbar(props: Readonly<INavbar>) {
     return function () {
       document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
     };
-  }, [isLoggedIn, refetch]);
+  }, [isLoggedIn, queryClient]);
 
   return (
     <>

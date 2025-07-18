@@ -24,6 +24,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from 'react-toastify';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 interface Props {
   onClose: () => void;
@@ -45,8 +46,8 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
       city: member.location?.city || '',
       skills:
         member.skills.map((item) => ({
-          id: item.uid,
-          name: item.title,
+          value: item.uid,
+          label: item.title,
         })) ?? [],
       openToCollaborate: member.openToWork,
     },
@@ -117,7 +118,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
         <div className={s.body}>
           <div className={s.row}>
             <ProfileImageInput member={member} />
-            <FormField name="name" label="Name*" placeholder="Text" />
+            <FormField name="name" label="Name" isRequired placeholder="Text" />
           </div>
           <div className={s.row}>
             <ProfileBioInput generateBio={generateBio} />
@@ -132,6 +133,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
             <ProfileCollaborateInput />
           </div>
         </div>
+        <EditFormMobileControls />
       </form>
     </FormProvider>
   );
@@ -160,8 +162,8 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
       ...omit(contribution, 'projectName'),
     })),
     skills: formData.skills?.map((skill: any) => ({
-      title: skill.name,
-      uid: skill.id,
+      title: skill.label,
+      uid: skill.value,
     })),
     bio: formData.bio,
   };

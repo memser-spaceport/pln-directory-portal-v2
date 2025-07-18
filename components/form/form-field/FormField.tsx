@@ -9,6 +9,7 @@ interface Props extends PropsWithChildren {
   footerComponent?: ReactNode;
 }
 
+// DEPRECATED
 export const FormField: FC<Props> = ({ name, children, footerComponent, label }) => {
   return (
     <div className={s.root}>

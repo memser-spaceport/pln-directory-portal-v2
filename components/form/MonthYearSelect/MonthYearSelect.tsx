@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Select from 'react-select';
 import s from './MonthYearSelect.module.scss';
 import clsx from 'clsx';
+import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 const getYearOptions = (start: number, end: number) =>
   Array.from({ length: end - start + 1 }, (_, i) => {
@@ -32,9 +33,10 @@ interface Props {
   label: string;
   disabled?: boolean;
   error?: string | undefined;
+  isRequired?: boolean;
 }
 
-export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Props) => {
+export const MonthYearSelect = ({ label, value, onChange, disabled, error, isRequired }: Props) => {
   const [month, setMonth] = useState<{ value: string; label: string } | null>(null);
   const [year, setYear] = useState<{ value: string; label: string } | null>(null);
   const justSynced = useRef(false);
@@ -60,6 +62,8 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
       justSynced.current = false;
     }, 0);
   }, [value]);
+
+  useScrollIntoViewOnFocus<HTMLInputElement>({ id: label });
 
   const emitChange = (newMonth: typeof month, newYear: typeof year) => {
     if (justSynced.current) return;
@@ -87,7 +91,13 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
         [s.disabled]: disabled,
       })}
     >
-      <div className={s.label}>{label}</div>
+      <div
+        className={clsx(s.label, {
+          [s.required]: isRequired,
+        })}
+      >
+        {label}
+      </div>
       <div className={s.body}>
         <Select
           menuPlacement="auto"
@@ -96,6 +106,7 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
           value={month}
           onChange={handleMonthChange}
           isDisabled={disabled}
+          inputId={label}
           styles={{
             container: (base) => ({
               ...base,
@@ -110,17 +121,21 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
               border: '1px solid rgba(203, 213, 225, 0.50)',
               background: '#fff',
               outline: 'none',
-              fontSize: '14px',
               minWidth: '140px',
               width: '100%',
+              borderColor: 'rgba(203, 213, 225, 0.50) !important',
               position: 'relative',
+              fontSize: '16px',
+              color: '#455468',
+              boxShadow: 'none !important',
               '&:hover': {
-                border: '1px solid rgba(66, 125, 255, 0.50)',
-                boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+                border: '1px solid #5E718D',
+                boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
+                borderColor: '#5E718D !important',
               },
               '&:focus-visible, &:focus': {
-                border: '1px solid rgba(203, 213, 225, 0.50)',
-                boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+                borderColor: '#5E718D !important',
+                boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
               },
               ...(error
                 ? {
@@ -137,11 +152,19 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
             option: (baseStyles) => ({
               ...baseStyles,
               fontSize: '14px',
+              fontWeight: 300,
+              color: '#455468',
+              '&:hover': {
+                background: 'rgba(27, 56, 96, 0.12)',
+              },
             }),
             menu: (baseStyles) => ({
               ...baseStyles,
               outline: 'none',
               zIndex: 3,
+            }),
+            indicatorSeparator: (base) => ({
+              display: 'none',
             }),
           }}
         />
@@ -166,17 +189,21 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
               border: '1px solid rgba(203, 213, 225, 0.50)',
               background: '#fff',
               outline: 'none',
-              fontSize: '14px',
               minWidth: '140px',
               width: '100%',
+              borderColor: 'rgba(203, 213, 225, 0.50) !important',
               position: 'relative',
+              fontSize: '16px',
+              color: '#455468',
+              boxShadow: 'none !important',
               '&:hover': {
-                border: '1px solid rgba(66, 125, 255, 0.50)',
-                boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+                border: '1px solid #5E718D',
+                boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
+                borderColor: '#5E718D !important',
               },
               '&:focus-visible, &:focus': {
-                border: '1px solid rgba(203, 213, 225, 0.50)',
-                boxShadow: '0 0 0 4px rgba(21, 111, 247, 0.10)',
+                borderColor: '#5E718D !important',
+                boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
               },
               ...(error
                 ? {
@@ -193,11 +220,19 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error }: Pro
             option: (baseStyles) => ({
               ...baseStyles,
               fontSize: '14px',
+              fontWeight: 300,
+              color: '#455468',
+              '&:hover': {
+                background: 'rgba(27, 56, 96, 0.12)',
+              },
             }),
             menu: (baseStyles) => ({
               ...baseStyles,
               outline: 'none',
               zIndex: 3,
+            }),
+            indicatorSeparator: (base) => ({
+              display: 'none',
             }),
           }}
         />

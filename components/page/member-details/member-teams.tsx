@@ -78,6 +78,7 @@ const MemberTeams = (props: IMemberTeams) => {
           <div className="member-teams__teams-container">
             {itemsToShow?.map((team: any, index: number) => {
               const teamDetails = teams.find((memberTeam) => memberTeam.id === team.id);
+              console.log(team, teamDetails);
               return (
                 <Fragment key={`${team}+${index}`}>
                   <div className={`memberteam ${itemsToShow.length - 1 !== index ? 'memberteam__border-set' : ''}`}>

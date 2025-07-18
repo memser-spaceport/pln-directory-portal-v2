@@ -44,6 +44,19 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
     } else if (member.memberInfo.accessLevel === 'Rejected' && !rejectedRef.current) {
       rejectedRef.current = true;
       handleLogout();
+    } else if (member.memberInfo.name !== userInfo.name) {
+      try {
+        const _userInfo = JSON.parse(userInfoCookie);
+
+        if (_userInfo.uid === member?.memberInfo.uid) {
+          setUserInfoCookie(JSON.stringify({ ..._userInfo, name: member.memberInfo.name }), {
+            domain: process.env.COOKIE_DOMAIN || '',
+          });
+          router.refresh();
+        }
+      } catch (e) {
+        console.error('Failed to parse userInfo cookie: ', e);
+      }
     }
   }, [handleLogout, member, router, setUserInfoCookie, userInfo, userInfoCookie]);
 

@@ -15,8 +15,6 @@ export const ContributionsDatesInput = () => {
   } = useFormContext<TEditContributionsForm>();
   const { startDate, endDate, isCurrent } = watch();
 
-  console.log(errors);
-
   const error0 = errors.startDate;
   const error1 = errors.endDate;
 

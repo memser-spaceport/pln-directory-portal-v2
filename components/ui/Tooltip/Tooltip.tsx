@@ -60,7 +60,7 @@ export default function CustomTooltip({
   return (
     <Tooltip.Provider delay={delay}>
       <Tooltip.Root>
-        <Tooltip.Trigger>{clonedTrigger}</Tooltip.Trigger>
+        <Tooltip.Trigger render={(props) => <div {...props}>{clonedTrigger}</div>} />
         <Tooltip.Portal>
           <Tooltip.Positioner side={side} sideOffset={sideOffset}>
             <Tooltip.Popup className={clsx(styles.Popup, className)}>

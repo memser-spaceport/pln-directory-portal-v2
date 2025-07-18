@@ -23,6 +23,7 @@ import { editContributionsSchema } from '@/components/page/member-details/Contri
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import Link from 'next/link';
+import { toast } from 'react-toastify';
 
 interface Props {
   onClose: () => void;
@@ -59,6 +60,21 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
   const onSubmit = async (formData: TEditContributionsForm) => {
     onSaveContributionDetailsClicked();
     if (!memberData) {
+      return;
+    }
+
+    const hasSame = member.projectContributions.some((contribution: any) => {
+      return (
+        contribution.project.name === formData.name?.label &&
+        contribution.role === formData.role &&
+        contribution.startDate === formData.startDate &&
+        contribution.endDate === formData.endDate &&
+        contribution.currentProject === formData.isCurrent
+      );
+    });
+
+    if (hasSame) {
+      toast.error('Project contribution with selected parameters already exists. Please try again with different parameters.');
       return;
     }
 

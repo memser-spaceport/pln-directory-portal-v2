@@ -20,8 +20,9 @@ import { toast } from 'react-toastify';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { decodeToken } from '@/utils/auth.utils';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
-import { Switch } from '@base-ui-components/react/switch';
 import { clsx } from 'clsx';
+import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
+import { FormSwitch } from '@/components/form/FormSwitch';
 
 interface Props {
   onClose: () => void;
@@ -40,12 +41,13 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
       discord: member.discordHandle,
       twitter: member.twitter,
       email: member.email,
-      shareContacts: true,
+      shareContacts: member.preferences.showEmail,
     },
   });
   const { handleSubmit, reset, setValue, watch } = methods;
   const { shareContacts } = watch();
   const { mutateAsync } = useUpdateMember();
+  const { mutateAsync: updatePreferences } = useUpdateMemberPreferences();
   const { data: memberData } = useMember(member.id);
   const { onSaveContactDetailsClicked } = useMemberAnalytics();
   const analytics = useAuthAnalytics();
@@ -57,12 +59,36 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
       return;
     }
 
+    const preferencesPayload = {
+      discord: formData.shareContacts,
+      email: formData.shareContacts,
+      github: formData.shareContacts,
+      githubProjects: formData.shareContacts,
+      linkedin: formData.shareContacts,
+      showDiscord: formData.shareContacts,
+      showEmail: formData.shareContacts,
+      showGithub: formData.shareContacts,
+      showGithubHandle: formData.shareContacts,
+      showGithubProjects: formData.shareContacts,
+      showLinkedin: formData.shareContacts,
+      showTelegram: formData.shareContacts,
+      showTwitter: formData.shareContacts,
+      telegram: formData.shareContacts,
+      twitter: formData.shareContacts,
+    };
+
     const payload = {
       participantType: 'MEMBER',
       referenceUid: member.id,
       uniqueIdentifier: member.email,
       newData: formatPayload(memberData.memberInfo, formData),
     };
+
+    const prefRes = await updatePreferences({ uid: memberData.memberInfo.uid, payload: preferencesPayload });
+
+    if (prefRes.isError) {
+      return;
+    }
 
     const res = await mutateAsync({
       uid: memberData.memberInfo.uid,
@@ -181,11 +207,9 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
           <div className={clsx(s.row, s.center)}>
             <div className={s.switchLabelWrapper}>
               <div className={s.switchLabel}>Show contact details to PL network members</div>
-              <div className={s.switchDesc}>Show contact details to PL network members</div>
+              <div className={s.switchDesc}>Contact details are never displayed publicly.</div>
             </div>
-            <Switch.Root defaultChecked className={s.Switch} checked={shareContacts} onCheckedChange={() => setValue('shareContacts', !shareContacts, { shouldValidate: true, shouldDirty: true })}>
-              <Switch.Thumb className={s.Thumb} />
-            </Switch.Root>
+            <FormSwitch name="shareContacts" variant="secondary" />
           </div>
           <div className={s.separator} />
           <div className={s.row}>

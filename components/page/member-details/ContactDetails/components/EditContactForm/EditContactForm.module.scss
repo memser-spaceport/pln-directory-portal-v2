@@ -131,6 +131,11 @@
   flex-direction: column;
   width: 100%;
   padding-block: 12px;
+  flex: 1;
+}
+
+.switchLabelWrapper + label {
+  width: unset !important;
 }
 
 .switchLabel {

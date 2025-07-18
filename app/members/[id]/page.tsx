@@ -96,6 +96,8 @@ const getpageData = async (memberId: string) => {
     member = memberResponse?.data?.formattedData;
     teams = memberTeamsResponse?.data?.formattedData;
 
+    console.log(member);
+
     const officeHoursFlag = !!member['officeHours'];
 
     if (!isLoggedIn && member['officeHours']) {

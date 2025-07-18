@@ -41,11 +41,10 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
       discord: member.discordHandle,
       twitter: member.twitter,
       email: member.email,
-      shareContacts: member.preferences.showEmail,
+      shareContacts: member.preferences?.showEmail,
     },
   });
-  const { handleSubmit, reset, setValue, watch } = methods;
-  const { shareContacts } = watch();
+  const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();
   const { mutateAsync: updatePreferences } = useUpdateMemberPreferences();
   const { data: memberData } = useMember(member.id);

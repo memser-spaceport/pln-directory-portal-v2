@@ -44,12 +44,12 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
     } else if (member.memberInfo.accessLevel === 'Rejected' && !rejectedRef.current) {
       rejectedRef.current = true;
       handleLogout();
-    } else if (member.memberInfo.name !== userInfo.name) {
+    } else if (member.memberInfo.name !== userInfo.name || member.memberInfo.imageUrl !== userInfo.profileImageUrl) {
       try {
         const _userInfo = JSON.parse(userInfoCookie);
 
         if (_userInfo.uid === member?.memberInfo.uid) {
-          setUserInfoCookie(JSON.stringify({ ..._userInfo, name: member.memberInfo.name }), {
+          setUserInfoCookie(JSON.stringify({ ..._userInfo, name: member.memberInfo.name, profileImageUrl: member.memberInfo.imageUrl }), {
             domain: process.env.COOKIE_DOMAIN || '',
           });
           router.refresh();

@@ -25,7 +25,13 @@ export const ProfileImageInput = ({ member }: Props) => {
     onDropRejected: (e) => {
       if (e?.length) {
         const el = e[0];
-        toast.error(el.errors.map((item) => item.message).join(', '));
+        el.errors.forEach((item) => {
+          if (item.code === 'file-too-large') {
+            toast.error('File is larger than 4Mb');
+          }
+
+          toast.error(item.message);
+        });
       }
     },
     onDrop: (acceptedFiles) => {

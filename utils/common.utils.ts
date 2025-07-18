@@ -85,7 +85,7 @@ export function generateUUID(): string {
 export const getParsedValue = (value: string | undefined) => {
   try {
     if (value) {
-      return JSON.parse(value);
+      return JSON.parse(decodeURIComponent(value));
     }
     return '';
   } catch (error) {

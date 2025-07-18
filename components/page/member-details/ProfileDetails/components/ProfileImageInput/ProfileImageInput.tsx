@@ -7,6 +7,7 @@ import Image from 'next/image';
 
 import s from './ProfileImageInput.module.scss';
 import { IMember } from '@/types/members.types';
+import { toast } from 'react-toastify';
 
 interface Props {
   member: IMember;
@@ -20,6 +21,12 @@ export const ProfileImageInput = ({ member }: Props) => {
   const { getInputProps, getRootProps } = useDropzone({
     onError: (err) => {
       console.log(err);
+    },
+    onDropRejected: (e) => {
+      if (e?.length) {
+        const el = e[0];
+        toast.error(el.errors.map((item) => item.message).join(', '));
+      }
     },
     onDrop: (acceptedFiles) => {
       console.log(acceptedFiles);

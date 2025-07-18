@@ -28,6 +28,7 @@ export const ProfileImageInput = ({ member }: Props) => {
         el.errors.forEach((item) => {
           if (item.code === 'file-too-large') {
             toast.error('File is larger than 4Mb');
+            return;
           }
 
           toast.error(item.message);

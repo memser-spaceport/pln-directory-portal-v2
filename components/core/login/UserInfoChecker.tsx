@@ -28,8 +28,6 @@ export const UserInfoChecker = ({ userInfo }: { userInfo: IUserInfo }) => {
       return;
     }
 
-    console.log(member.memberInfo, userInfo);
-
     if (member.memberInfo.accessLevel !== userInfo.accessLevel) {
       try {
         const _userInfo = JSON.parse(userInfoCookie);

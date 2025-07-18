@@ -50,7 +50,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
             </button>
           </div>
           <div className={s.mobileSearchWrapper}>
-            <Input className={s.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <Input autoFocus className={s.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             <SearchIcon />
           </div>
           <div className={s.mobileOptions}>
@@ -92,7 +92,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
           value={value}
           defaultValue={value}
           onChange={(val) => setValue(name, val, { shouldValidate: true, shouldDirty: true })}
-          isDisabled={disabled}
+          isDisabled={disabled || open}
           inputId={name}
           onMenuOpen={() => {
             if (!isMobile) {

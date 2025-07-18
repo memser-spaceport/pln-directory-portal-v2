@@ -8,6 +8,7 @@ import Select from 'react-select';
 import s from './FormSelect.module.scss';
 import { clsx } from 'clsx';
 import { useMedia, useToggle } from 'react-use';
+import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 interface Props {
   name: string;
@@ -33,6 +34,8 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
   const [open, toggleOpen] = useToggle(false);
   const isMobile = useMedia('(max-width: 960px)', false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 
   return (
     <>
@@ -90,6 +93,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
           defaultValue={value}
           onChange={(val) => setValue(name, val, { shouldValidate: true, shouldDirty: true })}
           isDisabled={disabled || open}
+          inputId={name}
           onMenuOpen={() => {
             if (!isMobile) {
               return;

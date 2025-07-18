@@ -8,6 +8,7 @@ import s from './FormMultiSelect.module.scss';
 import { clsx } from 'clsx';
 import { TRecommendationsSettingsForm } from '@/components/page/recommendations/components/RecommendationsSettingsForm/types';
 import { useToggle } from 'react-use';
+import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 interface Props {
   name: string;
@@ -27,7 +28,6 @@ const filterAndSort = (option: { value: string; label: string }, input: string) 
 
 export const FormMultiSelect = ({ name, placeholder, label, description, options, disabled, isRequired }: Props) => {
   const {
-    watch,
     formState: { errors },
     setValue,
     getValues,
@@ -39,6 +39,8 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
 
   // Sort filtered options by label dynamically
   const sortedOptions = [...options].filter((option) => filterAndSort(option, inputValue)).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
+
+  useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 
   return (
     <Field.Root className={s.field}>
@@ -61,6 +63,7 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
         filterOption={() => true}
         isClearable={false}
         placeholder={placeholder}
+        inputId={name}
         // @ts-ignore
         value={val}
         onChange={(val) => {

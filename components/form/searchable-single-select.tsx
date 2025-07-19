@@ -268,21 +268,31 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           }
           .select__search {
             padding: 12px;
-            padding-right: 22px;
+            padding-right: 28px;
             min-height: 40px;
             width: 100%;
             font-size: 14px;
             font-weight: 400;
             border-radius: 8px;
             border: 1px solid ${isError ? 'red' : 'lightgrey'};
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
 
           .hasDefaultImg {
-            padding: 12px 12px 12px 36px;
+            padding: 12px 24px 12px 36px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
 
           .select__icon {
             padding-left: 42px;
+            padding-right: 28px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .select__search:focus-visible,
           .select__search:focus {

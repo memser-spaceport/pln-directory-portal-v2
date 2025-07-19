@@ -268,7 +268,7 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           }
           .select__search {
             padding: 12px;
-            padding-right: 22px;
+            padding-right: 32px;
             min-height: 40px;
             width: 100%;
             font-size: 14px;
@@ -278,11 +278,12 @@ const SearchableSingleSelect: React.FC<SearchableSingleSelectProps> = ({
           }
 
           .hasDefaultImg {
-            padding: 12px 12px 12px 36px;
+            padding: 12px 32px 12px 36px;
           }
 
           .select__icon {
             padding-left: 42px;
+            padding-right: 32px;
           }
           .select__search:focus-visible,
           .select__search:focus {

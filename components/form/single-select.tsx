@@ -142,7 +142,7 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
           }
           .select__search {
             padding: 8px 12px;
-            padding-right: 22px;
+            padding-right: 32px;
             min-height: 40px;
             width: 100%;
             font-size: 14px;

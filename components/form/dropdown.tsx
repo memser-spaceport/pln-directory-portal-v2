@@ -145,7 +145,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 
           .select__search {
             padding: 10px 12px;
-            padding-right: 22px;
+            padding-right: 32px;
             min-height: 40px;
             width: 100%;
             font-size: 14px;

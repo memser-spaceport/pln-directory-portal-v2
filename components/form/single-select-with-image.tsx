@@ -158,7 +158,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
           }
           .select__search {
             padding: 12px 12px 12px 36px;
-            padding-right: 22px;
+            padding-right: 32px;
             min-height: 40px;
             width: 100%;
             font-size: 14px;
@@ -174,6 +174,7 @@ const SingleSelectWithImage: React.FC<SingleSelectWithImageProps> = ({
 
           .select__icon {
             padding-left: 40px;
+            padding-right: 32px;
           }
 
           .select__options {

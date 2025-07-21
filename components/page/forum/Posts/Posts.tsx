@@ -1,63 +1,41 @@
-import React from 'react';
-import { ScrollArea } from '@base-ui-components/react/scroll-area';
+import React, { useMemo } from 'react';
 import { Avatar } from '@base-ui-components/react/avatar';
 
 import s from './Posts.module.scss';
 import Link from 'next/link';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { EmptyPostsList } from '@/components/page/forum/EmptyPostsList';
+import { useForumPosts } from '@/services/forum/hooks/useForumPosts';
+import { formatDistanceToNow } from 'date-fns';
 
 interface Props {
-  activeTopic: string;
+  cid: string;
 }
 
-export const Posts = ({ activeTopic }: Props) => {
-  const posts = [
-    {
-      id: 1,
-      title: 'How we reduced retrieval latency in a decentralized data pipeline by 45%',
-      desc: 'We recently ran a benchmark sprint to optimize our retrieval layer on a distributed archive',
-      image: '',
-      author: 'John Smith',
-      position: 'Developer @Aave',
-      time: '3 days ago',
-      meta: {
-        views: 123,
-        likes: 43,
-        comments: 23,
-      },
-    },
-    {
-      id: 2,
-      title: 'How we reduced retrieval latency in a decentralized data pipeline by 45%',
-      desc: 'We recently ran a benchmark sprint to optimize our retrieval layer on a distributed archive',
-      image: '',
-      author: 'John Smith',
-      position: 'Developer @Aave',
-      time: '3 days ago',
-      meta: {
-        views: 123,
-        likes: 43,
-        comments: 23,
-      },
-    },
-    {
-      id: 3,
-      title: 'How we reduced retrieval latency in a decentralized data pipeline by 45%',
-      desc: 'We recently ran a benchmark sprint to optimize our retrieval layer on a distributed archive',
-      image: '',
-      author: 'John Smith',
-      position: 'Developer @Aave',
-      time: '3 days ago',
-      meta: {
-        views: 123,
-        likes: 43,
-        comments: 23,
-      },
-    },
-  ];
+export const Posts = ({ cid }: Props) => {
+  const { data } = useForumPosts(cid);
 
-  if (1) {
+  const posts = useMemo(() => {
+    if (!data) return [];
+
+    return data.map((item) => ({
+      tid: item.tid,
+      cid: item.cid,
+      title: item.title,
+      desc: item.teaser?.content,
+      image: item.user?.picture,
+      author: item.user.displayname,
+      position: 'Developer @Aave',
+      time: formatDistanceToNow(new Date(item.lastposttime), { addSuffix: true }),
+      meta: {
+        views: 123,
+        likes: 43,
+        comments: 23,
+      },
+    }));
+  }, [data]);
+
+  if (!posts.length) {
     return (
       <div className={s.root}>
         <EmptyPostsList />
@@ -68,11 +46,11 @@ export const Posts = ({ activeTopic }: Props) => {
   return (
     <div className={s.root}>
       {posts.map((post) => (
-        <div className={s.listItem} key={post.id}>
+        <div className={s.listItem} key={post.tid}>
           <div className={s.title}>{post.title}</div>
           <div className={s.desc}>
             {post.desc}...{' '}
-            <Link className={s.link} href={`/forum/posts/${post.id}`}>
+            <Link className={s.link} href={`/forum/categories/${post.cid}/${post.tid}`}>
               Read more
             </Link>
           </div>

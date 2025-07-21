@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react';
 import { Tabs } from '@base-ui-components/react/tabs';
 
-import s from './PostsTopics.module.scss';
-import { useForumTopics } from '@/services/forum/hooks/useForumTopics';
+import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
+import s from './CategoriesTabs.module.scss';
 
 interface Props {
   value: string | undefined;
   onValueChange: (value: string, event?: Event) => void;
 }
 
-export const PostsTopics = ({ value, onValueChange }: Props) => {
-  const { data } = useForumTopics();
+export const CategoriesTabs = ({ value, onValueChange }: Props) => {
+  const { data } = useForumCategories();
   const tabs = useMemo(() => {
     return (
       data?.map((item) => ({
@@ -22,7 +22,7 @@ export const PostsTopics = ({ value, onValueChange }: Props) => {
 
   return (
     <div className={s.root}>
-      <Tabs.Root className={s.Tabs} value={value || '0'} onValueChange={onValueChange}>
+      <Tabs.Root className={s.Tabs} value={value || '1'} onValueChange={onValueChange}>
         <Tabs.List className={s.List}>
           {tabs.map((item) => (
             <Tabs.Tab className={s.Tab} value={item.value} key={item.value}>

@@ -1,9 +1,9 @@
 import React from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
+import { Feed } from '@/components/page/forum/Feed';
 
 import s from './page.module.scss';
-import { PostsList } from '@/components/page/forum/PostsList';
 
 const ForumPage = async () => {
   const { isLoggedIn } = getCookiesFromHeaders();
@@ -18,7 +18,7 @@ const ForumPage = async () => {
 
   return (
     <div className={s.root}>
-      <PostsList />
+      <Feed />
     </div>
   );
 };

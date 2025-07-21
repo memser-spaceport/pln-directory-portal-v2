@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import s from './CreatePost.module.scss';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
-import { useForumTopics } from '@/services/forum/hooks/useForumTopics';
+import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor';
 
@@ -20,7 +20,7 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
   const [open, toggleOpen] = useToggle(false);
   useLockBodyScroll(open);
 
-  const { data: topics } = useForumTopics();
+  const { data: topics } = useForumCategories();
   const topicsOptions = useMemo(() => {
     return (
       topics?.map((topic) => ({

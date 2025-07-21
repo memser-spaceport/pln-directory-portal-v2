@@ -5,6 +5,7 @@ import { Avatar } from '@base-ui-components/react/avatar';
 import s from './Posts.module.scss';
 import Link from 'next/link';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { EmptyPostsList } from '@/components/page/forum/EmptyPostsList';
 
 interface Props {
   activeTopic: string;
@@ -55,6 +56,14 @@ export const Posts = ({ activeTopic }: Props) => {
       },
     },
   ];
+
+  if (1) {
+    return (
+      <div className={s.root}>
+        <EmptyPostsList />
+      </div>
+    );
+  }
 
   return (
     <div className={s.root}>

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { PropsWithChildren, ReactNode, useMemo } from 'react';
 
 import { useLockBodyScroll, useToggle } from 'react-use';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -16,7 +16,7 @@ const fade = {
   exit: { opacity: 0 },
 };
 
-export const CreatePost = () => {
+export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () => void) => ReactNode }) => {
   const [open, toggleOpen] = useToggle(false);
   useLockBodyScroll(open);
 
@@ -46,9 +46,14 @@ export const CreatePost = () => {
 
   return (
     <>
-      <button className={s.triggerButton} onClick={toggleOpen}>
-        Create post <PlusIcon />
-      </button>
+      {renderChildren ? (
+        renderChildren(toggleOpen)
+      ) : (
+        <button className={s.triggerButton} onClick={toggleOpen}>
+          Create post <PlusIcon />
+        </button>
+      )}
+
       <AnimatePresence>
         {open && (
           <motion.div className="modal" initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.3 }} style={{ zIndex: 5, position: 'absolute' }}>

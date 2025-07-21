@@ -78,6 +78,9 @@ export const useIrlAnalytics = () => {
     IRL_SUBMIT_FORM_CLICKED: 'irl-submit-form-clicked',
     IRL_MANAGE_EVENTS_CLICKED: 'irl-manage-events-clicked',
     IRL_VIEW_PL_EVENTS_CLICKED: 'irl-view-pl-events-clicked',
+    IRL_EVENT_DELETE_CLICKED: 'irl-event-delete-clicked',
+    IRL_EVENT_DELETE_CONFIRMED: 'irl-event-delete-confirmed',
+    IRL_EVENT_DELETE_CANCELLED: 'irl-event-delete-cancelled',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -569,6 +572,36 @@ export const useIrlAnalytics = () => {
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_VIEW_PL_EVENTS_CLICKED);
   }
 
+  function trackEventDeleteClicked(event: any) {
+    const params = {
+      eventUid: event?.uid,
+      eventName: event?.name,
+      eventLocation: event?.location,
+      eventType: event?.type,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_EVENT_DELETE_CLICKED, { ...params });
+  }
+
+  function trackEventDeleteConfirmed(event: any) {
+    const params = {
+      eventUid: event?.uid,
+      eventName: event?.name,
+      eventLocation: event?.location,
+      eventType: event?.type,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_EVENT_DELETE_CONFIRMED, { ...params });
+  }
+
+  function trackEventDeleteCancelled(event: any) {
+    const params = {
+      eventUid: event?.uid,
+      eventName: event?.name,
+      eventLocation: event?.location,
+      eventType: event?.type,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_EVENT_DELETE_CANCELLED, { ...params });
+  }
+
   return {
     trackImGoingBtnClick,
     trackLoginToRespondBtnClick,
@@ -631,6 +664,9 @@ export const useIrlAnalytics = () => {
     trackAllEventsDropdownClicked,
     trackPastEventsDropdownClicked,
     trackUpcomingEventsDropdownClicked,
-    trackViewPLEventsClick
+    trackViewPLEventsClick,
+    trackEventDeleteClicked,
+    trackEventDeleteConfirmed,
+    trackEventDeleteCancelled
   };
 };

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Posts } from '@/components/page/forum/Posts';
 
 import s from './PostsList.module.scss';
+import { CreatePost } from '@/components/page/forum/CreatePost';
 
 export const PostsList = () => {
   const router = useRouter();
@@ -23,6 +24,7 @@ export const PostsList = () => {
     <div className={s.root}>
       <PostsTopics onValueChange={onValueChange} value={topic} />
       <Posts activeTopic={topic} />
+      <CreatePost />
     </div>
   );
 };

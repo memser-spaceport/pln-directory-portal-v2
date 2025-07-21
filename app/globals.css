@@ -53,6 +53,8 @@ body {
   /*height: auto !important;*/
   /*overflow: initial !important;*/
   overscroll-behavior: none;
+  scrollbar-gutter: stable;
+  scrollbar-track-color: #fff;
 }
 
 .layout__header {
@@ -61,7 +63,7 @@ body {
   position: sticky;
   top: 0;
   background-color: white;
-  z-index: 6;
+  z-index: 5;
 }
 
 .layout__main {

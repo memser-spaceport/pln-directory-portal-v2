@@ -13,12 +13,13 @@ interface Props {
   className?: string;
   errorMessage?: string;
   id?: string;
+  disabled?: boolean;
 }
 
-const RichTextEditor = ({ value, onChange, className, errorMessage, id }: Props) => {
+const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled }: Props) => {
   return (
     <div className={s.root} id={id}>
-      <ReactQuill theme="snow" value={value} onChange={onChange} className={clsx(s.editor, className)} />
+      <ReactQuill theme="snow" value={value} onChange={onChange} className={clsx(s.editor, className)} readOnly={disabled} />
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
     </div>
   );

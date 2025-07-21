@@ -1,47 +1,70 @@
-import React from 'react';
+'use client';
+
+import React, { useMemo } from 'react';
 
 import s from './Post.module.scss';
 import Link from 'next/link';
 import { Avatar } from '@base-ui-components/react/avatar';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { CommentInput } from '@/components/page/forum/CommentInput';
+import { useForumPost } from '@/services/forum/hooks/useForumPost';
+import { useParams } from 'next/navigation';
+import { formatDistanceToNow } from 'date-fns';
+import { PostComments } from '@/components/page/forum/PostComments';
+import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
 
 export const Post = () => {
-  const post = {
-    id: 1,
-    title: 'How we reduced retrieval latency in a decentralized data pipeline by 45%',
-    desc: 'We recently ran a benchmark sprint to optimize our retrieval layer on a distributed archive',
-    image: '',
-    author: 'John Smith',
-    position: 'Developer @Aave',
-    time: '3 days ago',
-    meta: {
-      views: 123,
-      likes: 43,
-      comments: 23,
-    },
-  };
+  const { categoryId, topicId } = useParams();
+  const { data } = useForumPost(topicId as string);
+
+  console.log(data);
+
+  const post = useMemo(() => {
+    if (!data) {
+      return null;
+    }
+    return {
+      category: data.category.name,
+      tid: data.tid,
+      title: data.title,
+      desc: data.posts[0].content,
+      image: '',
+      author: data.author.displayname,
+      position: 'Developer @Aave',
+      time: formatDistanceToNow(new Date(data.timestamp), { addSuffix: true }),
+      meta: {
+        views: data.viewcount,
+        likes: data.votes,
+        comments: data.postcount,
+      },
+    };
+  }, [data]);
+
+  if (!post) {
+    return <PostPageLoader />;
+  }
 
   return (
     <div className={s.root}>
-      <Link href="/forum" className={s.back}>
+      <Link href={`/forum?cid=${categoryId}`} className={s.back}>
         <ChevronLeftIcon /> Back to forum
       </Link>
 
       <div className={s.content}>
-        <div className={s.topicBadge}>General</div>
+        <div className={s.topicBadge}>{post.category}</div>
       </div>
 
-      <h1 className={s.title}>How we reduced retrieval latency in a decentralized data pipeline by 45%</h1>
+      <h1 className={s.title}>{post.title}</h1>
+
       <div className={s.sub}>
         <div className={s.subItem}>
-          <ViewIcon /> 845 Views
+          <ViewIcon /> {post.meta.views} Views
         </div>
         <div className={s.subItem}>
-          <LikeIcon /> 45 Likes
+          <LikeIcon /> {post.meta.likes} Likes
         </div>
         <div className={s.subItem}>
-          <CommentIcon /> 42 Comments
+          <CommentIcon /> {post.meta.comments} Comments
         </div>
       </div>
 
@@ -59,11 +82,16 @@ export const Post = () => {
         </div>
       </div>
 
-      <div className={s.postContent}>
-        We recently ran a benchmark sprint to optimize our retrieval layer on a distributed archive node setup (running on IPFS + Filecoin). After testing a few hypotheses, we added a lightweight
-        retrieval index backed by IPLD selectors + probabilistic prefetching. 45% reduction in average retrieval latency Better performance across nodes in low-connectivity regions Improved sync time
-        in our collaborative ML workflows Full breakdown + benchmark results are in the comments. Curious to hear how others are optimizing retrieval speed across distributed systems.
-      </div>
+      <div
+        className={s.postContent}
+        dangerouslySetInnerHTML={{
+          __html: post.desc,
+        }}
+      />
+
+      <div className={s.divider} />
+
+      <PostComments comments={data?.posts?.slice(1)} />
 
       <CommentInput />
     </div>
@@ -72,7 +100,7 @@ export const Post = () => {
 
 const ChevronLeftIcon = () => (
   <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M11 14.5L5 8.5L11 2.5" stroke="#156FF7" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M11 14.5L5 8.5L11 2.5" stroke="#156FF7" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 

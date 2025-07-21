@@ -4,6 +4,7 @@ import s from './Post.module.scss';
 import Link from 'next/link';
 import { Avatar } from '@base-ui-components/react/avatar';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { CommentInput } from '@/components/page/forum/CommentInput';
 
 export const Post = () => {
   const post = {
@@ -63,6 +64,8 @@ export const Post = () => {
         retrieval index backed by IPLD selectors + probabilistic prefetching. 45% reduction in average retrieval latency Better performance across nodes in low-connectivity regions Improved sync time
         in our collaborative ML workflows Full breakdown + benchmark results are in the comments. Curious to hear how others are optimizing retrieval speed across distributed systems.
       </div>
+
+      <CommentInput />
     </div>
   );
 };

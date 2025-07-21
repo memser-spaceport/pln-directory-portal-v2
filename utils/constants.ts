@@ -10,6 +10,7 @@ export const PAGE_ROUTES = {
   SIGNUP: '/sign-up',
   HUSKY: '/husky/chat',
   EVENTS: '/events',
+  FORUM: '/forum',
 };
 
 export const NAV_OPTIONS = [
@@ -48,6 +49,12 @@ export const NAV_OPTIONS = [
     url: PAGE_ROUTES.EVENTS,
     selectedLogo: '/icons/nav-calendar--selected.svg',
     unSelectedLogo: '/icons/nav-calendar.svg',
+  },
+  {
+    name: 'Forum',
+    url: PAGE_ROUTES.FORUM,
+    selectedLogo: '/icons/message.svg',
+    unSelectedLogo: '/icons/message.svg',
   },
 ];
 

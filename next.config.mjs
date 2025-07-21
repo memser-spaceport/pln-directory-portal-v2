@@ -28,6 +28,7 @@ const nextConfig = {
     POSTHOG_KEY: process.env.POSTHOG_KEY,
     POSTHOG_HOST: process.env.POSTHOG_HOST,
     DIRECTORY_API_URL: process.env.DIRECTORY_API_URL,
+    FORUM_API_URL: process.env.FORUM_API_URL,
     PROTOSPHERE_URL: process.env.PROTOSPHERE_URL,
     GET_SUPPORT_URL: process.env.GET_SUPPORT_URL,
     PRIVY_AUTH_ID: process.env.PRIVY_AUTH_ID,

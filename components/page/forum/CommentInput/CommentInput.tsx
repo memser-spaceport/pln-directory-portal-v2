@@ -1,31 +1,83 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Input } from '@base-ui-components/react/input';
 
 import s from './CommentInput.module.scss';
 import { Checkbox } from '@base-ui-components/react/checkbox';
+import * as yup from 'yup';
+import { FormProvider, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { usePostComment } from '@/services/forum/hooks/usePostComment';
+import { toast } from 'react-toastify';
+import { FormEditor } from '@/components/form/FormEditor';
 
-export const CommentInput = () => {
-  const [emailMe, setEmailMe] = useState<boolean>(false);
+interface Props {
+  tid: number;
+  toPid: number;
+  replyToName?: string;
+}
+
+const schema = yup.object().shape({
+  comment: yup.string().required('Comment is required'),
+  emailMe: yup.boolean(),
+});
+
+export const CommentInput = ({ tid, toPid, replyToName }: Props) => {
+  const methods = useForm({
+    defaultValues: {
+      comment: '',
+      emailMe: true,
+    },
+    resolver: yupResolver(schema),
+  });
+  const {
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { isSubmitting },
+  } = methods;
+  const { emailMe } = watch();
+
+  const { mutateAsync } = usePostComment();
+
+  const onSubmit = async (data: any) => {
+    try {
+      const res = await mutateAsync({
+        tid,
+        toPid,
+        content: data.comment,
+      });
+
+      if (res?.status?.code === 'ok') {
+        reset();
+      }
+    } catch (e) {
+      // @ts-ignore
+      toast.error(e.message);
+    }
+  };
 
   return (
-    <div className={s.root}>
-      <div className={s.content}>
-        <Input placeholder="Comment" className={s.Input} />
-        <label className={s.Label}>
-          <div className={s.primary}>Email me when someone replies.</div>
-          <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={setEmailMe}>
-            <Checkbox.Indicator className={s.Indicator}>
-              <CheckIcon className={s.Icon} />
-            </Checkbox.Indicator>
-          </Checkbox.Root>
-        </label>
-      </div>
-      <button className={s.submitBtn}>
-        <ArrowUpIcon />
-      </button>
-    </div>
+    <FormProvider {...methods}>
+      <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)}>
+        <div className={s.content}>
+          <FormEditor name="comment" placeholder="Comment" label={replyToName ? `Replying to ${replyToName}` : 'Write your message'} />
+          <label className={s.Label}>
+            <div className={s.primary}>Email me when someone replies.</div>
+            <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
+              <Checkbox.Indicator className={s.Indicator}>
+                <CheckIcon className={s.Icon} />
+              </Checkbox.Indicator>
+            </Checkbox.Root>
+          </label>
+        </div>
+        <button className={s.submitBtn} type="submit" disabled={isSubmitting}>
+          <ArrowUpIcon />
+        </button>
+      </form>
+    </FormProvider>
   );
 };
 

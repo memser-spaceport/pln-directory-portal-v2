@@ -28,6 +28,7 @@ export const ForumHeader = () => {
       <div className={s.inline}>
         <span>Sort by:</span>
         <Select
+          menuPortalTarget={document.body}
           menuPlacement="auto"
           options={sortOptions}
           value={value}
@@ -88,7 +89,7 @@ export const ForumHeader = () => {
             menu: (baseStyles) => ({
               ...baseStyles,
               outline: 'none',
-              zIndex: 5,
+              zIndex: 50,
             }),
             placeholder: (baseStyles) => ({
               ...baseStyles,

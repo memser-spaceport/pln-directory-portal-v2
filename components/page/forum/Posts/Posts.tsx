@@ -61,10 +61,12 @@ export const Posts = ({ cid }: Props) => {
             <div className={s.title}>{post.title}</div>
             <div className={s.desc}>
               {/*{post.thumb ? <img src={`${process.env.FORUM_API_URL}${post.thumb}`} alt="post img" onError={() => null} /> : null}*/}
-              <span dangerouslySetInnerHTML={{ __html: cleanedText ?? '' }} />{' '}
-              <Link className={s.link} href={`/forum/categories/${post.cid}/${post.tid}`}>
-                Read more
-              </Link>
+              <span dangerouslySetInnerHTML={{ __html: cleanedText ?? '' }} />
+              {cleanedText && (
+                <>
+                  <span>...</span> <span className={s.link}>Read more</span>
+                </>
+              )}
             </div>
             <div className={s.footer}>
               <Avatar.Root className={s.Avatar}>

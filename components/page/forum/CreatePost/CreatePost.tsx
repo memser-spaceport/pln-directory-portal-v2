@@ -10,6 +10,10 @@ import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor';
 import Image from 'next/image';
+import { useCreatePost } from '@/services/forum/hooks/useCreatePost';
+import { toast } from 'react-toastify';
+import { createPostSchema } from '@/components/page/forum/CreatePost/helpers';
+import { yupResolver } from '@hookform/resolvers/yup';
 
 const fade = {
   hidden: { opacity: 0 },
@@ -33,16 +37,37 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
 
   const methods = useForm({
     defaultValues: {
-      topic: null,
+      // topic: null,
       title: '',
       content: '',
     },
+    resolver: yupResolver(createPostSchema),
   });
 
-  const { handleSubmit, reset } = methods;
+  const {
+    handleSubmit,
+    reset,
+    formState: { isSubmitting, isDirty },
+  } = methods;
 
-  const onSubmit = (data: any) => {
-    console.log(data);
+  const { mutateAsync } = useCreatePost();
+
+  const onSubmit = async (data: any) => {
+    try {
+      const res = await mutateAsync({
+        cid: data.topic.value,
+        title: data.title,
+        content: data.content,
+      });
+
+      if (res.status.code === 'ok') {
+        toggleOpen(false);
+        reset();
+      }
+    } catch (e) {
+      // @ts-ignore
+      toast.error(e.message);
+    }
   };
 
   return (
@@ -85,7 +110,9 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
                     >
                       Cancel
                     </button>
-                    <button className={s.submitBtn}>Post</button>
+                    <button className={s.submitBtn} disabled={isSubmitting}>
+                      {isSubmitting ? 'Posting...' : 'Post'}
+                    </button>
                   </div>
 
                   <div className={s.content}>

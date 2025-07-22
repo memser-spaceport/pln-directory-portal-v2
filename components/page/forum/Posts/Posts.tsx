@@ -32,9 +32,9 @@ export const Posts = ({ cid }: Props) => {
       position: 'Developer @Aave',
       time: formatDistanceToNow(new Date(item.lastposttime), { addSuffix: true }),
       meta: {
-        views: 123,
-        likes: 43,
-        comments: 23,
+        views: item.viewcount,
+        likes: item.votes,
+        comments: item.postcount - 1,
       },
     }));
   }, [data]);

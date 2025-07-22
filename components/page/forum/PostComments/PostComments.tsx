@@ -23,20 +23,21 @@ export const PostComments = ({ comments, tid, mainPid }: Props) => {
   if (!comments) return null;
 
   const nested = nestComments(comments);
+  const replyToItem = comments.find((item) => item.pid === replyToPid);
 
   return (
     <div className={s.root}>
       <div className={s.title}>Comments ({comments.length})</div>
 
       <div className={s.input}>
-        <CommentsInputDesktop tid={tid} toPid={replyToPid ?? mainPid} />
+        <CommentsInputDesktop tid={tid} toPid={replyToPid ?? mainPid} replyToName={replyToItem?.user.displayname} />
       </div>
 
       <div className={s.list}>
         {nested.map((item) => {
           return (
             <Fragment key={item.pid}>
-              <CommentItem item={item} />
+              <CommentItem item={item} onReply={() => setReplyToPid(item.pid)} />
               {item.replies.length > 0 && (
                 <div className={s.repliesWrapper}>
                   {item.replies.map((reply) => {
@@ -52,8 +53,7 @@ export const PostComments = ({ comments, tid, mainPid }: Props) => {
   );
 };
 
-const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean }) => {
-  console.log(item);
+const CommentItem = ({ item, isReply, onReply }: { item: NestedComment; isReply?: boolean; onReply?: () => void }) => {
   return (
     <div className={s.itemRoot} key={item.pid}>
       <div className={s.footer}>
@@ -84,7 +84,9 @@ const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean
               <CommentIcon /> {item.replies.length} Replies
             </div>
             <div className={s.subItem}>
-              <button className={s.replyBtn}>Reply</button>
+              <button className={s.replyBtn} onClick={onReply}>
+                Reply
+              </button>
             </div>
           </>
         )}

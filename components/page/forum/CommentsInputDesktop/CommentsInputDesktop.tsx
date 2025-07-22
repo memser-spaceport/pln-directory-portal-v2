@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import s from './CommentsInputDesktop.module.scss';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 interface Props {
   tid: number;
   toPid: number;
+  replyToName?: string;
 }
 
 const schema = yup.object().shape({
@@ -19,7 +20,8 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentsInputDesktop = ({ tid, toPid }: Props) => {
+export const CommentsInputDesktop = ({ tid, toPid, replyToName }: Props) => {
+  const ref = useRef<HTMLFormElement | null>(null);
   const methods = useForm({
     defaultValues: {
       comment: '',
@@ -27,7 +29,13 @@ export const CommentsInputDesktop = ({ tid, toPid }: Props) => {
     },
     resolver: yupResolver(schema),
   });
-  const { handleSubmit, reset, watch, setValue } = methods;
+  const {
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { isSubmitting },
+  } = methods;
   const { emailMe } = watch();
 
   const { mutateAsync } = usePostComment();
@@ -49,10 +57,17 @@ export const CommentsInputDesktop = ({ tid, toPid }: Props) => {
     }
   };
 
+  useEffect(() => {
+    if (replyToName && ref.current && toPid) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.querySelector<HTMLInputElement>('.ql-editor')?.focus();
+    }
+  }, [replyToName, toPid]);
+
   return (
     <FormProvider {...methods}>
-      <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)}>
-        <FormEditor name="comment" placeholder="Comment" label="Write your message" />
+      <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)} ref={ref}>
+        <FormEditor name="comment" placeholder="Comment" label={replyToName ? `Replying to ${replyToName}` : 'Write your message'} />
         <label className={s.Label}>
           <div className={s.primary}>Email me when someone replies.</div>
           <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
@@ -66,8 +81,8 @@ export const CommentsInputDesktop = ({ tid, toPid }: Props) => {
           <button type="button" className={s.secondaryBtn} onClick={() => reset()}>
             Cancel
           </button>
-          <button type="submit" className={s.primaryBtn}>
-            Comment
+          <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>
+            {isSubmitting ? 'Processing...' : 'Comment'}
           </button>
         </div>
       </form>

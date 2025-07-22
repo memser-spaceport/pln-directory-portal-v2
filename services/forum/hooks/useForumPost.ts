@@ -63,7 +63,7 @@ export type TopicResponse = {
     uid: number;
     upvoted: boolean;
     upvotes: number;
-    user: { uid: 1; username: 'welcome'; userslug: 'welcome'; reputation: 0; postcount: 13 };
+    user: { uid: 1; username: 'welcome'; userslug: 'welcome'; reputation: 0; postcount: 13; displayname: string };
     votes: 0;
     parent: {
       content: string;

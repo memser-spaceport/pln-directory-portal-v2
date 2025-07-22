@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { PostsLoader } from '@/components/page/forum/Posts/PostsLoader';
 import { extractImagesAndClean } from '../helpers';
 import { clsx } from 'clsx';
+import { decodeHtml } from '@/utils/decode';
 
 interface Props {
   cid: string;
@@ -61,7 +62,7 @@ export const Posts = ({ cid }: Props) => {
             <div className={s.title}>{post.title}</div>
             <div className={s.desc}>
               {/*{post.thumb ? <img src={`${process.env.FORUM_API_URL}${post.thumb}`} alt="post img" onError={() => null} /> : null}*/}
-              <span dangerouslySetInnerHTML={{ __html: cleanedText ?? '' }} />
+              <span dangerouslySetInnerHTML={{ __html: decodeHtml(cleanedText) ?? '' }} />
               {cleanedText && (
                 <>
                   <span>...</span> <span className={s.link}>Read more</span>

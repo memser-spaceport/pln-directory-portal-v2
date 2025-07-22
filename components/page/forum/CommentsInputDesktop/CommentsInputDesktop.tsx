@@ -4,19 +4,49 @@ import s from './CommentsInputDesktop.module.scss';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormEditor } from '@/components/form/FormEditor';
 import { Checkbox } from '@base-ui-components/react/checkbox';
+import { usePostComment } from '@/services/forum/hooks/usePostComment';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { toast } from 'react-toastify';
 
-export const CommentsInputDesktop = () => {
+interface Props {
+  tid: number;
+  toPid: number;
+}
+
+const schema = yup.object().shape({
+  comment: yup.string().required('Comment is required'),
+  emailMe: yup.boolean(),
+});
+
+export const CommentsInputDesktop = ({ tid, toPid }: Props) => {
   const methods = useForm({
     defaultValues: {
       comment: '',
       emailMe: true,
     },
+    resolver: yupResolver(schema),
   });
   const { handleSubmit, reset, watch, setValue } = methods;
   const { emailMe } = watch();
 
-  const onSubmit = (data: any) => {
-    console.log(data);
+  const { mutateAsync } = usePostComment();
+
+  const onSubmit = async (data: any) => {
+    try {
+      const res = await mutateAsync({
+        tid,
+        toPid,
+        content: data.comment,
+      });
+
+      if (res?.status?.code === 'ok') {
+        reset();
+      }
+    } catch (e) {
+      // @ts-ignore
+      toast.error(e.message);
+    }
   };
 
   return (

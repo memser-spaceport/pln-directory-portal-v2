@@ -8,12 +8,18 @@ import { formatDistanceToNow } from 'date-fns';
 import s from './PostComments.module.scss';
 import { CommentsInputDesktop } from '@/components/page/forum/CommentsInputDesktop';
 import { clsx } from 'clsx';
+import { LikesButton } from '@/components/page/forum/LikesButton';
+import { decodeHtml } from '@/utils/decode';
 
 interface Props {
+  tid: number;
+  mainPid: number;
   comments: TopicResponse['posts'] | undefined;
 }
 
-export const PostComments = ({ comments }: Props) => {
+export const PostComments = ({ comments, tid, mainPid }: Props) => {
+  const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
+
   if (!comments) return null;
 
   const nested = nestComments(comments);
@@ -23,19 +29,18 @@ export const PostComments = ({ comments }: Props) => {
       <div className={s.title}>Comments ({comments.length})</div>
 
       <div className={s.input}>
-        <CommentsInputDesktop />
+        <CommentsInputDesktop tid={tid} toPid={replyToPid ?? mainPid} />
       </div>
 
       <div className={s.list}>
         {nested.map((item) => {
-          console.log(item);
           return (
             <Fragment key={item.pid}>
               <CommentItem item={item} />
               {item.replies.length > 0 && (
                 <div className={s.repliesWrapper}>
                   {item.replies.map((reply) => {
-                    return <CommentItem key={reply.pid} item={reply} isReply />;
+                    return <CommentItem key={reply.pid} item={reply as NestedComment} isReply />;
                   })}
                 </div>
               )}
@@ -47,7 +52,8 @@ export const PostComments = ({ comments }: Props) => {
   );
 };
 
-const CommentItem = ({ item, isReply }: { item: TopicResponse['posts'][0]; isReply?: boolean }) => {
+const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean }) => {
+  console.log(item);
   return (
     <div className={s.itemRoot} key={item.pid}>
       <div className={s.footer}>
@@ -67,17 +73,15 @@ const CommentItem = ({ item, isReply }: { item: TopicResponse['posts'][0]; isRep
       <div
         className={s.postContent}
         dangerouslySetInnerHTML={{
-          __html: item.content,
+          __html: decodeHtml(item.content),
         }}
       />
       <div className={s.sub}>
-        <div className={s.subItem}>
-          <LikeIcon /> {item.votes} Likes
-        </div>
+        <LikesButton pid={item.pid} likes={item.votes} />
         {!isReply && (
           <>
             <div className={s.subItem}>
-              <CommentIcon /> {item.replies.count} Replies
+              <CommentIcon /> {item.replies.length} Replies
             </div>
             <div className={s.subItem}>
               <button className={s.replyBtn}>Reply</button>

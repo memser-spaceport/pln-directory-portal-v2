@@ -1,0 +1,37 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 4;
+  margin-top: 40px;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+
+  h1 {
+    color: var(--Text-text-dark, #0F172A);
+    font-size: 28px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 40px; /* 142.857% */
+  }
+}
+
+.inline {
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: center;
+
+  color: var(--Text-text-dark, #0F172A);
+
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 160% */
+  gap: 8px;
+}

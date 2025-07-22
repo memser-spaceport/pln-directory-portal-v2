@@ -1,3 +1,6 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
 .root {
   background: var(--Surface-surface-light, #FFF);
   display: flex;
@@ -5,4 +8,10 @@
   min-height: calc(100vh - 80px);
   flex: 1;
   padding-bottom: 48px;
+
+  @include media.tablet-landscape {
+    background: transparent;
+    max-width: 900px;
+    margin-inline: auto;
+  }
 }

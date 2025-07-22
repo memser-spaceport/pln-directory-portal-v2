@@ -1,13 +1,24 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
 .root {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   border-radius: var(--corner-radius-zero, 0px);
   background: var(--Surface-surface-light, #FFF);
   box-shadow: 0 1px 4px 0 #E2E8F0;
+  padding: 0 20px;
 
   position: sticky;
   top: 80px;
-  z-index: 4;
+  z-index: 3;
+
+
+  @include media.tablet-landscape {
+    margin: 16px 16px 0 16px;
+    border-radius: 8px;
+  }
 }
 
 .Tabs {
@@ -111,4 +122,30 @@
   width: 2.5rem;
   height: 2.5rem;
   color: var(--color-gray-300);
+}
+
+
+.triggerButton {
+  display: none;
+  padding: var(--spacing-3xs, 4px) var(--global-size-size-125, 10px);
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-zero, 0px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: var(--action-background-brand-normal, #1B4DFF);
+
+  /* Button/primay/fill */
+  box-shadow: 0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  color: var(--action-foreground-base-inverted_white, #FFF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  @include media.tablet-landscape {
+    display: inline-flex;
+  }
 }

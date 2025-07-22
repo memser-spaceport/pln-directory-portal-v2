@@ -9,6 +9,7 @@ import { useForumPosts } from '@/services/forum/hooks/useForumPosts';
 import { formatDistanceToNow } from 'date-fns';
 import { PostsLoader } from '@/components/page/forum/Posts/PostsLoader';
 import { extractImagesAndClean } from '../helpers';
+import { clsx } from 'clsx';
 
 interface Props {
   cid: string;
@@ -56,7 +57,7 @@ export const Posts = ({ cid }: Props) => {
         const { images, cleanedText } = extractImagesAndClean(post.desc ?? '');
 
         return (
-          <div className={s.listItem} key={post.tid}>
+          <Link className={s.listItem} key={post.tid} href={`/forum/categories/${post.cid}/${post.tid}`}>
             <div className={s.title}>{post.title}</div>
             <div className={s.desc}>
               {/*{post.thumb ? <img src={`${process.env.FORUM_API_URL}${post.thumb}`} alt="post img" onError={() => null} /> : null}*/}
@@ -74,8 +75,9 @@ export const Posts = ({ cid }: Props) => {
                 <div className={s.inline}>
                   <div className={s.name}>by {post.author}</div>
                   <div className={s.position}>· {post.position}</div>
+                  <div className={s.time}>{post.time}</div>
                 </div>
-                <div className={s.time}>{post.time}</div>
+                <div className={clsx(s.time, s.mob)}>{post.time}</div>
               </div>
             </div>
             <div className={s.sub}>
@@ -89,7 +91,7 @@ export const Posts = ({ cid }: Props) => {
                 <CommentIcon /> {post.meta.comments} Comments
               </div>
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>

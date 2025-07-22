@@ -1,3 +1,6 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
 .root {
   //display: flex;
   //padding: var(--spacing-xl, 24px);
@@ -6,4 +9,32 @@
   //gap: var(--spacing-md, 16px);
   //flex: 1 0 0;
   //align-self: stretch;
+}
+
+.triggerButton {
+  display: inline-flex;
+  padding: 8px var(--global-size-size-125, 10px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: var(--action-background-brand-normal, #1B4DFF);
+  box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+
+  color: var(--action-foreground-base-inverted_white, #FFF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
 }

@@ -27,7 +27,12 @@ type Topic = {
   tags: [];
   teaser: { content: string } | null;
   teaserPid: null;
-  thumbs: [];
+  thumbs: {
+    id: number;
+    name: string;
+    path: string;
+    url: string;
+  }[];
   tid: number;
   timestamp: number;
   timestampISO: string;

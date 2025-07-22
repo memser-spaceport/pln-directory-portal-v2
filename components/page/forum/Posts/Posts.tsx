@@ -8,6 +8,7 @@ import { EmptyPostsList } from '@/components/page/forum/EmptyPostsList';
 import { useForumPosts } from '@/services/forum/hooks/useForumPosts';
 import { formatDistanceToNow } from 'date-fns';
 import { PostsLoader } from '@/components/page/forum/Posts/PostsLoader';
+import { extractImagesAndClean } from '../helpers';
 
 interface Props {
   cid: string;
@@ -24,6 +25,7 @@ export const Posts = ({ cid }: Props) => {
       cid: item.cid,
       title: item.title,
       desc: item.teaser?.content,
+      thumb: item.thumbs ? item.thumbs?.[0]?.url : null,
       image: item.user?.picture,
       author: item.user.displayname,
       position: 'Developer @Aave',
@@ -50,39 +52,46 @@ export const Posts = ({ cid }: Props) => {
 
   return (
     <div className={s.root}>
-      {posts.map((post) => (
-        <div className={s.listItem} key={post.tid}>
-          <div className={s.title}>{post.title}</div>
-          <div className={s.desc}>
-            {post.desc}...{' '}
-            <Link className={s.link} href={`/forum/categories/${post.cid}/${post.tid}`}>
-              Read more
-            </Link>
-          </div>
-          <div className={s.footer}>
-            <Avatar.Root className={s.Avatar}>
-              <Avatar.Image src={post.image ?? getDefaultAvatar(post.author)} width="24" height="24" className={s.Image} />
-              <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
-            </Avatar.Root>
-            <div className={s.inline}>
-              <div className={s.name}>by {post.author}</div>
-              <div className={s.position}>· {post.position}</div>
-              <div className={s.time}>{post.time}</div>
+      {posts.map((post) => {
+        const { images, cleanedText } = extractImagesAndClean(post.desc ?? '');
+
+        return (
+          <div className={s.listItem} key={post.tid}>
+            <div className={s.title}>{post.title}</div>
+            <div className={s.desc}>
+              {/*{post.thumb ? <img src={`${process.env.FORUM_API_URL}${post.thumb}`} alt="post img" onError={() => null} /> : null}*/}
+              <span dangerouslySetInnerHTML={{ __html: cleanedText ?? '' }} />{' '}
+              <Link className={s.link} href={`/forum/categories/${post.cid}/${post.tid}`}>
+                Read more
+              </Link>
+            </div>
+            <div className={s.footer}>
+              <Avatar.Root className={s.Avatar}>
+                <Avatar.Image src={post.image ?? getDefaultAvatar(post.author)} width="24" height="24" className={s.Image} />
+                <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
+              </Avatar.Root>
+              <div className={s.col}>
+                <div className={s.inline}>
+                  <div className={s.name}>by {post.author}</div>
+                  <div className={s.position}>· {post.position}</div>
+                </div>
+                <div className={s.time}>{post.time}</div>
+              </div>
+            </div>
+            <div className={s.sub}>
+              <div className={s.subItem}>
+                <ViewIcon /> {post.meta.views} Views
+              </div>
+              <div className={s.subItem}>
+                <LikeIcon /> {post.meta.likes} Likes
+              </div>
+              <div className={s.subItem}>
+                <CommentIcon /> {post.meta.comments} Comments
+              </div>
             </div>
           </div>
-          <div className={s.sub}>
-            <div className={s.subItem}>
-              <ViewIcon /> {post.meta.views} Views
-            </div>
-            <div className={s.subItem}>
-              <LikeIcon /> {post.meta.likes} Likes
-            </div>
-            <div className={s.subItem}>
-              <CommentIcon /> {post.meta.comments} Comments
-            </div>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

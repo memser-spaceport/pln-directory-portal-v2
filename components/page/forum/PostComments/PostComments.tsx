@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 
 import { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import { Avatar } from '@base-ui-components/react/avatar';
@@ -16,6 +16,8 @@ interface Props {
 export const PostComments = ({ comments }: Props) => {
   if (!comments) return null;
 
+  const nested = nestComments(comments);
+
   return (
     <div className={s.root}>
       <div className={s.title}>Comments ({comments.length})</div>
@@ -25,41 +27,63 @@ export const PostComments = ({ comments }: Props) => {
       </div>
 
       <div className={s.list}>
-        {comments.map((item) => (
-          <div className={s.itemRoot} key={item.pid}>
-            <div className={s.footer}>
-              <Avatar.Root className={s.Avatar}>
-                <Avatar.Image src={getDefaultAvatar(item.user.username)} width="32" height="32" className={s.Image} />
-                <Avatar.Fallback className={s.Fallback}>A</Avatar.Fallback>
-              </Avatar.Root>
-              <div className={s.col}>
-                <div className={s.inline}>
-                  <div className={s.name}>{item.user.username}</div>
-                  <div className={s.position}>· Position here</div>
-                  <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
+        {nested.map((item) => {
+          console.log(item);
+          return (
+            <Fragment key={item.pid}>
+              <CommentItem item={item} />
+              {item.replies.length > 0 && (
+                <div className={s.repliesWrapper}>
+                  {item.replies.map((reply) => {
+                    return <CommentItem key={reply.pid} item={reply} isReply />;
+                  })}
                 </div>
-                <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
-              </div>
-            </div>
-            <div
-              className={s.postContent}
-              dangerouslySetInnerHTML={{
-                __html: item.content,
-              }}
-            />
-            <div className={s.sub}>
-              <div className={s.subItem}>
-                <LikeIcon /> {item.votes} Likes
-              </div>
-              <div className={s.subItem}>
-                <CommentIcon /> {item.replies.count} Replies
-              </div>
-              <div className={s.subItem}>
-                <button className={s.replyBtn}>Reply</button>
-              </div>
-            </div>
+              )}
+            </Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const CommentItem = ({ item, isReply }: { item: TopicResponse['posts'][0]; isReply?: boolean }) => {
+  return (
+    <div className={s.itemRoot} key={item.pid}>
+      <div className={s.footer}>
+        <Avatar.Root className={s.Avatar}>
+          <Avatar.Image src={getDefaultAvatar(item.user.username)} width="32" height="32" className={s.Image} />
+          <Avatar.Fallback className={s.Fallback}>A</Avatar.Fallback>
+        </Avatar.Root>
+        <div className={s.col}>
+          <div className={s.inline}>
+            <div className={s.name}>{item.user.username}</div>
+            <div className={s.position}>· Position here</div>
+            <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
           </div>
-        ))}
+          <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
+        </div>
+      </div>
+      <div
+        className={s.postContent}
+        dangerouslySetInnerHTML={{
+          __html: item.content,
+        }}
+      />
+      <div className={s.sub}>
+        <div className={s.subItem}>
+          <LikeIcon /> {item.votes} Likes
+        </div>
+        {!isReply && (
+          <>
+            <div className={s.subItem}>
+              <CommentIcon /> {item.replies.count} Replies
+            </div>
+            <div className={s.subItem}>
+              <button className={s.replyBtn}>Reply</button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -91,3 +115,30 @@ const CommentIcon = () => (
     />
   </svg>
 );
+
+type Comment = TopicResponse['posts'][0];
+
+type NestedComment = Comment & { replies: Comment[] };
+
+function nestComments(items: TopicResponse['posts']): NestedComment[] {
+  const map = new Map<number, any>();
+
+  // Create a lookup map and add `replies` to each
+  for (const item of items) {
+    map.set(item.pid, { ...item, replies: [] });
+  }
+
+  const roots: any[] = [];
+
+  for (const item of items) {
+    const current = map.get(item.pid);
+    if (item.parent?.pid && map.has(item.parent.pid)) {
+      const parent = map.get(item.parent.pid);
+      parent.replies.push(current);
+    } else {
+      roots.push(current);
+    }
+  }
+
+  return roots;
+}

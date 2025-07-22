@@ -65,6 +65,19 @@ export type TopicResponse = {
     upvotes: number;
     user: { uid: 1; username: 'welcome'; userslug: 'welcome'; reputation: 0; postcount: 13 };
     votes: 0;
+    parent: {
+      content: string;
+      pid: number;
+      timestamp: number;
+      timestampISO: string;
+      user: { username: 'welcome'; userslug: 'welcome'; picture: null; uid: 1; displayname: 'welcome' };
+      displayname: string;
+      isLocal: boolean;
+      picture: null;
+      uid: number;
+      username: string;
+      userslug: string;
+    };
   }[];
   category: {
     name: string;

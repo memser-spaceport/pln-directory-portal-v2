@@ -12,12 +12,11 @@ import { useParams } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from '@/components/page/forum/PostComments';
 import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
+import { BreadCrumb } from '@/components/core/bread-crumb';
 
 export const Post = () => {
   const { categoryId, topicId } = useParams();
   const { data } = useForumPost(topicId as string);
-
-  console.log(data);
 
   const post = useMemo(() => {
     if (!data) {
@@ -45,55 +44,60 @@ export const Post = () => {
   }
 
   return (
-    <div className={s.root}>
-      <Link href={`/forum?cid=${categoryId}`} className={s.back}>
-        <ChevronLeftIcon /> Back to forum
-      </Link>
-
-      <div className={s.content}>
-        <div className={s.topicBadge}>{post.category}</div>
+    <div className={s.container}>
+      <div className={s.breadcrumbs}>
+        <BreadCrumb backLink={`/forum?cid=${categoryId}`} directoryName="Forum" pageName="Post" />
       </div>
+      <div className={s.root}>
+        <Link href={`/forum?cid=${categoryId}`} className={s.back}>
+          <ChevronLeftIcon /> Back to forum
+        </Link>
 
-      <h1 className={s.title}>{post.title}</h1>
+        <div className={s.content}>
+          <div className={s.topicBadge}>{post.category}</div>
+        </div>
 
-      <div className={s.sub}>
-        <div className={s.subItem}>
-          <ViewIcon /> {post.meta.views} Views
-        </div>
-        <div className={s.subItem}>
-          <LikeIcon /> {post.meta.likes} Likes
-        </div>
-        <div className={s.subItem}>
-          <CommentIcon /> {post.meta.comments} Comments
-        </div>
-      </div>
+        <h1 className={s.title}>{post.title}</h1>
 
-      <div className={s.footer}>
-        <Avatar.Root className={s.Avatar}>
-          <Avatar.Image src={post.image || getDefaultAvatar(post.author)} width="40" height="40" className={s.Image} />
-          <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
-        </Avatar.Root>
-        <div className={s.col}>
-          <div className={s.inline}>
-            <div className={s.name}>by {post.author}</div>
-            <div className={s.position}>· {post.position}</div>
+        <div className={s.sub}>
+          <div className={s.subItem}>
+            <ViewIcon /> {post.meta.views} Views
           </div>
-          <div className={s.time}>{post.time}</div>
+          <div className={s.subItem}>
+            <LikeIcon /> {post.meta.likes} Likes
+          </div>
+          <div className={s.subItem}>
+            <CommentIcon /> {post.meta.comments} Comments
+          </div>
         </div>
+
+        <div className={s.footer}>
+          <Avatar.Root className={s.Avatar}>
+            <Avatar.Image src={post.image || getDefaultAvatar(post.author)} width="40" height="40" className={s.Image} />
+            <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
+          </Avatar.Root>
+          <div className={s.col}>
+            <div className={s.inline}>
+              <div className={s.name}>by {post.author}</div>
+              <div className={s.position}>· {post.position}</div>
+            </div>
+            <div className={s.time}>{post.time}</div>
+          </div>
+        </div>
+
+        <div
+          className={s.postContent}
+          dangerouslySetInnerHTML={{
+            __html: post.desc,
+          }}
+        />
+
+        <div className={s.divider} />
+
+        <PostComments comments={data?.posts?.slice(1)} />
+
+        <CommentInput />
       </div>
-
-      <div
-        className={s.postContent}
-        dangerouslySetInnerHTML={{
-          __html: post.desc,
-        }}
-      />
-
-      <div className={s.divider} />
-
-      <PostComments comments={data?.posts?.slice(1)} />
-
-      <CommentInput />
     </div>
   );
 };

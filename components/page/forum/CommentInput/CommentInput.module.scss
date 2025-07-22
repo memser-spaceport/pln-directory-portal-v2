@@ -1,3 +1,6 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
 .root {
   position: fixed;
   bottom: 0;
@@ -8,9 +11,14 @@
   justify-content: center;
   align-items: flex-start;
   gap: 8px;
+  z-index: 1;
 
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   background: #FFF;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
 }
 
 .content {

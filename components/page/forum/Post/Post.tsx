@@ -93,10 +93,11 @@ export const Post = () => {
         />
 
         <div className={s.divider} />
-
-        <PostComments comments={data?.posts?.slice(1)} />
-
         <CommentInput />
+      </div>
+
+      <div className={s.root}>
+        <PostComments comments={data?.posts?.slice(1)} />
       </div>
     </div>
   );

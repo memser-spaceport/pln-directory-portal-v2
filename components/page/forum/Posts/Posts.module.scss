@@ -99,6 +99,7 @@
   font-weight: 500;
   line-height: 24px; /* 150% */
   letter-spacing: -0.3px;
+  width: 100%;
 }
 
 .desc {
@@ -110,12 +111,14 @@
   font-weight: 400;
   line-height: 22px; /* 157.143% */
   letter-spacing: -0.2px;
+  width: 100%;
 }
 
 .footer {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
 .Avatar {
@@ -184,6 +187,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  width: 100%;
 }
 
 .link {
@@ -204,6 +208,7 @@
   align-items: center;
   gap: 16px;
   margin-top: 8px;
+  width: 100%;
 
   .subItem {
     display: flex;

@@ -7,13 +7,14 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { EmptyPostsList } from '@/components/page/forum/EmptyPostsList';
 import { useForumPosts } from '@/services/forum/hooks/useForumPosts';
 import { formatDistanceToNow } from 'date-fns';
+import { PostsLoader } from '@/components/page/forum/Posts/PostsLoader';
 
 interface Props {
   cid: string;
 }
 
 export const Posts = ({ cid }: Props) => {
-  const { data } = useForumPosts(cid);
+  const { data, isLoading } = useForumPosts(cid);
 
   const posts = useMemo(() => {
     if (!data) return [];
@@ -34,6 +35,10 @@ export const Posts = ({ cid }: Props) => {
       },
     }));
   }, [data]);
+
+  if (isLoading) {
+    return <PostsLoader />;
+  }
 
   if (!posts.length) {
     return (

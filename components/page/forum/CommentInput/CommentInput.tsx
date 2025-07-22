@@ -100,7 +100,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
               </Checkbox.Indicator>
             </Checkbox.Root>
           </label>
-          <div className={s.submitBtn} style={{ visibility: 'hidden' }}>
+          <div className={s.submitBtn} style={{ visibility: 'hidden', height: 0 }}>
             <ArrowUpIcon />
           </div>
         </div>

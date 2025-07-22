@@ -19,6 +19,8 @@ import { decodeHtml } from '@/utils/decode';
 export const Post = () => {
   const { categoryId, topicId } = useParams();
   const { data } = useForumPost(topicId as string);
+  const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
+  const replyToItem = data?.posts?.slice(1).find((item) => item.pid === replyToPid);
 
   const post = useMemo(() => {
     if (!data) {
@@ -95,11 +97,11 @@ export const Post = () => {
         />
 
         <div className={s.divider} />
-        <CommentInput />
+        <CommentInput tid={post.tid} toPid={replyToPid ?? post.pid} replyToName={replyToItem?.user.displayname} onReset={() => setReplyToPid(null)} />
       </div>
 
       <div className={s.root}>
-        <PostComments comments={data?.posts?.slice(1)} tid={post.tid} mainPid={post.pid} />
+        <PostComments comments={data?.posts?.slice(1)} tid={post.tid} mainPid={post.pid} onReply={(pid) => setReplyToPid(pid)} />
       </div>
     </div>
   );

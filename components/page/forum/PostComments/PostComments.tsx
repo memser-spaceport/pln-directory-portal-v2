@@ -15,9 +15,10 @@ interface Props {
   tid: number;
   mainPid: number;
   comments: TopicResponse['posts'] | undefined;
+  onReply?: (id: number) => void;
 }
 
-export const PostComments = ({ comments, tid, mainPid }: Props) => {
+export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
 
   if (!comments) return null;
@@ -37,7 +38,14 @@ export const PostComments = ({ comments, tid, mainPid }: Props) => {
         {nested.map((item) => {
           return (
             <Fragment key={item.pid}>
-              <CommentItem item={item} onReply={() => setReplyToPid(item.pid)} />
+              <CommentItem
+                item={item}
+                onReply={() => {
+                  if (onReply) onReply(item.pid);
+
+                  setReplyToPid(item.pid);
+                }}
+              />
               {item.replies.length > 0 && (
                 <div className={s.repliesWrapper}>
                   {item.replies.map((reply) => {

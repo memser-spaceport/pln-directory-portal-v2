@@ -1,7 +1,4 @@
-'use client';
-
-import React, { useRef, useState } from 'react';
-import { Input } from '@base-ui-components/react/input';
+import React, { useCallback, useRef, useState } from 'react';
 
 import s from './CommentInput.module.scss';
 import { Checkbox } from '@base-ui-components/react/checkbox';
@@ -11,11 +8,15 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { usePostComment } from '@/services/forum/hooks/usePostComment';
 import { toast } from 'react-toastify';
 import { FormEditor } from '@/components/form/FormEditor';
+import { FormField } from '@/components/form/FormField';
+import { clsx } from 'clsx';
+import { useClickAway } from 'react-use';
 
 interface Props {
   tid: number;
   toPid: number;
   replyToName?: string;
+  onReset: () => void;
 }
 
 const schema = yup.object().shape({
@@ -23,7 +24,9 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentInput = ({ tid, toPid, replyToName }: Props) => {
+export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const [focused, setFocused] = useState(false);
   const methods = useForm({
     defaultValues: {
       comment: '',
@@ -38,9 +41,17 @@ export const CommentInput = ({ tid, toPid, replyToName }: Props) => {
     setValue,
     formState: { isSubmitting },
   } = methods;
-  const { emailMe } = watch();
+  const { emailMe, comment } = watch();
 
   const { mutateAsync } = usePostComment();
+
+  const handleFocus = useCallback(() => {
+    if (!comment) {
+      setFocused(false);
+    }
+  }, [comment]);
+
+  useClickAway(formRef, handleFocus);
 
   const onSubmit = async (data: any) => {
     try {
@@ -52,6 +63,8 @@ export const CommentInput = ({ tid, toPid, replyToName }: Props) => {
 
       if (res?.status?.code === 'ok') {
         reset();
+        onReset();
+        setFocused(false);
       }
     } catch (e) {
       // @ts-ignore
@@ -61,9 +74,24 @@ export const CommentInput = ({ tid, toPid, replyToName }: Props) => {
 
   return (
     <FormProvider {...methods}>
-      <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)}>
+      <form className={clsx('input-form', s.root)} noValidate onSubmit={handleSubmit(onSubmit)} ref={formRef}>
+        {replyToName && (
+          <div className={s.replying}>
+            <span className={s.lbl}>
+              Replying to <b className={s.accent}>{replyToName}</b>
+            </span>
+            <button type="button" onClick={onReset}>
+              Cancel
+            </button>
+          </div>
+        )}
         <div className={s.content}>
-          <FormEditor name="comment" placeholder="Comment" label={replyToName ? `Replying to ${replyToName}` : 'Write your message'} />
+          {focused ? <FormEditor name="comment" placeholder="Comment" /> : <FormField name="comment" placeholder="Comment" onClick={() => setFocused(true)} />}
+          <button className={s.submitBtn} type="submit" disabled={isSubmitting}>
+            <ArrowUpIcon />
+          </button>
+        </div>
+        <div className={s.content}>
           <label className={s.Label}>
             <div className={s.primary}>Email me when someone replies.</div>
             <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
@@ -72,10 +100,10 @@ export const CommentInput = ({ tid, toPid, replyToName }: Props) => {
               </Checkbox.Indicator>
             </Checkbox.Root>
           </label>
+          <div className={s.submitBtn} style={{ visibility: 'hidden' }}>
+            <ArrowUpIcon />
+          </div>
         </div>
-        <button className={s.submitBtn} type="submit" disabled={isSubmitting}>
-          <ArrowUpIcon />
-        </button>
       </form>
     </FormProvider>
   );

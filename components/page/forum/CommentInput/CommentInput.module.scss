@@ -7,9 +7,10 @@
   left: 0;
   right: 0;
   display: flex;
+  flex-direction: column;
   padding: var(--spacing-sm, 12px) var(--spacing-lg, 20px) var(--spacing-lg, 20px) var(--spacing-lg, 20px);
   justify-content: center;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 8px;
   z-index: 1;
 
@@ -23,10 +24,50 @@
 
 .content {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: flex-end;
+  gap: 8px;
   width: 100%;
+
+  //&:focus-within {
+  //  :global(.ql-editor) {
+  //    min-height: 60px !important;
+  //  }
+  //}
+}
+
+.replying {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  .lbl {
+    color: var(--foreground-neutral-secondary, #455468);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px; /* 142.857% */
+    letter-spacing: -0.2px;
+  }
+
+  .accent {
+    color: var(--foreground-neutral-secondary, #455468);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+  }
+
+  button {
+    color: var(--action-foreground-neutral-normal, #455468);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px; /* 142.857% */
+    letter-spacing: -0.2px;
+  }
+
 }
 
 .Input {

@@ -27,8 +27,12 @@
   }
 
   :global(.ql-editor) {
-    min-height: 100px;
+    //min-height: 100px;
     font-size: 16px;
     word-break: break-all;
+  }
+
+  :global(.ql-formats.ql-formats) {
+    margin-right: 8px;
   }
 }

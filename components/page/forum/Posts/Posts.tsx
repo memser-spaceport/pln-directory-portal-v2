@@ -54,7 +54,7 @@ export const Posts = ({ cid }: Props) => {
   return (
     <div className={s.root}>
       {posts.map((post) => {
-        const { images, cleanedText } = extractImagesAndClean(post.desc ?? '');
+        const { cleanedText } = extractImagesAndClean(post.desc ?? '');
 
         return (
           <Link className={s.listItem} key={post.tid} href={`/forum/categories/${post.cid}/${post.tid}`}>
@@ -86,7 +86,7 @@ export const Posts = ({ cid }: Props) => {
               <div className={s.subItem}>
                 <ViewIcon /> {post.meta.views} Views
               </div>
-              <div className={s.subItem}>
+              <div className={s.subItem} onClick={() => null}>
                 <LikeIcon /> {post.meta.likes} Likes
               </div>
               <div className={s.subItem}>

@@ -13,16 +13,22 @@ import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from '@/components/page/forum/PostComments';
 import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
 import { BreadCrumb } from '@/components/core/bread-crumb';
+import { useLikePost } from '@/services/forum/hooks/useLikePost';
+import { clsx } from 'clsx';
 
 export const Post = () => {
   const { categoryId, topicId } = useParams();
   const { data } = useForumPost(topicId as string);
 
+  const { mutate } = useLikePost();
+
   const post = useMemo(() => {
     if (!data) {
       return null;
     }
+
     return {
+      pid: data.mainPid,
       category: data.category.name,
       tid: data.tid,
       title: data.title,
@@ -63,9 +69,9 @@ export const Post = () => {
           <div className={s.subItem}>
             <ViewIcon /> {post.meta.views} Views
           </div>
-          <div className={s.subItem}>
+          <button className={clsx(s.subItem, s.button)} onClick={() => mutate({ pid: post?.pid })}>
             <LikeIcon /> {post.meta.likes} Likes
-          </div>
+          </button>
           <div className={s.subItem}>
             <CommentIcon /> {post.meta.comments} Comments
           </div>

@@ -13,6 +13,7 @@ import { ChevronIcon } from '@/components/page/recommendations/components/Matche
 import { useToggle } from 'react-use';
 
 import s from './MatchesEditor.module.scss';
+import { uniq } from 'lodash';
 
 interface Props {
   title: string;
@@ -88,7 +89,12 @@ export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, i
                     return;
                   }
 
-                  setValue(name, [...val, inputText], { shouldValidate: true, shouldDirty: true });
+                  const parsedInput = inputText
+                    .trim()
+                    .split(',')
+                    .map((i) => i.trim());
+
+                  setValue(name, uniq([...val, ...parsedInput]), { shouldValidate: true, shouldDirty: true });
                   setInputText('');
                 }}
                 onKeyDown={(event) => {
@@ -102,7 +108,12 @@ export const MatchesEditor = ({ icon, title, hint, selectLabel, warning, name, i
                       return;
                     }
 
-                    setValue(name, [...val, inputText], { shouldValidate: true, shouldDirty: true });
+                    const parsedInput = inputText
+                      .trim()
+                      .split(',')
+                      .map((i) => i.trim());
+
+                    setValue(name, uniq([...val, ...parsedInput]), { shouldValidate: true, shouldDirty: true });
                     setInputText('');
                   }
                 }}

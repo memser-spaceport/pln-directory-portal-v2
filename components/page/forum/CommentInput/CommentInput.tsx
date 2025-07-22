@@ -91,19 +91,21 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
             <ArrowUpIcon />
           </button>
         </div>
-        <div className={s.content}>
-          <label className={s.Label}>
-            <div className={s.primary}>Email me when someone replies.</div>
-            <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
-              <Checkbox.Indicator className={s.Indicator}>
-                <CheckIcon className={s.Icon} />
-              </Checkbox.Indicator>
-            </Checkbox.Root>
-          </label>
-          <div className={s.submitBtn} style={{ visibility: 'hidden', height: 0 }}>
-            <ArrowUpIcon />
+        {focused && (
+          <div className={s.content}>
+            <label className={s.Label}>
+              <div className={s.primary}>Email me when someone replies.</div>
+              <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
+                <Checkbox.Indicator className={s.Indicator}>
+                  <CheckIcon className={s.Icon} />
+                </Checkbox.Indicator>
+              </Checkbox.Root>
+            </label>
+            <div className={s.submitBtn} style={{ visibility: 'hidden', height: 0 }}>
+              <ArrowUpIcon />
+            </div>
           </div>
-        </div>
+        )}
       </form>
     </FormProvider>
   );

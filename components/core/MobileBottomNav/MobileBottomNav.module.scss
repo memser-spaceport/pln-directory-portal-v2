@@ -1,0 +1,46 @@
+@use 'styles/mixins';
+@use 'styles/media';
+
+.wrapper {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #FFF);
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  color: #455468;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.itemActive {
+  color: #1B4DFF;
+}
+
+.icon {
+  margin-bottom: 2px;
+}

@@ -14,6 +14,7 @@ import { useCreatePost } from '@/services/forum/hooks/useCreatePost';
 import { toast } from 'react-toastify';
 import { createPostSchema } from '@/components/page/forum/CreatePost/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { replaceImagesWithMarkdown } from '@/utils/decode';
 
 const fade = {
   hidden: { opacity: 0 },
@@ -54,10 +55,12 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
 
   const onSubmit = async (data: any) => {
     try {
+      const content = replaceImagesWithMarkdown(data.comment);
+
       const res = await mutateAsync({
         cid: data.topic.value,
         title: data.title,
-        content: data.content,
+        content,
       });
 
       if (res.status.code === 'ok') {

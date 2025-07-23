@@ -8,6 +8,7 @@ import { usePostComment } from '@/services/forum/hooks/usePostComment';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
+import { replaceImagesWithMarkdown } from '@/utils/decode';
 
 interface Props {
   tid: number;
@@ -42,10 +43,12 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName }: Props) => {
 
   const onSubmit = async (data: any) => {
     try {
+      const content = replaceImagesWithMarkdown(data.comment);
+
       const res = await mutateAsync({
         tid,
         toPid,
-        content: data.comment,
+        content,
       });
 
       if (res?.status?.code === 'ok') {

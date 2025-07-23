@@ -11,6 +11,7 @@ import { FormEditor } from '@/components/form/FormEditor';
 import { FormField } from '@/components/form/FormField';
 import { clsx } from 'clsx';
 import { useClickAway } from 'react-use';
+import { replaceImagesWithMarkdown } from '@/utils/decode';
 
 interface Props {
   tid: number;
@@ -54,9 +55,9 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
   useClickAway(formRef, handleFocus);
 
   const onSubmit = async (data: any) => {
-    const content = replaceImagesWithMarkdown(data.comment);
-
     try {
+      const content = replaceImagesWithMarkdown(data.comment);
+
       const res = await mutateAsync({
         tid,
         toPid,
@@ -133,11 +134,4 @@ function CheckIcon(props: React.ComponentProps<'svg'>) {
 function isEditorEmpty(html: string): boolean {
   const trimmed = html.trim();
   return trimmed === '<p><br></p>' || trimmed === '';
-}
-
-function replaceImagesWithMarkdown(html: string): string {
-  return html.replace(/<img[^>]*src="([^"]+)"[^>]*\/?>/gi, (_, src) => {
-    const filename = src.split('/').pop() || 'image.png';
-    return `![${filename}](${src})`;
-  });
 }

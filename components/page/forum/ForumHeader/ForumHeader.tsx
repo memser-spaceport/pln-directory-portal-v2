@@ -4,23 +4,42 @@ import React from 'react';
 import Select from 'react-select';
 
 import s from './ForumHeader.module.scss';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const sortOptions = [
   {
-    value: 'newest',
-    label: 'Newest',
+    value: 'recently_replied',
+    label: 'Recently replied',
   },
   {
-    value: 'oldest',
-    label: 'Oldest',
+    value: 'recently_created',
+    label: 'Recently created',
+  },
+  {
+    value: 'most_posts',
+    label: 'Most comments',
+  },
+  {
+    value: 'most_votes',
+    label: 'Most likes',
+  },
+  {
+    value: 'most_views',
+    label: 'Most views',
   },
 ];
 
 export const ForumHeader = () => {
-  const [value, setValue] = React.useState({
-    value: 'newest',
-    label: 'Newest',
-  });
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[0];
+
+  const onValueChange = (_value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    params.set('categoryTopicSort', _value); // or use `params.delete(key)` to remove
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
   return (
     <div className={s.root}>
@@ -35,7 +54,7 @@ export const ForumHeader = () => {
           defaultValue={value}
           onChange={(val) => {
             if (val) {
-              setValue(val);
+              onValueChange(val.value);
             }
           }}
           styles={{

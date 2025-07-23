@@ -4,6 +4,7 @@ import { Tabs } from '@base-ui-components/react/tabs';
 import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
 import s from './CategoriesTabs.module.scss';
 import { CreatePost } from '@/components/page/forum/CreatePost';
+import { useMedia } from 'react-use';
 
 interface Props {
   value: string | undefined;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export const CategoriesTabs = ({ value, onValueChange }: Props) => {
+  const isMobile = useMedia('(max-width: 960px)', false);
   const { data } = useForumCategories();
   const tabs = useMemo(() => {
     return (
@@ -24,7 +26,7 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
   const tabRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
-    if (!value) {
+    if (!value || !isMobile) {
       return;
     }
 
@@ -32,7 +34,7 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
     if (current) {
       current.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
-  }, [value]);
+  }, [isMobile, value]);
 
   return (
     <div className={s.root}>

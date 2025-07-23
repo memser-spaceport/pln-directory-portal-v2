@@ -11,13 +11,13 @@ import { PostsLoader } from '@/components/page/forum/Posts/PostsLoader';
 import { extractImagesAndClean } from '../helpers';
 import { clsx } from 'clsx';
 import { decodeHtml } from '@/utils/decode';
+import { useSearchParams } from 'next/navigation';
 
-interface Props {
-  cid: string;
-}
-
-export const Posts = ({ cid }: Props) => {
-  const { data, isLoading } = useForumPosts(cid);
+export const Posts = () => {
+  const searchParams = useSearchParams();
+  const cid = searchParams.get('cid') as unknown as number;
+  const categoryTopicSort = searchParams.get('categoryTopicSort') as string;
+  const { data, isLoading } = useForumPosts(cid, categoryTopicSort);
 
   const posts = useMemo(() => {
     if (!data) return [];

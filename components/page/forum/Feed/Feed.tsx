@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { CategoriesTabs } from '@/components/page/forum/CategoriesTabs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Posts } from '@/components/page/forum/Posts';
@@ -14,18 +14,27 @@ export const Feed = () => {
   const searchParams = useSearchParams();
   const cid = searchParams.get('cid') as string;
 
-  const onValueChange = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+  const onValueChange = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    params.set('cid', value); // or use `params.delete(key)` to remove
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
+      params.set('cid', value); // or use `params.delete(key)` to remove
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  useEffect(() => {
+    if (!cid) {
+      onValueChange('1');
+    }
+  }, [cid, onValueChange]);
 
   return (
     <div className={s.root}>
       <ForumHeader />
       <CategoriesTabs onValueChange={onValueChange} value={cid} />
-      <Posts cid={cid} />
+      <Posts />
       <CreatePost
         renderChildren={(toggle) => {
           return (

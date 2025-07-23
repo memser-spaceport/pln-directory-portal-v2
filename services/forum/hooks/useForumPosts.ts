@@ -62,11 +62,11 @@ type Topic = {
   votes: number;
 };
 
-async function fetcher(cid: string) {
+async function fetcher(cid: number, categoryTopicSort: string) {
   const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
 
   const response = await customFetch(
-    `${process.env.FORUM_API_URL}/api/v3/categories/${cid}/topics`,
+    `${process.env.FORUM_API_URL}/api/v3/categories/${cid}/topics?categoryTopicSort=${categoryTopicSort}`,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -85,9 +85,9 @@ async function fetcher(cid: string) {
   return data.response.topics as Topic[];
 }
 
-export function useForumPosts(cid: string) {
+export function useForumPosts(cid = 1, categoryTopicSort = 'recently_replied') {
   return useQuery({
-    queryKey: [ForumQueryKeys.GET_TOPICS, cid],
-    queryFn: () => fetcher(cid),
+    queryKey: [ForumQueryKeys.GET_TOPICS, cid, categoryTopicSort],
+    queryFn: () => fetcher(cid, categoryTopicSort),
   });
 }

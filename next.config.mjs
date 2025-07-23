@@ -46,6 +46,7 @@ const nextConfig = {
     IRL_SUBMIT_FORM_URL: process.env.IRL_SUBMIT_FORM_URL,
     PL_EVENTS_BASE_URL: process.env.PL_EVENTS_BASE_URL,
     PL_EVENTS_SUBMISSION_URL: process.env.PL_EVENTS_SUBMISSION_URL,
+    CUSTOM_FORUM_AUTH_TOKEN: process.env.CUSTOM_FORUM_AUTH_TOKEN,
   },
   images: {
     remotePatterns: [

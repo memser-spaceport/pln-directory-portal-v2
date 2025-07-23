@@ -32,7 +32,7 @@ export default function Navbar(props: Readonly<INavbar>) {
   const analytics = useCommonAnalytics();
   const authToken = props?.authToken;
   const [showNotifications, setShowNotifications] = useState(false);
-  const [isMobileDrawerOpen, setIsMobilDrawerOpen] = useState(false);
+  // const [isMobileDrawerOpen, setIsMobilDrawerOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const onNavItemClickHandler = (url: string, name: string) => {
@@ -41,11 +41,11 @@ export default function Navbar(props: Readonly<INavbar>) {
     }
   };
 
-  const onNavDrawerIconClickHandler = () => {
-    // document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_MOBILE_NAV, { detail: true }));
-    setIsMobilDrawerOpen((prev) => !prev);
-    analytics.onNavDrawerBtnClicked(isMobileDrawerOpen);
-  };
+  // const onNavDrawerIconClickHandler = () => {
+  //   // document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_MOBILE_NAV, { detail: true }));
+  //   setIsMobilDrawerOpen((prev) => !prev);
+  //   analytics.onNavDrawerBtnClicked(isMobileDrawerOpen);
+  // };
 
   const onNavbarApplogoClicked = () => {
     analytics.onAppLogoClicked();
@@ -74,17 +74,17 @@ export default function Navbar(props: Readonly<INavbar>) {
   return (
     <>
       <div className="nb">
-        {isMobileDrawerOpen && (
-          <MobileNavDrawer
-            userInfo={userInfo}
-            isLoggedIn={isLoggedIn}
-            onNavMenuClick={onNavDrawerIconClickHandler}
-            authToken={authToken}
-            onShowNotifications={() => setShowNotifications(true)}
-            notificationsCount={notifications?.length}
-            profileFilledPercent={profileStatus?.completeness}
-          />
-        )}
+        {/*{isMobileDrawerOpen && (*/}
+        {/*  <MobileNavDrawer*/}
+        {/*    userInfo={userInfo}*/}
+        {/*    isLoggedIn={isLoggedIn}*/}
+        {/*    onNavMenuClick={onNavDrawerIconClickHandler}*/}
+        {/*    authToken={authToken}*/}
+        {/*    onShowNotifications={() => setShowNotifications(true)}*/}
+        {/*    notificationsCount={notifications?.length}*/}
+        {/*    profileFilledPercent={profileStatus?.completeness}*/}
+        {/*  />*/}
+        {/*)}*/}
         <div className="nb__left">
           <Link href="/" onClick={onNavbarApplogoClicked}>
             <img src="/icons/app-logo.svg" alt="app-logo" className="nb__left__app-logo" />
@@ -106,12 +106,12 @@ export default function Navbar(props: Readonly<INavbar>) {
 
           <HelpMenu userInfo={userInfo} authToken={authToken} isLoggedIn={isLoggedIn} />
 
-          <div className="nb__right__drawerandprofilesec" onClick={onNavDrawerIconClickHandler}>
-            <button className="nb__right__drawerandprofile__drawerbtn">
-              <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
-              {isLoggedIn && notifications?.length > 0 && <div className="nb__right_notifications_count">{notifications?.length}</div>}
-            </button>
-          </div>
+          {/*<div className="nb__right__drawerandprofilesec" onClick={onNavDrawerIconClickHandler}>*/}
+          {/*  <button className="nb__right__drawerandprofile__drawerbtn">*/}
+          {/*    <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />*/}
+          {/*    {isLoggedIn && notifications?.length > 0 && <div className="nb__right_notifications_count">{notifications?.length}</div>}*/}
+          {/*  </button>*/}
+          {/*</div>*/}
           {isLoggedIn && (
             <div className="nb__right__drawerandprofilesec__userprofile">
               <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileStatus?.completeness} />
@@ -412,9 +412,9 @@ export default function Navbar(props: Readonly<INavbar>) {
             animation: shake 1s ease-in-out;
           }
 
-          .nb__right__drawerandprofilesec__userprofile {
-            display: none;
-          }
+          //.nb__right__drawerandprofilesec__userprofile {
+          //  display: none;
+          //}
 
           .nb__right__drawerandprofile__drawerbtn {
             position: relative;
@@ -474,9 +474,9 @@ export default function Navbar(props: Readonly<INavbar>) {
               top: 30px;
               width: 300px;
             }
-            .nb__right__drawerandprofilesec__userprofile {
-              display: unset;
-            }
+            //.nb__right__drawerandprofilesec__userprofile {
+            //  display: unset;
+            //}
           }
         `}
       </style>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import ReactQuill, { Quill } from 'react-quill';
 import { clsx } from 'clsx';
 import 'react-quill/dist/quill.snow.css';
@@ -16,6 +16,7 @@ interface Props {
   errorMessage?: string;
   id?: string;
   disabled?: boolean;
+  autoFocus?: boolean;
 }
 
 const officeHours = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -26,7 +27,7 @@ const officeHours = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"
 // Register it
 Quill.import('ui/icons')['officeHours'] = officeHours;
 
-const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled }: Props) => {
+const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled, autoFocus }: Props) => {
   const quillRef = useRef<any>(null);
   const { userInfo } = getCookiesFromClient();
   const { data: member } = useMember(userInfo?.uid);
@@ -51,8 +52,14 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
         },
       },
     }),
-    [],
+    [member?.memberInfo.officeHours],
   );
+
+  useEffect(() => {
+    if (quillRef.current && autoFocus) {
+      quillRef.current.focus();
+    }
+  }, [autoFocus]);
 
   return (
     <div className={s.root} id={id}>

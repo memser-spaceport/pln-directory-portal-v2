@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Tabs } from '@base-ui-components/react/tabs';
 
 import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
@@ -21,12 +21,26 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
     );
   }, [data]);
 
+  const tabRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (!value) {
+      return;
+    }
+
+    const current = tabRefs.current[value];
+    if (current) {
+      current.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, [value]);
+
   return (
     <div className={s.root}>
       <Tabs.Root className={s.Tabs} value={value || '1'} onValueChange={onValueChange}>
         <Tabs.List className={s.List}>
           {tabs.map((item) => (
-            <Tabs.Tab className={s.Tab} value={item.value} key={item.value}>
+            // @ts-ignore
+            <Tabs.Tab className={s.Tab} value={item.value} key={item.value} ref={(el) => (tabRefs.current[item.value] = el)}>
               {item.label}
             </Tabs.Tab>
           ))}

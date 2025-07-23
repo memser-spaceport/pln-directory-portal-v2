@@ -14,9 +14,10 @@ interface Props extends PropsWithChildren {
   disabled?: boolean;
   isRequired?: boolean;
   onClick?: () => void;
+  autoFocus?: boolean;
 }
 
-export const FormEditor = ({ name, label, description, disabled, isRequired }: Props) => {
+export const FormEditor = ({ name, label, description, disabled, isRequired, autoFocus }: Props) => {
   const {
     setValue,
     watch,
@@ -38,7 +39,7 @@ export const FormEditor = ({ name, label, description, disabled, isRequired }: P
         </div>
       )}
 
-      <RichTextEditor disabled={disabled} value={value} onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })} />
+      <RichTextEditor disabled={disabled} value={value} autoFocus={autoFocus} onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })} />
       {!errors[name] && description ? (
         <Field.Description className={s.fieldDescription}>{description}</Field.Description>
       ) : (

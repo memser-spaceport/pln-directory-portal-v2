@@ -46,7 +46,14 @@ export const Post = () => {
   }, [data]);
 
   if (!post) {
-    return <PostPageLoader />;
+    return (
+      <div className={s.container}>
+        <div className={s.breadcrumbs}>
+          <BreadCrumb backLink={`/forum?cid=${categoryId}`} directoryName="Forum" pageName="Post" />
+        </div>
+        <PostPageLoader />
+      </div>
+    );
   }
 
   return (

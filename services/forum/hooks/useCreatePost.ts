@@ -23,10 +23,10 @@ async function mutation({ cid, title, content }: MutationParams) {
       }),
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        // Authorization: `Bearer ${token}`,
       },
     },
-    false,
+    true,
   );
 
   if (!response?.ok) {

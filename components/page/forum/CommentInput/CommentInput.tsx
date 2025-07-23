@@ -54,11 +54,13 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
   useClickAway(formRef, handleFocus);
 
   const onSubmit = async (data: any) => {
+    const content = replaceImagesWithMarkdown(data.comment);
+
     try {
       const res = await mutateAsync({
         tid,
         toPid,
-        content: data.comment,
+        content,
       });
 
       if (res?.status?.code === 'ok') {
@@ -131,4 +133,11 @@ function CheckIcon(props: React.ComponentProps<'svg'>) {
 function isEditorEmpty(html: string): boolean {
   const trimmed = html.trim();
   return trimmed === '<p><br></p>' || trimmed === '';
+}
+
+function replaceImagesWithMarkdown(html: string): string {
+  return html.replace(/<img[^>]*src="([^"]+)"[^>]*\/?>/gi, (_, src) => {
+    const filename = src.split('/').pop() || 'image.png';
+    return `![${filename}](${src})`;
+  });
 }

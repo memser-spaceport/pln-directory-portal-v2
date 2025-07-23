@@ -72,7 +72,7 @@ const CommentItem = ({ item, isReply, onReply }: { item: NestedComment; isReply?
         <div className={s.col}>
           <div className={s.inline}>
             <div className={s.name}>{item.user.username}</div>
-            <div className={s.position}>· Position here</div>
+            <div className={s.position}>· {item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : ''}</div>
             <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
           </div>
           <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>

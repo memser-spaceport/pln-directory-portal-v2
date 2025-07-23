@@ -30,7 +30,7 @@ export const Posts = ({ cid }: Props) => {
       thumb: item.thumbs ? item.thumbs?.[0]?.url : null,
       image: item.user?.picture,
       author: item.user.displayname,
-      position: 'Developer @Aave',
+      position: item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : '',
       time: formatDistanceToNow(new Date(item.lastposttime), { addSuffix: true }),
       meta: {
         views: item.viewcount,

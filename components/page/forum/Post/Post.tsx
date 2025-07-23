@@ -35,7 +35,7 @@ export const Post = () => {
       desc: data.posts[0].content,
       image: '',
       author: data.author.displayname,
-      position: 'Developer @Aave',
+      position: data.author.teamRole && data.author.teamName ? `${data.author.teamRole} @${data.author.teamName}` : '',
       time: formatDistanceToNow(new Date(data.timestamp), { addSuffix: true }),
       meta: {
         views: data.viewcount,

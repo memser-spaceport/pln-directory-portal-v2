@@ -19,10 +19,10 @@ async function mutation({ pid }: MutationParams) {
       }),
       headers: {
         'Content-Type': 'application/json',
-        // Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     },
-    true,
+    false,
   );
 
   if (!response?.ok) {

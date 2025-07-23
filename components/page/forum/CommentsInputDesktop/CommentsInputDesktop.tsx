@@ -9,6 +9,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { replaceImagesWithMarkdown } from '@/utils/decode';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
+import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
 
 interface Props {
   tid: number;
@@ -23,6 +26,10 @@ const schema = yup.object().shape({
 
 export const CommentsInputDesktop = ({ tid, toPid, replyToName }: Props) => {
   const ref = useRef<HTMLFormElement | null>(null);
+  const { userInfo } = getCookiesFromClient();
+  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid);
+  const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
+
   const methods = useForm({
     defaultValues: {
       comment: '',
@@ -45,6 +52,15 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName }: Props) => {
     try {
       const content = replaceImagesWithMarkdown(data.comment);
 
+      if (notificationSettings && userInfo && notificationSettings?.forumReplyNotificationsEnabled !== data.emailMe) {
+        await updateNotificationSettings({
+          uid: userInfo.uid,
+          forumDigestEnabled: notificationSettings.forumDigestEnabled,
+          forumDigestFrequency: notificationSettings.forumDigestFrequency,
+          forumReplyNotificationsEnabled: data.emailMe,
+        });
+      }
+
       const res = await mutateAsync({
         tid,
         toPid,
@@ -66,6 +82,12 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName }: Props) => {
       document.querySelector<HTMLInputElement>('.ql-editor')?.focus();
     }
   }, [replyToName, toPid]);
+
+  useEffect(() => {
+    if (notificationSettings) {
+      setValue('emailMe', notificationSettings.forumReplyNotificationsEnabled);
+    }
+  }, [notificationSettings, setValue]);
 
   return (
     <FormProvider {...methods}>

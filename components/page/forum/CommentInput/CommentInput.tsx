@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import s from './CommentInput.module.scss';
 import { Checkbox } from '@base-ui-components/react/checkbox';
@@ -12,6 +12,9 @@ import { FormField } from '@/components/form/FormField';
 import { clsx } from 'clsx';
 import { useClickAway } from 'react-use';
 import { replaceImagesWithMarkdown } from '@/utils/decode';
+import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
 
 interface Props {
   tid: number;
@@ -28,6 +31,10 @@ const schema = yup.object().shape({
 export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
   const formRef = useRef<HTMLFormElement | null>(null);
   const [focused, setFocused] = useState(false);
+  const { userInfo } = getCookiesFromClient();
+  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid);
+  const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
+
   const methods = useForm({
     defaultValues: {
       comment: '',
@@ -58,6 +65,15 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
     try {
       const content = replaceImagesWithMarkdown(data.comment);
 
+      if (notificationSettings && userInfo && notificationSettings?.forumReplyNotificationsEnabled !== data.emailMe) {
+        await updateNotificationSettings({
+          uid: userInfo.uid,
+          forumDigestEnabled: notificationSettings.forumDigestEnabled,
+          forumDigestFrequency: notificationSettings.forumDigestFrequency,
+          forumReplyNotificationsEnabled: data.emailMe,
+        });
+      }
+
       const res = await mutateAsync({
         tid,
         toPid,
@@ -74,6 +90,12 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
       toast.error(e.message);
     }
   };
+
+  useEffect(() => {
+    if (notificationSettings) {
+      setValue('emailMe', notificationSettings.forumReplyNotificationsEnabled);
+    }
+  }, [notificationSettings, setValue]);
 
   return (
     <FormProvider {...methods}>

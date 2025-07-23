@@ -217,8 +217,12 @@
   letter-spacing: -0.3px;
   width: 100%;
 
-  ul {
+  ul, ol {
     padding: revert;
+  }
+
+  img {
+    max-width: 100%;
   }
 }
 

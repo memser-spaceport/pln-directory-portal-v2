@@ -131,6 +131,10 @@
   margin-top: 16px;
   margin-bottom: 12px;
 
+  ul, ol {
+    padding: revert;
+  }
+
   img {
     max-width: 100%;
   }

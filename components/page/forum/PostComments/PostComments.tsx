@@ -31,7 +31,7 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
       <div className={s.title}>Comments ({comments.length})</div>
 
       <div className={s.input}>
-        <CommentsInputDesktop tid={tid} toPid={replyToPid ?? mainPid} replyToName={replyToItem?.user.displayname} />
+        <CommentsInputDesktop tid={tid} toPid={replyToPid ?? mainPid} replyToName={replyToItem?.user.displayname} onCancel={() => setReplyToPid(null)} />
       </div>
 
       <div className={s.list}>
@@ -71,7 +71,7 @@ const CommentItem = ({ item, isReply, onReply }: { item: NestedComment; isReply?
         </Avatar.Root>
         <div className={s.col}>
           <div className={s.inline}>
-            <div className={s.name}>{item.user.username}</div>
+            <div className={s.name}>{item.user.displayname}</div>
             <div className={s.position}>· {item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : ''}</div>
             <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
           </div>

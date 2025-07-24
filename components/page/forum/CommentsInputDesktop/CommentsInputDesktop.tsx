@@ -17,6 +17,7 @@ interface Props {
   tid: number;
   toPid: number;
   replyToName?: string;
+  onCancel?: () => void;
 }
 
 const schema = yup.object().shape({
@@ -24,7 +25,7 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentsInputDesktop = ({ tid, toPid, replyToName }: Props) => {
+export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel }: Props) => {
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid);
@@ -103,7 +104,14 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName }: Props) => {
         </label>
 
         <div className={s.controls}>
-          <button type="button" className={s.secondaryBtn} onClick={() => reset()}>
+          <button
+            type="button"
+            className={s.secondaryBtn}
+            onClick={() => {
+              onCancel?.();
+              reset();
+            }}
+          >
             Cancel
           </button>
           <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>

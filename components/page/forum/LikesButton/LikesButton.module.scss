@@ -1,0 +1,17 @@
+.subItem {
+  display: flex;
+  gap: 4px;
+
+  color: var(--foreground-neutral-tertiary, #8897AE);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+
+  &.button {
+    &:hover {
+      filter: brightness(0.8);
+    }
+  }
+}

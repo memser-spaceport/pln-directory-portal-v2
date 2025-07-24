@@ -1,0 +1,181 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+
+}
+
+.triggerButton {
+  display: inline-flex;
+  padding: 8px var(--global-size-size-125, 10px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: var(--action-background-brand-normal, #1B4DFF);
+  box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+
+  color: var(--action-foreground-base-inverted_white, #FFF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+}
+
+.modal {
+  @include mixins.hide-scrollbar;
+  position: fixed;
+  top: 80px;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  max-height: 100dvh;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  background: #00000066;
+  overflow: auto;
+  backdrop-filter: blur(5px);
+
+  @include media.tablet-landscape {
+    padding: 32px;
+  }
+}
+
+.closeButton {
+  position: absolute;
+  border: none;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  user-select: none;
+  outline: none;
+  display: none;
+
+  @include media.tablet-landscape {
+    display: block;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  position: relative;
+  width: 100%;
+  max-width: 1344px;
+  display: flex;
+  height: fit-content;
+  min-height: calc(100dvh - 80px);
+  flex-direction: column;
+
+  @include media.tablet-landscape {
+    padding: 24px;
+    gap: 24px;
+    min-height: unset;
+
+    max-width: 852px;
+  }
+}
+
+.header {
+  display: flex;
+  padding: var(--spacing-2xs, 8px) var(--spacing-md, 16px);
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  background: var(--background-base-white, #FFF);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  z-index: 1;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+.cancelBtn {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
+}
+
+.submitBtn {
+  display: flex;
+  padding: var(--spacing-3xs, 6px) var(--global-size-size-125, 10px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0px);
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: var(--action-background-brand-normal, #1B4DFF);
+  box-shadow: 0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  color: var(--action-foreground-base-inverted_white, #FFF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.content {
+  display: flex;
+  padding: var(--spacing-xl, 24px) var(--spacing-md, 16px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-xs, 10px);
+  flex-shrink: 0;
+  align-self: stretch;
+
+  @include media.tablet-landscape {
+    gap: 24px;
+  }
+}
+
+.controls {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-md, 12px);
+  width: 100%;
+
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+
+  .submitBtn {
+    display: flex;
+    padding: 10px var(--global-size-size-200, 16px);
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-zero, 0px);
+    border-radius: var(--corner-radius-md, 8px);
+    border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+    background: var(--action-background-brand-normal, #1B4DFF);
+
+    min-width: 70px;
+
+    /* Button/primay/fill */
+    box-shadow: 0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  }
+}
+
+.logo {
+  display: none;
+
+  @include media.tablet-landscape {
+    display: block;
+  }
+}

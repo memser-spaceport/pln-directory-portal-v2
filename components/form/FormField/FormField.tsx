@@ -9,13 +9,14 @@ import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 interface Props extends PropsWithChildren {
   name: string;
   placeholder: string;
-  label: string;
+  label?: string;
   description?: string;
   disabled?: boolean;
   isRequired?: boolean;
+  onClick?: () => void;
 }
 
-export const FormField = ({ name, placeholder, label, description, disabled, children, isRequired }: Props) => {
+export const FormField = ({ name, placeholder, label, description, disabled, children, isRequired, ...rest }: Props) => {
   const {
     register,
     formState: { errors },
@@ -25,22 +26,24 @@ export const FormField = ({ name, placeholder, label, description, disabled, chi
 
   return (
     <Field.Root className={s.field}>
-      <div className={s.labelWrapper}>
-        <Field.Label
-          className={clsx(s.label, {
-            [s.required]: isRequired,
-          })}
-        >
-          {label}
-        </Field.Label>
-      </div>
+      {label && (
+        <div className={s.labelWrapper}>
+          <Field.Label
+            className={clsx(s.label, {
+              [s.required]: isRequired,
+            })}
+          >
+            {label}
+          </Field.Label>
+        </div>
+      )}
       <div
         className={clsx(s.input, {
           [s.error]: !!errors[name],
         })}
       >
         <div className={s.inputContent}>
-          <Field.Control {...register(name)} disabled={disabled} placeholder={placeholder} className={s.inputElement} id={name} />
+          <Field.Control {...register(name)} disabled={disabled} placeholder={placeholder} className={s.inputElement} id={name} {...rest} />
         </div>
         {children}
       </div>

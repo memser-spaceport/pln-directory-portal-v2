@@ -28,6 +28,7 @@ const nextConfig = {
     POSTHOG_KEY: process.env.POSTHOG_KEY,
     POSTHOG_HOST: process.env.POSTHOG_HOST,
     DIRECTORY_API_URL: process.env.DIRECTORY_API_URL,
+    FORUM_API_URL: process.env.FORUM_API_URL,
     PROTOSPHERE_URL: process.env.PROTOSPHERE_URL,
     GET_SUPPORT_URL: process.env.GET_SUPPORT_URL,
     PRIVY_AUTH_ID: process.env.PRIVY_AUTH_ID,
@@ -45,6 +46,7 @@ const nextConfig = {
     IRL_SUBMIT_FORM_URL: process.env.IRL_SUBMIT_FORM_URL,
     PL_EVENTS_BASE_URL: process.env.PL_EVENTS_BASE_URL,
     PL_EVENTS_SUBMISSION_URL: process.env.PL_EVENTS_SUBMISSION_URL,
+    CUSTOM_FORUM_AUTH_TOKEN: process.env.CUSTOM_FORUM_AUTH_TOKEN,
   },
   images: {
     remotePatterns: [

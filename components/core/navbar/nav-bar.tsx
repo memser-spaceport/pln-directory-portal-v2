@@ -2,13 +2,10 @@
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
-import { EVENTS, NAV_OPTIONS } from '@/utils/constants';
-import Image from 'next/image';
-import Link from 'next/link';
+import { EVENTS } from '@/utils/constants';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import LoginBtn from './login-btn';
-import { MobileNavDrawer } from './components/MobileNavDrawer';
 import { ApplicationSearch } from '@/components/core/application-search';
 import { AccountMenu } from '@/components/core/navbar/components/AccountMenu/AccountMenu';
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
@@ -18,6 +15,10 @@ import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfil
 import { Signup } from './components/Signup';
 import { NotificationsQueryKeys } from '@/services/notifications/constants';
 import { useQueryClient } from '@tanstack/react-query';
+import { NavigationMenu } from '@base-ui-components/react';
+import NextLink from 'next/link';
+
+import s from './NavBar.module.scss';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -32,19 +33,12 @@ export default function Navbar(props: Readonly<INavbar>) {
   const analytics = useCommonAnalytics();
   const authToken = props?.authToken;
   const [showNotifications, setShowNotifications] = useState(false);
-  const [isMobileDrawerOpen, setIsMobilDrawerOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
-  };
-
-  const onNavDrawerIconClickHandler = () => {
-    // document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_MOBILE_NAV, { detail: true }));
-    setIsMobilDrawerOpen((prev) => !prev);
-    analytics.onNavDrawerBtnClicked(isMobileDrawerOpen);
   };
 
   const onNavbarApplogoClicked = () => {
@@ -72,414 +66,189 @@ export default function Navbar(props: Readonly<INavbar>) {
   }, [isLoggedIn, queryClient]);
 
   return (
-    <>
-      <div className="nb">
-        {isMobileDrawerOpen && (
-          <MobileNavDrawer
-            userInfo={userInfo}
-            isLoggedIn={isLoggedIn}
-            onNavMenuClick={onNavDrawerIconClickHandler}
-            authToken={authToken}
-            onShowNotifications={() => setShowNotifications(true)}
-            notificationsCount={notifications?.length}
-            profileFilledPercent={profileStatus?.completeness}
-          />
-        )}
-        <div className="nb__left">
-          <Link href="/" onClick={onNavbarApplogoClicked}>
-            <img src="/icons/app-logo.svg" alt="app-logo" className="nb__left__app-logo" />
-          </Link>
-          <div className="nb__left__web-optns">
-            {NAV_OPTIONS.map((option, index) => (
-              <Link href={option.url} key={`${option.url} + ${index}`} onClick={() => onNavItemClickHandler(option?.url, option?.name)} prefetch>
-                <li key={option.name} tabIndex={0} className={`nb__left__web-optns__optn ${pathName === option.url ? 'nb__left__web-optns__optn--active' : ''}`}>
-                  <Image height={20} width={20} className="nb__left__web-optns__optn__img" src={pathName === option.url ? option.selectedLogo : option.unSelectedLogo} alt={option.name} />
-                  <p className="nb__left__web-optns__optn__name">{option.name}</p>
+    <NavigationMenu.Root className={s.Root}>
+      <NavigationMenu.List className={s.List}>
+        <Link href="/" onClick={onNavbarApplogoClicked}>
+          <AppLogo />
+        </Link>
+        <NavigationMenu.Item>
+          <NavigationMenu.Trigger className={s.Trigger}>
+            <DirectoryIcon /> Directory
+            <NavigationMenu.Icon className={s.Icon}>
+              <ChevronDownIcon />
+            </NavigationMenu.Icon>
+          </NavigationMenu.Trigger>
+          <NavigationMenu.Content className={s.Content}>
+            <ul className={s.GridLinkList}>
+              {directoryLinks.map((item) => (
+                <li key={item.href}>
+                  <Link className={s.LinkCard} href={item.href} onClick={() => onNavItemClickHandler(item.href, item.title)}>
+                    {item.icon}
+                    <div className={s.linkDetails}>
+                      <h3 className={s.LinkTitle}>{item.title}</h3>
+                      <p className={s.LinkDescription}>{item.description}</p>
+                    </div>
+                  </Link>
                 </li>
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div className="nb__right">
+              ))}
+            </ul>
+          </NavigationMenu.Content>
+        </NavigationMenu.Item>
+        <NavigationMenu.Item>
+          <Link className={s.Trigger} href="/events" onClick={() => onNavItemClickHandler('/events', 'Events')}>
+            <EventsIcon /> Events
+          </Link>
+        </NavigationMenu.Item>
+        <NavigationMenu.Item>
+          <Link className={s.Trigger} href="/forum?cid=1" onClick={() => onNavItemClickHandler('/forum', 'Forum')}>
+            <ForumIcon /> Forum
+          </Link>
+        </NavigationMenu.Item>
+        <div className={s.right}>
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
           <NotificationsMenu isMobileView notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
-
           <HelpMenu userInfo={userInfo} authToken={authToken} isLoggedIn={isLoggedIn} />
-
-          <div className="nb__right__drawerandprofilesec" onClick={onNavDrawerIconClickHandler}>
-            <button className="nb__right__drawerandprofile__drawerbtn">
-              <Image src="/icons/nav-drawer.svg" alt="nav-drawer" height={20} width={20} />
-              {isLoggedIn && notifications?.length > 0 && <div className="nb__right_notifications_count">{notifications?.length}</div>}
-            </button>
-          </div>
           {isLoggedIn && (
-            <div className="nb__right__drawerandprofilesec__userprofile">
+            <>
               <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileStatus?.completeness} />
-            </div>
+            </>
           )}
           {!isLoggedIn && (
-            <div className="nb__right__lgandjoin">
+            <>
               <Signup />
               <LoginBtn />
-            </div>
+            </>
           )}
         </div>
-      </div>
-
-      <style jsx>
-        {`
-          button {
-            background: inherit;
-          }
-          .nb {
-            //height: 100%;
-            height: 80px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0px 1px 4px 0px #e2e8f0;
-            padding: 0 16px 0px 22px;
-            gap: 10px;
-          }
-
-          button {
-            cursor: pointer;
-            border: none;
-            outline: none;
-            background: none;
-          }
-
-          .nb__left__web-optns {
-            display: none;
-          }
-
-          .nb__left__web-optns__optn {
-            display: flex;
-            color: #475569;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            cursor: pointer;
-          }
-
-          .nb__right__team {
-            display: flex;
-            color: #475569;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            line-height: 24px;
-            text-align: right;
-          }
-
-          .nb__left__web-optns__optn:focus {
-            border-radius: 0.5rem;
-            outline-style: solid;
-            outline-width: 1px;
-            outline-offset: 0;
-            box-shadow: 0px 0px 0px 2px #156ff740;
-            outline-color: #156ff7;
-          }
-
-          .nb__left__web-optns__optn--active {
-            background-color: #f1f5f9;
-            border-radius: 8px;
-            color: #000;
-          }
-
-          .nb__left__web-optns__optn__img {
-            display: inline-block;
-            padding-right: 8px;
-            vertical-align: middle;
-          }
-
-          .nb__left__web-optns__optn__name {
-            display: inline-block;
-            white-space: nowrap;
-            vertical-align: middle;
-          }
-
-          .nb__right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-
-          .nb__right__helpc {
-            position: relative;
-          }
-
-          .nb__right__helpc__btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            position: relative;
-          }
-
-          .nb__right__helpc {
-            display: none;
-          }
-
-          .nb__right__helpc__opts {
-            position: absolute;
-            right: 0;
-            margin-top: 10px;
-            padding: 8px;
-            background-color: white;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            box-shadow: 0px 2px 6px 0px #0f172a29;
-            border-radius: 8px;
-            width: 170px;
-          }
-
-          .nb__right__helpc__opts__optn:hover {
-            background-color: #f1f5f9;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-          }
-
-          .nb__right__helpc__opts__optn__name {
-            font-size: 14px;
-            line-height: 20px;
-            font-weight: 400;
-          }
-
-          .nb__right__lgandjoin {
-            display: none;
-          }
-
-          .nb__right__lgandjoin__lgnbtn {
-            color: #475569;
-            font-size: 15px;
-            font-weight: 600;
-            background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
-            box-shadow: 0px 1px 1px 0px #07080829;
-            padding: 8px 24px;
-            color: #ffffff;
-            font-size: 15px;
-            line-height: 24px;
-            font-weight: 600;
-            border-radius: 100px;
-            line-height: 24px;
-          }
-
-          .nb__right__helpc__opts__optn {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            padding: 8px;
-            cursor: pointer;
-          }
-
-          .nb__right__drawerandprofile {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-          }
-
-          .nb__right__drawerandprofilesec {
-            display: flex;
-            cursor: pointer;
-            align-items: center;
-            border: ${isLoggedIn ? '1px solid #E2E8F0' : 'none'};
-            gap: 4px;
-            border-radius: 4px;
-            padding: ${isLoggedIn ? '0' : '0'};
-          }
-
-          .nb__right__ntc {
-            height: 30px;
-            width: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 4px;
-            position: relative;
-          }
-
-          .nb__left__app-logo {
-            height: 33px;
-            width: 144px;
-          }
-
-          .nb__right__ntc__new {
-            border-radius: 50%;
-            background: #ff820e;
-            padding: 3px 2px;
-            border: 1px solid #ffffff;
-            border-radius: 5px;
-            font-size: 10px;
-            font-weight: 600;
-            color: white;
-            z-index: 2;
-            position: absolute;
-            top: -5px;
-            left: 13px;
-            min-width: 15px;
-            width: fit-content;
-            text-align: center;
-            height: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .nb__right__ntc__allntn {
-            position: absolute;
-            max-height: 534px;
-            width: 250px;
-            z-index: 5;
-            right: -10px;
-            top: 30px;
-            border-radius: 8px;
-            background-color: white;
-            box-shadow: 0px 2px 6px 0px #0f172a29;
-          }
-
-          .nb__right_notifications_count {
-            background: #ff820e;
-            border: 1px solid #ffffff;
-            border-radius: 5px;
-            z-index: 2;
-            min-width: 15px;
-            width: fit-content;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            padding-block: 2px;
-            padding-inline: 4px;
-            flex-direction: column;
-            flex-shrink: 0;
-
-            color: #fff;
-            text-align: center;
-            font-size: 10px;
-            font-style: normal;
-            font-weight: 600;
-            line-height: normal;
-            position: absolute;
-            right: -14px;
-            top: -14px;
-          }
-
-          @keyframes shake {
-            0% {
-              transform: rotate(0deg);
-            }
-            10% {
-              transform: rotate(-20deg);
-            }
-            20% {
-              transform: rotate(20deg);
-            }
-            30% {
-              transform: rotate(-20deg);
-            }
-            40% {
-              transform: rotate(20deg);
-            }
-            50% {
-              transform: rotate(-20deg);
-            }
-            60% {
-              transform: rotate(20deg);
-            }
-            70% {
-              transform: rotate(-20deg);
-            }
-            80% {
-              transform: rotate(20deg);
-            }
-            90% {
-              transform: rotate(-20deg);
-            }
-            100% {
-              transform: rotate(0deg);
-            }
-          }
-
-          .nb__right__ntc__btn {
-            transition: transform 0.2s ease-in-out;
-          }
-
-          .shake {
-            animation: shake 1s ease-in-out;
-          }
-
-          .nb__right__drawerandprofilesec__userprofile {
-            display: none;
-          }
-
-          .nb__right__drawerandprofile__drawerbtn {
-            position: relative;
-            padding: ${isLoggedIn ? '8px' : '0'};
-          }
-
-          @media (min-width: 1025px) {
-            .nb {
-              padding: 0 48px 0 48px;
-            }
-            .nb__left {
-              display: flex;
-              gap: 48px;
-              align-items: center;
-            }
-
-            .nb__left__app-logo {
-              height: 35px;
-              width: 157px;
-            }
-
-            .nb__right__ntc__allntn {
-              width: 400px;
-            }
-
-            .nb__right__helpc {
-              height: 24px;
-              display: unset;
-            }
-            .nb__left__web-optns {
-              display: unset;
-              display: flex;
-              gap: 16px;
-            }
-
-            .nb__right__helpc__opts__optn {
-              display: flex;
-            }
-
-            .nb__right__drawerandprofile__drawerbtn {
-              display: none;
-            }
-
-            .nb__right__lgandjoin {
-              display: flex;
-              gap: 16px;
-              align-items: center;
-            }
-
-            .nb__right__drawerandprofilesec {
-              border: none;
-              //position: relative;
-            }
-
-            .nb__right__ntc__allntn {
-              right: 10px;
-              top: 30px;
-              width: 300px;
-            }
-            .nb__right__drawerandprofilesec__userprofile {
-              display: unset;
-            }
-          }
-        `}
-      </style>
-    </>
+      </NavigationMenu.List>
+      <NavigationMenu.Portal>
+        <NavigationMenu.Positioner className={s.Positioner} sideOffset={10} collisionPadding={{ top: 5, bottom: 5, left: 20, right: 20 }}>
+          <NavigationMenu.Popup className={s.Popup}>
+            <NavigationMenu.Viewport className={s.Viewport} />
+          </NavigationMenu.Popup>
+        </NavigationMenu.Positioner>
+      </NavigationMenu.Portal>
+    </NavigationMenu.Root>
   );
 }
+
+function Link(props: NavigationMenu.Link.Props) {
+  return (
+    <NavigationMenu.Link
+      render={() => (
+        <NextLink href={props.href ?? ''} className={(props.className as string) ?? ''}>
+          {props.children}
+        </NextLink>
+      )}
+      {...props}
+    />
+  );
+}
+
+function ChevronDownIcon(props: React.ComponentProps<'svg'>) {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" {...props}>
+      <path d="M1 3.5L5 7.5L9 3.5" stroke="currentcolor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+const TeamsIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M15 7C15 7.79565 14.6839 8.55871 14.1213 9.12132C13.5587 9.68393 12.7956 10 12 10C11.2044 10 10.4413 9.68393 9.87868 9.12132C9.31607 8.55871 9 7.79565 9 7C9 6.20435 9.31607 5.44129 9.87868 4.87868C10.4413 4.31607 11.2044 4 12 4C12.7956 4 13.5587 4.31607 14.1213 4.87868C14.6839 5.44129 15 6.20435 15 7ZM20 9C20 9.53043 19.7893 10.0391 19.4142 10.4142C19.0391 10.7893 18.5304 11 18 11C17.4696 11 16.9609 10.7893 16.5858 10.4142C16.2107 10.0391 16 9.53043 16 9C16 8.46957 16.2107 7.96086 16.5858 7.58579C16.9609 7.21071 17.4696 7 18 7C18.5304 7 19.0391 7.21071 19.4142 7.58579C19.7893 7.96086 20 8.46957 20 9ZM16 16C16 14.9391 15.5786 13.9217 14.8284 13.1716C14.0783 12.4214 13.0609 12 12 12C10.9391 12 9.92172 12.4214 9.17157 13.1716C8.42143 13.9217 8 14.9391 8 16V19H16V16ZM8 9C8 9.53043 7.78929 10.0391 7.41421 10.4142C7.03914 10.7893 6.53043 11 6 11C5.46957 11 4.96086 10.7893 4.58579 10.4142C4.21071 10.0391 4 9.53043 4 9C4 8.46957 4.21071 7.96086 4.58579 7.58579C4.96086 7.21071 5.46957 7 6 7C6.53043 7 7.03914 7.21071 7.41421 7.58579C7.78929 7.96086 8 8.46957 8 9ZM18 19V16C18.0014 14.9833 17.7433 13.983 17.25 13.094C17.6933 12.9805 18.1568 12.9698 18.6049 13.0627C19.053 13.1556 19.474 13.3496 19.8357 13.6299C20.1974 13.9102 20.4903 14.2695 20.6921 14.6802C20.8939 15.091 20.9992 15.5424 21 16V19H18ZM6.75 13.094C6.25675 13.983 5.9986 14.9833 6 16V19H3V16C2.99981 15.542 3.10446 15.0901 3.30595 14.6789C3.50743 14.2676 3.80039 13.9079 4.16238 13.6274C4.52437 13.3469 4.94578 13.153 5.39431 13.0605C5.84284 12.9681 6.30658 12.9795 6.75 13.094Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+const MembersIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M12 10C12.7956 10 13.5587 9.68393 14.1213 9.12132C14.6839 8.55871 15 7.79565 15 7C15 6.20435 14.6839 5.44129 14.1213 4.87868C13.5587 4.31607 12.7956 4 12 4C11.2044 4 10.4413 4.31607 9.87868 4.87868C9.31607 5.44129 9 6.20435 9 7C9 7.79565 9.31607 8.55871 9.87868 9.12132C10.4413 9.68393 11.2044 10 12 10ZM5 19C5 18.0807 5.18106 17.1705 5.53284 16.3212C5.88463 15.4719 6.40024 14.7003 7.05025 14.0503C7.70026 13.4002 8.47194 12.8846 9.32122 12.5328C10.1705 12.1811 11.0807 12 12 12C12.9193 12 13.8295 12.1811 14.6788 12.5328C15.5281 12.8846 16.2997 13.4002 16.9497 14.0503C17.5998 14.7003 18.1154 15.4719 18.4672 16.3212C18.8189 17.1705 19 18.0807 19 19H5Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+const ProjectsIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M12.1788 2.04718C12.068 1.98427 11.932 1.98427 11.8212 2.04718L3.45761 6.77448C3.34347 6.83891 3.27295 6.9599 3.27295 7.09104V16.9092C3.27295 17.0403 3.34346 17.1613 3.45761 17.2257L11.8212 21.953C11.932 22.0157 12.068 22.0157 12.1788 21.953L20.5424 17.2257C20.6566 17.1613 20.7271 17.0403 20.7271 16.9092V7.09104C20.7271 6.9599 20.6566 6.83891 20.5424 6.77448L12.1788 2.04718ZM9.76255 11.1082L4.00013 7.72571V16.2731L8.51055 13.6199L9.76255 11.1082ZM11.6362 21.0133L4.36421 16.9029L8.00159 14.7631C8.00971 14.845 8.04547 14.9236 8.10635 14.9845C9.15472 16.0329 10.3801 16.6188 11.6361 16.7136L11.6362 21.0133ZM12.3637 21.0133V16.7136C13.6198 16.6188 14.8452 16.0329 15.8935 14.9845C15.9518 14.9261 15.9871 14.8513 15.997 14.7732L19.6344 16.9036L12.3637 21.0133ZM20 16.2748L15.4982 13.6381L14.2315 11.1121L20 7.72603V16.2748ZM19.6353 7.09695L13.9048 10.4606L12.3486 7.35799L12.3618 2.98607L19.6353 7.09695ZM11.6347 2.98808L11.6215 7.38006L10.0879 10.4561L4.36504 7.09701L11.6347 2.98808Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+const EventsIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g clipPath="url(#clip0_3785_16476)">
+      <g clipPath="url(#clip1_3785_16476)">
+        <path
+          d="M10 11.6666C9.76389 11.6666 9.56611 11.5866 9.40667 11.4266C9.24667 11.2672 9.16667 11.0694 9.16667 10.8333C9.16667 10.5972 9.24667 10.3991 9.40667 10.2391C9.56611 10.0797 9.76389 9.99996 10 9.99996C10.2361 9.99996 10.4342 10.0797 10.5942 10.2391C10.7536 10.3991 10.8333 10.5972 10.8333 10.8333C10.8333 11.0694 10.7536 11.2672 10.5942 11.4266C10.4342 11.5866 10.2361 11.6666 10 11.6666ZM6.66667 11.6666C6.43056 11.6666 6.2325 11.5866 6.0725 11.4266C5.91306 11.2672 5.83333 11.0694 5.83333 10.8333C5.83333 10.5972 5.91306 10.3991 6.0725 10.2391C6.2325 10.0797 6.43056 9.99996 6.66667 9.99996C6.90278 9.99996 7.10083 10.0797 7.26083 10.2391C7.42028 10.3991 7.5 10.5972 7.5 10.8333C7.5 11.0694 7.42028 11.2672 7.26083 11.4266C7.10083 11.5866 6.90278 11.6666 6.66667 11.6666ZM13.3333 11.6666C13.0972 11.6666 12.8994 11.5866 12.74 11.4266C12.58 11.2672 12.5 11.0694 12.5 10.8333C12.5 10.5972 12.58 10.3991 12.74 10.2391C12.8994 10.0797 13.0972 9.99996 13.3333 9.99996C13.5694 9.99996 13.7672 10.0797 13.9267 10.2391C14.0867 10.3991 14.1667 10.5972 14.1667 10.8333C14.1667 11.0694 14.0867 11.2672 13.9267 11.4266C13.7672 11.5866 13.5694 11.6666 13.3333 11.6666ZM10 15C9.76389 15 9.56611 14.92 9.40667 14.76C9.24667 14.6005 9.16667 14.4027 9.16667 14.1666C9.16667 13.9305 9.24667 13.7327 9.40667 13.5733C9.56611 13.4133 9.76389 13.3333 10 13.3333C10.2361 13.3333 10.4342 13.4133 10.5942 13.5733C10.7536 13.7327 10.8333 13.9305 10.8333 14.1666C10.8333 14.4027 10.7536 14.6005 10.5942 14.76C10.4342 14.92 10.2361 15 10 15ZM6.66667 15C6.43056 15 6.2325 14.92 6.0725 14.76C5.91306 14.6005 5.83333 14.4027 5.83333 14.1666C5.83333 13.9305 5.91306 13.7327 6.0725 13.5733C6.2325 13.4133 6.43056 13.3333 6.66667 13.3333C6.90278 13.3333 7.10083 13.4133 7.26083 13.5733C7.42028 13.7327 7.5 13.9305 7.5 14.1666C7.5 14.4027 7.42028 14.6005 7.26083 14.76C7.10083 14.92 6.90278 15 6.66667 15ZM13.3333 15C13.0972 15 12.8994 14.92 12.74 14.76C12.58 14.6005 12.5 14.4027 12.5 14.1666C12.5 13.9305 12.58 13.7327 12.74 13.5733C12.8994 13.4133 13.0972 13.3333 13.3333 13.3333C13.5694 13.3333 13.7672 13.4133 13.9267 13.5733C14.0867 13.7327 14.1667 13.9305 14.1667 14.1666C14.1667 14.4027 14.0867 14.6005 13.9267 14.76C13.7672 14.92 13.5694 15 13.3333 15ZM4.16667 18.3333C3.70833 18.3333 3.31583 18.1702 2.98917 17.8441C2.66306 17.5175 2.5 17.125 2.5 16.6666V4.99996C2.5 4.54163 2.66306 4.1494 2.98917 3.82329C3.31583 3.49663 3.70833 3.33329 4.16667 3.33329H5V2.49996C5 2.26385 5.07972 2.06579 5.23917 1.90579C5.39917 1.74635 5.59722 1.66663 5.83333 1.66663C6.06944 1.66663 6.2675 1.74635 6.4275 1.90579C6.58694 2.06579 6.66667 2.26385 6.66667 2.49996V3.33329H13.3333V2.49996C13.3333 2.26385 13.4133 2.06579 13.5733 1.90579C13.7328 1.74635 13.9306 1.66663 14.1667 1.66663C14.4028 1.66663 14.6006 1.74635 14.76 1.90579C14.92 2.06579 15 2.26385 15 2.49996V3.33329H15.8333C16.2917 3.33329 16.6842 3.49663 17.0108 3.82329C17.3369 4.1494 17.5 4.54163 17.5 4.99996V16.6666C17.5 17.125 17.3369 17.5175 17.0108 17.8441C16.6842 18.1702 16.2917 18.3333 15.8333 18.3333H4.16667ZM4.16667 16.6666H15.8333V8.33329H4.16667V16.6666Z"
+          fill="#475569"
+        />
+      </g>
+    </g>
+    <defs>
+      <clipPath id="clip0_3785_16476">
+        <rect width="20" height="20" fill="white" />
+      </clipPath>
+      <clipPath id="clip1_3785_16476">
+        <rect width="20" height="20" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const ForumIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M20.25 7.5H17.25V4.5C17.25 4.10218 17.092 3.72064 16.8107 3.43934C16.5294 3.15804 16.1478 3 15.75 3H3.75C3.35218 3 2.97064 3.15804 2.68934 3.43934C2.40804 3.72064 2.25 4.10218 2.25 4.5V16.5C2.25044 16.6411 2.29068 16.7792 2.36608 16.8985C2.44149 17.0177 2.54901 17.1133 2.67629 17.1742C2.80358 17.2351 2.94546 17.2589 3.08564 17.2428C3.22581 17.2266 3.3586 17.1713 3.46875 17.0831L6.75 14.4375V17.25C6.75 17.6478 6.90804 18.0294 7.18934 18.3107C7.47064 18.592 7.85218 18.75 8.25 18.75H17.0241L20.5312 21.5831C20.664 21.6905 20.8293 21.7493 21 21.75C21.1989 21.75 21.3897 21.671 21.5303 21.5303C21.671 21.3897 21.75 21.1989 21.75 21V9C21.75 8.60218 21.592 8.22064 21.3107 7.93934C21.0294 7.65804 20.6478 7.5 20.25 7.5ZM6.23906 12.9169L3.75 14.9297V4.5H15.75V12.75H6.71063C6.53897 12.75 6.37252 12.8089 6.23906 12.9169ZM20.25 19.4297L17.7609 17.4169C17.6282 17.3095 17.4629 17.2507 17.2922 17.25H8.25V14.25H15.75C16.1478 14.25 16.5294 14.092 16.8107 13.8107C17.092 13.5294 17.25 13.1478 17.25 12.75V9H20.25V19.4297Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+const DirectoryIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M16.875 5.62501H10.2586L8.125 3.49141C8.00935 3.37483 7.87168 3.28241 7.71999 3.21951C7.5683 3.1566 7.40562 3.12448 7.24141 3.12501H3.125C2.79348 3.12501 2.47554 3.2567 2.24112 3.49112C2.0067 3.72554 1.875 4.04349 1.875 4.37501V15.6734C1.87541 15.992 2.00214 16.2974 2.22739 16.5226C2.45263 16.7479 2.75802 16.8746 3.07656 16.875H16.9445C17.2575 16.8746 17.5575 16.7501 17.7788 16.5288C18.0001 16.3075 18.1246 16.0075 18.125 15.6945V6.87501C18.125 6.54349 17.9933 6.22554 17.7589 5.99112C17.5245 5.7567 17.2065 5.62501 16.875 5.62501ZM3.125 4.37501H7.24141L8.49141 5.62501H3.125V4.37501ZM16.875 15.625H3.125V6.87501H16.875V15.625Z"
+      fill="#475569"
+    />
+  </svg>
+);
+
+const AppLogo = () => (
+  <svg width="158" height="36" viewBox="0 0 158 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M119.037 30.0685L121.435 22.1935H124.215L120.236 32.3693C119.981 33.034 119.726 33.5967 119.445 34.0314C119.165 34.4916 118.884 34.8499 118.553 35.1056C118.221 35.3868 117.864 35.5657 117.481 35.6935C117.099 35.8213 116.639 35.8722 116.154 35.8722C115.925 35.8722 115.72 35.8724 115.542 35.8468C115.364 35.8468 115.185 35.8216 115.007 35.796V34.0568C115.134 34.0823 115.262 34.0822 115.39 34.0822H115.771C116.205 34.0822 116.563 33.9799 116.869 33.8009C117.175 33.6218 117.404 33.264 117.634 32.7785L117.762 32.4718L113.782 22.1935H116.613L119.037 30.0685ZM33.1104 5.95716C33.2889 5.85489 33.5186 5.98291 33.5186 6.21302V23.7785C33.5185 23.9829 33.4167 24.1615 33.2383 24.2638L18.0352 32.9572C17.8567 33.0849 17.6273 32.932 17.627 32.7277V25.1847C17.627 24.9802 17.7287 24.8006 17.9072 24.6984L26.0449 20.0197C26.2233 19.9174 26.3251 19.7386 26.3252 19.5343L26.2998 10.1505C26.3253 9.94598 26.4279 9.76647 26.6064 9.66419L33.1104 5.95716ZM8.87695 21.1193C8.87695 20.8893 9.10665 20.7614 9.28516 20.8888L15.8672 24.673C16.0456 24.7753 16.1475 24.9548 16.1475 25.1593V32.7277C16.1471 32.9319 15.9177 33.0594 15.7393 32.9572L9.1582 29.173C8.97971 29.0707 8.87703 28.8921 8.87695 28.6876V21.1193ZM74.9072 21.9376C75.6468 21.9377 76.31 22.0658 76.8711 22.3214C77.4322 22.5771 77.9172 22.9345 78.2998 23.3947C78.6823 23.8548 78.9884 24.3662 79.167 24.9796C79.4221 25.5932 79.498 26.2329 79.498 26.8976V27.2814C79.498 27.4347 79.4981 27.588 79.4727 27.7413H72.5088C72.5343 28.2526 72.6362 28.6873 72.7637 29.0197C72.8912 29.352 73.0704 29.6333 73.2744 29.8634C73.4784 30.0679 73.7079 30.2211 73.9629 30.3234C74.218 30.4256 74.4986 30.4513 74.8047 30.4513C75.3659 30.4513 75.8255 30.298 76.1826 30.0167C76.5394 29.7356 76.7692 29.3267 76.8457 28.7902H79.3711C79.2436 29.3524 79.0392 29.8635 78.7588 30.298C78.4782 30.7326 78.1209 31.091 77.7383 31.3722C77.3301 31.6535 76.8705 31.8575 76.3604 32.0109C75.8503 32.1642 75.315 32.2413 74.7285 32.2413C74.0654 32.2413 73.4275 32.1392 72.8408 31.9347C72.2542 31.7302 71.7696 31.3975 71.3359 30.9884C70.9024 30.5538 70.5705 30.0427 70.3154 29.3781C70.0604 28.7389 69.958 27.9717 69.958 27.1281C69.958 26.3866 70.0859 25.696 70.3154 25.0568C70.545 24.4177 70.876 23.8548 71.3096 23.3947C71.7432 22.9344 72.254 22.5771 72.8662 22.3214C73.4784 22.0657 74.1675 21.9376 74.9072 21.9376ZM85.1865 21.9376C85.8497 21.9376 86.437 22.0399 86.9727 22.2189C87.508 22.3978 87.9671 22.6787 88.3496 23.0109C88.7322 23.3432 89.0381 23.7529 89.2422 24.213C89.4718 24.6733 89.5994 25.1849 89.6504 25.7218H87.1514C87.0238 25.0059 86.7936 24.4945 86.4365 24.1876C86.0794 23.8808 85.646 23.7277 85.1104 23.7277C84.4726 23.7277 83.9365 23.9827 83.5283 24.5197C83.1202 25.0566 82.916 25.8752 82.916 27.0001C82.916 28.2273 83.1202 29.097 83.5283 29.6339C83.9365 30.1708 84.4727 30.4513 85.1104 30.4513C85.6205 30.4513 86.0286 30.2981 86.3857 29.9913C86.7173 29.6845 86.9721 29.2242 87.0996 28.5851H89.625C89.4209 29.8124 88.8857 30.7078 88.0439 31.3214C87.2022 31.935 86.1814 32.2413 84.957 32.2413C84.2939 32.2413 83.6813 32.1394 83.1201 31.9093C82.559 31.7048 82.0487 31.372 81.6406 30.963C81.2327 30.5285 80.9015 30.017 80.6465 29.3781C80.4169 28.7389 80.2891 27.9972 80.2891 27.1535C80.2891 26.3097 80.4168 25.568 80.6719 24.9288C80.927 24.2897 81.2842 23.7268 81.7178 23.2921C82.1513 22.8576 82.6869 22.4997 83.2734 22.2697C83.8856 22.0651 84.5234 21.9377 85.1865 21.9376ZM93.9873 22.296H96.002V23.9835H93.9873V28.9435C93.9873 29.0713 93.9872 29.2249 94.0127 29.3527C94.0382 29.5826 94.0887 29.7872 94.1396 29.9406C94.1906 30.0939 94.2933 30.2213 94.4463 30.298C94.5993 30.3747 94.7782 30.4267 95.0078 30.4523C95.2373 30.4778 95.5181 30.4778 95.875 30.4523V32.1134C95.5945 32.1645 95.3137 32.1904 95.0332 32.216C94.7527 32.2415 94.4719 32.2413 94.1914 32.2413C93.2476 32.2413 92.5839 32.0884 92.1758 31.756C91.7932 31.4236 91.5638 30.912 91.4873 30.2472C91.4618 30.0171 91.4619 29.8122 91.4619 29.5822V23.9835H90.0332V22.296H91.4619V19.8917H93.9873V22.296ZM101.385 21.9376C102.201 21.9376 102.915 22.0658 103.553 22.3214C104.19 22.5771 104.727 22.9344 105.16 23.3947C105.594 23.8549 105.925 24.3922 106.154 25.0314C106.384 25.6706 106.486 26.3356 106.486 27.1027C106.486 27.844 106.384 28.5341 106.154 29.1476C105.925 29.7868 105.594 30.3241 105.16 30.7843C104.727 31.2445 104.19 31.6019 103.553 31.8576C102.915 32.1132 102.201 32.2413 101.385 32.2413C100.569 32.2413 99.8545 32.1132 99.2168 31.8576C98.5792 31.6019 98.043 31.2445 97.6094 30.7843C97.1757 30.3241 96.8438 29.7868 96.6143 29.1476C96.3848 28.5086 96.2832 27.8184 96.2832 27.1027C96.2832 26.3613 96.3847 25.6705 96.6143 25.0314C96.8438 24.3922 97.1757 23.8549 97.6094 23.3947C98.043 22.9345 98.5791 22.5771 99.2168 22.3214C99.8545 22.0658 100.594 21.9376 101.385 21.9376ZM62.2295 32.0118H59.7041V22.1935H62.2295V32.0118ZM69.0908 21.963C69.3713 21.963 69.6007 21.9891 69.8047 22.0402V24.0851C68.759 24.0084 67.9683 24.2388 67.4326 24.7501C66.8969 25.2615 66.6416 26.1823 66.6416 27.5118V32.0118H64.1162V22.1935H66.6416V23.9826L67.4072 22.6281C67.6623 22.3979 67.9175 22.244 68.2236 22.1417C68.5296 22.014 68.8103 21.963 69.0908 21.963ZM112.711 21.963C112.991 21.963 113.221 21.9891 113.425 22.0402V24.0851C112.379 24.0084 111.588 24.2388 111.053 24.7501C110.517 25.2615 110.262 26.1823 110.262 27.5118V32.0118H107.736V22.1935H110.262V23.9826L111.027 22.6281C111.282 22.398 111.538 22.244 111.844 22.1417C112.124 22.0141 112.431 21.963 112.711 21.963ZM52.2041 19.2785C52.4082 19.2785 52.6891 19.3291 52.9951 19.3546C53.7346 19.4313 54.4231 19.636 55.0605 19.9171C55.6983 20.1984 56.2596 20.5825 56.7188 21.0939C57.1779 21.6052 57.5613 22.2188 57.8164 22.9347C58.0969 23.6506 58.2236 24.5201 58.2236 25.466C58.2236 26.4373 58.0969 27.3065 57.8164 28.0734C57.5358 28.8404 57.178 29.4798 56.6934 30.0167C56.2087 30.5537 55.6475 30.9882 55.0098 31.2951C54.3721 31.6019 53.6831 31.807 52.9434 31.9093C52.6121 31.9349 52.3572 31.9599 52.1533 31.9855H47V19.2785H52.2041ZM101.385 23.7277C100.62 23.7277 100.007 24.0341 99.5732 24.6222C99.1397 25.2103 98.9355 26.0545 98.9355 27.1027C98.9356 28.1506 99.1398 28.9942 99.5732 29.5822C100.007 30.1702 100.62 30.4777 101.385 30.4777C102.15 30.4776 102.762 30.1702 103.195 29.5822C103.629 28.9942 103.833 28.1508 103.833 27.1027C103.833 26.0288 103.629 25.2103 103.195 24.6222C102.762 24.0343 102.175 23.7277 101.385 23.7277ZM49.5254 30.0167H51.7451C51.9746 29.9912 52.1788 29.9915 52.3828 29.966C53.3265 29.8381 54.0921 29.4029 54.6787 28.6359C55.2397 27.8689 55.5459 26.846 55.5459 25.5167C55.5459 24.2384 55.2653 23.2666 54.7041 22.5763C54.1429 21.886 53.4028 21.4776 52.459 21.3497C52.2549 21.3242 52.0508 21.298 51.8213 21.298C51.6173 21.298 51.3624 21.2726 51.082 21.2726H49.5254V30.0167ZM0.12793 6.03431C0.12793 5.82976 0.383081 5.676 0.536133 5.80384L15.8672 14.548C16.0457 14.7014 16.1729 14.8806 16.1729 15.0851L16.1475 22.756C16.1472 22.9346 15.9683 22.9858 15.8408 22.9347L7.80566 18.3322C7.62715 18.2302 7.39746 18.3582 7.39746 18.5626V27.6388C7.39746 27.8432 7.14332 27.9967 6.99023 27.8693L0.408203 24.1359C0.229916 24.0336 0.127955 23.8549 0.12793 23.6505V6.03431ZM74.8047 23.7277C74.218 23.7277 73.7333 23.9321 73.3252 24.3156C72.9427 24.699 72.6871 25.3123 72.5596 26.1046H76.8711C76.7945 25.3379 76.5649 24.75 76.2334 24.341C75.9018 23.9319 75.4169 23.7277 74.8047 23.7277ZM24.4121 10.9435C24.5906 10.8157 24.8202 10.9685 24.8203 11.173V18.8439C24.8202 18.9461 24.7688 19.0478 24.6924 19.0734L18.0352 22.8829C17.8566 23.0108 17.6271 22.8579 17.627 22.6535V15.1105C17.627 14.9061 17.7289 14.7273 17.9072 14.6505L24.4121 10.9435ZM60.9795 18.5372C61.3875 18.5373 61.745 18.6654 62 18.921C62.2547 19.1765 62.3817 19.4831 62.3818 19.8917C62.3818 20.3006 62.2548 20.6333 62 20.8634C61.745 21.119 61.413 21.2218 60.9795 21.2218C60.5714 21.2218 60.2141 21.0935 59.959 20.8634C59.704 20.6078 59.5762 20.3008 59.5762 19.8917C59.5763 19.5085 59.7041 19.1766 59.959 18.921C60.2141 18.6653 60.5714 18.5372 60.9795 18.5372ZM141.676 5.42005C142.186 4.55092 143.207 3.98841 144.38 3.98841C146.65 3.9885 148.461 5.95735 148.461 8.92298C148.461 11.8888 146.599 13.8584 144.38 13.8585C143.411 13.8585 142.262 13.4742 141.676 12.4259V13.6281H139.253V0.920053H141.676V5.42005ZM68.7969 3.98841C71.1691 3.98841 73.5165 5.62485 73.5166 8.92298C73.5166 12.2469 71.1692 13.8576 68.7969 13.8576C66.4247 13.8573 64.0781 12.2466 64.0781 8.92298C64.0527 5.59951 66.3993 3.98863 68.7969 3.98841ZM85.0469 3.98841C87.419 3.98859 89.7655 5.62503 89.7656 8.92298C89.7656 12.2467 87.4191 13.8574 85.0469 13.8576C82.6746 13.8576 80.3271 12.2469 80.3271 8.92298C80.3273 5.59928 82.6746 3.98841 85.0469 3.98841ZM95.4033 3.98841C97.3674 3.98856 99.357 5.08861 99.6631 7.41517H97.3418C97.1632 6.52028 96.2953 5.85462 95.377 5.85462C94.1273 5.85488 93.1328 6.92913 93.1328 8.89759C93.1328 10.8664 94.0769 11.9913 95.4033 11.9913C96.2195 11.9912 97.1118 11.5821 97.4434 10.4318H99.7646C99.2034 13.0141 97.2394 13.8576 95.3008 13.8576C92.4949 13.8575 90.6836 11.761 90.6836 8.92298C90.6837 6.08504 92.5975 3.98841 95.4033 3.98841ZM105.173 3.98841C107.545 3.98841 109.891 5.62485 109.892 8.92298C109.892 12.2469 107.545 13.8576 105.173 13.8576C102.801 13.8575 100.454 12.2468 100.454 8.92298C100.454 5.59933 102.801 3.98845 105.173 3.98841ZM133.36 3.93763C135.605 3.93774 137.416 4.90913 137.416 8.10462C137.416 8.41144 137.391 9.6396 137.391 10.5089C137.391 11.9916 137.492 12.8355 137.671 13.6281H135.452C135.376 13.3212 135.324 12.9115 135.299 12.4513C134.636 13.4229 133.64 13.8576 132.212 13.8576C130.401 13.8575 128.794 12.8098 128.794 11.0714C128.794 8.84705 131.294 8.18186 134.992 7.7472V7.59388C134.992 6.13649 134.202 5.62513 133.232 5.62513C132.314 5.62514 131.524 6.11102 131.473 7.15931H129.228C129.406 5.29282 130.937 3.93763 133.36 3.93763ZM153.333 3.93763C155.374 3.93763 157.16 4.85808 157.491 7.03138H155.247C155.043 6.2388 154.303 5.67596 153.206 5.67591C152.313 5.67591 151.676 6.00874 151.676 6.59681C151.676 7.10805 152.033 7.49191 152.926 7.69642L154.175 7.97767C156.037 8.38676 157.645 8.87237 157.645 10.8156C157.644 12.7585 155.706 13.8574 153.563 13.8576C151.242 13.8576 149.507 12.6564 149.277 10.5089H151.599C151.752 11.4292 152.39 12.0939 153.64 12.0939C154.66 12.0939 155.349 11.71 155.349 11.0197C155.348 10.3295 154.609 10.0482 153.818 9.86927L152.415 9.56263C150.655 9.20468 149.482 8.46307 149.481 6.75013C149.481 5.03718 151.292 3.93779 153.333 3.93763ZM51.834 0.920053C54.4358 0.920064 57.4198 1.2785 57.4199 5.11341C57.4199 8.36059 54.8181 9.15345 51.9102 9.15345H49.9971V13.6281H47.4971V0.920053H51.834ZM77.623 4.19349H79.5869V5.8556H77.623V10.7384C77.623 11.71 77.955 11.8888 78.8223 11.8888H79.5615V13.6281H77.8018C75.6591 13.6281 75.2256 12.9631 75.2256 11.0968V5.88099H73.8984V4.19349H75.2256V1.63587H77.623V4.19349ZM113.692 13.6281H111.27V0.920053H113.692V13.6281ZM122.009 11.5822H128.182V13.6281H119.509V0.920053H122.009V11.5822ZM60.6094 5.82923C61.1451 4.67879 62.0127 4.19349 63.084 4.19349C63.237 4.19353 63.4408 4.21887 63.6191 4.21888V6.49427C63.2876 6.49426 62.9811 6.46888 62.624 6.46888C61.4254 6.46898 60.6603 6.90341 60.6602 8.66712V13.6017H58.2373V4.19349H60.6094V5.82923ZM7.85742 0.204233C8.03579 0.127719 8.23955 0.12772 8.44336 0.204233L23.7744 8.94837C23.953 9.05065 23.953 9.33243 23.7744 9.4347L17.2695 13.1671C17.091 13.2693 16.8875 13.2693 16.709 13.1671L1.37793 4.42298C1.22491 4.32073 1.22498 4.03996 1.37793 3.93763L7.85742 0.204233ZM135.069 9.30677C132.365 9.58802 131.294 9.89501 131.294 10.9689C131.294 11.6592 131.83 12.2218 132.927 12.2218C134.431 12.2217 135.069 11.4031 135.069 10.0226V9.30677ZM143.768 5.82923C142.441 5.82923 141.574 7.00566 141.574 8.89759C141.574 10.7896 142.441 11.9913 143.768 11.9913C145.017 11.9913 145.91 10.7639 145.91 8.92298C145.936 7.08231 145.017 5.82928 143.768 5.82923ZM68.7969 5.88099C67.4707 5.88125 66.5274 6.95463 66.5273 8.92298C66.5018 10.8915 67.4452 11.9657 68.7969 11.966C70.1233 11.966 71.0674 10.8917 71.0674 8.92298C71.0673 6.95439 70.1233 5.88099 68.7969 5.88099ZM85.0469 5.88099C83.7205 5.88099 82.7765 6.95439 82.7764 8.92298C82.7764 10.8917 83.7204 11.966 85.0469 11.966C86.3731 11.9657 87.3164 10.8916 87.3164 8.92298C87.3163 6.95458 86.3731 5.8812 85.0469 5.88099ZM105.173 5.88099C103.847 5.88104 102.902 6.95444 102.902 8.92298C102.902 10.8917 103.846 11.9659 105.173 11.966C106.499 11.966 107.443 10.8917 107.443 8.92298C107.443 6.95439 106.499 5.88099 105.173 5.88099ZM25.3301 0.204233C25.5086 0.101983 25.7131 0.102031 25.8916 0.204233L32.498 3.98841C32.6766 4.09069 32.6766 4.37149 32.498 4.47376L25.9424 8.20716C25.7639 8.30926 25.5603 8.30927 25.3818 8.20716L18.7744 4.42298C18.5963 4.32063 18.5964 4.04005 18.7744 3.93763L25.3301 0.204233ZM49.9971 7.21009H52.0635C53.6195 7.21009 54.8438 6.8263 54.8438 5.1388C54.8435 3.04264 53.2621 2.86341 51.8848 2.86341H49.9971V7.21009Z"
+      fill="#0F172A"
+    />
+  </svg>
+);
+
+const directoryLinks = [
+  {
+    icon: <MembersIcon />,
+    href: '/members',
+    title: 'Members',
+    description: 'Explore profiles and connect with contributors',
+  },
+  {
+    icon: <TeamsIcon />,
+    href: '/teams',
+    title: 'Teams',
+    description: 'Discover working groups and collaborations',
+  },
+  {
+    icon: <ProjectsIcon />,
+    href: '/projects',
+    title: 'Projects',
+    description: 'See what the network is building',
+  },
+] as const;

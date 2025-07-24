@@ -18,6 +18,7 @@ import PostLoginRedirectHandler from '@/components/page/recommendations/componen
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
 import { UserInfoChecker } from '@/components/core/login/UserInfoChecker';
+import { MobileBottomNav } from '@/components/core/MobileBottomNav/MobileBottomNav';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
             <main className="layout__main">{children}</main>
+            <MobileBottomNav />
             <Loader />
             <AuthBox />
             <Toaster />

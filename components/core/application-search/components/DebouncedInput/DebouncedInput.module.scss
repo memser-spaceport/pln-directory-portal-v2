@@ -9,6 +9,7 @@
   position: relative;
   background: linear-gradient(0deg, #F1F5F9 0%, #F1F5F9 100%), #FFF;
   border-radius: 8px;
+  flex: 1;
 
   @include media.tablet-landscape {
     min-width: 360px;

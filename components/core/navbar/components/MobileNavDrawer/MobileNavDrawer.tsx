@@ -253,7 +253,7 @@ export const MobileNavDrawer = (props: Readonly<IMobileNavDrawer>) => {
           .md {
             position: fixed;
             right: 0;
-            z-index: 11;
+            z-index: 12;
             top: 0;
             background-color: rgb(0, 0, 0, 0.4);
             display: flex;

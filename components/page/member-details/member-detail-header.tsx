@@ -163,6 +163,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
           ))}
           {skills?.length > 3 && (
             <CustomTooltip
+              forceTooltip
               trigger={
                 <div>
                   <Tag variant="primary" value={'+' + (skills?.length - 3).toString()}></Tag>{' '}

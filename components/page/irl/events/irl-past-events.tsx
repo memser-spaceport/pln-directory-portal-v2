@@ -15,6 +15,8 @@ import { DOMPurify } from 'isomorphic-dompurify';
 import SearchGatherings from './search-gatherings';
 import Image from 'next/image';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { IUserInfo } from '@/types/shared.types';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 interface EventDetailsProps {
   eventDetails: {
@@ -25,9 +27,11 @@ interface EventDetailsProps {
   isUpcoming: boolean;
   searchParams: any;
   handleDataNotFound: () => void;
+  userInfo?: IUserInfo;
+  onDeleteEvent: (gathering: any) => void;
 }
 
-const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, handleDataNotFound }: EventDetailsProps) => {
+const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, handleDataNotFound, userInfo, onDeleteEvent }: EventDetailsProps) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { updateQueryParams } = useUpdateQueryParams();
@@ -45,6 +49,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
   const [searchText, setSearchText] = useState('');
 
   const eventsToShow = events;
+
+  const accessLevel = getAccessLevel(userInfo as IUserInfo, isLoggedIn);
 
   // Determine the selected event based on searchParams
   let selectedEvent = eventsToShow[0];
@@ -189,6 +195,8 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                     handleElementClick={() => handleElementClick(gathering)}
                     isEventSelected={searchParams?.event ? searchParams?.event === gathering.slugURL : eventsToShow[0]?.slugURL === gathering.slugURL}
                     eventType={!isUpcoming}
+                    userInfo={userInfo}
+                    onDeleteEvent={onDeleteEvent}
                   />
                 </div>
               ))}
@@ -307,15 +315,16 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                             className={`custom-dropdown__item ${gathering.slugURL === searchParams?.event ? 'custom-dropdown__item--active' : ''}`}
                             onClick={() => handleEventSelection(gathering)}
                           >
-                            <div style={{ display: 'flex' }}>
+                            <div style={{ display: 'flex', width: '100%' }}>
                               <div className="root__irl__mobileView__top__cnt">
                                 <div>
                                   <img src={gathering?.logo?.url} style={{ height: '15px', width: '15px' }} alt="logo" />
                                 </div>
                                 <div className="root__irl__mobileView__top__cnt__title">
-                                  {gathering?.name}
-                                  <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</span>
-                                  {gathering?.eventGuests?.length > 0 && (
+                                  <div className='root__irl__mobileView__top__cnt__title__items'>
+                                    {gathering?.name}
+                                    <span className="root__irl__mobileView__top__cnt__eventDate--date">{getFormattedDateString(gathering?.startDate, gathering?.endDate)}</span>
+                                    {gathering?.eventGuests?.length > 0 && (
                                     <span className="root__irl__mobileView__top__cnt__eventDate--count">
                                       <span className="root__irl__imgsec__images" style={{ paddingLeft: '5px' }}>
                                         {gathering.eventGuests?.slice(0, 3).map((member: any, index: number) => (
@@ -333,7 +342,20 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
                                       </span>
                                       <span style={{ paddingLeft: '5px' }}>{gathering?.eventGuests?.length}</span>
                                     </span>
-                                  )}
+                                    )}
+                                  </div>
+                                  {accessLevel === 'advanced' && (
+                                      <button 
+                                        className="root__irl__mobileView__dropdown__delete__btn" 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onDeleteEvent(gathering);
+                                        }}
+                                        title="Delete Event"
+                                      >
+                                        <img src="/icons/delete.svg" alt="delete" height={16} width={16} />
+                                      </button>
+                                    )}
                                 </div>
                               </div>
                             </div>
@@ -631,11 +653,54 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           align-items: center;
         }
 
+        .custom-dropdown__item .root__irl__mobileView__top__cnt {
+          width: 100%;
+        }
+
         .root__irl__mobileView__top__cnt__title {
           font-size: 13px;
           font-weight: 600;
           line-height: 20px;
           text-align: left;
+        }
+
+        .custom-dropdown__item .root__irl__mobileView__top__cnt__title {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          flex: 1;
+        }
+
+        .root__irl__mobileView__top__cnt__title__items {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .root__irl__mobileView__dropdown__item__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        }
+
+        .root__irl__mobileView__dropdown__delete__btn {
+          background-color: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 2px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.2s ease;
+          margin-left: 8px;
+          flex-shrink: 0;
+        }
+
+        .root__irl__mobileView__dropdown__delete__btn:hover {
+          background-color: #fee2e2;
         }
 
         .root__irl__mobileView__top__cnt__eventDate {
@@ -667,6 +732,18 @@ const IrlPastEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, han
           padding: 0px 0px 0px 8px;
           margin: 0px 0px 0px 8px;
           border-left: 1px solid #cbd5e1;
+        }
+
+        .custom-dropdown__item .root__irl__mobileView__top__cnt__eventDate--date {
+          margin: unset;
+          padding: unset;
+          border-left: unset;
+        }
+
+        .custom-dropdown__item .root__irl__mobileView__top__cnt__eventDate--count {
+          margin: unset;
+          padding: unset;
+          border-left: unset;
         }
 
         .root__irl__mobileView__body__title {

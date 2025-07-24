@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
-import { IMember } from '@/types/members.types';
+import { IMember, IMemberPreferences } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { TEditContactForm } from '@/components/page/member-details/ContactDetails/types';
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
@@ -41,7 +41,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
       discord: member.discordHandle,
       twitter: member.twitter,
       email: member.email,
-      shareContacts: member.preferences?.showEmail,
+      shareContacts: getDefaultToggleValue(member.preferences),
     },
   });
   const { handleSubmit, reset } = methods;
@@ -298,3 +298,25 @@ const EditIcon = () => (
     />
   </svg>
 );
+
+function getDefaultToggleValue(prefs?: IMemberPreferences) {
+  if (!prefs) {
+    return true;
+  }
+
+  const keys = Object.keys(prefs).filter((key) => key.startsWith('show')) as (keyof IMemberPreferences)[];
+
+  let res = true;
+
+  keys.forEach((key) => {
+    const value = prefs[key];
+
+    if (!value) {
+      res = false;
+
+      return;
+    }
+  });
+
+  return res;
+}

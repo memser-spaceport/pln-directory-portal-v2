@@ -268,6 +268,7 @@ export const TOAST_MESSAGES = {
   FEEDBACK__ALREADY__RECORDED: 'Thanks, we have already recorded your feedback',
   SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed',
   FAILED_TO_LINK_LINKEDIN: 'Failed to link LinkedIn account',
+  EVENT_DELETED_SUCCESSFULLY: 'Event deleted successfully',
 };
 
 export const AUTH_ANALYTICS = {

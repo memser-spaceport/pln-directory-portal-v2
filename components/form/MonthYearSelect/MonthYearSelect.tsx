@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Select from 'react-select';
 import s from './MonthYearSelect.module.scss';
 import clsx from 'clsx';
+import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 const getYearOptions = (start: number, end: number) =>
   Array.from({ length: end - start + 1 }, (_, i) => {
@@ -62,6 +63,8 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error, isReq
     }, 0);
   }, [value]);
 
+  useScrollIntoViewOnFocus<HTMLInputElement>({ id: label });
+
   const emitChange = (newMonth: typeof month, newYear: typeof year) => {
     if (justSynced.current) return;
     if (newMonth && newYear) {
@@ -103,6 +106,7 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error, isReq
           value={month}
           onChange={handleMonthChange}
           isDisabled={disabled}
+          inputId={label}
           styles={{
             container: (base) => ({
               ...base,

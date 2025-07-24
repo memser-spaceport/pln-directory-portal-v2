@@ -8,6 +8,7 @@ import Select from 'react-select';
 import s from './FormSelect.module.scss';
 import { clsx } from 'clsx';
 import { useMedia, useToggle } from 'react-use';
+import { useScrollIntoViewOnFocus } from '@/hooks/useScrollIntoViewOnFocus';
 
 interface Props {
   name: string;
@@ -34,6 +35,8 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
   const isMobile = useMedia('(max-width: 960px)', false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
+
   return (
     <>
       {open && (
@@ -47,7 +50,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
             </button>
           </div>
           <div className={s.mobileSearchWrapper}>
-            <Input className={s.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <Input autoFocus className={s.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             <SearchIcon />
           </div>
           <div className={s.mobileOptions}>
@@ -89,7 +92,8 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
           value={value}
           defaultValue={value}
           onChange={(val) => setValue(name, val, { shouldValidate: true, shouldDirty: true })}
-          isDisabled={disabled}
+          isDisabled={disabled || open}
+          inputId={name}
           onMenuOpen={() => {
             if (!isMobile) {
               return;

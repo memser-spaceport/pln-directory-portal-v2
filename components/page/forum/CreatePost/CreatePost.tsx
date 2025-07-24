@@ -15,6 +15,7 @@ import { toast } from 'react-toastify';
 import { createPostSchema } from '@/components/page/forum/CreatePost/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { replaceImagesWithMarkdown } from '@/utils/decode';
+import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 const fade = {
   hidden: { opacity: 0 },
@@ -25,6 +26,7 @@ const fade = {
 export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () => void) => ReactNode }) => {
   const [open, toggleOpen] = useToggle(false);
   useLockBodyScroll(open);
+  useMobileNavVisibility(open);
 
   const { data: topics } = useForumCategories();
   const topicsOptions = useMemo(() => {

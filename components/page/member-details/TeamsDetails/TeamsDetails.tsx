@@ -12,6 +12,7 @@ import { getAccessLevel } from '@/utils/auth.utils';
 import { ITeam } from '@/types/teams.types';
 import { TeamsList } from '@/components/page/member-details/TeamsDetails/components/TeamsList';
 import { EditTeamForm } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm';
+import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 interface Props {
   member: IMember;
@@ -25,6 +26,7 @@ export const TeamsDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
+  useMobileNavVisibility(view !== 'view');
 
   if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
     return null;

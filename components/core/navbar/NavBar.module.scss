@@ -4,7 +4,7 @@
 $text-color: #475569;
 
 .Root {
-  padding: 16px 48px;
+  padding: 16px;
   color: $text-color;
   min-width: max-content;
   height: 80px;
@@ -13,6 +13,10 @@ $text-color: #475569;
 
   background: var(--Surface-surface-light, #FFF);
   box-shadow: 0 1px 4px 0 #E2E8F0;
+
+  @include media.tablet-landscape {
+    padding: 16px 48px;
+  }
 }
 
 .List {

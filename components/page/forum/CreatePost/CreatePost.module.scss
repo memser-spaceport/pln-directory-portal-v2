@@ -72,7 +72,7 @@
   max-width: 1344px;
   display: flex;
   height: fit-content;
-  min-height: 100dvh;
+  min-height: calc(100dvh - 80px);
   flex-direction: column;
 
   @include media.tablet-landscape {

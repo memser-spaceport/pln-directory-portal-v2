@@ -96,6 +96,12 @@ body {
   /*overflow-y: auto;*/
 }
 
+.mobile-nav-hidden {
+  #mobile-bottom-nav {
+    display: none;
+  }
+}
+
 body:has(dialog[open]) {
   /*overflow: hidden !important; !* Disable scrolling when dialog is open *!*/
 }

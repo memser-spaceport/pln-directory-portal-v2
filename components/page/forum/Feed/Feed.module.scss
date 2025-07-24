@@ -17,8 +17,9 @@
   justify-content: center;
   align-items: center;
   gap: var(--spacing-zero, 0px);
+  background: var(--action-background-brand-normal, #1B4DFF);
 
-  border-radius: var(--corner-radius-Full-round, 9999px);
+  border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
   background: var(--action-background-brand-normal, #1B4DFF);
   box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
@@ -31,7 +32,7 @@
   letter-spacing: -0.2px;
 
   position: fixed;
-  bottom: 16px;
+  bottom: 72px;
   right: 16px;
 
   @include media.tablet-landscape {

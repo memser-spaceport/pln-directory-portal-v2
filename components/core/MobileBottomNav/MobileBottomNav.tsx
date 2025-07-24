@@ -69,7 +69,7 @@ export function MobileBottomNav() {
   const pathname = usePathname();
 
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.wrapper} id="mobile-bottom-nav">
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={styles.list}>
           {navItems.map(({ href, label, icon: Icon }) => (

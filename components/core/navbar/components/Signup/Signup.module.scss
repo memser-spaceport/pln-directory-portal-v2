@@ -1,5 +1,8 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
 .root {
-  display: flex;
+  display: none;
   height: 40px;
   padding: 10px 24px;
   justify-content: center;
@@ -19,6 +22,10 @@
   font-weight: 600;
   line-height: 24px;
   white-space: nowrap;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
 
   &:hover {
     border-color: transparent;

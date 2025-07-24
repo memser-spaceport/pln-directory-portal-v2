@@ -55,7 +55,7 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
 
   const onSubmit = async (data: any) => {
     try {
-      const content = replaceImagesWithMarkdown(data.comment);
+      const content = replaceImagesWithMarkdown(data.content);
 
       const res = await mutateAsync({
         cid: data.topic.value,

@@ -56,18 +56,14 @@ export const Posts = () => {
     <div className={s.root}>
       {posts.map((post) => {
         const { cleanedText } = extractImagesAndClean(post.desc ?? '');
+        const decoded = decodeHtml(cleanedText);
+        const content = decoded.length > 200 ? `${decoded.slice(0, 200)}...` : decoded;
 
         return (
           <Link className={s.listItem} key={post.tid} href={`/forum/categories/${post.cid}/${post.tid}`}>
             <div className={s.title}>{post.title}</div>
             <div className={s.desc}>
-              {/*{post.thumb ? <img src={`${process.env.FORUM_API_URL}${post.thumb}`} alt="post img" onError={() => null} /> : null}*/}
-              <span dangerouslySetInnerHTML={{ __html: decodeHtml(cleanedText) ?? '' }} />
-              {cleanedText && (
-                <>
-                  <span>...</span> <span className={s.link}>Read more</span>
-                </>
-              )}
+              <span dangerouslySetInnerHTML={{ __html: content ?? '' }} />
             </div>
             <div className={s.footer}>
               <Avatar.Root className={s.Avatar}>

@@ -38,8 +38,8 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
   const { data: member } = useMember(userInfo?.uid);
 
   // 3. Define toolbar modules (with proper nesting)
-  const modules = useMemo(
-    () => ({
+  const modules = useMemo(() => {
+    return {
       toolbar: {
         container: [
           ['bold', 'italic', 'strike'],
@@ -65,15 +65,16 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
           });
         },
       },
-    }),
-    [member?.memberInfo.officeHours],
-  );
+    };
+  }, [member?.memberInfo.officeHours]);
 
   useEffect(() => {
     if (quillRef.current && autoFocus) {
       quillRef.current.focus();
     }
   }, [autoFocus]);
+
+  if (!member) return null;
 
   return (
     <div className={s.root} id={id}>

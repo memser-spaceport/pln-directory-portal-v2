@@ -20,7 +20,6 @@ import Link from 'next/link';
 import Dropdown from '../../../form/dropdown';
 import DeleteEventModal from './delete-event-modal';
 import { deleteEventLocation } from '@/services/irl.service';
-import revalidate from '@/app/actions/irl.actions';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 interface IIrlEvents {
@@ -277,24 +276,22 @@ const IrlEvents = (props: IIrlEvents) => {
         return;
       }
 
-      // Revalidate cache for location API and event guests
-      await revalidate();
-      
       // Track analytics
       analytics.trackEventDeleteConfirmed(eventToDelete);
       
-      // Clear event query parameter from URL after successful delete
-      const currentParams = new URLSearchParams(searchParams);
-      if (currentParams.has('event')) {
-        currentParams.delete('event');
-        router.push(`${window.location.pathname}?${currentParams.toString()}`);
-      }
-      
-      // Close modal and refresh the page or update the state
+      // Close modal and show success message
       setShowDeleteModal(false);
       setEventToDelete(null);
       toast.success(TOAST_MESSAGES.EVENT_DELETED_SUCCESSFULLY);
-      // window.location.reload();
+      
+      // Clear event query parameter from URL and refresh the page
+      const currentParams = new URLSearchParams(searchParams);
+      if (currentParams.has('event')) {
+        currentParams.delete('event');
+        window.location.href = `${window.location.pathname}?${currentParams.toString()}`;
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
       console.error('Error deleting event:', error);
       toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);

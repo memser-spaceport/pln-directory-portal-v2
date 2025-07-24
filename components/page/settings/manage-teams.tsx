@@ -21,6 +21,7 @@ import { ENROLLMENT_TYPE } from '@/utils/constants';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import AlertMessage from './alert-message';
 import TeamsMemberInfo from './teams-member-info';
+import { isValidURL, URLType } from '../../../utils/url-validation';
 
 function ManageTeamsSettings(props: any) {
   //props
@@ -144,10 +145,32 @@ function ManageTeamsSettings(props: any) {
 
   const validateSocial = async (formattedData: any) => {
     let errors = [];
-    const validationResponse = validateForm(socialSchema, formattedData);
-    if (!validationResponse?.success) {
-      errors.push(...validationResponse.errors);
+    
+    // Check individual fields for URL validity
+    const fieldsToValidate: Array<{field: string, type: URLType, required: boolean}> = [
+      { field: 'contactMethod', type: 'contactMethod', required: true },
+      { field: 'website', type: 'website', required: true },
+      { field: 'linkedinHandler', type: 'linkedin', required: false },
+      { field: 'twitterHandler', type: 'twitter', required: false },
+      { field: 'telegramHandler', type: 'telegram', required: false },
+      { field: 'blog', type: 'blog', required: false },
+    ];
+    
+    fieldsToValidate.forEach(({ field, type, required }) => {
+      const value = formattedData[field];
+      if ((required && !value) || (value && !isValidURL(value, type))) {
+        errors.push(`Invalid ${field} format`);
+      }
+    });
+    
+    // Use schema validation as backup
+    if (errors.length === 0) {
+      const validationResponse = validateForm(socialSchema, formattedData);
+      if (!validationResponse?.success) {
+        errors.push(...validationResponse.errors);
+      }
     }
+    
     return errors;
   };
 

@@ -25,3 +25,24 @@ jest.mock('next/image', () => ({
     return <img src={src} alt={alt} {...rest} />;
   },
 }));
+
+jest.mock('quill-image-uploader', () => ({
+  __esModule: true,
+  default: () => {
+    return {
+      // Mocked module shape
+      upload: jest.fn(),
+    };
+  },
+}));
+
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQuery: () => ({
+    data: {
+      memberInfo: {},
+    },
+    isLoading: false,
+    error: null,
+  }),
+}));

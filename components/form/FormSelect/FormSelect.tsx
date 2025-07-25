@@ -15,7 +15,7 @@ interface Props {
   placeholder: string;
   label?: string;
   description?: string;
-  options: { label: string; value: string }[];
+  options: { label: string; value: string; description?: string }[];
   disabled?: boolean;
   isRequired?: boolean;
   notFoundContent?: ReactNode;
@@ -69,6 +69,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
                     }}
                   >
                     {item.label}
+                    {item.description && <div>{item.description}</div>}
                   </div>
                 );
               })}
@@ -157,6 +158,10 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
               ...baseStyles,
               outline: 'none',
               zIndex: 3,
+              display: 'flex',
+              padding: '8px',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
             }),
             placeholder: (baseStyles) => ({
               ...baseStyles,
@@ -172,6 +177,14 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
                 <div className={s.notFound}>
                   <span>No options found</span>
                   {notFoundContent}
+                </div>
+              );
+            },
+            Option: (props) => {
+              return (
+                <div onClick={() => props.selectOption(props.data)} className={s.option}>
+                  <div className={s.optionLabel}>{props.data.label}</div>
+                  {props.data.description && <div className={s.optionDesc}>{props.data.description}</div>}
                 </div>
               );
             },

@@ -23,6 +23,12 @@ const fade = {
   exit: { opacity: 0 },
 };
 
+type Form = {
+  topic: Record<string, string>;
+  title: string;
+  content: string;
+};
+
 export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () => void) => ReactNode }) => {
   const [open, toggleOpen] = useToggle(false);
   useLockBodyScroll(open);
@@ -34,11 +40,12 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
       topics?.map((topic) => ({
         label: topic.name,
         value: topic.cid.toString(),
+        description: topic.description,
       })) ?? []
     );
   }, [topics]);
 
-  const methods = useForm({
+  const methods = useForm<Form>({
     defaultValues: {
       // topic: null,
       title: '',
@@ -137,7 +144,7 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
                     >
                       Cancel
                     </button>
-                    <button className={s.submitBtn}>Post</button>
+                    <button className={s.submitBtn}>{isSubmitting ? 'Processing...' : 'Post'}</button>
                   </div>
                 </form>
               </FormProvider>

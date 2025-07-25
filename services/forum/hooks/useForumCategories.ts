@@ -209,6 +209,7 @@ async function fetcher() {
   return data.categories.map((item) => ({
     cid: item.cid,
     name: item.name,
+    description: item.description,
   }));
 }
 

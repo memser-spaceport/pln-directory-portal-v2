@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { ForumQueryKeys } from '@/services/forum/constants';
 import { TopicResponse } from '@/services/forum/hooks/useForumPost';
+import { toast } from 'react-toastify';
 
 interface MutationParams {
   pid: number;
@@ -27,7 +28,8 @@ async function mutation({ pid }: MutationParams) {
   );
 
   if (!response?.ok) {
-    throw new Error('Failed to create post');
+    const res = await response?.json();
+    throw new Error(res?.status.message || 'Failed to like post');
   }
 
   return await response.json();
@@ -67,6 +69,7 @@ export function useLikePost() {
               return {
                 ...post,
                 upvoted: true,
+                votes: post.votes + 1,
               };
             }
 
@@ -81,6 +84,8 @@ export function useLikePost() {
       if (context?.prev) {
         queryClient.setQueryData([ForumQueryKeys.GET_TOPIC, tid.toString()], context.prev);
       }
+
+      toast.error(error.message);
     },
   });
 }

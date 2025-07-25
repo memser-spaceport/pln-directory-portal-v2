@@ -40,7 +40,7 @@ export const Post = () => {
       upvoted: data.posts[0]?.upvoted,
       meta: {
         views: data.viewcount,
-        likes: data.votes,
+        likes: data.posts[0]?.votes,
         comments: data.postcount - 1,
       },
     };

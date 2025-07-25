@@ -18,6 +18,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-bottom: 8px;
 }
 
 .Avatar {
@@ -192,4 +193,8 @@
     border-left: 1px solid #E2E8F0;
     padding-left: 24px;
   }
+}
+
+.menuWrapper {
+  margin-left: auto;
 }

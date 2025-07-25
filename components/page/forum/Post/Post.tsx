@@ -15,6 +15,7 @@ import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
 import { BreadCrumb } from '@/components/core/bread-crumb';
 import { LikesButton } from '@/components/page/forum/LikesButton';
 import { decodeHtml } from '@/utils/decode';
+import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 
 export const Post = () => {
   const { categoryId, topicId } = useParams();
@@ -69,6 +70,7 @@ export const Post = () => {
 
         <div className={s.content}>
           <div className={s.topicBadge}>{post.category}</div>
+          <ItemMenu />
         </div>
 
         <h1 className={s.title}>{post.title}</h1>

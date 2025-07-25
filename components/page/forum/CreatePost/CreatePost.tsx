@@ -14,7 +14,8 @@ import { createPostSchema } from '@/components/page/forum/CreatePost/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { replaceImagesWithMarkdown } from '@/utils/decode';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useEditPost } from '@/services/forum/hooks/useEditPost';
 
 type Form = {
   topic: Record<string, string>;
@@ -22,8 +23,9 @@ type Form = {
   content: string;
 };
 
-export const CreatePost = () => {
+export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; initialData?: Form; pid?: number }) => {
   const router = useRouter();
+  const params = useParams();
   useMobileNavVisibility(true);
 
   const { data: topics } = useForumCategories();
@@ -38,37 +40,60 @@ export const CreatePost = () => {
   }, [topics]);
 
   const methods = useForm<Form>({
-    defaultValues: {
-      // @ts-ignore
-      topic: null,
-      title: '',
-      content: '',
-    },
+    // @ts-ignore
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          content: extractTextWithImages(initialData.content),
+        }
+      : {
+          topic: null,
+          title: '',
+          content: '',
+        },
     resolver: yupResolver(createPostSchema),
   });
 
   const {
     handleSubmit,
     reset,
+    watch,
     formState: { isSubmitting, isDirty },
   } = methods;
 
-  const { mutateAsync } = useCreatePost();
+  console.log(watch().content);
+
+  const { mutateAsync: createPost } = useCreatePost();
+  const { mutateAsync: editPost } = useEditPost();
 
   const onSubmit = async (data: any) => {
     try {
       const content = replaceImagesWithMarkdown(data.content);
 
-      const res = await mutateAsync({
-        cid: data.topic.value,
-        title: data.title,
-        content,
-      });
+      if (isEdit && pid) {
+        const res = await editPost({
+          pid,
+          title: data.title,
+          content,
+        });
 
-      if (res.status.code === 'ok') {
-        toast.success('Post created successfully');
-        router.push('/forum?cid=1');
-        reset();
+        if (res.status.code === 'ok') {
+          toast.success('Post updated successfully');
+          router.push(`/forum/categories/${params.categoryId}/${params.topicId}`);
+          reset();
+        }
+      } else {
+        const res = await createPost({
+          cid: data.topic.value,
+          title: data.title,
+          content,
+        });
+
+        if (res.status.code === 'ok') {
+          toast.success('Post created successfully');
+          router.push('/forum?cid=1');
+          reset();
+        }
       }
     } catch (e) {
       // @ts-ignore
@@ -82,7 +107,7 @@ export const CreatePost = () => {
         <FormProvider {...methods}>
           <form className={s.modalContent} noValidate onSubmit={handleSubmit(onSubmit)}>
             <div className={s.headerWrapper}>
-              <div className={s.logo}>Create Post</div>
+              <div className={s.logo}>{isEdit ? 'Edit Post' : 'Create Post'}</div>
               <div className={s.controls}>
                 <button
                   type="button"
@@ -94,7 +119,7 @@ export const CreatePost = () => {
                 >
                   Cancel
                 </button>
-                <button className={s.submitBtn}>{isSubmitting ? 'Processing...' : 'Post'}</button>
+                <button className={s.submitBtn}>{isSubmitting ? 'Processing...' : isEdit ? 'Save' : 'Post'}</button>
               </div>
             </div>
             <div className={s.header}>
@@ -114,7 +139,7 @@ export const CreatePost = () => {
             </div>
 
             <div className={s.content}>
-              <FormSelect name="topic" placeholder="Select topic" label="Select topic" options={topicsOptions} />
+              <FormSelect name="topic" placeholder="Select topic" label="Select topic" options={topicsOptions} disabled={isEdit} />
               <FormField name="title" placeholder="Enter the title" label="Title" />
               <FormEditor name="content" placeholder="Write your post" label="Post" className={s.editor} />
             </div>
@@ -151,3 +176,49 @@ const Logo = () => (
     </defs>
   </svg>
 );
+
+function extractTextWithImages(input: string): string {
+  // Decode HTML entities
+  const decodedDoc = new DOMParser().parseFromString(input, 'text/html');
+  const decodedHTML = decodedDoc.body.innerHTML;
+
+  // Parse the decoded HTML
+  const doc = new DOMParser().parseFromString(decodedHTML, 'text/html');
+
+  function traverse(node: Node): string {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent || '';
+    }
+
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node as HTMLElement;
+
+      if (el.tagName.toLowerCase() === 'img') {
+        return el.outerHTML; // keep <img> as-is
+      }
+
+      let result = '';
+
+      // Preserve line breaks for <p>, <br>, etc.
+      const blockTags = ['p', 'div', 'br'];
+      const tag = el.tagName.toLowerCase();
+
+      if (blockTags.includes(tag)) result += '\n';
+
+      for (const child of Array.from(el.childNodes)) {
+        result += traverse(child);
+      }
+
+      if (blockTags.includes(tag)) result += '\n';
+
+      return result;
+    }
+
+    return '';
+  }
+
+  const output = traverse(doc.body);
+
+  // Normalize whitespace: trim and collapse excessive empty lines
+  return output.replace(/\n{3,}/g, '\n\n').trim();
+}

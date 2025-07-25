@@ -11,6 +11,7 @@ import { clsx } from 'clsx';
 import { LikesButton } from '@/components/page/forum/LikesButton';
 import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
+import { useMedia } from 'react-use';
 
 interface Props {
   tid: number;
@@ -21,6 +22,7 @@ interface Props {
 
 export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
+  const isMobile = useMedia('(max-width: 960px)', false);
 
   if (!comments) return null;
 
@@ -39,7 +41,16 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
         {nested.map((item) => {
           return (
             <Fragment key={item.pid}>
-              <CommentItem item={item} />
+              <CommentItem
+                item={item}
+                onReply={
+                  isMobile
+                    ? () => {
+                        if (onReply) onReply(item.pid);
+                      }
+                    : undefined
+                }
+              />
               {item.replies.length > 0 && (
                 <div className={s.repliesWrapper}>
                   {item.replies.map((reply) => {
@@ -55,7 +66,7 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
   );
 };
 
-const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean }) => {
+const CommentItem = ({ item, isReply, onReply }: { item: NestedComment; isReply?: boolean; onReply?: (pid: number) => void }) => {
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const [editPid, setEditPid] = React.useState<number | null>(null);
 
@@ -79,12 +90,16 @@ const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean
             <ItemMenu onEdit={() => setEditPid(item.pid)} />
           </div>
         </div>
-        <div
-          className={s.postContent}
-          dangerouslySetInnerHTML={{
-            __html: decodeHtml(item.content),
-          }}
-        />
+        {editPid ? (
+          <CommentsInputDesktop initialFocused tid={item.tid} toPid={editPid} onCancel={() => setEditPid(null)} isEdit initialContent={item.content} />
+        ) : (
+          <div
+            className={s.postContent}
+            dangerouslySetInnerHTML={{
+              __html: decodeHtml(item.content),
+            }}
+          />
+        )}
         <div className={s.sub}>
           <LikesButton tid={item.tid} pid={item.pid} likes={item.votes} isLiked={item.upvoted} />
           {!isReply && (
@@ -93,7 +108,16 @@ const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean
                 <CommentIcon /> {item.replies.length} Replies
               </div>
               <div className={s.subItem}>
-                <button className={s.replyBtn} onClick={() => setReplyToPid(item.pid)}>
+                <button
+                  className={s.replyBtn}
+                  onClick={() => {
+                    if (onReply) {
+                      onReply(item.pid);
+                    } else {
+                      setReplyToPid(item.pid);
+                    }
+                  }}
+                >
                   Reply
                 </button>
               </div>
@@ -101,8 +125,8 @@ const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean
           )}
         </div>
       </div>
+
       {replyToPid && <CommentsInputDesktop initialFocused tid={item.tid} toPid={replyToPid} onCancel={() => setReplyToPid(null)} />}
-      {editPid && <CommentsInputDesktop initialFocused tid={item.tid} toPid={editPid} onCancel={() => setEditPid(null)} isEdit initialContent={item.content} />}
     </>
   );
 };

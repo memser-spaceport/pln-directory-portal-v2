@@ -151,7 +151,7 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initia
                 Cancel
               </button>
               <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>
-                {isSubmitting ? 'Processing...' : 'Comment'}
+                {isSubmitting ? 'Processing...' : isEdit ? 'Save' : 'Comment'}
               </button>
             </div>
           </>

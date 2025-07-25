@@ -11,16 +11,19 @@ import { FormEditor } from '@/components/form/FormEditor';
 import { FormField } from '@/components/form/FormField';
 import { clsx } from 'clsx';
 import { useClickAway } from 'react-use';
-import { replaceImagesWithMarkdown } from '@/utils/decode';
+import { extractTextWithImages, replaceImagesWithMarkdown } from '@/utils/decode';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
+import { useEditPost } from '@/services/forum/hooks/useEditPost';
 
 interface Props {
   tid: number;
   toPid: number;
   replyToName?: string;
   onReset: () => void;
+  isEdit?: boolean;
+  initialContent?: string;
 }
 
 const schema = yup.object().shape({
@@ -28,7 +31,7 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
+export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initialContent }: Props) => {
   const formRef = useRef<HTMLFormElement | null>(null);
   const [focused, setFocused] = useState(false);
   const { userInfo } = getCookiesFromClient();
@@ -37,7 +40,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
 
   const methods = useForm({
     defaultValues: {
-      comment: '',
+      comment: initialContent ? extractTextWithImages(initialContent) : '',
       emailMe: true,
     },
     resolver: yupResolver(schema),
@@ -52,6 +55,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
   const { emailMe, comment } = watch();
 
   const { mutateAsync } = usePostComment();
+  const { mutateAsync: editPost } = useEditPost();
 
   const handleFocus = useCallback(() => {
     if (isEditorEmpty(comment)) {
@@ -74,16 +78,30 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
         });
       }
 
-      const res = await mutateAsync({
-        tid,
-        toPid,
-        content,
-      });
+      if (isEdit) {
+        const res = await editPost({
+          pid: toPid,
+          title: '',
+          content,
+        });
 
-      if (res?.status?.code === 'ok') {
-        reset();
-        onReset();
-        setFocused(false);
+        if (res?.status?.code === 'ok') {
+          reset();
+          onReset();
+          setFocused(false);
+        }
+      } else {
+        const res = await mutateAsync({
+          tid,
+          toPid,
+          content,
+        });
+
+        if (res?.status?.code === 'ok') {
+          reset();
+          onReset();
+          setFocused(false);
+        }
       }
     } catch (e) {
       // @ts-ignore

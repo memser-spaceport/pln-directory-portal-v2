@@ -68,8 +68,8 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
                       toggleOpen();
                     }}
                   >
-                    {item.label}
-                    {item.description && <div>{item.description}</div>}
+                    <div className={s.optionLabel}>{item.label}</div>
+                    {item.description && <div className={s.optionDesc}>{item.description}</div>}
                   </div>
                 );
               })}

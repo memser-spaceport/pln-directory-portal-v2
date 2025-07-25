@@ -2,7 +2,9 @@
 @use 'styles/mixins';
 
 .root {
-
+  @include media.tablet-landscape {
+    margin-top: 40px;
+  }
 }
 
 .triggerButton {
@@ -78,9 +80,19 @@
   @include media.tablet-landscape {
     padding: 24px;
     gap: 24px;
-    min-height: unset;
+    min-height: calc(100dvh - 180px);
 
     max-width: 852px;
+  }
+}
+
+.headerWrapper {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+
+  @include media.tablet-landscape {
+    display: flex;
   }
 }
 
@@ -147,7 +159,7 @@
   display: none;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--spacing-md, 12px);
+  gap: var(--spacing-md, 16px);
   width: 100%;
 
 
@@ -173,9 +185,23 @@
 }
 
 .logo {
-  display: none;
+  display: flex;
+  white-space: nowrap;
+  color: var(--Text-text-dark, #0F172A);
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 40px; /* 142.857% */
+}
+
+.editor {
+  :global(.ql-editor) {
+    min-height: 200px;
+  }
 
   @include media.tablet-landscape {
-    display: block;
+    :global(.ql-editor) {
+      min-height: 350px;
+    }
   }
 }

@@ -1,7 +1,6 @@
-import React, { PropsWithChildren, ReactNode, useMemo } from 'react';
+'use client';
 
-import { useLockBodyScroll, useToggle } from 'react-use';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useMemo } from 'react';
 
 import s from './CreatePost.module.scss';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -9,19 +8,13 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor';
-import Image from 'next/image';
 import { useCreatePost } from '@/services/forum/hooks/useCreatePost';
 import { toast } from 'react-toastify';
 import { createPostSchema } from '@/components/page/forum/CreatePost/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { replaceImagesWithMarkdown } from '@/utils/decode';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-
-const fade = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-  exit: { opacity: 0 },
-};
+import { useRouter } from 'next/navigation';
 
 type Form = {
   topic: Record<string, string>;
@@ -29,10 +22,9 @@ type Form = {
   content: string;
 };
 
-export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () => void) => ReactNode }) => {
-  const [open, toggleOpen] = useToggle(false);
-  useLockBodyScroll(open);
-  useMobileNavVisibility(open);
+export const CreatePost = () => {
+  const router = useRouter();
+  useMobileNavVisibility(true);
 
   const { data: topics } = useForumCategories();
   const topicsOptions = useMemo(() => {
@@ -47,7 +39,8 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
 
   const methods = useForm<Form>({
     defaultValues: {
-      // topic: null,
+      // @ts-ignore
+      topic: null,
       title: '',
       content: '',
     },
@@ -73,7 +66,8 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
       });
 
       if (res.status.code === 'ok') {
-        toggleOpen(false);
+        toast.success('Post created successfully');
+        router.push('/forum?cid=1');
         reset();
       }
     } catch (e) {
@@ -84,74 +78,49 @@ export const CreatePost = ({ renderChildren }: { renderChildren?: (toggle: () =>
 
   return (
     <>
-      {renderChildren ? (
-        renderChildren(toggleOpen)
-      ) : (
-        <button className={s.triggerButton} onClick={toggleOpen}>
-          Create post <PlusIcon />
-        </button>
-      )}
-
-      <AnimatePresence>
-        {open && (
-          <motion.div className="modal" initial="hidden" animate="visible" exit="exit" variants={fade} transition={{ duration: 0.2 }} style={{ zIndex: 5, position: 'fixed' }}>
-            <div className={s.modal}>
-              <FormProvider {...methods}>
-                <form className={s.modalContent} noValidate onSubmit={handleSubmit(onSubmit)}>
-                  <div className={s.logo}>
-                    <Logo />
-                  </div>
-                  <button
-                    type="button"
-                    className={s.closeButton}
-                    onClick={() => {
-                      toggleOpen(false);
-                      reset();
-                    }}
-                  >
-                    <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
-                  </button>
-                  <div className={s.header}>
-                    <button
-                      type="button"
-                      className={s.cancelBtn}
-                      onClick={() => {
-                        toggleOpen(false);
-                        reset();
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button className={s.submitBtn} disabled={isSubmitting}>
-                      {isSubmitting ? 'Posting...' : 'Post'}
-                    </button>
-                  </div>
-
-                  <div className={s.content}>
-                    <FormSelect name="topic" placeholder="Select topic" label="Select topic" options={topicsOptions} />
-                    <FormField name="title" placeholder="Enter the title" label="Title" />
-                    <FormEditor name="content" placeholder="Write your post" label="Post" />
-                  </div>
-
-                  <div className={s.controls}>
-                    <button
-                      type="button"
-                      className={s.cancelBtn}
-                      onClick={() => {
-                        toggleOpen(false);
-                        reset();
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button className={s.submitBtn}>{isSubmitting ? 'Processing...' : 'Post'}</button>
-                  </div>
-                </form>
-              </FormProvider>
+      <div className={s.root}>
+        <FormProvider {...methods}>
+          <form className={s.modalContent} noValidate onSubmit={handleSubmit(onSubmit)}>
+            <div className={s.headerWrapper}>
+              <div className={s.logo}>Create Post</div>
+              <div className={s.controls}>
+                <button
+                  type="button"
+                  className={s.cancelBtn}
+                  onClick={() => {
+                    reset();
+                    router.push('/forum?cid=1');
+                  }}
+                >
+                  Cancel
+                </button>
+                <button className={s.submitBtn}>{isSubmitting ? 'Processing...' : 'Post'}</button>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className={s.header}>
+              <button
+                type="button"
+                className={s.cancelBtn}
+                onClick={() => {
+                  reset();
+                  router.push('/forum?cid=1');
+                }}
+              >
+                Cancel
+              </button>
+              <button className={s.submitBtn} disabled={isSubmitting}>
+                {isSubmitting ? 'Posting...' : 'Post'}
+              </button>
+            </div>
+
+            <div className={s.content}>
+              <FormSelect name="topic" placeholder="Select topic" label="Select topic" options={topicsOptions} />
+              <FormField name="title" placeholder="Enter the title" label="Title" />
+              <FormEditor name="content" placeholder="Write your post" label="Post" className={s.editor} />
+            </div>
+          </form>
+        </FormProvider>
+      </div>
     </>
   );
 };

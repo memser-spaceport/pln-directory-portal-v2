@@ -35,15 +35,9 @@ export const Feed = () => {
       <ForumHeader />
       <CategoriesTabs onValueChange={onValueChange} value={cid} />
       <Posts />
-      <CreatePost
-        renderChildren={(toggle) => {
-          return (
-            <button className={s.triggerButton} onClick={toggle}>
-              Create post <PlusIcon />
-            </button>
-          );
-        }}
-      />
+      <button className={s.triggerButton} onClick={() => router.push('/forum/posts/new')}>
+        Create post <PlusIcon />
+      </button>
     </div>
   );
 };

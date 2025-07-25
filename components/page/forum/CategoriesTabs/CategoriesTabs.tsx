@@ -5,6 +5,7 @@ import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
 import s from './CategoriesTabs.module.scss';
 import { CreatePost } from '@/components/page/forum/CreatePost';
 import { useMedia } from 'react-use';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   value: string | undefined;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export const CategoriesTabs = ({ value, onValueChange }: Props) => {
+  const router = useRouter();
   const isMobile = useMedia('(max-width: 960px)', false);
   const { data } = useForumCategories();
   const tabs = useMemo(() => {
@@ -61,15 +63,9 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
           <Tabs.Indicator className={s.Indicator} />
         </Tabs.List>
       </Tabs.Root>
-      <CreatePost
-        renderChildren={(toggle) => {
-          return (
-            <button className={s.triggerButton} onClick={toggle}>
-              Create post <PlusIcon />
-            </button>
-          );
-        }}
-      />
+      <button className={s.triggerButton} onClick={() => router.push('/forum/posts/new')}>
+        Create post <PlusIcon />
+      </button>
     </div>
   );
 };

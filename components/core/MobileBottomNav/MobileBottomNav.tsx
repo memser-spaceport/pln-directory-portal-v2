@@ -1,12 +1,11 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import styles from './MobileBottomNav.module.scss';
 import clsx from 'clsx';
 import { NavigationMenu } from '@base-ui-components/react';
 import Link from 'next/link';
-// import { NavigationMenuList } from '@base-ui-components/react/navigation-menu/list/NavigationMenuList';
-// import { NavigationMenuItem } from '@base-ui-components/react/navigation-menu/item/NavigationMenuItem';
+import { useEffect, useState } from 'react';
 
 const TeamsIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -67,16 +66,22 @@ const navItems = [
 
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const scrollDirection = useScrollDirection();
 
   return (
-    <div className={styles.wrapper} id="mobile-bottom-nav">
+    <div
+      className={clsx(styles.wrapper, {
+        [styles.hidden]: scrollDirection === 'down',
+      })}
+      id="mobile-bottom-nav"
+    >
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={styles.list}>
           {navItems.map(({ href, label, icon: Icon }) => (
             <NavigationMenu.Item key={href}>
-              <Link href={href} className={clsx(styles.item, pathname === href && styles.itemActive)} prefetch>
+              <Link href={href} className={clsx(styles.item, pathname === href && styles.itemActive)}>
                 <Icon />
-                {label}
+                <span>{label}</span>
               </Link>
             </NavigationMenu.Item>
           ))}
@@ -84,4 +89,33 @@ export function MobileBottomNav() {
       </NavigationMenu.Root>
     </div>
   );
+}
+
+export function useScrollDirection(threshold = 100) {
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = document.body.scrollTop;
+
+      if (Math.abs(currentScrollY - lastScrollY) < threshold) {
+        return;
+      }
+
+      if (currentScrollY > lastScrollY) {
+        setScrollDirection('down');
+      } else {
+        setScrollDirection('up');
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    document.body.addEventListener('scroll', handleScroll);
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
+  return scrollDirection;
 }

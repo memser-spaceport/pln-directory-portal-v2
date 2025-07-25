@@ -58,8 +58,8 @@ const ForumIcon = () => (
 );
 
 const navItems = [
-  { href: '/teams', label: 'Teams', icon: TeamsIcon },
   { href: '/members', label: 'Members', icon: MembersIcon },
+  { href: '/teams', label: 'Teams', icon: TeamsIcon },
   { href: '/projects', label: 'Projects', icon: ProjectsIcon },
   { href: '/events', label: 'Events', icon: EventsIcon },
   { href: '/forum', label: 'Forum', icon: ForumIcon },

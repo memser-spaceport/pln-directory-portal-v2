@@ -16,10 +16,22 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
   const { data } = useForumCategories();
   const tabs = useMemo(() => {
     return (
-      data?.map((item) => ({
-        label: item.name,
-        value: item.cid.toString(),
-      })) ?? []
+      data?.reduce<{ label: string; value: string }[]>(
+        (arr, item) => {
+          arr.push({
+            label: item.name,
+            value: item.cid.toString(),
+          });
+
+          return arr;
+        },
+        [
+          {
+            label: 'All',
+            value: '0',
+          },
+        ],
+      ) ?? []
     );
   }, [data]);
 
@@ -32,7 +44,7 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
 
     const current = tabRefs.current[value];
     if (current) {
-      current.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      current.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
     }
   }, [isMobile, value]);
 

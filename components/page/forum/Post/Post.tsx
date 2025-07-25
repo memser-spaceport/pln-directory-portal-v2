@@ -37,6 +37,7 @@ export const Post = () => {
       author: data.author.displayname,
       position: data.author.teamRole && data.author.teamName ? `${data.author.teamRole} @${data.author.teamName}` : '',
       time: formatDistanceToNow(new Date(data.timestamp), { addSuffix: true }),
+      upvoted: data.posts[0]?.upvoted,
       meta: {
         views: data.viewcount,
         likes: data.votes,
@@ -76,7 +77,7 @@ export const Post = () => {
           <div className={s.subItem}>
             <ViewIcon /> {post.meta.views} Views
           </div>
-          <LikesButton pid={post?.pid} likes={post.meta.likes} />
+          <LikesButton tid={post.tid} pid={post?.pid} likes={post.meta.likes} isLiked={post.upvoted} />
           <div className={s.subItem}>
             <CommentIcon /> {post.meta.comments} Comments
           </div>

@@ -62,7 +62,27 @@ type Topic = {
   votes: number;
 };
 
-async function fetcher(cid: number, categoryTopicSort: string) {
+async function fetcher(cid: number | string, categoryTopicSort: string) {
+  if (cid === '0') {
+    const response = await customFetch(
+      `${process.env.FORUM_API_URL}/api/recent?categoryTopicSort=${categoryTopicSort}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+      false,
+    );
+
+    if (!response?.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+
+    return data.topics as Topic[];
+  }
+
   const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
 
   const response = await customFetch(

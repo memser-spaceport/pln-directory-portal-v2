@@ -2,11 +2,11 @@
 const nextConfig = {
   async redirects() {
     return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
+      // {
+      //   source: '/home',
+      //   destination: '/',
+      //   permanent: true,
+      // },
       {
         source: '/irl/lw24-web3',
         destination: 'events/irl?location=Thailand',

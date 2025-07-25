@@ -38,14 +38,7 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
         {nested.map((item) => {
           return (
             <Fragment key={item.pid}>
-              <CommentItem
-                item={item}
-                onReply={() => {
-                  if (onReply) onReply(item.pid);
-
-                  setReplyToPid(item.pid);
-                }}
-              />
+              <CommentItem item={item} />
               {item.replies.length > 0 && (
                 <div className={s.repliesWrapper}>
                   {item.replies.map((reply) => {
@@ -61,45 +54,50 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
   );
 };
 
-const CommentItem = ({ item, isReply, onReply }: { item: NestedComment; isReply?: boolean; onReply?: () => void }) => {
+const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean }) => {
+  const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
+
   return (
-    <div className={s.itemRoot} key={item.pid}>
-      <div className={s.footer}>
-        <Avatar.Root className={s.Avatar}>
-          <Avatar.Image src={getDefaultAvatar(item.user.username)} width="32" height="32" className={s.Image} />
-          <Avatar.Fallback className={s.Fallback}>A</Avatar.Fallback>
-        </Avatar.Root>
-        <div className={s.col}>
-          <div className={s.inline}>
-            <div className={s.name}>{item.user.displayname}</div>
-            <div className={s.position}>· {item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : ''}</div>
-            <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
+    <>
+      <div className={s.itemRoot} key={item.pid}>
+        <div className={s.footer}>
+          <Avatar.Root className={s.Avatar}>
+            <Avatar.Image src={getDefaultAvatar(item.user.username)} width="32" height="32" className={s.Image} />
+            <Avatar.Fallback className={s.Fallback}>A</Avatar.Fallback>
+          </Avatar.Root>
+          <div className={s.col}>
+            <div className={s.inline}>
+              <div className={s.name}>{item.user.displayname}</div>
+              <div className={s.position}>· {item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : ''}</div>
+              <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
+            </div>
+            <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
           </div>
-          <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
+        </div>
+        <div
+          className={s.postContent}
+          dangerouslySetInnerHTML={{
+            __html: decodeHtml(item.content),
+          }}
+        />
+        <div className={s.sub}>
+          <LikesButton tid={item.tid} pid={item.pid} likes={item.votes} isLiked={item.upvoted} />
+          {!isReply && (
+            <>
+              <div className={s.subItem}>
+                <CommentIcon /> {item.replies.length} Replies
+              </div>
+              <div className={s.subItem}>
+                <button className={s.replyBtn} onClick={() => setReplyToPid(item.pid)}>
+                  Reply
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
-      <div
-        className={s.postContent}
-        dangerouslySetInnerHTML={{
-          __html: decodeHtml(item.content),
-        }}
-      />
-      <div className={s.sub}>
-        <LikesButton pid={item.pid} likes={item.votes} />
-        {!isReply && (
-          <>
-            <div className={s.subItem}>
-              <CommentIcon /> {item.replies.length} Replies
-            </div>
-            <div className={s.subItem}>
-              <button className={s.replyBtn} onClick={onReply}>
-                Reply
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+      {replyToPid && <CommentsInputDesktop initialFocused tid={item.tid} toPid={replyToPid} onCancel={() => setReplyToPid(null)} />}
+    </>
   );
 };
 

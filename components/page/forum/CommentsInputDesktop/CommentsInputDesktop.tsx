@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import s from './CommentsInputDesktop.module.scss';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -12,12 +12,15 @@ import { replaceImagesWithMarkdown } from '@/utils/decode';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
 import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
+import { useClickAway } from 'react-use';
+import { FormField } from '@/components/form/FormField';
 
 interface Props {
   tid: number;
   toPid: number;
   replyToName?: string;
   onCancel?: () => void;
+  initialFocused?: boolean;
 }
 
 const schema = yup.object().shape({
@@ -25,11 +28,12 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel }: Props) => {
+export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initialFocused }: Props) => {
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid);
   const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
+  const [focused, setFocused] = useState(initialFocused ?? false);
 
   const methods = useForm({
     defaultValues: {
@@ -45,9 +49,18 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel }: Prop
     setValue,
     formState: { isSubmitting },
   } = methods;
-  const { emailMe } = watch();
+  const { emailMe, comment } = watch();
 
   const { mutateAsync } = usePostComment();
+
+  const handleFocus = useCallback(() => {
+    if (isEditorEmpty(comment)) {
+      setFocused(false);
+      onCancel?.();
+    }
+  }, [comment, onCancel]);
+
+  useClickAway(ref, handleFocus);
 
   const onSubmit = async (data: any) => {
     try {
@@ -70,6 +83,8 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel }: Prop
 
       if (res?.status?.code === 'ok') {
         reset();
+        setFocused(false);
+        onCancel?.();
       }
     } catch (e) {
       // @ts-ignore
@@ -93,31 +108,43 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel }: Prop
   return (
     <FormProvider {...methods}>
       <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)} ref={ref}>
-        <FormEditor name="comment" placeholder="Comment" label={replyToName ? `Replying to ${replyToName}` : 'Write your message'} />
-        <label className={s.Label}>
-          <div className={s.primary}>Email me when someone replies.</div>
-          <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
-            <Checkbox.Indicator className={s.Indicator}>
-              <CheckIcon className={s.Icon} />
-            </Checkbox.Indicator>
-          </Checkbox.Root>
-        </label>
+        {focused ? (
+          <>
+            <FormEditor autoFocus name="comment" placeholder="Comment" label={replyToName ? `Replying to ${replyToName}` : ''} />
+            <label className={s.Label}>
+              <div className={s.primary}>Email me when someone comments on this post.</div>
+              <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
+                <Checkbox.Indicator className={s.Indicator}>
+                  <CheckIcon className={s.Icon} />
+                </Checkbox.Indicator>
+              </Checkbox.Root>
+            </label>
 
-        <div className={s.controls}>
-          <button
-            type="button"
-            className={s.secondaryBtn}
-            onClick={() => {
-              onCancel?.();
-              reset();
-            }}
-          >
-            Cancel
-          </button>
-          <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>
-            {isSubmitting ? 'Processing...' : 'Comment'}
-          </button>
-        </div>
+            <div className={s.controls}>
+              <button
+                type="button"
+                className={s.secondaryBtn}
+                onClick={() => {
+                  onCancel?.();
+                  reset();
+                  setFocused(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : 'Comment'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className={s.inline}>
+            <FormField name="dummy" placeholder="Comment" onClick={() => setFocused(true)} />
+            <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Processing...' : 'Comment'}
+            </button>
+          </div>
+        )}
       </form>
     </FormProvider>
   );
@@ -131,4 +158,9 @@ function CheckIcon(props: React.ComponentProps<'svg'>) {
       <path d="M9.1603 1.12218C9.50684 1.34873 9.60427 1.81354 9.37792 2.16038L5.13603 8.66012C5.01614 8.8438 4.82192 8.96576 4.60451 8.99384C4.3871 9.02194 4.1683 8.95335 4.00574 8.80615L1.24664 6.30769C0.939709 6.02975 0.916013 5.55541 1.19372 5.24822C1.47142 4.94102 1.94536 4.91731 2.2523 5.19524L4.36085 7.10461L8.12299 1.33999C8.34934 0.993152 8.81376 0.895638 9.1603 1.12218Z" />
     </svg>
   );
+}
+
+function isEditorEmpty(html: string): boolean {
+  const trimmed = html.trim();
+  return trimmed === '<p><br></p>' || trimmed === '';
 }

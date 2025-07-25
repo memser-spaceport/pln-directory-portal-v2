@@ -224,7 +224,7 @@ export type TopicResponse = {
   };
 };
 
-async function fetcher(tid: string) {
+export async function fetcher(tid: string) {
   const response = await customFetch(`${process.env.FORUM_API_URL}/api/topic/${tid}`, {}, false);
 
   if (!response?.ok) {

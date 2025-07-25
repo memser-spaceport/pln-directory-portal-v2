@@ -4,7 +4,7 @@ import { Menu } from '@base-ui-components/react/menu';
 import { usePathname, useRouter } from 'next/navigation';
 import s from './ItemMenu.module.scss';
 
-export const ItemMenu = () => {
+export const ItemMenu = ({ onEdit }: { onEdit?: () => void }) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -18,7 +18,16 @@ export const ItemMenu = () => {
       <Menu.Portal>
         <Menu.Positioner className={s.Positioner} align="end">
           <Menu.Popup className={s.Popup}>
-            <Menu.Item className={s.Item} onClick={() => router.push(`${pathname}/edit`)}>
+            <Menu.Item
+              className={s.Item}
+              onClick={() => {
+                if (onEdit) {
+                  onEdit();
+                } else {
+                  router.push(`${pathname}/edit`);
+                }
+              }}
+            >
               <EditIcon /> Edit
             </Menu.Item>
           </Menu.Popup>

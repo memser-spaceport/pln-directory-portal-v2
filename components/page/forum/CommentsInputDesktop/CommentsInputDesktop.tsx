@@ -8,12 +8,13 @@ import { usePostComment } from '@/services/forum/hooks/usePostComment';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
-import { replaceImagesWithMarkdown } from '@/utils/decode';
+import { extractTextWithImages, replaceImagesWithMarkdown } from '@/utils/decode';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
 import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
 import { useClickAway } from 'react-use';
 import { FormField } from '@/components/form/FormField';
+import { useEditPost } from '@/services/forum/hooks/useEditPost';
 
 interface Props {
   tid: number;
@@ -21,6 +22,8 @@ interface Props {
   replyToName?: string;
   onCancel?: () => void;
   initialFocused?: boolean;
+  isEdit?: boolean;
+  initialContent?: string;
 }
 
 const schema = yup.object().shape({
@@ -28,7 +31,7 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initialFocused }: Props) => {
+export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initialFocused, isEdit, initialContent }: Props) => {
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid);
@@ -37,7 +40,7 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initia
 
   const methods = useForm({
     defaultValues: {
-      comment: '',
+      comment: initialContent ? extractTextWithImages(initialContent) : '',
       emailMe: true,
     },
     resolver: yupResolver(schema),
@@ -52,6 +55,7 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initia
   const { emailMe, comment } = watch();
 
   const { mutateAsync } = usePostComment();
+  const { mutateAsync: editPost } = useEditPost();
 
   const handleFocus = useCallback(() => {
     if (isEditorEmpty(comment)) {
@@ -75,16 +79,30 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initia
         });
       }
 
-      const res = await mutateAsync({
-        tid,
-        toPid,
-        content,
-      });
+      if (isEdit) {
+        const res = await editPost({
+          pid: toPid,
+          title: '',
+          content,
+        });
 
-      if (res?.status?.code === 'ok') {
-        reset();
-        setFocused(false);
-        onCancel?.();
+        if (res?.status?.code === 'ok') {
+          reset();
+          setFocused(false);
+          onCancel?.();
+        }
+      } else {
+        const res = await mutateAsync({
+          tid,
+          toPid,
+          content,
+        });
+
+        if (res?.status?.code === 'ok') {
+          reset();
+          setFocused(false);
+          onCancel?.();
+        }
       }
     } catch (e) {
       // @ts-ignore

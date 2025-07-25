@@ -10,6 +10,7 @@ import { CommentsInputDesktop } from '@/components/page/forum/CommentsInputDeskt
 import { clsx } from 'clsx';
 import { LikesButton } from '@/components/page/forum/LikesButton';
 import { decodeHtml } from '@/utils/decode';
+import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 
 interface Props {
   tid: number;
@@ -56,6 +57,7 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
 
 const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean }) => {
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
+  const [editPid, setEditPid] = React.useState<number | null>(null);
 
   return (
     <>
@@ -72,6 +74,9 @@ const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean
               <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
             </div>
             <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
+          </div>
+          <div className={s.menuWrapper}>
+            <ItemMenu onEdit={() => setEditPid(item.pid)} />
           </div>
         </div>
         <div
@@ -97,6 +102,7 @@ const CommentItem = ({ item, isReply }: { item: NestedComment; isReply?: boolean
         </div>
       </div>
       {replyToPid && <CommentsInputDesktop initialFocused tid={item.tid} toPid={replyToPid} onCancel={() => setReplyToPid(null)} />}
+      {editPid && <CommentsInputDesktop initialFocused tid={item.tid} toPid={editPid} onCancel={() => setEditPid(null)} isEdit initialContent={item.content} />}
     </>
   );
 };

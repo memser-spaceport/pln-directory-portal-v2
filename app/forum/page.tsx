@@ -6,12 +6,20 @@ import { Feed } from '@/components/page/forum/Feed';
 import s from './page.module.scss';
 
 const ForumPage = async () => {
-  const { isLoggedIn } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     return (
       <div className={s.root}>
         <LoggedOutView />
+      </div>
+    );
+  }
+
+  if (userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1') {
+    return (
+      <div className={s.root}>
+        <LoggedOutView accessLevel={userInfo.accessLevel} />
       </div>
     );
   }

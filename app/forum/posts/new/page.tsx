@@ -6,12 +6,20 @@ import s from './page.module.scss';
 import { CreatePost } from '@/components/page/forum/CreatePost';
 
 const NewPostPage = async () => {
-  const { isLoggedIn } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     return (
       <div className={s.root}>
         <LoggedOutView />
+      </div>
+    );
+  }
+
+  if (userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1') {
+    return (
+      <div className={s.root}>
+        <LoggedOutView accessLevel={userInfo.accessLevel} />
       </div>
     );
   }

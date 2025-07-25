@@ -23,7 +23,7 @@ const items = new Array(5).fill(0).map((_, i) => (
   </li>
 ));
 
-export const LoggedOutView = () => {
+export const LoggedOutView = ({ accessLevel }: { accessLevel?: string }) => {
   const router = useRouter();
 
   const onLoginClickHandler = () => {
@@ -39,6 +39,32 @@ export const LoggedOutView = () => {
       }
     }
   };
+
+  function getTitle() {
+    switch (accessLevel) {
+      case 'L0':
+      case 'L1': {
+        return 'Forum access unavailable';
+      }
+      default: {
+        return 'Forum requires login access';
+      }
+    }
+  }
+
+  function getDesc() {
+    switch (accessLevel) {
+      case 'L0': {
+        return "Verify your identity to start the approval process. You'll be notified once approved to participate.";
+      }
+      case 'L1': {
+        return "Your profile is under review. You'll be notified once approved to participate.";
+      }
+      default: {
+        return 'Get help or share insights with the PL network. Log in to read and contribute.';
+      }
+    }
+  }
 
   return (
     <>
@@ -60,22 +86,26 @@ export const LoggedOutView = () => {
           <div className={s.lock}>
             <LockIcon />
           </div>
-          <div className={s.primary}>Forum requires login access</div>
-          <div className={s.secondary}>Get help or share insights with the PL network. Log in to read and contribute.</div>
-          <button className={s.mainBtn} onClick={onLoginClickHandler}>
-            Log in
-          </button>
-          <div className={s.sub}>
-            New to Protocol Labs? Join the network.{' '}
-            <button
-              className={s.secBtn}
-              onClick={() => {
-                router.push('/sign-up');
-              }}
-            >
-              Sign Up
-            </button>
-          </div>
+          <div className={s.primary}>{getTitle()}</div>
+          <div className={s.secondary}>{getDesc()}</div>
+          {!accessLevel && (
+            <>
+              <button className={s.mainBtn} onClick={onLoginClickHandler}>
+                Log in
+              </button>
+              <div className={s.sub}>
+                New to Protocol Labs? Join the network.{' '}
+                <button
+                  className={s.secBtn}
+                  onClick={() => {
+                    router.push('/sign-up');
+                  }}
+                >
+                  Sign Up
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

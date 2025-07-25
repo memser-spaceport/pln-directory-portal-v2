@@ -5,12 +5,20 @@ import s from '@/app/forum/page.module.scss';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 
 const PostPage = async () => {
-  const { isLoggedIn } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
 
   if (!isLoggedIn) {
     return (
       <div className={s.root}>
         <LoggedOutView />
+      </div>
+    );
+  }
+
+  if (userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1') {
+    return (
+      <div className={s.root}>
+        <LoggedOutView accessLevel={userInfo.accessLevel} />
       </div>
     );
   }

@@ -5,6 +5,7 @@ import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
 import s from './CategoriesTabs.module.scss';
 import { CreatePost } from '@/components/page/forum/CreatePost';
 import { useMedia } from 'react-use';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   value: string | undefined;
@@ -12,14 +13,27 @@ interface Props {
 }
 
 export const CategoriesTabs = ({ value, onValueChange }: Props) => {
+  const router = useRouter();
   const isMobile = useMedia('(max-width: 960px)', false);
   const { data } = useForumCategories();
   const tabs = useMemo(() => {
     return (
-      data?.map((item) => ({
-        label: item.name,
-        value: item.cid.toString(),
-      })) ?? []
+      data?.reduce<{ label: string; value: string }[]>(
+        (arr, item) => {
+          arr.push({
+            label: item.name,
+            value: item.cid.toString(),
+          });
+
+          return arr;
+        },
+        [
+          {
+            label: 'All',
+            value: '0',
+          },
+        ],
+      ) ?? []
     );
   }, [data]);
 
@@ -32,7 +46,7 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
 
     const current = tabRefs.current[value];
     if (current) {
-      current.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      current.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
     }
   }, [isMobile, value]);
 
@@ -49,15 +63,9 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
           <Tabs.Indicator className={s.Indicator} />
         </Tabs.List>
       </Tabs.Root>
-      <CreatePost
-        renderChildren={(toggle) => {
-          return (
-            <button className={s.triggerButton} onClick={toggle}>
-              Create post <PlusIcon />
-            </button>
-          );
-        }}
-      />
+      <button className={s.triggerButton} onClick={() => router.push('/forum/posts/new')}>
+        Create post <PlusIcon />
+      </button>
     </div>
   );
 };

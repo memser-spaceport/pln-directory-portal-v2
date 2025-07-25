@@ -187,3 +187,35 @@
     background: var(--Neutral-Slate-300);
   }
 }
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  padding: var(--spacing-sm, 12px) var(--spacing-md, 16px);
+  align-items: flex-start;
+  align-self: stretch;
+
+  &:hover {
+    background: var(--Neutral-Slate-50);
+  }
+}
+
+.optionLabel {
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.optionDesc {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}

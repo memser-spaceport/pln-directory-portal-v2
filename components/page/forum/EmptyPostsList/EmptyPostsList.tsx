@@ -1,9 +1,11 @@
 import React from 'react';
 
 import s from './EmptyPostsList.module.scss';
-import { CreatePost } from '@/components/page/forum/CreatePost';
+import { useRouter } from 'next/navigation';
 
 export const EmptyPostsList = () => {
+  const router = useRouter();
+
   return (
     <div className={s.container}>
       <div className={s.root}>
@@ -12,13 +14,9 @@ export const EmptyPostsList = () => {
         </div>
         <div className={s.title}>Looking to get help or share insights with the network?</div>
         <div className={s.desc}>No discussions here yet, but the first one can be yours!</div>
-        <CreatePost
-          renderChildren={(toggle) => (
-            <button className={s.trigger} onClick={toggle}>
-              Create post
-            </button>
-          )}
-        />
+        <button className={s.trigger} onClick={() => router.push('/forum/posts/new')}>
+          Create post
+        </button>
       </div>
     </div>
   );

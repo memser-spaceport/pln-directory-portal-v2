@@ -119,7 +119,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset }: Props) => {
         {focused && (
           <div className={s.content}>
             <label className={s.Label}>
-              <div className={s.primary}>Email me when someone replies.</div>
+              <div className={s.primary}>Email me when someone comments on this post.</div>
               <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
                 <Checkbox.Indicator className={s.Indicator}>
                   <CheckIcon className={s.Icon} />

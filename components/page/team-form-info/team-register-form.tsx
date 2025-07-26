@@ -64,6 +64,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const formattedData = transformRawInputsToFormObj(Object.fromEntries(formData));
+      formattedData['longDescription'] = content;
       analytics.recordTeamJoinNetworkSave('save-click', formattedData);
       if (currentStep === TEAM_FORM_STEPS[2]) {
         const validationResponse = validateForm(socialSchema, formattedData);

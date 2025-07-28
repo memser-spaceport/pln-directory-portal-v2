@@ -32,5 +32,13 @@ export const createPostSchema = yup.object().shape({
         return plainText.trim().length >= 8;
       },
     })
+    .test({
+      name: 'maxTextLength',
+      message: 'Please enter a shorter post. Posts should not contain more than 32767 character(s).',
+      test: function (value) {
+        const plainText = stripHtml(value || '');
+        return plainText.trim().length < 32767;
+      },
+    })
     .required('Required'),
 });

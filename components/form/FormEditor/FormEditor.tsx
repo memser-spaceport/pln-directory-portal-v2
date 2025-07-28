@@ -40,7 +40,15 @@ export const FormEditor = ({ name, label, description, disabled, isRequired, aut
         </div>
       )}
 
-      <RichTextEditor disabled={disabled} value={value} autoFocus={autoFocus} onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })} className={className} />
+      <RichTextEditor
+        disabled={disabled}
+        value={value}
+        autoFocus={autoFocus}
+        onChange={(txt) => setValue(name, txt, { shouldValidate: true, shouldDirty: true })}
+        className={clsx(className, {
+          [s.error]: !!errors[name],
+        })}
+      />
       {!errors[name] && description ? (
         <Field.Description className={s.fieldDescription}>{description}</Field.Description>
       ) : (

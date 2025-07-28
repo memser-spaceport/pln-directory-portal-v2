@@ -9,15 +9,18 @@ const stripHtml = (html: string) => {
 };
 
 export const createPostSchema = yup.object().shape({
-  topic: yup.object().test({
-    test: function (value) {
-      if (!value) {
-        return this.createError({ message: 'Required', type: 'required' });
-      }
+  topic: yup
+    .object()
+    .test({
+      test: function (value) {
+        if (!value) {
+          return this.createError({ message: 'Required', type: 'required' });
+        }
 
-      return true;
-    },
-  }),
+        return true;
+      },
+    })
+    .required('Required'),
   title: yup.string().min(3, 'The title must be at least 3 characters long').required('Required').max(10, 'Please enter a shorter title. Titles cannot be longer than 255 character(s).'),
   content: yup
     .string()

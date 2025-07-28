@@ -38,7 +38,6 @@ export function BreadCrumb(props: IBreadcrumb) {
         .breadcrumb {
           display: flex;
           font-size: 14px;
-          width: full;
           height: 100%;
           align-items: center;
           padding: 0 20px;

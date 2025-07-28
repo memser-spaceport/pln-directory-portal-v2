@@ -12,15 +12,17 @@ import { LikesButton } from '@/components/page/forum/LikesButton';
 import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { useMedia } from 'react-use';
+import { IUserInfo } from '@/types/shared.types';
 
 interface Props {
   tid: number;
   mainPid: number;
   comments: TopicResponse['posts'] | undefined;
   onReply?: (id: number) => void;
+  userInfo: IUserInfo;
 }
 
-export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
+export const PostComments = ({ comments, tid, mainPid, onReply, userInfo }: Props) => {
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const isMobile = useMedia('(max-width: 960px)', false);
 
@@ -42,6 +44,7 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
           return (
             <Fragment key={item.pid}>
               <CommentItem
+                userInfo={userInfo}
                 item={item}
                 onReply={
                   isMobile
@@ -54,7 +57,7 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
               {item.replies.length > 0 && (
                 <div className={s.repliesWrapper}>
                   {item.replies.map((reply) => {
-                    return <CommentItem key={reply.pid} item={reply as NestedComment} isReply />;
+                    return <CommentItem key={reply.pid} item={reply as NestedComment} isReply userInfo={userInfo} />;
                   })}
                 </div>
               )}
@@ -66,7 +69,7 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
   );
 };
 
-const CommentItem = ({ item, isReply, onReply }: { item: NestedComment; isReply?: boolean; onReply?: (pid: number) => void }) => {
+const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment; isReply?: boolean; onReply?: (pid: number) => void; userInfo: IUserInfo }) => {
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const [editPid, setEditPid] = React.useState<number | null>(null);
 
@@ -86,9 +89,11 @@ const CommentItem = ({ item, isReply, onReply }: { item: NestedComment; isReply?
             </div>
             <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
           </div>
-          <div className={s.menuWrapper}>
-            <ItemMenu onEdit={() => setEditPid(item.pid)} />
-          </div>
+          {userInfo.uid === item.user.memberUid && (
+            <div className={s.menuWrapper}>
+              <ItemMenu onEdit={() => setEditPid(item.pid)} />
+            </div>
+          )}
         </div>
         {editPid ? (
           <CommentsInputDesktop initialFocused tid={item.tid} toPid={editPid} onCancel={() => setEditPid(null)} isEdit initialContent={item.content} />

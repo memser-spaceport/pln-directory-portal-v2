@@ -12,7 +12,7 @@ import { ForumHeader } from '@/components/page/forum/ForumHeader';
 export const Feed = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const cid = searchParams.get('cid') as string;
+  const cid = (searchParams.get('cid') as string) ?? 1;
 
   const onValueChange = useCallback(
     (value: string) => {

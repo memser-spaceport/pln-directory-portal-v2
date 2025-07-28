@@ -34,7 +34,7 @@ export const PostComments = ({ comments, tid, mainPid, onReply }: Props) => {
       <div className={s.title}>Comments ({comments.length})</div>
 
       <div className={s.input}>
-        <CommentsInputDesktop tid={tid} toPid={replyToPid ?? mainPid} replyToName={replyToItem?.user.displayname} onCancel={() => setReplyToPid(null)} />
+        <CommentsInputDesktop tid={tid} toPid={mainPid} onCancel={() => setReplyToPid(null)} />
       </div>
 
       <div className={s.list}>
@@ -126,7 +126,7 @@ const CommentItem = ({ item, isReply, onReply }: { item: NestedComment; isReply?
         </div>
       </div>
 
-      {replyToPid && <CommentsInputDesktop initialFocused tid={item.tid} toPid={replyToPid} onCancel={() => setReplyToPid(null)} />}
+      {replyToPid && <CommentsInputDesktop isReply initialFocused tid={item.tid} toPid={replyToPid} onCancel={() => setReplyToPid(null)} />}
     </>
   );
 };

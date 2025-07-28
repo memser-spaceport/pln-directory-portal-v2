@@ -78,8 +78,10 @@ export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; ini
 
         if (res.status.code === 'ok') {
           toast.success('Post updated successfully');
-          router.push(`/forum/categories/${params.categoryId}/${params.topicId}`);
-          reset();
+          reset(data);
+          setTimeout(() => {
+            router.push(`/forum/categories/${params.categoryId}/${params.topicId}`);
+          }, 500);
         }
       } else {
         const res = await createPost({
@@ -90,8 +92,10 @@ export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; ini
 
         if (res.status.code === 'ok') {
           toast.success('Post created successfully');
-          router.push('/forum?cid=1');
-          reset();
+          reset(data);
+          setTimeout(() => {
+            router.push('/forum?cid=1');
+          }, 500);
         }
       }
     } catch (e) {

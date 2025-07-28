@@ -87,11 +87,8 @@
 
 .secondaryBtn {
   display: flex;
-  width: 105px;
-  padding: 10px var(--global-size-size-200, 16px);
   justify-content: center;
   align-items: center;
-  gap: var(--spacing-zero, 0px);
   border-radius: var(--corner-radius-md, 8px);
   border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
   background: var(--action-background-base-white, #FFF);
@@ -102,6 +99,9 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  padding: 8px var(--global-size-size-125, 10px);
+  gap: var(--spacing-zero, 0);
 }
 
 .primaryBtn {
@@ -120,6 +120,14 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+
+  &.actionable {
+    display: flex;
+    padding: 8px var(--global-size-size-125, 10px);
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-zero, 0);
+  }
 }
 
 .inline {

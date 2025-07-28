@@ -9,6 +9,7 @@ const stripHtml = (html: string) => {
 };
 
 export const createPostSchema = yup.object().shape({
+  user: yup.object().nullable(),
   topic: yup
     .object()
     .test({

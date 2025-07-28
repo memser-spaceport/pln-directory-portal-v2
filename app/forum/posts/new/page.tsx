@@ -31,7 +31,7 @@ const NewPostPage = async () => {
         <BreadCrumb backLink={`/forum?cid=1`} directoryName="Forum" pageName="New Post" />
       </div>
       <div className={s.root}>
-        <CreatePost />
+        <CreatePost userInfo={userInfo} />
       </div>
     </>
   );

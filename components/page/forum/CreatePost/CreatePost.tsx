@@ -18,17 +18,31 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
+import { IUserInfo } from '@/types/shared.types';
+import { ADMIN_ROLE } from '@/utils/constants';
+import { useAllMembers } from '@/services/members/hooks/useAllMembers';
 
 type Form = {
+  user: Record<string, string> | null;
   topic: Record<string, string>;
   title: string;
   content: string;
 };
 
-export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; initialData?: Form; pid?: number }) => {
+export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: boolean; initialData?: Form; pid?: number; userInfo?: IUserInfo }) => {
   const router = useRouter();
   const params = useParams();
   useMobileNavVisibility(true);
+  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  const { data: allMembers } = useAllMembers();
+  const membersOptions = useMemo(() => {
+    return (
+      allMembers?.data?.map((item: { name: string; uid: string }) => ({
+        label: item.name,
+        value: item.uid.toString(),
+      })) ?? []
+    );
+  }, [allMembers]);
 
   const { data: topics } = useForumCategories();
   const topicsOptions = useMemo(() => {
@@ -49,6 +63,7 @@ export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; ini
           content: extractTextWithImages(initialData.content),
         }
       : {
+          user: userInfo ? { label: userInfo.name, value: userInfo.uid } : null,
           topic: null,
           title: '',
           content: '',
@@ -71,6 +86,7 @@ export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; ini
 
       if (isEdit && pid) {
         const res = await editPost({
+          uid: isAdmin ? data.user?.value : null,
           pid,
           title: data.title?.trim() || '',
           content,
@@ -85,6 +101,7 @@ export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; ini
         }
       } else {
         const res = await createPost({
+          uid: isAdmin ? data.user?.value : null,
           cid: data.topic.value,
           title: data.title?.trim(),
           content,
@@ -142,6 +159,7 @@ export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; ini
             </div>
 
             <div className={s.content}>
+              {isAdmin && <FormSelect name="user" placeholder="Select user" label="Select post author" options={membersOptions} disabled={isEdit} />}
               <FormSelect name="topic" placeholder="Select topic" label="Select topic" options={topicsOptions} disabled={isEdit} />
               <FormField name="title" placeholder="Enter the title" label="Title" description="Enter a clear and specific topic title (max 255 characters)" />
               <FormEditor name="content" placeholder="Write your post" label="Post" className={s.editor} />

@@ -7,6 +7,7 @@ import { CreatePost } from '@/components/page/forum/CreatePost';
 import { fetcher as getPost } from '@/services/forum/hooks/useForumPost';
 import { redirect } from 'next/navigation';
 import { BreadCrumb } from '@/components/core/bread-crumb';
+import { ADMIN_ROLE } from '@/utils/constants';
 
 interface PageProps {
   params: {
@@ -17,6 +18,7 @@ interface PageProps {
 
 const EditPostPage = async ({ params }: PageProps) => {
   const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
 
   if (!isLoggedIn) {
     return (
@@ -50,6 +52,7 @@ const EditPostPage = async ({ params }: PageProps) => {
           pid={data.mainPid}
           isEdit
           initialData={{
+            user: isAdmin ? { label: data.posts[0].user.displayname, value: data.posts[0].user.memberUid } : null,
             topic: { label: data.category.name, value: data.category.cid.toString() },
             title: data.title,
             content: data.posts[0]?.content,

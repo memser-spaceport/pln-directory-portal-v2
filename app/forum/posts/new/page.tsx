@@ -4,6 +4,7 @@ import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 
 import s from './page.module.scss';
 import { CreatePost } from '@/components/page/forum/CreatePost';
+import { BreadCrumb } from '@/components/core/bread-crumb';
 
 const NewPostPage = async () => {
   const { isLoggedIn, userInfo } = getCookiesFromHeaders();
@@ -25,9 +26,14 @@ const NewPostPage = async () => {
   }
 
   return (
-    <div className={s.root}>
-      <CreatePost />
-    </div>
+    <>
+      <div className={s.breadcrumbs}>
+        <BreadCrumb backLink={`/forum?cid=1`} directoryName="Forum" pageName="New Post" />
+      </div>
+      <div className={s.root}>
+        <CreatePost />
+      </div>
+    </>
   );
 };
 

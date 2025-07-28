@@ -23,8 +23,6 @@ export const Post = () => {
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const replyToItem = data?.posts?.slice(1).find((item) => item.pid === replyToPid);
 
-  console.log(replyToPid, replyToItem);
-
   const post = useMemo(() => {
     if (!data) {
       return null;

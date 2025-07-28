@@ -18,7 +18,7 @@ export const LikesButton = ({ tid, pid, likes, isLiked }: Props) => {
       className={clsx(s.subItem, s.button, {
         [s.liked]: isLiked,
       })}
-      disabled={isPending}
+      disabled={isPending || isLiked}
       onClick={() => mutate({ tid, pid })}
     >
       <LikeIcon /> {likes} Likes

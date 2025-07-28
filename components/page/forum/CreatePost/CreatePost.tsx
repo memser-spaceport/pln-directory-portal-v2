@@ -72,7 +72,7 @@ export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; ini
       if (isEdit && pid) {
         const res = await editPost({
           pid,
-          title: data.title,
+          title: data.title?.trim() || '',
           content,
         });
 
@@ -86,7 +86,7 @@ export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; ini
       } else {
         const res = await createPost({
           cid: data.topic.value,
-          title: data.title,
+          title: data.title?.trim(),
           content,
         });
 

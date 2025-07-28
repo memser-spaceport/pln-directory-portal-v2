@@ -21,7 +21,7 @@ export const createPostSchema = yup.object().shape({
       },
     })
     .required('Required'),
-  title: yup.string().min(3, 'The title must be at least 3 characters long').required('Required').max(10, 'Please enter a shorter title. Titles cannot be longer than 255 character(s).'),
+  title: yup.string().min(3, 'The title must be at least 3 characters long').required('Required').max(255, 'Please enter a shorter title. Titles cannot be longer than 255 character(s).'),
   content: yup
     .string()
     .test({

@@ -154,6 +154,10 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
                 background: 'rgba(27, 56, 96, 0.12)',
               },
             }),
+            menuList: (base) => ({
+              ...base,
+              width: '100%',
+            }),
             menu: (baseStyles) => ({
               ...baseStyles,
               outline: 'none',

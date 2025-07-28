@@ -16,8 +16,9 @@ import { BreadCrumb } from '@/components/core/bread-crumb';
 import { LikesButton } from '@/components/page/forum/LikesButton';
 import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
+import { IUserInfo } from '@/types/shared.types';
 
-export const Post = () => {
+export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const { categoryId, topicId } = useParams();
   const { data } = useForumPost(topicId as string);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
@@ -44,8 +45,9 @@ export const Post = () => {
         likes: data.posts[0]?.votes,
         comments: data.postcount - 1,
       },
+      isEditable: data.posts[0].user.memberUid === userInfo.uid,
     };
-  }, [data]);
+  }, [data, userInfo.uid]);
 
   if (!post) {
     return (
@@ -70,7 +72,7 @@ export const Post = () => {
 
         <div className={s.content}>
           <div className={s.topicBadge}>{post.category}</div>
-          <ItemMenu />
+          {post.isEditable && <ItemMenu />}
         </div>
 
         <h1 className={s.title}>{post.title}</h1>
@@ -111,7 +113,7 @@ export const Post = () => {
       </div>
 
       <div className={s.root}>
-        <PostComments comments={data?.posts?.slice(1)} tid={post.tid} mainPid={post.pid} onReply={(pid) => setReplyToPid(pid)} />
+        <PostComments comments={data?.posts?.slice(1)} tid={post.tid} mainPid={post.pid} onReply={(pid) => setReplyToPid(pid)} userInfo={userInfo} />
       </div>
     </div>
   );

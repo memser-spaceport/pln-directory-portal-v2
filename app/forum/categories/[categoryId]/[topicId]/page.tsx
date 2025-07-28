@@ -23,7 +23,7 @@ const PostPage = async () => {
     );
   }
 
-  return <Post />;
+  return <Post userInfo={userInfo} />;
 };
 
 export default PostPage;

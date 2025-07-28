@@ -15,6 +15,7 @@ import { useUpdateMemberNotificationSettings } from '@/services/notifications/ho
 import { useClickAway } from 'react-use';
 import { FormField } from '@/components/form/FormField';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
+import { clsx } from 'clsx';
 
 interface Props {
   tid: number;
@@ -23,6 +24,7 @@ interface Props {
   onCancel?: () => void;
   initialFocused?: boolean;
   isEdit?: boolean;
+  isReply?: boolean;
   initialContent?: string;
 }
 
@@ -31,7 +33,7 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initialFocused, isEdit, initialContent }: Props) => {
+export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent }: Props) => {
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid);
@@ -123,6 +125,19 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initia
     }
   }, [notificationSettings, setValue]);
 
+  function getSubmitLabel() {
+    if (isSubmitting) {
+      return 'Processing...';
+    }
+    if (isEdit) {
+      return 'Save';
+    }
+    if (isReply) {
+      return 'Reply';
+    }
+    return 'Comment';
+  }
+
   return (
     <FormProvider {...methods}>
       <form className={s.root} noValidate onSubmit={handleSubmit(onSubmit)} ref={ref}>
@@ -150,8 +165,8 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initia
               >
                 Cancel
               </button>
-              <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>
-                {isSubmitting ? 'Processing...' : isEdit ? 'Save' : 'Comment'}
+              <button type="submit" className={clsx(s.primaryBtn, s.actionable)} disabled={isSubmitting}>
+                {getSubmitLabel()}
               </button>
             </div>
           </>
@@ -159,7 +174,7 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, initia
           <div className={s.inline}>
             <FormField name="dummy" placeholder="Comment" onClick={() => setFocused(true)} />
             <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>
-              {isSubmitting ? 'Processing...' : 'Comment'}
+              {getSubmitLabel()}
             </button>
           </div>
         )}

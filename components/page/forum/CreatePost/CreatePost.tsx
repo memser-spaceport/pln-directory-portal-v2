@@ -59,7 +59,7 @@ export const CreatePost = ({ isEdit, initialData, pid }: { isEdit?: boolean; ini
   const {
     handleSubmit,
     reset,
-    formState: { isSubmitting, isDirty },
+    formState: { isSubmitting, isDirty, errors },
   } = methods;
 
   const { mutateAsync: createPost } = useCreatePost();

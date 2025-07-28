@@ -29,7 +29,8 @@ async function mutation({ cid, title, content }: MutationParams) {
   );
 
   if (!response?.ok) {
-    throw new Error('Failed to create post');
+    const res = await response?.json();
+    throw new Error(res?.status.message || 'Failed to create post');
   }
 
   return await response.json();

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { ForumQueryKeys } from '@/services/forum/constants';
+import { toast } from 'react-toastify';
 
 interface MutationParams {
   pid: number;
@@ -28,7 +29,8 @@ async function mutation({ pid, title, content }: MutationParams) {
   );
 
   if (!response?.ok) {
-    throw new Error('Failed to update post');
+    const res = await response?.json();
+    throw new Error(res?.status.message || 'Failed to update post');
   }
 
   return await response.json();

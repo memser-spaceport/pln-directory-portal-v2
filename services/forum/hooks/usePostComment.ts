@@ -28,7 +28,8 @@ async function mutation({ tid, toPid, content }: MutationParams) {
   );
 
   if (!response?.ok) {
-    throw new Error('Failed to post comment');
+    const res = await response?.json();
+    throw new Error(res?.status.message || 'Failed to add comment');
   }
 
   return await response.json();

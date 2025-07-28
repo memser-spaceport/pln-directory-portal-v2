@@ -55,8 +55,6 @@ export function useLikePost() {
 
       const prev = queryClient.getQueryData([ForumQueryKeys.GET_TOPIC, tid.toString()]);
 
-      console.log('prev', prev);
-
       queryClient.setQueryData([ForumQueryKeys.GET_TOPIC, tid.toString()], (old: TopicResponse) => {
         if (!old) {
           return old;

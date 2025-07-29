@@ -67,13 +67,13 @@
   width: 100%;
   display: flex;
   height: fit-content;
-  min-height: calc(100dvh - 80px);
+  //min-height: calc(100dvh - 80px);
   flex-direction: column;
 
   @include media.tablet-landscape {
     padding: 24px;
     gap: 24px;
-    min-height: calc(100dvh - 180px);
+    //min-height: calc(100dvh - 220px);
 
     max-width: 852px;
   }
@@ -190,12 +190,12 @@
 
 .editor {
   :global(.ql-editor) {
-    min-height: 200px;
+    min-height: 20dvh;
   }
 
   @include media.tablet-landscape {
     :global(.ql-editor) {
-      min-height: 350px;
+      min-height: 28dvh;
     }
   }
 }

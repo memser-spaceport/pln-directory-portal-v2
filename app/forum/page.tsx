@@ -4,9 +4,14 @@ import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import { Feed } from '@/components/page/forum/Feed';
 
 import s from './page.module.scss';
+import { redirect, RedirectType } from 'next/navigation';
 
-const ForumPage = async () => {
+const ForumPage = async ({ searchParams }: { searchParams: Record<string, string> }) => {
   const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+
+  if (!searchParams.cid) {
+    redirect('/forum?cid=1', RedirectType.replace);
+  }
 
   if (!isLoggedIn) {
     return (

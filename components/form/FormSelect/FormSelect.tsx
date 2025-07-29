@@ -134,7 +134,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
               },
               ...(!!errors[name]
                 ? {
-                    borderColor: 'darkred !important',
+                    borderColor: 'var(--action-border-error-focus) !important',
                   }
                 : {}),
             }),

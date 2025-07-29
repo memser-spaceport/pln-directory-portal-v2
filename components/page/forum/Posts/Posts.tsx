@@ -5,19 +5,23 @@ import s from './Posts.module.scss';
 import Link from 'next/link';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { EmptyPostsList } from '@/components/page/forum/EmptyPostsList';
-import { useForumPosts } from '@/services/forum/hooks/useForumPosts';
 import { formatDistanceToNow } from 'date-fns';
 import { PostsLoader } from '@/components/page/forum/Posts/PostsLoader';
 import { extractImagesAndClean } from '../helpers';
 import { clsx } from 'clsx';
 import { decodeHtml } from '@/utils/decode';
 import { useSearchParams } from 'next/navigation';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { useInfiniteForumPosts } from '@/services/forum/hooks/useInfiniteForumPosts';
 
 export const Posts = () => {
   const searchParams = useSearchParams();
   const cid = searchParams.get('cid') as unknown as number;
   const categoryTopicSort = searchParams.get('categoryTopicSort') as string;
-  const { data, isLoading } = useForumPosts(cid, categoryTopicSort);
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useInfiniteForumPosts({
+    cid,
+    categoryTopicSort,
+  });
 
   const posts = useMemo(() => {
     if (!data) return [];
@@ -53,47 +57,49 @@ export const Posts = () => {
   }
 
   return (
-    <div className={s.root}>
-      {posts.map((post) => {
-        const { cleanedText } = extractImagesAndClean(post.desc ?? '');
-        const decoded = decodeHtml(cleanedText);
-        const content = decoded.length > 200 ? `${decoded.slice(0, 200)}...` : decoded;
+    <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
+      <div className={s.root}>
+        {posts.map((post) => {
+          const { cleanedText } = extractImagesAndClean(post.desc ?? '');
+          const decoded = decodeHtml(cleanedText);
+          const content = decoded.length > 200 ? `${decoded.slice(0, 200)}...` : decoded;
 
-        return (
-          <Link className={s.listItem} key={post.tid} href={`/forum/topics/${post.cid}/${post.tid}`} prefetch={false}>
-            <div className={s.title}>{post.title}</div>
-            <div className={s.desc}>
-              <span dangerouslySetInnerHTML={{ __html: content ?? '' }} />
-            </div>
-            <div className={s.footer}>
-              <Avatar.Root className={s.Avatar}>
-                <Avatar.Image src={post.image ?? getDefaultAvatar(post.author)} width="24" height="24" className={s.Image} />
-                <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
-              </Avatar.Root>
-              <div className={s.col}>
-                <div className={s.inline}>
-                  <div className={s.name}>by {post.author}</div>
-                  <div className={s.position}>· {post.position}</div>
-                  <div className={s.time}>{post.time}</div>
+          return (
+            <Link className={s.listItem} key={post.tid} href={`/forum/topics/${post.cid}/${post.tid}`} prefetch={false}>
+              <div className={s.title}>{post.title}</div>
+              <div className={s.desc}>
+                <span dangerouslySetInnerHTML={{ __html: content ?? '' }} />
+              </div>
+              <div className={s.footer}>
+                <Avatar.Root className={s.Avatar}>
+                  <Avatar.Image src={post.image ?? getDefaultAvatar(post.author)} width="24" height="24" className={s.Image} />
+                  <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
+                </Avatar.Root>
+                <div className={s.col}>
+                  <div className={s.inline}>
+                    <div className={s.name}>by {post.author}</div>
+                    <div className={s.position}>· {post.position}</div>
+                    <div className={s.time}>{post.time}</div>
+                  </div>
+                  <div className={clsx(s.time, s.mob)}>{post.time}</div>
                 </div>
-                <div className={clsx(s.time, s.mob)}>{post.time}</div>
               </div>
-            </div>
-            <div className={s.sub}>
-              <div className={s.subItem}>
-                <ViewIcon /> {post.meta.views} Views
+              <div className={s.sub}>
+                <div className={s.subItem}>
+                  <ViewIcon /> {post.meta.views} Views
+                </div>
+                <div className={s.subItem} onClick={() => null}>
+                  <LikeIcon /> {post.meta.likes} Likes
+                </div>
+                <div className={s.subItem}>
+                  <CommentIcon /> {post.meta.comments} Comments
+                </div>
               </div>
-              <div className={s.subItem} onClick={() => null}>
-                <LikeIcon /> {post.meta.likes} Likes
-              </div>
-              <div className={s.subItem}>
-                <CommentIcon /> {post.meta.comments} Comments
-              </div>
-            </div>
-          </Link>
-        );
-      })}
-    </div>
+            </Link>
+          );
+        })}
+      </div>
+    </InfiniteScroll>
   );
 };
 

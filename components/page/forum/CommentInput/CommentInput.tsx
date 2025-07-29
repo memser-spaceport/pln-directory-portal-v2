@@ -71,16 +71,14 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
     try {
       const content = replaceImagesWithMarkdown(data.comment);
 
-      if (notificationSettings && userInfo && notificationSettings?.settings?.enabled !== data.emailMe) {
-        await updateNotificationSettings({
-          itemType: 'POST_COMMENT',
-          contextId: tid,
-          uid: userInfo.uid,
-          payload: {
-            enabled: data.emailMe,
-          },
-        });
-      }
+      await updateNotificationSettings({
+        itemType: 'POST_COMMENT',
+        contextId: tid,
+        uid: userInfo.uid,
+        payload: {
+          enabled: data.emailMe,
+        },
+      });
 
       if (isEdit) {
         const res = await editPost({

@@ -38,7 +38,7 @@ export const createPostSchema = yup.object().shape({
       message: 'Please enter a shorter post. Posts should not contain more than 32767 character(s).',
       test: function (value) {
         const plainText = stripHtml(value || '');
-        return plainText.trim().length < 32767;
+        return plainText.trim().length <= 32767;
       },
     })
     .required('Required'),

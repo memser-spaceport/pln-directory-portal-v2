@@ -4,20 +4,19 @@ import { NotificationsQueryKeys } from '@/services/notifications/constants';
 
 type MutationParams = {
   uid: string;
-  forumDigestEnabled: boolean;
-  forumDigestFrequency: number;
-  forumReplyNotificationsEnabled: boolean;
+  itemType: 'POST_COMMENT';
+  contextId: number;
+  payload: Record<string, string>;
 };
 
-async function mutation({ uid, forumDigestEnabled, forumDigestFrequency, forumReplyNotificationsEnabled }: MutationParams) {
+async function mutation({ uid, itemType, contextId, payload }: MutationParams) {
   const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/notification/settings/${uid}/forum`,
+    `${process.env.DIRECTORY_API_URL}/v1/notification/settings/${uid}/item/${itemType}`,
     {
       method: 'PUT',
       body: JSON.stringify({
-        forumDigestEnabled,
-        forumDigestFrequency,
-        forumReplyNotificationsEnabled,
+        contextId: contextId.toString(),
+        settings: payload,
       }),
       headers: {
         'Content-Type': 'application/json',

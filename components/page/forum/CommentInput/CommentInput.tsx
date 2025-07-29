@@ -35,7 +35,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
   const formRef = useRef<HTMLFormElement | null>(null);
   const [focused, setFocused] = useState(false);
   const { userInfo } = getCookiesFromClient();
-  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid);
+  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
   const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
 
   const methods = useForm({
@@ -69,12 +69,14 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
     try {
       const content = replaceImagesWithMarkdown(data.comment);
 
-      if (notificationSettings && userInfo && notificationSettings?.forumReplyNotificationsEnabled !== data.emailMe) {
+      if (notificationSettings && userInfo && notificationSettings?.settings?.enabled !== data.emailMe) {
         await updateNotificationSettings({
+          itemType: 'POST_COMMENT',
+          contextId: tid,
           uid: userInfo.uid,
-          forumDigestEnabled: notificationSettings.forumDigestEnabled,
-          forumDigestFrequency: notificationSettings.forumDigestFrequency,
-          forumReplyNotificationsEnabled: data.emailMe,
+          payload: {
+            enabled: data.emailMe,
+          },
         });
       }
 
@@ -111,7 +113,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
 
   useEffect(() => {
     if (notificationSettings) {
-      setValue('emailMe', notificationSettings.forumReplyNotificationsEnabled);
+      setValue('emailMe', notificationSettings?.settings?.enabled);
     }
   }, [notificationSettings, setValue]);
 

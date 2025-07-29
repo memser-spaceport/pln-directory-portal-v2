@@ -36,7 +36,7 @@ const schema = yup.object().shape({
 export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent }: Props) => {
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
-  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid);
+  const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
   const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
   const [focused, setFocused] = useState(initialFocused ?? false);
 
@@ -72,12 +72,14 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
     try {
       const content = replaceImagesWithMarkdown(data.comment);
 
-      if (notificationSettings && userInfo && notificationSettings?.forumReplyNotificationsEnabled !== data.emailMe) {
+      if (notificationSettings && userInfo && notificationSettings?.settings?.enabled !== data.emailMe) {
         await updateNotificationSettings({
+          itemType: 'POST_COMMENT',
+          contextId: tid,
           uid: userInfo.uid,
-          forumDigestEnabled: notificationSettings.forumDigestEnabled,
-          forumDigestFrequency: notificationSettings.forumDigestFrequency,
-          forumReplyNotificationsEnabled: data.emailMe,
+          payload: {
+            enabled: data.emailMe,
+          },
         });
       }
 
@@ -121,7 +123,7 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
 
   useEffect(() => {
     if (notificationSettings) {
-      setValue('emailMe', notificationSettings.forumReplyNotificationsEnabled);
+      setValue('emailMe', notificationSettings?.settings?.enabled);
     }
   }, [notificationSettings, setValue]);
 

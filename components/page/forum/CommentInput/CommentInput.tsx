@@ -16,6 +16,7 @@ import { useGetMemberNotificationSettings } from '@/services/notifications/hooks
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
+import { useScrollDirection } from '@/components/core/MobileBottomNav/MobileBottomNav';
 
 interface Props {
   tid: number;
@@ -37,6 +38,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
   const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
+  const scrollDirection = useScrollDirection();
 
   const methods = useForm({
     defaultValues: {
@@ -119,7 +121,14 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
 
   return (
     <FormProvider {...methods}>
-      <form className={clsx('input-form', s.root)} noValidate onSubmit={handleSubmit(onSubmit)} ref={formRef}>
+      <form
+        className={clsx('input-form', s.root, {
+          [s.hidden]: scrollDirection === 'down',
+        })}
+        noValidate
+        onSubmit={handleSubmit(onSubmit)}
+        ref={formRef}
+      >
         {replyToName && (
           <div className={s.replying}>
             <span className={s.lbl}>

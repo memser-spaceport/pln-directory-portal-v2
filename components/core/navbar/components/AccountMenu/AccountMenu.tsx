@@ -55,6 +55,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
 
   return (
     <>
+      <NotificationsMenu isMobileView={false} notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
       <Menu.Root modal={false}>
         <Menu.Trigger className={s.Button} ref={menuTriggerRef}>
           <Avatar.Root className={s.Avatar}>
@@ -124,7 +125,6 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
-      <NotificationsMenu isMobileView={false} notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
     </>
   );
 };

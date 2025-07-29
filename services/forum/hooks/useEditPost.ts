@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 interface MutationParams {
-  uid: string;
+  uid?: string;
   pid: number;
   title: string;
   content: string;

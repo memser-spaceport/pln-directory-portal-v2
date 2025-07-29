@@ -58,6 +58,7 @@
   font-weight: 500;
   line-height: 27px; /* 135% */
   letter-spacing: -0.4px;
+  padding-block: 8px;
 
   @include media.tablet-landscape {
     display: none;

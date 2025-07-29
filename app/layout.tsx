@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Navbar from '../components/core/navbar/nav-bar';
-import './globals.css';
+import './globals.scss';
 import '../styles/index.scss';
 import StyledJsxRegistry from '../providers/registry';
 import React, { Suspense } from 'react';
@@ -91,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* <TeamRegisterDialog /> */}
             <UserInfoChecker userInfo={userInfo} />
             <CookieChecker isLoggedIn={isLoggedIn} />
-            <ReactQueryDevtools initialIsOpen={false} />
+            {/*<ReactQueryDevtools initialIsOpen={false} />*/}
           </QueryProvider>
         </StyledJsxRegistry>
       </body>

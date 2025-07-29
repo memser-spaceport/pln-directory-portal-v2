@@ -10,6 +10,7 @@ import { ForumHeader } from '@/components/page/forum/ForumHeader';
 import s from './Feed.module.scss';
 import { useScrollDirection } from '@/components/core/MobileBottomNav/MobileBottomNav';
 import { clsx } from 'clsx';
+import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 
 export const Feed = () => {
   const router = useRouter();
@@ -39,6 +40,7 @@ export const Feed = () => {
       >
         Create post <PlusIcon />
       </button>
+      <ScrollToTopButton />
     </div>
   );
 };

@@ -60,7 +60,7 @@ export const Posts = () => {
         const content = decoded.length > 200 ? `${decoded.slice(0, 200)}...` : decoded;
 
         return (
-          <Link className={s.listItem} key={post.tid} href={`/forum/categories/${post.cid}/${post.tid}`} prefetch={false}>
+          <Link className={s.listItem} key={post.tid} href={`/forum/topics/${post.cid}/${post.tid}`} prefetch={false}>
             <div className={s.title}>{post.title}</div>
             <div className={s.desc}>
               <span dangerouslySetInnerHTML={{ __html: content ?? '' }} />

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ForumQueryKeys } from '@/services/forum/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
-type Topic = {
+export type Topic = {
   category: Record<string, string>;
   cid: number;
   deleted: number;

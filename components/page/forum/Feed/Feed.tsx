@@ -1,41 +1,42 @@
 'use client';
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { CategoriesTabs } from '@/components/page/forum/CategoriesTabs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Posts } from '@/components/page/forum/Posts';
 
-import s from './Feed.module.scss';
-import { CreatePost } from '@/components/page/forum/CreatePost';
 import { ForumHeader } from '@/components/page/forum/ForumHeader';
+
+import s from './Feed.module.scss';
+import { useScrollDirection } from '@/components/core/MobileBottomNav/MobileBottomNav';
+import { clsx } from 'clsx';
 
 export const Feed = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const cid = (searchParams.get('cid') as string) ?? 1;
+  const cid = searchParams.get('cid') as string;
+  const scrollDirection = useScrollDirection();
 
   const onValueChange = useCallback(
     (value: string) => {
       const params = new URLSearchParams(searchParams.toString());
-
       params.set('cid', value); // or use `params.delete(key)` to remove
       router.push(`?${params.toString()}`, { scroll: false });
     },
     [router, searchParams],
   );
 
-  useEffect(() => {
-    if (!cid) {
-      onValueChange('1');
-    }
-  }, [cid, onValueChange]);
-
   return (
     <div className={s.root}>
       <ForumHeader />
       <CategoriesTabs onValueChange={onValueChange} value={cid} />
       <Posts />
-      <button className={s.triggerButton} onClick={() => router.push('/forum/posts/new')}>
+      <button
+        className={clsx(s.triggerButton, {
+          [s.hidden]: scrollDirection === 'down',
+        })}
+        onClick={() => router.push('/forum/posts/new')}
+      >
         Create post <PlusIcon />
       </button>
     </div>

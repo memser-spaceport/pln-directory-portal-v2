@@ -18,7 +18,7 @@
 
 .error {
   font-size: 10px;
-  color: darkred;
+  color: var(--action-border-error-focus);
   font-feature-settings: 'liga' off, 'clig' off;
   font-style: normal;
   font-weight: 500;

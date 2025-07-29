@@ -161,7 +161,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
             <div className={s.content}>
               {isAdmin && <FormSelect name="user" placeholder="Select user" label="Select post author" options={membersOptions} disabled={isEdit} />}
               <FormSelect name="topic" placeholder="Select topic" label="Select topic" options={topicsOptions} disabled={isEdit} />
-              <FormField name="title" placeholder="Enter the title" label="Title" description="Enter a clear and specific topic title (max 255 characters)" />
+              <FormField name="title" placeholder="Enter the title" label="Title" max={255} />
               <FormEditor name="content" placeholder="Write your post" label="Post" className={s.editor} />
             </div>
           </form>

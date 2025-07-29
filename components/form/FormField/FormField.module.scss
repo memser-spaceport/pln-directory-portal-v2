@@ -52,6 +52,10 @@
 
   &.error {
     border-color: var(--action-border-error-focus);
+
+    input {
+      color: var(--action-border-error-focus);
+    }
   }
 }
 
@@ -95,4 +99,20 @@
   &[data-focused] {
     color: #A0BEFF;
   }
+}
+
+.sub {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.counter {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 200% */
+  letter-spacing: -0.2px;
 }

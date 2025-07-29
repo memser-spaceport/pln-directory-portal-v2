@@ -14,13 +14,16 @@ interface Props extends PropsWithChildren {
   disabled?: boolean;
   isRequired?: boolean;
   onClick?: () => void;
+  max?: number;
 }
 
-export const FormField = ({ name, placeholder, label, description, disabled, children, isRequired, ...rest }: Props) => {
+export const FormField = ({ name, placeholder, label, description, disabled, children, isRequired, max, ...rest }: Props) => {
   const {
     register,
     formState: { errors },
+    watch,
   } = useFormContext();
+  const val = watch(name);
 
   useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 
@@ -47,13 +50,22 @@ export const FormField = ({ name, placeholder, label, description, disabled, chi
         </div>
         {children}
       </div>
-      {!errors[name] && description ? (
-        <Field.Description className={s.fieldDescription}>{description}</Field.Description>
-      ) : (
-        <Field.Error className={s.errorMsg} match={!!errors[name]}>
-          {(errors?.[name]?.message as string) ?? ''}
-        </Field.Error>
-      )}
+      <div className={s.sub}>
+        <div>
+          {!errors[name] && description ? (
+            <Field.Description className={s.fieldDescription}>{description}</Field.Description>
+          ) : (
+            <Field.Error className={s.errorMsg} match={!!errors[name]}>
+              {(errors?.[name]?.message as string) ?? ''}
+            </Field.Error>
+          )}
+        </div>
+        {max && val?.length > 0 && (
+          <div className={s.counter}>
+            {val?.length} / {max}
+          </div>
+        )}
+      </div>
     </Field.Root>
   );
 };

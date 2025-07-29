@@ -6,8 +6,8 @@ import s from './page.module.scss';
 import { CreatePost } from '@/components/page/forum/CreatePost';
 import { fetcher as getPost } from '@/services/forum/hooks/useForumPost';
 import { redirect } from 'next/navigation';
-import { BreadCrumb } from '@/components/core/bread-crumb';
 import { ADMIN_ROLE } from '@/utils/constants';
+import { BackButton } from '@/components/page/forum/BackButton';
 
 interface PageProps {
   params: {
@@ -43,23 +43,19 @@ const EditPostPage = async ({ params }: PageProps) => {
   }
 
   return (
-    <>
-      <div className={s.breadcrumbs}>
-        <BreadCrumb backLink={`/forum/categories/${params.categoryId}/${params.topicId}`} directoryName={data.title} pageName="Edit Post" />
-      </div>
-      <div className={s.root}>
-        <CreatePost
-          pid={data.mainPid}
-          isEdit
-          initialData={{
-            user: isAdmin ? { label: data.posts[0].user.displayname, value: data.posts[0].user.memberUid } : null,
-            topic: { label: data.category.name, value: data.category.cid.toString() },
-            title: data.title,
-            content: data.posts[0]?.content,
-          }}
-        />
-      </div>
-    </>
+    <div className={s.root}>
+      <BackButton to={`/forum/categories/${params.categoryId}/${params.topicId}`} />
+      <CreatePost
+        pid={data.mainPid}
+        isEdit
+        initialData={{
+          user: isAdmin ? { label: data.posts[0].user.displayname, value: data.posts[0].user.memberUid } : null,
+          topic: { label: data.category.name, value: data.category.cid.toString() },
+          title: data.title,
+          content: data.posts[0]?.content,
+        }}
+      />
+    </div>
   );
 };
 

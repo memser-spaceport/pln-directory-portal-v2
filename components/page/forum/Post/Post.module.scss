@@ -204,6 +204,7 @@
   line-height: 24px; /* 150% */
   letter-spacing: -0.3px;
   width: 100%;
+  word-break: break-all;
 
   ul, ol {
     padding: revert;

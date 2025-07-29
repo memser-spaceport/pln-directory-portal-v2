@@ -121,7 +121,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
     <FormProvider {...methods}>
       <form
         className={clsx('input-form', s.root, {
-          [s.hidden]: scrollDirection === 'down',
+          [s.hidden]: scrollDirection === 'down' && !replyToName,
         })}
         noValidate
         onSubmit={handleSubmit(onSubmit)}

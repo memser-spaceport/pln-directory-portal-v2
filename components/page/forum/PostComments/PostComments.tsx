@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useCallback, useEffect, useRef } from 'react';
 
 import { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import { Avatar } from '@base-ui-components/react/avatar';
@@ -70,12 +70,19 @@ export const PostComments = ({ comments, tid, mainPid, onReply, userInfo }: Prop
 };
 
 const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment; isReply?: boolean; onReply?: (pid: number) => void; userInfo: IUserInfo }) => {
+  const ref = useRef<HTMLDivElement>(null);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const [editPid, setEditPid] = React.useState<number | null>(null);
 
+  const scrollIntoView = useCallback(() => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
   return (
     <>
-      <div className={s.itemRoot} key={item.pid}>
+      <div className={s.itemRoot} key={item.pid} ref={ref}>
         <div className={s.footer}>
           <Avatar.Root className={s.Avatar}>
             <Avatar.Image src={getDefaultAvatar(item.user.username)} width="32" height="32" className={s.Image} />
@@ -118,6 +125,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
                   onClick={() => {
                     if (onReply) {
                       onReply(item.pid);
+                      scrollIntoView();
                     } else {
                       setReplyToPid(item.pid);
                     }

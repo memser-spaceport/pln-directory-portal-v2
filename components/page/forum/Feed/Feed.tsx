@@ -22,6 +22,11 @@ export const Feed = () => {
     (value: string) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set('cid', value); // or use `params.delete(key)` to remove
+
+      if (value === '0') {
+        params.set('categoryTopicSort', 'recently_created');
+      }
+
       router.push(`?${params.toString()}`, { scroll: false });
     },
     [router, searchParams],

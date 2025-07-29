@@ -154,7 +154,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
                 Cancel
               </button>
               <button className={s.submitBtn} disabled={isSubmitting}>
-                {isSubmitting ? 'Posting...' : 'Post'}
+                {isSubmitting ? 'Processing...' : isEdit ? 'Save' : 'Post'}
               </button>
             </div>
 

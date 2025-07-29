@@ -15,21 +15,3 @@
     margin-inline: auto;
   }
 }
-
-.breadcrumbs {
-  height: 48px;
-  display: none;
-  align-items: center;
-  width: 100%;
-  background: #fff;
-  background: var(--Surface-surface-light, #FFF);
-  box-shadow: 0 1px 4px 0 #E2E8F0;
-  position: sticky;
-  top: 80px;
-  z-index: 1;
-
-  @include media.tablet-landscape {
-    display: flex;
-    margin-bottom: 40px;
-  }
-}

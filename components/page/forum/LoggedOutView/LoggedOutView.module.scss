@@ -4,7 +4,7 @@
 .modal {
   @include mixins.hide-scrollbar;
   position: fixed;
-  top: 80px;
+  top: var(--app-header-height);
   right: 0;
   left: 0;
   bottom: 0;

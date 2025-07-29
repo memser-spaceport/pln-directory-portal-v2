@@ -239,7 +239,7 @@
     height: 48px;
     width: 100%;
     position: sticky;
-    top: 80px;
+    top: var(--app-header-height);
     display: flex;
     align-items: center;
     background-color: #fff;

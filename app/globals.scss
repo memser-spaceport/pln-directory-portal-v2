@@ -1,4 +1,11 @@
+@use 'styles/media';
+
 :root {
+  --app-header-height: 56px;
+
+  @include media.tablet-landscape {
+    --app-header-height: 80px;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,12 +65,16 @@ body {
 }
 
 .layout__header {
-  min-height: 80px;
+  min-height: var(--app-header-height);
   width: 100%;
   position: sticky;
   top: 0;
   background-color: white;
   z-index: 5;
+  //
+  //@include media.tablet-landscape {
+  //  min-height: var(--app-header-height);
+  //}
 }
 
 .layout__main {

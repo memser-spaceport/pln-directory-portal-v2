@@ -17,6 +17,7 @@ import { LikesButton } from '@/components/page/forum/LikesButton';
 import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { IUserInfo } from '@/types/shared.types';
+import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 
 export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const { categoryId, topicId } = useParams();
@@ -115,6 +116,8 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
       <div className={s.root}>
         <PostComments comments={data?.posts?.slice(1)} tid={post.tid} mainPid={post.pid} onReply={(pid) => setReplyToPid(pid)} userInfo={userInfo} />
       </div>
+
+      <ScrollToTopButton />
     </div>
   );
 };

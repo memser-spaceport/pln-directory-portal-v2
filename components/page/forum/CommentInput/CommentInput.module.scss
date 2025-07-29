@@ -20,6 +20,16 @@
   @include media.tablet-landscape {
     display: none;
   }
+
+  :global(.ql-editor) {
+    max-height: 40dvh;
+  }
+
+  transition: transform 0.3s ease;
+
+  &.hidden {
+    transform: translateY(100%);
+  }
 }
 
 .content {

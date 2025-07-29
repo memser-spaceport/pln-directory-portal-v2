@@ -107,11 +107,7 @@ export default function Navbar(props: Readonly<INavbar>) {
         <div className={s.right}>
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
           <NotificationsMenu isMobileView notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
-          {isLoggedIn && (
-            <>
-              <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileStatus?.completeness} />
-            </>
-          )}
+          {isLoggedIn && <AccountMenu userInfo={userInfo} authToken={authToken} isLoggedIn profileFilledPercent={profileStatus?.completeness} />}
           {!isLoggedIn && (
             <>
               <Signup />

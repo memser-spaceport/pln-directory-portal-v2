@@ -7,7 +7,7 @@ $text-color: #475569;
   padding: 16px;
   color: $text-color;
   min-width: max-content;
-  height: 80px;
+  height: var(--app-header-height);
   display: flex;
   align-items: center;
 
@@ -16,6 +16,7 @@ $text-color: #475569;
 
   @include media.tablet-landscape {
     padding: 16px 24px;
+    //height: var(--app-header-height);
   }
 }
 
@@ -40,7 +41,7 @@ $text-color: #475569;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   flex: 1;
 }
 

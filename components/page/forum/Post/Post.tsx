@@ -18,6 +18,7 @@ import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { IUserInfo } from '@/types/shared.types';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
+import { BackButton } from '@/components/page/forum/BackButton';
 
 export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const { categoryId, topicId } = useParams();
@@ -63,9 +64,7 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
 
   return (
     <div className={s.container}>
-      <div className={s.breadcrumbs}>
-        <BreadCrumb backLink={`/forum?cid=${categoryId}`} directoryName="Forum" pageName="Post" />
-      </div>
+      <BackButton to={`/forum?cid=${categoryId}`} />
       <div className={s.root}>
         <Link href={`/forum?cid=${categoryId}`} className={s.back}>
           <ChevronLeftIcon /> Back to forum

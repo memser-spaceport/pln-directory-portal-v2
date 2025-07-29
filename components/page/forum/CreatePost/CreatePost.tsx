@@ -96,7 +96,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
           toast.success('Post updated successfully');
           reset(data);
           setTimeout(() => {
-            router.push(`/forum/categories/${params.categoryId}/${params.topicId}`);
+            router.push(`/forum/topics/${params.categoryId}/${params.topicId}`);
           }, 500);
         }
       } else {

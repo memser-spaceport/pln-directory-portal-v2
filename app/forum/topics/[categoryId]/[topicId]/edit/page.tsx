@@ -39,12 +39,12 @@ const EditPostPage = async ({ params }: PageProps) => {
   const data = await getPost(params.topicId);
 
   if (!data) {
-    redirect(`/forum/categories/${params.categoryId}/${params.topicId}?error=post-not-found`);
+    redirect(`/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found`);
   }
 
   return (
     <div className={s.root}>
-      <BackButton to={`/forum/categories/${params.categoryId}/${params.topicId}`} />
+      <BackButton to={`/forum/topics/${params.categoryId}/${params.topicId}`} />
       <CreatePost
         pid={data.mainPid}
         isEdit

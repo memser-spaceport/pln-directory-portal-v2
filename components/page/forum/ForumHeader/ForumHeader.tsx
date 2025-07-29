@@ -48,7 +48,7 @@ export const ForumHeader = () => {
       <div className={s.inline}>
         <span>Sort by:</span>
         <Select
-          menuPortalTarget={document.body}
+          menuPortalTarget={document?.body}
           menuPlacement="auto"
           options={sortOptions}
           value={value}

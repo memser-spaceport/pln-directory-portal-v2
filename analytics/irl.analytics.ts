@@ -26,6 +26,7 @@ export const useIrlAnalytics = () => {
     IRL_GUEST_LIST_TABLE_SPONSOR_EVENT_CLICKED: 'irl-guest-list-table-sponsor-event-clicked',
     IRL_GUEST_LIST_ADD_NEW_MEMBER_BTN_CLICKED: 'irl-guest-list-add-new-member-btn-clicked',
     IRL_TO_HUSKY_REDIRECT_CLICKED: 'irl-to-husky-redirect-clicked',
+    IRL_TO_CREATE_EVENT_SCHEDULE_REDIRECT_CLICK: 'irl_to_create_event_schedule_redirect_click',
     IRL_FLOATING_BAR_OPEN: 'irl-floating-bar-open',
     IRL_ADMIN_REMOVE_ATTENDEES_POPUP_OPEN: 'irl-admin-remove-attendees-popup-open',
     IRL_SELF_REMOVE_ATTENDEE_POPUP_BTN_CLICKED: 'irl-self-remove-attendee-popup-btn-clicked',
@@ -228,6 +229,7 @@ export const useIrlAnalytics = () => {
 
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_GUEST_LIST_TABLE_ADD_OFFICE_HOURS_CLICKED, { ...params });
   };
+
   const trackIrlToHuskyRedirectClicked = (location: any) => {
     const params = {
       locationUid: location?.uid,
@@ -235,6 +237,16 @@ export const useIrlAnalytics = () => {
     };
     captureEvent(IRL_ANALYTICS_EVENTS.IRL_TO_HUSKY_REDIRECT_CLICKED, { ...params });
   };
+
+  const trackIrlToCreateEventScheduleRedirectClick = (userInfo: any) => {
+    const params = {
+      loggedInUserUid: userInfo?.uid,
+      loggedInUserEmail: userInfo?.email,
+      loggedInUserName: userInfo?.name,
+    };
+    captureEvent(IRL_ANALYTICS_EVENTS.IRL_TO_CREATE_EVENT_SCHEDULE_REDIRECT_CLICK, { ...params });
+  };
+
   const trackGuestListAddNewMemberBtnClicked = (location: any) => {
     const params = {
       locationUid: location?.uid,
@@ -636,6 +648,7 @@ export const useIrlAnalytics = () => {
     trackSelfRemovalGatherigsFailed,
     trackAdminRemoveAttendeesPopupConfirmRemovalBtnClicked,
     trackAdminRemoveAttendeesSuccess,
+    trackIrlToCreateEventScheduleRedirectClick,
     trackAdminRemoveAttendeesFailed,
     trackFloatingBarEditBtnClicked,
     trackNoAttendeesStripRespondBtnClicked,

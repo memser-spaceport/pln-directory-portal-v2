@@ -54,7 +54,8 @@ export default async function Page({ searchParams }: any) {
         <section className={styles.irlGatherings__events}>
           <IrlEvents isUserGoing={isUserGoing as boolean} userInfo={userInfo} isLoggedIn={isLoggedIn} eventDetails={eventDetails} searchParams={searchParams} guestDetails={guestDetails} locationDetails={locationDetails}/>
         </section>
-        <section className={styles.irlGatheings__huskyIntegration}>
+        {/* Husky Integration */}
+        <section className={styles.irlGatherings__huskyIntegration}>
           <IrlHuskyIntegration currentLocation={eventLocationSummary} />
         </section>
         {/* Follow Gathering */}

@@ -41,9 +41,15 @@
     gap: 0px;
     z-index: 3;
   }
-  .irlGatheings__huskyIntegration {
+  .irlGatherings__huskyIntegration {
     max-width: 900px;
     margin-top: 20px;
+    overflow: unset;
+    display: flex;
+    flex-direction: column;
+  }
+  .irlGatherings__createSchedule {
+    margin-bottom: 20px;
     overflow: unset;
     display: flex;
     flex-direction: column;
@@ -79,9 +85,13 @@
     gap: unset;
     z-index: unset;
   }
-  .irlGatheings__huskyIntegration {
+  .irlGatherings__huskyIntegration {
     width: 900px !important;
     margin-top: 20px;
+  }
+  .irlGatherings__createSchedule {
+    width: 900px;
+    margin-bottom: 20px;
   }
   .irlGatherings {
     width: 900px;
@@ -138,5 +148,22 @@
 
   .irlGatheings__locations {
     max-width: 2240px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .irlGatherings__createSchedule {
+    width: 1244px;
+  }
+}
+@media (min-width: 1920px) {
+  .irlGatherings__createSchedule {
+    width: 1678px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .irlGatherings__createSchedule {
+    width: 2240px;
   }
 }

@@ -1,14 +1,15 @@
-import React, { useMemo } from 'react';
+'use client';
 
-import { useForm } from 'react-hook-form';
+import React, { useMemo } from 'react';
 
 import s from './ForumDigest.module.scss';
 import { useGetForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { IUserInfo } from '@/types/shared.types';
 import { Field } from '@base-ui-components/react/field';
 import { clsx } from 'clsx';
-import Select from 'react-select';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
+import dynamic from 'next/dynamic';
+const Select = dynamic(() => import('react-select'), { ssr: false });
 
 const options = [
   {
@@ -186,10 +187,15 @@ export const ForumDigest = ({ userInfo }: { userInfo: IUserInfo }) => {
                 );
               },
               Option: (props) => {
+                const _data = props.data as {
+                  label: string;
+                  value: string;
+                  description: string;
+                };
                 return (
-                  <div onClick={() => props.selectOption(props.data)} className={s.option}>
-                    <div className={s.optionLabel}>{props.data.label}</div>
-                    {props.data.description && <div className={s.optionDesc}>{props.data.description}</div>}
+                  <div onClick={() => props.selectOption(_data)} className={s.option}>
+                    <div className={s.optionLabel}>{_data.label}</div>
+                    {_data.description && <div className={s.optionDesc}>{_data.description}</div>}
                   </div>
                 );
               },

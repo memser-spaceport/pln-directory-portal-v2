@@ -13,8 +13,10 @@ import { decodeHtml } from '@/utils/decode';
 import { useSearchParams } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteForumPosts } from '@/services/forum/hooks/useInfiniteForumPosts';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 export const Posts = () => {
+  const analytics = useForumAnalytics();
   const searchParams = useSearchParams();
   const cid = searchParams.get('cid') as unknown as number;
   const categoryTopicSort = searchParams.get('categoryTopicSort') as string;
@@ -65,7 +67,15 @@ export const Posts = () => {
           const content = decoded.length > 200 ? `${decoded.slice(0, 200)}...` : decoded;
 
           return (
-            <Link className={s.listItem} key={post.tid} href={`/forum/topics/${post.cid}/${post.tid}`} prefetch={false}>
+            <Link
+              className={s.listItem}
+              key={post.tid}
+              href={`/forum/topics/${post.cid}/${post.tid}`}
+              prefetch={false}
+              onClick={() => {
+                analytics.onPostClicked({ tid: post.tid });
+              }}
+            >
               <div className={s.title}>{post.title}</div>
               <div className={s.desc}>
                 <span dangerouslySetInnerHTML={{ __html: content ?? '' }} />

@@ -41,11 +41,21 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.CREATE_POST_SUBMIT, {});
   }
 
+  function onPostClicked(params: { tid?: string | number }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.POST_CLICKED, params);
+  }
+
+  function onLikePostClicked(params: { tid?: string | number; pid?: string | number }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.POST_LIKED, params);
+  }
+
   return {
     onForumTopicClicked,
     onForumSortSelected,
     onCreatePostClicked,
     onCreatePostSubmit,
     onCreatePostCancel,
+    onPostClicked,
+    onLikePostClicked,
   };
 };

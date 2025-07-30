@@ -6,7 +6,7 @@ export function useDigestEmailLinkEventCapture() {
   const reportedRef = useRef(false);
   const searchParams = useSearchParams();
 
-  const isCorrectSource = searchParams.get('utm_source') === 'digest_email';
+  const isCorrectSource = searchParams.get('utm_source') === 'digest_email_post_link';
 
   const { onDigestEmailPostLinkClicked } = useForumAnalytics();
 
@@ -23,6 +23,9 @@ export function useDigestEmailLinkEventCapture() {
       utmCode: searchParams.get('utm_code'),
       targetUid: searchParams.get('target_uid'),
       targetEmail: searchParams.get('target_email'),
+      category_id: searchParams.get('category_id'),
+      post_id: searchParams.get('post_id'),
+      topic_id: searchParams.get('topic_id'),
     };
 
     onDigestEmailPostLinkClicked(searchParamsObj);
@@ -33,7 +36,7 @@ export function useCommentNotificationEmailLinkEventCapture() {
   const reportedRef = useRef(false);
   const searchParams = useSearchParams();
 
-  const isCorrectSource = searchParams.get('utm_source') === 'digest_email';
+  const isCorrectSource = searchParams.get('utm_source') === 'notification_email_link';
 
   const { onCommentNotificationEmailLinkClicked } = useForumAnalytics();
 
@@ -50,6 +53,9 @@ export function useCommentNotificationEmailLinkEventCapture() {
       utmCode: searchParams.get('utm_code'),
       targetUid: searchParams.get('target_uid'),
       targetEmail: searchParams.get('target_email'),
+      category_id: searchParams.get('category_id'),
+      post_id: searchParams.get('post_id'),
+      topic_id: searchParams.get('topic_id'),
     };
 
     onCommentNotificationEmailLinkClicked(searchParamsObj);
@@ -60,7 +66,7 @@ export function useCommentNotificationEmailReplyEventCapture() {
   const reportedRef = useRef(false);
   const searchParams = useSearchParams();
 
-  const isCorrectSource = searchParams.get('utm_source') === 'digest_email';
+  const isCorrectSource = searchParams.get('utm_source') === 'notification_email_reply';
 
   const { onCommentNotificationEmailReplyClicked } = useForumAnalytics();
 
@@ -77,6 +83,9 @@ export function useCommentNotificationEmailReplyEventCapture() {
       utmCode: searchParams.get('utm_code'),
       targetUid: searchParams.get('target_uid'),
       targetEmail: searchParams.get('target_email'),
+      category_id: searchParams.get('category_id'),
+      post_id: searchParams.get('post_id'),
+      topic_id: searchParams.get('topic_id'),
     };
 
     onCommentNotificationEmailReplyClicked(searchParamsObj);

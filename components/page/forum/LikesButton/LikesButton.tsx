@@ -2,6 +2,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 import s from './LikesButton.module.scss';
 import { useLikePost } from '@/services/forum/hooks/useLikePost';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 interface Props {
   pid: number;
@@ -12,6 +13,7 @@ interface Props {
 
 export const LikesButton = ({ tid, pid, likes, isLiked }: Props) => {
   const { mutate, isPending } = useLikePost();
+  const analytics = useForumAnalytics();
 
   return (
     <button
@@ -19,7 +21,10 @@ export const LikesButton = ({ tid, pid, likes, isLiked }: Props) => {
         [s.liked]: isLiked,
       })}
       disabled={isPending || isLiked}
-      onClick={() => mutate({ tid, pid })}
+      onClick={() => {
+        analytics.onLikePostClicked({ tid, pid });
+        mutate({ tid, pid });
+      }}
     >
       <LikeIcon /> {likes} Likes
     </button>

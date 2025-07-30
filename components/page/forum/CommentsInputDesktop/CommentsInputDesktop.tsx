@@ -16,6 +16,7 @@ import { useClickAway } from 'react-use';
 import { FormField } from '@/components/form/FormField';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
 import { clsx } from 'clsx';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 interface Props {
   tid: number;
@@ -34,6 +35,7 @@ const schema = yup.object().shape({
 });
 
 export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent }: Props) => {
+  const analytics = useForumAnalytics();
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
@@ -94,11 +96,13 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
           onCancel?.();
         }
       } else {
-        const res = await mutateAsync({
+        const payload = {
           tid,
           toPid,
           content,
-        });
+        };
+        analytics.onPostCommentSubmit(payload);
+        const res = await mutateAsync(payload);
 
         if (res?.status?.code === 'ok') {
           reset();
@@ -146,7 +150,14 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
             <FormEditor autoFocus name="comment" placeholder="Comment" label={replyToName ? `Replying to ${replyToName}` : ''} />
             <label className={s.Label}>
               <div className={s.primary}>Email me when someone comments on this post.</div>
-              <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
+              <Checkbox.Root
+                className={s.Checkbox}
+                checked={emailMe}
+                onCheckedChange={(v: boolean) => {
+                  analytics.onPostCommentNotificationSettingsClicked({ tid, toPid, value: v });
+                  setValue('emailMe', v, { shouldValidate: true, shouldDirty: true });
+                }}
+              >
                 <Checkbox.Indicator className={s.Indicator}>
                   <CheckIcon className={s.Icon} />
                 </Checkbox.Indicator>
@@ -158,6 +169,7 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
                 type="button"
                 className={s.secondaryBtn}
                 onClick={() => {
+                  analytics.onPostCommentCancel();
                   onCancel?.();
                   reset();
                   setFocused(false);
@@ -172,8 +184,25 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
           </>
         ) : (
           <div className={s.inline}>
-            <FormField name="dummy" placeholder="Comment" onClick={() => setFocused(true)} />
-            <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>
+            <FormField
+              name="dummy"
+              placeholder="Comment"
+              onClick={() => {
+                analytics.onCommentInputClicked({ tid });
+                setFocused(true);
+              }}
+            />
+            <button
+              className={s.primaryBtn}
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => {
+                if (!focused) {
+                  analytics.onCommentInputClicked({ tid });
+                  setFocused(true);
+                }
+              }}
+            >
               {getSubmitLabel()}
             </button>
           </div>

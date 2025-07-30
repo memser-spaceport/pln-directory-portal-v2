@@ -435,6 +435,27 @@ export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
   AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
 };
 
+export const FORUM_ANALYTICS_EVENTS = {
+  TOPIC_CLICKED: 'forum-topic-clicked',
+  SORT_SELECTED: 'forum-sort-selected',
+  CREATE_POST_CLICKED: 'forum-create-post-clicked',
+  CREATE_POST_SUBMIT: 'forum-create-post-submit',
+  CREATE_POST_CANCEL: 'forum-create-post-cancel',
+  POST_CLICKED: 'forum-post-clicked',
+  POST_LIKED: 'forum-post-like-clicked',
+  COMMENT_INPUT_CLICKED: 'forum-comment-input-clicked',
+  POST_COMMENT_SUBMIT: 'forum-post-comment-submit',
+  POST_COMMENT_CANCEL: 'forum-post-comment-cancel',
+  POST_COMMENT_NOTIFICATION_SETTINGS_CLICKED: 'forum-post-comment-notification-settings-clicked',
+  POST_COMMENT_REPLY_CLICKED: 'forum-post-comment-reply-clicked',
+  POST_EDIT_CLICKED: 'forum-post-edit-clicked',
+  EDIT_POST_SUBMIT: 'forum-edit-post-submit',
+  EDIT_POST_CANCEL: 'forum-edit-post-cancel',
+  DIGEST_EMAIL_POST_CLICKED: 'forum-digest-email-post-clicked',
+  COMMENT_NOTIFICATION_EMAIL_LINK_CLICKED: 'forum-comment-notification-email-link-clicked',
+  COMMENT_NOTIFICATION_EMAIL_REPLY_CLICKED: 'forum-comment-notification-email-reply-clicked',
+};
+
 export const IRL_ANALYTICS_EVENTS = {};
 
 export const HOME_ANALYTICS_EVENTS = {

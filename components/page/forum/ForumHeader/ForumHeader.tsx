@@ -5,6 +5,7 @@ import Select from 'react-select';
 
 import s from './ForumHeader.module.scss';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 const sortOptions = [
   {
@@ -34,10 +35,11 @@ export const ForumHeader = () => {
   const searchParams = useSearchParams();
   const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[0];
   const selectedCategory = searchParams.get('cid');
+  const analytics = useForumAnalytics();
 
   const onValueChange = (_value: string) => {
     const params = new URLSearchParams(searchParams.toString());
-
+    analytics.onForumSortSelected({ sortBy: _value });
     params.set('categoryTopicSort', _value); // or use `params.delete(key)` to remove
     router.push(`?${params.toString()}`, { scroll: false });
   };

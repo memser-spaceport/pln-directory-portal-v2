@@ -19,6 +19,7 @@ import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { IUserInfo } from '@/types/shared.types';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { BackButton } from '@/components/page/forum/BackButton';
+import { useCommentNotificationEmailLinkEventCapture, useCommentNotificationEmailReplyEventCapture, useDigestEmailLinkEventCapture } from '@/components/page/forum/hooks';
 
 export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const { categoryId, topicId } = useParams();
@@ -50,6 +51,10 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
       isEditable: data.posts[0].user.memberUid === userInfo.uid,
     };
   }, [data, userInfo.uid]);
+
+  useDigestEmailLinkEventCapture();
+  useCommentNotificationEmailLinkEventCapture();
+  useCommentNotificationEmailReplyEventCapture();
 
   if (!post) {
     return (

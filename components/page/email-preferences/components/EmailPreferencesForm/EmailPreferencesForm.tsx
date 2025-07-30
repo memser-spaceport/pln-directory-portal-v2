@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { triggerLoader } from '@/utils/common.utils';
 import { ForumDigest } from '@/components/page/email-preferences/components/ForumDigest';
 import s from './EmailPreferencesForm.module.scss';
+import { Newsletter } from '@/components/page/email-preferences/components/Newsletter';
 
 interface Props {
   uid: string;
@@ -37,6 +38,7 @@ export const EmailPreferencesForm = ({ uid, userInfo }: Props) => {
     <div className={s.root}>
       <h5 className={s.title}>Email Preferences</h5>
       <ForumDigest userInfo={userInfo} />
+      <Newsletter userInfo={userInfo} />
     </div>
   );
 };

@@ -100,7 +100,12 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
           </div>
           {userInfo.uid === item.user.memberUid && (
             <div className={s.menuWrapper}>
-              <ItemMenu onEdit={() => setEditPid(item.pid)} />
+              <ItemMenu
+                onEdit={() => {
+                  analytics.onPostEditClicked({ tid: item.tid, pid: item.pid });
+                  setEditPid(item.pid);
+                }}
+              />
             </div>
           )}
         </div>

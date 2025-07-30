@@ -87,12 +87,14 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
       const content = replaceImagesWithMarkdown(data.content);
 
       if (isEdit && pid) {
-        const res = await editPost({
+        const payload = {
           uid: isAdmin ? data.user?.value : null,
           pid,
           title: data.title?.trim() || '',
           content,
-        });
+        };
+        analytics.onEditPostSubmit(payload);
+        const res = await editPost(payload);
 
         if (res.status.code === 'ok') {
           toast.success('Post updated successfully');
@@ -139,7 +141,11 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
                   type="button"
                   className={s.cancelBtn}
                   onClick={() => {
-                    analytics.onCreatePostCancel();
+                    if (isEdit) {
+                      analytics.onEditPostCancel();
+                    } else {
+                      analytics.onCreatePostCancel();
+                    }
                     router.push('/forum?cid=1');
                   }}
                 >
@@ -155,7 +161,11 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
                 type="button"
                 className={s.cancelBtn}
                 onClick={() => {
-                  analytics.onCreatePostCancel();
+                  if (isEdit) {
+                    analytics.onEditPostCancel();
+                  } else {
+                    analytics.onCreatePostCancel();
+                  }
                   router.push('/forum?cid=1');
                 }}
               >

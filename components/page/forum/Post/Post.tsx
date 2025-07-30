@@ -78,7 +78,6 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
         <div className={s.content}>
           <div className={s.topicBadge}>{post.category}</div>
           {post.isEditable && <ItemMenu />}
-          <ItemMenu />
         </div>
 
         <h1 className={s.title}>{post.title}</h1>

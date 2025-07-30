@@ -3,14 +3,14 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { ForumQueryKeys } from '@/services/forum/constants';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 
-interface MutationParams {
+export interface CreatePostMutationParams {
   uid: string;
   cid: number;
   title: string;
   content: string;
 }
 
-async function mutation({ uid, cid, title, content }: MutationParams) {
+async function mutation({ uid, cid, title, content }: CreatePostMutationParams) {
   const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
   const { userInfo } = getCookiesFromClient();
 

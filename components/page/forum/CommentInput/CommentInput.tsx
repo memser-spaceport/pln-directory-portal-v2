@@ -17,6 +17,7 @@ import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
 import { useScrollDirection } from '@/components/core/MobileBottomNav/MobileBottomNav';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 interface Props {
   tid: number;
@@ -33,6 +34,7 @@ const schema = yup.object().shape({
 });
 
 export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initialContent }: Props) => {
+  const analytics = useForumAnalytics();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [focused, setFocused] = useState(false);
   const { userInfo } = getCookiesFromClient();
@@ -93,11 +95,13 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
           setFocused(false);
         }
       } else {
-        const res = await mutateAsync({
+        const payload = {
           tid,
           toPid,
           content,
-        });
+        };
+        analytics.onPostCommentSubmit(payload);
+        const res = await mutateAsync(payload);
 
         if (res?.status?.code === 'ok') {
           reset();
@@ -138,8 +142,29 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
           </div>
         )}
         <div className={s.content}>
-          {focused ? <FormEditor name="comment" placeholder="Comment" autoFocus /> : <FormField name="dummy" placeholder="Comment" onClick={() => setFocused(true)} />}
-          <button className={s.submitBtn} type="submit" disabled={isSubmitting}>
+          {focused ? (
+            <FormEditor name="comment" placeholder="Comment" autoFocus />
+          ) : (
+            <FormField
+              name="dummy"
+              placeholder="Comment"
+              onClick={() => {
+                analytics.onCommentInputClicked({ tid });
+                setFocused(true);
+              }}
+            />
+          )}
+          <button
+            className={s.submitBtn}
+            type={focused ? 'submit' : 'button'}
+            disabled={isSubmitting}
+            onClick={() => {
+              if (!focused) {
+                analytics.onCommentInputClicked({ tid });
+                setFocused(true);
+              }
+            }}
+          >
             {isSubmitting ? <Image src="/icons/spinner.svg" width={22} height={22} alt="Spinner" /> : <ArrowUpIcon />}
           </button>
         </div>
@@ -147,7 +172,14 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
           <div className={s.content}>
             <label className={s.Label}>
               <div className={s.primary}>Email me when someone comments on this post.</div>
-              <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
+              <Checkbox.Root
+                className={s.Checkbox}
+                checked={emailMe}
+                onCheckedChange={(v: boolean) => {
+                  analytics.onPostCommentNotificationSettingsClicked({ tid, toPid, value: v });
+                  setValue('emailMe', v, { shouldValidate: true, shouldDirty: true });
+                }}
+              >
                 <Checkbox.Indicator className={s.Indicator}>
                   <CheckIcon className={s.Icon} />
                 </Checkbox.Indicator>

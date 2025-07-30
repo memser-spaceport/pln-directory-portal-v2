@@ -18,6 +18,7 @@ import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { IUserInfo } from '@/types/shared.types';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { BackButton } from '@/components/page/forum/BackButton';
+import { useCommentNotificationEmailLinkEventCapture, useCommentNotificationEmailReplyEventCapture, useDigestEmailLinkEventCapture } from '@/components/page/forum/hooks';
 
 export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const router = useRouter();
@@ -63,6 +64,10 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
       setReplyToPid(Number(replyTo));
     }
   }, [post, searchParams]);
+
+  useDigestEmailLinkEventCapture();
+  useCommentNotificationEmailLinkEventCapture();
+  useCommentNotificationEmailReplyEventCapture();
 
   if (!post) {
     return (

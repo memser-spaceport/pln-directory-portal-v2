@@ -37,7 +37,7 @@
   appearance: none;
   border: 0;
   margin: 0;
-  padding: 1px;
+  padding: 2px;
   width: 2.5rem;
   height: 1.5rem;
   border-radius: 1.5rem;
@@ -91,6 +91,14 @@
   background-color: white;
   transition: translate 150ms ease;
 
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgb(255 255 255 / 15%);
+    transition: background-color 200ms ease;
+  }
+
   .checkIcon {
     opacity: 0;
     transition: opacity 100ms ease;
@@ -101,6 +109,10 @@
 
     .checkIcon {
       opacity: 1;
+    }
+
+    .dot {
+      background-color: #1B4DFF;
     }
   }
 }

@@ -4,14 +4,14 @@ import { ForumQueryKeys } from '@/services/forum/constants';
 import { toast } from 'react-toastify';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 
-interface MutationParams {
+export interface EditPostMutationParams {
   uid?: string;
   pid: number;
   title: string;
   content: string;
 }
 
-async function mutation({ pid, title, content, uid }: MutationParams) {
+async function mutation({ pid, title, content, uid }: EditPostMutationParams) {
   const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
   const { userInfo } = getCookiesFromClient();
 

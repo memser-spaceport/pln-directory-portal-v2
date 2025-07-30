@@ -2,13 +2,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { ForumQueryKeys } from '@/services/forum/constants';
 
-interface MutationParams {
+export interface PostCommentMutationParams {
   tid: number;
   toPid: number;
   content: string;
 }
 
-async function mutation({ tid, toPid, content }: MutationParams) {
+async function mutation({ tid, toPid, content }: PostCommentMutationParams) {
   const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
 
   const response = await customFetch(

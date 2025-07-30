@@ -4,11 +4,19 @@
   gap: 4px;
   width: 100%;
   border-radius: 8px;
-  border: 1px solid transparent;
+  //border: 1px solid transparent;
 
   &:focus-within {
-    border-color: #5E718D !important;
+    //border-color: #5E718D !important;
     box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12) !important;
+
+    :global(.ql-toolbar) {
+      border-color: #5E718D;
+    }
+
+    :global(.ql-container) {
+      border-color: #5E718D;
+    }
   }
 
   &.error {

@@ -9,15 +9,17 @@ type QueryParams = {
 };
 
 async function infiniteFetcher(queryParams: QueryParams, page: number) {
+  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
   if (queryParams.cid === '0') {
     const response = await customFetch(
       `${process.env.FORUM_API_URL}/api/recent?categoryTopicSort=${queryParams.categoryTopicSort}&page=${page}`,
       {
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       },
-      false,
+      !token,
     );
 
     if (!response?.ok) {
@@ -26,8 +28,6 @@ async function infiniteFetcher(queryParams: QueryParams, page: number) {
 
     return await response.json();
   }
-
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
 
   const response = await customFetch(
     `${process.env.FORUM_API_URL}/api/v3/categories/${queryParams.cid}/topics?categoryTopicSort=${queryParams.categoryTopicSort}&after=${page}`,

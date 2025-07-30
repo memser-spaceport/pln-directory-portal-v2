@@ -8,7 +8,6 @@ import ImageUploader from 'quill-image-uploader';
 import 'quill-image-uploader/dist/quill.imageUploader.min.css';
 
 import s from './RichTextEditor.module.scss';
-import { useMember } from '@/services/members/hooks/useMember';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { saveRegistrationImage } from '@/services/registration.service';
 

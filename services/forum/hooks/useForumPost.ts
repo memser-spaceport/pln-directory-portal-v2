@@ -225,7 +225,17 @@ export type TopicResponse = {
 };
 
 export async function fetcher(tid: string) {
-  const response = await customFetch(`${process.env.FORUM_API_URL}/api/topic/${tid}`, {}, false);
+  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
+  const response = await customFetch(
+    `${process.env.FORUM_API_URL}/api/topic/${tid}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    },
+    !token,
+  );
 
   if (!response?.ok) {
     return null;

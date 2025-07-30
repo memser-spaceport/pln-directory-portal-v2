@@ -1,5 +1,6 @@
 import React from 'react';
 import EventsSection from '@/components/page/events/events-section';
+import RearrangeOrderPopup from '@/components/ui/rearrange-order-popup';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getAggregatedEventsData } from '@/services/events.service';
 import Error from '@/components/core/error';
@@ -12,7 +13,12 @@ export default async function Events() {
     return <Error />;
   }
 
-  return <EventsSection eventLocations={aggregatedEventsData} userInfo={userInfo} />;
+  return (
+    <>
+      <EventsSection eventLocations={aggregatedEventsData} userInfo={userInfo} />
+      <RearrangeOrderPopup />
+    </>
+  );
 }
 
 const getPageData = async () => {

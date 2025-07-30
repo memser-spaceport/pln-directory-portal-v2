@@ -66,6 +66,10 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_NOTIFICATION_SETTINGS_CLICKED, params);
   }
 
+  function onPostCommentReplyClicked(params: { tid?: string | number; pid?: string | number }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_REPLY_CLICKED, params);
+  }
+
   return {
     onForumTopicClicked,
     onForumSortSelected,
@@ -78,5 +82,6 @@ export const useForumAnalytics = () => {
     onPostCommentSubmit,
     onPostCommentCancel,
     onPostCommentNotificationSettingsClicked,
+    onPostCommentReplyClicked,
   };
 };

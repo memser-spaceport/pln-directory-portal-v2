@@ -45,10 +45,17 @@ export function useUpdateMemberParams() {
           return old;
         }
 
-        return {
-          ...old,
-          ...payload,
-        };
+        if (typeof old === 'object' && 'memberInfo' in old && typeof old.memberInfo === 'object') {
+          return {
+            ...old,
+            memberInfo: {
+              ...old.memberInfo,
+              ...payload,
+            },
+          };
+        }
+
+        return old;
       });
 
       return { prev };

@@ -1,6 +1,7 @@
 import { FORUM_ANALYTICS_EVENTS } from '@/utils/constants';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
+import { CreatePostMutationParams } from '@/services/forum/hooks/useCreatePost';
 
 export const useForumAnalytics = () => {
   const postHogProps = usePostHog();
@@ -32,9 +33,19 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.CREATE_POST_CLICKED, {});
   }
 
+  function onCreatePostSubmit(params: CreatePostMutationParams) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.CREATE_POST_SUBMIT, params);
+  }
+
+  function onCreatePostCancel() {
+    captureEvent(FORUM_ANALYTICS_EVENTS.CREATE_POST_SUBMIT, {});
+  }
+
   return {
     onForumTopicClicked,
     onForumSortSelected,
     onCreatePostClicked,
+    onCreatePostSubmit,
+    onCreatePostCancel,
   };
 };

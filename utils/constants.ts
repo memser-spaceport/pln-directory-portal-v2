@@ -439,6 +439,8 @@ export const FORUM_ANALYTICS_EVENTS = {
   TOPIC_CLICKED: 'forum-topic-clicked',
   SORT_SELECTED: 'forum-sort-selected',
   CREATE_POST_CLICKED: 'forum-create-post-clicked',
+  CREATE_POST_SUBMIT: 'forum-create-post-submit',
+  CREATE_POST_CANCEL: 'forum-create-post-cancel',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};

@@ -21,15 +21,17 @@ import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { useAllMembers } from '@/services/members/hooks/useAllMembers';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
-type Form = {
+export type CreatePostForm = {
   user: Record<string, string> | null;
   topic: Record<string, string>;
   title: string;
   content: string;
 };
 
-export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: boolean; initialData?: Form; pid?: number; userInfo?: IUserInfo }) => {
+export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: boolean; initialData?: CreatePostForm; pid?: number; userInfo?: IUserInfo }) => {
+  const analytics = useForumAnalytics();
   const router = useRouter();
   const params = useParams();
   useMobileNavVisibility(true);
@@ -55,7 +57,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
     );
   }, [topics]);
 
-  const methods = useForm<Form>({
+  const methods = useForm<CreatePostForm>({
     // @ts-ignore
     defaultValues: initialData
       ? {
@@ -100,12 +102,14 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
           }, 500);
         }
       } else {
-        const res = await createPost({
+        const payload = {
           uid: isAdmin ? data.user?.value : null,
           cid: data.topic.value,
           title: data.title?.trim(),
           content,
-        });
+        };
+        analytics.onCreatePostSubmit(payload);
+        const res = await createPost(payload);
 
         if (res.status.code === 'ok') {
           toast.success('Post created successfully');
@@ -135,6 +139,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
                   type="button"
                   className={s.cancelBtn}
                   onClick={() => {
+                    analytics.onCreatePostCancel();
                     router.push('/forum?cid=1');
                   }}
                 >
@@ -150,6 +155,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
                 type="button"
                 className={s.cancelBtn}
                 onClick={() => {
+                  analytics.onCreatePostCancel();
                   router.push('/forum?cid=1');
                 }}
               >

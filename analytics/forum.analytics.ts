@@ -2,6 +2,7 @@ import { FORUM_ANALYTICS_EVENTS } from '@/utils/constants';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
 import { CreatePostMutationParams } from '@/services/forum/hooks/useCreatePost';
+import { PostCommentMutationParams } from '@/services/forum/hooks/usePostComment';
 
 export const useForumAnalytics = () => {
   const postHogProps = usePostHog();
@@ -53,6 +54,18 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_INPUT_CLICKED, params);
   }
 
+  function onPostCommentSubmit(params: PostCommentMutationParams) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.CREATE_POST_SUBMIT, params);
+  }
+
+  function onPostCommentCancel() {
+    captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_CANCEL, {});
+  }
+
+  function onPostCommentNotificationSettingsClicked(params: { tid?: string | number; toPid?: string | number; value: boolean }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_NOTIFICATION_SETTINGS_CLICKED, params);
+  }
+
   return {
     onForumTopicClicked,
     onForumSortSelected,
@@ -62,5 +75,8 @@ export const useForumAnalytics = () => {
     onPostClicked,
     onLikePostClicked,
     onCommentInputClicked,
+    onPostCommentSubmit,
+    onPostCommentCancel,
+    onPostCommentNotificationSettingsClicked,
   };
 };

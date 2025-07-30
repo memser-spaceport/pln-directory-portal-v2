@@ -96,11 +96,13 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
           onCancel?.();
         }
       } else {
-        const res = await mutateAsync({
+        const payload = {
           tid,
           toPid,
           content,
-        });
+        };
+        analytics.onPostCommentSubmit(payload);
+        const res = await mutateAsync(payload);
 
         if (res?.status?.code === 'ok') {
           reset();
@@ -148,7 +150,14 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
             <FormEditor autoFocus name="comment" placeholder="Comment" label={replyToName ? `Replying to ${replyToName}` : ''} />
             <label className={s.Label}>
               <div className={s.primary}>Email me when someone comments on this post.</div>
-              <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
+              <Checkbox.Root
+                className={s.Checkbox}
+                checked={emailMe}
+                onCheckedChange={(v: boolean) => {
+                  analytics.onPostCommentNotificationSettingsClicked({ tid, toPid, value: v });
+                  setValue('emailMe', v, { shouldValidate: true, shouldDirty: true });
+                }}
+              >
                 <Checkbox.Indicator className={s.Indicator}>
                   <CheckIcon className={s.Icon} />
                 </Checkbox.Indicator>
@@ -160,6 +169,7 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
                 type="button"
                 className={s.secondaryBtn}
                 onClick={() => {
+                  analytics.onPostCommentCancel();
                   onCancel?.();
                   reset();
                   setFocused(false);

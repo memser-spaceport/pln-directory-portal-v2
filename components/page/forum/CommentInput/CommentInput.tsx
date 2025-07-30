@@ -95,11 +95,13 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
           setFocused(false);
         }
       } else {
-        const res = await mutateAsync({
+        const payload = {
           tid,
           toPid,
           content,
-        });
+        };
+        analytics.onPostCommentSubmit(payload);
+        const res = await mutateAsync(payload);
 
         if (res?.status?.code === 'ok') {
           reset();
@@ -170,7 +172,14 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
           <div className={s.content}>
             <label className={s.Label}>
               <div className={s.primary}>Email me when someone comments on this post.</div>
-              <Checkbox.Root className={s.Checkbox} checked={emailMe} onCheckedChange={(v: boolean) => setValue('emailMe', v, { shouldValidate: true, shouldDirty: true })}>
+              <Checkbox.Root
+                className={s.Checkbox}
+                checked={emailMe}
+                onCheckedChange={(v: boolean) => {
+                  analytics.onPostCommentNotificationSettingsClicked({ tid, toPid, value: v });
+                  setValue('emailMe', v, { shouldValidate: true, shouldDirty: true });
+                }}
+              >
                 <Checkbox.Indicator className={s.Indicator}>
                   <CheckIcon className={s.Icon} />
                 </Checkbox.Indicator>

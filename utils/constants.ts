@@ -444,6 +444,9 @@ export const FORUM_ANALYTICS_EVENTS = {
   POST_CLICKED: 'forum-post-clicked',
   POST_LIKED: 'forum-post-like-clicked',
   COMMENT_INPUT_CLICKED: 'forum-comment-input-clicked',
+  POST_COMMENT_SUBMIT: 'forum-post-comment-submit',
+  POST_COMMENT_CANCEL: 'forum-post-comment-cancel',
+  POST_COMMENT_NOTIFICATION_SETTINGS_CLICKED: 'forum-post-comment-notification-settings-clicked',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};

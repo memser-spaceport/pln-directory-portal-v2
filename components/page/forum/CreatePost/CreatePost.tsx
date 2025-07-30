@@ -74,7 +74,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
   const {
     handleSubmit,
     reset,
-    formState: { isSubmitting, isDirty, errors },
+    formState: { isSubmitting, isDirty, isValid },
   } = methods;
 
   const { mutateAsync: createPost } = useCreatePost();
@@ -140,7 +140,9 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
                 >
                   Cancel
                 </button>
-                <button className={s.submitBtn}>{isSubmitting ? 'Processing...' : isEdit ? 'Save' : 'Post'}</button>
+                <button className={s.submitBtn} disabled={isSubmitting || !isValid || !isDirty}>
+                  {isSubmitting ? 'Processing...' : isEdit ? 'Save' : 'Post'}
+                </button>
               </div>
             </div>
             <div className={s.header}>
@@ -153,7 +155,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
               >
                 Cancel
               </button>
-              <button className={s.submitBtn} disabled={isSubmitting}>
+              <button className={s.submitBtn} disabled={isSubmitting || !isValid || !isDirty}>
                 {isSubmitting ? 'Processing...' : isEdit ? 'Save' : 'Post'}
               </button>
             </div>

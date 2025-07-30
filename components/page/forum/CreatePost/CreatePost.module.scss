@@ -133,6 +133,12 @@
   border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
   background: var(--action-background-brand-normal, #1B4DFF);
   box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+
+  &:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
+  }
 }
 
 .content {

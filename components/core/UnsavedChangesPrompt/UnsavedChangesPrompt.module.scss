@@ -1,13 +1,25 @@
 @use 'styles/media';
+@use 'styles/mixins';
 
 .overlay {
+  @include mixins.hide-scrollbar;
   position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.3);
+  top: var(--app-header-height);
+  right: 0;
+  left: 0;
+  bottom: 0;
+  max-height: 100dvh;
+  z-index: 10;
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 9999;
+  align-items: center;
+  overflow: auto;
+  background: var(--transparent-dark-56, rgba(14, 15, 17, 0.56));
+  backdrop-filter: blur(15px);
+
+  @include media.tablet-landscape {
+    padding: 32px;
+  }
 }
 
 .modal {
@@ -60,7 +72,7 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  flex-direction: column;
+  flex-direction: column-reverse;
 
   @include media.tablet-landscape {
     flex-direction: row;

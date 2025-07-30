@@ -13,9 +13,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(14, 15, 17, 0.06);
   overflow: auto;
-  backdrop-filter: blur(8px);
+  background: var(--transparent-dark-56, rgba(14, 15, 17, 0.56));
+  backdrop-filter: blur(15px);
 
   @include media.tablet-landscape {
     padding: 32px;

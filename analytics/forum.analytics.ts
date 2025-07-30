@@ -49,6 +49,10 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.POST_LIKED, params);
   }
 
+  function onCommentInputClicked(params: { tid?: string | number }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_INPUT_CLICKED, params);
+  }
+
   return {
     onForumTopicClicked,
     onForumSortSelected,
@@ -57,5 +61,6 @@ export const useForumAnalytics = () => {
     onCreatePostCancel,
     onPostClicked,
     onLikePostClicked,
+    onCommentInputClicked,
   };
 };

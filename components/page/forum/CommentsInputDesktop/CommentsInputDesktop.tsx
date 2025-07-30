@@ -16,6 +16,7 @@ import { useClickAway } from 'react-use';
 import { FormField } from '@/components/form/FormField';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
 import { clsx } from 'clsx';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 interface Props {
   tid: number;
@@ -34,6 +35,7 @@ const schema = yup.object().shape({
 });
 
 export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent }: Props) => {
+  const analytics = useForumAnalytics();
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
@@ -172,8 +174,25 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
           </>
         ) : (
           <div className={s.inline}>
-            <FormField name="dummy" placeholder="Comment" onClick={() => setFocused(true)} />
-            <button type="submit" className={s.primaryBtn} disabled={isSubmitting}>
+            <FormField
+              name="dummy"
+              placeholder="Comment"
+              onClick={() => {
+                analytics.onCommentInputClicked({ tid });
+                setFocused(true);
+              }}
+            />
+            <button
+              className={s.primaryBtn}
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => {
+                if (!focused) {
+                  analytics.onCommentInputClicked({ tid });
+                  setFocused(true);
+                }
+              }}
+            >
               {getSubmitLabel()}
             </button>
           </div>

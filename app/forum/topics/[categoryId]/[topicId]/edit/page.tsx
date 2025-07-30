@@ -3,7 +3,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 
 import { CreatePost } from '@/components/page/forum/CreatePost';
-import { fetcher as getPost } from '@/services/forum/hooks/useForumPost';
+import { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import { redirect } from 'next/navigation';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { BackButton } from '@/components/page/forum/BackButton';
@@ -18,7 +18,7 @@ interface PageProps {
 }
 
 const EditPostPage = async ({ params }: PageProps) => {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
 
   if (!isLoggedIn) {
@@ -37,7 +37,20 @@ const EditPostPage = async ({ params }: PageProps) => {
     );
   }
 
-  const data = await getPost(params.topicId);
+  // const data = await getPost(params.topicId);
+  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN ?? authToken;
+  const response = await fetch(`${process.env.FORUM_API_URL}/api/topic/${params.topicId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response?.ok) {
+    redirect(`/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found`);
+  }
+
+  const data = (await response.json()) as TopicResponse;
 
   if (!data) {
     redirect(`/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found`);

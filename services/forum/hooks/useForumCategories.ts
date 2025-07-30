@@ -198,7 +198,17 @@ type CategoriesResponse = {
 };
 
 async function fetcher() {
-  const response = await customFetch(`${process.env.FORUM_API_URL}/api/categories`, {}, false);
+  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
+  const response = await customFetch(
+    `${process.env.FORUM_API_URL}/api/categories`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    },
+    !token,
+  );
 
   if (!response?.ok) {
     return [];

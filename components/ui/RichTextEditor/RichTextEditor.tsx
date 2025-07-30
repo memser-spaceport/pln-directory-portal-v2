@@ -35,7 +35,7 @@ Quill.import('ui/icons')['officeHours'] = officeHours;
 const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled, autoFocus }: Props) => {
   const quillRef = useRef<any>(null);
   const { userInfo } = getCookiesFromClient();
-  const { data: member } = useMember(userInfo?.uid);
+  // const { data: member } = useMember(userInfo?.uid);
 
   // 3. Define toolbar modules (with proper nesting)
   const modules = useMemo(() => {
@@ -44,17 +44,18 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
         container: [
           ['bold', 'italic', 'strike'],
           [{ list: 'ordered' }, { list: 'bullet' }],
-          ['code-block', 'image', 'officeHours'], // add your custom button here
+          ['code-block', 'image'],
+          // ['code-block', 'image', 'officeHours'],
         ],
-        handlers: {
-          officeHours: function () {
-            const editor = quillRef.current?.getEditor();
-            if (editor && member?.memberInfo?.officeHours) {
-              const index = editor.getLength();
-              editor.insertText(index, 'Book a time with me', 'link', member.memberInfo.officeHours);
-            }
-          },
-        },
+        // handlers: {
+        //   officeHours: function () {
+        //     const editor = quillRef.current?.getEditor();
+        //     if (editor && member?.memberInfo?.officeHours) {
+        //       const index = editor.getLength();
+        //       editor.insertText(index, 'Book a time with me', 'link', member.memberInfo.officeHours);
+        //     }
+        //   },
+        // },
       },
       imageUploader: {
         upload: (file: File) => {
@@ -66,7 +67,7 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
         },
       },
     };
-  }, [member?.memberInfo.officeHours]);
+  }, []);
 
   useEffect(() => {
     if (quillRef.current && autoFocus) {
@@ -74,7 +75,7 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
     }
   }, [autoFocus]);
 
-  if (!member) return null;
+  // if (!member) return null;
 
   return (
     <div

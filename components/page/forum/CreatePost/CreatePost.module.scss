@@ -109,11 +109,11 @@
 
 .cancelBtn {
   color: var(--foreground-neutral-secondary, #455468);
-  font-size: 16px;
+  font-size: 14px;
   font-style: normal;
   font-weight: 500;
-  line-height: 24px; /* 150% */
-  letter-spacing: -0.3px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
 }
 
 .submitBtn {
@@ -121,7 +121,7 @@
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
-  line-height: 20px; /* 142.857% */
+  line-height: 20px;
   letter-spacing: -0.2px;
 
   display: flex;

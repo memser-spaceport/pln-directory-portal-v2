@@ -9,9 +9,10 @@ import Cookies from 'js-cookie';
 import CurrentEventCard from "./current-events-card"
 import { getAggregatedEventsData } from "@/services/events.service"
 import { useEventsAnalytics } from "@/analytics/events.analytics";
-import { PAGE_ROUTES } from "@/utils/constants";
+import { EVENTS, PAGE_ROUTES } from "@/utils/constants";
 import { isPastDate } from "@/utils/irl.utils"
 import { formatFeaturedData } from "@/utils/home.utils"
+import ShadowButton from "@/components/ui/ShadowButton"
 
 interface EventsSectionProps {
   eventLocations: any;
@@ -143,6 +144,18 @@ export default function EventsSection({
           >
             <img src="/icons/arrow-right-blue.svg" alt="Next" width={20} height={20} />
           </button>
+         <ShadowButton
+          buttonColor="#156FF7"
+          shadowColor="#3DFEB1"
+          buttonHeight="48px"
+          buttonWidth="258px"
+          onClick={() => {
+            document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REARRANGE_ORDER_POPUP, { detail: true }));
+          }}  
+         >
+          Rearrange order / Add New
+          <img src="/icons/swap-icon.svg" alt="Next" className="navigation-buttons-rearrange-icon" />
+         </ShadowButton>
         </div>
       </div>
 
@@ -305,7 +318,12 @@ export default function EventsSection({
           
           .navigation-buttons {
             display: flex;
+            align-items: center;
             gap: 0.5rem;
+          }
+
+          .navigation-buttons-rearrange-icon {
+            margin-left: 10px;
           }
           
           .mobile-container {

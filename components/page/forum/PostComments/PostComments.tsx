@@ -13,6 +13,7 @@ import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { useMedia } from 'react-use';
 import { IUserInfo } from '@/types/shared.types';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 interface Props {
@@ -24,20 +25,18 @@ interface Props {
 }
 
 export const PostComments = ({ comments, tid, mainPid, onReply, userInfo }: Props) => {
-  const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const isMobile = useMedia('(max-width: 960px)', false);
 
   if (!comments) return null;
 
   const nested = nestComments(comments);
-  const replyToItem = comments.find((item) => item.pid === replyToPid);
 
   return (
     <div className={s.root}>
       <div className={s.title}>Comments ({comments.length})</div>
 
       <div className={s.input}>
-        <CommentsInputDesktop tid={tid} toPid={mainPid} onCancel={() => setReplyToPid(null)} />
+        <CommentsInputDesktop tid={tid} toPid={mainPid} />
       </div>
 
       <div className={s.list}>
@@ -71,16 +70,33 @@ export const PostComments = ({ comments, tid, mainPid, onReply, userInfo }: Prop
 };
 
 const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment; isReply?: boolean; onReply?: (pid: number) => void; userInfo: IUserInfo }) => {
+  const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const [editPid, setEditPid] = React.useState<number | null>(null);
+  const searchParams = useSearchParams();
+  const isMobile = useMedia('(max-width: 960px)', false);
   const analytics = useForumAnalytics();
 
   const scrollIntoView = useCallback(() => {
     if (ref.current) {
-      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, []);
+
+  useEffect(() => {
+    const replyTo = searchParams.get('replyTo');
+
+    if (replyTo && Number(replyTo) === item.pid) {
+      scrollIntoView();
+
+      if (!isMobile) {
+        setReplyToPid(item.pid);
+      } else {
+        setReplyToPid(null);
+      }
+    }
+  }, [isMobile, item.pid, onReply, scrollIntoView, searchParams]);
 
   return (
     <>
@@ -147,7 +163,20 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
         </div>
       </div>
 
-      {replyToPid && <CommentsInputDesktop isReply initialFocused tid={item.tid} toPid={replyToPid} onCancel={() => setReplyToPid(null)} />}
+      {replyToPid && (
+        <CommentsInputDesktop
+          isReply
+          initialFocused
+          tid={item.tid}
+          toPid={replyToPid}
+          onCancel={() => {
+            setReplyToPid(null);
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('replyTo');
+            router.replace(`?${params.toString()}`, { scroll: false });
+          }}
+        />
+      )}
     </>
   );
 };

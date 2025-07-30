@@ -451,6 +451,9 @@ export const FORUM_ANALYTICS_EVENTS = {
   POST_EDIT_CLICKED: 'forum-post-edit-clicked',
   EDIT_POST_SUBMIT: 'forum-edit-post-submit',
   EDIT_POST_CANCEL: 'forum-edit-post-cancel',
+  DIGEST_EMAIL_POST_CLICKED: 'forum-digest-email-post-clicked',
+  COMMENT_NOTIFICATION_EMAIL_LINK_CLICKED: 'forum-comment-notification-email-link-clicked',
+  COMMENT_NOTIFICATION_EMAIL_REPLY_CLICKED: 'forum-comment-notification-email-reply-clicked',
 };
 
 export const IRL_ANALYTICS_EVENTS = {};

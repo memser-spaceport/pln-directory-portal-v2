@@ -83,6 +83,18 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.EDIT_POST_CANCEL, {});
   }
 
+  function onDigestEmailPostLinkClicked(params: Record<string, string | null>) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.DIGEST_EMAIL_POST_CLICKED, params);
+  }
+
+  function onCommentNotificationEmailLinkClicked(params: Record<string, string | null>) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_NOTIFICATION_EMAIL_LINK_CLICKED, params);
+  }
+
+  function onCommentNotificationEmailReplyClicked(params: Record<string, string | null>) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_NOTIFICATION_EMAIL_REPLY_CLICKED, params);
+  }
+
   return {
     onForumTopicClicked,
     onForumSortSelected,
@@ -99,5 +111,8 @@ export const useForumAnalytics = () => {
     onPostEditClicked,
     onEditPostSubmit,
     onEditPostCancel,
+    onDigestEmailPostLinkClicked,
+    onCommentNotificationEmailLinkClicked,
+    onCommentNotificationEmailReplyClicked,
   };
 };

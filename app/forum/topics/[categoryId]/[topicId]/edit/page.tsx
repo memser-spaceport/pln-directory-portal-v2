@@ -3,8 +3,8 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 
 import { CreatePost } from '@/components/page/forum/CreatePost';
-import { fetcher as getPost } from '@/services/forum/hooks/useForumPost';
-import { redirect } from 'next/navigation';
+// import { fetcher as getPost } from '@/services/forum/hooks/useForumPost';
+// import { redirect } from 'next/navigation';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { BackButton } from '@/components/page/forum/BackButton';
 
@@ -19,7 +19,7 @@ interface PageProps {
 
 const EditPostPage = async ({ params }: PageProps) => {
   const { isLoggedIn, userInfo } = getCookiesFromHeaders();
-  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
+  // const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
 
   if (!isLoggedIn) {
     return (
@@ -37,24 +37,25 @@ const EditPostPage = async ({ params }: PageProps) => {
     );
   }
 
-  const data = await getPost(params.topicId);
+  // const data = await getPost(params.topicId);
 
-  if (!data) {
-    redirect(`/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found`);
-  }
+  // if (!data) {
+  //   redirect(`/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found`);
+  // }
 
   return (
     <div className={s.root}>
       <BackButton to={`/forum/topics/${params.categoryId}/${params.topicId}`} />
       <CreatePost
-        pid={data.mainPid}
-        isEdit
-        initialData={{
-          user: isAdmin && data.posts?.[0]?.user ? { label: data.posts[0].user.displayname, value: data.posts[0].user.memberUid } : null,
-          topic: { label: data.category.name, value: data.category.cid.toString() },
-          title: data.title,
-          content: data.posts?.[0]?.content,
-        }}
+        userInfo={userInfo}
+        // pid={data.mainPid}
+        // isEdit
+        // initialData={{
+        //   user: isAdmin && data.posts?.[0]?.user ? { label: data.posts[0].user.displayname, value: data.posts[0].user.memberUid } : null,
+        //   topic: { label: data.category.name, value: data.category.cid.toString() },
+        //   title: data.title,
+        //   content: data.posts?.[0]?.content,
+        // }}
       />
     </div>
   );

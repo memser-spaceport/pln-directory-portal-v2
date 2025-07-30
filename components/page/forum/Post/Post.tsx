@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import s from './Post.module.scss';
 import Link from 'next/link';
@@ -8,11 +8,10 @@ import { Avatar } from '@base-ui-components/react/avatar';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { CommentInput } from '@/components/page/forum/CommentInput';
 import { useForumPost } from '@/services/forum/hooks/useForumPost';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from '@/components/page/forum/PostComments';
 import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
-import { BreadCrumb } from '@/components/core/bread-crumb';
 import { LikesButton } from '@/components/page/forum/LikesButton';
 import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
@@ -21,7 +20,9 @@ import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { BackButton } from '@/components/page/forum/BackButton';
 
 export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
+  const router = useRouter();
   const { categoryId, topicId } = useParams();
+  const searchParams = useSearchParams();
   const { data } = useForumPost(topicId as string);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const replyToItem = data?.posts?.slice(1).find((item) => item.pid === replyToPid);
@@ -51,12 +52,21 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
     };
   }, [data, userInfo.uid]);
 
+  useEffect(() => {
+    if (!post) {
+      return;
+    }
+
+    const replyTo = searchParams.get('replyTo');
+
+    if (replyTo) {
+      setReplyToPid(Number(replyTo));
+    }
+  }, [post, searchParams]);
+
   if (!post) {
     return (
       <div className={s.container}>
-        <div className={s.breadcrumbs}>
-          <BreadCrumb backLink={`/forum?cid=${categoryId}`} directoryName="Forum" pageName="Post" />
-        </div>
         <PostPageLoader />
       </div>
     );
@@ -109,7 +119,17 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
         />
 
         <div className={s.divider} />
-        <CommentInput tid={post.tid} toPid={replyToPid ?? post.pid} replyToName={replyToItem?.user.displayname} onReset={() => setReplyToPid(null)} />
+        <CommentInput
+          tid={post.tid}
+          toPid={replyToPid ?? post.pid}
+          replyToName={replyToItem?.user.displayname}
+          onReset={() => {
+            setReplyToPid(null);
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('replyTo');
+            router.replace(`?${params.toString()}`, { scroll: false });
+          }}
+        />
       </div>
 
       <div className={s.root}>

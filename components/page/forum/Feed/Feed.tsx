@@ -11,15 +11,18 @@ import s from './Feed.module.scss';
 import { useScrollDirection } from '@/components/core/MobileBottomNav/MobileBottomNav';
 import { clsx } from 'clsx';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 export const Feed = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cid = searchParams.get('cid') as string;
   const scrollDirection = useScrollDirection();
+  const analytics = useForumAnalytics();
 
   const onValueChange = useCallback(
     (value: string) => {
+      analytics.onForumTopicClicked({ topicId: value });
       const params = new URLSearchParams(searchParams.toString());
       params.set('cid', value); // or use `params.delete(key)` to remove
 
@@ -29,7 +32,7 @@ export const Feed = () => {
 
       router.push(`?${params.toString()}`, { scroll: false });
     },
-    [router, searchParams],
+    [analytics, router, searchParams],
   );
 
   return (
@@ -41,7 +44,10 @@ export const Feed = () => {
         className={clsx(s.triggerButton, {
           [s.hidden]: scrollDirection === 'down',
         })}
-        onClick={() => router.push('/forum/posts/new')}
+        onClick={() => {
+          analytics.onCreatePostClicked();
+          router.push('/forum/posts/new');
+        }}
       >
         Create post <PlusIcon />
       </button>

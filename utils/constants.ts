@@ -435,6 +435,12 @@ export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
   AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
 };
 
+export const FORUM_ANALYTICS_EVENTS = {
+  TOPIC_CLICKED: 'forum-topic-clicked',
+  SORT_SELECTED: 'forum-sort-selected',
+  CREATE_POST_CLICKED: 'forum-create-post-clicked',
+};
+
 export const IRL_ANALYTICS_EVENTS = {};
 
 export const HOME_ANALYTICS_EVENTS = {

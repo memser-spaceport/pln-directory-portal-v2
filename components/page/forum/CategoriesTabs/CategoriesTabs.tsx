@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useCheckGroupAccess } from '@/services/forum/hooks/useCheckGroupAccess';
 import Link from 'next/link';
 import { GROUPS_URL } from '@/utils/constants';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 interface Props {
   value: string | undefined;
@@ -20,6 +21,7 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
   const isMobile = useMedia('(max-width: 960px)', false);
   const { data } = useForumCategories();
   const { data: groupAccess } = useCheckGroupAccess();
+  const analytics = useForumAnalytics();
 
   const tabs = useMemo(() => {
     return (
@@ -77,7 +79,13 @@ export const CategoriesTabs = ({ value, onValueChange }: Props) => {
               Go to Groups <LinkIcon />
             </Link>
           )}
-          <button className={s.triggerButton} onClick={() => router.push('/forum/posts/new')}>
+          <button
+            className={s.triggerButton}
+            onClick={() => {
+              analytics.onCreatePostClicked();
+              router.push('/forum/posts/new');
+            }}
+          >
             Create post <PlusIcon />
           </button>
         </div>

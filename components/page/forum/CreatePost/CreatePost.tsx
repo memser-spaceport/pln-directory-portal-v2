@@ -46,6 +46,9 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
     );
   }, [allMembers]);
 
+  console.log('Is edit', isEdit);
+  console.log('initial data', initialData);
+
   const { data: topics } = useForumCategories();
   const topicsOptions = useMemo(() => {
     return (

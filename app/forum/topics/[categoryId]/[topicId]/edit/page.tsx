@@ -2,12 +2,13 @@ import React from 'react';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 
-import s from './page.module.scss';
 import { CreatePost } from '@/components/page/forum/CreatePost';
 import { fetcher as getPost } from '@/services/forum/hooks/useForumPost';
 import { redirect } from 'next/navigation';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { BackButton } from '@/components/page/forum/BackButton';
+
+import s from './page.module.scss';
 
 interface PageProps {
   params: {
@@ -49,10 +50,10 @@ const EditPostPage = async ({ params }: PageProps) => {
         pid={data.mainPid}
         isEdit
         initialData={{
-          user: isAdmin ? { label: data.posts[0].user.displayname, value: data.posts[0].user.memberUid } : null,
+          user: isAdmin && data.posts?.[0]?.user ? { label: data.posts[0].user.displayname, value: data.posts[0].user.memberUid } : null,
           topic: { label: data.category.name, value: data.category.cid.toString() },
           title: data.title,
-          content: data.posts[0]?.content,
+          content: data.posts?.[0]?.content,
         }}
       />
     </div>

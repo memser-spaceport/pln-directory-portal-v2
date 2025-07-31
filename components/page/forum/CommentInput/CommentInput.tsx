@@ -121,8 +121,6 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
     }
   }, [notificationSettings, setValue]);
 
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
@@ -131,9 +129,8 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
 
   useEffect(() => {
     // Scroll on initial load
-    scrollToBottom();
+    // scrollToBottom();
 
-    // Optional: scroll when keyboard opens
     const resizeListener = () => {
       scrollToBottom();
     };
@@ -161,7 +158,6 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
         className={clsx('input-form', s.root, {
           [s.hidden]: scrollDirection === 'down' && !replyToName && !focused,
         })}
-        style={{ paddingBottom: keyboardHeight + 20 }} // add space for keyboard
         noValidate
         onSubmit={handleSubmit(onSubmit)}
         ref={formRef}

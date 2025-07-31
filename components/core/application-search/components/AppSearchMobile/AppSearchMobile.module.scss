@@ -16,7 +16,11 @@ $padding-inline: 16px;
 
 .toggleButton {
   @include mixins.centralize;
-  padding-inline: 8px;
+  display: flex;
+  padding: var(--spacing-3xs, 6px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0);
 }
 
 .wrapper {

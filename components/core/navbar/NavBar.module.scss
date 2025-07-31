@@ -337,3 +337,21 @@ $text-color: #475569;
     fill: var(--color-gray-300);
   }
 }
+
+.IconTrigger {
+  display: flex;
+  padding: var(--spacing-3xs, 6px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0);
+}
+
+.signInWrapper {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  height: 40px;
+  justify-content: center;
+  border-radius: 100px;
+  background: var(--background-neutral-subtle, #F0F3F9);
+}

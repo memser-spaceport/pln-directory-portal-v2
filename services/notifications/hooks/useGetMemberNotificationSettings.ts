@@ -13,7 +13,16 @@ type MemberNotificationSettings = {
 };
 
 async function fetcher(uid: string, itemType: string = 'POST_COMMENT', contextId: number = 0) {
-  const response = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${uid}/item/${itemType}?contextId=${contextId}`, {}, true);
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/notification/settings/${uid}/item/${itemType}?contextId=${contextId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+    true,
+  );
 
   if (!response?.ok) {
     throw new Error('Failed to fetch member notification settings');
@@ -27,5 +36,6 @@ export function useGetMemberNotificationSettings(uid: string, itemType: string =
     queryKey: [NotificationsQueryKeys.GET_MEMBER_NOTIFICATIONS_SETTINGS, uid, itemType, contextId],
     queryFn: () => fetcher(uid, itemType, contextId),
     enabled: Boolean(uid && itemType && contextId),
+    staleTime: 15000,
   });
 }

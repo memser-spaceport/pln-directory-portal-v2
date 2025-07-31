@@ -103,7 +103,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
       <div className={s.itemRoot} key={item.pid} ref={ref}>
         <div className={s.footer}>
           <Avatar.Root className={s.Avatar}>
-            <Avatar.Image src={getDefaultAvatar(item.user.username)} width="32" height="32" className={s.Image} />
+            <Avatar.Image src={item.user?.picture || getDefaultAvatar(item.user?.username)} width="32" height="32" className={s.Image} />
             <Avatar.Fallback className={s.Fallback}>A</Avatar.Fallback>
           </Avatar.Root>
           <div className={s.col}>

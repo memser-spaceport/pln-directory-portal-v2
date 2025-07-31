@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import s from './CreatePost.module.scss';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -22,6 +22,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { useAllMembers } from '@/services/members/hooks/useAllMembers';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
+import { clsx } from 'clsx';
 
 export type CreatePostForm = {
   user: Record<string, string> | null;
@@ -129,6 +130,25 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
 
   const { isAttemptingNavigation, proceedNavigation, cancelNavigation } = useBlockNavigation(isDirty);
 
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const viewport = window.visualViewport;
+      if (!viewport) return;
+
+      const bottomInset = window.innerHeight - viewport.height - viewport.offsetTop;
+      setKeyboardHeight(bottomInset > 0 ? bottomInset : 0);
+    };
+
+    window.visualViewport?.addEventListener('resize', handleResize);
+    handleResize(); // initial check
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   return (
     <>
       <div className={s.root}>
@@ -176,7 +196,12 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
               </button>
             </div>
 
-            <div className={s.content}>
+            <div
+              className={clsx(s.content)}
+              style={{
+                paddingBottom: keyboardHeight + 20,
+              }}
+            >
               {isAdmin && <FormSelect name="user" placeholder="Select user" label="Select post author" options={membersOptions} disabled={isEdit} />}
               <FormSelect name="topic" placeholder="Select topic" label="Select topic" options={topicsOptions} disabled={isEdit} />
               <FormField name="title" placeholder="Enter the title" label="Title" max={255} />

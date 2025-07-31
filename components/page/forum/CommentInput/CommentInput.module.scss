@@ -2,10 +2,12 @@
 @use 'styles/mixins';
 
 .root {
-  position: fixed;
+  position: sticky;
   bottom: 0;
   left: 0;
   right: 0;
+  width: calc(100% + 48px);
+  margin-inline: -24px;
   display: flex;
   flex-direction: column;
   padding: var(--spacing-sm, 12px) var(--spacing-lg, 20px) var(--spacing-lg, 20px) var(--spacing-lg, 20px);

@@ -252,22 +252,22 @@ const Filter = (props: ITeamFilterWeb) => {
           />
 
           {/* Border line */}
-          <div className="team-filter__bl"></div>
-          {filterValues?.asks && filterValues.asks.length > 0 && (
-            <TagContainer
-              page={PAGE_ROUTES.TEAMS}
-              label="Asks"
-              name="asks"
-              items={filterValues?.asks ?? []}
-              onTagClickHandler={onTagClickHandler}
-              initialCount={18}
-              userInfo={userInfo}
-              info="Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project."
-              toggleTitle="Show all asks"
-              IsToggleActive={query.asks === 'all'}
-              onIsActiveToggle={onIsActiveToggle}
-            />
-          )}
+          {/*<div className="team-filter__bl"></div>*/}
+          {/*{filterValues?.asks && filterValues.asks.length > 0 && (*/}
+          {/*  <TagContainer*/}
+          {/*    page={PAGE_ROUTES.TEAMS}*/}
+          {/*    label="Asks"*/}
+          {/*    name="asks"*/}
+          {/*    items={filterValues?.asks ?? []}*/}
+          {/*    onTagClickHandler={onTagClickHandler}*/}
+          {/*    initialCount={18}*/}
+          {/*    userInfo={userInfo}*/}
+          {/*    info="Asks are specific requests for help or resources that your team needs to achieve your next milestones. Use this space to connect with others who can contribute their expertise, networks, or resources to support your project."*/}
+          {/*    toggleTitle="Show all asks"*/}
+          {/*    IsToggleActive={query.asks === 'all'}*/}
+          {/*    onIsActiveToggle={onIsActiveToggle}*/}
+          {/*  />*/}
+          {/*)}*/}
 
           {filterValues?.asks && (filterValues?.asks?.length ?? 0) < 1 && (
             <>

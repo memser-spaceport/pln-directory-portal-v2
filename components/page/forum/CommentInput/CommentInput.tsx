@@ -121,12 +121,47 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
     }
   }, [notificationSettings, setValue]);
 
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    // Scroll on initial load
+    scrollToBottom();
+
+    // Optional: scroll when keyboard opens
+    const resizeListener = () => {
+      scrollToBottom();
+    };
+
+    window.visualViewport?.addEventListener('resize', resizeListener);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', resizeListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+
+    if (focused) {
+      setTimeout(() => {
+        form.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 250);
+    }
+  }, [focused]);
+
   return (
     <FormProvider {...methods}>
       <form
         className={clsx('input-form', s.root, {
           [s.hidden]: scrollDirection === 'down' && !replyToName && !focused,
         })}
+        style={{ paddingBottom: keyboardHeight + 20 }} // add space for keyboard
         noValidate
         onSubmit={handleSubmit(onSubmit)}
         ref={formRef}
@@ -190,6 +225,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
             </div>
           </div>
         )}
+        <div ref={bottomRef} />
       </form>
     </FormProvider>
   );

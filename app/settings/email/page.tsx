@@ -1,51 +1,16 @@
 import SettingsMenu from '@/components/page/settings/menu';
 import Breadcrumbs from '@/components/ui/breadcrumbs';
-import { getMemberNotificationSettings, getMemberPreferences } from '@/services/preferences.service';
 import styles from './page.module.css';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
-import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
-import { getMember } from '@/services/members.service';
-import { getSelectedFrequency } from '@/components/page/recommendations/components/RecommendationsSettingsForm/helpers';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { EmailPreferencesForm } from '@/components/page/email-preferences/components/EmailPreferencesForm';
 
-const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean) => {
-  const [memberResponse, preferences, notificationSettings] = await Promise.all([
-    getMember(userInfo?.uid, {}, isLoggedIn, userInfo),
-    getMemberPreferences(userInfo.uid, authToken),
-    getMemberNotificationSettings(userInfo?.uid, authToken),
-  ]);
-
-  let _notificationSettings;
-  let recommendationsEnabled;
-
-  if (notificationSettings && 'isError' in notificationSettings) {
-    _notificationSettings = null;
-    recommendationsEnabled = false;
-  } else {
-    _notificationSettings = {
-      enabled: notificationSettings.subscribed,
-      frequency: getSelectedFrequency(notificationSettings.emailFrequency),
-      roles: notificationSettings.roleList,
-      fundingStage: notificationSettings.fundingStageList.map((stage) => {
-        return { value: stage, label: stage };
-      }),
-      teamTechnology: notificationSettings.technologyList.map((item) => {
-        return { value: item, label: item };
-      }),
-      keywords: notificationSettings.keywordList,
-    };
-    recommendationsEnabled = notificationSettings.recommendationsEnabled;
-  }
-
-  return { memberDetails: memberResponse, preferences, notificationSettings: _notificationSettings, recommendationsEnabled };
-};
-
 async function RecommendationsPage({ searchParams }: { searchParams: any }) {
-  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
   const params = new URLSearchParams(searchParams as Record<string, string>).toString();
 
   if (!isLoggedIn) {
@@ -56,15 +21,6 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
-  const { memberDetails, preferences, notificationSettings, recommendationsEnabled } = await getPageData(userInfo, authToken, isLoggedIn);
-
-  if (!recommendationsEnabled) {
-    redirect(PAGE_ROUTES.HOME);
-  }
-
-  if (preferences.memberPreferences) {
-    preferences.memberPreferences.newsLetter = memberDetails?.data?.formattedData?.isSubscribedToNewsletter;
-  }
 
   const breadcrumbItems = [
     { url: '/', icon: '/icons/home.svg' },

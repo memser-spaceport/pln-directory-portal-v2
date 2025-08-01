@@ -1,54 +1,86 @@
-.home {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.privacy {
+  position: relative;
+  background: white;
 }
 
-.home__cn {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 14px;
-  gap: 20px;
-}
-
-.home__husky {
-  width: 100%;
+.privacy__backbtn {
   position: sticky;
-  top: 8px;
-  z-index: 4;
-  background: linear-gradient(71.47deg, #E0EAF9 8.43%,  #E0F2F3 87.45%);
+  top: var(--app-header-height);
+  width: 100%;
+  height:48px;
+  z-index: 3;
+}
+.privacy__breadcrumbs {
+  display: flex;
+  position: sticky;
+  top: var(--app-header-height);
+  padding: 0 16px;
+  width: 100%;
+  background: white;
+  z-index: 3;
+  border: none;
+}
+
+.privacy__breadcrumbs__desktop {
+  display: none;
+}
+
+.privacy__breadcrumbs__mobile {
+  display: flex;
+  padding: 0 16px;
+  padding-top: 16px;
+  gap: 6px;
+  color: #156FF7;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding-bottom: 8px;
+}
+.privacy__main {
+  display: flex;
+  height: auto;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+}
+
+.privacy__main__aside {
+  width: 300px;
+  height: 100%;
+  display: none;
+  position: sticky;
+  top: 128px;
+}
+
+.privacy__main__aside__menu {
+}
+
+.privacy__main__content {
+  width: 100%;
 }
 
 @media (min-width: 1024px) {
-  .home__cn {
-    width: 940px;
-    padding: 50px 0px;
+  .privacy {
+    padding-top: 0px;
   }
-
-  .home__cn {
-    gap: 40px;
+  .privacy__backbtn {
+    display: none;
   }
-
-  .home__husky {
-    top: -60px;
+  .privacy__main__aside {
+    display: block;
   }
-}
-
-@media (min-width: 1280px) {
-  .home__cn {
-    width: 1200px;
+  .privacy__main__content {
+    width: fit-content;
+    display: flex;
+    justify-content: center;
   }
-}
-
-@media (min-width: 1440px) {
-  .home__cn {
-    width: 1200px;
+  .privacy__breadcrumbs {
+    border-bottom: 1px solid #e2e8f0;
   }
-}
-
-@media (min-width: 1920px) {
-  .home__cn {
-    width: 1678px;
+  .privacy__breadcrumbs__desktop {
+    display: block;
+  }
+  .privacy__breadcrumbs__mobile {
+    display: none;
   }
 }

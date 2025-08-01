@@ -11,6 +11,7 @@ import { ADMIN_ROLE } from '@/utils/constants';
 
 import s from './ProfileDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 interface Props {
   member: IMember;
@@ -27,6 +28,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const hasMissingRequiredData = !member?.name || !member?.email;
   const showIncomplete = !editView && hasMissingRequiredData && isOwner;
   const { onEditProfileDetailsClicked } = useMemberAnalytics();
+  useMobileNavVisibility(editView);
 
   return (
     <div

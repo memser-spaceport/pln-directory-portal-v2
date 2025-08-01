@@ -11,13 +11,16 @@ import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ILocationDetails } from '@/types/irl.types';
 import Image from 'next/image';
-import { EVENTS, EVENTS_OPTIONS, IAM_GOING_POPUP_MODES, IRL_AIRTABLE_FORM_LINK, IRL_SUBMIT_FORM_LINK } from '@/utils/constants';
+import { EVENTS, EVENTS_OPTIONS, IAM_GOING_POPUP_MODES, IRL_AIRTABLE_FORM_LINK, IRL_SUBMIT_FORM_LINK, TOAST_MESSAGES } from '@/utils/constants';
 import IrlAllEvents from './irl-all-events';
 import { IUserInfo } from '@/types/shared.types';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import IrlEditResponse from './irl-edit-response';
 import Link from 'next/link';
 import Dropdown from '../../../form/dropdown';
+import DeleteEventModal from './delete-event-modal';
+import { deleteEventLocation } from '@/services/irl.service';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 interface IIrlEvents {
   searchParams: any;
@@ -41,6 +44,11 @@ const IrlEvents = (props: IIrlEvents) => {
   const isUserLoggedIn = props?.isLoggedIn;
   const [isEdit, seIsEdit] = useState(false);
 
+  // Centralized delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const searchParam = useSearchParams();
   const type = searchParam.get('type');
 
@@ -49,6 +57,7 @@ const IrlEvents = (props: IIrlEvents) => {
   const isUserGoing = guestDetails?.isUserGoing;
   const updatedUser = guestDetails?.currentGuest ?? null;
   const irlLocation = (searchParams?.location?.toLowerCase() || locationDetails?.[0]?.location?.toLowerCase())?.split(',')[0];
+  const selectedLocation = locationDetails?.find((location) => location.location?.toLowerCase() === irlLocation?.toLowerCase());
   const scheduleEnabledLocations = process.env.SCHEDULE_ENABLED_LOCATIONS?.split(',');
   const isScheduleEnabled = scheduleEnabledLocations?.includes(irlLocation) || false;
   const updatedIrlLocation = abbreviateString(irlLocation);
@@ -246,11 +255,68 @@ const IrlEvents = (props: IIrlEvents) => {
     }
   };
 
+  // Centralized delete event handlers
+  const handleDeleteEvent = (gathering: any) => {
+    setEventToDelete(gathering);
+    setShowDeleteModal(true);
+    analytics.trackEventDeleteClicked(gathering);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!eventToDelete) return;
+    const toast = (await import('react-toastify')).toast;
+    
+    setIsDeleting(true);
+    try {
+      const { authToken } = getCookiesFromClient();
+      const response = await deleteEventLocation(selectedLocation?.uid as string, eventToDelete?.uid as string, authToken as string);
+
+      if(response?.isError){
+        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        return;
+      }
+
+      // Track analytics
+      analytics.trackEventDeleteConfirmed(eventToDelete);
+      
+      // Close modal and show success message
+      setShowDeleteModal(false);
+      setEventToDelete(null);
+      toast.success(TOAST_MESSAGES.EVENT_DELETED_SUCCESSFULLY);
+      
+      // Clear event query parameter from URL and refresh the page
+      const currentParams = new URLSearchParams(searchParams);
+      if (currentParams.has('event')) {
+        currentParams.delete('event');
+        window.location.href = `${window.location.pathname}?${currentParams.toString()}`;
+      } else {
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      // Handle error - show toast notification or error message
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (!isDeleting) {
+      // Track cancellation if there was an event to delete
+      if (eventToDelete) {
+        analytics.trackEventDeleteCancelled(eventToDelete);
+      }
+      setShowDeleteModal(false);
+      setEventToDelete(null);
+    }
+  };
+
   return (
     <>
       <div className="root">
         <div className="root__irl">
-          {eventDetails.upcomingEvents.length !== 0 && eventDetails.pastEvents.length !== 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) ? (
+          {eventDetails?.upcomingEvents.length !== 0 && eventDetails?.pastEvents.length !== 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) ? (
             <div className="root__dropdown__events">
               <Dropdown
                 arrowImgUrl="/icons/arrow-down.svg"
@@ -369,7 +435,15 @@ const IrlEvents = (props: IIrlEvents) => {
           ) : (
             <>
               {eventType === 'all' && eventDetails?.events?.length > 0 && (
-                <IrlAllEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={false} searchParams={searchParams} handleDataNotFound={() => handleDataNotFound()} />
+                <IrlAllEvents 
+                  eventDetails={eventDetails} 
+                  isLoggedIn={isLoggedIn} 
+                  isUpcoming={false} 
+                  searchParams={searchParams} 
+                  handleDataNotFound={() => handleDataNotFound()}
+                  userInfo={props.userInfo}
+                  onDeleteEvent={handleDeleteEvent}
+                />
               )}
               {eventType === 'upcoming' && eventDetails?.upcomingEvents?.length > 0 && (
                 <IrlUpcomingEvents
@@ -378,11 +452,21 @@ const IrlEvents = (props: IIrlEvents) => {
                   isUpcoming={eventType === 'upcoming'}
                   searchParams={searchParams}
                   handleDataNotFound={() => handleDataNotFound()}
+                  userInfo={props.userInfo}
+                  onDeleteEvent={handleDeleteEvent}
                 />
               )}
 
               {eventType === 'past' && eventDetails?.pastEvents?.length > 0 && (
-                <IrlPastEvents eventDetails={eventDetails} isLoggedIn={isLoggedIn} isUpcoming={false} searchParams={searchParams} handleDataNotFound={() => handleDataNotFound()} />
+                <IrlPastEvents 
+                  eventDetails={eventDetails} 
+                  isLoggedIn={isLoggedIn} 
+                  isUpcoming={false} 
+                  searchParams={searchParams} 
+                  handleDataNotFound={() => handleDataNotFound()}
+                  userInfo={props.userInfo}
+                  onDeleteEvent={handleDeleteEvent}
+                />
               )}
 
               {eventDetails?.resources?.length > 0 && (searchParams?.type === 'past' && searchParams?.event ? isEventAvailable : true) && (
@@ -497,6 +581,13 @@ const IrlEvents = (props: IIrlEvents) => {
           </div>
         </div>
       </div> */}
+      <DeleteEventModal
+        isOpen={showDeleteModal}
+        eventName={eventToDelete?.name || ''}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+      />
       <style jsx>{`
         .root {
           color: #0f172a;

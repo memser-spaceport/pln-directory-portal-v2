@@ -6,9 +6,11 @@ $padding-inline: 16px;
   position: relative;
   z-index: 1;
   display: none;
+  flex: 1;
+  max-width: 600px;
 
   @include media.tablet-landscape {
-    display: block;
+    display: flex;
   }
 }
 
@@ -36,7 +38,7 @@ $padding-inline: 16px;
 
 .modal {
   position: fixed;
-  top: 80px;
+  top: var(--app-header-height);
   right: 0;
   left: 0;
   bottom: 0;

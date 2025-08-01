@@ -67,7 +67,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'> & {
             flex-direction: column;
             width: 100%;
             height: 100%;
-            top: 80px;
+            top: var(--app-header-height);
           }
 
           .sidebar__content {
@@ -136,7 +136,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'> & {
             z-index: 4;
             height: calc(100vh - 82px);
             width: var(--sidebar-width, 250px);
-            transition: left 0.2s ease-in-out, right 0.2s ease-in-out, width 0.2s linear;
+            transition:
+              left 0.2s ease-in-out,
+              right 0.2s ease-in-out,
+              width 0.2s linear;
             display: flex;
           }
 
@@ -205,7 +208,7 @@ const SidebarProvider = React.forwardRef<
 
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
     },
-    [setOpenProp, open]
+    [setOpenProp, open],
   );
 
   // Toggle sidebar
@@ -238,7 +241,7 @@ const SidebarProvider = React.forwardRef<
       setOpenMobile,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
   );
 
   return (

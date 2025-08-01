@@ -116,7 +116,7 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
           background-color: #dbeafe;
           padding: 8px 12px;
           position: sticky;
-          top: 80px;
+          top: var(--app-header-height);
           z-index: 1;
         }
 

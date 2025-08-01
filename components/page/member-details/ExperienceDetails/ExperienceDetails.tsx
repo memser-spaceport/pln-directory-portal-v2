@@ -15,6 +15,7 @@ import { FormattedMemberExperience } from '@/services/members/hooks/useMemberExp
 import { EditExperienceForm } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 interface Props {
   member: IMember;
@@ -29,6 +30,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   const { onAddExperienceDetailsClicked, onEditExperienceDetailsClicked } = useMemberAnalytics();
+  useMobileNavVisibility(view !== 'view');
 
   if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
     return null;

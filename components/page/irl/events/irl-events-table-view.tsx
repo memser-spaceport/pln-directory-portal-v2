@@ -1,19 +1,57 @@
 import { getFormattedDateString } from '@/utils/irl.utils';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Image from 'next/image';
-import { IRL_EVENTS_DEFAULT_IMAGE } from '@/utils/constants';
+import { IRL_EVENTS_DEFAULT_IMAGE, ADMIN_ROLE } from '@/utils/constants';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { IUserInfo } from '@/types/shared.types';
+import { getAccessLevel } from '@/utils/auth.utils';
 
-const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, handleElementClick, isEventSelected, eventType, isLoggedIn }: any) => {
+interface IrlEventsTableViewProps {
+  index?: number;
+  gathering: any;
+  handleClick: (resources: any, event?: any) => void;
+  isLastContent: boolean;
+  handleElementClick?: (gathering: any) => void;
+  isEventSelected?: boolean;
+  eventType?: boolean;
+  isLoggedIn: boolean;
+  userInfo?: IUserInfo;
+  onDeleteEvent?: (gathering: any) => void;
+  eventsToShow?: any;
+  resources?: any;
+}
+
+const IrlEventsTableView = ({ 
+  index, 
+  gathering, 
+  handleClick, 
+  isLastContent, 
+  handleElementClick, 
+  isEventSelected, 
+  eventType, 
+  isLoggedIn,
+  userInfo,
+  onDeleteEvent
+}: IrlEventsTableViewProps) => {
   const handleRowClick = (gathering: any) => {
-    if (eventType) {
+    if (eventType && handleElementClick) {
       handleElementClick(gathering);
     }
   };
+  
   const website = gathering?.resources?.find((resource: any) => resource?.name?.toLowerCase() === 'website');
 
+  const accessLevel = getAccessLevel(userInfo as IUserInfo, isLoggedIn);
+  
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDeleteEvent) {
+      onDeleteEvent(gathering);
+    }
+  };
+
   return (
-    <>
+    <>  
       <div
         id={gathering?.uid}
         key={index}
@@ -24,9 +62,8 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           <div className="root__irl__table-header">
             <div className="root__irl__table-col-header">
               <div className="root__irl__table-col__contentName__top">
-                <div>
+                <div className="root__irl__table-col__contentName__top__left">
                   <img src={gathering?.logo?.url || IRL_EVENTS_DEFAULT_IMAGE} style={{ height: '20px', width: '20px' }} alt="logo" />
-                </div>
                 {website && (
                   <a onClick={(e) => e.stopPropagation()} className="root__irl__table-col__contentName__top__website" target="_blank" href={website?.link}>
                     {gathering?.name}
@@ -34,6 +71,16 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
                   </a>
                 )}
                 {!website && <div className="root__irl__table-col__contentName__top__title">{gathering.name}</div>}
+                </div>
+                {accessLevel === 'advanced' && (
+                  <button 
+                    className="root__irl__table-col__contentName__top__delete" 
+                    onClick={handleDeleteClick}
+                    title="Delete Event"
+                  >
+                    <img src="/icons/delete.svg" alt="delete" height={16} width={16} />
+                  </button>
+                )}
               </div>
               <div className="root__irl__table-col__contentName__bottom">
                 <div
@@ -115,6 +162,7 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
         .root__irl__table-col-header {
           display: flex;
           flex-direction: column;
+          width: 100%;
         }
 
         .root__irl__table-row__content {
@@ -180,6 +228,16 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
           margin-left: 8px;
         }
 
+        .root__irl__table-col__contentName__top__delete {
+          background-color: transparent;
+          width: 16px;
+          height: 16px;
+        }
+
+        .root__irl__table-col__contentName__top__delete:hover {
+          background-color: #fee2e2;
+        }
+
         .root__irl__table-col__headerName,
         .root__irl__table-col__headerDesc .root__irl__table-col__contentName,
         .root__irl__table-col__contentDesc {
@@ -197,6 +255,12 @@ const IrlEventsTableView = ({ index, gathering, handleClick, isLastContent, hand
         }
 
         .root__irl__table-col__contentName__top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+
+        .root__irl__table-col__contentName__top__left {
           display: flex;
           flex-direction: row;
           gap: 4px;

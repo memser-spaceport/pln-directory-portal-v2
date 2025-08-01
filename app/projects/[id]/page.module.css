@@ -8,7 +8,7 @@
   border-bottom: 1px solid  #E2E8F0;
   width: 100%;
   position: sticky;
-  top: 80px;
+  top: var(--app-header-height);
   z-index: 3;
   background-color: #fff;
 }

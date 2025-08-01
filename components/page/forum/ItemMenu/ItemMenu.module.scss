@@ -1,0 +1,150 @@
+@use 'styles/mixins';
+
+.Button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  margin: 0;
+  outline: 0;
+  user-select: none;
+  position: relative;
+}
+
+.Positioner {
+  outline: 0;
+  z-index: 6;
+  min-width: 140px;
+}
+
+.Popup {
+  border-radius: 8px;
+  background: #FFF;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.16), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  box-sizing: border-box;
+  padding-block: 12px;
+  padding-inline: 16px;
+  transform-origin: top right;
+  transition:
+          transform 150ms,
+          opacity 150ms;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.Arrow {
+  display: flex;
+
+  &[data-side='top'] {
+    bottom: -8px;
+    rotate: 180deg;
+  }
+
+  &[data-side='bottom'] {
+    top: -8px;
+    rotate: 0deg;
+  }
+
+  &[data-side='left'] {
+    right: -13px;
+    rotate: 90deg;
+  }
+
+  &[data-side='right'] {
+    left: -13px;
+    rotate: -90deg;
+  }
+}
+
+.ArrowFill {
+  fill: canvas;
+}
+
+.ArrowOuterStroke {
+  @media (prefers-color-scheme: light) {
+    fill: var(--color-gray-200);
+  }
+}
+
+.ArrowInnerStroke {
+  @media (prefers-color-scheme: dark) {
+    fill: var(--color-gray-300);
+  }
+}
+
+.Item {
+  gap: 8px;
+  outline: 0;
+  cursor: default;
+  user-select: none;
+  padding-block: 0.5rem;
+  padding-inline: 8px;
+  display: flex;
+  align-items: center;
+
+  color: #0F172A;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+
+  &[data-highlighted] {
+    z-index: 0;
+    position: relative;
+    background-color: var(--Neutral-Slate-50);
+  }
+
+  &[data-highlighted]::before {
+    content: '';
+    z-index: -1;
+    position: absolute;
+    inset-block: 0;
+    inset-inline: 0.25rem;
+    border-radius: 0.25rem;
+    //background-color: var(--Neutral-Slate-50);
+  }
+
+  .itemSub {
+    display: flex;
+    align-items: center;
+    color: #CAD3DF;
+    font-feature-settings: 'liga' off, 'clig' off;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 14px; /* 140% */
+    margin-left: auto;
+    gap: 4px;
+    position: relative;
+  }
+
+  &[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.SeparatorWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #CAD3DF;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; /* 140% */
+}
+
+.Separator {
+  height: 1px;
+  background-color: #E2E8F0;
+  flex: 1;
+}

@@ -21,6 +21,7 @@ import { ENROLLMENT_TYPE } from '@/utils/constants';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import AlertMessage from './alert-message';
 import TeamsMemberInfo from './teams-member-info';
+import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 function ManageTeamsSettings(props: any) {
   //props
@@ -54,6 +55,7 @@ function ManageTeamsSettings(props: any) {
   const [content, setContent] = useState(initialValues?.basicInfo.longDescription ?? '');
   const analytics = useSettingsAnalytics();
   const [isAlertInfoDismissed, setIsAlertInfoDismissed] = useState(false);
+  useMobileNavVisibility(true);
 
   const handleTabClick = (v: string) => {
     analytics.recordTeamProfileFormEdit(getAnalyticsUserInfo(userInfo), v.toUpperCase());
@@ -259,7 +261,7 @@ function ManageTeamsSettings(props: any) {
 
     const member = teamMembers.find((m: any) => m.id === memberUid);
 
-    if (member?.teams?.status === "Add") {
+    if (member?.teams?.status === 'Add') {
       const updatedMembers = teamMembers.map((m: any) => {
         if (m.id === member.id) {
           return {
@@ -270,7 +272,7 @@ function ManageTeamsSettings(props: any) {
             },
           };
         }
-        return m; 
+        return m;
       });
       setTeamMembers(updatedMembers);
       return;
@@ -291,7 +293,7 @@ function ManageTeamsSettings(props: any) {
         teams: {
           ...member.teams,
           teamLead: isTeamLead,
-          status: "Update",
+          status: 'Update',
         },
       };
     });
@@ -343,7 +345,7 @@ function ManageTeamsSettings(props: any) {
       formattedInputValues.teamMemberRoles = teamMembers;
       if (!formattedInputValues.teamFocusAreas) {
         formattedInputValues.teamFocusAreas = [];
-      } 
+      }
       if (!formattedInputValues.imageFile) {
         formattedInputValues.imageFile = '';
       }

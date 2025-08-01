@@ -60,17 +60,17 @@ async function Page({ params }: { params: ITeamDetailParams }) {
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
           {/* Asks */}
-          {!hasEditAsksAccess && team?.asks.length > 0 && (
-            <div className={styles.teamDetail__Container__asks}>
-              <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />
-            </div>
-          )}
+          {/*{!hasEditAsksAccess && team?.asks.length > 0 && (*/}
+          {/*  <div className={styles.teamDetail__Container__asks}>*/}
+          {/*    <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />*/}
+          {/*  </div>*/}
+          {/*)}*/}
 
-          {hasEditAsksAccess && (
-            <div className={styles.teamDetail__Container__asks}>
-              <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />
-            </div>
-          )}
+          {/*{hasEditAsksAccess && (*/}
+          {/*  <div className={styles.teamDetail__Container__asks}>*/}
+          {/*    <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />*/}
+          {/*  </div>*/}
+          {/*)}*/}
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>

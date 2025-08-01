@@ -278,3 +278,19 @@ export const getFollowersByLocation = async (locationId: string, authToken: stri
     data: formattedData,
   }
 }
+
+export const deleteEventLocation = async (locationId: string, eventId: string, authToken: string) => {  
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/events/${eventId}`, {
+    cache: 'no-store',
+    method: 'DELETE',
+    headers: getHeader(authToken),
+  });
+
+  if (!response.ok) {
+    return {
+      isError: true,
+    };
+  }
+
+  return await response.json();
+}

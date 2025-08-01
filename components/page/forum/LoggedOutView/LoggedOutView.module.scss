@@ -1,0 +1,277 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.modal {
+  @include mixins.hide-scrollbar;
+  position: fixed;
+  top: var(--app-header-height);
+  right: 0;
+  left: 0;
+  bottom: 0;
+  max-height: 100dvh;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  background: var(--transparent-dark-56, rgba(14, 15, 17, 0.56));
+  backdrop-filter: blur(15px);
+
+  @include media.tablet-landscape {
+    padding: 32px;
+  }
+}
+
+.closeButton {
+  position: absolute;
+  border: none;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  user-select: none;
+  outline: none;
+  display: none;
+}
+
+.modalContent {
+  border-radius: 12px;
+  position: relative;
+  max-width: 350px;
+  display: flex;
+  height: fit-content;
+  flex-direction: column;
+  align-items: center;
+
+  width: 270px;
+  padding: var(--spacing-lg, 20px);
+  gap: var(--spacing-xl, 24px);
+  background: var(--background-base-white, #FFF);
+  box-shadow: 0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)), 0px 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.content {
+  display: flex;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1024px;
+  gap: 12px;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  background: var(--Surface-surface-light, #FFF);
+  box-shadow: 0 1px 4px 0 #E2E8F0;
+  width: 100%;
+
+  > div {
+    padding: 12px;
+    color: var(--action-foreground-neutral-normal, #455468);
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px; /* 150% */
+    letter-spacing: -0.3px;
+  }
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.listItem {
+  display: flex;
+  padding: var(--spacing-lg, 20px) var(--spacing-md, 16px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-sm, 8px);
+  align-self: stretch;
+  width: 100%;
+
+  border-radius: var(--corner-radius-xl, 12px);
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  background: var(--background-base-white, #FFF);
+
+  /* Shadow/xs */
+  box-shadow: 0px 1px 2px 0px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.title {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
+}
+
+.desc {
+  overflow: hidden;
+  color: var(--foreground-neutral-tertiary, #8897AE);
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.Avatar {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: middle;
+  border-radius: 100%;
+  user-select: none;
+  font-weight: 500;
+  color: var(--color-gray-900);
+  background-color: var(--Neutral-Slate-600);
+  font-size: 1rem;
+  line-height: 1;
+  overflow: hidden;
+  height: 24px;
+  width: 24px;
+}
+
+.Image {
+  object-fit: cover;
+  height: 100%;
+  width: 100%;
+}
+
+.Fallback {
+  @include mixins.ellipse-text;
+  align-items: center;
+  display: flex;
+  justify-content: flex-start;
+  max-width: 24px;
+  height: 100%;
+  width: 100%;
+  font-size: 14px;
+}
+
+.name {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.position {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+
+  display: none;
+}
+
+.time {
+  color: var(--foreground-neutral-tertiary, #8897AE);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.lock {
+  display: flex;
+  padding: 10px;
+  align-items: flex-start;
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--background-brand-soft-surface, #F2F5FF);
+}
+
+.primary {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  text-align: center;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 27px; /* 135% */
+  letter-spacing: -0.4px;
+}
+
+.secondary {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
+}
+
+.mainBtn {
+  display: flex;
+  padding: 10px var(--global-size-size-200, 16px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0px);
+  flex: 1 0 0;
+  color: var(--action-foreground-base-inverted_white, #FFF);
+
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: var(--action-background-brand-normal, #1B4DFF);
+
+  /* Button/primay/fill */
+  box-shadow: 0px 1px 3px 0px var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0px 4px 6px 0px var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0px 1px 5px 0px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  width: 100%;
+}
+
+.sub {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.secBtn {
+  color: var(--action-foreground-brand-normal, #1B4DFF);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: auto;
+  text-underline-offset: auto;
+  text-underline-position: from-font;
+}

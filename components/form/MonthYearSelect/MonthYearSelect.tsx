@@ -139,7 +139,7 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error, isReq
               },
               ...(error
                 ? {
-                    borderColor: 'darkred !important',
+                    borderColor: 'var(--action-border-error-focus) !important',
                   }
                 : {}),
             }),
@@ -207,7 +207,7 @@ export const MonthYearSelect = ({ label, value, onChange, disabled, error, isReq
               },
               ...(error
                 ? {
-                    borderColor: 'darkred !important',
+                    borderColor: 'var(--action-border-error-focus) !important',
                   }
                 : {}),
             }),

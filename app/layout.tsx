@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Navbar from '../components/core/navbar/nav-bar';
-import './globals.css';
+import './globals.scss';
 import '../styles/index.scss';
 import StyledJsxRegistry from '../providers/registry';
 import React, { Suspense } from 'react';
@@ -18,6 +18,8 @@ import PostLoginRedirectHandler from '@/components/page/recommendations/componen
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
 import { UserInfoChecker } from '@/components/core/login/UserInfoChecker';
+import { MobileBottomNav } from '@/components/core/MobileBottomNav/MobileBottomNav';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
@@ -55,6 +57,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const { userInfo, isLoggedIn, authToken } = getCookiesFromHeaders();
 
+  console.log(userInfo, isLoggedIn, authToken);
+
   return (
     <html>
       <head>
@@ -76,6 +80,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </header>
             <main className="layout__main">{children}</main>
+            <MobileBottomNav />
             <Loader />
             <AuthBox />
             <Toaster />
@@ -88,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* <TeamRegisterDialog /> */}
             <UserInfoChecker userInfo={userInfo} />
             <CookieChecker isLoggedIn={isLoggedIn} />
+            {/*<ReactQueryDevtools initialIsOpen={false} />*/}
           </QueryProvider>
         </StyledJsxRegistry>
       </body>

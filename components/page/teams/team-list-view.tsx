@@ -26,17 +26,19 @@ const TeamListView = (props: ITeamListView) => {
   const [activeIndexMob, setActiveIndexMob] = useState<number>(0);
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
-  const carousel: any[] =
-    team?.asks
-      ?.filter((ask) => ask.status !== 'CLOSED')
-      .map((ask: any) => {
-        return {
-          id: ask?.uid,
-          name: ask?.title,
-          description: ask?.description,
-          tags: ask?.tags,
-        };
-      }) ?? [];
+  // todo - remove ASKS completely as we move to forum
+  // const carousel: any[] =
+  //   team?.asks
+  //     ?.filter((ask) => ask.status !== 'CLOSED')
+  //     .map((ask: any) => {
+  //       return {
+  //         id: ask?.uid,
+  //         name: ask?.title,
+  //         description: ask?.description,
+  //         tags: ask?.tags,
+  //       };
+  //     }) ?? [];
+  const carousel: any[] = [];
 
   const { emblaRef, activeIndex, scrollPrev, scrollNext, setActiveIndex, emblaApi } = useCarousel({
     slidesToScroll: 'auto',

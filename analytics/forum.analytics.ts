@@ -40,7 +40,7 @@ export const useForumAnalytics = () => {
   }
 
   function onCreatePostCancel() {
-    captureEvent(FORUM_ANALYTICS_EVENTS.CREATE_POST_SUBMIT, {});
+    captureEvent(FORUM_ANALYTICS_EVENTS.CREATE_POST_CANCEL, {});
   }
 
   function onPostClicked(params: { tid?: string | number }) {
@@ -56,7 +56,7 @@ export const useForumAnalytics = () => {
   }
 
   function onPostCommentSubmit(params: PostCommentMutationParams) {
-    captureEvent(FORUM_ANALYTICS_EVENTS.CREATE_POST_SUBMIT, params);
+    captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_SUBMIT, params);
   }
 
   function onPostCommentCancel() {

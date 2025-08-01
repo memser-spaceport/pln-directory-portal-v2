@@ -8,7 +8,7 @@ import { Avatar } from '@base-ui-components/react/avatar';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { CommentInput } from '@/components/page/forum/CommentInput';
 import { useForumPost } from '@/services/forum/hooks/useForumPost';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from '@/components/page/forum/PostComments';
 import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
@@ -19,11 +19,14 @@ import { IUserInfo } from '@/types/shared.types';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { BackButton } from '@/components/page/forum/BackButton';
 import { useCommentNotificationEmailLinkEventCapture, useCommentNotificationEmailReplyEventCapture, useDigestEmailLinkEventCapture } from '@/components/page/forum/hooks';
+import { useForumAnalytics } from '@/analytics/forum.analytics';
 
 export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { categoryId, topicId } = useParams();
   const searchParams = useSearchParams();
+  const analytics = useForumAnalytics();
   const { data } = useForumPost(topicId as string);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const replyToItem = data?.posts?.slice(1).find((item) => item.pid === replyToPid);
@@ -88,7 +91,14 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
 
         <div className={s.content}>
           <div className={s.topicBadge}>{post.category}</div>
-          {post.isEditable && <ItemMenu />}
+          {post.isEditable && (
+            <ItemMenu
+              onEdit={() => {
+                analytics.onPostEditClicked({ tid: post.tid, pid: post.pid });
+                router.push(`${pathname}/edit`);
+              }}
+            />
+          )}
         </div>
 
         <h1 className={s.title}>{post.title}</h1>

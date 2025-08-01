@@ -227,5 +227,7 @@ export function useForumCategories() {
   return useQuery({
     queryKey: [ForumQueryKeys.GET_TOPICS],
     queryFn: fetcher,
+    refetchOnWindowFocus: false,
+    staleTime: 60000,
   });
 }

@@ -71,7 +71,7 @@ export const Posts = () => {
               className={s.listItem}
               key={post.tid}
               href={`/forum/topics/${post.cid}/${post.tid}`}
-              prefetch={false}
+              // prefetch={false}
               onClick={() => {
                 analytics.onPostClicked({ tid: post.tid });
               }}

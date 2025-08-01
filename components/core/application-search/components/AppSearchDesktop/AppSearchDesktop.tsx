@@ -18,7 +18,6 @@ import clsx from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
 import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
-import { ChatHistory } from '@/components/core/application-search/components/AiChatPanel/components/ChatHistory';
 import { useRouter } from 'next/navigation';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 

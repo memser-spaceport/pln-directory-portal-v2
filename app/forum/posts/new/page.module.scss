@@ -1,0 +1,41 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  background: var(--Surface-surface-light, #FFF);
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px);
+  flex: 1;
+  padding-bottom: 48px;
+
+  @include media.tablet-landscape {
+    background: transparent;
+    max-width: 900px;
+    margin-inline: auto;
+  }
+}
+
+.subheader {
+  display: flex;
+  height: 64px;
+  padding: 8px 0;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+}

@@ -13,6 +13,7 @@ import { ContributionsList } from '@/components/page/member-details/Contribution
 import { EditContributionsForm } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAccessLevel } from '@/utils/auth.utils';
+import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 interface Props {
   member: IMember;
@@ -27,6 +28,7 @@ export const ContributionsDetails = ({ isLoggedIn, userInfo, member }: Props) =>
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   const { onEditContributionDetailsClicked, onAddContributionDetailsClicked } = useMemberAnalytics();
+  useMobileNavVisibility(view !== 'view');
 
   if (!isLoggedIn || (getAccessLevel(userInfo, isLoggedIn) !== 'advanced' && !isOwner)) {
     return null;

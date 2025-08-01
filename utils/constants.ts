@@ -10,6 +10,7 @@ export const PAGE_ROUTES = {
   SIGNUP: '/sign-up',
   HUSKY: '/husky/chat',
   EVENTS: '/events',
+  FORUM: '/forum',
 };
 
 export const NAV_OPTIONS = [
@@ -48,6 +49,12 @@ export const NAV_OPTIONS = [
     url: PAGE_ROUTES.EVENTS,
     selectedLogo: '/icons/nav-calendar--selected.svg',
     unSelectedLogo: '/icons/nav-calendar.svg',
+  },
+  {
+    name: 'Forum',
+    url: PAGE_ROUTES.FORUM,
+    selectedLogo: '/icons/message.svg',
+    unSelectedLogo: '/icons/message.svg',
   },
 ];
 
@@ -261,6 +268,7 @@ export const TOAST_MESSAGES = {
   FEEDBACK__ALREADY__RECORDED: 'Thanks, we have already recorded your feedback',
   SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed',
   FAILED_TO_LINK_LINKEDIN: 'Failed to link LinkedIn account',
+  EVENT_DELETED_SUCCESSFULLY: 'Event deleted successfully',
 };
 
 export const AUTH_ANALYTICS = {
@@ -427,6 +435,27 @@ export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
   AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
 };
 
+export const FORUM_ANALYTICS_EVENTS = {
+  TOPIC_CLICKED: 'forum-topic-clicked',
+  SORT_SELECTED: 'forum-sort-selected',
+  CREATE_POST_CLICKED: 'forum-create-post-clicked',
+  CREATE_POST_SUBMIT: 'forum-create-post-submit',
+  CREATE_POST_CANCEL: 'forum-create-post-cancel',
+  POST_CLICKED: 'forum-post-clicked',
+  POST_LIKED: 'forum-post-like-clicked',
+  COMMENT_INPUT_CLICKED: 'forum-comment-input-clicked',
+  POST_COMMENT_SUBMIT: 'forum-post-comment-submit',
+  POST_COMMENT_CANCEL: 'forum-post-comment-cancel',
+  POST_COMMENT_NOTIFICATION_SETTINGS_CLICKED: 'forum-post-comment-notification-settings-clicked',
+  POST_COMMENT_REPLY_CLICKED: 'forum-post-comment-reply-clicked',
+  POST_EDIT_CLICKED: 'forum-post-edit-clicked',
+  EDIT_POST_SUBMIT: 'forum-edit-post-submit',
+  EDIT_POST_CANCEL: 'forum-edit-post-cancel',
+  DIGEST_EMAIL_POST_CLICKED: 'forum-digest-email-post-clicked',
+  COMMENT_NOTIFICATION_EMAIL_LINK_CLICKED: 'forum-comment-notification-email-link-clicked',
+  COMMENT_NOTIFICATION_EMAIL_REPLY_CLICKED: 'forum-comment-notification-email-reply-clicked',
+};
+
 export const IRL_ANALYTICS_EVENTS = {};
 
 export const HOME_ANALYTICS_EVENTS = {
@@ -580,6 +609,22 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.2.0 - Forum Launch & Navigation Updates',
+    tag: 'New Feature',
+    date: '01, Aug 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Platform</span> - New forum for network members to share knowledge, ask questions, and discuss topics with categorized posts (General, Launch, Recruiting, Intros).</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Navigation</span> - Forum added to the main navigation menu for easy access to community discussions.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Email Digest System</span> - Daily and weekly email digests for forum posts with customizable preferences in Account Settings.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Post Management</span> - Create and edit forum posts with topic categorization and comment functionality.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Notification System</span> - Email notifications for post owners and commenters when others reply.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.1.16 - Sign-Up & Verification Enhancements',
     tag: 'Improvements',
@@ -1422,3 +1467,5 @@ export const EVENTS_SUBMIT_FORM_TYPES = {
 };
 
 export const CONTRIBUTE_MODAL_VIDEO_URL = 'https://plabs-assets.s3.us-west-1.amazonaws.com/IRL+video-Updated.webm';
+
+export const GROUPS_URL = 'https://protosphere.plnetwork.io/groups';

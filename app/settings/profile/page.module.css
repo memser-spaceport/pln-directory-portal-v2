@@ -6,7 +6,7 @@
 
 .ps__backbtn {
   position: sticky;
-  top: 80px;
+  top: var(--app-header-height);
   width: 100%;
   height:48px;
   z-index: 3;
@@ -14,7 +14,7 @@
 .ps__breadcrumbs {
   display: flex;
   position: sticky;
-  top: 80px;
+  top: var(--app-header-height);
   padding: 0 16px;
   width: 100%;
   background: white;

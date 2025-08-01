@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import { Avatar } from '@base-ui-components/react/avatar';
 
@@ -9,7 +9,7 @@ import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from 'react-toastify';
-import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
+import { TOAST_MESSAGES } from '@/utils/constants';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 import { usePostHog } from 'posthog-js/react';
 
@@ -19,7 +19,6 @@ import { NotificationsMenu } from '@/components/core/navbar/components/Notificat
 import { clsx } from 'clsx';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/services/members/store';
-import { isNumber } from 'lodash';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 
@@ -55,6 +54,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
 
   return (
     <>
+      <NotificationsMenu isMobileView={false} notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
       <Menu.Root modal={false}>
         <Menu.Trigger className={s.Button} ref={menuTriggerRef}>
           <Avatar.Root className={s.Avatar}>
@@ -83,14 +83,14 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                 <NotificationsIcon /> Notifications
                 <div className={s.itemSub}>{notifications?.length > 0 && <div className={s.notificationsCount}>{notifications?.length}</div>}</div>
               </Menu.Item>
-              <Link target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>
-                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('ProtoSphere', getAnalyticsUserInfo(userInfo))}>
-                  <MessageIcon /> ProtoSphere{' '}
-                  <span className={s.itemSub}>
-                    Forum <LinkIcon />
-                  </span>
-                </Menu.Item>
-              </Link>
+              {/*<Link target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>*/}
+              {/*  <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('ProtoSphere', getAnalyticsUserInfo(userInfo))}>*/}
+              {/*    <MessageIcon /> ProtoSphere{' '}*/}
+              {/*    <span className={s.itemSub}>*/}
+              {/*      Forum <LinkIcon />*/}
+              {/*    </span>*/}
+              {/*  </Menu.Item>*/}
+              {/*</Link>*/}
               <div className={s.SeparatorWrapper}>
                 Support
                 <Menu.Separator className={s.Separator} />
@@ -124,7 +124,6 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
-      <NotificationsMenu isMobileView={false} notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
     </>
   );
 };

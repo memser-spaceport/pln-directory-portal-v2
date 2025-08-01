@@ -1,6 +1,6 @@
 'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
 
 interface IBreadcrumb {
   backLink: string;
@@ -25,7 +25,7 @@ export function BreadCrumb(props: IBreadcrumb) {
         {breadcrumbItems.map((item, itemIndex: number) => (
           <div key={item.label} className={`breadcrumb__item ${itemIndex === breadcrumbItems.length - 1 ? 'breadcrumb__item--last' : ''}`}>
             {item.href && (
-              <Link href={item.href} className="breadcrumb__item__link">
+              <Link href={item.href} className="breadcrumb__item__link" style={{ overflow: 'hidden', maxWidth: '150px', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {item.label}
               </Link>
             )}
@@ -38,7 +38,6 @@ export function BreadCrumb(props: IBreadcrumb) {
         .breadcrumb {
           display: flex;
           font-size: 14px;
-          width: full;
           height: 100%;
           align-items: center;
           padding: 0 20px;
@@ -55,7 +54,6 @@ export function BreadCrumb(props: IBreadcrumb) {
         }
         .breadcrumb__item {
           display: flex;
-          max-width: 150px;
           gap: 16px;
           color: rgb(71 85 105);
         }
@@ -78,6 +76,14 @@ export function BreadCrumb(props: IBreadcrumb) {
           color: #000;
           text-overflow: ellipsis;
           overflow: hidden;
+        }
+
+        .breadcrumb__item__link {
+          display: block;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 150px;
         }
 
         .breadcrumb__item__link:hover {

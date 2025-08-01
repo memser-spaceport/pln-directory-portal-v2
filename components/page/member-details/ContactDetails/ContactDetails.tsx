@@ -10,6 +10,7 @@ import { EditContactForm } from '@/components/page/member-details/ContactDetails
 
 import s from './ContactDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 interface Props {
   member: IMember;
@@ -20,6 +21,7 @@ interface Props {
 export const ContactDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
   const { onEditContactDetailsClicked } = useMemberAnalytics();
+  useMobileNavVisibility(editView);
 
   return (
     <>

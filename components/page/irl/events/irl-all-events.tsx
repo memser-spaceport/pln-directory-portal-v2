@@ -6,6 +6,7 @@ import IrlEventsTableView from './irl-events-table-view';
 import { useRouter } from 'next/navigation';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { IPastEvents, IUpcomingEvents } from '@/types/irl.types';
+import { IUserInfo } from '@/types/shared.types';
 import SearchGatherings from './search-gatherings';
 
 interface EventDetailsProps {
@@ -18,9 +19,11 @@ interface EventDetailsProps {
   isUpcoming: boolean;
   searchParams: any;
   handleDataNotFound: () => void;
+  userInfo?: IUserInfo;
+  onDeleteEvent: (gathering: any) => void;
 }
 
-const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, handleDataNotFound }: EventDetailsProps) => {
+const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, handleDataNotFound, userInfo, onDeleteEvent }: EventDetailsProps) => {
 
   let eventsToShow = eventDetails.events || [];
   const [isExpanded, setExpanded] = useState(false);
@@ -63,6 +66,10 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
     analytics.trackLoginClicked(eventDetails);
   }
 
+  const handleDeleteEvent = (gathering: any) => {
+    onDeleteEvent(gathering);
+  };
+
   return (
     <>
       <div className="root__irl__tableContainer" id="container">
@@ -88,6 +95,8 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
                         handleClick={handleClick}
                         eventsToShow={eventsToShow}
                         isLastContent={index === eventsToShow.length - 1}
+                        userInfo={userInfo}
+                        onDeleteEvent={handleDeleteEvent}
                       />
                     </div>
                   ))}
@@ -102,6 +111,8 @@ const IrlAllEvents = ({ eventDetails, isLoggedIn, isUpcoming, searchParams, hand
                         handleClick={handleClick}
                         eventsToShow={eventsToShow}
                         isLastContent={eventsToShow.length <= 4 && index === eventsToShow.length - 1}
+                        userInfo={userInfo}
+                        onDeleteEvent={handleDeleteEvent}
                       />
                     </div>
                   ))}

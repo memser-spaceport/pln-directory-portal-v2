@@ -10,6 +10,7 @@ import 'quill-image-uploader/dist/quill.imageUploader.min.css';
 import s from './RichTextEditor.module.scss';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { saveRegistrationImage } from '@/services/registration.service';
+import { toast } from 'react-toastify';
 
 interface Props {
   value: string;
@@ -59,9 +60,20 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
       imageUploader: {
         upload: (file: File) => {
           return new Promise((resolve, reject) => {
-            return saveRegistrationImage(file).then((imgResponse) => {
-              resolve(imgResponse?.image.url);
-            });
+            return saveRegistrationImage(file)
+              .then((imgResponse) => {
+                if (!imgResponse?.image?.url) {
+                  toast.error('Image upload failed');
+                  reject(new Error('Image upload failed'));
+                }
+
+                resolve(imgResponse?.image.url);
+              })
+              .catch(async (err) => {
+                const b = await err?.cause?.response?.json();
+                toast.error(`Image upload failed. ${b?.message}`);
+                reject(err);
+              });
           });
         },
       },

@@ -99,7 +99,7 @@ export default function Navbar(props: Readonly<INavbar>) {
           </Link>
         </NavigationMenu.Item>
         <NavigationMenu.Item>
-          <Link className={s.Trigger} href="/forum?cid=1" onClick={() => onNavItemClickHandler('/forum', 'Forum')}>
+          <Link className={s.Trigger} href="/forum?cid=0" onClick={() => onNavItemClickHandler('/forum', 'Forum')}>
             <ForumIcon /> Forum
           </Link>
         </NavigationMenu.Item>

@@ -61,7 +61,7 @@ const navItems = [
   { href: '/teams', label: 'Teams', icon: TeamsIcon },
   { href: '/projects', label: 'Projects', icon: ProjectsIcon },
   { href: '/events', label: 'Events', icon: EventsIcon },
-  { href: '/forum?cid=1', label: 'Forum', icon: ForumIcon },
+  { href: '/forum?cid=0', label: 'Forum', icon: ForumIcon },
 ];
 
 export function MobileBottomNav() {

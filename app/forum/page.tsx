@@ -10,7 +10,7 @@ const ForumPage = async ({ searchParams }: { searchParams: Record<string, string
   const { isLoggedIn, userInfo } = getCookiesFromHeaders();
 
   if (!searchParams.cid) {
-    redirect('/forum?cid=1', RedirectType.replace);
+    redirect('/forum?cid=0', RedirectType.replace);
   }
 
   if (!isLoggedIn) {

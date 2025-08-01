@@ -38,6 +38,7 @@ const EditPostPage = async ({ params }: PageProps) => {
   }
 
   const token = process.env.CUSTOM_FORUM_AUTH_TOKEN ?? authToken;
+
   const response = await fetch(`${process.env.FORUM_API_URL}/api/topic/${params.topicId}`, {
     headers: {
       'Content-Type': 'application/json',

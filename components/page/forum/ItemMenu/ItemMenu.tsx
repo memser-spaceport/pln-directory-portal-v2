@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -9,6 +9,10 @@ import s from './ItemMenu.module.scss';
 export const ItemMenu = ({ onEdit }: { onEdit?: () => void }) => {
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    router.prefetch(`${pathname}/edit`);
+  }, [pathname, router]);
 
   return (
     <Menu.Root modal={false}>

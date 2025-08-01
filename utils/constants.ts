@@ -610,6 +610,22 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.2.0 - Forum Launch & Navigation Updates',
+    tag: 'New Feature',
+    date: '01, Aug 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Platform</span> - New forum for network members to share knowledge, ask questions, and discuss topics with categorized posts (General, Launch, Recruiting, Intros).</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Navigation</span> - Forum added to the main navigation menu for easy access to community discussions.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Email Digest System</span> - Daily and weekly email digests for forum posts with customizable preferences in Account Settings.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Post Management</span> - Create and edit forum posts with topic categorization and comment functionality.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Notification System</span> - Email notifications for post owners and commenters when others reply.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.1.16 - Sign-Up & Verification Enhancements',
     tag: 'Improvements',
     date: '08, Jul 2025',

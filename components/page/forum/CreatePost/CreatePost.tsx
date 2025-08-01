@@ -77,11 +77,21 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
   const {
     handleSubmit,
     reset,
-    formState: { isSubmitting, isDirty, isValid },
+    formState: { isSubmitting, isDirty, isValid, dirtyFields },
   } = methods;
 
   const { mutateAsync: createPost } = useCreatePost();
   const { mutateAsync: editPost } = useEditPost();
+
+  const handleCancel = () => {
+    if (isEdit) {
+      analytics.onEditPostCancel();
+      router.push(`/forum/topics/${params.categoryId}/${params.topicId}`);
+    } else {
+      analytics.onCreatePostCancel();
+      router.push('/forum?cid=0');
+    }
+  };
 
   const onSubmit = async (data: any) => {
     try {
@@ -118,7 +128,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
           toast.success('Post created successfully');
           reset(data);
           setTimeout(() => {
-            router.push('/forum?cid=1');
+            router.push('/forum?cid=0');
           }, 500);
         }
       }
@@ -157,18 +167,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
             <div className={s.headerWrapper}>
               <div className={s.logo}>{isEdit ? 'Edit Post' : 'Create Post'}</div>
               <div className={s.controls}>
-                <button
-                  type="button"
-                  className={s.cancelBtn}
-                  onClick={() => {
-                    if (isEdit) {
-                      analytics.onEditPostCancel();
-                    } else {
-                      analytics.onCreatePostCancel();
-                    }
-                    router.push('/forum?cid=1');
-                  }}
-                >
+                <button type="button" className={s.cancelBtn} onClick={handleCancel}>
                   Cancel
                 </button>
                 <button className={s.submitBtn} disabled={isSubmitting || !isDirty}>
@@ -177,18 +176,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
               </div>
             </div>
             <div className={s.header}>
-              <button
-                type="button"
-                className={s.cancelBtn}
-                onClick={() => {
-                  if (isEdit) {
-                    analytics.onEditPostCancel();
-                  } else {
-                    analytics.onCreatePostCancel();
-                  }
-                  router.push('/forum?cid=1');
-                }}
-              >
+              <button type="button" className={s.cancelBtn} onClick={handleCancel}>
                 Cancel
               </button>
               <button className={s.submitBtn} disabled={isSubmitting || !isDirty}>

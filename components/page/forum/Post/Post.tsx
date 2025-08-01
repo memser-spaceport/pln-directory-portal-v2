@@ -72,6 +72,7 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   if (!post) {
     return (
       <div className={s.container}>
+        <BackButton to={`/forum?cid=${categoryId}`} />
         <PostPageLoader />
       </div>
     );

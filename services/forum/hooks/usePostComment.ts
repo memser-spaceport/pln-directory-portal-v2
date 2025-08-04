@@ -23,6 +23,7 @@ async function mutation({ tid, toPid, content }: PostCommentMutationParams) {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      credentials: 'include',
     },
     !token,
   );

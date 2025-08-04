@@ -37,6 +37,37 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
 
   useScrollIntoViewOnFocus<HTMLInputElement>({ id: name });
 
+  function renderMobileOptions() {
+    const filtered = options.filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (filtered.length === 0) {
+      return (
+        <div className={s.notFound}>
+          <span>No options found</span>
+          {notFoundContent}
+        </div>
+      );
+    }
+
+    return filtered.map((item) => {
+      return (
+        <div
+          key={item.value}
+          className={clsx(s.mobileOption, {
+            [s.active]: value?.value === item.value,
+          })}
+          onClick={() => {
+            setValue(name, item, { shouldValidate: true, shouldDirty: true });
+            toggleOpen();
+          }}
+        >
+          <div className={s.optionLabel}>{item.label}</div>
+          {item.description && <div className={s.optionDesc}>{item.description}</div>}
+        </div>
+      );
+    });
+  }
+
   return (
     <>
       {open && (
@@ -53,27 +84,7 @@ export const FormSelect = ({ name, placeholder, label, description, options, dis
             <Input autoFocus className={s.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             <SearchIcon />
           </div>
-          <div className={s.mobileOptions}>
-            {options
-              .filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase()))
-              .map((item) => {
-                return (
-                  <div
-                    key={item.value}
-                    className={clsx(s.mobileOption, {
-                      [s.active]: value?.value === item.value,
-                    })}
-                    onClick={() => {
-                      setValue(name, item, { shouldValidate: true, shouldDirty: true });
-                      toggleOpen();
-                    }}
-                  >
-                    <div className={s.optionLabel}>{item.label}</div>
-                    {item.description && <div className={s.optionDesc}>{item.description}</div>}
-                  </div>
-                );
-              })}
-          </div>
+          <div className={s.mobileOptions}>{renderMobileOptions()}</div>
         </div>
       )}
       <Field.Root className={s.field}>

@@ -354,4 +354,11 @@ $text-color: #475569;
   justify-content: center;
   border-radius: 100px;
   background: var(--background-neutral-subtle, #F0F3F9);
+
+  @include media.tablet-landscape {
+    height: unset;
+    background: transparent;
+    padding: 0;
+    gap: 12px;
+  }
 }

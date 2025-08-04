@@ -15,4 +15,35 @@
   &:hover {
     filter: brightness(120%);
   }
+
+  @include media.tablet-landscape {
+    height: 40px;
+    padding: 0 24px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
+    border-radius: 40px;
+    border: 1px solid var(--Neutral-Slate-300, #CBD5E1);
+    background: var(--Neutral-White, #FFF);
+
+    box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
+    text-align: center;
+    font-size: 14px;
+    color: var(--action-foreground-neutral-normal, #455468);
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px;
+    white-space: nowrap;
+    letter-spacing: -0.2px;
+
+    &:hover {
+      border-color: transparent;
+      box-shadow:
+              0 4px 4px 0 rgba(15, 23, 42, 0.04),
+              0 0 1px 0 rgba(15, 23, 42, 0.12),
+              0 0 0 2px rgba(21, 111, 247, 0.25);
+      filter: brightness(120%);
+    }
+  }
 }

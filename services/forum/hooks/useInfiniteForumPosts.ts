@@ -18,6 +18,7 @@ async function infiniteFetcher(queryParams: QueryParams, page: number) {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: 'include',
       },
       !token,
     );
@@ -36,6 +37,7 @@ async function infiniteFetcher(queryParams: QueryParams, page: number) {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      credentials: 'include',
     },
     !token,
   );

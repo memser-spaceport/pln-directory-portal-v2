@@ -73,7 +73,6 @@ async function fetcher(cid: number | string, categoryTopicSort: string) {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        credentials: 'include',
       },
       !token,
     );
@@ -94,7 +93,6 @@ async function fetcher(cid: number | string, categoryTopicSort: string) {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      credentials: 'include',
     },
     !token,
   );

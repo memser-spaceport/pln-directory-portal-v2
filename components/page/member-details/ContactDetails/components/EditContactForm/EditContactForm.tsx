@@ -206,7 +206,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
           <div className={clsx(s.row, s.center)}>
             <div className={s.switchLabelWrapper}>
               <div className={s.switchLabel}>Show contact details to PL network members</div>
-              <div className={s.switchDesc}>Contact details are never displayed publicly.</div>
+              <div className={s.switchDesc}>Contact details are never displayed publicly</div>
             </div>
             <FormSwitch name="shareContacts" variant="secondary" />
           </div>

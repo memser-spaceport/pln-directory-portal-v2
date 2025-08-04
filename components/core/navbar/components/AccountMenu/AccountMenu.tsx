@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/services/members/store';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
+import { useMedia } from 'react-use';
 
 interface Props {
   userInfo: IUserInfo;
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPercent }: Props) => {
+  const isMobile = useMedia('(max-width: 960px)', false);
   const menuTriggerRef = React.useRef<HTMLButtonElement>(null);
   const defaultAvatarImage = useDefaultAvatar(userInfo?.name);
   const analytics = useCommonAnalytics();
@@ -112,7 +114,7 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                 Settings
                 <Menu.Separator className={s.Separator} />
               </div>
-              <Link href="/settings/profile">
+              <Link href={isMobile ? '/settings' : '/settings/profile'}>
                 <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Settings Profile', getAnalyticsUserInfo(userInfo))}>
                   <SettingsIcon /> Account Settings
                 </Menu.Item>

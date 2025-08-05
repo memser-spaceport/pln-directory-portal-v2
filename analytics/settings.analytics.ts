@@ -190,6 +190,14 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.RECOMMENDATION_EMAIL_FEEDBACK_CLICKED, params);
   }
 
+  function onForumDigestOptionSelect(params: any) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.FORUM_DIGEST_OPTION_SELECTED, params);
+  }
+
+  function onSubscribeToPlNewsletterChange(params: Record<any, boolean>) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE, params);
+  }
+
   return {
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
@@ -213,6 +221,8 @@ export const useSettingsAnalytics = () => {
     onRecommendationsPageOpenFromMail,
     onRecommendationsSettingsSaveClicked,
     onRecommendationsSettingsResetClicked,
-    onRecommendationEmailFeedbackClicked
+    onRecommendationEmailFeedbackClicked,
+    onForumDigestOptionSelect,
+    onSubscribeToPlNewsletterChange,
   };
 };

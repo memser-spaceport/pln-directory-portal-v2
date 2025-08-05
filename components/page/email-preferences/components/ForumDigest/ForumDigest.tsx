@@ -9,6 +9,7 @@ import { Field } from '@base-ui-components/react/field';
 import { clsx } from 'clsx';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
 import dynamic from 'next/dynamic';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 const Select = dynamic(() => import('react-select'), { ssr: false });
 
 const options = [
@@ -32,6 +33,7 @@ const options = [
 export const ForumDigest = ({ userInfo }: { userInfo: IUserInfo }) => {
   const { mutate } = useUpdateForumDigestSettings();
   const { data } = useGetForumDigestSettings(userInfo.uid);
+  const analytics = useSettingsAnalytics();
 
   const value = useMemo(() => {
     if (!data) {
@@ -59,39 +61,51 @@ export const ForumDigest = ({ userInfo }: { userInfo: IUserInfo }) => {
     }
 
     if (value.value === 'no_digest') {
+      const _payload = {
+        ...data,
+        forumDigestEnabled: false,
+      };
+
       mutate({
         uid: userInfo.uid,
-        payload: {
-          ...data,
-          forumDigestEnabled: false,
-        },
+        payload: _payload,
       });
+
+      analytics.onForumDigestOptionSelect(_payload);
 
       return;
     }
 
     if (value.value === 'daily_digest') {
+      const _payload = {
+        ...data,
+        forumDigestEnabled: true,
+        forumDigestFrequency: 1,
+      };
+
       mutate({
         uid: userInfo.uid,
-        payload: {
-          ...data,
-          forumDigestEnabled: true,
-          forumDigestFrequency: 1,
-        },
+        payload: _payload,
       });
+
+      analytics.onForumDigestOptionSelect(_payload);
 
       return;
     }
 
     if (value.value === 'weekly_digest') {
+      const _payload = {
+        ...data,
+        forumDigestEnabled: true,
+        forumDigestFrequency: 7,
+      };
+
       mutate({
         uid: userInfo.uid,
-        payload: {
-          ...data,
-          forumDigestEnabled: true,
-          forumDigestFrequency: 7,
-        },
+        payload: _payload,
       });
+
+      analytics.onForumDigestOptionSelect(_payload);
 
       return;
     }

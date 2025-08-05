@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 
 import s from './ForumHeader.module.scss';
@@ -31,6 +31,7 @@ const sortOptions = [
 ];
 
 export const ForumHeader = () => {
+  const [menuPortalTarget, setMenuPortalTarget] = useState<HTMLElement | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[0];
@@ -44,13 +45,19 @@ export const ForumHeader = () => {
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      setMenuPortalTarget(document.body);
+    }
+  }, []);
+
   return (
     <div className={s.root}>
       <h1>Forum</h1>
       <div className={s.inline}>
         <span>Sort by:</span>
         <Select
-          menuPortalTarget={document?.body}
+          menuPortalTarget={menuPortalTarget}
           menuPlacement="auto"
           options={sortOptions}
           value={value}

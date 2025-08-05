@@ -23,6 +23,7 @@ import { EditFormMobileControls } from '@/components/page/member-details/compone
 import { clsx } from 'clsx';
 import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
 import { FormSwitch } from '@/components/form/FormSwitch';
+import { ADMIN_ROLE } from '@/utils/constants';
 
 interface Props {
   onClose: () => void;
@@ -44,6 +45,8 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
       shareContacts: getDefaultToggleValue(member.preferences),
     },
   });
+  const isAdmin = !!(userInfo && userInfo.roles?.includes(ADMIN_ROLE));
+  const isOwner = userInfo && userInfo.uid === member.id;
   const { handleSubmit, reset } = methods;
   const { mutateAsync } = useUpdateMember();
   const { mutateAsync: updatePreferences } = useUpdateMemberPreferences();
@@ -80,7 +83,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
       participantType: 'MEMBER',
       referenceUid: member.id,
       uniqueIdentifier: member.email,
-      newData: formatPayload(memberData.memberInfo, formData),
+      newData: formatPayload(memberData.memberInfo, formData, isAdmin),
     };
 
     const prefRes = await updatePreferences({ uid: memberData.memberInfo.uid, payload: preferencesPayload });
@@ -175,7 +178,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
         <div className={s.body}>
           <div className={s.row}>
             <Image src={getLogoByProvider('email')} alt="Email" height={24} width={24} />
-            <FormField name="email" label="Email" placeholder="Enter your email" disabled>
+            <FormField name="email" label="Email" placeholder="Enter your email" disabled={isOwner}>
               {member.id === userInfo.uid && (
                 <button type="button" className={s.editEmailBtn} onClick={onEmailEdit}>
                   <EditIcon />
@@ -206,9 +209,9 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
           <div className={clsx(s.row, s.center)}>
             <div className={s.switchLabelWrapper}>
               <div className={s.switchLabel}>Show contact details to PL network members</div>
-              <div className={s.switchDesc}>Contact details are never displayed publicly.</div>
+              <div className={s.switchDesc}>Contact details are never displayed publicly</div>
             </div>
-            <FormSwitch name="shareContacts" variant="secondary" />
+            <FormSwitch name="shareContacts" />
           </div>
           <div className={s.separator} />
           <div className={s.row}>
@@ -259,11 +262,11 @@ function getLogoByProvider(provider: string): string {
   }
 }
 
-function formatPayload(memberInfo: any, formData: TEditContactForm) {
+function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boolean) {
   return {
     imageUid: memberInfo.imageUid,
     name: memberInfo.name,
-    email: memberInfo.email,
+    email: isAdmin ? formData.email : memberInfo.email,
     plnStartDate: memberInfo.plnStartDate,
     city: '',
     region: '',

@@ -184,6 +184,9 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   MANAGE_TEAMS_MEMBER_TEAM_LEAD_TOGGLE_CHANGE: 'manage-teams-member-team-lead-toggle-change',
   MANAGE_TEAMS_MEMBER_REMOVE: 'manage-teams-member-remove',
   MANAGE_TEAMS_MEMBER_UNDO: 'manage-teams-member-undo',
+
+  SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE: 'settings-subscribe-to-newsletter-change',
+  FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {

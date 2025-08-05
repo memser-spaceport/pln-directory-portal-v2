@@ -28,6 +28,7 @@ async function mutation({ uid, cid, title, content }: CreatePostMutationParams) 
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(uid && uid !== userInfo.uid ? { 'x-impersonate-member-uid': uid } : {}),
       },
+      credentials: 'include',
     },
     !token,
   );

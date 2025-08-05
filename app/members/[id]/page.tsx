@@ -1,5 +1,5 @@
 import Error from '@/components/core/error';
-import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.scss';
 import { BreadCrumb } from '@/components/core/bread-crumb';
@@ -65,6 +65,8 @@ export default MemberDetails;
 
 const getpageData = async (memberId: string) => {
   const { userInfo, isLoggedIn } = getCookiesFromHeaders();
+  const isAdmin = userInfo && userInfo.roles?.includes(ADMIN_ROLE);
+  const isOwner = userInfo && userInfo.uid === memberId;
   const parsedUserInfo = userInfo;
   let member: any;
   let teams: any[];
@@ -81,7 +83,7 @@ const getpageData = async (memberId: string) => {
     }
 
     const [memberResponse, memberTeamsResponse] = await Promise.all([
-      getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo, true, true),
+      getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo, !isAdmin && !isOwner, true),
       getAllTeams(
         '',
         {

@@ -23,9 +23,8 @@ export const FormSwitch = ({ name, label, variant = 'primary' }: Props) => {
     >
       {label}
       <Switch.Root defaultChecked className={s.Switch} checked={val} onCheckedChange={() => setValue(name, !val, { shouldValidate: true, shouldDirty: true })}>
-        <CloseIcon />
         <Switch.Thumb className={s.Thumb}>
-          <CheckIcon />
+          <div className={s.dot} />
         </Switch.Thumb>
       </Switch.Root>
     </label>

@@ -211,7 +211,7 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
               <div className={s.switchLabel}>Show contact details to PL network members</div>
               <div className={s.switchDesc}>Contact details are never displayed publicly</div>
             </div>
-            <FormSwitch name="shareContacts" variant="secondary" />
+            <FormSwitch name="shareContacts" />
           </div>
           <div className={s.separator} />
           <div className={s.row}>

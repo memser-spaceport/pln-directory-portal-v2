@@ -16,14 +16,14 @@
   padding: 8px 16px 16px 16px;
   align-items: flex-start;
   align-self: stretch;
-  background: #FFF;
+  background: #fff;
   max-width: 852px;
   margin-inline: auto;
 
   @include media.tablet-landscape {
     border-radius: 12px;
     border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
-    background: var(--background-base-white, #FFF);
+    background: var(--background-base-white, #fff);
     box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
     padding: 24px;
     margin-bottom: 16px;
@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 20px;
   font-style: normal;
   font-weight: 500;
@@ -77,7 +77,7 @@
 }
 
 .title {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 24px;
   font-style: normal;
   font-weight: 500;
@@ -99,7 +99,7 @@
     display: flex;
     gap: 4px;
 
-    color: var(--foreground-neutral-tertiary, #8897AE);
+    color: var(--foreground-neutral-tertiary, #8897ae);
     font-size: 12px;
     font-style: normal;
     font-weight: 400;
@@ -158,7 +158,7 @@
 }
 
 .name {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
@@ -178,7 +178,7 @@
 }
 
 .time {
-  color: var(--foreground-neutral-tertiary, #8897AE);
+  color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -198,7 +198,7 @@
 }
 
 .postContent {
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 16px;
   font-style: normal;
   font-weight: 400;
@@ -208,12 +208,22 @@
   overflow-wrap: break-word;
   word-break: break-word;
 
-  ul, ol {
+  ul,
+  ol {
     padding: revert;
   }
 
   img {
     max-width: 100%;
+  }
+
+  a {
+    color: #156ff7;
+
+    &:hover {
+      text-decoration: underline;
+      color: #0f5bcb;
+    }
   }
 }
 
@@ -221,7 +231,7 @@
   margin-top: 24px;
   height: 1px;
   width: 100%;
-  background: #E2E8F0;
+  background: #e2e8f0;
 
   @include media.tablet-landscape {
     display: none;

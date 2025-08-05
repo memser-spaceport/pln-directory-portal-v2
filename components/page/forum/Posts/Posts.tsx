@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Avatar } from '@base-ui-components/react/avatar';
+import { decode } from 'he';
 
 import s from './Posts.module.scss';
 import Link from 'next/link';
@@ -76,7 +77,7 @@ export const Posts = () => {
                 analytics.onPostClicked({ tid: post.tid });
               }}
             >
-              <div className={s.title}>{post.title}</div>
+              <div className={s.title}>{decode(post.title)}</div>
               <div className={s.desc}>
                 <span dangerouslySetInnerHTML={{ __html: content ?? '' }} />
               </div>

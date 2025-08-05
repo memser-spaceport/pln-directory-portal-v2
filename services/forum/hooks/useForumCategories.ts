@@ -206,6 +206,7 @@ async function fetcher() {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      credentials: 'include',
     },
     !token,
   );

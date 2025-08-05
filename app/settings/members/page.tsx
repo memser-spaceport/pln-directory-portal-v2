@@ -14,7 +14,7 @@ import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 const getPageData = async (selectedMemberId: string, authToken: string, isVerifiedFlag: string) => {
   const dpResult = await getMembersInfoForDp(isVerifiedFlag);
   let selectedVerifiedFlag = isVerifiedFlag;
-  let selectedMember; 
+  let selectedMember;
   let preferences: any = {};
   if (dpResult.error) {
     return { isError: true };
@@ -27,18 +27,18 @@ const getPageData = async (selectedMemberId: string, authToken: string, isVerifi
       isError: true,
     };
   }
-  if(selectedMemberId) {
+  if (selectedMemberId) {
     selectedVerifiedFlag = memberResult?.data?.isVerified?.toString() ?? 'true';
   }
 
   selectedMember = memberResult.data;
-  preferences.memberPreferences = preferenceResult.memberPreferences
-  preferences.preferenceSettings = preferenceResult.preferenceSettings
+  preferences.memberPreferences = preferenceResult.memberPreferences;
+  preferences.preferenceSettings = preferenceResult.preferenceSettings;
   return {
     members,
     selectedMember,
     preferences,
-    selectedVerifiedFlag
+    selectedVerifiedFlag,
   };
 };
 
@@ -60,10 +60,10 @@ export default async function ManageMembers(props: any) {
     redirect(PAGE_ROUTES.HOME);
   }
   const { members, isError, selectedMember, preferences, selectedVerifiedFlag } = await getPageData(selectedMemberId, authToken, isVerified);
-  if( preferences.memberPreferences) {
+  if (preferences.memberPreferences) {
     preferences.memberPreferences.newsLetter = selectedMember?.isSubscribedToNewsletter;
   }
-  const formattedMembers = [...members]?.filter(v => v.id !== userInfo.uid)
+  const formattedMembers = [...members]?.filter((v) => v.id !== userInfo.uid);
   if (isError) {
     return 'Error';
   }
@@ -83,14 +83,21 @@ export default async function ManageMembers(props: any) {
           </div>
         </div>
         <div className={styles.ps__backbtn}>
-            <SettingsBackButton title="Manage Member" />
+          <SettingsBackButton title="Manage Member" />
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" userInfo={userInfo}/>
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage members" userInfo={userInfo} />
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageMembersSettings preferences={preferences} viewType={viewType} selectedMember={selectedMember} members={formattedMembers ?? []} userInfo={userInfo} isVerifiedFlag={selectedVerifiedFlag ?? 'true'}/>
+            <ManageMembersSettings
+              preferences={preferences}
+              viewType={viewType}
+              selectedMember={selectedMember}
+              members={formattedMembers ?? []}
+              userInfo={userInfo}
+              isVerifiedFlag={selectedVerifiedFlag ?? 'true'}
+            />
           </div>
         </div>
       </div>

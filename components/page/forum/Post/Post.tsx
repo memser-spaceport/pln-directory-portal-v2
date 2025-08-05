@@ -20,6 +20,7 @@ import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { BackButton } from '@/components/page/forum/BackButton';
 import { useCommentNotificationEmailLinkEventCapture, useCommentNotificationEmailReplyEventCapture, useDigestEmailLinkEventCapture } from '@/components/page/forum/hooks';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
+import { decode } from 'he';
 
 export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const router = useRouter();
@@ -101,7 +102,7 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
           )}
         </div>
 
-        <h1 className={s.title}>{post.title}</h1>
+        <h1 className={s.title}>{decode(post.title)}</h1>
 
         <div className={s.sub}>
           <div className={s.subItem}>

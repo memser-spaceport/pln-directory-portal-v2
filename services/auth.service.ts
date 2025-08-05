@@ -23,10 +23,10 @@ export const checkIsValidToken = async (token: string) => {
     cache: 'no-store',
   });
   const validateResult = await validateResponse.json();
-  console.log('auth.service validateResult', validateResult);
+  // console.log('auth.service validateResult', validateResult);
 
   if (!validateResponse?.ok) {
-    return null; 
+    return null;
   }
 
   return validateResult;

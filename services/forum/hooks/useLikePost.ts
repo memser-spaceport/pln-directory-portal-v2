@@ -23,6 +23,7 @@ async function mutation({ pid }: MutationParams) {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      credentials: 'include',
     },
     !token,
   );

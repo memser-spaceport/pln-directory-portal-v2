@@ -233,6 +233,7 @@ export async function fetcher(tid: string) {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      credentials: 'include',
     },
     !token,
   );

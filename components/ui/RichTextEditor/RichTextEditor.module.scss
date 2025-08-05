@@ -48,7 +48,8 @@
   :global(.ql-editor) {
     //min-height: 100px;
     font-size: 16px;
-    word-break: break-all;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   :global(.ql-formats.ql-formats) {

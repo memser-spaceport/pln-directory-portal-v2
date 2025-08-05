@@ -85,7 +85,8 @@
   letter-spacing: -0.4px;
   margin-top: 8px;
   width: 100%;
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .sub {
@@ -204,7 +205,8 @@
   line-height: 24px; /* 150% */
   letter-spacing: -0.3px;
   width: 100%;
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-break: break-word;
 
   ul, ol {
     padding: revert;

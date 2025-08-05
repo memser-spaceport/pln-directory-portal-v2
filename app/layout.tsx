@@ -57,8 +57,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const { userInfo, isLoggedIn, authToken } = getCookiesFromHeaders();
 
-  console.log(userInfo, isLoggedIn, authToken);
-
   return (
     <html>
       <head>

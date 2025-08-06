@@ -6,9 +6,9 @@ import { CreatePost } from '@/components/page/forum/CreatePost';
 import { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import { redirect } from 'next/navigation';
 import { ADMIN_ROLE } from '@/utils/constants';
-import { BackButton } from '@/components/page/forum/BackButton';
 
 import s from './page.module.scss';
+import { BackButton } from '@/components/ui/BackButton';
 
 interface PageProps {
   params: {

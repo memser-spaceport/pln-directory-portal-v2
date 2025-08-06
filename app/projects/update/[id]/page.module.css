@@ -11,6 +11,9 @@
   
   .editProject {
     background-color:  #F1F5F9;
+    width: 100%;
+    max-width: 1024px;
+    margin: 0 auto;
   }
 
   .editProject__cnt {
@@ -20,10 +23,13 @@
   
   @media (min-width: 1024px) {
     .editProject__breadcrumb {
-      display: unset;
       height: 48px;
       display: flex;
       align-items: center;
     }
   }
-  
+
+.backBtn {
+    position: sticky;
+    top: var(--app-header-height);
+}

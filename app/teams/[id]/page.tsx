@@ -14,13 +14,13 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.css';
-import { BreadCrumb } from '@/components/core/bread-crumb';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
-import { AsksSection } from '@/components/page/team-details/asks-section/AsksSection';
+import { BackButton } from '@/components/ui/BackButton';
+import React from 'react';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -51,9 +51,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
   return (
     <>
       <div className={styles?.teamDetail}>
-        <div className={styles?.teamDetail__breadcrumb}>
-          <BreadCrumb backLink="/teams" directoryName="Teams" pageName={team?.name ?? ''} />
-        </div>
+        <BackButton to={`/teams`} />
         <div className={styles?.teamDetail__container}>
           {/* Details */}
           <div className={styles?.teamDetail__Container__details}>

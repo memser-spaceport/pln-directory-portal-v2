@@ -15,9 +15,12 @@ interface PageProps {
     categoryId: string;
     topicId: string;
   };
+  searchParams: {
+    from?: string;
+  };
 }
 
-const EditPostPage = async ({ params }: PageProps) => {
+const EditPostPage = async ({ params, searchParams }: PageProps) => {
   const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
 
@@ -47,18 +50,20 @@ const EditPostPage = async ({ params }: PageProps) => {
   });
 
   if (!response?.ok) {
-    redirect(`/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found`);
+    const redirectUrl = `/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found${searchParams.from ? `&from=${searchParams.from}` : ''}`;
+    redirect(redirectUrl);
   }
 
   const data = (await response.json()) as TopicResponse;
 
   if (!data) {
-    redirect(`/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found`);
+    const redirectUrl = `/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found${searchParams.from ? `&from=${searchParams.from}` : ''}`;
+    redirect(redirectUrl);
   }
 
   return (
     <div className={s.root}>
-      <BackButton to={`/forum/topics/${params.categoryId}/${params.topicId}`} />
+      <BackButton to={`/forum/topics/${params.categoryId}/${params.topicId}${searchParams.from ? `?from=${searchParams.from}` : ''}`} />
       <CreatePost
         pid={data.mainPid}
         isEdit

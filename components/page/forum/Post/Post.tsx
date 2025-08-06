@@ -32,6 +32,10 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const replyToItem = data?.posts?.slice(1).find((item) => item.pid === replyToPid);
 
+  // Get the category to navigate back to from the 'from' query parameter
+  // If not provided, fallback to the current post's category
+  const fromCategory = searchParams.get('from') || categoryId;
+
   const post = useMemo(() => {
     if (!data) {
       return null;
@@ -77,7 +81,7 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   if (!post) {
     return (
       <div className={s.container}>
-        <BackButton to={`/forum?cid=${categoryId}`} />
+        <BackButton to={`/forum?cid=${fromCategory}`} />
         <PostPageLoader />
       </div>
     );
@@ -85,9 +89,9 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
 
   return (
     <div className={s.container}>
-      <BackButton to={`/forum?cid=${categoryId}`} />
+      <BackButton to={`/forum?cid=${fromCategory}`} />
       <div className={s.root}>
-        <Link href={`/forum?cid=${categoryId}`} className={s.back}>
+        <Link href={`/forum?cid=${fromCategory}`} className={s.back}>
           <ChevronLeftIcon /> Back to forum
         </Link>
 

@@ -3,10 +3,12 @@
 
 .container {
   padding-bottom: 120px;
+  background: white;
 
   @include media.tablet-landscape {
     max-width: 852px;
     margin: 0 auto;
+    background: unset;
   }
 }
 

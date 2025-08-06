@@ -15,14 +15,16 @@ import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
 import { LikesButton } from '@/components/page/forum/LikesButton';
 import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
-import { IUserInfo } from '@/types/shared.types';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { useCommentNotificationEmailLinkEventCapture, useCommentNotificationEmailReplyEventCapture, useDigestEmailLinkEventCapture } from '@/components/page/forum/hooks';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { decode } from 'he';
 import { BackButton } from '@/components/ui/BackButton';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
+import forumStyles from '@/app/forum/page.module.scss';
 
-export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
+export const Post = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { categoryId, topicId } = useParams();
@@ -35,6 +37,10 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   // Get the category to navigate back to from the 'from' query parameter
   // If not provided, fallback to the current post's category
   const fromCategory = searchParams.get('from') || categoryId;
+
+  // Get user info from client-side cookies
+  const { userInfo } = getCookiesFromClient();
+  const isLoggedIn = !!userInfo;
 
   const post = useMemo(() => {
     if (!data) {
@@ -77,6 +83,23 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   useDigestEmailLinkEventCapture();
   useCommentNotificationEmailLinkEventCapture();
   useCommentNotificationEmailReplyEventCapture();
+
+  // Handle authentication states
+  if (!isLoggedIn) {
+    return (
+      <div className={forumStyles.root}>
+        <LoggedOutView />
+      </div>
+    );
+  }
+
+  if (userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1') {
+    return (
+      <div className={forumStyles.root}>
+        <LoggedOutView accessLevel={userInfo.accessLevel} />
+      </div>
+    );
+  }
 
   if (!post) {
     return (

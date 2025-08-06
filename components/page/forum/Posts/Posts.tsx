@@ -72,7 +72,7 @@ export const Posts = () => {
             <Link
               className={s.listItem}
               key={post.tid}
-              href={`/forum/topics/${post.cid}/${post.tid}`}
+              href={`/forum/topics/${post.cid}/${post.tid}?from=${cid || '0'}`}
               // prefetch={false}
               onClick={() => {
                 analytics.onPostClicked({ tid: post.tid });

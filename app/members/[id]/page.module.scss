@@ -2,10 +2,13 @@
 
 .memberDetail {
   display: flex;
+  align-items: flex-start;
   flex-direction: column;
-  gap: 8px;
   padding-bottom: 110px;
   background-color: #f1f5f9;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
 
   @include media.tablet-landscape {
     padding-bottom: 40px;
@@ -84,7 +87,6 @@
 
   .memberDetail__container {
     width: 900px;
-    padding-top: 38px;
   }
 
   .memberDetail__container__header {

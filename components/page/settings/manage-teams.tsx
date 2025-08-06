@@ -614,8 +614,8 @@ function ManageTeamsSettings(props: any) {
           }
           .ms__head {
             background: white;
-            position: sticky;
-            top: 128px;
+            //position: sticky;
+            //top: 128px;
             z-index: 3;
             padding-bottom: 8px;
           }
@@ -701,8 +701,8 @@ function ManageTeamsSettings(props: any) {
               padding-top: 0px;
             }
             .ms__head {
-              top: 128.5px;
-              padding-bottom: 0px;
+              //top: 128.5px;
+              padding-bottom: 0;
             }
             .ms__member-selection {
               padding: 8px 16px;

@@ -3,6 +3,12 @@
   min-height: calc(100vh - 80px);
 }
 
+.backButtonWrapper {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
 .project__breadcrumb {
   height: 48px;
   border-bottom: 1px solid  #E2E8F0;
@@ -57,9 +63,9 @@
   .project__container {
     display: flex;
     flex-direction: row;
-    gap: 32px;
+    gap: 24px;
     justify-content: center;
-    padding-block: 40px;
+    padding-bottom: 40px;
   }
 
   .project__container__details__primary {

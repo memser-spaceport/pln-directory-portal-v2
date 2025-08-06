@@ -118,20 +118,27 @@
   }
   
   .submitATeam {
-    background-color:  #F1F5F9;
+      background-color:  #F1F5F9;
+      width: 100%;
+      max-width: 1024px;
+      margin: 0 auto;
   }
   
   .submitATeam__cnt {
     display: flex;
     justify-content: center;
+      width: 100%;
   }
   
   @media (min-width: 1024px) {
     .submitATeam__breadcrumb {
-      display: unset;
       height: 48px;
       display: flex;
       align-items: center;
     }
   }
-  
+
+.backBtn {
+    position: sticky;
+    top: var(--app-header-height);
+}

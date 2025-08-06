@@ -17,10 +17,10 @@ import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { IUserInfo } from '@/types/shared.types';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
-import { BackButton } from '@/components/page/forum/BackButton';
 import { useCommentNotificationEmailLinkEventCapture, useCommentNotificationEmailReplyEventCapture, useDigestEmailLinkEventCapture } from '@/components/page/forum/hooks';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { decode } from 'he';
+import { BackButton } from '@/components/ui/BackButton';
 
 export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const router = useRouter();

@@ -4,8 +4,7 @@ import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 
 import s from './page.module.scss';
 import { CreatePost } from '@/components/page/forum/CreatePost';
-import { BreadCrumb } from '@/components/core/bread-crumb';
-import { BackButton } from '@/components/page/forum/BackButton';
+import { BackButton } from '@/components/ui/BackButton';
 
 const NewPostPage = async () => {
   const { isLoggedIn, userInfo } = getCookiesFromHeaders();

@@ -6,6 +6,8 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import styles from './page.module.css';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { RedirectType, redirect } from 'next/navigation';
+import { BackButton } from '@/components/ui/BackButton';
+import React from 'react';
 
 export default async function EditProject({ params }: any) {
   const projectId = params.id;
@@ -19,11 +21,9 @@ export default async function EditProject({ params }: any) {
   }
   return (
     <div className={styles?.editProject}>
-      <div className={styles.editProject__breadcrumb}>
-        <BreadCrumb backLink="/projects" directoryName="Project" pageName="Edit Project" />
-      </div>
-        <div className={styles.editProject__cnt}>
-        <AddEditProjectContainer project={project} type="Edit"  userInfo={userInfo}/>
+      <BackButton to={`/projects`} className={styles.backBtn} />
+      <div className={styles.editProject__cnt}>
+        <AddEditProjectContainer project={project} type="Edit" userInfo={userInfo} />
       </div>
     </div>
   );
@@ -31,7 +31,7 @@ export default async function EditProject({ params }: any) {
 
 async function getPageData(projectId: string) {
   const isError = false;
-  const { isLoggedIn, userInfo} = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
   let project = null;
   try {
     const [projectResponse] = await Promise.all([getProject(projectId, {})]);
@@ -39,13 +39,13 @@ async function getPageData(projectId: string) {
       return { isError: true, project, isLoggedIn, userInfo };
     }
     const result: any = projectResponse.data.formattedData;
-    project = { ...result, contributions: result?.contributors, maintainingTeam: {...result?.maintainingTeam, logo: result?.maintainingTeam?.logo?.url  }};
+    project = { ...result, contributions: result?.contributors, maintainingTeam: { ...result?.maintainingTeam, logo: result?.maintainingTeam?.logo?.url } };
 
     return {
       isError,
       project,
       isLoggedIn,
-      userInfo
+      userInfo,
     };
   } catch (error) {
     console.error(error);
@@ -53,7 +53,7 @@ async function getPageData(projectId: string) {
       isError: true,
       project,
       isLoggedIn,
-      userInfo
+      userInfo,
     };
   }
 }

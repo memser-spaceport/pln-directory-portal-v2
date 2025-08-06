@@ -45,6 +45,7 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
       desc: data.posts[0]?.content,
       image: data.posts[0]?.user?.picture,
       author: data.author.displayname,
+      memberUid: data.posts[0]?.user?.memberUid,
       position: data.author.teamRole && data.author.teamName ? `${data.author.teamRole} @${data.author.teamName}` : '',
       time: formatDistanceToNow(new Date(data.timestamp), { addSuffix: true }),
       upvoted: data.posts[0]?.upvoted,
@@ -115,13 +116,17 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
         </div>
 
         <div className={s.footer}>
-          <Avatar.Root className={s.Avatar}>
-            <Avatar.Image src={post.image || getDefaultAvatar(post.author)} width="40" height="40" className={s.Image} />
-            <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
-          </Avatar.Root>
+          <Link href={`/members/${post.memberUid}`} onClick={(e) => e.stopPropagation()}>
+            <Avatar.Root className={s.Avatar}>
+              <Avatar.Image src={post.image || getDefaultAvatar(post.author)} width="40" height="40" className={s.Image} />
+              <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
+            </Avatar.Root>
+          </Link>
           <div className={s.col}>
             <div className={s.inline}>
-              <div className={s.name}>by {post.author}</div>
+              <Link href={`/members/${post.memberUid}`} className={s.name} onClick={(e) => e.stopPropagation()}>
+                by {post.author}
+              </Link>
               <div className={s.position}>· {post.position}</div>
             </div>
             <div className={s.time}>{post.time}</div>

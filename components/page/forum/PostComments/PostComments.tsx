@@ -15,6 +15,7 @@ import { useMedia } from 'react-use';
 import { IUserInfo } from '@/types/shared.types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
+import Link from 'next/link';
 
 interface Props {
   tid: number;
@@ -102,13 +103,17 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
     <>
       <div className={s.itemRoot} key={item.pid} ref={ref}>
         <div className={s.footer}>
-          <Avatar.Root className={s.Avatar}>
-            <Avatar.Image src={item.user?.picture || getDefaultAvatar(item.user?.username)} width="32" height="32" className={s.Image} />
-            <Avatar.Fallback className={s.Fallback}>A</Avatar.Fallback>
-          </Avatar.Root>
+          <Link href={`/members/${item.user.memberUid}`} onClick={(e) => e.stopPropagation()}>
+            <Avatar.Root className={s.Avatar}>
+              <Avatar.Image src={item.user?.picture || getDefaultAvatar(item.user?.username)} width="32" height="32" className={s.Image} />
+              <Avatar.Fallback className={s.Fallback}>A</Avatar.Fallback>
+            </Avatar.Root>
+          </Link>
           <div className={s.col}>
             <div className={s.inline}>
-              <div className={s.name}>{item.user.displayname}</div>
+              <Link href={`/members/${item.user.memberUid}`} className={s.name} onClick={(e) => e.stopPropagation()}>
+                {item.user.displayname}
+              </Link>
               <div className={s.position}>· {item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : ''}</div>
               <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
             </div>

@@ -119,6 +119,10 @@
   align-items: center;
   margin-block: 16px;
   gap: 12px;
+
+  a:hover {
+    color: var(--action-foreground-brand-hover, #0060FF);
+  }
 }
 
 .Avatar {

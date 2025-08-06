@@ -556,8 +556,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
           }
           .ms__head {
             background: white;
-            position: sticky;
-            top: 128px;
+            //position: sticky;
+            //top: 128px;
             z-index: 3;
             padding-bottom: 8px;
           }
@@ -640,8 +640,8 @@ function ManageMembersSettings({ members = [], preferences = {}, selectedMember 
               border: 1px solid #e2e8f0;
             }
             .ms__head {
-              top: 128.5px;
-              padding-bottom: 0px;
+              //top: var(--app-header-height);
+              padding-bottom: 0;
             }
             .ms__member-selection {
               padding: 8px 16px;

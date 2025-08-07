@@ -26,7 +26,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   const hasCanHelpWith = !!member.officeHoursCanHelpWith;
 
   const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
-  const shouldShowDialog = true; // memberPreferences?.memberPreferences?.showOfficeHoursDialog !== false;
+  const shouldShowDialog = memberPreferences?.memberPreferences?.showOfficeHoursDialog !== false;
 
   const handleScheduleMeeting = () => {
     if (!hasOfficeHours) return;
@@ -85,9 +85,16 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
             <h3 className={s.subTitle}>Office Hours</h3>
             <p>{getDesc()}</p>
           </div>
-          <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
-            Schedule Meeting
-          </button>
+          {hasOfficeHours && (
+            <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
+              Schedule Meeting
+            </button>
+          )}
+          {!hasOfficeHours && (
+            <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
+              Add Office Hours
+            </button>
+          )}
         </div>
       </div>
 

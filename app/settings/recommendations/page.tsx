@@ -76,11 +76,11 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
   return (
     <>
       <div className={styles.privacy}>
-        <div className={styles.privacy__breadcrumbs}>
-          <div className={styles.privacy__breadcrumbs__desktop}>
-            <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
-          </div>
-        </div>
+        {/*<div className={styles.privacy__breadcrumbs}>*/}
+        {/*  <div className={styles.privacy__breadcrumbs__desktop}>*/}
+        {/*    <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />*/}
+        {/*  </div>*/}
+        {/*</div>*/}
         <div className={styles.privacy__backbtn}>
           <SettingsBackButton title="Recommendations" />
         </div>

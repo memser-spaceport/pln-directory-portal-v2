@@ -77,11 +77,11 @@ export default async function ManageMembers(props: any) {
   return (
     <>
       <div className={styles.ps}>
-        <div className={styles.ps__breadcrumbs}>
-          <div className={styles.ps__breadcrumbs__desktop}>
-            <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
-          </div>
-        </div>
+        {/*<div className={styles.ps__breadcrumbs}>*/}
+        {/*  <div className={styles.ps__breadcrumbs__desktop}>*/}
+        {/*    <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />*/}
+        {/*  </div>*/}
+        {/*</div>*/}
         <div className={styles.ps__backbtn}>
           <SettingsBackButton title="Manage Member" />
         </div>

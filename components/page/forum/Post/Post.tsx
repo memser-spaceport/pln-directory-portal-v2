@@ -15,14 +15,16 @@ import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
 import { LikesButton } from '@/components/page/forum/LikesButton';
 import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
-import { IUserInfo } from '@/types/shared.types';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
-import { BackButton } from '@/components/page/forum/BackButton';
 import { useCommentNotificationEmailLinkEventCapture, useCommentNotificationEmailReplyEventCapture, useDigestEmailLinkEventCapture } from '@/components/page/forum/hooks';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { decode } from 'he';
+import { BackButton } from '@/components/ui/BackButton';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
+import forumStyles from '@/app/forum/page.module.scss';
 
-export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
+export const Post = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { categoryId, topicId } = useParams();
@@ -31,6 +33,14 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   const { data } = useForumPost(topicId as string);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const replyToItem = data?.posts?.slice(1).find((item) => item.pid === replyToPid);
+
+  // Get the category to navigate back to from the 'from' query parameter
+  // If not provided, fallback to the current post's category
+  const fromCategory = searchParams.get('from') || categoryId;
+
+  // Get user info from client-side cookies
+  const { userInfo } = getCookiesFromClient();
+  const isLoggedIn = !!userInfo;
 
   const post = useMemo(() => {
     if (!data) {
@@ -45,6 +55,7 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
       desc: data.posts[0]?.content,
       image: data.posts[0]?.user?.picture,
       author: data.author.displayname,
+      memberUid: data.posts[0]?.user?.memberUid,
       position: data.author.teamRole && data.author.teamName ? `${data.author.teamRole} @${data.author.teamName}` : '',
       time: formatDistanceToNow(new Date(data.timestamp), { addSuffix: true }),
       upvoted: data.posts[0]?.upvoted,
@@ -73,10 +84,27 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
   useCommentNotificationEmailLinkEventCapture();
   useCommentNotificationEmailReplyEventCapture();
 
+  // Handle authentication states
+  if (!isLoggedIn) {
+    return (
+      <div className={forumStyles.root}>
+        <LoggedOutView />
+      </div>
+    );
+  }
+
+  if (userInfo?.accessLevel === 'L0' || userInfo?.accessLevel === 'L1') {
+    return (
+      <div className={forumStyles.root}>
+        <LoggedOutView accessLevel={userInfo.accessLevel} />
+      </div>
+    );
+  }
+
   if (!post) {
     return (
       <div className={s.container}>
-        <BackButton to={`/forum?cid=${categoryId}`} />
+        <BackButton to={`/forum?cid=${fromCategory}`} />
         <PostPageLoader />
       </div>
     );
@@ -84,9 +112,9 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
 
   return (
     <div className={s.container}>
-      <BackButton to={`/forum?cid=${categoryId}`} />
+      <BackButton to={`/forum?cid=${fromCategory}`} />
       <div className={s.root}>
-        <Link href={`/forum?cid=${categoryId}`} className={s.back}>
+        <Link href={`/forum?cid=${fromCategory}`} className={s.back}>
           <ChevronLeftIcon /> Back to forum
         </Link>
 
@@ -115,13 +143,17 @@ export const Post = ({ userInfo }: { userInfo: IUserInfo }) => {
         </div>
 
         <div className={s.footer}>
-          <Avatar.Root className={s.Avatar}>
-            <Avatar.Image src={post.image || getDefaultAvatar(post.author)} width="40" height="40" className={s.Image} />
-            <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
-          </Avatar.Root>
+          <Link href={`/members/${post.memberUid}`} onClick={(e) => e.stopPropagation()}>
+            <Avatar.Root className={s.Avatar}>
+              <Avatar.Image src={post.image || getDefaultAvatar(post.author)} width="40" height="40" className={s.Image} />
+              <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
+            </Avatar.Root>
+          </Link>
           <div className={s.col}>
             <div className={s.inline}>
-              <div className={s.name}>by {post.author}</div>
+              <Link href={`/members/${post.memberUid}`} className={s.name} onClick={(e) => e.stopPropagation()}>
+                by {post.author}
+              </Link>
               <div className={s.position}>· {post.position}</div>
             </div>
             <div className={s.time}>{post.time}</div>

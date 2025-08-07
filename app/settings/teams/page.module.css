@@ -51,7 +51,7 @@
   height: 100%;
   display: none;
   position: sticky;
-  top: 128px;
+  top: var(--app-header-height);
 }
 
 .ps__main__aside__menu {

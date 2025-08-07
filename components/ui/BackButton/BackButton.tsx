@@ -3,11 +3,12 @@
 import React from 'react';
 import s from './BackButton.module.scss';
 import { useRouter } from 'next/navigation';
+import { clsx } from 'clsx';
 
-export const BackButton = ({ to }: { to: string }) => {
+export const BackButton = ({ to, className }: { to: string; className?: string }) => {
   const router = useRouter();
   return (
-    <div className={s.subheader}>
+    <div className={clsx(s.subheader, className)}>
       <button className={s.backBtn} onClick={() => router.push(to)}>
         <BackIcon /> Back
       </button>

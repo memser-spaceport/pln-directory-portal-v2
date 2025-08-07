@@ -57,6 +57,7 @@ export type Topic = {
     userslug: string;
     teamRole: string | null;
     teamName: string | null;
+    memberUid: string;
   };
   viewcount: number;
   votes: number;

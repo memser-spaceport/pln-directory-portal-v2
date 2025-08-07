@@ -14,7 +14,7 @@ import { createPostSchema } from '@/components/page/forum/CreatePost/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { extractTextWithImages, replaceImagesWithMarkdown } from '@/utils/decode';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
 import useBlockNavigation from '@/hooks/useUnsavedChangesWarning';
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
@@ -35,6 +35,8 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
   const analytics = useForumAnalytics();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  const fromCategory = searchParams.get('from');
   useMobileNavVisibility(true);
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const { data: allMembers } = useAllMembers();
@@ -86,7 +88,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
   const handleCancel = () => {
     if (isEdit) {
       analytics.onEditPostCancel();
-      router.push(`/forum/topics/${params.categoryId}/${params.topicId}`);
+      router.push(`/forum/topics/${params.categoryId}/${params.topicId}${fromCategory ? `?from=${fromCategory}` : ''}`);
     } else {
       analytics.onCreatePostCancel();
       router.push('/forum?cid=0');
@@ -111,7 +113,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
           toast.success('Post updated successfully');
           reset(data);
           setTimeout(() => {
-            router.push(`/forum/topics/${params.categoryId}/${params.topicId}`);
+            router.push(`/forum/topics/${params.categoryId}/${params.topicId}${fromCategory ? `?from=${fromCategory}` : ''}`);
           }, 500);
         }
       } else {

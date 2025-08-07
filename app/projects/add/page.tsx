@@ -5,12 +5,14 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import styles from './page.module.css';
 import { RedirectType, redirect } from 'next/navigation';
 import { PAGE_ROUTES } from '@/utils/constants';
+import { BackButton } from '@/components/ui/BackButton';
+import React from 'react';
 
 export default function AddProject(props: any) {
-  const { isError, isLoggedIn, userInfo} = getPageData();
+  const { isError, isLoggedIn, userInfo } = getPageData();
 
-  if(!isLoggedIn) {
-      redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
+  if (!isLoggedIn) {
+    redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
   }
 
   if (isError) {
@@ -19,11 +21,9 @@ export default function AddProject(props: any) {
 
   return (
     <div className={styles?.addProject}>
-      <div className={styles.addProject__breadcrumb}>
-        <BreadCrumb backLink="/projects" directoryName="Project" pageName="Add Project" />
-      </div>
+      <BackButton to={`/projects`} className={styles.backBtn} />
       <div className={styles.addProject__cnt}>
-        <AddEditProjectContainer project={null} type="Add" userInfo={userInfo}/>
+        <AddEditProjectContainer project={null} type="Add" userInfo={userInfo} />
       </div>
     </div>
   );
@@ -31,16 +31,17 @@ export default function AddProject(props: any) {
 
 function getPageData() {
   const isError = false;
-  const { isLoggedIn, userInfo} = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
   try {
     return {
-      isLoggedIn, userInfo
+      isLoggedIn,
+      userInfo,
     };
   } catch (error) {
     console.error(error);
     return {
       isError: true,
-      userInfo
+      userInfo,
     };
   }
 }

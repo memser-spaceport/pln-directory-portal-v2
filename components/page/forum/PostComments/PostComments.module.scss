@@ -64,6 +64,10 @@
   font-weight: 600;
   line-height: 18px; /* 150% */
   letter-spacing: -0.2px;
+
+  &:hover {
+    color: var(--action-foreground-brand-hover, #0060FF);
+  }
 }
 
 .position {

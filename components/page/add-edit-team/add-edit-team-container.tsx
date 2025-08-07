@@ -31,12 +31,12 @@ export default function AddEditTeamContainer(props: any): JSX.Element {
             </div>
 
             <div className="add-edit-team__form-container">
-              <TeamRegisterForm onSuccess={onSuccessCallback} userInfo={userInfo}/>
+              <TeamRegisterForm onSuccess={onSuccessCallback} userInfo={userInfo} />
             </div>
           </>
         )}
 
-        {isSaveSuccess && <AddEditTeamSuccess/>}
+        {isSaveSuccess && <AddEditTeamSuccess />}
       </div>
 
       <style jsx>
@@ -58,13 +58,13 @@ export default function AddEditTeamContainer(props: any): JSX.Element {
 
           @media (min-width: 1024px) {
             .add-edit-team__form-container {
-              max-width: 656px;
+              max-width: 768px;
             }
             .add-edit-team {
               display: flex;
               gap: 24px;
-              padding: 24px;
-              width: unset;
+              padding: 0;
+              width: 100%;
             }
 
             .add-edit-team__indicator--mobile {
@@ -80,11 +80,9 @@ export default function AddEditTeamContainer(props: any): JSX.Element {
               background-color: white;
               padding: 24px 20px 29px 20px;
               position: sticky;
-              top: 140px;
+              top: calc(var(--app-header-height) + 64px);
             }
           }
-
-          
         `}
       </style>
     </>

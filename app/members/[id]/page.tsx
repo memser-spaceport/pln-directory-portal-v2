@@ -2,7 +2,6 @@ import Error from '@/components/core/error';
 import { ADMIN_ROLE, AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.scss';
-import { BreadCrumb } from '@/components/core/bread-crumb';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMember, getMemberUidByAirtableId } from '@/services/members.service';
 import { getAllTeams } from '@/services/teams.service';
@@ -16,6 +15,8 @@ import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/
 import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
+import { BackButton } from '@/components/ui/BackButton';
+import React from 'react';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -31,9 +32,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
   return (
     <div className={styles?.memberDetail}>
-      <div className={styles?.memberDetail__breadcrumb}>
-        <BreadCrumb backLink="/members" directoryName="Members" pageName={member?.name ?? ''} />
-      </div>
+      <BackButton to={`/members`} />
       <div className={styles?.memberDetail__container}>
         <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 

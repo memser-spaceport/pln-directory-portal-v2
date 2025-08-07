@@ -12,7 +12,7 @@ import { Metadata } from 'next';
 import { getMemberRolesForTeam, getMembersWithRoles } from '@/services/members.service';
 import { sortMemberByRole } from '@/utils/common.utils';
 
-const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean,isAdmin:boolean) => {
+const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLead: boolean, isAdmin: boolean) => {
   const dpResult = await getTeamsInfoForDp();
   let selectedTeam;
   let membersDetail;
@@ -35,11 +35,11 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
         select: 'uid,name,isVerified,image.url,teamMemberRoles.team.uid,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
         pagination: false,
       },
-      selectedTeamId ?? teams[0].id
+      selectedTeamId ?? teams[0].id,
     ),
-    getMembersWithRoles()
+    getMembersWithRoles(),
   ]);
-  
+
   if (teamResult.isError || teamMembersResponse.error || allMembersResponse.error) {
     return {
       isError: true,
@@ -47,12 +47,12 @@ const getPageData = async (selectedTeamId: string, leadingTeams: any[], isTeamLe
   }
   selectedTeam = teamResult.data;
   membersDetail = teamMembersResponse?.data?.formattedData?.sort(sortMemberByRole);
-  allMembers = allMembersResponse.data
+  allMembers = allMembersResponse.data;
   return {
     teams,
     selectedTeam,
     membersDetail,
-    allMembers
+    allMembers,
   };
 };
 
@@ -71,11 +71,11 @@ export default async function ManageTeams(props: any) {
   if (!isAdmin && !isTeamLead) {
     redirect(PAGE_ROUTES.HOME);
   }
-  if (!isAdmin && (selectedTeamId && isTeamLead && !leadingTeams.includes(selectedTeamId))) {
+  if (!isAdmin && selectedTeamId && isTeamLead && !leadingTeams.includes(selectedTeamId)) {
     redirect(PAGE_ROUTES.HOME);
   }
 
-  const { teams, isError, selectedTeam, membersDetail, allMembers } = await getPageData(selectedTeamId, leadingTeams, isTeamLead,isAdmin);
+  const { teams, isError, selectedTeam, membersDetail, allMembers } = await getPageData(selectedTeamId, leadingTeams, isTeamLead, isAdmin);
   if (isError) {
     return 'Error';
   }
@@ -89,11 +89,11 @@ export default async function ManageTeams(props: any) {
   return (
     <>
       <div className={styles.ps}>
-        <div className={styles.ps__breadcrumbs}>
-          <div className={styles.ps__breadcrumbs__desktop}>
-            <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />
-          </div>
-        </div>
+        {/*<div className={styles.ps__breadcrumbs}>*/}
+        {/*  <div className={styles.ps__breadcrumbs__desktop}>*/}
+        {/*    <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />*/}
+        {/*  </div>*/}
+        {/*</div>*/}
         <div className={styles.ps__backbtn}>
           <SettingsBackButton title="Manage Teams" />
         </div>
@@ -102,7 +102,7 @@ export default async function ManageTeams(props: any) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage teams" userInfo={userInfo} />
           </aside>
           <div className={styles.ps__main__content}>
-            <ManageTeamsSettings selectedTeam={selectedTeam} membersDetail={membersDetail} teams={teams} userInfo={userInfo} allMembers={allMembers}/>
+            <ManageTeamsSettings selectedTeam={selectedTeam} membersDetail={membersDetail} teams={teams} userInfo={userInfo} allMembers={allMembers} />
           </div>
         </div>
       </div>

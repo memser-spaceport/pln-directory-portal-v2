@@ -88,7 +88,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         }
       }
 
-      if(!formattedData?.tags || formattedData?.tags?.length === 0) {
+      if (!formattedData?.tags || formattedData?.tags?.length === 0) {
         errors.push('Please provide at least one tag');
       }
 
@@ -132,7 +132,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
   const onBackClicked = () => {
     document.body.scrollTop = 0;
     goToPreviousStep();
-  }
+  };
 
   // Handles the form submission
   const onFormSubmitHandler = async (event: SyntheticEvent) => {
@@ -149,7 +149,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
       formattedData = {
         ...formattedData,
         logoUid: projectData?.logoUid,
-      }
+      };
 
       if (type === 'Add') {
         analytics.onProjectAddSaveClicked();
@@ -174,8 +174,8 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
         return;
       }
 
-      delete formattedData["imageFile"];
-      delete formattedData["projectProfile"];
+      delete formattedData['imageFile'];
+      delete formattedData['projectProfile'];
 
       if (type === 'Add') {
         analytics.onProjectAddInitiated(getAnalyticsUserInfo(userInfo), formattedData);
@@ -307,7 +307,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
           const tag = JSON.parse(tagjson);
           result['tags'].push(tag['label']);
         }
-      }else {
+      } else {
         result[key] = object[key];
       }
     }
@@ -437,6 +437,7 @@ export default function AddEditProjectForm({ userInfo, project, type }: any) {
             padding: 0 24px;
             display: flex;
             gap: 8px;
+            z-index: 11;
           }
 
           .add-edit-form__opts__acts {

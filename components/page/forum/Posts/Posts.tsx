@@ -37,6 +37,7 @@ export const Posts = () => {
       thumb: item.thumbs ? item.thumbs?.[0]?.url : null,
       image: item.user?.picture,
       author: item.user.displayname,
+      memberUid: item.user.memberUid,
       position: item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : '',
       time: formatDistanceToNow(new Date(item.lastposttime), { addSuffix: true }),
       meta: {
@@ -71,8 +72,8 @@ export const Posts = () => {
             <Link
               className={s.listItem}
               key={post.tid}
-              href={`/forum/topics/${post.cid}/${post.tid}`}
-              // prefetch={false}
+              href={`/forum/topics/${post.cid}/${post.tid}?from=${cid || '0'}`}
+              prefetch={true}
               onClick={() => {
                 analytics.onPostClicked({ tid: post.tid });
               }}
@@ -82,13 +83,17 @@ export const Posts = () => {
                 <span dangerouslySetInnerHTML={{ __html: content ?? '' }} />
               </div>
               <div className={s.footer}>
-                <Avatar.Root className={s.Avatar}>
-                  <Avatar.Image src={post.image ?? getDefaultAvatar(post.author)} width="24" height="24" className={s.Image} />
-                  <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
-                </Avatar.Root>
+                <Link href={`/members/${post.memberUid}`} onClick={(e) => e.stopPropagation()}>
+                  <Avatar.Root className={s.Avatar}>
+                    <Avatar.Image src={post.image ?? getDefaultAvatar(post.author)} width="24" height="24" className={s.Image} />
+                    <Avatar.Fallback className={s.Fallback}>{post.author?.substring(0, 1)}</Avatar.Fallback>
+                  </Avatar.Root>
+                </Link>
                 <div className={s.col}>
                   <div className={s.inline}>
-                    <div className={s.name}>by {post.author}</div>
+                    <Link href={`/members/${post.memberUid}`} className={s.name} onClick={(e) => e.stopPropagation()}>
+                      by {post.author}
+                    </Link>
                     <div className={s.position}>· {post.position}</div>
                     <div className={s.time}>{post.time}</div>
                   </div>

@@ -8,7 +8,6 @@ import ImageUploader from 'quill-image-uploader';
 import 'quill-image-uploader/dist/quill.imageUploader.min.css';
 
 import s from './RichTextEditor.module.scss';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { toast } from 'react-toastify';
 
@@ -34,7 +33,7 @@ Quill.import('ui/icons')['officeHours'] = officeHours;
 
 const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled, autoFocus }: Props) => {
   const quillRef = useRef<any>(null);
-  const { userInfo } = getCookiesFromClient();
+  // const { userInfo } = getCookiesFromClient();
   // const { data: member } = useMember(userInfo?.uid);
 
   // 3. Define toolbar modules (with proper nesting)
@@ -42,9 +41,12 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
     return {
       toolbar: {
         container: [
-          ['bold', 'italic', 'strike'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          ['code-block', 'image'],
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'strike', 'underline'],
+          [{ color: [] }, { background: [] }],
+          [{ list: ['ordered'] }, { list: 'bullet' }],
+          [{ align: [] }],
+          ['code-block', 'link', 'image'],
           // ['code-block', 'image', 'officeHours'],
         ],
         // handlers: {

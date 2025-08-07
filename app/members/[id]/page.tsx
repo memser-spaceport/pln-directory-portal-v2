@@ -15,6 +15,7 @@ import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/
 import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
+import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 
@@ -37,6 +38,8 @@ const MemberDetails = async ({ params }: { params: any }) => {
         <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
         <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
+        <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
         <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 

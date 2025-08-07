@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
+import { OfficeHoursDialog } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursDialog';
+import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 
 import s from './OfficeHoursView.module.scss';
 
@@ -18,9 +20,34 @@ interface Props {
 }
 
 export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, showIncomplete, onEdit }: Props) => {
+  const [showDialog, setShowDialog] = useState(false);
   const hasOfficeHours = !!member.officeHours;
   const hasInterestedIn = !!member.officeHoursInterestedIn;
   const hasCanHelpWith = !!member.officeHoursCanHelpWith;
+
+  const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
+  const shouldShowDialog = true; // memberPreferences?.memberPreferences?.showOfficeHoursDialog !== false;
+
+  const handleScheduleMeeting = () => {
+    if (!hasOfficeHours) return;
+
+    if (shouldShowDialog) {
+      setShowDialog(true);
+    } else {
+      openOfficeHoursLink();
+    }
+  };
+
+  const openOfficeHoursLink = () => {
+    if (member.officeHours) {
+      window.open(member.officeHours, '_blank');
+    }
+  };
+
+  const handleDialogContinue = () => {
+    setShowDialog(false);
+    openOfficeHoursLink();
+  };
 
   function getDesc() {
     if (!hasOfficeHours) {
@@ -58,11 +85,13 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
             <h3 className={s.subTitle}>Office Hours</h3>
             <p>{getDesc()}</p>
           </div>
-          <button className={s.primaryButton} disabled={!hasOfficeHours}>
+          <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
             Schedule Meeting
           </button>
         </div>
       </div>
+
+      <OfficeHoursDialog isOpen={showDialog} onClose={() => setShowDialog(false)} onContinue={handleDialogContinue} userInfo={userInfo} />
     </div>
   );
 };

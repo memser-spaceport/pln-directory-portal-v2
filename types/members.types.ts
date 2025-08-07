@@ -237,6 +237,7 @@ export interface IMemberPreferences {
   showTelegram: boolean;
   showGithubHandle: boolean;
   showGithubProjects: boolean;
+  showOfficeHoursDialog?: boolean;
 }
 
 export interface IMemberRepository {

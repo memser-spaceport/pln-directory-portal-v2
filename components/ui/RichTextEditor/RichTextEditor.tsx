@@ -46,7 +46,7 @@ const RichTextEditor = ({ value, onChange, className, errorMessage, id, disabled
           [{ color: [] }, { background: [] }],
           [{ list: ['ordered'] }, { list: 'bullet' }],
           [{ align: [] }],
-          ['code-block', 'image'],
+          ['code-block', 'link', 'image'],
           // ['code-block', 'image', 'officeHours'],
         ],
         // handlers: {

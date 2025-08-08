@@ -16,6 +16,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import Link from 'next/link';
+import { ADMIN_ROLE } from '@/utils/constants';
 
 interface Props {
   tid: number;
@@ -119,7 +120,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
             </div>
             <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
           </div>
-          {userInfo.uid === item.user.memberUid && (
+          {(userInfo.uid === item.user.memberUid || userInfo.roles?.includes(ADMIN_ROLE)) && (
             <div className={s.menuWrapper}>
               <ItemMenu
                 onEdit={() => {
@@ -131,7 +132,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
           )}
         </div>
         {editPid ? (
-          <CommentsInputDesktop initialFocused tid={item.tid} toPid={editPid} onCancel={() => setEditPid(null)} isEdit initialContent={item.content} />
+          <CommentsInputDesktop initialFocused itemUid={item.user.memberUid} tid={item.tid} toPid={editPid} onCancel={() => setEditPid(null)} isEdit initialContent={item.content} />
         ) : (
           <div
             className={s.postContent}

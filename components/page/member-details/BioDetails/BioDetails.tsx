@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
-import MemberDetailHeader from '@/components/page/member-details/member-detail-header';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { EditProfileForm } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm';
+import { BioView } from '@/components/page/member-details/BioDetails/components/BioView';
+import { EditBioForm } from '@/components/page/member-details/BioDetails/components/EditBioForm';
 import { ADMIN_ROLE } from '@/utils/constants';
 
-import s from './ProfileDetails.module.scss';
+import s from './BioDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
@@ -18,13 +18,14 @@ interface Props {
   userInfo: IUserInfo;
 }
 
-export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
+export const BioDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const [editView, setEditView] = useState(false);
+  const [generateBio, setGenerateBio] = useState(false);
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
-  const hasMissingRequiredData = !member?.name || !member?.email;
-  const showIncomplete = !editView && hasMissingRequiredData && isOwner;
+  const hasMissingData = !member?.bio;
+  const showIncomplete = !editView && hasMissingData && isOwner;
   const { onEditProfileDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(editView);
 
@@ -32,35 +33,34 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     <div
       className={clsx(s.root, {
         [s.editView]: editView,
-        [s.missingData]: showIncomplete,
       })}
     >
       {editView ? (
-        <EditProfileForm
+        <EditBioForm
           onClose={() => {
+            setGenerateBio(false);
             setEditView(false);
           }}
           member={member}
           userInfo={userInfo}
+          generateBio={generateBio}
         />
       ) : (
-        <>
-          {/*{showIncomplete && (*/}
-          {/*  <div className={s.missingDataHeader}>*/}
-          {/*    <WarningIcon />*/}
-          {/*    Please complete your profile to get full access to the platform.*/}
-          {/*  </div>*/}
-          {/*)}*/}
-          <MemberDetailHeader
-            member={member}
-            isLoggedIn={isLoggedIn}
-            userInfo={userInfo}
-            onEdit={() => {
-              onEditProfileDetailsClicked();
-              setEditView(true);
-            }}
-          />
-        </>
+        <BioView
+          member={member}
+          isLoggedIn={isLoggedIn}
+          userInfo={userInfo}
+          isEditable={isEditable}
+          showIncomplete={showIncomplete}
+          onEdit={() => {
+            onEditProfileDetailsClicked();
+            setEditView(true);
+          }}
+          onGenerateBio={() => {
+            setGenerateBio(true);
+            setEditView(true);
+          }}
+        />
       )}
     </div>
   );

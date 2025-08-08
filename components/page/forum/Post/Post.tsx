@@ -43,7 +43,7 @@ export const Post = () => {
   const isLoggedIn = !!userInfo;
 
   const post = useMemo(() => {
-    if (!data) {
+    if (!data || !userInfo) {
       return null;
     }
 
@@ -66,7 +66,7 @@ export const Post = () => {
       },
       isEditable: data.posts[0].user.memberUid === userInfo.uid,
     };
-  }, [data, userInfo.uid]);
+  }, [data, userInfo]);
 
   useEffect(() => {
     if (!post) {

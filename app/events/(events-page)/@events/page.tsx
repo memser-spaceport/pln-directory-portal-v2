@@ -7,7 +7,7 @@ import Error from '@/components/core/error';
 import { formatFeaturedData } from '@/utils/home.utils';
 
 export default async function Events() {
-  const { aggregatedEventsData, userInfo, isError } = await getPageData();
+  const { aggregatedEventsData, userInfo, isError, isLoggedIn, authToken } = await getPageData();
 
   if (isError) {
     return <Error />;
@@ -15,8 +15,8 @@ export default async function Events() {
 
   return (
     <>
-      <EventsSection eventLocations={aggregatedEventsData} userInfo={userInfo} />
-      <RearrangeOrderPopup />
+      <EventsSection eventLocations={aggregatedEventsData} userInfo={userInfo} isLoggedIn={isLoggedIn} />
+      <RearrangeOrderPopup authToken={authToken} />
     </>
   );
 }
@@ -38,5 +38,6 @@ const getPageData = async () => {
     isLoggedIn,
     aggregatedEventsData,
     isError,
+    authToken,
   };
 };

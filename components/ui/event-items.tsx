@@ -7,9 +7,10 @@ interface EventItemsProps {
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDelete: () => void;
 }
 
-const EventItems = ({ event, originalIndex, onDragStart, onDragOver, onDrop, onDragEnd }: EventItemsProps) => {
+const EventItems = ({ event, originalIndex, onDragStart, onDragOver, onDrop, onDragEnd, onDelete }: EventItemsProps) => {
   return (
     <div 
       className="event-item"
@@ -22,47 +23,35 @@ const EventItems = ({ event, originalIndex, onDragStart, onDragOver, onDrop, onD
       <div className="event-number">{originalIndex + 1}</div>
       <div className="event-content">
         <div className="event-info">
-          <span className="event-icon">{event.icon}</span>
-          <span className="event-flag">{event.flag}</span>
-          <span className="event-name">{event.name}</span>
+          {
+            event.category === 'location' && (
+              <>
+                {
+                  event.icon && <img src={event.icon} alt="event-icon" className="event-icon" />
+                }
+                <img src={event.flag ? event.flag : '/images/irl/defaultFlag.svg'} alt="event-flag" className="event-flag" />
+              </>
+            )
+          }
+          <span className="event-name">{event.category === 'location' ? event.location?.charAt(0).toUpperCase() + event.location?.slice(1) : event.name?.charAt(0).toUpperCase() + event.name?.slice(1)}</span>
         </div>
         <div className="event-actions">
-          <button className="delete-btn">
+          <button className="delete-btn" onClick={onDelete}>
             <img src="/icons/delete-red.svg" alt="delete" />
           </button>
           <button className="drag-handle">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="9" cy="12" r="1"></circle>
-              <circle cx="9" cy="5" r="1"></circle>
-              <circle cx="9" cy="19" r="1"></circle>
-              <circle cx="15" cy="12" r="1"></circle>
-              <circle cx="15" cy="5" r="1"></circle>
-              <circle cx="15" cy="19" r="1"></circle>
-            </svg>
+            <img src="/icons/drag-event-icon.svg" alt="drag-handle" />
           </button>
         </div>
       </div>
       <style jsx>{`
-        .events-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
-        .events-column {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
         .event-item {
           display: flex;
           align-items: center;
-          gap: 10px;
           border: 1px solid #e5e7eb;
           border-radius: 8px;
           background: white;
           transition: all 0.2s;
-          cursor: grab;
         }
 
         .event-item:active {
@@ -77,6 +66,8 @@ const EventItems = ({ event, originalIndex, onDragStart, onDragOver, onDrop, onD
         .event-number {
           background-color: #dbeafe;
           color: #1d4ed8;
+          border-top-left-radius: 7px;
+          border-bottom-left-radius: 7px;
           width: 40px;
           height: 100%;
           display: flex;
@@ -92,7 +83,7 @@ const EventItems = ({ event, originalIndex, onDragStart, onDragOver, onDrop, onD
           justify-content: space-between;
           align-items: center;
           width: 100%;
-          padding: 10px 0;
+          padding: 10px 10px;
         }
 
         .event-info {
@@ -102,11 +93,13 @@ const EventItems = ({ event, originalIndex, onDragStart, onDragOver, onDrop, onD
         }
 
         .event-icon {
-          font-size: 16px;
+          width: 40px;
+          height: 40px;
         }
 
         .event-flag {
-          font-size: 16px;
+          width: 20px;
+          height: 20px;
         }
 
         .event-name {
@@ -133,7 +126,6 @@ const EventItems = ({ event, originalIndex, onDragStart, onDragOver, onDrop, onD
         }
 
         .drag-handle {
-          color: #9ca3af;
           cursor: grab;
         }
 
@@ -144,11 +136,6 @@ const EventItems = ({ event, originalIndex, onDragStart, onDragOver, onDrop, onD
         .delete-btn:hover {
           background-color: #fef2f2;
           color: #dc2626;
-        }
-
-        .drag-handle:hover {
-          background-color: #f3f4f6;
-          color: #6b7280;
         }
       `}</style>
     </div>

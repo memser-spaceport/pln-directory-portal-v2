@@ -62,6 +62,7 @@ export const getFormattedEvents = (events: any) => {
       type: event?.type,
       attendees: event?.eventGuests?.length,
       priority: event?.priority,
+      aggregatedPriority: event?.aggregatedPriority,
     };
   });
 };
@@ -79,6 +80,7 @@ export const getFormattedLocations = (location: any) => {
       pastEvents: loc.pastEvents,
       upcomingEvents: loc.upcomingEvents,
       followers: loc.subscribers,
+      aggregatedPriority: loc?.aggregatedPriority,
     };
   });
 };
@@ -199,4 +201,13 @@ export function formatFeaturedData(featuredData: any) {
   });
 
   return prioritizedData;
+}
+
+export function formatBasedOnAggregatedPriority(featuredData: any) {
+  if (!featuredData) {
+    return [];
+  }
+  return featuredData.sort((a: any, b: any) => {
+    return a.aggregatedPriority - b.aggregatedPriority;
+  });
 }

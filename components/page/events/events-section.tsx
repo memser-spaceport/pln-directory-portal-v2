@@ -9,8 +9,9 @@ import Cookies from 'js-cookie';
 import CurrentEventCard from "./current-events-card"
 import { getAggregatedEventsData } from "@/services/events.service"
 import { useEventsAnalytics } from "@/analytics/events.analytics";
-import { EVENTS, PAGE_ROUTES } from "@/utils/constants";
-import { isPastDate } from "@/utils/irl.utils"
+import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, PAGE_ROUTES } from "@/utils/constants";
+import { canUserPerformEditAction, isPastDate } from "@/utils/irl.utils"
+import { getAccessLevel } from '@/utils/auth.utils';
 import { formatFeaturedData } from "@/utils/home.utils"
 import ShadowButton from "@/components/ui/ShadowButton"
 
@@ -30,12 +31,17 @@ interface EventsSectionProps {
 export default function EventsSection({ 
   eventLocations,
   userInfo,
+  isLoggedIn,
 }: EventsSectionProps) {
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" })
   const [canScrollPrev, setCanScrollPrev] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(true);
   const [featuredData, setfeaturedData] = useState(eventLocations ?? []);
+  const roles = userInfo?.roles ?? [];
+  const isUserLoggedIn = isLoggedIn ?? false;
+  const canUserRearrangeOrder =  canUserPerformEditAction(roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
+  const accessLevel = getAccessLevel(userInfo, isUserLoggedIn);
 
   // Update scroll buttons state
   useEffect(() => {
@@ -144,7 +150,7 @@ export default function EventsSection({
           >
             <img src="/icons/arrow-right-blue.svg" alt="Next" width={20} height={20} />
           </button>
-         <ShadowButton
+         {canUserRearrangeOrder && accessLevel === 'advanced'&& <ShadowButton
           buttonColor="#156FF7"
           shadowColor="#3DFEB1"
           buttonHeight="48px"
@@ -155,7 +161,7 @@ export default function EventsSection({
          >
           Rearrange order / Add New
           <img src="/icons/swap-icon.svg" alt="Next" className="navigation-buttons-rearrange-icon" />
-         </ShadowButton>
+         </ShadowButton>}
         </div>
       </div>
 
@@ -334,7 +340,7 @@ export default function EventsSection({
             display: block;
             overflow: hidden;
             width: 100%;
-            margin: 0px 20px;
+            margin: 10px 20px 0px 20px;
           }
           
           .carousel-viewport {

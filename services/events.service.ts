@@ -3,9 +3,23 @@ import { getHeader } from "@/utils/common.utils";
 import { EVENTS_TEAM_UID } from "@/utils/constants";
 import { getFormattedEvents, getFormattedLocations } from "@/utils/home.utils";
 
-export const getAggregatedEventsData = async (authToken?: any) => {
-    let url = `${process.env.DIRECTORY_API_URL}/v1/irl/aggregated-data`;
-
+export const getAggregatedEventsData = async (authToken?: string, name?: string, orderBy?: string, isAggregated?: boolean): Promise<any> => {
+    // Build query parameters properly
+    const queryParams = new URLSearchParams();
+    
+    if (name) {
+      queryParams.append('name', name);
+    }
+    
+    if (orderBy) {
+      queryParams.append('orderBy', orderBy);
+    }
+    
+    if (isAggregated !== undefined) {
+      queryParams.append('isAggregated', isAggregated.toString());
+    }
+    const queryString = queryParams.toString();
+    const url = `${process.env.DIRECTORY_API_URL}/v1/irl/aggregated-data${queryString ? `?${queryString}` : ''}`;
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -17,7 +31,6 @@ export const getAggregatedEventsData = async (authToken?: any) => {
       }
   
       const result = await response.json();
-    
       const formattedEvents = getFormattedEvents(result?.events || []);
       let formattedLocations = getFormattedLocations(result?.locations || []);
   
@@ -163,5 +176,26 @@ export const getGuestDetail = async () => {
   } catch (error) {
     console.error('Error fetching guest detail:', error);
     return { error: { message: 'Failed to fetch guest detail' } };
+  }
+}
+
+export const updatePriority = async (authToken: string, data: any) => {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/irl/aggregated-data`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: getHeader(authToken),
+      body: JSON.stringify(data),
+    });
+
+    if (!response?.ok) {
+      return { error: { statusText: response?.statusText } };
+    }
+    const result = await response.json();
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating priority:', error);
+    return { error: { message: 'Failed to update priority' } };
   }
 }

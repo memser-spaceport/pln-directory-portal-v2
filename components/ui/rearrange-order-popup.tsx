@@ -4,26 +4,38 @@ import { EVENTS } from '@/utils/constants';
 import EventItems from './event-items';
 import { Tag } from './tag';
 import ShadowButton from './ShadowButton';
+import { getAggregatedEventsData, updatePriority } from '@/services/events.service';
+import { formatBasedOnAggregatedPriority, formatFeaturedData } from '@/utils/home.utils';
+import { toast } from 'react-toastify';
 
-const RearrangeOrderPopup = () => {
+const RearrangeOrderPopup = (props: any) => {
+  const authToken = props?.authToken || '';
   const [isOpen, setIsOpen] = useState(false);
+  const [eventLocationSuggestions, setEventLocationSuggestions] = useState<any[]>([]);
   const [searchValue, setSearchValue] = useState('');
-  const [events, setEvents] = useState([
-    { id: 1, name: 'A', icon: '🏢', flag: '🇮🇳' },
-    { id: 2, name: 'B', icon: '🏛️', flag: '🇯🇵' },
-    { id: 3, name: 'C', icon: '', flag: '' },
-    { id: 4, name: 'D', icon: '🗼', flag: '🇨🇦' },
-    { id: 5, name: 'E', icon: '🏢', flag: '🇦🇪' },
-    { id: 6, name: 'F', icon: '🏢', flag: '🇮🇳' },
-    { id: 7, name: 'G', icon: '🏛️', flag: '🇯🇵' },
-    { id: 8, name: 'H', icon: '', flag: '' },
-    { id: 9, name: 'I', icon: '🗼', flag: '🇨🇦' },
-    { id: 10, name: 'J', icon: '🏢', flag: '🇦🇪' },
-  ]);
+  const [eventList, setEventList] = useState<any[]>([]);
+  const [originalOrder, setOriginalOrder] = useState<any[]>([]);
+  const [recentlyAdded, setRecentlyAdded] = useState<any[]>([]);
+  const [priorityChanges, setPriorityChanges] = useState<{
+    events: Array<{ uid: string; aggregatedPriority: number; isAggregated: boolean }>;
+    locations: Array<{ uid: string; aggregatedPriority: number; isAggregated: boolean }>;
+  }>({
+    events: [],
+    locations: [],
+  });
+  const [deletedItems, setDeletedItems] = useState<{
+    events: Array<{ uid: string; aggregatedPriority: null; isAggregated: boolean }>;
+    locations: Array<{ uid: string; aggregatedPriority: null; isAggregated: boolean }>;
+  }>({
+    events: [],
+    locations: [],
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const totalEvents = eventList.length;
+  const isEven = totalEvents % 2 === 0;
+  const leftColumnCount = isEven ? totalEvents / 2 : Math.ceil(totalEvents / 2);
 
-  const recentlyAdded = ['London', 'FIL Bangalore', 'Funding the commons', 'San Francisco'];
-
-  // Handle drag and drop reordering
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     e.dataTransfer.setData('text/plain', index.toString());
     (e.currentTarget as HTMLElement).style.opacity = '0.5';
@@ -36,112 +48,324 @@ const RearrangeOrderPopup = () => {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
     e.preventDefault();
     const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
-    
+
     if (dragIndex === dropIndex) return;
 
-    const newEvents = [...events];
+    const newEvents = [...eventList];
     const draggedEvent = newEvents[dragIndex];
-    
-    // Remove the dragged item
     newEvents.splice(dragIndex, 1);
-    // Insert at the new position
     newEvents.splice(dropIndex, 0, draggedEvent);
-    
-    setEvents(newEvents);
+    setEventList(newEvents);
+    const newPriorityChanges = calculatePriorityChanges(newEvents);
+    setPriorityChanges(newPriorityChanges);
   };
 
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
     (e.currentTarget as HTMLElement).style.opacity = '1';
   };
 
+  const handleDeleteItem = (index: number) => {
+    const itemToDelete = eventList[index];
+    const itemKey = itemToDelete.uid || itemToDelete.id;
+    const newEventList = eventList.filter((_, i) => i !== index);
+    setEventList(newEventList);
+
+    setDeletedItems((prevDeletedItems) => {
+      const newDeletedItems = { ...prevDeletedItems };
+      if (itemToDelete.category === 'event') {
+        newDeletedItems.events.push({
+          uid: itemKey,
+          aggregatedPriority: null,
+          isAggregated: false,
+        });
+      } else if (itemToDelete.category === 'location') {
+        newDeletedItems.locations.push({
+          uid: itemKey,
+          aggregatedPriority: null,
+          isAggregated: false,
+        });
+      }
+      return newDeletedItems;
+    });
+
+    const newPriorityChanges = calculatePriorityChanges(newEventList);
+    setPriorityChanges(newPriorityChanges);
+  };
+
+  const calculatePriorityChanges = (currentList: any[]) => {
+    const events: Array<{ uid: string; aggregatedPriority: number; isAggregated: boolean }> = [];
+    const locations: Array<{ uid: string; aggregatedPriority: number; isAggregated: boolean }> = [];
+
+    const originalPositions = new Map();
+    originalOrder.forEach((item, index) => {
+      const key = item.uid || item.id;
+      originalPositions.set(key, index);
+    });
+
+    currentList.forEach((item, currentIndex) => {
+      const itemKey = item.uid || item.id;
+      const originalIndex = originalPositions.get(itemKey);
+
+      const isNewItem = originalIndex === undefined;
+      const hasChangedPosition = originalIndex !== currentIndex;
+
+      if (isNewItem || hasChangedPosition) {
+        const newPriority = currentIndex + 1;
+
+        if (item.category === 'event') {
+          events.push({
+            uid: itemKey,
+            aggregatedPriority: newPriority,
+            isAggregated: true,
+          });
+        } else if (item.category === 'location') {
+          locations.push({
+            uid: itemKey,
+            aggregatedPriority: newPriority,
+            isAggregated: true,
+          });
+        }
+      }
+    });
+
+    return { events, locations };
+  };
+
+  const handleSuggestionSelect = (suggestion: any) => {
+    const newEventList = [suggestion, ...eventList];
+    setEventList(newEventList);
+
+    const newPriorityChanges = calculatePriorityChanges(newEventList);
+    setPriorityChanges(newPriorityChanges);
+
+    setEventLocationSuggestions([]);
+    setSearchValue('');
+  };
+
+  const handleTagClick = (item: any) => {
+    const newEventList = [item, ...eventList];
+    setEventList(newEventList);
+
+    const newPriorityChanges = calculatePriorityChanges(newEventList);
+    setPriorityChanges(newPriorityChanges);
+  };
+
+  const getEventLocationSuggestions = async (searchValue: string) => {
+    try {
+      let aggregatedEventsResponse = await getAggregatedEventsData(authToken, searchValue, undefined, false);
+      const aggregatedEventsData = formatFeaturedData(aggregatedEventsResponse?.data);
+      setEventLocationSuggestions(aggregatedEventsData);
+    } catch (error) {
+      console.error('Error fetching event location suggestions:', error);
+      return { error: { message: 'Failed to fetch event location suggestions' } };
+    }
+  };
+
+  const handleSearchLocation = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const searchValue = e.target.value;
+    setSearchValue(searchValue);
+    if (searchValue.trim().length > 0) {
+      const timeoutId = setTimeout(() => {
+        getEventLocationSuggestions(searchValue);
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setSearchValue('');
+      setEventLocationSuggestions([]);
+    }
+  };
+
   useEffect(() => {
-    function handler(e: CustomEvent) {
+    async function handler(e: CustomEvent) {
       const loadingStatus = e.detail;
       if (loadingStatus) {
-        console.log('Rearrange order popup triggered');
         setIsOpen(true);
+        setIsLoading(true);
+        try {
+          const [aggregatedEventsResponse, recentlyAddedResponse] = await Promise.all([
+            getAggregatedEventsData(authToken, undefined, 'aggregatedPriority', true),
+            getAggregatedEventsData(authToken, undefined, '-createdAt', false),
+          ]);
+
+          const aggregatedEventsData = formatBasedOnAggregatedPriority(aggregatedEventsResponse?.data);
+          setEventList(aggregatedEventsData);
+          setOriginalOrder(aggregatedEventsData);
+          setRecentlyAdded(recentlyAddedResponse.data);
+        } catch (error) {
+          console.error('Error fetching aggregated events data:', error);
+        } finally {
+          setIsLoading(false);
+        }
       } else {
         setIsOpen(false);
+        setIsLoading(false);
       }
     }
 
-    document.addEventListener(EVENTS.TRIGGER_REARRANGE_ORDER_POPUP, handler as EventListener);
+    document.addEventListener(EVENTS.TRIGGER_REARRANGE_ORDER_POPUP, handler as unknown as EventListener);
+
     return () => {
-      document.removeEventListener(EVENTS.TRIGGER_REARRANGE_ORDER_POPUP, handler as EventListener);
+      document.removeEventListener(EVENTS.TRIGGER_REARRANGE_ORDER_POPUP, handler as unknown as EventListener);
     };
-  }, []);
+  }, [authToken]);
+
+  useEffect(() => {
+    if (eventList.length > 0 && originalOrder.length === eventList.length) {
+      setPriorityChanges({ events: [], locations: [] });
+      setDeletedItems({ events: [], locations: [] });
+    }
+  }, [eventList.length, originalOrder.length]);
 
   const handleClose = () => {
     setIsOpen(false);
   };
 
+  const handleSaveChanges = async () => {
+    try {
+      setIsSaving(true);
+      const finalPriorityChanges = calculatePriorityChanges(eventList);
+      const combinedChanges = {
+        events: [...deletedItems.events, ...finalPriorityChanges.events],
+        locations: [...deletedItems.locations, ...finalPriorityChanges.locations],
+      };
+      const result = await updatePriority(authToken, combinedChanges);
+
+      if (result.error) {
+        console.error('Error saving changes:', result.error);
+        return;
+      }
+
+      setOriginalOrder([...eventList]);
+      setPriorityChanges({ events: [], locations: [] });
+      setDeletedItems({ events: [], locations: [] });
+      setIsOpen(false);   
+      toast.success('Changes saved successfully');  
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      toast.error('Error saving changes');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const hasChanges = () => {
+    const hasPriorityChanges = priorityChanges.events.length > 0 || priorityChanges.locations.length > 0;
+    const hasDeletedItems = deletedItems.events.length > 0 || deletedItems.locations.length > 0;
+    const hasListChanges =
+      eventList.length !== originalOrder.length ||
+      eventList.some((item, index) => {
+        const originalItem = originalOrder[index];
+        return !originalItem || item.uid !== originalItem.uid || item.id !== originalItem.id;
+      });
+
+    const hasChangesResult = hasPriorityChanges || hasDeletedItems || hasListChanges;
+    return hasChangesResult;
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="rearrange-order-popup">
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="modal-header">
-          <h2 className="modal-title">Add New Events / Locations</h2>
-          <button className="close-btn" onClick={() => setIsOpen(false)}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+    <div className="rearrange__order" onClick={handleClose}>
+      <div className="rearrange__order__container" onClick={(e) => e.stopPropagation()}>
+        <div className="rearrange__order__container__header">
+          <h2 className="header__content">Add New Events / Locations</h2>
+          <img src="/icons/close-gray.svg" alt="close" className="header__content-closeIcon" width={20} height={20} onClick={() => setIsOpen(false)} />
         </div>
 
-        {/* Search Bar */}
-        <div className="search-container">
-          <div className="search-input-wrapper">
-            <img src="/icons/search-gray.svg" alt="search" className="search-icon" />
-            <input type="text" placeholder="Search" value={searchValue} onChange={(e) => setSearchValue(e.target.value)} className="search-input" />
+        <div className="rearrange__order__container__search">
+          <div className="search__wrapper">
+            <img src="/icons/search-gray.svg" alt="search" className="search__wrapper-searcIcon" />
+            <input type="text" placeholder="Search" value={searchValue} onChange={(e) => handleSearchLocation(e)} className="search__wrapper-searchInput" />
+            {searchValue.trim().length > 0 && (
+              <div className="search__loaction">
+                {eventLocationSuggestions.length === 0 && <p className="search__loaction__suggestion">No suggestions found</p>}
+                {eventLocationSuggestions.length > 0 &&
+                  eventLocationSuggestions.map((suggestion: any) => (
+                    <div key={suggestion.place_id} className="search__loaction__suggestion" onClick={() => handleSuggestionSelect(suggestion)}>
+                      <div className="search__loaction__suggestion__content">
+                        <img src={suggestion.category === 'event' ? '/icons/category-event.svg' : '/icons/category-location.svg'} alt="suggestion" className="suggestion-image" />
+                        <p>{suggestion.name?.charAt(0).toUpperCase() + suggestion.name?.slice(1) || suggestion.location?.charAt(0).toUpperCase() + suggestion.location?.slice(1)}</p>
+                      </div>
+                      <img src="/icons/add-blue.svg" alt="arrow-right" className="arrow-right" />
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Recently Added */}
-        <div className="recently-added-section">
-          <h3 className="section-title">Recently Added Events & Locations</h3>
-          <div className="tags-container">
-            {recentlyAdded.map((item, index) => (
-              <Tag key={index} value={`${item} +`} variant="secondary" />
-            ))}
+        <div className="rearrange__order__container__recentlyAdded">
+          <h3 className="recentlyAdded__title">Recently Added Events & Locations</h3>
+          <div className="recentlyAdded__tags">
+            {isLoading ? (
+              <p>Loading recently added items...</p>
+            ) : recentlyAdded.length === 0 ? (
+              <p>No recently added items</p>
+            ) : (
+              recentlyAdded
+                .slice(0, 4)
+                .map((item, index) => (
+                  <div key={index} onClick={() => handleTagClick(item)} style={{ cursor: 'pointer' }}>
+                    <Tag value={`${item.name?.charAt(0).toUpperCase() + item.name?.slice(1) || item.location?.charAt(0).toUpperCase() + item.location?.slice(1)} +`} variant="secondary" />
+                  </div>
+                ))
+            )}
           </div>
         </div>
 
-        {/* Rearrange Events */}
-        <div className="rearrange-section">
-          <h3 className="section-title-1">Rearrange Current & Upcoming Events</h3>
-          <div className="events-grid">
-            {events.map((event, index) => (
-              <EventItems 
-                key={event.id} 
-                event={event} 
-                originalIndex={index}
-                onDragStart={(e) => handleDragStart(e, index)}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, index)}
-                onDragEnd={handleDragEnd}
-              />
-            ))}
-          </div>
+        <div className="rearrange__order__container__rearrange">
+          {isLoading ? (
+            <div className="loading-message">
+              <div className="loading-spinner"></div>
+              <p>Loading events and locations...</p>
+            </div>
+          ) : eventList.length === 0 ? (
+            <div className="no-events-message">
+              <p>There is no events and location</p>
+            </div>
+          ) : (
+            <>
+              <h3 className="recentlyAdded__title-1">Rearrange Current & Upcoming Events</h3>
+              <div
+                className="events__grid"
+                style={{
+                  gridTemplateRows: `repeat(${leftColumnCount}, auto)`,
+                }}
+              >
+                {eventList.map((event: any, index: number) => (
+                  <EventItems
+                    key={event.id}
+                    event={event}
+                    originalIndex={index}
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onDragEnd={handleDragEnd}
+                    onDelete={() => handleDeleteItem(index)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Footer */}
         <div className="modal-footer">
-          {/* <button className="cancel-btn" onClick={() => setIsOpen(false)}>
-            Cancel
-          </button> */}
           <ShadowButton buttonColor="#FFFFFF" shadowColor="#156FF7" buttonHeight="40px" buttonWidth="100px" textColor="#000000" onClick={() => setIsOpen(false)}>
             Cancel
           </ShadowButton>
-          <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonHeight="40px" buttonWidth="130px" onClick={() => setIsOpen(false)}>
-            Save Changes
-          </ShadowButton>
+          {hasChanges() ? (
+            <ShadowButton buttonColor="#156FF7" shadowColor="#3DFEB1" buttonHeight="40px" buttonWidth="130px" onClick={handleSaveChanges}>
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </ShadowButton>
+          ) : (
+            <ShadowButton buttonColor="#E5E7EB" shadowColor="#CBD5E1" buttonHeight="40px" buttonWidth="130px" textColor="#6B7280" disabled={true}>
+              No changes
+            </ShadowButton>
+          )}
         </div>
       </div>
       <style jsx>{`
-        .rearrange-order-popup {
+        .rearrange__order {
           position: fixed;
           top: 0;
           left: 0;
@@ -155,28 +379,22 @@ const RearrangeOrderPopup = () => {
           padding: 1rem;
         }
 
-        .rearrange-order-popup-content {
-          background: white;
-          border-radius: 8px;
-          width: 100%;
-          max-width: 500px;
-          max-height: 80vh;
-          overflow-y: auto;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .rearrange-order-popup-header {
+        .search__loaction__suggestion__content {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          padding: 1rem 1.5rem;
+          gap: 8px;
         }
-
-        .rearrange-order-popup-header h2 {
-          margin: 0;
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #111827;
+        .search__loaction {
+          position: absolute;
+          width: 100%;
+          margin-top: 6px;
+          max-height: 200px;
+          overflow-y: auto;
+          background: white;
+          border-top: none;
+          border-radius: 6px;
+          z-index: 4;
+          box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
         }
 
         .close-button {
@@ -195,43 +413,6 @@ const RearrangeOrderPopup = () => {
 
         .close-button:hover {
           color: #374151;
-        }
-
-        .rearrange-order-popup-body {
-          padding: 1.5rem;
-        }
-
-        .rearrange-order-popup-body-item {
-          padding: 1rem;
-          border: 1px solid #e5e7eb;
-          border-radius: 6px;
-          margin-bottom: 1rem;
-          background: #f9fafb;
-          cursor: move;
-        }
-
-        .rearrange-order-popup-body-item:last-child {
-          margin-bottom: 0;
-        }
-
-        .rearrange-order-popup-body-item h3 {
-          margin: 0 0 0.5rem 0;
-          font-size: 1rem;
-          font-weight: 500;
-          color: #111827;
-        }
-
-        .rearrange-order-popup-body-item p {
-          margin: 0;
-          font-size: 0.875rem;
-          color: #6b7280;
-        }
-
-        .rearrange-order-popup-footer {
-          display: flex;
-          justify-content: flex-end;
-          gap: 0.75rem;
-          padding: 1rem 1.5rem;
         }
 
         .cancel-button,
@@ -263,7 +444,7 @@ const RearrangeOrderPopup = () => {
         .save-button:hover {
           background: #2563eb;
         }
-        .modal-container {
+        .rearrange__order__container {
           background: white;
           border-radius: 12px;
           width: 100%;
@@ -275,7 +456,7 @@ const RearrangeOrderPopup = () => {
             0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
-        .modal-header {
+        .rearrange__order__container__header {
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -283,47 +464,81 @@ const RearrangeOrderPopup = () => {
           margin-bottom: 10px;
         }
 
-        .modal-title {
+        .header__content {
           font-size: 18px;
           font-weight: 600;
           color: #111827;
           margin: 0;
         }
 
-        .close-btn {
+        .search__loaction__suggestion {
+          padding: 12px;
+          cursor: pointer;
+          font-size: 14px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .search__loaction__suggestion:hover {
+          background-color: #f5f7fa;
+        }
+
+        .search__loaction__suggestion .arrow-right {
+          flex-shrink: 0;
+          width: 16px;
+          height: 16px;
+        }
+
+        @media (max-width: 768px) {
+          .search__loaction__suggestion {
+            padding: 10px 12px;
+            font-size: 16px;
+          }
+
+          .search__loaction__suggestion .arrow-right {
+            width: 18px;
+            height: 18px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .search__loaction__suggestion {
+            padding: 12px 16px;
+            font-size: 16px;
+          }
+
+          .search__loaction__suggestion .arrow-right {
+            width: 20px;
+            height: 20px;
+          }
+        }
+        .header__content-closeIcon {
           background: none;
           border: none;
           cursor: pointer;
-          padding: 4px;
-          color: #6b7280;
-          border-radius: 4px;
-          transition: all 0.2s;
         }
 
-        .close-btn:hover {
-          background-color: #f3f4f6;
-          color: #374151;
-        }
-
-        .search-container {
+        .rearrange__order__container__search {
           padding: 0 24px;
           margin-bottom: 20px;
         }
 
-        .search-input-wrapper {
+        .search__wrapper {
           position: relative;
-          width: 100%;
+          width: 446px;
         }
 
-        .search-icon {
+        .search__wrapper-searcIcon {
           position: absolute;
           left: 12px;
           top: 50%;
           transform: translateY(-50%);
         }
 
-        .search-input {
-          width: 446px;
+        .search__wrapper-searchInput {
+          width: 100%;
           padding: 12px 12px 12px 44px;
           border: 1px solid #d1d5db;
           border-radius: 8px;
@@ -331,19 +546,19 @@ const RearrangeOrderPopup = () => {
           outline: none;
         }
 
-        .recently-added-section {
+        .rearrange__order__container__recentlyAdded {
           padding: 0 24px;
           margin-bottom: 32px;
         }
 
-        .section-title {
+        .recentlyAdded__title {
           font-size: 14px;
           font-weight: 500;
           color: rgba(100, 116, 139, 1);
           line-height: 28px;
           margin: 0 0 10px 0;
         }
-        .section-title-1 {
+        .recentlyAdded__title-1 {
           font-size: 16px;
           font-weight: 600;
           color: rgba(15, 23, 42, 1);
@@ -351,7 +566,7 @@ const RearrangeOrderPopup = () => {
           margin: 0 0 10px 0;
         }
 
-        .tags-container {
+        .recentlyAdded__tags {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
@@ -373,14 +588,14 @@ const RearrangeOrderPopup = () => {
           font-weight: 500;
         }
 
-        .rearrange-section {
+        .rearrange__order__container__rearrange {
           padding: 0 24px;
-          // margin-bottom: 24px;
         }
 
-        .events-grid {
+        .events__grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
+          grid-auto-flow: column;
           gap: 16px;
         }
 
@@ -452,6 +667,52 @@ const RearrangeOrderPopup = () => {
 
         .save-btn:hover {
           background-color: #2563eb;
+        }
+        .no-events-message {
+          padding: 2rem;
+          text-align: center;
+          color: #6b7280;
+          font-size: 16px;
+          font-weight: 500;
+          background-color: #f9fafb;
+          border-radius: 8px;
+          border: 1px dashed #d1d5db;
+          margin: 1rem 0;
+        }
+        .loading-message {
+          padding: 2rem;
+          text-align: center;
+          color: #6b7280;
+          font-size: 16px;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          border-radius: 8px;
+          margin: 1rem 0;
+        }
+        .loading-spinner {
+          border: 4px solid #f3f3f3; /* Light grey */
+          border-top: 4px solid #3498db; /* Blue */
+          border-radius: 50%;
+          width: 30px;
+          height: 30px;
+          animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+        .tags-container p {
+          color: #6b7280;
+          font-size: 14px;
+          margin: 0;
+          padding: 8px 0;
         }
       `}</style>
     </div>

@@ -87,11 +87,19 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
     }
   }
 
+  function getAlertMessage() {
+    if (!hasOfficeHours) {
+      return 'Make it easy for others in the network to connect with you — add your Office Hours link to enable quick 1:1 chats.';
+    }
+
+    return 'Make your Office Hours specific to value your time around connections that really matter.';
+  }
+
   return (
     <>
       {showIncomplete && (
         <div className={s.incompleteStrip}>
-          <InfoIcon /> Make it easy for others in the network to connect with you — add your Office Hours link to enable quick 1:1 chats.
+          <InfoIcon /> {getAlertMessage()}
         </div>
       )}
       <div
@@ -113,12 +121,12 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
               <h3 className={s.subTitle}>Office Hours</h3>
               <p>{getDesc()}</p>
             </div>
-            {!showIncomplete && (
+            {hasOfficeHours && (
               <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
                 Schedule Meeting
               </button>
             )}
-            {showIncomplete && (
+            {!hasOfficeHours && (
               <button className={s.primaryButton} onClick={onEdit}>
                 Add Office Hours <PlusIcon />
               </button>

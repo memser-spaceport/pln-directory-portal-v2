@@ -22,8 +22,10 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
-  const hasMissingRequiredData = !member?.officeHours;
-  const showIncomplete = !editView && hasMissingRequiredData && isOwner;
+  const showWarningUseCaseA = !member?.officeHours;
+  const showWarningUseCaseB = !member?.officeHoursInterestedIn?.length || !member?.officeHoursCanHelpWith?.length;
+  const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
+
   useMobileNavVisibility(editView);
 
   return (

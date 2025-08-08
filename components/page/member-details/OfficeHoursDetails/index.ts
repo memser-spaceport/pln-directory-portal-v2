@@ -1,0 +1,1 @@
+export { OfficeHoursDetails } from './OfficeHoursDetails';

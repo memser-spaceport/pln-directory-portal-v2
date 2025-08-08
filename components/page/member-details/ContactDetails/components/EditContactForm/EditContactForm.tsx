@@ -35,7 +35,6 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const methods = useForm<TEditContactForm>({
     defaultValues: {
-      officeHours: member.officeHours,
       telegram: member.telegramHandle,
       github: member.githubHandle,
       linkedin: member.linkedinHandle,
@@ -213,16 +212,6 @@ export const EditContactForm = ({ onClose, member, userInfo }: Props) => {
             </div>
             <FormSwitch name="shareContacts" />
           </div>
-          <div className={s.separator} />
-          <div className={s.row}>
-            <Image src={getLogoByProvider('officeHours')} alt="Office hours" height={24} width={24} style={{ marginBottom: 36 }} />
-            <FormField
-              name="officeHours"
-              label="Office Hours"
-              placeholder="Enter Office Hours link"
-              description="Drop your calendar link here so others can get in touch with you at a time that is convenient. We recommend 15-min meetings scheduled."
-            />
-          </div>
         </div>
         <EditFormMobileControls />
       </form>
@@ -253,9 +242,6 @@ function getLogoByProvider(provider: string): string {
     case 'twitter': {
       return '/icons/contact/twitter-contact-logo.svg';
     }
-    case 'officeHours': {
-      return '/icons/contact/meet-contact-logo.svg';
-    }
     default: {
       return '/icons/contact/website-contact-logo.svg';
     }
@@ -277,7 +263,6 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
     twitterHandler: formData.twitter,
     githubHandler: formData.github,
     telegramHandler: formData.telegram,
-    officeHours: formData.officeHours,
     moreDetails: memberInfo.moreDetails,
     openToWork: memberInfo.openToWork,
     plnFriend: memberInfo.plnFriend,

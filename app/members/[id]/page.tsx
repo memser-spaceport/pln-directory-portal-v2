@@ -7,6 +7,7 @@ import { getMember, getMemberUidByAirtableId } from '@/services/members.service'
 import { getAllTeams } from '@/services/teams.service';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
+import { BioDetails } from '@/components/page/member-details/BioDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
@@ -15,6 +16,7 @@ import { SubscribeToRecommendationsWidget } from '@/components/page/member-info/
 import { UpcomingEventsWidget } from '@/components/page/member-info/components/UpcomingEventsWidget';
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
+import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 
@@ -38,7 +40,11 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
         <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
+        <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
         <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
+        <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
         <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
 

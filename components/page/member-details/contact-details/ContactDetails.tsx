@@ -12,7 +12,7 @@ import { toast } from 'react-toastify';
 import { ADMIN_ROLE, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
-import { OfficeHoursHandle } from '@/components/page/member-details/office-hours-handle';
+
 import React, { Fragment } from 'react';
 import { clsx } from 'clsx';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
@@ -41,8 +41,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
   const { visibleHandles } = member;
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
-  const showOfficeHours = visibleHandles?.includes('officeHours');
-  const hasMissingRequiredData = !member?.telegramHandle || !member?.officeHours;
+  const hasMissingRequiredData = !member?.telegramHandle;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
   const showIncomplete = hasMissingRequiredData && isOwner;
@@ -110,27 +109,8 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                 })
                   .sort((a) => (a.completed ? -1 : 1))
                   .map((item) => item.content)}
-                {!member?.officeHours && (
-                  <ProfileSocialLink
-                    profile=""
-                    height={24}
-                    width={24}
-                    callback={callback}
-                    type=""
-                    handle=""
-                    logo={getLogoByProvider('officeHours', true)}
-                    className={clsx({
-                      [s.incomplete]: true,
-                    })}
-                  />
-                )}
               </div>
             </div>
-            {showOfficeHours && (
-              <div className={s.bottom}>
-                <OfficeHoursHandle member={member} userInfo={userInfo} isLoggedIn />
-              </div>
-            )}
           </div>
         ) : (
           <div className={s.socialPreview}>
@@ -139,8 +119,7 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
             <div className={s.top}>
               <div className={s.content}>
                 {visibleHandles
-                  ?.filter((item) => item !== 'officeHours')
-                  .map((item, i, arr) => {
+                  ?.map((item, i, arr) => {
                     return (
                       <Fragment key={item}>
                         <ProfileSocialLink
@@ -167,11 +146,6 @@ export const ContactDetails = ({ member, isLoggedIn, userInfo, onEdit }: Props) 
                 )}
               </div>
             </div>
-            {showOfficeHours && (
-              <div className={s.bottom}>
-                <OfficeHoursHandle member={member} userInfo={userInfo} isLoggedIn={false} />
-              </div>
-            )}
             <div className={clsx(s.control, s.mobileOnly)}>
               {!isLoggedIn && (
                 <button className={s.loginButton} onClick={onLoginClickHandler}>
@@ -211,12 +185,6 @@ function getLogoByProvider(provider: string, isIncomplete?: boolean): string {
     }
     case 'twitter': {
       return '/icons/contact/twitter-contact-logo.svg';
-    }
-    case 'officeHours': {
-      if (isIncomplete) {
-        return '/icons/contact/meet-contact-logo-orange.svg';
-      }
-      return '/icons/contact/meet-contact-logo.svg';
     }
     default: {
       return '/icons/contact/website-contact-logo.svg';

@@ -31,7 +31,12 @@ export const Post = () => {
   const { categoryId, topicId } = useParams();
   const searchParams = useSearchParams();
   const analytics = useForumAnalytics();
-  const { data } = useForumPost(topicId as string);
+
+  // Get user info from client-side cookies
+  const { userInfo } = getCookiesFromClient();
+  const isLoggedIn = !!userInfo;
+
+  const { data } = useForumPost(topicId as string, isLoggedIn);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
   const replyToItem = data?.posts?.slice(1).find((item) => item.pid === replyToPid);
 
@@ -39,12 +44,8 @@ export const Post = () => {
   // If not provided, fallback to the current post's category
   const fromCategory = searchParams.get('from') || categoryId;
 
-  // Get user info from client-side cookies
-  const { userInfo } = getCookiesFromClient();
-  const isLoggedIn = !!userInfo;
-
   const post = useMemo(() => {
-    if (!data) {
+    if (!data || !userInfo) {
       return null;
     }
 
@@ -68,6 +69,7 @@ export const Post = () => {
       isEditable: data.posts[0]?.user?.memberUid === userInfo?.uid || userInfo?.roles?.includes(ADMIN_ROLE),
     };
   }, [data, userInfo?.roles, userInfo?.uid]);
+
 
   useEffect(() => {
     if (!post) {

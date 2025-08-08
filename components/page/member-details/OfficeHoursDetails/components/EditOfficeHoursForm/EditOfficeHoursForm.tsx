@@ -25,7 +25,7 @@ interface Props {
 }
 
 const schema = yup.object().shape({
-  officeHours: yup.string().defined().url('Must be a valid URL').required('Required'),
+  officeHours: yup.string().defined().url('Must be a valid URL'),
   officeHoursInterestedIn: yup.array().of(yup.string().defined()).defined().nullable(),
   officeHoursCanHelpWith: yup.array().of(yup.string().defined()).defined().nullable(),
 });

@@ -31,13 +31,22 @@
 .content {}
 
 .officeHoursSection {
-  display: flex;
   padding: 16px;
   gap: 12px;
   align-items: flex-start;
 
   border-radius: 12px;
   background: var(--Neutral-Slate-50, #F8FAFC);
+
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  grid-template-areas:
+    'icon col'
+    'button button';
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
 }
 
 .emptyState {
@@ -99,6 +108,8 @@
   flex-direction: column;
   gap: 4px;
 
+  grid-area: col;
+
   p {
     color: var(--Neutral-Slate-600, #475569);
     font-size: 14px;
@@ -125,7 +136,7 @@
 .primaryButton {
   display: flex;
   padding: 8px var(--global-size-size-125, 10px);
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   gap: var(--spacing-zero, 4px);
   border-radius: var(--corner-radius-md, 8px);
@@ -142,6 +153,13 @@
   white-space: nowrap;
   margin-left: auto;
 
+  grid-area: button;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    width: fit-content;
+  }
+
   &:disabled {
     opacity: 0.5;
     pointer-events: none;
@@ -156,6 +174,8 @@
   flex-shrink: 0;
   border-radius: 4px;
   background: var(--Primary-Blue-100, #DBEAFE);
+
+  grid-area: icon;
 }
 
 .incompleteStrip {
@@ -163,7 +183,7 @@
   padding: 8px 16px;
   justify-content: center;
   gap: 4px;
-  align-items: center;
+  align-items: flex-start;
   align-self: stretch;
   border-radius: 8px 8px 0 0;
   background: var(--background-brand-soft-surface, #F2F5FF);
@@ -182,5 +202,29 @@
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.badgesWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.badge {
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-3xs, 6px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-brand-4, rgba(27, 77, 255, 0.04));
+
+  color: var(--foreground-brand-secondary_inverted, #4174FF);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px; /* 133.333% */
   letter-spacing: -0.2px;
 }

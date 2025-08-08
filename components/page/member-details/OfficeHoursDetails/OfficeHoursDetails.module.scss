@@ -28,12 +28,23 @@
       background: linear-gradient(0deg, rgba(21, 111, 247, 0.20) 0%, rgba(21, 111, 247, 0.20) 100%), #FFF;
       box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
     }
+
+    form {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
   }
 
   &.missingData {
     padding: 0;
     gap: 0;
-    border: 1px solid var(--border-brand-subtle, #AEBFFF);
+    border: 0;
     background: var(--background-brand-soft-surface, #F2F5FF);
+    box-shadow: none;
+
+    @include media.tablet-landscape {
+      border: 1px solid var(--border-brand-subtle, #AEBFFF);
+    }
   }
 }

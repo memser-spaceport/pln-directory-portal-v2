@@ -12,10 +12,6 @@
   flex-direction: column;
   gap: 24px;
 
-  @include media.tablet-landscape {
-    padding: 16px;
-  }
-
   &.editView {
     padding: 0;
     border-radius: 8px;
@@ -35,7 +31,9 @@
   }
 
   &.missingData {
-    //border-radius: 8px;
-    //border: 1px solid #FDE68A;
+    padding: 0;
+    gap: 0;
+    border: 1px solid var(--border-brand-subtle, #AEBFFF);
+    background: var(--background-brand-soft-surface, #F2F5FF);
   }
 }

@@ -1,5 +1,5 @@
 export interface TEditOfficeHoursForm {
-  officeHours: string | null;
+  officeHours: string;
   officeHoursInterestedIn: string[] | null;
   officeHoursCanHelpWith: string[] | null;
 }

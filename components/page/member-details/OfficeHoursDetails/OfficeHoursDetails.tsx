@@ -34,20 +34,9 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       })}
     >
       {editView ? (
-        <EditOfficeHoursForm
-          onClose={() => setEditView(false)}
-          member={member}
-          userInfo={userInfo}
-        />
+        <EditOfficeHoursForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
       ) : (
-        <OfficeHoursView
-          member={member}
-          isLoggedIn={isLoggedIn}
-          userInfo={userInfo}
-          isEditable={isEditable}
-          showIncomplete={showIncomplete}
-          onEdit={() => setEditView(true)}
-        />
+        <OfficeHoursView member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} isEditable={isEditable} showIncomplete={showIncomplete} onEdit={() => setEditView(true)} />
       )}
     </div>
   );

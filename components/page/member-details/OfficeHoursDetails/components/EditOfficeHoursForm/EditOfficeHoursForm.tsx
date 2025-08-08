@@ -10,11 +10,13 @@ import { EditFormMobileControls } from '@/components/page/member-details/compone
 import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { ADMIN_ROLE } from '@/utils/constants';
+import * as yup from 'yup';
 
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { FormTagsInput } from '@/components/form/FormTagsInput';
 
 import s from './EditOfficeHoursForm.module.scss';
+import { yupResolver } from '@hookform/resolvers/yup';
 
 interface Props {
   onClose: () => void;
@@ -22,14 +24,21 @@ interface Props {
   userInfo: IUserInfo;
 }
 
+const schema = yup.object().shape({
+  officeHours: yup.string().defined().url('Must be a valid URL').required('Required'),
+  officeHoursInterestedIn: yup.array().of(yup.string().defined()).defined().nullable(),
+  officeHoursCanHelpWith: yup.array().of(yup.string().defined()).defined().nullable(),
+});
+
 export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const methods = useForm<TEditOfficeHoursForm>({
     defaultValues: {
-      officeHours: member.officeHours,
+      officeHours: member.officeHours ?? '',
       officeHoursInterestedIn: [], // member.officeHoursInterestedIn,
       officeHoursCanHelpWith: [], // member.officeHoursCanHelpWith,
     },
+    resolver: yupResolver(schema),
   });
 
   const isAdmin = !!(userInfo && userInfo.roles?.includes(ADMIN_ROLE));

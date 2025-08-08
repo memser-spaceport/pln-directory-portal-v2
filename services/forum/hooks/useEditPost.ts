@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 export interface EditPostMutationParams {
-  uid?: string;
+  uid?: string | null;
   pid: number;
   title: string;
   content: string;

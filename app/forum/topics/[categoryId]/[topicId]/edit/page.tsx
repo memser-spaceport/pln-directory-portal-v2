@@ -73,6 +73,7 @@ const EditPostPage = async ({ params, searchParams }: PageProps) => {
           title: data.title,
           content: data.posts?.[0]?.content,
         }}
+        userInfo={userInfo}
       />
     </div>
   );

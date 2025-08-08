@@ -23,6 +23,7 @@ import { BackButton } from '@/components/ui/BackButton';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import forumStyles from '@/app/forum/page.module.scss';
+import { ADMIN_ROLE } from '@/utils/constants';
 
 export const Post = () => {
   const router = useRouter();
@@ -65,9 +66,10 @@ export const Post = () => {
         likes: data.posts[0]?.votes,
         comments: data.postcount - 1,
       },
-      isEditable: data.posts[0].user.memberUid === userInfo.uid,
+      isEditable: data.posts[0]?.user?.memberUid === userInfo?.uid || userInfo?.roles?.includes(ADMIN_ROLE),
     };
-  }, [data, userInfo]);
+  }, [data, userInfo?.roles, userInfo?.uid]);
+
 
   useEffect(() => {
     if (!post) {

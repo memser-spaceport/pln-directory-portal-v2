@@ -17,6 +17,7 @@ import { FormField } from '@/components/form/FormField';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
 import { clsx } from 'clsx';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
+import { ADMIN_ROLE } from '@/utils/constants';
 
 interface Props {
   tid: number;
@@ -27,6 +28,7 @@ interface Props {
   isEdit?: boolean;
   isReply?: boolean;
   initialContent?: string;
+  itemUid?: string;
 }
 
 const schema = yup.object().shape({
@@ -34,13 +36,14 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent }: Props) => {
+export const CommentsInputDesktop = ({ tid, toPid, itemUid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent }: Props) => {
   const analytics = useForumAnalytics();
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
   const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
   const [focused, setFocused] = useState(initialFocused ?? false);
+  const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
 
   const methods = useForm({
     defaultValues: {
@@ -84,11 +87,14 @@ export const CommentsInputDesktop = ({ tid, toPid, replyToName, onCancel, isRepl
       });
 
       if (isEdit) {
-        const res = await editPost({
+        const payload = {
+          uid: isAdmin ? itemUid : null,
           pid: toPid,
           title: '',
           content,
-        });
+        };
+
+        const res = await editPost(payload);
 
         if (res?.status?.code === 'ok') {
           reset();

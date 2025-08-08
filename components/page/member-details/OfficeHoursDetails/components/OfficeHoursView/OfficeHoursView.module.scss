@@ -165,6 +165,19 @@
     pointer-events: none;
     user-select: none;
   }
+
+  &.alertButton {
+    border-radius: var(--corner-radius-md, 8px);
+    border: 1px solid var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+    background: var(--action-background-warning-normal, #F59E0B);
+    box-shadow: 0 1px 3px 0 var(--transparent-dark-8, rgba(14, 15, 17, 0.08)) inset, 0 4px 6px 0 var(--transparent-dark-4, rgba(14, 15, 17, 0.04)) inset, 0 1px 5px 0 var(--transparent-dark-16, rgba(14, 15, 17, 0.16));
+    color: var(--action-foreground-base-inverted_white, #FFF);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px; /* 142.857% */
+    letter-spacing: -0.2px;
+  }
 }
 
 .calendarIconWrapper {
@@ -195,6 +208,32 @@
   line-height: 20px; /* 166.667% */
   letter-spacing: 0.12px;
 }
+
+.incompleteStripAlert {
+  display: flex;
+  padding: 8px 16px;
+  justify-content: center;
+  gap: 4px;
+  align-items: flex-start;
+  align-self: stretch;
+  border-radius: 8px;
+  background: linear-gradient(0deg, rgba(245, 158, 11, 0.10) 0%, rgba(245, 158, 11, 0.10) 100%), #FFF;
+
+  color: var(--foreground-warning-primary, #B45309);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+  letter-spacing: 0.12px;
+
+  span {
+    @include mixins.centralize;
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+  }
+}
+
 
 .keywordsLabel {
   color: var(--Neutral-Slate-900, #0F172A);

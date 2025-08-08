@@ -10,6 +10,7 @@ import { OfficeHoursView } from '@/components/page/member-details/OfficeHoursDet
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
+import { useValidateOfficeHours } from '@/services/members/hooks/useValidateOfficeHours';
 
 interface Props {
   member: IMember;
@@ -26,6 +27,8 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const showWarningUseCaseB = !member?.officeHoursInterestedIn?.length || !member?.officeHoursCanHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
 
+  const { data: officeHoursValidation } = useValidateOfficeHours(member);
+
   useMobileNavVisibility(editView);
 
   return (
@@ -33,12 +36,21 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       className={clsx(s.root, {
         [s.editView]: editView,
         [s.missingData]: showIncomplete,
+        [s.missingDataAlert]: officeHoursValidation && !officeHoursValidation.isValid && isOwner && !editView,
       })}
     >
       {editView ? (
         <EditOfficeHoursForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
       ) : (
-        <OfficeHoursView member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} isEditable={isEditable} showIncomplete={showIncomplete} onEdit={() => setEditView(true)} />
+        <OfficeHoursView
+          member={member}
+          isLoggedIn={isLoggedIn}
+          userInfo={userInfo}
+          isEditable={isEditable}
+          showIncomplete={showIncomplete}
+          onEdit={() => setEditView(true)}
+          isOfficeHoursValid={officeHoursValidation?.isValid ?? true}
+        />
       )}
     </div>
   );

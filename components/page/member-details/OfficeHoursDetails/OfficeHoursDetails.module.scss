@@ -47,4 +47,18 @@
       border: 1px solid var(--border-brand-subtle, #AEBFFF);
     }
   }
+
+  &.missingDataAlert {
+    padding: 0;
+    gap: 0;
+    border: 0;
+    background: var(--background-brand-soft-surface, #F2F5FF);
+    box-shadow: none;
+
+    @include media.tablet-landscape {
+      border-radius: 8px;
+      border: 1px solid var(--border-warning-subtle, #FDE68A);
+      background: linear-gradient(0deg, rgba(245, 158, 11, 0.10) 0%, rgba(245, 158, 11, 0.10) 100%), #FFF;
+    }
+  }
 }

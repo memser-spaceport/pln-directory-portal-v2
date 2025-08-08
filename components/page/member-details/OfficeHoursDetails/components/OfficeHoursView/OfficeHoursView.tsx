@@ -17,13 +17,17 @@ interface Props {
   isEditable: boolean;
   showIncomplete: boolean;
   onEdit: () => void;
+  isOfficeHoursValid: boolean;
 }
 
-export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, showIncomplete, onEdit }: Props) => {
+export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, showIncomplete, onEdit, isOfficeHoursValid }: Props) => {
   const [showDialog, setShowDialog] = useState(false);
+  const isOwner = userInfo?.uid === member.id;
   const hasOfficeHours = !!member.officeHours;
   const hasInterestedIn = !!member.officeHoursInterestedIn;
   const hasCanHelpWith = !!member.officeHoursCanHelpWith;
+  const showAlert = !isOfficeHoursValid && isOwner;
+  const showWarning = !showAlert && showIncomplete;
 
   const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
   const shouldShowDialog = memberPreferences?.memberPreferences?.showOfficeHoursDialog !== false;
@@ -97,7 +101,15 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
 
   return (
     <>
-      {showIncomplete && (
+      {showAlert && (
+        <div className={s.incompleteStripAlert}>
+          <span>
+            <AlertIcon />
+          </span>{' '}
+          The Office Hours link you added isn’t working. Update it to allow others to schedule 1:1 calls with you.
+        </div>
+      )}
+      {showWarning && (
         <div className={s.incompleteStrip}>
           <InfoIcon /> {getAlertMessage()}
         </div>
@@ -121,14 +133,19 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
               <h3 className={s.subTitle}>Office Hours</h3>
               <p>{getDesc()}</p>
             </div>
-            {hasOfficeHours && (
+            {hasOfficeHours && !showAlert && (
               <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
                 Schedule Meeting
               </button>
             )}
-            {!hasOfficeHours && (
+            {!hasOfficeHours && !showAlert && (
               <button className={s.primaryButton} onClick={onEdit}>
                 Add Office Hours <PlusIcon />
+              </button>
+            )}
+            {showAlert && (
+              <button className={clsx(s.primaryButton, s.alertButton)} onClick={onEdit}>
+                Update Office Hours
               </button>
             )}
           </div>
@@ -169,5 +186,14 @@ const PlusIcon = () => (
         fill="white"
       />
     </g>
+  </svg>
+);
+
+const AlertIcon = () => (
+  <svg width="15" height="13" viewBox="0 0 15 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M7.5 0.625C7.88281 0.625 8.23828 0.84375 8.42969 1.17188L14.3359 11.2344C14.5273 11.5898 14.5273 12 14.3359 12.3281C14.1445 12.6836 13.7891 12.875 13.4062 12.875H1.59375C1.18359 12.875 0.828125 12.6836 0.636719 12.3281C0.445312 12 0.445312 11.5898 0.636719 11.2344L6.54297 1.17188C6.73438 0.84375 7.08984 0.625 7.5 0.625ZM7.5 4.125C7.11719 4.125 6.84375 4.42578 6.84375 4.78125V7.84375C6.84375 8.22656 7.11719 8.5 7.5 8.5C7.85547 8.5 8.15625 8.22656 8.15625 7.84375V4.78125C8.15625 4.42578 7.85547 4.125 7.5 4.125ZM8.375 10.25C8.375 9.78516 7.96484 9.375 7.5 9.375C7.00781 9.375 6.625 9.78516 6.625 10.25C6.625 10.7422 7.00781 11.125 7.5 11.125C7.96484 11.125 8.375 10.7422 8.375 10.25Z"
+      fill="#B45309"
+    />
   </svg>
 );

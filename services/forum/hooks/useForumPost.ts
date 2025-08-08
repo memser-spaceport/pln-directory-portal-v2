@@ -247,9 +247,10 @@ export async function fetcher(tid: string) {
   return data as TopicResponse;
 }
 
-export function useForumPost(tid: string) {
+export function useForumPost(tid: string, isLoggedIn?: boolean) {
   return useQuery({
     queryKey: [ForumQueryKeys.GET_TOPIC, tid],
     queryFn: () => fetcher(tid),
+    enabled: isLoggedIn,
   });
 }

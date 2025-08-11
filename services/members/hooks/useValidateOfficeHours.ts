@@ -13,7 +13,7 @@ async function fetcher(member: IMember | undefined): Promise<OfficeHoursValidati
     return null;
   }
 
-  return { isValid: false };
+  return { isValid: true };
 
   // const response = await customFetch(
   //   `${process.env.DIRECTORY_API_URL}/v1/members/${member.id}/office-hours/validate`,
@@ -34,11 +34,11 @@ async function fetcher(member: IMember | undefined): Promise<OfficeHoursValidati
   // return response.json();
 }
 
-export function useValidateOfficeHours(member: IMember | undefined) {
+export function useValidateOfficeHours(member: IMember | undefined, isLoggedIn: boolean) {
   return useQuery({
     queryKey: [MembersQueryKeys.VALIDATE_OFFICE_HOURS, member?.id, member?.officeHours],
     queryFn: () => fetcher(member),
-    enabled: !!member?.officeHours,
+    enabled: !!member?.officeHours && isLoggedIn,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
   });

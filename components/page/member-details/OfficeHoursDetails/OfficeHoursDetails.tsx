@@ -27,9 +27,13 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const showWarningUseCaseB = !member?.officeHoursInterestedIn?.length || !member?.officeHoursCanHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
 
-  const { data: officeHoursValidation } = useValidateOfficeHours(member);
+  const { data: officeHoursValidation } = useValidateOfficeHours(member, isLoggedIn);
 
   useMobileNavVisibility(editView);
+
+  if (!isLoggedIn) {
+    return null;
+  }
 
   return (
     <div

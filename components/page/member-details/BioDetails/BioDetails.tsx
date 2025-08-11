@@ -29,6 +29,10 @@ export const BioDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const { onEditProfileDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(editView);
 
+  if (!isLoggedIn) {
+    return null;
+  }
+
   return (
     <div
       className={clsx(s.root, {

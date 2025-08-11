@@ -17,6 +17,7 @@ import { FormTagsInput } from '@/components/form/FormTagsInput';
 
 import s from './EditOfficeHoursForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { toast } from 'react-toastify';
 
 interface Props {
   onClose: () => void;
@@ -76,6 +77,8 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
       router.refresh();
       reset();
       onClose();
+    } else if (res?.errorData?.message) {
+      toast.error(res.errorData.message);
     }
   };
 

@@ -1,10 +1,9 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { MembersQueryKeys } from '@/services/members/constants';
+import { useMutation } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { IMember } from '@/types/members.types';
 
 interface OfficeHoursValidationResponse {
-  isValid: boolean;
+  status: IMember['ohStatus'];
   error?: string;
 }
 

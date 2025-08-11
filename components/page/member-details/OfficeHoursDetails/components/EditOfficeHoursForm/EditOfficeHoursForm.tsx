@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
-import { FormField } from '@/components/form/FormField';
+import { OfficeHoursInput } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursInput';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { TEditOfficeHoursForm } from '@/components/page/member-details/OfficeHoursDetails/types';
@@ -26,7 +26,7 @@ interface Props {
 }
 
 const schema = yup.object().shape({
-  officeHours: yup.string().defined().url('Must be a valid URL'),
+  officeHours: yup.string().defined(),
   officeHoursInterestedIn: yup.array().of(yup.string().defined()).defined().nullable(),
   officeHoursCanHelpWith: yup.array().of(yup.string().defined()).defined().nullable(),
 });
@@ -88,7 +88,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
         <EditFormControls onClose={onClose} title="Edit Office Hours" />
         <div className={s.body}>
           <div className={s.row}>
-            <FormField
+            <OfficeHoursInput
               name="officeHours"
               label="Office Hours"
               placeholder="Enter Office Hours link"

@@ -40,23 +40,33 @@ export const OfficeHoursInput = ({ name, label, placeholder, description, onVali
     watch,
     setError,
     clearErrors,
-    formState: { errors, isDirty },
+    formState: { errors, defaultValues },
   } = useFormContext();
   const [isValidating, setIsValidating] = useState(false);
   const [validationStatus, setValidationStatus] = useState<'idle' | 'valid' | 'invalid'>('idle');
+  const [lastValidatedValue, setLastValidatedValue] = useState<string>('');
 
   const fieldValue = watch(name);
   const { mutateAsync: validateOfficeHours } = useValidateOfficeHours();
 
+  // Check if this specific field has changed from its default value
+  const defaultValue = defaultValues?.[name] || '';
+  const isFieldDirty = fieldValue !== defaultValue;
+
   // Debounced validation function
   const debouncedValidate = useCallback(
-    debounce(async (value: string, formIsDirty: boolean) => {
-      // Only validate if the form is dirty (user has made changes)
-      if (!formIsDirty) {
-        setValidationStatus('idle');
+    debounce(async (value: string, fieldIsDirty: boolean) => {
+      // If field hasn't changed from default, preserve existing validation state
+      if (!fieldIsDirty) {
         setIsValidating(false);
         onValidationChange?.(false);
-        clearErrors(name);
+        return;
+      }
+
+      // If the value is the same as the last validated value, don't re-validate
+      if (value === lastValidatedValue) {
+        setIsValidating(false);
+        onValidationChange?.(false);
         return;
       }
 
@@ -90,9 +100,11 @@ export const OfficeHoursInput = ({ name, label, placeholder, description, onVali
 
         if (result?.status === 'OK') {
           setValidationStatus('valid');
+          setLastValidatedValue(value);
           clearErrors(name);
         } else {
           setValidationStatus('invalid');
+          setLastValidatedValue(value);
           setError(name, {
             type: 'manual',
             message: result?.error || 'This office hours link appears to be invalid or inaccessible',
@@ -100,6 +112,7 @@ export const OfficeHoursInput = ({ name, label, placeholder, description, onVali
         }
       } catch (error) {
         setValidationStatus('invalid');
+        setLastValidatedValue(value);
         setError(name, {
           type: 'manual',
           message: 'Unable to validate the office hours link. Please check the URL and try again.',
@@ -109,20 +122,20 @@ export const OfficeHoursInput = ({ name, label, placeholder, description, onVali
         onValidationChange?.(false);
       }
     }, 1000),
-    [validateOfficeHours, setError, clearErrors, name],
+    [validateOfficeHours, setError, clearErrors, name, lastValidatedValue],
   );
 
-  // Trigger validation when field value or dirty state changes
+  // Trigger validation when field value changes
   useEffect(() => {
     if (fieldValue !== undefined) {
-      debouncedValidate(fieldValue, isDirty);
+      debouncedValidate(fieldValue, isFieldDirty);
     }
 
     // Cleanup debounced function on unmount
     return () => {
       debouncedValidate.cancel();
     };
-  }, [fieldValue, isDirty, debouncedValidate]);
+  }, [fieldValue, isFieldDirty, debouncedValidate]);
 
   const fieldError = errors[name];
   const hasError = !!fieldError;

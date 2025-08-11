@@ -4,16 +4,12 @@ import clsx from 'clsx';
 
 import s from './EditOfficeHoursMobileControls.module.scss';
 
-interface Props {
-  isValidatingOfficeHours: boolean;
-}
-
-export const EditOfficeHoursMobileControls = ({ isValidatingOfficeHours }: Props) => {
+export const EditOfficeHoursMobileControls = () => {
   const {
-    formState: { isSubmitting, isDirty, isValid },
+    formState: { isSubmitting, isDirty, isValid, isValidating },
   } = useFormContext();
 
-  const isDisabled = isSubmitting || !isValid || isValidatingOfficeHours;
+  const isDisabled = isSubmitting || isValidating;
 
   return (
     <div
@@ -22,7 +18,7 @@ export const EditOfficeHoursMobileControls = ({ isValidatingOfficeHours }: Props
       })}
     >
       <button className={s.primaryButton} type="submit" disabled={isDisabled}>
-        {isSubmitting ? 'Processing...' : isValidatingOfficeHours ? 'Validating...' : 'Save'}
+        {isSubmitting ? 'Processing...' : 'Save'}
       </button>
     </div>
   );

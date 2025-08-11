@@ -6,16 +6,15 @@ import s from './EditOfficeHoursFormControls.module.scss';
 interface Props {
   onClose: () => void;
   title: string;
-  isValidatingOfficeHours: boolean;
 }
 
-export const EditOfficeHoursFormControls = ({ title, onClose, isValidatingOfficeHours }: Props) => {
+export const EditOfficeHoursFormControls = ({ title, onClose }: Props) => {
   const {
     reset,
-    formState: { isSubmitting, isDirty, isValid },
+    formState: { isSubmitting, isDirty, isValidating },
   } = useFormContext();
 
-  const isDisabled = isSubmitting || !isDirty || !isValid || isValidatingOfficeHours;
+  const isDisabled = isSubmitting || !isDirty || isValidating;
 
   return (
     <div className={s.root}>
@@ -32,7 +31,7 @@ export const EditOfficeHoursFormControls = ({ title, onClose, isValidatingOffice
           Cancel
         </button>
         <button className={s.primaryButton} type="submit" disabled={isDisabled}>
-          {isSubmitting ? 'Processing...' : isValidatingOfficeHours ? 'Validating...' : 'Save'}
+          {isSubmitting ? 'Processing...' : 'Save'}
         </button>
       </div>
       <button

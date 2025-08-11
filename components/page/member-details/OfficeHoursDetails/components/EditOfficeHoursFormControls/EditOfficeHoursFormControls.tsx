@@ -1,18 +1,21 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import s from './EditFormControls.module.scss';
+import s from './EditOfficeHoursFormControls.module.scss';
 
 interface Props {
   onClose: () => void;
   title: string;
+  isValidatingOfficeHours: boolean;
 }
 
-export const EditFormControls = ({ title, onClose }: Props) => {
+export const EditOfficeHoursFormControls = ({ title, onClose, isValidatingOfficeHours }: Props) => {
   const {
     reset,
     formState: { isSubmitting, isDirty, isValid },
   } = useFormContext();
+
+  const isDisabled = isSubmitting || !isDirty || !isValid || isValidatingOfficeHours;
 
   return (
     <div className={s.root}>
@@ -28,8 +31,8 @@ export const EditFormControls = ({ title, onClose }: Props) => {
         >
           Cancel
         </button>
-        <button className={s.primaryButton} type="submit" disabled={isSubmitting || !isDirty || !isValid}>
-          {isSubmitting ? 'Processing... ' : 'Save'}
+        <button className={s.primaryButton} type="submit" disabled={isDisabled}>
+          {isSubmitting ? 'Processing...' : 'Save'}
         </button>
       </div>
       <button

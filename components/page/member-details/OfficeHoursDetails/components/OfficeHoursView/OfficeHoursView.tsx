@@ -10,6 +10,7 @@ import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPr
 
 import s from './OfficeHoursView.module.scss';
 import { InvalidOfficeHoursLinkDialog } from '@/components/page/member-details/OfficeHoursDetails/components/InvalidOfficeHoursLinkDialog';
+import { useReportBrokenOfficeHours } from '@/services/members/hooks/useReportBrokenOfficeHours';
 
 interface Props {
   member: IMember;
@@ -30,7 +31,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   const hasCanHelpWith = !!member.ohHelpWith?.length;
   const showAlert = !isOfficeHoursValid && isOwner;
   const showWarning = !showAlert && showIncomplete;
-
+  const { mutate: reportBrokenLink } = useReportBrokenOfficeHours();
   const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
   const shouldShowDialog = memberPreferences?.memberPreferences?.showOfficeHoursDialog !== false;
 
@@ -39,6 +40,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
 
     if (!isOfficeHoursValid) {
       setShowInvalidLinkDialog(true);
+      reportBrokenLink({ memberId: member.id });
       return;
     }
 

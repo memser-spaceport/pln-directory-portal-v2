@@ -31,15 +31,16 @@ interface Props {
   label: string;
   placeholder?: string;
   description?: string;
+  onValidationChange?: (isValidating: boolean) => void;
 }
 
-export const OfficeHoursInput = ({ name, label, placeholder, description }: Props) => {
+export const OfficeHoursInput = ({ name, label, placeholder, description, onValidationChange }: Props) => {
   const {
     register,
     watch,
     setError,
     clearErrors,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useFormContext();
   const [isValidating, setIsValidating] = useState(false);
   const [validationStatus, setValidationStatus] = useState<'idle' | 'valid' | 'invalid'>('idle');
@@ -53,6 +54,7 @@ export const OfficeHoursInput = ({ name, label, placeholder, description }: Prop
       if (!value || !value.trim()) {
         setValidationStatus('idle');
         setIsValidating(false);
+        onValidationChange?.(false);
         clearErrors(name);
         return;
       }
@@ -67,10 +69,12 @@ export const OfficeHoursInput = ({ name, label, placeholder, description }: Prop
         });
         setValidationStatus('invalid');
         setIsValidating(false);
+        onValidationChange?.(false);
         return;
       }
 
       setIsValidating(true);
+      onValidationChange?.(true);
 
       try {
         const result = await validateOfficeHours({ link: value });
@@ -93,6 +97,7 @@ export const OfficeHoursInput = ({ name, label, placeholder, description }: Prop
         });
       } finally {
         setIsValidating(false);
+        onValidationChange?.(false);
       }
     }, 1000),
     [validateOfficeHours, setError, clearErrors, name],

@@ -5,8 +5,8 @@ import { OfficeHoursInput } from '@/components/page/member-details/OfficeHoursDe
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { TEditOfficeHoursForm } from '@/components/page/member-details/OfficeHoursDetails/types';
-import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
-import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
+import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
+import { EditOfficeHoursMobileControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursMobileControls';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { ADMIN_ROLE } from '@/utils/constants';
@@ -33,6 +33,7 @@ const schema = yup.object().shape({
 
 export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
+  const [isValidatingOfficeHours, setIsValidatingOfficeHours] = React.useState(false);
   const methods = useForm<TEditOfficeHoursForm>({
     defaultValues: {
       officeHours: member.officeHours ?? '',
@@ -85,7 +86,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
           }
         }}
       >
-        <EditFormControls onClose={onClose} title="Edit Office Hours" />
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Office Hours" isValidatingOfficeHours={isValidatingOfficeHours} />
         <div className={s.body}>
           <div className={s.row}>
             <OfficeHoursInput
@@ -93,6 +94,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
               label="Office Hours"
               placeholder="Enter Office Hours link"
               description="Drop your calendar link here so others can get in touch with you at a time that is convenient. We recommend 15-min meetings scheduled."
+              onValidationChange={setIsValidatingOfficeHours}
             />
           </div>
           <div className={s.row}>
@@ -102,7 +104,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
             <FormTagsInput selectLabel="I can help with:" name="officeHoursCanHelpWith" warning={false} placeholder="Add expertise, keywords" />
           </div>
         </div>
-        <EditFormMobileControls />
+        <EditOfficeHoursMobileControls isValidatingOfficeHours={isValidatingOfficeHours} />
       </form>
     </FormProvider>
   );

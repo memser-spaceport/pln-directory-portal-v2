@@ -10,7 +10,6 @@ import { OfficeHoursView } from '@/components/page/member-details/OfficeHoursDet
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
-import { useValidateOfficeHours } from '@/services/members/hooks/useValidateOfficeHours';
 
 interface Props {
   member: IMember;
@@ -29,8 +28,6 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const officeHoursValidation = { isValid: member.ohStatus === 'OK' || member.ohStatus === null || member.ohStatus === 'NOT_FOUND' };
 
   useMobileNavVisibility(editView);
-
-  console.log(member);
 
   if (!isLoggedIn) {
     return null;

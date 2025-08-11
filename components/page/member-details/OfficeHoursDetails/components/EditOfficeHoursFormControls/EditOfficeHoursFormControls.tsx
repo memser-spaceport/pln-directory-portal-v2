@@ -32,7 +32,7 @@ export const EditOfficeHoursFormControls = ({ title, onClose, isValidatingOffice
           Cancel
         </button>
         <button className={s.primaryButton} type="submit" disabled={isDisabled}>
-          {isSubmitting ? 'Processing...' : 'Save'}
+          {isSubmitting ? 'Processing...' : isValidatingOfficeHours ? 'Validating...' : 'Save'}
         </button>
       </div>
       <button

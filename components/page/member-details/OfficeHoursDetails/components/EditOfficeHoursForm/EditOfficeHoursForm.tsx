@@ -36,8 +36,8 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
   const methods = useForm<TEditOfficeHoursForm>({
     defaultValues: {
       officeHours: member.officeHours ?? '',
-      officeHoursInterestedIn: [], // member.officeHoursInterestedIn,
-      officeHoursCanHelpWith: [], // member.officeHoursCanHelpWith,
+      officeHoursInterestedIn: member.ohInterest ?? [], // member.officeHoursInterestedIn,
+      officeHoursCanHelpWith: member.ohHelpWith ?? [], // member.officeHoursCanHelpWith,
     },
     resolver: yupResolver(schema),
   });
@@ -55,17 +55,10 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
       return;
     }
 
-    // const payload = {
-    //   participantType: 'MEMBER',
-    //   referenceUid: member.id,
-    //   uniqueIdentifier: member.email,
-    //   newData: formatPayload(memberData.memberInfo, formData, isAdmin),
-    // };
-
     const payload = {
       officeHours: formData.officeHours,
-      // officeHoursInterestedIn: formData.officeHoursInterestedIn,
-      // officeHoursCanHelpWith: formData.officeHoursCanHelpWith,
+      ohInterest: formData.officeHoursInterestedIn,
+      ohHelpWith: formData.officeHoursCanHelpWith,
     };
 
     const res = await mutateAsync({
@@ -114,12 +107,3 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
     </FormProvider>
   );
 };
-
-function formatPayload(memberInfo: any, formData: TEditOfficeHoursForm, isAdmin: boolean) {
-  return {
-    ...memberInfo,
-    officeHours: formData.officeHours,
-    officeHoursInterestedIn: formData.officeHoursInterestedIn,
-    officeHoursCanHelpWith: formData.officeHoursCanHelpWith,
-  };
-}

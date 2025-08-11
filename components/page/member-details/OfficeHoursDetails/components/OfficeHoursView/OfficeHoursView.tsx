@@ -26,8 +26,8 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   const [showInvalidLinkDialog, setShowInvalidLinkDialog] = useState(false);
   const isOwner = userInfo?.uid === member.id;
   const hasOfficeHours = !!member.officeHours;
-  const hasInterestedIn = !!member.officeHoursInterestedIn;
-  const hasCanHelpWith = !!member.officeHoursCanHelpWith;
+  const hasInterestedIn = !!member.ohInterest?.length;
+  const hasCanHelpWith = !!member.ohHelpWith?.length;
   const showAlert = !isOfficeHoursValid && isOwner;
   const showWarning = !showAlert && showIncomplete;
 
@@ -73,7 +73,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
             <div>
               <div className={s.keywordsLabel}>Topics of Interest:</div>
               <div className={s.badgesWrapper}>
-                {member?.officeHoursInterestedIn?.map((item) => (
+                {member?.ohInterest?.map((item) => (
                   <div key={item} className={s.badge}>
                     {item}
                   </div>
@@ -85,7 +85,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
             <div>
               <div className={s.keywordsLabel}>Areas I Can Help With:</div>
               <div className={s.badgesWrapper}>
-                {member?.officeHoursCanHelpWith?.map((item) => (
+                {member?.ohHelpWith?.map((item) => (
                   <div key={item} className={s.badge}>
                     {item}
                   </div>
@@ -123,7 +123,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
       )}
       <div
         className={clsx(s.root, {
-          [s.missingData]: showIncomplete && isLoggedIn,
+          [s.missingData]: (showIncomplete || showAlert) && isLoggedIn,
         })}
       >
         <div className={s.header}>
@@ -140,7 +140,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
               <h3 className={s.subTitle}>Office Hours</h3>
               <p>{getDesc()}</p>
             </div>
-            {hasOfficeHours && !showAlert && (
+            {hasOfficeHours && !showAlert && !isOwner && (
               <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
                 Schedule Meeting
               </button>

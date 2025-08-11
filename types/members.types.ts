@@ -131,8 +131,9 @@ export interface IMember {
   telegramHandle?: string | null;
   twitter?: string | null;
   officeHours: string | null;
-  officeHoursInterestedIn?: string[] | null;
-  officeHoursCanHelpWith?: string[] | null;
+  ohInterest?: string[] | null;
+  ohHelpWith?: string[] | null;
+  ohStatus?: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
   teamLead: boolean;
   teams: ITeam[];
   mainTeam: IMemberTeam | null;

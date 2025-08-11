@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { getMemberInfo } from '@/services/members.service';
-import { getMemberPreferences } from '@/services/preferences.service';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 async function fetcher(uid: string | undefined) {

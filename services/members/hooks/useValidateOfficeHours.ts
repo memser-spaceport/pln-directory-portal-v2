@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { IMember } from '@/types/members.types';
@@ -8,38 +8,28 @@ interface OfficeHoursValidationResponse {
   error?: string;
 }
 
-async function fetcher(member: IMember | undefined): Promise<OfficeHoursValidationResponse | null> {
-  if (!member?.officeHours) {
-    return null;
+async function mutation({ link }: { link: string }): Promise<OfficeHoursValidationResponse | null> {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/office-hours/check-link`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ link }),
+    },
+    true,
+  );
+
+  if (!response?.ok) {
+    throw new Error('Failed to validate office hours link');
   }
 
-  return { isValid: false };
-
-  // const response = await customFetch(
-  //   `${process.env.DIRECTORY_API_URL}/v1/members/${member.id}/office-hours/validate`,
-  //   {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify({ url: member.officeHours }),
-  //   },
-  //   true,
-  // );
-  //
-  // if (!response?.ok) {
-  //   throw new Error('Failed to validate office hours link');
-  // }
-  //
-  // return response.json();
+  return response.json();
 }
 
-export function useValidateOfficeHours(member: IMember | undefined, isLoggedIn: boolean) {
-  return useQuery({
-    queryKey: [MembersQueryKeys.VALIDATE_OFFICE_HOURS, member?.id, member?.officeHours],
-    queryFn: () => fetcher(member),
-    enabled: !!member?.officeHours && isLoggedIn,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
+export function useValidateOfficeHours() {
+  return useMutation({
+    mutationFn: mutation,
   });
 }

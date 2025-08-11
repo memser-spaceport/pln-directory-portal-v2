@@ -24,12 +24,13 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const isOwner = userInfo?.uid === member.id;
   const isEditable = isOwner || isAdmin;
   const showWarningUseCaseA = !member?.officeHours;
-  const showWarningUseCaseB = !member?.officeHoursInterestedIn?.length || !member?.officeHoursCanHelpWith?.length;
+  const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
-
-  const { data: officeHoursValidation } = useValidateOfficeHours(member, isLoggedIn);
+  const officeHoursValidation = { isValid: member.ohStatus === 'OK' || member.ohStatus === null || member.ohStatus === 'NOT_FOUND' };
 
   useMobileNavVisibility(editView);
+
+  console.log(member);
 
   if (!isLoggedIn) {
     return null;

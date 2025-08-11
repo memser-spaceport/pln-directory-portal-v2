@@ -140,7 +140,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
             </div>
             <div className={s.col}>
               <h3 className={s.subTitle}>Office Hours</h3>
-              <p>{getDesc()}</p>
+              <div className={s.description}>{getDesc()}</div>
             </div>
             {hasOfficeHours && !showAlert && !isOwner && (
               <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>

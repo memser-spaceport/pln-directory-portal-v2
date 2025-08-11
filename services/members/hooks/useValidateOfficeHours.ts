@@ -13,7 +13,7 @@ async function fetcher(member: IMember | undefined): Promise<OfficeHoursValidati
     return null;
   }
 
-  return { isValid: true };
+  return { isValid: false };
 
   // const response = await customFetch(
   //   `${process.env.DIRECTORY_API_URL}/v1/members/${member.id}/office-hours/validate`,

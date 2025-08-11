@@ -9,6 +9,7 @@ import { OfficeHoursDialog } from '@/components/page/member-details/OfficeHoursD
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 
 import s from './OfficeHoursView.module.scss';
+import { InvalidOfficeHoursLinkDialog } from '@/components/page/member-details/OfficeHoursDetails/components/InvalidOfficeHoursLinkDialog';
 
 interface Props {
   member: IMember;
@@ -22,6 +23,7 @@ interface Props {
 
 export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, showIncomplete, onEdit, isOfficeHoursValid }: Props) => {
   const [showDialog, setShowDialog] = useState(false);
+  const [showInvalidLinkDialog, setShowInvalidLinkDialog] = useState(false);
   const isOwner = userInfo?.uid === member.id;
   const hasOfficeHours = !!member.officeHours;
   const hasInterestedIn = !!member.officeHoursInterestedIn;
@@ -34,6 +36,11 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
 
   const handleScheduleMeeting = () => {
     if (!hasOfficeHours) return;
+
+    if (!isOfficeHoursValid) {
+      setShowInvalidLinkDialog(true);
+      return;
+    }
 
     if (shouldShowDialog) {
       setShowDialog(true);
@@ -152,6 +159,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
         </div>
 
         <OfficeHoursDialog isOpen={showDialog} onClose={() => setShowDialog(false)} onContinue={handleDialogContinue} userInfo={userInfo} />
+        <InvalidOfficeHoursLinkDialog isOpen={showInvalidLinkDialog} onClose={() => setShowInvalidLinkDialog(false)} recipientName={member.name} />
       </div>
     </>
   );

@@ -50,7 +50,16 @@ export const OfficeHoursInput = ({ name, label, placeholder, description, onVali
 
   // Debounced validation function
   const debouncedValidate = useCallback(
-    debounce(async (value: string) => {
+    debounce(async (value: string, formIsDirty: boolean) => {
+      // Only validate if the form is dirty (user has made changes)
+      if (!formIsDirty) {
+        setValidationStatus('idle');
+        setIsValidating(false);
+        onValidationChange?.(false);
+        clearErrors(name);
+        return;
+      }
+
       if (!value || !value.trim()) {
         setValidationStatus('idle');
         setIsValidating(false);
@@ -103,17 +112,17 @@ export const OfficeHoursInput = ({ name, label, placeholder, description, onVali
     [validateOfficeHours, setError, clearErrors, name],
   );
 
-  // Trigger validation when field value changes
+  // Trigger validation when field value or dirty state changes
   useEffect(() => {
     if (fieldValue !== undefined) {
-      debouncedValidate(fieldValue);
+      debouncedValidate(fieldValue, isDirty);
     }
 
     // Cleanup debounced function on unmount
     return () => {
       debouncedValidate.cancel();
     };
-  }, [fieldValue, debouncedValidate]);
+  }, [fieldValue, isDirty, debouncedValidate]);
 
   const fieldError = errors[name];
   const hasError = !!fieldError;

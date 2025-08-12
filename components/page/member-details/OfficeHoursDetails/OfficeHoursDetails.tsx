@@ -26,7 +26,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const showWarningUseCaseA = !member?.officeHours;
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
-  const { data: officeHoursValidationOnLoad } = useValidateOfficeHoursQuery(member?.id);
+  const { data: officeHoursValidationOnLoad } = useValidateOfficeHoursQuery(member?.id, isLoggedIn);
   const officeHoursValidation = {
     isValid: !officeHoursValidationOnLoad
       ? true

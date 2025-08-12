@@ -43,7 +43,7 @@ export const InvalidOfficeHoursLinkDialog = ({ isOpen, onClose, recipientName, r
                 This member&apos;s scheduling link is temporarily unavailable.
               </motion.p>
 
-              <motion.p className={s.description} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
+              <motion.p className={s.subTitle} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
                 <b style={{ fontWeight: 500 }}>What happens next:</b>
               </motion.p>
 
@@ -75,7 +75,7 @@ export const InvalidOfficeHoursLinkDialog = ({ isOpen, onClose, recipientName, r
               </motion.div>
 
               {(recipientEmail || recipientTelegram) && (
-                <motion.p className={s.description} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.3 }}>
+                <motion.p className={s.description} style={{ marginTop: 8 }} initial={{ opacity: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.3 }}>
                   Need to meet sooner? Try contacting {recipientName} directly at {recipientEmail || recipientTelegram}.
                 </motion.p>
               )}

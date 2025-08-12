@@ -12,7 +12,12 @@ import s from './OfficeHoursView.module.scss';
 import { InvalidOfficeHoursLinkDialog } from '@/components/page/member-details/OfficeHoursDetails/components/InvalidOfficeHoursLinkDialog';
 import { useReportBrokenOfficeHours } from '@/services/members/hooks/useReportBrokenOfficeHours';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { useCreateFollowUp } from '@/services/members/hooks/useCreateFollowUp';
+import Cookies from 'js-cookie';
+import { getFollowUps } from '@/services/office-hours.service';
+import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
+import { toast } from 'react-toastify';
 
 interface Props {
   member: IMember;
@@ -34,6 +39,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   const showAlert = !isOfficeHoursValid && isOwner;
   const showWarning = !showAlert && showIncomplete;
   const { onAddOfficeHourClicked, onEditOfficeHourClicked, onOfficeHourClicked } = useMemberAnalytics();
+  const { mutateAsync: createFollowUp, data } = useCreateFollowUp();
   const { mutate: reportBrokenLink } = useReportBrokenOfficeHours();
   const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
   const shouldShowDialog = memberPreferences?.memberPreferences?.showOfficeHoursDialog !== false;
@@ -56,9 +62,47 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
     }
   };
 
-  const openOfficeHoursLink = () => {
-    if (member.officeHours) {
-      window.open(member.officeHours, '_blank');
+  const openOfficeHoursLink = async () => {
+    if (!userInfo.uid || !member.officeHours) {
+      return;
+    }
+
+    const authToken = Cookies.get('authToken') || '';
+
+    const res = await createFollowUp({
+      logInMemberUid: userInfo.uid,
+      authToken: getParsedValue(authToken),
+      data: {
+        data: {},
+        hasFollowUp: true,
+        type: 'SCHEDULE_MEETING',
+        targetMemberUid: member.id,
+      },
+    });
+
+    if (res?.error) {
+      if (res?.error?.data?.message?.includes('yourself is forbidden')) {
+        toast.error(TOAST_MESSAGES.SELF_INTERACTION_FORBIDDEN);
+      }
+
+      if (res?.error?.data?.message?.includes('Interaction with same user within 30 minutes is forbidden')) {
+        toast.error(TOAST_MESSAGES.INTERACTION_RESTRICTED);
+      }
+
+      return;
+    }
+
+    window.open(member.officeHours, '_blank');
+
+    const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
+
+    if (!allFollowups?.error) {
+      const result = allFollowups?.data ?? [];
+
+      if (result.length > 0) {
+        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[0] } }));
+        document.dispatchEvent(new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }));
+      }
     }
   };
 

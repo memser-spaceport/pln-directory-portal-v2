@@ -100,7 +100,7 @@
 
 .bestPractices {
   text-align: left;
-  margin-bottom: 32px;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -159,9 +159,10 @@
 }
 
 .checkboxWrapper {
-  margin-bottom: 24px;
-  display: none;
-  justify-content: center;
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: flex-start;
+  padding-inline: 20px;
 }
 
 .checkboxLabel {

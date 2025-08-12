@@ -9,9 +9,10 @@ interface Props {
   tid: number;
   likes: number;
   isLiked?: boolean;
+  timestamp: number;
 }
 
-export const LikesButton = ({ tid, pid, likes, isLiked }: Props) => {
+export const LikesButton = ({ tid, pid, likes, isLiked, timestamp }: Props) => {
   const { mutate, isPending } = useLikePost();
   const analytics = useForumAnalytics();
 
@@ -22,7 +23,7 @@ export const LikesButton = ({ tid, pid, likes, isLiked }: Props) => {
       })}
       disabled={isPending || isLiked}
       onClick={() => {
-        analytics.onLikePostClicked({ tid, pid });
+        analytics.onLikePostClicked({ tid, pid, timeSincePostCreation: Date.now() - timestamp });
         mutate({ tid, pid });
       }}
     >

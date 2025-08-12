@@ -203,7 +203,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
                 Schedule Meeting
               </button>
             )}
-            {!hasOfficeHours && !showAlert && (
+            {!hasOfficeHours && !showAlert && isEditable && (
               <button
                 className={s.primaryButton}
                 onClick={() => {
@@ -214,7 +214,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
                 Add Office Hours <PlusIcon />
               </button>
             )}
-            {showAlert && (
+            {showAlert && isEditable && (
               <button
                 className={clsx(s.primaryButton, s.alertButton)}
                 onClick={() => {

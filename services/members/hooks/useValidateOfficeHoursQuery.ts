@@ -31,11 +31,11 @@ async function fetcher(uid: string | undefined): Promise<OfficeHoursValidationRe
   return response.json();
 }
 
-export function useValidateOfficeHoursQuery(uid: string | undefined) {
+export function useValidateOfficeHoursQuery(uid: string | undefined, isLoggedIn: boolean) {
   return useQuery({
     queryKey: [MembersQueryKeys.VALIDATE_OFFICE_HOURS, uid],
     queryFn: () => fetcher(uid),
-    enabled: !!uid,
+    enabled: !!uid && !!isLoggedIn,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });

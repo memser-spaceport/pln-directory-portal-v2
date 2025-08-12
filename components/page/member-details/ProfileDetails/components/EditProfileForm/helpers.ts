@@ -9,7 +9,6 @@ export const editProfileSchema = yup.object().shape({
       return !file || file.type.startsWith('image/');
     }),
   name: yup.string().required('Name is required'),
-  bio: yup.string().defined(),
   country: yup.string().defined(),
   state: yup.string().defined(),
   city: yup.string().defined(),

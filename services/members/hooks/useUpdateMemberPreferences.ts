@@ -46,6 +46,10 @@ export function useUpdateMemberPreferences() {
       queryClient.invalidateQueries({
         queryKey: [MembersQueryKeys.GET_MEMBER_REPOSITORIES],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [MembersQueryKeys.GET_MEMBER_PREFERENCES],
+      });
     },
   });
 }

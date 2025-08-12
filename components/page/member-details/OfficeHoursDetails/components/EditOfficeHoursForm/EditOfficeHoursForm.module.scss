@@ -1,0 +1,53 @@
+@use 'styles/media';
+
+.body {
+  display: grid;
+  padding: 16px 16px 92px;
+  flex-direction: column;
+  align-items: flex-start;
+  grid-gap: 8px;
+  align-self: stretch;
+  border-radius: 16px;
+  background: #FFF;
+
+  overflow: auto;
+  max-height: calc(100dvh - 56px);
+
+  img {
+    display: none;
+  }
+
+  @include media.tablet-landscape {
+    padding: 32px;
+    max-height: unset;
+    overflow: unset;
+    grid-gap: 24px;
+
+    img {
+      display: block;
+    }
+  }
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  width: 100%;
+
+  &.center {
+    align-items: center;
+  }
+
+  img {
+    margin-bottom: 14px;
+  }
+}
+
+
+.separator {
+  width: 100%;
+  height: 1px;
+  background: #E2E8F0;
+  margin-block: 8px;
+}

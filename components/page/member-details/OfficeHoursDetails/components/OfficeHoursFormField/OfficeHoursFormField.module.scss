@@ -83,10 +83,11 @@
   }
   
   &.error {
-    border-color: #dc2626;
+    border-color: #FF3838;
+    color: #FF3838;
     
     &:focus {
-      border-color: #dc2626;
+      border-color: #FF3838;
       box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
     }
   }
@@ -106,7 +107,7 @@
 .errorMessage {
   font-size: 12px;
   line-height: 16px;
-  color: #dc2626;
+  color: #FF3838;
   margin: 0;
 }
 

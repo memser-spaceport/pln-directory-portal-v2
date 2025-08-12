@@ -58,6 +58,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
   const { mutateAsync: validateOfficeHours } = useValidateOfficeHours();
   const [validationCache, setValidationCache] = React.useState<Map<string, { isValid: boolean; error?: string }>>(new Map());
   const [isValidatingOfficeHours, setIsValidatingOfficeHours] = React.useState(false);
+  const { onSubmitUpdatedOfficeHours } = useMemberAnalytics();
 
   const debouncedValidateOfficeHours = React.useMemo(
     () =>
@@ -66,7 +67,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
           setIsValidatingOfficeHours(true);
           const result = await validateOfficeHours({ link });
           const isValid = result?.status === 'OK';
-          const error = isValid ? undefined : result?.error || 'This office hours link appears to be invalid or inaccessible';
+          const error = isValid ? undefined : result?.error || 'We couldn’t reach your Office Hours link. Please update it so others can book time.';
 
           setValidationCache((prev) => new Map(prev).set(link, { isValid, error }));
           return { isValid, error };
@@ -99,10 +100,10 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
         }
 
         // Only validate if the field has changed from default
-        const defaultValue = member.officeHours ?? '';
-        if (value === defaultValue) {
-          return true; // Don't validate unchanged default values
-        }
+        // const defaultValue = member.officeHours ?? '';
+        // if (value === defaultValue) {
+        //   return true; // Don't validate unchanged default values
+        // }
 
         // Check cache first
         const cached = validationCache.get(value);
@@ -163,6 +164,8 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
       ohInterest: formData.officeHoursInterestedIn,
       ohHelpWith: formData.officeHoursCanHelpWith,
     };
+
+    onSubmitUpdatedOfficeHours(payload);
 
     const res = await mutateAsync({
       uid: memberData.memberInfo.uid,

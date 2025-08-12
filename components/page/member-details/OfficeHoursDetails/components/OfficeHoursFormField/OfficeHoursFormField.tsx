@@ -47,18 +47,18 @@ export const OfficeHoursFormField = ({ name, label, placeholder, description, va
             <span className={s.validatingText}>Validating...</span>
           </div>
         )}
-        {showValidStatus && (
-          <div className={clsx(s.validationStatus, s.valid)}>
-            <CheckIcon />
-            <span className={s.validText}>Link is valid</span>
-          </div>
-        )}
-        {showInvalidStatus && (
-          <div className={clsx(s.validationStatus, s.invalid)}>
-            <ErrorIcon />
-            <span className={s.invalidText}>Link is invalid</span>
-          </div>
-        )}
+        {/*{showValidStatus && (*/}
+        {/*  <div className={clsx(s.validationStatus, s.valid)}>*/}
+        {/*    <CheckIcon />*/}
+        {/*    <span className={s.validText}>Link is valid</span>*/}
+        {/*  </div>*/}
+        {/*)}*/}
+        {/*{showInvalidStatus && (*/}
+        {/*  <div className={clsx(s.validationStatus, s.invalid)}>*/}
+        {/*    <ErrorIcon />*/}
+        {/*    <span className={s.invalidText}>Link is invalid</span>*/}
+        {/*  </div>*/}
+        {/*)}*/}
       </div>
 
       <input
@@ -73,7 +73,7 @@ export const OfficeHoursFormField = ({ name, label, placeholder, description, va
         })}
       />
 
-      {description && <p className={s.description}>{description}</p>}
+      {description && !hasError && <p className={s.description}>{description}</p>}
 
       {hasError && <p className={s.errorMessage}>{fieldError?.message as string}</p>}
     </div>

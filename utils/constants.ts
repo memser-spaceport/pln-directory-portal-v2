@@ -363,6 +363,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_OFFICEHOURS_CLICKED: 'member-officehours-clicked',
   MEMBER_DETAIL_ADD_OFFICEHOURS_CLICKED: 'member-add-officehours-clicked',
   MEMBER_DETAIL_EDIT_OFFICEHOURS_CLICKED: 'member-edit-officehours-clicked',
+  MEMBER_DETAIL_SUBMIT_UPDATED__OFFICEHOURS: 'member-submit-updated-officehours',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_EDIT: 'member-pr-contributions-edit',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_ADD: 'member-pr-contributions-add',
   MEMBER_DETAIL_GITHUB_PROJECT_VIEW_ALL_CLICKED: 'member-github-project-view-all-clicked',

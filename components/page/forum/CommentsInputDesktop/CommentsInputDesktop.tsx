@@ -29,6 +29,7 @@ interface Props {
   isReply?: boolean;
   initialContent?: string;
   itemUid?: string;
+  timestamp: number;
 }
 
 const schema = yup.object().shape({
@@ -36,7 +37,7 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentsInputDesktop = ({ tid, toPid, itemUid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent }: Props) => {
+export const CommentsInputDesktop = ({ tid, toPid, itemUid, replyToName, onCancel, isReply, initialFocused, isEdit, initialContent, timestamp }: Props) => {
   const analytics = useForumAnalytics();
   const ref = useRef<HTMLFormElement | null>(null);
   const { userInfo } = getCookiesFromClient();
@@ -107,7 +108,7 @@ export const CommentsInputDesktop = ({ tid, toPid, itemUid, replyToName, onCance
           toPid,
           content,
         };
-        analytics.onPostCommentSubmit(payload);
+        analytics.onPostCommentSubmit({ ...payload, timeSincePostCreation: Date.now() - timestamp });
         const res = await mutateAsync(payload);
 
         if (res?.status?.code === 'ok') {
@@ -194,7 +195,7 @@ export const CommentsInputDesktop = ({ tid, toPid, itemUid, replyToName, onCance
               name="dummy"
               placeholder="Comment"
               onClick={() => {
-                analytics.onCommentInputClicked({ tid });
+                analytics.onCommentInputClicked({ tid, timeSincePostCreation: Date.now() - timestamp });
                 setFocused(true);
               }}
             />
@@ -204,7 +205,7 @@ export const CommentsInputDesktop = ({ tid, toPid, itemUid, replyToName, onCance
               disabled={isSubmitting}
               onClick={() => {
                 if (!focused) {
-                  analytics.onCommentInputClicked({ tid });
+                  analytics.onCommentInputClicked({ tid, timeSincePostCreation: Date.now() - timestamp });
                   setFocused(true);
                 }
               }}

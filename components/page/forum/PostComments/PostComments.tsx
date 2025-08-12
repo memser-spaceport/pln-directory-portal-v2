@@ -24,9 +24,10 @@ interface Props {
   comments: TopicResponse['posts'] | undefined;
   onReply?: (id: number) => void;
   userInfo: IUserInfo;
+  timestamp: number;
 }
 
-export const PostComments = ({ comments, tid, mainPid, onReply, userInfo }: Props) => {
+export const PostComments = ({ comments, tid, mainPid, onReply, userInfo, timestamp }: Props) => {
   const isMobile = useMedia('(max-width: 960px)', false);
 
   if (!comments) return null;
@@ -38,7 +39,7 @@ export const PostComments = ({ comments, tid, mainPid, onReply, userInfo }: Prop
       <div className={s.title}>Comments ({comments.length})</div>
 
       <div className={s.input}>
-        <CommentsInputDesktop tid={tid} toPid={mainPid} />
+        <CommentsInputDesktop tid={tid} toPid={mainPid} timestamp={timestamp} />
       </div>
 
       <div className={s.list}>
@@ -132,7 +133,16 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
           )}
         </div>
         {editPid ? (
-          <CommentsInputDesktop initialFocused itemUid={item.user.memberUid} tid={item.tid} toPid={editPid} onCancel={() => setEditPid(null)} isEdit initialContent={item.content} />
+          <CommentsInputDesktop
+            initialFocused
+            itemUid={item.user.memberUid}
+            tid={item.tid}
+            toPid={editPid}
+            onCancel={() => setEditPid(null)}
+            isEdit
+            initialContent={item.content}
+            timestamp={item.timestamp}
+          />
         ) : (
           <div
             className={s.postContent}
@@ -142,7 +152,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
           />
         )}
         <div className={s.sub}>
-          <LikesButton tid={item.tid} pid={item.pid} likes={item.votes} isLiked={item.upvoted} />
+          <LikesButton tid={item.tid} pid={item.pid} likes={item.votes} isLiked={item.upvoted} timestamp={item.timestamp} />
           {!isReply && (
             <>
               <div className={s.subItem}>
@@ -152,7 +162,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
                 <button
                   className={s.replyBtn}
                   onClick={() => {
-                    analytics.onPostCommentReplyClicked({ tid: item.tid, pid: item.pid });
+                    analytics.onPostCommentReplyClicked({ tid: item.tid, pid: item.pid, timeSincePostCreation: Date.now() - item.timestamp });
                     if (onReply) {
                       onReply(item.pid);
                       scrollIntoView();
@@ -172,6 +182,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
       {replyToPid && (
         <CommentsInputDesktop
           isReply
+          timestamp={item.timestamp}
           initialFocused
           tid={item.tid}
           toPid={replyToPid}

@@ -26,6 +26,7 @@ interface Props {
   onReset: () => void;
   isEdit?: boolean;
   initialContent?: string;
+  timestamp: number;
 }
 
 const schema = yup.object().shape({
@@ -33,7 +34,7 @@ const schema = yup.object().shape({
   emailMe: yup.boolean(),
 });
 
-export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initialContent }: Props) => {
+export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initialContent, timestamp }: Props) => {
   const analytics = useForumAnalytics();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [focused, setFocused] = useState(false);
@@ -101,7 +102,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
           toPid,
           content,
         };
-        analytics.onPostCommentSubmit(payload);
+        analytics.onPostCommentSubmit({ ...payload, timeSincePostCreation: Date.now() - timestamp });
         const res = await mutateAsync(payload);
 
         if (res?.status?.code === 'ok') {
@@ -181,7 +182,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
               name="dummy"
               placeholder="Comment"
               onClick={() => {
-                analytics.onCommentInputClicked({ tid });
+                analytics.onCommentInputClicked({ tid, timeSincePostCreation: Date.now() - timestamp });
                 setFocused(true);
               }}
             />
@@ -192,7 +193,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
             disabled={isSubmitting}
             onClick={() => {
               if (!focused) {
-                analytics.onCommentInputClicked({ tid });
+                analytics.onCommentInputClicked({ tid, timeSincePostCreation: Date.now() - timestamp });
                 setFocused(true);
               }
             }}

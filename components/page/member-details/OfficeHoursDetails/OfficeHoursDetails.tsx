@@ -27,7 +27,11 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
   const { data: officeHoursValidationOnLoad } = useValidateOfficeHoursQuery(member?.id);
-  const officeHoursValidation = { isValid: !officeHoursValidationOnLoad ? true : officeHoursValidationOnLoad?.ohStatus === 'OK' };
+  const officeHoursValidation = {
+    isValid: !officeHoursValidationOnLoad
+      ? true
+      : officeHoursValidationOnLoad?.ohStatus === 'OK' || officeHoursValidationOnLoad?.ohStatus === 'NOT_FOUND' || officeHoursValidationOnLoad?.ohStatus === null,
+  };
 
   useMobileNavVisibility(editView);
 

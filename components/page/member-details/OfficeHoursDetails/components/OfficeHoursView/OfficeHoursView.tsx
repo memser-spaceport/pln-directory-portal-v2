@@ -11,6 +11,8 @@ import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPr
 import s from './OfficeHoursView.module.scss';
 import { InvalidOfficeHoursLinkDialog } from '@/components/page/member-details/OfficeHoursDetails/components/InvalidOfficeHoursLinkDialog';
 import { useReportBrokenOfficeHours } from '@/services/members/hooks/useReportBrokenOfficeHours';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface Props {
   member: IMember;
@@ -31,12 +33,15 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   const hasCanHelpWith = !!member.ohHelpWith?.length;
   const showAlert = !isOfficeHoursValid && isOwner;
   const showWarning = !showAlert && showIncomplete;
+  const { onAddOfficeHourClicked, onEditOfficeHourClicked, onOfficeHourClicked } = useMemberAnalytics();
   const { mutate: reportBrokenLink } = useReportBrokenOfficeHours();
   const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
   const shouldShowDialog = memberPreferences?.memberPreferences?.showOfficeHoursDialog !== false;
 
   const handleScheduleMeeting = () => {
     if (!hasOfficeHours) return;
+
+    onOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
 
     if (!isOfficeHoursValid) {
       setShowInvalidLinkDialog(true);
@@ -130,7 +135,14 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
       >
         <div className={s.header}>
           <h2 className={s.title}>Office Hours</h2>
-          {isLoggedIn && isEditable && <EditButton onClick={onEdit} />}
+          {isLoggedIn && isEditable && (
+            <EditButton
+              onClick={() => {
+                onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                onEdit();
+              }}
+            />
+          )}
         </div>
 
         <div className={s.content}>
@@ -148,12 +160,24 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
               </button>
             )}
             {!hasOfficeHours && !showAlert && (
-              <button className={s.primaryButton} onClick={onEdit}>
+              <button
+                className={s.primaryButton}
+                onClick={() => {
+                  onAddOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                  onEdit();
+                }}
+              >
                 Add Office Hours <PlusIcon />
               </button>
             )}
             {showAlert && (
-              <button className={clsx(s.primaryButton, s.alertButton)} onClick={onEdit}>
+              <button
+                className={clsx(s.primaryButton, s.alertButton)}
+                onClick={() => {
+                  onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                  onEdit();
+                }}
+              >
                 Update Office Hours
               </button>
             )}

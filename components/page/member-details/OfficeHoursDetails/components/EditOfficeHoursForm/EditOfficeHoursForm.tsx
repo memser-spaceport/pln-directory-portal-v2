@@ -58,6 +58,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
   const { mutateAsync: validateOfficeHours } = useValidateOfficeHours();
   const [validationCache, setValidationCache] = React.useState<Map<string, { isValid: boolean; error?: string }>>(new Map());
   const [isValidatingOfficeHours, setIsValidatingOfficeHours] = React.useState(false);
+  const { onSubmitUpdatedOfficeHours } = useMemberAnalytics();
 
   const debouncedValidateOfficeHours = React.useMemo(
     () =>
@@ -163,6 +164,8 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
       ohInterest: formData.officeHoursInterestedIn,
       ohHelpWith: formData.officeHoursCanHelpWith,
     };
+
+    onSubmitUpdatedOfficeHours(payload);
 
     const res = await mutateAsync({
       uid: memberData.memberInfo.uid,

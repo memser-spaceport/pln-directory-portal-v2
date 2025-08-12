@@ -48,6 +48,10 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_OFFICEHOURS_CLICKED, params);
   }
 
+  function onSubmitUpdatedOfficeHours(payload: any) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_SUBMIT_UPDATED__OFFICEHOURS, payload);
+  }
+
   function onProjectContributionEditClicked(member: IMember) {
     const params = {
       ...member,
@@ -578,5 +582,6 @@ export const useMemberAnalytics = () => {
     onExplorePlNetworkCLicked,
     onSuccessLinkedInVerification,
     onErrorLinkedInVerification,
+    onSubmitUpdatedOfficeHours,
   };
 };

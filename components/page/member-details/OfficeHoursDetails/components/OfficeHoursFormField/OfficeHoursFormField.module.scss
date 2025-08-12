@@ -98,17 +98,30 @@
 }
 
 .description {
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 12px;
-  line-height: 16px;
-  color: #6b7280;
-  margin: 0;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
 }
 
 .errorMessage {
+  color: var(--foreground-error-secondary, #FF3838);
   font-size: 12px;
-  line-height: 16px;
-  color: #FF3838;
-  margin: 0;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.successMessage {
+  color: var(--action-foreground-success-active, #0A9952);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
 }
 
 .loader {

@@ -185,7 +185,13 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
         </div>
 
         <OfficeHoursDialog isOpen={showDialog} onClose={() => setShowDialog(false)} onContinue={handleDialogContinue} userInfo={userInfo} />
-        <InvalidOfficeHoursLinkDialog isOpen={showInvalidLinkDialog} onClose={() => setShowInvalidLinkDialog(false)} recipientName={member.name} />
+        <InvalidOfficeHoursLinkDialog
+          isOpen={showInvalidLinkDialog}
+          onClose={() => setShowInvalidLinkDialog(false)}
+          recipientName={member.name}
+          recipientEmail={member.email}
+          recipientTelegram={member.telegramHandle}
+        />
       </div>
     </>
   );

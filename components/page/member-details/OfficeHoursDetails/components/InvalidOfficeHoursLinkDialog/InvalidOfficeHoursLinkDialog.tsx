@@ -9,8 +9,8 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   recipientName: string;
-  recipientEmail: string;
-  recipientTelegram: string;
+  recipientEmail: string | null | undefined;
+  recipientTelegram: string | null | undefined;
 }
 
 export const InvalidOfficeHoursLinkDialog = ({ isOpen, onClose, recipientName, recipientEmail, recipientTelegram }: Props) => {

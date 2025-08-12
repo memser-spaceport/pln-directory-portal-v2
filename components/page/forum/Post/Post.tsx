@@ -61,6 +61,7 @@ export const Post = () => {
       position: data.author.teamRole && data.author.teamName ? `${data.author.teamRole} @${data.author.teamName}` : '',
       time: formatDistanceToNow(new Date(data.timestamp), { addSuffix: true }),
       upvoted: data.posts[0]?.upvoted,
+      timestamp: data.timestamp,
       meta: {
         views: data.viewcount,
         likes: data.posts[0]?.votes,
@@ -68,8 +69,7 @@ export const Post = () => {
       },
       isEditable: data.posts[0]?.user?.memberUid === userInfo?.uid || userInfo?.roles?.includes(ADMIN_ROLE),
     };
-  }, [data, userInfo?.roles, userInfo?.uid]);
-
+  }, [data, userInfo]);
 
   useEffect(() => {
     if (!post) {
@@ -139,7 +139,7 @@ export const Post = () => {
           <div className={s.subItem}>
             <ViewIcon /> {post.meta.views} Views
           </div>
-          <LikesButton tid={post.tid} pid={post?.pid} likes={post.meta.likes} isLiked={post.upvoted} />
+          <LikesButton tid={post.tid} pid={post?.pid} likes={post.meta.likes} isLiked={post.upvoted} timestamp={post.timestamp} />
           <div className={s.subItem}>
             <CommentIcon /> {post.meta.comments} Comments
           </div>
@@ -175,6 +175,7 @@ export const Post = () => {
           tid={post.tid}
           toPid={replyToPid ?? post.pid}
           replyToName={replyToItem?.user.displayname}
+          timestamp={post.timestamp}
           onReset={() => {
             setReplyToPid(null);
             const params = new URLSearchParams(searchParams.toString());
@@ -185,7 +186,7 @@ export const Post = () => {
       </div>
 
       <div className={s.root}>
-        <PostComments comments={data?.posts?.slice(1)} tid={post.tid} mainPid={post.pid} onReply={(pid) => setReplyToPid(pid)} userInfo={userInfo} />
+        <PostComments comments={data?.posts?.slice(1)} tid={post.tid} mainPid={post.pid} onReply={(pid) => setReplyToPid(pid)} userInfo={userInfo} timestamp={post.timestamp} />
       </div>
 
       <ScrollToTopButton />

@@ -47,15 +47,15 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.POST_CLICKED, params);
   }
 
-  function onLikePostClicked(params: { tid?: string | number; pid?: string | number }) {
+  function onLikePostClicked(params: { tid?: string | number; pid?: string | number; timeSincePostCreation: number }) {
     captureEvent(FORUM_ANALYTICS_EVENTS.POST_LIKED, params);
   }
 
-  function onCommentInputClicked(params: { tid?: string | number }) {
+  function onCommentInputClicked(params: { tid?: string | number; timeSincePostCreation: number }) {
     captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_INPUT_CLICKED, params);
   }
 
-  function onPostCommentSubmit(params: PostCommentMutationParams) {
+  function onPostCommentSubmit(params: PostCommentMutationParams & { timeSincePostCreation: number }) {
     captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_SUBMIT, params);
   }
 
@@ -67,7 +67,7 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_NOTIFICATION_SETTINGS_CLICKED, params);
   }
 
-  function onPostCommentReplyClicked(params: { tid?: string | number; pid?: string | number }) {
+  function onPostCommentReplyClicked(params: { tid?: string | number; pid?: string | number; timeSincePostCreation: number }) {
     captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_REPLY_CLICKED, params);
   }
 

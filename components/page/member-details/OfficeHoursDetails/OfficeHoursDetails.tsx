@@ -10,6 +10,7 @@ import { OfficeHoursView } from '@/components/page/member-details/OfficeHoursDet
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
+import { useValidateOfficeHoursQuery } from '@/services/members/hooks/useValidateOfficeHoursQuery';
 
 interface Props {
   member: IMember;
@@ -25,7 +26,8 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const showWarningUseCaseA = !member?.officeHours;
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
-  const officeHoursValidation = { isValid: member.ohStatus === 'OK' || member.ohStatus === null || member.ohStatus === 'NOT_FOUND' };
+  const { data: officeHoursValidationOnLoad } = useValidateOfficeHoursQuery(member?.id);
+  const officeHoursValidation = { isValid: !officeHoursValidationOnLoad ? true : officeHoursValidationOnLoad?.ohStatus === 'OK' };
 
   useMobileNavVisibility(editView);
 

@@ -23,7 +23,7 @@ export const Posts = () => {
   const categoryTopicSort = searchParams.get('categoryTopicSort') as string;
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useInfiniteForumPosts({
     cid,
-    categoryTopicSort,
+    categoryTopicSort: categoryTopicSort ?? 'recently_created',
   });
 
   const posts = useMemo(() => {

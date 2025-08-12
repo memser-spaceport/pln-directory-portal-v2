@@ -238,6 +238,7 @@ export interface ILocationDetails {
   startDate: string;
   endDate: string;
   resources: AdditionalResource[];
+  additionalInfo: any;
 }
 
 export interface CalendarDate {

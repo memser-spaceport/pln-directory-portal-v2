@@ -58,8 +58,9 @@ const IrlEvents = (props: IIrlEvents) => {
   const updatedUser = guestDetails?.currentGuest ?? null;
   const irlLocation = (searchParams?.location?.toLowerCase() || locationDetails?.[0]?.location?.toLowerCase())?.split(',')[0];
   const selectedLocation = locationDetails?.find((location) => location.location?.toLowerCase() === irlLocation?.toLowerCase());
-  const scheduleEnabledLocations = process.env.SCHEDULE_ENABLED_LOCATIONS?.split(',');
-  const isScheduleEnabled = scheduleEnabledLocations?.includes(irlLocation) || false;
+  // const scheduleEnabledLocations = process.env.SCHEDULE_ENABLED_LOCATIONS?.split(',');
+  // const isScheduleEnabled = scheduleEnabledLocations?.includes(irlLocation) || false;
+  const isScheduleEnabled = selectedLocation?.additionalInfo?.submitEventUrl || false;
   const updatedIrlLocation = abbreviateString(irlLocation);
 
   const isEventAvailable = searchParams?.type === 'past' && eventDetails?.pastEvents?.some((event) => event.slugURL === searchParams?.event);

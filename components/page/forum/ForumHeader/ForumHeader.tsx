@@ -35,7 +35,6 @@ export const ForumHeader = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[1];
-  const selectedCategory = searchParams.get('cid');
   const analytics = useForumAnalytics();
 
   const onValueChange = (_value: string) => {
@@ -62,7 +61,6 @@ export const ForumHeader = () => {
           options={sortOptions}
           value={value}
           defaultValue={value}
-          isDisabled={selectedCategory === '0'}
           onChange={(val) => {
             if (val) {
               onValueChange(val.value);

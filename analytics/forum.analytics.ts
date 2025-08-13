@@ -5,6 +5,21 @@ import { CreatePostMutationParams } from '@/services/forum/hooks/useCreatePost';
 import { PostCommentMutationParams } from '@/services/forum/hooks/usePostComment';
 import { EditPostMutationParams } from '@/services/forum/hooks/useEditPost';
 
+// Utility function to convert milliseconds to hh:mm:ss format
+function formatTimeSincePostCreation(milliseconds: number): string {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  // Pad with zeros to ensure two digits
+  const paddedHours = hours.toString().padStart(2, '0');
+  const paddedMinutes = minutes.toString().padStart(2, '0');
+  const paddedSeconds = seconds.toString().padStart(2, '0');
+
+  return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
+}
+
 export const useForumAnalytics = () => {
   const postHogProps = usePostHog();
 
@@ -48,15 +63,27 @@ export const useForumAnalytics = () => {
   }
 
   function onLikePostClicked(params: { tid?: string | number; pid?: string | number; timeSincePostCreation: number }) {
-    captureEvent(FORUM_ANALYTICS_EVENTS.POST_LIKED, params);
+    const transformedParams = {
+      ...params,
+      timeSincePostCreation: formatTimeSincePostCreation(params.timeSincePostCreation),
+    };
+    captureEvent(FORUM_ANALYTICS_EVENTS.POST_LIKED, transformedParams);
   }
 
   function onCommentInputClicked(params: { tid?: string | number; timeSincePostCreation: number }) {
-    captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_INPUT_CLICKED, params);
+    const transformedParams = {
+      ...params,
+      timeSincePostCreation: formatTimeSincePostCreation(params.timeSincePostCreation),
+    };
+    captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_INPUT_CLICKED, transformedParams);
   }
 
   function onPostCommentSubmit(params: PostCommentMutationParams & { timeSincePostCreation: number }) {
-    captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_SUBMIT, params);
+    const transformedParams = {
+      ...params,
+      timeSincePostCreation: formatTimeSincePostCreation(params.timeSincePostCreation),
+    };
+    captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_SUBMIT, transformedParams);
   }
 
   function onPostCommentCancel() {
@@ -68,7 +95,11 @@ export const useForumAnalytics = () => {
   }
 
   function onPostCommentReplyClicked(params: { tid?: string | number; pid?: string | number; timeSincePostCreation: number }) {
-    captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_REPLY_CLICKED, params);
+    const transformedParams = {
+      ...params,
+      timeSincePostCreation: formatTimeSincePostCreation(params.timeSincePostCreation),
+    };
+    captureEvent(FORUM_ANALYTICS_EVENTS.POST_COMMENT_REPLY_CLICKED, transformedParams);
   }
 
   function onPostEditClicked(params: { tid?: string | number; pid?: string | number }) {

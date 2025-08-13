@@ -14,8 +14,9 @@ import { toast } from 'react-toastify';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 
-import s from './EditBioForm.module.scss';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
+
+import s from './EditBioForm.module.scss';
 
 interface Props {
   onClose: () => void;

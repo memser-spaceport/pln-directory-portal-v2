@@ -48,15 +48,15 @@ const RatingContainer = (props: IRatingContainer) => {
   };
 
   const getRecentBooking = async () => {
-    const isShow = getParsedValue(cookies.get("showNotificationPopup") ?? '');
-    if(isShow) {
+    const isShow = getParsedValue(cookies.get('showNotificationPopup') ?? '');
+    if (isShow) {
       const response = await getFollowUps(userInfo.uid ?? '', authToken, 'PENDING');
       const result = response?.data ?? [];
       cookies.remove('showNotificationPopup');
       if (result?.length) {
-      const filtereNotifications = result?.filter((notification: IFollowUp) => notification?.type === "MEETING_SCHEDULED");
+        const filtereNotifications = result?.filter((notification: IFollowUp) => notification?.type === 'MEETING_SCHEDULED');
         let currentFollowup = result[0];
-      if(filtereNotifications.length > 0) {
+        if (filtereNotifications.length > 0) {
           currentFollowup = filtereNotifications[0];
         }
         setCurrentStep(currentFollowup.type);
@@ -110,6 +110,8 @@ const RatingContainer = (props: IRatingContainer) => {
     }
 
     document.addEventListener(EVENTS.TRIGGER_RATING_POPUP, (e: any) => {
+      console.log(e);
+      console.log(e.detail);
       updateNotification(e?.detail?.notification);
     });
 
@@ -119,6 +121,8 @@ const RatingContainer = (props: IRatingContainer) => {
       });
     };
   }, []);
+
+  console.log(currentStep, currentFollowup);
 
   return (
     <>

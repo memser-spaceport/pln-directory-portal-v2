@@ -8,9 +8,10 @@ import { BioView } from '@/components/page/member-details/BioDetails/components/
 import { EditBioForm } from '@/components/page/member-details/BioDetails/components/EditBioForm';
 import { ADMIN_ROLE } from '@/utils/constants';
 
-import s from './BioDetails.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
+
+import s from './BioDetails.module.scss';
 
 interface Props {
   member: IMember;

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { IMember } from '@/types/members.types';
 import { MembersQueryKeys } from '@/services/members/constants';
+import { normalizeOfficeHoursUrl } from '@/utils/common.utils';
 
 interface OfficeHoursValidationResponse {
   ohStatus: IMember['ohStatus'];
@@ -17,10 +18,7 @@ async function fetcher(uid: string | undefined, link?: string): Promise<OfficeHo
   let requestBody = {};
   if (link) {
     // Normalize URL - add https:// if no protocol is provided
-    let normalizedLink = link;
-    if (!link.match(/^https?:\/\//i)) {
-      normalizedLink = `https://${link}`;
-    }
+    const normalizedLink = normalizeOfficeHoursUrl(link);
     requestBody = { link: normalizedLink };
   }
 

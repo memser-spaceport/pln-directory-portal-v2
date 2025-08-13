@@ -68,7 +68,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
           setIsValidatingOfficeHours(true);
           const result = await validateOfficeHours({ link });
           const isValid = result?.status === 'OK';
-          const error = isValid ? undefined : result?.error || 'We couldn’t reach your Office Hours link. Please update it so others can book time.';
+          const error = isValid ? undefined : result?.error || 'Please enter a valid URL for your scheduling link.';
 
           setValidationCache((prev) => new Map(prev).set(link, { isValid, error }));
           return { isValid, error };
@@ -129,7 +129,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
           }
         } catch (error) {
           return this.createError({
-            message: 'Unable to validate the office hours link. Please check the URL and try again.'
+            message: 'Unable to validate the office hours link. Please check the URL and try again.',
           });
         }
       }),

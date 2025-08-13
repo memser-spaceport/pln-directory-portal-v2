@@ -3,14 +3,23 @@
 import React, { useMemo } from 'react';
 
 import s from './ForumDigest.module.scss';
-import { useGetForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import { ForumDigestSettings, useGetForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { IUserInfo } from '@/types/shared.types';
 import { Field } from '@base-ui-components/react/field';
 import { clsx } from 'clsx';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
 import dynamic from 'next/dynamic';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
-const Select = dynamic(() => import('react-select'), { ssr: false });
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+const Select = dynamic(() => import('react-select'), {
+  ssr: false,
+  loading: () => (
+    <div style={{ width: '100%' }}>
+      <Skeleton height={52} width="100%" />
+    </div>
+  ),
+});
 
 const options = [
   {
@@ -30,9 +39,9 @@ const options = [
   },
 ];
 
-export const ForumDigest = ({ userInfo }: { userInfo: IUserInfo }) => {
+export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; initialData: ForumDigestSettings }) => {
   const { mutate } = useUpdateForumDigestSettings();
-  const { data } = useGetForumDigestSettings(userInfo.uid);
+  const { data } = useGetForumDigestSettings(userInfo.uid, initialData);
   const analytics = useSettingsAnalytics();
 
   const value = useMemo(() => {

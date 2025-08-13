@@ -8,6 +8,12 @@ interface OfficeHoursValidationResponse {
 }
 
 async function mutation({ link }: { link: string }): Promise<OfficeHoursValidationResponse | null> {
+  // Normalize URL - add https:// if no protocol is provided
+  let normalizedLink = link;
+  if (!link.match(/^https?:\/\//i)) {
+    normalizedLink = `https://${link}`;
+  }
+
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/office-hours/check-link`,
     {
@@ -15,7 +21,7 @@ async function mutation({ link }: { link: string }): Promise<OfficeHoursValidati
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ link }),
+      body: JSON.stringify({ link: normalizedLink }),
     },
     true,
   );

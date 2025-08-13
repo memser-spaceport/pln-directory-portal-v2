@@ -7,13 +7,17 @@ import { triggerLoader } from '@/utils/common.utils';
 import { ForumDigest } from '@/components/page/email-preferences/components/ForumDigest';
 import s from './EmailPreferencesForm.module.scss';
 import { Newsletter } from '@/components/page/email-preferences/components/Newsletter';
+import { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 
 interface Props {
   uid: string;
   userInfo: IUserInfo;
+  initialData: {
+    settings: ForumDigestSettings;
+  };
 }
 
-export const EmailPreferencesForm = ({ uid, userInfo }: Props) => {
+export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   const router = useRouter();
 
   useEffect(() => {
@@ -37,7 +41,7 @@ export const EmailPreferencesForm = ({ uid, userInfo }: Props) => {
   return (
     <div className={s.root}>
       <h5 className={s.title}>Email Preferences</h5>
-      <ForumDigest userInfo={userInfo} />
+      <ForumDigest userInfo={userInfo} initialData={initialData.settings} />
       <Newsletter userInfo={userInfo} />
     </div>
   );

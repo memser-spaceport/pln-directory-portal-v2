@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { NotificationsQueryKeys } from '@/services/notifications/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { ForumQueryKeys } from '@/services/forum/constants';
 
-type ForumDigestSettings = {
+export type ForumDigestSettings = {
   forumDigestEnabled: boolean;
   forumDigestFrequency: 1 | 7;
   forumDigestLastSentAt: null;
@@ -25,10 +24,11 @@ async function fetcher(uid: string | undefined) {
   return (await response.json()) as ForumDigestSettings;
 }
 
-export function useGetForumDigestSettings(uid: string | undefined) {
+export function useGetForumDigestSettings(uid: string | undefined, initialData: ForumDigestSettings) {
   return useQuery({
     queryKey: [ForumQueryKeys.GET_FORUM_DIGEST_SETTINGS, uid],
     queryFn: () => fetcher(uid),
     enabled: Boolean(uid),
+    initialData,
   });
 }

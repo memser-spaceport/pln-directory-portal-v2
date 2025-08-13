@@ -1,8 +1,6 @@
 import SettingsMenu from '@/components/page/settings/menu';
-import Breadcrumbs from '@/components/ui/breadcrumbs';
 import styles from './page.module.css';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
@@ -10,33 +8,35 @@ import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { EmailPreferencesForm } from '@/components/page/email-preferences/components/EmailPreferencesForm';
 
 async function RecommendationsPage({ searchParams }: { searchParams: any }) {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { isLoggedIn, userInfo, authToken } = getCookiesFromHeaders();
   const params = new URLSearchParams(searchParams as Record<string, string>).toString();
 
   if (!isLoggedIn) {
     redirect(`/${params ? `?${params}` : '?'}&returnTo=settings-email#login`);
   }
 
+  const [settingResponse] = await Promise.all([
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/forum`, {
+      headers: {
+        contentType: 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+    }),
+  ]);
+
+  if (!settingResponse.ok) {
+    return null;
+  }
+
+  const settings = await settingResponse.json();
   const roles = userInfo.roles ?? [];
   const isAdmin = roles.includes('DIRECTORYADMIN');
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
 
-  const breadcrumbItems = [
-    { url: '/', icon: '/icons/home.svg' },
-    { text: 'Members', url: '/members' },
-    { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
-    { text: 'Email Preferences', url: '/settings/email' },
-  ];
-
   return (
     <>
       <div className={styles.privacy}>
-        {/*<div className={styles.privacy__breadcrumbs}>*/}
-        {/*  <div className={styles.privacy__breadcrumbs__desktop}>*/}
-        {/*    <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />*/}
-        {/*  </div>*/}
-        {/*</div>*/}
         <div className={styles.privacy__backbtn}>
           <SettingsBackButton title="Email Preferences" />
         </div>
@@ -45,7 +45,13 @@ async function RecommendationsPage({ searchParams }: { searchParams: any }) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="email preferences" userInfo={userInfo} />
           </aside>
           <div className={styles.privacy__main__content}>
-            <EmailPreferencesForm uid={userInfo.uid} userInfo={userInfo} />
+            <EmailPreferencesForm
+              uid={userInfo.uid}
+              userInfo={userInfo}
+              initialData={{
+                settings,
+              }}
+            />
           </div>
         </div>
       </div>

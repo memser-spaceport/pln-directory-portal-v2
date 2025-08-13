@@ -1,12 +1,14 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import React, { useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { clsx } from 'clsx';
-import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 import { useGenerateBioWithAi } from '@/services/members/hooks/useGenerateBioWithAi';
 
 import s from './BioInput.module.scss';
+
+const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor/RichTextEditor'), { ssr: false });
 
 interface Props {
   generateBio?: boolean;
@@ -17,7 +19,7 @@ export const BioInput = ({ generateBio }: Props) => {
   const { bio } = watch();
   const generateBioRef = useRef(false);
 
-  const { mutateAsync, isPending, status, isSuccess, reset } = useGenerateBioWithAi();
+  const { mutateAsync, isPending, reset } = useGenerateBioWithAi();
 
   useEffect(() => {
     async function prefillBio() {
@@ -68,7 +70,7 @@ export const BioInput = ({ generateBio }: Props) => {
         </button>
       </div>
 
-      <RichTextEditor value={bio} onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })} />
+      <RichTextEditor value={bio} onChange={(txt) => setValue('bio', txt, { shouldValidate: true, shouldDirty: true })} className={s.editor} />
     </div>
   );
 };

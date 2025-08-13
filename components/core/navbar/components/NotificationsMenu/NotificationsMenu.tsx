@@ -41,6 +41,8 @@ export const NotificationsMenu = ({ notifications, open, onClose, userInfo, isMo
     }
   };
 
+  console.log(notifications);
+
   return (
     <Menu.Root modal={isMobileView} open={open} onOpenChange={onClose}>
       <Menu.Trigger className={s.Button} />
@@ -55,7 +57,7 @@ export const NotificationsMenu = ({ notifications, open, onClose, userInfo, isMo
               All notifications <div className={s.notificationsCount}>{notifications?.length}</div>
             </div>
             {notifications?.map((notification: any, index: number) => (
-              <Menu.Item key={notification.uid} className={s.Item} onClick={onNotificationClickHandler}>
+              <Menu.Item key={notification.uid} className={s.Item} onClick={() => onNotificationClickHandler(notification)}>
                 <NotificationCard notification={notification} />
               </Menu.Item>
             ))}

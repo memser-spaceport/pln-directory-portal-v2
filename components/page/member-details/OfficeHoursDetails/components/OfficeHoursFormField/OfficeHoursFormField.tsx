@@ -78,7 +78,7 @@ export const OfficeHoursFormField = ({ name, label, placeholder, description, va
 
       {description && !hasError && !showValidStatus && <p className={s.description}>{description}</p>}
 
-      {showValidStatus && <p className={s.successMessage}>Your booking link is active and ready to use.</p>}
+      {showValidStatus && <p className={s.successMessage}>Scheduling link looks good.</p>}
       {hasError && <p className={s.errorMessage}>{fieldError?.message as string}</p>}
     </div>
   );

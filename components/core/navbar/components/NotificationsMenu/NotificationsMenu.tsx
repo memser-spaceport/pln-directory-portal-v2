@@ -41,8 +41,6 @@ export const NotificationsMenu = ({ notifications, open, onClose, userInfo, isMo
     }
   };
 
-  console.log(notifications);
-
   return (
     <Menu.Root modal={isMobileView} open={open} onOpenChange={onClose}>
       <Menu.Trigger className={s.Button} />

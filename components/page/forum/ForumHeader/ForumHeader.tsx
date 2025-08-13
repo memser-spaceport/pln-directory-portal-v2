@@ -34,7 +34,14 @@ export const ForumHeader = () => {
   const [menuPortalTarget, setMenuPortalTarget] = useState<HTMLElement | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[1];
+
+  // Add most_active option only when cid is 1
+  const cid = searchParams.get('cid');
+  const availableSortOptions = cid === '1'
+    ? [...sortOptions, { value: 'most_active', label: 'Most active' }]
+    : sortOptions;
+
+  const value = availableSortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || availableSortOptions[1];
   const analytics = useForumAnalytics();
 
   const onValueChange = (_value: string) => {
@@ -58,7 +65,7 @@ export const ForumHeader = () => {
         <Select
           menuPortalTarget={menuPortalTarget}
           menuPlacement="auto"
-          options={sortOptions}
+          options={availableSortOptions}
           value={value}
           defaultValue={value}
           onChange={(val) => {

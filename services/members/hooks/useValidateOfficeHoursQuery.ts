@@ -8,9 +8,20 @@ interface OfficeHoursValidationResponse {
   uid: string;
 }
 
-async function fetcher(uid: string | undefined): Promise<OfficeHoursValidationResponse | null> {
+async function fetcher(uid: string | undefined, link?: string): Promise<OfficeHoursValidationResponse | null> {
   if (!uid) {
     return null;
+  }
+
+  // Prepare request body - include normalized link if provided
+  let requestBody = {};
+  if (link) {
+    // Normalize URL - add https:// if no protocol is provided
+    let normalizedLink = link;
+    if (!link.match(/^https?:\/\//i)) {
+      normalizedLink = `https://${link}`;
+    }
+    requestBody = { link: normalizedLink };
   }
 
   const response = await customFetch(
@@ -20,6 +31,7 @@ async function fetcher(uid: string | undefined): Promise<OfficeHoursValidationRe
       headers: {
         'Content-Type': 'application/json',
       },
+      body: Object.keys(requestBody).length > 0 ? JSON.stringify(requestBody) : undefined,
     },
     true,
   );
@@ -31,10 +43,10 @@ async function fetcher(uid: string | undefined): Promise<OfficeHoursValidationRe
   return response.json();
 }
 
-export function useValidateOfficeHoursQuery(uid: string | undefined, isLoggedIn: boolean) {
+export function useValidateOfficeHoursQuery(uid: string | undefined, isLoggedIn: boolean, link?: string) {
   return useQuery({
-    queryKey: [MembersQueryKeys.VALIDATE_OFFICE_HOURS, uid],
-    queryFn: () => fetcher(uid),
+    queryKey: [MembersQueryKeys.VALIDATE_OFFICE_HOURS, uid, link],
+    queryFn: () => fetcher(uid, link),
     enabled: !!uid && !!isLoggedIn,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes

@@ -92,9 +92,14 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
           return true;
         }
 
-        // Basic URL validation first
+        // Basic URL validation - allow URLs without protocol
+        let urlToValidate = value;
         try {
-          new URL(value);
+          // If the URL doesn't start with a protocol, prepend https://
+          if (!value.match(/^https?:\/\//i)) {
+            urlToValidate = `https://${value}`;
+          }
+          new URL(urlToValidate);
         } catch {
           return this.createError({ message: 'Please enter a valid URL' });
         }
@@ -105,8 +110,8 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
         //   return true; // Don't validate unchanged default values
         // }
 
-        // Check cache first
-        const cached = validationCache.get(value);
+        // Check cache first using the normalized URL
+        const cached = validationCache.get(urlToValidate);
         if (cached) {
           if (cached.isValid) {
             return true;
@@ -115,13 +120,19 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
           }
         }
 
-        // If not in cache, trigger debounced validation
-        // For immediate validation, we'll return true and let the debounced function update the cache
-        // The form will re-validate when the cache updates
-        await debouncedValidateOfficeHours(value);
-
-        // Return true for now to avoid blocking, validation will happen async
-        return true;
+        // If not in cache, trigger debounced validation and wait for result
+        try {
+          const result = await debouncedValidateOfficeHours(urlToValidate);
+          if (result.isValid) {
+            return true;
+          } else {
+            return this.createError({ message: result.error });
+          }
+        } catch (error) {
+          return this.createError({
+            message: 'Unable to validate the office hours link. Please check the URL and try again.'
+          });
+        }
       }),
     officeHoursInterestedIn: yup.array().of(yup.string().defined()).defined().nullable(),
     officeHoursCanHelpWith: yup.array().of(yup.string().defined()).defined().nullable(),
@@ -147,8 +158,16 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
 
   // Re-validate when cache updates for the current field value
   React.useEffect(() => {
-    if (officeHoursValue && validationCache.has(officeHoursValue)) {
-      trigger('officeHours');
+    if (officeHoursValue) {
+      // Normalize the URL to check cache (same logic as in schema)
+      let normalizedUrl = officeHoursValue;
+      if (!officeHoursValue.match(/^https?:\/\//i)) {
+        normalizedUrl = `https://${officeHoursValue}`;
+      }
+
+      if (validationCache.has(normalizedUrl)) {
+        trigger('officeHours');
+      }
     }
   }, [validationCache, officeHoursValue, trigger]);
 

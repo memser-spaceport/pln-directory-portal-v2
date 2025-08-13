@@ -15,6 +15,7 @@ import * as yup from 'yup';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { useValidateOfficeHours } from '@/services/members/hooks/useValidateOfficeHours';
 import { FormTagsInput } from '@/components/form/FormTagsInput';
+import { normalizeOfficeHoursUrl } from '@/utils/common.utils';
 
 import s from './EditOfficeHoursForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -96,9 +97,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
         let urlToValidate = value;
         try {
           // If the URL doesn't start with a protocol, prepend https://
-          if (!value.match(/^https?:\/\//i)) {
-            urlToValidate = `https://${value}`;
-          }
+          urlToValidate = normalizeOfficeHoursUrl(value);
           new URL(urlToValidate);
         } catch {
           return this.createError({ message: 'Please enter a valid URL' });
@@ -160,10 +159,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
   React.useEffect(() => {
     if (officeHoursValue) {
       // Normalize the URL to check cache (same logic as in schema)
-      let normalizedUrl = officeHoursValue;
-      if (!officeHoursValue.match(/^https?:\/\//i)) {
-        normalizedUrl = `https://${officeHoursValue}`;
-      }
+      const normalizedUrl = normalizeOfficeHoursUrl(officeHoursValue);
 
       if (validationCache.has(normalizedUrl)) {
         trigger('officeHours');

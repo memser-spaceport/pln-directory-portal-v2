@@ -12,7 +12,7 @@ import s from './OfficeHoursView.module.scss';
 import { InvalidOfficeHoursLinkDialog } from '@/components/page/member-details/OfficeHoursDetails/components/InvalidOfficeHoursLinkDialog';
 import { useReportBrokenOfficeHours } from '@/services/members/hooks/useReportBrokenOfficeHours';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader, normalizeOfficeHoursUrl } from '@/utils/common.utils';
 import { useCreateFollowUp } from '@/services/members/hooks/useCreateFollowUp';
 import Cookies from 'js-cookie';
 import { getFollowUps } from '@/services/office-hours.service';
@@ -92,7 +92,10 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
       return;
     }
 
-    window.open(member.officeHours, '_blank');
+    // Normalize URL - add https:// if no protocol is provided
+    const normalizedOfficeHoursUrl = normalizeOfficeHoursUrl(member.officeHours);
+
+    window.open(normalizedOfficeHoursUrl, '_blank');
 
     const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
 

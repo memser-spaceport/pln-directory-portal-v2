@@ -16,7 +16,7 @@ const Select = dynamic(() => import('react-select'), {
   ssr: false,
   loading: () => (
     <div style={{ width: '100%' }}>
-      <Skeleton height={52} width="100%" />
+      <Skeleton height={50} width="100%" />
     </div>
   ),
 });

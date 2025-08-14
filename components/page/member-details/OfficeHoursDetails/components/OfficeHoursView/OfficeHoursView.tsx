@@ -137,7 +137,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
           )}
           {hasCanHelpWith && (
             <div>
-              <div className={s.keywordsLabel}>Areas I Can Help With:</div>
+              <div className={s.keywordsLabel}>I Can Help With:</div>
               <div className={s.badgesWrapper}>
                 {member?.ohHelpWith?.map((item) => (
                   <div key={item} className={s.badge}>
@@ -154,10 +154,10 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
 
   function getAlertMessage() {
     if (!hasOfficeHours) {
-      return 'Make it easy for others in the network to connect with you — add your Office Hours link to enable quick 1:1 chats.';
+      return 'Make it easy for others in the network to connect with you — add your Office Hours link to enable quick 1:1 conversations.';
     }
 
-    return 'Make your Office Hours specific to value your time around connections that really matter.';
+    return 'Add your expertise and interests to your office hours for more meaningful conversations.';
   }
 
   return (

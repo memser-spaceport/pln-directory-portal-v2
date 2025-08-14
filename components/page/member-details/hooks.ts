@@ -27,10 +27,6 @@ export function useFixBrokenOfficeHoursLinkEventCapture() {
 
     onFixBrokenOfficeHoursLinkClicked(searchParamsObj);
   }, [isCorrectSource, onFixBrokenOfficeHoursLinkClicked, searchParams]);
-
-  return {
-    forceEditMode: isCorrectSource,
-  };
 }
 
 export function useBrokenOfficeHoursLinkBookAttemptEventCapture() {
@@ -58,4 +54,8 @@ export function useBrokenOfficeHoursLinkBookAttemptEventCapture() {
 
     onBrokenOfficeHoursLinkBookAttemptClicked(searchParamsObj);
   }, [isCorrectSource, onBrokenOfficeHoursLinkBookAttemptClicked, searchParams]);
+
+  return {
+    forceEditMode: isCorrectSource,
+  };
 }

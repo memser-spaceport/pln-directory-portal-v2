@@ -40,8 +40,8 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
 
   useMobileNavVisibility(editView);
 
-  const { forceEditMode } = useFixBrokenOfficeHoursLinkEventCapture();
-  useBrokenOfficeHoursLinkBookAttemptEventCapture();
+  useFixBrokenOfficeHoursLinkEventCapture();
+  const { forceEditMode } = useBrokenOfficeHoursLinkBookAttemptEventCapture();
 
   useEffect(() => {
     if (forceEditMode && !editView && !forcedEditModeRef.current) {

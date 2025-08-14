@@ -70,7 +70,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
           const isValid = result?.status === 'OK';
           const error = isValid ? undefined : result?.error || 'Please enter a valid URL for your scheduling link.';
 
-          setValidationCache((prev) => new Map(prev).set(link, { isValid, error }));
+          setValidationCache((prev) => new Map(prev).set(link, { isValid, error }).set(link.replace('https://', ''), { isValid, error }));
           return { isValid, error };
         } catch (error) {
           const errorMessage = 'Unable to validate the office hours link. Please check the URL and try again.';

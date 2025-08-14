@@ -38,6 +38,8 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   const hasCanHelpWith = !!member.ohHelpWith?.length;
   const showAlert = !isOfficeHoursValid && isOwner;
   const showWarning = !showAlert && showIncomplete;
+  const showUpdateButton = isEditable && !showAlert && hasOfficeHours && (!hasInterestedIn || !hasCanHelpWith);
+  const showAlertUpdateButton = showAlert && isEditable;
   const { onAddOfficeHourClicked, onEditOfficeHourClicked, onOfficeHourClicked } = useMemberAnalytics();
   const { mutateAsync: createFollowUp, data } = useCreateFollowUp();
   const { mutate: reportBrokenLink } = useReportBrokenOfficeHours();
@@ -182,7 +184,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
       >
         <div className={s.header}>
           <h2 className={s.title}>Office Hours</h2>
-          {isLoggedIn && isEditable && (
+          {isLoggedIn && isEditable && !showUpdateButton && !showAlertUpdateButton && (
             <EditButton
               onClick={() => {
                 onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
@@ -217,7 +219,18 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
                 Add Office Hours <PlusIcon />
               </button>
             )}
-            {showAlert && isEditable && (
+            {showUpdateButton && (
+              <button
+                className={s.primaryButton}
+                onClick={() => {
+                  onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                  onEdit();
+                }}
+              >
+                Update Office Hours
+              </button>
+            )}
+            {showAlertUpdateButton && (
               <button
                 className={clsx(s.primaryButton, s.alertButton)}
                 onClick={() => {

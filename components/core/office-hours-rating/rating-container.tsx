@@ -122,8 +122,6 @@ const RatingContainer = (props: IRatingContainer) => {
     };
   }, []);
 
-  console.log(currentStep, currentFollowup);
-
   return (
     <>
       <Modal modalRef={ratingContainerRef} onClose={() => onCloseClickHandler(true)}>

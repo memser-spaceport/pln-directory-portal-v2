@@ -29,7 +29,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const { data: officeHoursValidationOnLoad } = useValidateOfficeHoursQuery(member?.id, isLoggedIn);
   const officeHoursValidation = {
     isValid: !officeHoursValidationOnLoad
-      ? true
+      ? member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null
       : officeHoursValidationOnLoad?.ohStatus === 'OK' || officeHoursValidationOnLoad?.ohStatus === 'NOT_FOUND' || officeHoursValidationOnLoad?.ohStatus === null,
   };
 

@@ -515,6 +515,10 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_FIX_BROKEN_OFFICEHOURS_LINK_CLICKED, params);
   }
 
+  function onBrokenOfficeHoursLinkBookAttemptClicked(params: Record<string, string | null>) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BROKEN_OFFICEHOURS_LINK_BOOK_ATTEMPT_CLICKED, params);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -588,5 +592,6 @@ export const useMemberAnalytics = () => {
     onErrorLinkedInVerification,
     onSubmitUpdatedOfficeHours,
     onFixBrokenOfficeHoursLinkClicked,
+    onBrokenOfficeHoursLinkBookAttemptClicked,
   };
 };

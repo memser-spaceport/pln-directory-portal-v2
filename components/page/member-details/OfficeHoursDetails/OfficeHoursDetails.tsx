@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -11,7 +11,8 @@ import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
 import { useValidateOfficeHoursQuery } from '@/services/members/hooks/useValidateOfficeHoursQuery';
-import { useFixBrokenOfficeHoursLinkEventCapture } from '@/components/page/member-details/hooks';
+import { useBrokenOfficeHoursLinkBookAttemptEventCapture, useFixBrokenOfficeHoursLinkEventCapture } from '@/components/page/member-details/hooks';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface Props {
   member: IMember;
@@ -20,6 +21,9 @@ interface Props {
 }
 
 export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
+  const forcedEditModeRef = useRef(false);
+  const router = useRouter();
+  const pathname = usePathname();
   const [editView, setEditView] = useState(false);
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
   const isOwner = userInfo?.uid === member.id;
@@ -36,7 +40,15 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
 
   useMobileNavVisibility(editView);
 
-  useFixBrokenOfficeHoursLinkEventCapture();
+  const { forceEditMode } = useFixBrokenOfficeHoursLinkEventCapture();
+  useBrokenOfficeHoursLinkBookAttemptEventCapture();
+
+  useEffect(() => {
+    if (forceEditMode && !editView && !forcedEditModeRef.current) {
+      forcedEditModeRef.current = true;
+      setEditView(true);
+    }
+  }, [editView, forceEditMode, officeHoursValidationOnLoad]);
 
   if (!isLoggedIn) {
     return null;
@@ -51,7 +63,16 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       })}
     >
       {editView ? (
-        <EditOfficeHoursForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
+        <EditOfficeHoursForm
+          onClose={() => {
+            setEditView(false);
+            if (forceEditMode) {
+              router.replace(pathname, { scroll: false });
+            }
+          }}
+          member={member}
+          userInfo={userInfo}
+        />
       ) : (
         <OfficeHoursView
           member={member}

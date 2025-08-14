@@ -38,15 +38,14 @@ export const ForumHeader = () => {
   const [menuPortalTarget, setMenuPortalTarget] = useState<HTMLElement | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[1];
+  const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[sortOptions.length - 1];
 
-  console.log(value);
   const analytics = useForumAnalytics();
 
   const onValueChange = (_value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     analytics.onForumSortSelected({ sortBy: _value });
-    params.set('categoryTopicSort', _value); // or use `params.delete(key)` to remove
+    params.set('categoryTopicSort', _value);
     router.push(`?${params.toString()}`, { scroll: false });
   };
 

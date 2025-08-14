@@ -28,10 +28,10 @@ const sortOptions = [
     value: 'most_views',
     label: 'Most views',
   },
-  {
-    value: 'most_active',
-    label: 'Most active',
-  },
+  // {
+  //   value: 'most_active',
+  //   label: 'Most active',
+  // },
 ];
 
 export const ForumHeader = () => {

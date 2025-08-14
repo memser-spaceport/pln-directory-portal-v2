@@ -1,0 +1,31 @@
+@import "components/form/FormSwitch/FormSwitch.module";
+
+.groupTitle {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
+}
+
+.groupDescription {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+}
+
+.toggle {
+  width: 100%;
+  justify-content: space-between;
+
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}

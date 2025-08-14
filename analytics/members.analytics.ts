@@ -511,6 +511,10 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_FAILED);
   }
 
+  function onFixBrokenOfficeHoursLinkClicked(params: Record<string, string | null>) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_FIX_BROKEN_OFFICEHOURS_LINK_CLICKED, params);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -583,5 +587,6 @@ export const useMemberAnalytics = () => {
     onSuccessLinkedInVerification,
     onErrorLinkedInVerification,
     onSubmitUpdatedOfficeHours,
+    onFixBrokenOfficeHoursLinkClicked,
   };
 };

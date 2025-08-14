@@ -11,6 +11,7 @@ import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
 import { useValidateOfficeHoursQuery } from '@/services/members/hooks/useValidateOfficeHoursQuery';
+import { useFixBrokenOfficeHoursLinkEventCapture } from '@/components/page/member-details/hooks';
 
 interface Props {
   member: IMember;
@@ -29,11 +30,13 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const { data: officeHoursValidationOnLoad } = useValidateOfficeHoursQuery(member?.id, isLoggedIn);
   const officeHoursValidation = {
     isValid: !officeHoursValidationOnLoad
-      ? true
+      ? member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null
       : officeHoursValidationOnLoad?.ohStatus === 'OK' || officeHoursValidationOnLoad?.ohStatus === 'NOT_FOUND' || officeHoursValidationOnLoad?.ohStatus === null,
   };
 
   useMobileNavVisibility(editView);
+
+  useFixBrokenOfficeHoursLinkEventCapture();
 
   if (!isLoggedIn) {
     return null;

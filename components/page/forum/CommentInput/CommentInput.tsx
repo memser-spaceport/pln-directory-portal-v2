@@ -64,9 +64,10 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
 
   const handleFocus = useCallback(() => {
     if (isEditorEmpty(comment)) {
+      onReset();
       setFocused(false);
     }
-  }, [comment]);
+  }, [comment, onReset]);
 
   useClickAway(formRef, handleFocus);
 
@@ -168,9 +169,9 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
             <span className={s.lbl}>
               Replying to <b className={s.accent}>{replyToName}</b>
             </span>
-            <button type="button" onClick={onReset}>
-              Cancel
-            </button>
+            {/*<button type="button" onClick={onReset}>*/}
+            {/*  Cancel*/}
+            {/*</button>*/}
           </div>
         )}
         <div className={s.content}>

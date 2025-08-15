@@ -1,4 +1,4 @@
-import { IMemberListOptions, IMembersSearchParams } from '@/types/members.types';
+import { IMemberListOptions } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { ADMIN_ROLE, PRIVACY_CONSTANTS } from '@/utils/constants';
 import { hidePreferences, parseMemberDetails, getUniqueFilters, handleHostAndSpeaker, parseMemberDetailsForTeams, getVisibleSocialHandles } from '@/utils/member.utils';
@@ -147,6 +147,9 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     eventGuests: result?.eventGuests ?? [],
     linkedinProfile: result?.linkedinProfile,
     accessLevel: result?.accessLevel,
+    ohInterest: result.ohInterest,
+    ohHelpWith: result.ohHelpWith,
+    ohStatus: result.ohStatus,
   };
 
   if (isLoggedIn) {

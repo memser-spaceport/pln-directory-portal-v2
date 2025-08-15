@@ -131,6 +131,9 @@ export interface IMember {
   telegramHandle?: string | null;
   twitter?: string | null;
   officeHours: string | null;
+  ohInterest?: string[] | null;
+  ohHelpWith?: string[] | null;
+  ohStatus?: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
   teamLead: boolean;
   teams: ITeam[];
   mainTeam: IMemberTeam | null;
@@ -235,6 +238,7 @@ export interface IMemberPreferences {
   showTelegram: boolean;
   showGithubHandle: boolean;
   showGithubProjects: boolean;
+  showOfficeHoursDialog?: boolean;
 }
 
 export interface IMemberRepository {

@@ -382,3 +382,19 @@ export const isMobileDevice = () => {
 export const isSkipRecaptcha = () => {
   return process.env.NEXT_PUBLIC_SKIP_RECAPTCHA_CHECK === 'true';
 };
+
+/**
+ * Normalizes an office hours URL by adding https:// protocol if no protocol is provided
+ * @param url - The URL to normalize
+ * @returns The normalized URL with https:// protocol
+ */
+export const normalizeOfficeHoursUrl = (url: string): string => {
+  if (!url) return url;
+
+  // Check if URL already has a protocol (http:// or https://)
+  if (!url.match(/^https?:\/\//i)) {
+    return `https://${url}`;
+  }
+
+  return url;
+};

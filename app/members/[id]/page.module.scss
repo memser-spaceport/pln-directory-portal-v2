@@ -29,7 +29,11 @@
 .memberDetail__container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
+
+  @include media.tablet-landscape {
+    gap: 16px;
+  }
 }
 
 .memberDetail__container__contact {

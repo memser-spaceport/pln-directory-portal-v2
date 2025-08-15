@@ -1,5 +1,5 @@
 import React from 'react';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader } from '@/utils/common.utils';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLoader, normalizeOfficeHoursUrl } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { createFollowUp, getFollowUps } from '@/services/office-hours.service';
 import { toast } from 'react-toastify';
@@ -52,7 +52,8 @@ export const OfficeHoursHandle = ({ userInfo, member, isLoggedIn }: Props) => {
       }
       triggerLoader(false);
       setTimeout(() => {
-        window.open(officeHours, '_blank');
+        const normalizedOfficeHoursUrl = normalizeOfficeHoursUrl(officeHours);
+        window.open(normalizedOfficeHoursUrl, '_blank');
       });
       const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
       if (!allFollowups?.error) {

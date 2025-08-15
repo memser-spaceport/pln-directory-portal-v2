@@ -1,0 +1,100 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  color: #475569;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+}
+
+.genButton {
+  color: #156FF7;
+  text-align: right;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+
+  &:hover {
+    color: #1d4ed8;
+  }
+
+  &.loading {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+.loader {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  position: relative;
+  animation: rotate 2s linear infinite
+}
+
+.loader::before {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #156FF7;
+  animation: prixClipFix 2s linear forwards infinite;
+}
+
+@keyframes rotate {
+  100% {transform: rotate(360deg)}
+}
+
+@keyframes prixClipFix {
+  0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+  25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+  50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+  75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+  100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.editor {
+  :global(.ql-editor) {
+    min-height: 180px;
+  }
+
+  :global(.ql-toolbar) {
+    border-color: rgba(203, 213, 225, 0.50);
+    border-radius: 8px 8px 0 0;
+  }
+
+  :global(.ql-container) {
+    border-color: rgba(203, 213, 225, 0.50);
+    border-radius: 0 0 8px 8px;
+  }
+}

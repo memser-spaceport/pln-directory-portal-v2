@@ -110,6 +110,8 @@ const RatingContainer = (props: IRatingContainer) => {
     }
 
     document.addEventListener(EVENTS.TRIGGER_RATING_POPUP, (e: any) => {
+      console.log(e);
+      console.log(e.detail);
       updateNotification(e?.detail?.notification);
     });
 

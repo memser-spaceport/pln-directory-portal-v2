@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
-import { ProfileBioInput } from '@/components/page/member-details/ProfileDetails/components/ProfileBioInput';
+
 import { ProfileLocationInput } from '@/components/page/member-details/ProfileDetails/components/ProfileLocationInput';
 import { ProfileSkillsInput } from '@/components/page/member-details/ProfileDetails/components/ProfileSkillsInput';
 import { TEditProfileForm } from '@/components/page/member-details/ProfileDetails/types';
@@ -30,17 +30,16 @@ interface Props {
   onClose: () => void;
   member: IMember;
   userInfo: IUserInfo;
-  generateBio?: boolean;
 }
 
-export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Props) => {
+export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
   const { actions } = useUserStore();
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
       image: null,
       name: member.name || '',
-      bio: member.bio || '',
+
       country: member.location?.country || '',
       state: member.location?.region || '',
       city: member.location?.city || '',
@@ -120,9 +119,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio }: Prop
             <ProfileImageInput member={member} />
             <FormField name="name" label="Name" isRequired placeholder="Text" />
           </div>
-          <div className={s.row}>
-            <ProfileBioInput generateBio={generateBio} />
-          </div>
+
           <div className={s.row}>
             <ProfileLocationInput />
           </div>
@@ -165,6 +162,5 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
       title: skill.label,
       uid: skill.value,
     })),
-    bio: formData.bio,
   };
 }

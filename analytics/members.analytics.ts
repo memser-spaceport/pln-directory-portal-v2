@@ -48,6 +48,10 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_EDIT_OFFICEHOURS_CLICKED, params);
   }
 
+  function onSubmitUpdatedOfficeHours(payload: any) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_SUBMIT_UPDATED__OFFICEHOURS, payload);
+  }
+
   function onProjectContributionEditClicked(member: IMember) {
     const params = {
       ...member,
@@ -507,6 +511,14 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.ONBOARDING_CONNECT_LINKEDIN_FAILED);
   }
 
+  function onFixBrokenOfficeHoursLinkClicked(params: Record<string, string | null>) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_FIX_BROKEN_OFFICEHOURS_LINK_CLICKED, params);
+  }
+
+  function onBrokenOfficeHoursLinkBookAttemptClicked(params: Record<string, string | null>) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BROKEN_OFFICEHOURS_LINK_BOOK_ATTEMPT_CLICKED, params);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -578,5 +590,8 @@ export const useMemberAnalytics = () => {
     onExplorePlNetworkCLicked,
     onSuccessLinkedInVerification,
     onErrorLinkedInVerification,
+    onSubmitUpdatedOfficeHours,
+    onFixBrokenOfficeHoursLinkClicked,
+    onBrokenOfficeHoursLinkBookAttemptClicked,
   };
 };

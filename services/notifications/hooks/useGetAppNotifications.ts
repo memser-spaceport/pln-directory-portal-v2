@@ -3,7 +3,6 @@ import { NotificationsQueryKeys } from '@/services/notifications/constants';
 import { getFollowUps } from '@/services/office-hours.service';
 
 async function fetcher(userId: string, authToken: string) {
-  console.log('GEt follow ups');
   const response = await getFollowUps(userId, authToken, 'PENDING,CLOSED');
 
   return response?.data ?? [];

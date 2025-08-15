@@ -28,20 +28,24 @@ const sortOptions = [
     value: 'most_views',
     label: 'Most views',
   },
+  // {
+  //   value: 'most_active',
+  //   label: 'Most active',
+  // },
 ];
 
 export const ForumHeader = () => {
   const [menuPortalTarget, setMenuPortalTarget] = useState<HTMLElement | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[1];
-  const selectedCategory = searchParams.get('cid');
+  const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[sortOptions.length - 1];
+
   const analytics = useForumAnalytics();
 
   const onValueChange = (_value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     analytics.onForumSortSelected({ sortBy: _value });
-    params.set('categoryTopicSort', _value); // or use `params.delete(key)` to remove
+    params.set('categoryTopicSort', _value);
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
@@ -62,7 +66,6 @@ export const ForumHeader = () => {
           options={sortOptions}
           value={value}
           defaultValue={value}
-          isDisabled={selectedCategory === '0'}
           onChange={(val) => {
             if (val) {
               onValueChange(val.value);

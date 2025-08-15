@@ -363,6 +363,9 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBER_DETAIL_OFFICEHOURS_CLICKED: 'member-officehours-clicked',
   MEMBER_DETAIL_ADD_OFFICEHOURS_CLICKED: 'member-add-officehours-clicked',
   MEMBER_DETAIL_EDIT_OFFICEHOURS_CLICKED: 'member-edit-officehours-clicked',
+  MEMBER_DETAIL_FIX_BROKEN_OFFICEHOURS_LINK_CLICKED: 'member-fix-broken-office-hours-link-clicked',
+  MEMBER_DETAIL_BROKEN_OFFICEHOURS_LINK_BOOK_ATTEMPT_CLICKED: 'member-broken-office-hours-link-book-attempt-clicked',
+  MEMBER_DETAIL_SUBMIT_UPDATED__OFFICEHOURS: 'member-submit-updated-officehours',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_EDIT: 'member-pr-contributions-edit',
   MEMBER_DETAIL_PROJECT_CONTRIBUTIONS_ADD: 'member-pr-contributions-add',
   MEMBER_DETAIL_GITHUB_PROJECT_VIEW_ALL_CLICKED: 'member-github-project-view-all-clicked',
@@ -612,6 +615,22 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.2.1 - Office Hours Experience Improvements',
+    tag: 'Improvements',
+    date: '15, Aug 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Enhanced Adding/Editing Experience</span> - Improved interface for setting up and managing office hours with better user flow.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Improved Profile Placement</span> - Better positioning and textual descriptions for office hours on member profiles.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Link Status Detection</span> - System now identifies and alerts users when their office hours links aren't working properly.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Email Click Notifications</span> - Users receive notifications when someone clicks through their email for broken office hours links.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Expertise and Interest Fields</span> - Added "I am interested in" and "I can help with" fields to office hours for more meaningful conversations.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.2.0 - Forum Launch & Navigation Updates',
     tag: 'New Feature',

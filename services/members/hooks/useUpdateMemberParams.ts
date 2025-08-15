@@ -71,6 +71,10 @@ export function useUpdateMemberParams() {
       });
 
       queryClient.invalidateQueries({
+        queryKey: [MembersQueryKeys.VALIDATE_OFFICE_HOURS],
+      });
+
+      queryClient.invalidateQueries({
         queryKey: [MembersQueryKeys.GET_MEMBERS_LIST],
       });
 

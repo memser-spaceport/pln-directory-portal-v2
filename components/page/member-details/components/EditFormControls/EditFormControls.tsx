@@ -28,7 +28,7 @@ export const EditFormControls = ({ title, onClose }: Props) => {
         >
           Cancel
         </button>
-        <button className={s.primaryButton} type="submit" disabled={isSubmitting || !isDirty}>
+        <button className={s.primaryButton} type="submit" disabled={isSubmitting || !isDirty || !isValid}>
           {isSubmitting ? 'Processing... ' : 'Save'}
         </button>
       </div>

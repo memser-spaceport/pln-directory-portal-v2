@@ -1,41 +1,25 @@
 'use client';
 
-import { Tooltip } from '@/components/core/tooltip/tooltip';
 import FilterCount from '@/components/ui/filter-count';
-import TagLoader from '@/components/ui/tag-loader';
-import Toggle from '@/components/ui/toogle';
-import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
-import { IMemberFilterSelectedItem, IMemberFilterSelectedItems } from '@/types/members.types';
+import { IMemberFilterSelectedItem } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
-import { EVENTS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import dynamic from 'next/dynamic';
+import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { BaseSyntheticEvent, useEffect } from 'react';
 import { RolesFilter } from './roles-filter';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { FiltersSearch } from '@/components/page/members/FiltersSearch';
 
 import s from './MembersFilter/MembersFilter.module.scss';
 import { clsx } from 'clsx';
 import { Switch } from '@base-ui-components/react/switch';
-
-const TagContainer = dynamic(() => import('@/components/ui/tag-container'), {
-  loading: () => <TagLoader />,
-});
 
 export interface IMembersFilter {
   filterValues: any | undefined;
   userInfo: IUserInfo;
   isUserLoggedIn: boolean | undefined;
   searchParams: any;
-}
-
-export interface ITeamFilterItem {
-  value: string;
-  selected: boolean;
-  disabled: boolean;
 }
 
 const MembersFilter = (props: IMembersFilter) => {
@@ -53,67 +37,26 @@ const MembersFilter = (props: IMembersFilter) => {
 
   const router = useRouter();
   const pathname = usePathname();
-  const { updateQueryParams } = useUpdateQueryParams();
   const analytics = useMemberAnalytics();
 
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
 
   const isIncludeFriends = searchParams['includeFriends'] === 'true' || false;
-  const isRecent = searchParams['isRecent'] === 'true' || false;
-  const isOpenToWork = searchParams['openToWork'] === 'true' || false;
   const isOfficeHoursOnly = searchParams['officeHoursOnly'] === 'true' || false;
-  const includeUnVerified = searchParams['includeUnVerified'] === 'true' || false;
-  const isHost = searchParams['isHost'] === 'true' || false;
-  const isSpeaker = searchParams['isSpeaker'] === 'true' || false;
-  const isSponsor = searchParams['isSponsor'] === 'true' || false;
-  const isHostAndSpeakerAndSponsor = searchParams['isHostAndSpeakerAndSponsor'] === 'true' || false;
 
   const onToggleClicked = async (param: string, id: string, event: BaseSyntheticEvent) => {
     const currentParams = new URLSearchParams(searchParams);
     const isIncluded = currentParams.get(param) === 'true' || false;
-    // triggerLoader(true);
 
     if (!isIncluded) {
       analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, true, getAnalyticsUserInfo(userInfo));
       currentParams.set(param, 'true');
-      if (param === 'isHost') {
-        currentParams.delete('isSpeaker');
-        currentParams.delete('isSponsor');
-        currentParams.delete('isHostAndSpeakerAndSponsor');
-      } else if (param === 'isSpeaker') {
-        currentParams.delete('isHost');
-        currentParams.delete('isSponsor');
-        currentParams.delete('isHostAndSpeakerAndSponsor');
-      } else if (param === 'isSponsor') {
-        currentParams.delete('isHost');
-        currentParams.delete('isSpeaker');
-        currentParams.delete('isHostAndSpeakerAndSponsor');
-      } else if (param === 'isHostAndSpeakerAndSponsor') {
-        currentParams.delete('isHost');
-        currentParams.delete('isSpeaker');
-        currentParams.delete('isSponsor');
-      }
     } else {
       analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, false, getAnalyticsUserInfo(userInfo));
       currentParams.delete(param);
     }
     router.push(`${window.location.pathname}?${currentParams.toString()}`);
-  };
-
-  const onTagClickHandler = async (key: string, value: string, isSelected: boolean) => {
-    try {
-      triggerLoader(true);
-      if (selectedItems[key]?.includes(value)) {
-        const currentTags = selectedItems[key]?.filter((v: string) => v !== value);
-        updateQueryParams(key, currentTags.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
-        return;
-      }
-      const currentTags = [...selectedItems[key], value];
-      updateQueryParams(key, currentTags.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
-      analytics.onTagSelected(PAGE_ROUTES.TEAMS, key, getAnalyticsUserInfo(userInfo), value);
-      return;
-    } catch (error) {}
   };
 
   const onClearAllClicked = () => {
@@ -185,9 +128,27 @@ const MembersFilter = (props: IMembersFilter) => {
 
         {/* Body */}
         <div className="team-filter__body">
-          <div className="team-filter__body__toggle-section">
-            <div className={s.groupTitle}>Office Hours</div>
-            <p className={s.groupDescription}>OH are short 1:1 calls to connect about topics of interest or help others with your expertise.</p>
+          <div>
+            <label className={clsx(s.Label, s.toggle)}>
+              Include Friends of Protocol Labs
+              <Switch.Root
+                defaultChecked
+                className={s.Switch}
+                checked={isIncludeFriends}
+                onCheckedChange={(checked, event) => onToggleClicked('includeFriends', 'member-include-friends', event as unknown as BaseSyntheticEvent)}
+              >
+                <Switch.Thumb className={s.Thumb}>
+                  <div className={s.dot} />
+                </Switch.Thumb>
+              </Switch.Root>
+            </label>
+          </div>
+
+          <div className={s.ohBlock}>
+            <div>
+              <div className={s.groupTitle}>Office Hours</div>
+              <p className={s.groupDescription}>OH are short 1:1 calls to connect about topics of interest or help others with your expertise.</p>
+            </div>
 
             <label className={clsx(s.Label, s.toggle)}>
               Only Show Members with Office Hours
@@ -203,7 +164,9 @@ const MembersFilter = (props: IMembersFilter) => {
               </Switch.Root>
             </label>
           </div>
+
           <div className="team-filter__bl"></div>
+
           <RolesFilter memberRoles={filterValues?.memberRoles} searchParams={searchParams} userInfo={userInfo} />
         </div>
 
@@ -254,11 +217,10 @@ const MembersFilter = (props: IMembersFilter) => {
           .team-filter__body {
             height: calc(100dvh - 130px);
             overflow: auto;
-            padding: 0px 34px 10px 34px;
+            padding: 20px 34px 10px 34px;
             flex-direction: column;
             display: flex;
             gap: 20px;
-            padding-bottom: 50px;
           }
 
           .team-filter__body__toggle-section {

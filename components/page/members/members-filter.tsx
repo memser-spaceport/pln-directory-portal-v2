@@ -1,19 +1,17 @@
 'use client';
 
 import FilterCount from '@/components/ui/filter-count';
-import { IMemberFilterSelectedItem } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
-import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
+import { getAnalyticsUserInfo, getFilterCount, getQuery } from '@/utils/common.utils';
+import { EVENTS } from '@/utils/constants';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import React, { BaseSyntheticEvent, useEffect } from 'react';
+import React from 'react';
 import { RolesFilter } from './roles-filter';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { FiltersPanelToggle } from '@/components/core/FiltersPanelToggle';
+import { useFilterStore } from '@/services/members/store';
 
 import s from './MembersFilter/MembersFilter.module.scss';
-import { clsx } from 'clsx';
-import { Switch } from '@base-ui-components/react/switch';
 
 export interface IMembersFilter {
   filterValues: any | undefined;
@@ -27,74 +25,11 @@ const MembersFilter = (props: IMembersFilter) => {
   const userInfo = props?.userInfo;
   const isUserLoggedIn = props?.isUserLoggedIn;
   const searchParams = props?.searchParams;
-
-  const selectedItems: any = {
-    skills: filterValues?.skills?.filter((item: IMemberFilterSelectedItem) => item?.selected).map((item: IMemberFilterSelectedItem) => item.value),
-    region: filterValues?.region?.filter((item: IMemberFilterSelectedItem) => item?.selected).map((item: IMemberFilterSelectedItem) => item.value),
-    country: filterValues?.country?.filter((item: IMemberFilterSelectedItem) => item?.selected).map((item: IMemberFilterSelectedItem) => item.value),
-    metroArea: filterValues?.metroArea?.filter((item: IMemberFilterSelectedItem) => item?.selected).map((item: IMemberFilterSelectedItem) => item.value),
-  };
-
-  const router = useRouter();
-  const pathname = usePathname();
   const analytics = useMemberAnalytics();
+  const { clearParams } = useFilterStore();
 
   const query = getQuery(searchParams);
   const apliedFiltersCount = getFilterCount(query);
-
-  const isIncludeFriends = searchParams['includeFriends'] === 'true' || false;
-  const isOfficeHoursOnly = searchParams['officeHoursOnly'] === 'true' || false;
-
-  const onToggleClicked = async (param: string, id: string, event: BaseSyntheticEvent) => {
-    const currentParams = new URLSearchParams(searchParams);
-    const isIncluded = currentParams.get(param) === 'true' || false;
-
-    if (!isIncluded) {
-      analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, true, getAnalyticsUserInfo(userInfo));
-      currentParams.set(param, 'true');
-    } else {
-      analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, false, getAnalyticsUserInfo(userInfo));
-      currentParams.delete(param);
-    }
-    router.push(`${window.location.pathname}?${currentParams.toString()}`);
-  };
-
-  const onClearAllClicked = () => {
-    if (apliedFiltersCount > 0) {
-      triggerLoader(true);
-      const current = new URLSearchParams(Object.entries(searchParams));
-      const pathname = window?.location?.pathname;
-      analytics.onClearAllClicked(PAGE_ROUTES.TEAMS, selectedItems, getAnalyticsUserInfo(userInfo));
-
-      const clearQuery = [
-        'skills',
-        'region',
-        'country',
-        'metroArea',
-        'includeFriends',
-        'includeUnVerified',
-        'openToWork',
-        'officeHoursOnly',
-        'memberRoles',
-        'isRecent',
-        'isHost',
-        'isSpeaker',
-        'isSponsor',
-        'isHostAndSpeakerAndSponsor',
-        'searchBy',
-      ];
-      clearQuery.forEach((query) => {
-        if (current.has(query)) {
-          triggerLoader(true);
-          current.delete(query);
-        }
-      });
-      const search = current.toString();
-      const query = search ? `?${search}` : '';
-      router.push(`${pathname}/${query}`);
-      router.refresh();
-    }
-  };
 
   const onCloseClickHandler = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_MEMBERS_FILTER, { detail: false }));
@@ -106,10 +41,6 @@ const MembersFilter = (props: IMembersFilter) => {
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_MEMBERS_FILTER, { detail: false }));
   };
 
-  useEffect(() => {
-    triggerLoader(false);
-  }, [pathname, searchParams]);
-
   return (
     <>
       <div className="team-filter">
@@ -118,7 +49,7 @@ const MembersFilter = (props: IMembersFilter) => {
             Filters
             {apliedFiltersCount > 0 && <FilterCount count={apliedFiltersCount} />}
           </h2>
-          <button className="team-fitlter__header__clear-all-btn" onClick={onClearAllClicked}>
+          <button className="team-fitlter__header__clear-all-btn" onClick={clearParams}>
             Clear all
           </button>
           <button className="team-filter__header__closebtn" onClick={onCloseClickHandler}>
@@ -128,21 +59,7 @@ const MembersFilter = (props: IMembersFilter) => {
 
         {/* Body */}
         <div className="team-filter__body">
-          <div>
-            <label className={clsx(s.Label, s.toggle)}>
-              Include Friends of Protocol Labs
-              <Switch.Root
-                defaultChecked
-                className={s.Switch}
-                checked={isIncludeFriends}
-                onCheckedChange={(checked, event) => onToggleClicked('includeFriends', 'member-include-friends', event as unknown as BaseSyntheticEvent)}
-              >
-                <Switch.Thumb className={s.Thumb}>
-                  <div className={s.dot} />
-                </Switch.Thumb>
-              </Switch.Root>
-            </label>
-          </div>
+          <FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />
 
           <div className={s.ohBlock}>
             <div>
@@ -150,19 +67,7 @@ const MembersFilter = (props: IMembersFilter) => {
               <p className={s.groupDescription}>OH are short 1:1 calls to connect about topics of interest or help others with your expertise.</p>
             </div>
 
-            <label className={clsx(s.Label, s.toggle)}>
-              Only Show Members with Office Hours
-              <Switch.Root
-                defaultChecked
-                className={s.Switch}
-                checked={isOfficeHoursOnly}
-                onCheckedChange={(checked, event) => onToggleClicked('officeHoursOnly', 'member-office-hours-only', event as unknown as BaseSyntheticEvent)}
-              >
-                <Switch.Thumb className={s.Thumb}>
-                  <div className={s.dot} />
-                </Switch.Thumb>
-              </Switch.Root>
-            </label>
+            <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="officeHoursOnly" />
           </div>
 
           <div className="team-filter__bl"></div>
@@ -171,7 +76,7 @@ const MembersFilter = (props: IMembersFilter) => {
         </div>
 
         <div className="team-filter__footer">
-          <button className="team-filter__footer__clrall" onClick={onClearAllClicked}>
+          <button className="team-filter__footer__clrall" onClick={clearParams}>
             Clear filters
           </button>
 

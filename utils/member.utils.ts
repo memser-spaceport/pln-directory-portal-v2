@@ -185,21 +185,21 @@ export const dateDifference = (date1: any, date2: any) => {
 export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): IMemberListOptions {
   const {
     sort,
-    searchBy,
-    skills,
-    region,
-    country,
-    metroArea,
+    // searchBy,
+    // skills,
+    // region,
+    // country,
+    // metroArea,
     officeHoursOnly,
     includeFriends,
-    openToWork,
+    // openToWork,
     memberRoles,
-    isRecent,
+    // isRecent,
     includeUnVerified,
-    isHost,
-    isSpeaker,
-    isSponsor,
-    isHostAndSpeakerAndSponsor,
+    // isHost,
+    // isSpeaker,
+    // isSponsor,
+    // isHostAndSpeakerAndSponsor,
   } = queryParams;
 
   const sortFromQuery = getSortFromQuery(sort?.toString());
@@ -207,22 +207,22 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
 
   return {
     ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),
-    ...(skills ? { 'skills.title__with': stringifyQueryValues(skills) } : {}),
-    ...(region
-      ? {
-          'location.continent__with': stringifyQueryValues(region),
-        }
-      : {}),
-    ...(country ? { 'location.country__with': stringifyQueryValues(country) } : {}),
-    ...(metroArea ? { 'location.city__with': stringifyQueryValues(metroArea) } : {}),
+    // ...(skills ? { 'skills.title__with': stringifyQueryValues(skills) } : {}),
+    // ...(region
+    //   ? {
+    //       'location.continent__with': stringifyQueryValues(region),
+    //     }
+    //   : {}),
+    // ...(country ? { 'location.country__with': stringifyQueryValues(country) } : {}),
+    // ...(metroArea ? { 'location.city__with': stringifyQueryValues(metroArea) } : {}),
     ...(includeFriends ? { isVerified: 'all' } : { plnFriend: false, isVerified: 'true' }),
-    ...(openToWork ? { openToWork: true } : {}),
-    ...(isRecent ? { isRecent: true } : {}),
-    ...(isHost ? { isHost: true } : {}),
-    ...(isSponsor ? { isSponsor: true } : {}),
-    ...(isSpeaker ? { isSpeaker: true } : {}),
-    ...(isHostAndSpeakerAndSponsor ? { isHostAndSpeakerAndSponsor: true } : {}),
-    ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
+    // ...(openToWork ? { openToWork: true } : {}),
+    // ...(isRecent ? { isRecent: true } : {}),
+    // ...(isHost ? { isHost: true } : {}),
+    // ...(isSponsor ? { isSponsor: true } : {}),
+    // ...(isSpeaker ? { isSpeaker: true } : {}),
+    // ...(isHostAndSpeakerAndSponsor ? { isHostAndSpeakerAndSponsor: true } : {}),
+    // ...(searchBy ? { name__icontains: stringifyQueryValues(searchBy).trim() } : {}),
     ...(memberRoles ? { memberRoles: stringifyQueryValues(memberRoles) } : {}),
     /*  ...(includeUnVerified ? { isVerified: 'all' } : {}), */
     orderBy: `${sortFromQuery.direction === 'desc' ? '-' : ''}${sortField}`,
@@ -235,6 +235,7 @@ export function getMembersListOptions(options: IMemberListOptions) {
     pagination: true,
     select:
       'uid,name,openToWork,isRecent,isVerified,image.url,location.metroArea,location.country,location.region,location.city,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
+    // 'uid,name,isVerified,image.url,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
   };
 }
 

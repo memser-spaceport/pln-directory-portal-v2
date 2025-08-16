@@ -142,7 +142,7 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
           }
           .select__search {
             padding: 8px 12px;
-            padding-right: 22px;
+            padding-right: 28px;
             min-height: 40px;
             width: 100%;
             font-size: 14px;
@@ -150,6 +150,9 @@ const SingleSelect: React.FC<SingleSelectProps> = ({
             border-radius: 8px;
             border: 1px solid lightgrey;
             cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .select__search:focus-visible,
           .select__search:focus {

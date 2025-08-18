@@ -2,18 +2,47 @@
 
 import FilterCount from '@/components/ui/filter-count';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsUserInfo, getFilterCount, getQuery } from '@/utils/common.utils';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { ADMIN_ROLE, EVENTS } from '@/utils/constants';
 import Image from 'next/image';
 import React from 'react';
-import { RolesFilter } from './roles-filter';
 import { FilterMultiSelect } from './MembersFilter/FilterMultiSelect/FilterMultiSelect';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { FiltersPanelToggle } from '@/components/core/FiltersPanelToggle';
 import { useFilterStore } from '@/services/members/store';
+import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
 
 import s from './MembersFilter/MembersFilter.module.scss';
-import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
+
+/**
+ * Counts the number of applied filters in the members filter component
+ * @param params - URLSearchParams from useFilterStore
+ * @returns number of active filters
+ */
+const getMembersFilterCount = (params: URLSearchParams): number => {
+  let count = 0;
+
+  // List of filter parameters used in members filter
+  // Update this array when adding new filter components
+  const filterParams = [
+    'includeFriends', // FiltersPanelToggle - Include Friends of Protocol Labs
+    'officeHoursOnly', // FiltersPanelToggle - Only Show Members with Office Hours
+    'topics', // FilterMultiSelect - Add topic
+    'roles', // FilterMultiSelect - Add roles
+    'searchRoles', // RolesSearchFilter - Search Roles
+  ];
+
+  filterParams.forEach((param) => {
+    const value = params.get(param);
+    // Check if parameter exists and has a meaningful value
+    // Exclude 'false' values as they represent disabled toggles
+    if (value && value.trim() !== '' && value !== 'false') {
+      count += 1;
+    }
+  });
+
+  return count;
+};
 
 export interface IMembersFilter {
   filterValues: any | undefined;
@@ -23,16 +52,11 @@ export interface IMembersFilter {
 }
 
 const MembersFilter = (props: IMembersFilter) => {
-  const filterValues = props?.filterValues;
   const userInfo = props?.userInfo;
   const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
-  const isUserLoggedIn = props?.isUserLoggedIn;
-  const searchParams = props?.searchParams;
   const analytics = useMemberAnalytics();
-  const { clearParams } = useFilterStore();
-
-  const query = getQuery(searchParams);
-  const apliedFiltersCount = getFilterCount(query);
+  const { params, clearParams } = useFilterStore();
+  const apliedFiltersCount = getMembersFilterCount(params);
 
   const onCloseClickHandler = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_MEMBERS_FILTER, { detail: false }));

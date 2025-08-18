@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import { Menu } from '@base-ui-components/react/menu';
+import { Dialog } from '@base-ui-components/react/dialog';
 
 import s from './MembersMobileFilters.module.scss';
 import { clsx } from 'clsx';
-import { VIEW_TYPE_OPTIONS, SORT_OPTIONS } from '@/utils/constants';
+import { VIEW_TYPE_OPTIONS, SORT_OPTIONS, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { useQueryParams } from '@/hooks/useQueryParams';
-import { MobileDrawer } from '@/components/ui/MobileDrawer';
 import MembersFilter from '@/components/page/members/members-filter';
 
 interface MembersMobileFiltersProps {
@@ -17,28 +18,19 @@ interface MembersMobileFiltersProps {
 export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, searchParams: propsSearchParams }: MembersMobileFiltersProps) => {
   const { getParam, setParam } = useQueryParams();
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-  const sortContainerRef = useRef<HTMLDivElement>(null);
 
   const view = getParam('viewType') || VIEW_TYPE_OPTIONS.GRID;
   const currentSort = getParam('sort') || SORT_OPTIONS.ASCENDING;
 
-  // Close sort dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (sortContainerRef.current && !sortContainerRef.current.contains(event.target as Node)) {
-        setIsSortDropdownOpen(false);
-      }
-    };
+  // Get applied filters for count and badges
+  const appliedTopics = getParam('topics')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
+  const appliedRoles = getParam('roles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
+  const appliedSearchRoles = getParam('searchRoles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
+  const officeHoursOnly = getParam('officeHoursOnly') === 'true';
+  const includeFriends = getParam('includeFriends') === 'true';
 
-    if (isSortDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isSortDropdownOpen]);
+  // Calculate filter count
+  const filterCount = [appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, officeHoursOnly, includeFriends].filter(Boolean).length;
 
   // Handler functions
   const handleViewChange = (newView: string) => {
@@ -47,7 +39,6 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
 
   const handleSortChange = (sortOption: string) => {
     setParam('sort', sortOption);
-    setIsSortDropdownOpen(false);
   };
 
   const handleFilterClick = () => {
@@ -56,6 +47,30 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
 
   const handleCloseFilterDrawer = () => {
     setIsFilterDrawerOpen(false);
+  };
+
+  // Badge removal handlers
+  const handleRemoveTopicBadge = (topic: string) => {
+    const newTopics = appliedTopics.filter((t) => t !== topic);
+    setParam('topics', newTopics.length > 0 ? newTopics.join(URL_QUERY_VALUE_SEPARATOR) : null);
+  };
+
+  const handleRemoveRoleBadge = (role: string) => {
+    const newRoles = appliedRoles.filter((r) => r !== role);
+    setParam('roles', newRoles.length > 0 ? newRoles.join(URL_QUERY_VALUE_SEPARATOR) : null);
+  };
+
+  const handleRemoveSearchRoleBadge = (role: string) => {
+    const newSearchRoles = appliedSearchRoles.filter((r) => r !== role);
+    setParam('searchRoles', newSearchRoles.length > 0 ? newSearchRoles.join(URL_QUERY_VALUE_SEPARATOR) : null);
+  };
+
+  const handleRemoveOfficeHours = () => {
+    setParam('officeHoursOnly', null);
+  };
+
+  const handleRemoveFriends = () => {
+    setParam('includeFriends', null);
   };
 
   const getSortLabel = (sortValue: string) => {
@@ -75,33 +90,37 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
         <div className={s.header}>
           <button className={s.filtersButton} onClick={handleFilterClick}>
             <PlusIcon /> Filters
+            {filterCount > 0 && <span>&nbsp;({filterCount})</span>}
           </button>
           <div className={s.rightSection}>
-            <div className={s.sortContainer} ref={sortContainerRef}>
-              <button className={s.filtersButton} onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}>
+            {/* Sort Menu using base-ui */}
+            <Menu.Root modal={false}>
+              <Menu.Trigger className={s.filtersButton}>
                 {getSortLabel(currentSort)} <ChevronDown />
-              </button>
-              {isSortDropdownOpen && (
-                <div className={s.sortDropdown}>
-                  <button
-                    className={clsx(s.sortOption, {
-                      [s.active]: currentSort === SORT_OPTIONS.ASCENDING,
-                    })}
-                    onClick={() => handleSortChange(SORT_OPTIONS.ASCENDING)}
-                  >
-                    A-Z (Ascending)
-                  </button>
-                  <button
-                    className={clsx(s.sortOption, {
-                      [s.active]: currentSort === SORT_OPTIONS.DESCENDING,
-                    })}
-                    onClick={() => handleSortChange(SORT_OPTIONS.DESCENDING)}
-                  >
-                    Z-A (Descending)
-                  </button>
-                </div>
-              )}
-            </div>
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner className={s.menuPositioner} align="end" sideOffset={8}>
+                  <Menu.Popup className={s.menuPopup}>
+                    <Menu.Item
+                      className={clsx(s.menuItem, {
+                        [s.active]: currentSort === SORT_OPTIONS.ASCENDING,
+                      })}
+                      onClick={() => handleSortChange(SORT_OPTIONS.ASCENDING)}
+                    >
+                      A-Z (Ascending)
+                    </Menu.Item>
+                    <Menu.Item
+                      className={clsx(s.menuItem, {
+                        [s.active]: currentSort === SORT_OPTIONS.DESCENDING,
+                      })}
+                      onClick={() => handleSortChange(SORT_OPTIONS.DESCENDING)}
+                    >
+                      Z-A (Descending)
+                    </Menu.Item>
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
             <div className={s.divider} />
             <div className={s.toggle}>
               <button
@@ -123,15 +142,80 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
             </div>
           </div>
         </div>
+
+        {/* Applied Filter Badges */}
+        {(appliedTopics.length > 0 || appliedRoles.length > 0 || appliedSearchRoles.length > 0 || officeHoursOnly || includeFriends) && (
+          <div className={s.filterBadges}>
+            {appliedTopics.map((topic) => (
+              <div key={`topic-${topic}`} className={s.filterBadge}>
+                <span className={s.badgeLabel}>OH: {topic}</span>
+                <button className={s.badgeRemove} onClick={() => handleRemoveTopicBadge(topic)} aria-label={`Remove ${topic} topic filter`}>
+                  <CloseIcon />
+                </button>
+              </div>
+            ))}
+            {appliedRoles.map((role) => (
+              <div key={`role-${role}`} className={s.filterBadge}>
+                <span className={s.badgeLabel}>Role: {role}</span>
+                <button className={s.badgeRemove} onClick={() => handleRemoveRoleBadge(role)} aria-label={`Remove ${role} role filter`}>
+                  <CloseIcon />
+                </button>
+              </div>
+            ))}
+            {appliedSearchRoles.map((role) => (
+              <div key={`search-role-${role}`} className={s.filterBadge}>
+                <span className={s.badgeLabel}>Search: {role}</span>
+                <button className={s.badgeRemove} onClick={() => handleRemoveSearchRoleBadge(role)} aria-label={`Remove ${role} search filter`}>
+                  <CloseIcon />
+                </button>
+              </div>
+            ))}
+            {officeHoursOnly && (
+              <div className={s.filterBadge}>
+                <span className={s.badgeLabel}>Office Hours Only</span>
+                <button className={s.badgeRemove} onClick={handleRemoveOfficeHours} aria-label="Remove office hours filter">
+                  <CloseIcon />
+                </button>
+              </div>
+            )}
+            {includeFriends && (
+              <div className={s.filterBadge}>
+                <span className={s.badgeLabel}>Include Friends</span>
+                <button className={s.badgeRemove} onClick={handleRemoveFriends} aria-label="Remove include friends filter">
+                  <CloseIcon />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Mobile Filter Drawer */}
-      <MobileDrawer isOpen={isFilterDrawerOpen} onClose={handleCloseFilterDrawer} title="Filters">
-        <MembersFilter filterValues={filterValues} userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} searchParams={propsSearchParams} onClose={handleCloseFilterDrawer} />
-      </MobileDrawer>
+      <Dialog.Root open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
+        <Dialog.Portal>
+          <Dialog.Backdrop className={s.dialogBackdrop} />
+          <Dialog.Popup className={s.dialogPopup}>
+            <div className={s.dialogHandle} />
+            <div className={s.dialogHeader}>
+              <Dialog.Title className={s.dialogTitle}>Filters</Dialog.Title>
+              <Dialog.Close className={s.dialogClose}>
+                <CloseIcon />
+              </Dialog.Close>
+            </div>
+            <div className={s.dialogContent}>
+              <MembersFilter filterValues={filterValues} userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} searchParams={propsSearchParams} onClose={handleCloseFilterDrawer} />
+            </div>
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
     </>
   );
 };
+
+const CloseIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 const PlusIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

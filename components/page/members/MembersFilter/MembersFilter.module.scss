@@ -23,7 +23,7 @@
   width: 100%;
   justify-content: space-between;
 
-  color: var(--foreground-neutral-primary, #0A0C11);
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -35,4 +35,11 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.body {
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }

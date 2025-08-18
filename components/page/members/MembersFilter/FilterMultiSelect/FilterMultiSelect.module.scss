@@ -1,0 +1,148 @@
+.rolesSearchInput {
+  margin-bottom: 16px;
+}
+
+.inputContainer {
+  border: 1px solid rgba(203, 213, 225, 0.50);
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  background: white;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.inputContainer:hover {
+  border-color: #5E718D;
+  box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+}
+
+.inputContainer:focus-within {
+  border-color: #5E718D;
+  box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  width: 100%;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 6px;
+  font-size: 14px;
+  color: #455468;
+}
+
+.tagRemove {
+  background: none;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tagRemove:hover {
+  color: #ef4444;
+}
+
+.searchInput {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  padding: 4px;
+  font-size: 14px;
+  background: transparent;
+}
+
+.searchInput::placeholder {
+  color: #AFBACA;
+}
+
+.loading {
+  padding: 12px;
+  text-align: center;
+  color: #64748B;
+  font-size: 14px;
+}
+
+.rolesResults {
+  margin-top: 16px;
+}
+
+.resultsHeader {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.resultsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.roleCheckbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.roleCheckbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  accent-color: #156ff7;
+}
+
+.checkboxContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.roleName {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.roleCount {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.noResults {
+  padding: 12px;
+  text-align: center;
+  color: #64748B;
+  font-size: 14px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-top: 8px;
+}

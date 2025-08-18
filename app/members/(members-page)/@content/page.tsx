@@ -52,6 +52,8 @@ const getPageData = async (searchParams: IMembersSearchParams) => {
     members = memberList?.items;
     totalMembers = memberList?.total;
 
+    console.log(isError, members, totalMembers, isLoggedIn);
+
     return { isError, members, totalMembers, isLoggedIn };
   } catch (error) {
     console.error(error);

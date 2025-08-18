@@ -15,6 +15,8 @@ async function infiniteFetcher(searchParams: MembersListQueryParams['searchParam
   const optionsFromQuery = getMembersOptionsFromQuery(searchParams);
   const listOptions: IMemberListOptions = getMembersListOptions(optionsFromQuery);
 
+  console.log('infinte fetcher', listOptions, page);
+
   return await getMemberListForQuery(listOptions, page, ITEMS_PER_PAGE, authToken);
 }
 
@@ -40,39 +42,42 @@ export function useInfiniteMembersList(
       return infiniteFetcher(queryParams.searchParams, pageParam);
     },
     getNextPageParam: (data, allPages, lastPageParam) => {
-      return data.items.length < ITEMS_PER_PAGE ? undefined : lastPageParam + 1;
+      return data?.items?.length < ITEMS_PER_PAGE ? undefined : lastPageParam + 1;
     },
     initialData: {
       pages: [{ items: initialData.items, total: initialData.total }],
       pageParams: [1],
     },
+    enabled: (query) => {
+      return !!(query.state.data?.pageParams?.[0] && query.state.data?.pageParams?.[0] > 1);
+    },
   });
 
-  useEffect(() => {
-    if (!hasNextPage) return;
-
-    queryClient.fetchInfiniteQuery({
-      queryKey: [MembersQueryKeys.GET_MEMBERS_LIST, queryParams.searchParams],
-      queryFn: ({ pageParam = 2 }) => {
-        return infiniteFetcher(queryParams.searchParams, pageParam);
-      },
-      initialPageParam: 2,
-      getNextPageParam: (data: unknown, allPages: unknown, lastPageParam: number) => {
-        return lastPageParam + 2;
-      },
-    });
-
-    queryClient.fetchInfiniteQuery({
-      queryKey: [MembersQueryKeys.GET_MEMBERS_LIST, queryParams.searchParams],
-      queryFn: ({ pageParam = 3 }) => {
-        return infiniteFetcher(queryParams.searchParams, pageParam);
-      },
-      initialPageParam: 3,
-      getNextPageParam: (data: unknown, allPages: unknown, lastPageParam: number) => {
-        return lastPageParam + 3;
-      },
-    });
-  }, [hasNextPage, queryParams.searchParams, queryClient]);
+  // useEffect(() => {
+  //   if (!hasNextPage) return;
+  //
+  //   queryClient.fetchInfiniteQuery({
+  //     queryKey: [MembersQueryKeys.GET_MEMBERS_LIST, queryParams.searchParams],
+  //     queryFn: ({ pageParam = 2 }) => {
+  //       return infiniteFetcher(queryParams.searchParams, pageParam);
+  //     },
+  //     initialPageParam: 2,
+  //     getNextPageParam: (data: unknown, allPages: unknown, lastPageParam: number) => {
+  //       return lastPageParam + 2;
+  //     },
+  //   });
+  //
+  //   queryClient.fetchInfiniteQuery({
+  //     queryKey: [MembersQueryKeys.GET_MEMBERS_LIST, queryParams.searchParams],
+  //     queryFn: ({ pageParam = 3 }) => {
+  //       return infiniteFetcher(queryParams.searchParams, pageParam);
+  //     },
+  //     initialPageParam: 3,
+  //     getNextPageParam: (data: unknown, allPages: unknown, lastPageParam: number) => {
+  //       return lastPageParam + 3;
+  //     },
+  //   });
+  // }, [hasNextPage, queryParams.searchParams, queryClient]);
 
   useEffect(() => {
     if (isError && error) {

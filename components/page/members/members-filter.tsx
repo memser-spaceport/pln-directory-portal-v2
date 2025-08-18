@@ -95,7 +95,7 @@ const MembersFilter = (props: IMembersFilter) => {
 
           <FilterSection title="Office Hours" titleIcon={<CalendarIcon />} description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise.">
             <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="officeHoursOnly" />
-            <FilterMultiSelect label="Add topic" placeholder="E.g. AI, Staking..." paramKey="topics" />
+            <FilterMultiSelect label="Add topic" placeholder="E.g. AI, Staking..." paramKey="topics" backLabel="Filters" />
           </FilterSection>
 
           <div className="team-filter__bl" />

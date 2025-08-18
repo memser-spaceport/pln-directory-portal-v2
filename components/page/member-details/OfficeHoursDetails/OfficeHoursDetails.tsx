@@ -54,6 +54,10 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     return null;
   }
 
+  if (!isEditable && !member?.officeHours) {
+    return null;
+  }
+
   return (
     <div
       className={clsx(s.root, {

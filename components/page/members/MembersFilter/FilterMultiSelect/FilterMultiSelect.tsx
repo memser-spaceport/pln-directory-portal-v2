@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useGetRoles } from '@/services/members/hooks/useGetRoles';
+import { useFilterStore } from '@/services/members/store';
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import s from '@/components/page/recommendations/components/MatchesSelector/MatchesSelector.module.scss';
 import Select from 'react-select';
 import clsx from 'clsx';
@@ -11,17 +13,48 @@ interface Props {
   label: string;
   placeholder: string;
   paramKey: string;
+  useDataHook?: (input: string) => { data?: any[] };
 }
 
-export function FilterMultiSelect({ label, placeholder, paramKey }: Props) {
+export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = useGetRoles }: Props) {
   const [inputValue, setInputValue] = useState('');
-  const methods = useForm<Record<string, string[]>>({ defaultValues: { [paramKey]: [] } });
+  const { params, setParam } = useFilterStore();
 
-  const { watch, setValue } = methods;
+  // Get initial values from URL parameters
+  const getInitialValues = () => {
+    const paramValue = params.get(paramKey);
+    if (!paramValue) return [];
 
+    return paramValue.split(URL_QUERY_VALUE_SEPARATOR).map((value) => ({
+      value: value.trim(),
+      label: value.trim(),
+    }));
+  };
+
+  const methods = useForm<Record<string, any[]>>({
+    defaultValues: { [paramKey]: getInitialValues() },
+  });
+
+  const { watch, setValue, reset } = methods;
   const val = watch(paramKey);
 
-  const { data: options = [] } = useGetRoles(inputValue);
+  const { data: options = [] } = useDataHook(inputValue);
+
+  // Sync form with URL parameters when they change
+  useEffect(() => {
+    const currentValues = getInitialValues();
+    setValue(paramKey, currentValues);
+  }, [params.get(paramKey), paramKey, setValue]);
+
+  // Update URL parameters when form values change
+  useEffect(() => {
+    if (val && val.length > 0) {
+      const values = val.map((item: any) => item.value).join(URL_QUERY_VALUE_SEPARATOR);
+      setParam(paramKey, values);
+    } else {
+      setParam(paramKey, undefined);
+    }
+  }, [val, paramKey, setParam]);
 
   return (
     <FormProvider {...methods}>
@@ -44,8 +77,8 @@ export function FilterMultiSelect({ label, placeholder, paramKey }: Props) {
             closeMenuOnSelect={false}
             blurInputOnSelect={false}
             value={val}
-            onChange={(val) => {
-              setValue(paramKey, val as string[], { shouldValidate: true, shouldDirty: true });
+            onChange={(selectedOptions) => {
+              setValue(paramKey, selectedOptions ? [...selectedOptions] : [], { shouldValidate: true, shouldDirty: true });
             }}
             styles={{
               container: (base) => ({

@@ -49,6 +49,7 @@ export interface IMembersFilter {
   userInfo: IUserInfo;
   isUserLoggedIn: boolean | undefined;
   searchParams: any;
+  onClose?: () => void;
 }
 
 const MembersFilter = (props: IMembersFilter) => {
@@ -70,8 +71,8 @@ const MembersFilter = (props: IMembersFilter) => {
 
   return (
     <>
-      <div className="team-filter">
-        <div className="team-filter__header">
+      <div className={s.root}>
+        <div className={s.header}>
           <h2 className="team-filter__header__title">
             Filters
             {apliedFiltersCount > 0 && <FilterCount count={apliedFiltersCount} />}
@@ -104,13 +105,13 @@ const MembersFilter = (props: IMembersFilter) => {
           </FilterSection>
         </div>
 
-        <div className="team-filter__footer">
-          <button className="team-filter__footer__clrall" onClick={clearParams}>
+        <div className={s.footer}>
+          <button className={s.secondaryBtn} onClick={clearParams}>
             Clear filters
           </button>
 
-          <button className="team-filter__footer__aply" onClick={onShowClickHandler}>
-            View
+          <button className={s.primaryBtn} onClick={props.onClose}>
+            Apply filters
           </button>
         </div>
       </div>
@@ -218,8 +219,8 @@ const MembersFilter = (props: IMembersFilter) => {
           }
 
           .team-filter__footer {
-            position: absolute;
-            box-shadow: 0px -2px 6px 0px #0f172a29;
+            //position: absolute;
+            //box-shadow: 0px -2px 6px 0px #0f172a29;
             height: 60px;
             bottom: 0px;
             padding: 10px 24px;
@@ -228,6 +229,8 @@ const MembersFilter = (props: IMembersFilter) => {
             align-items: center;
             gap: 10px;
             background-color: white;
+
+            border-top: 1px solid #cbd5e1;
           }
 
           .team-filter__footer__clrall {

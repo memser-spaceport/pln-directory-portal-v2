@@ -1,4 +1,85 @@
+@use 'styles/media';
 @import "components/form/FormSwitch/FormSwitch.module";
+
+.root {
+  display: unset;
+  position: static;
+  border-right: 1px solid #e2e8f0;
+  background: #fff;
+  width: inherit;
+  z-index: 3;
+  height: inherit;
+
+  @include media.tablet-landscape {
+    position: fixed;
+  }
+}
+
+.header {
+  display: none;
+  padding: 20px 34px;
+  width: 100%;
+  justify-content: space-between;
+  border-bottom: 1px solid #cbd5e1;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.footer {
+  display: flex;
+  height: 72px;
+  padding: var(--spacing-sm, 12px) var(--spacing-lg, 20px) var(--spacing-lg, 20px) var(--spacing-lg, 20px);
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--spacing-xs, 10px);
+  border-top: 1px solid #cbd5e1;;
+}
+
+.secondaryBtn {
+  display: flex;
+  padding: 10px var(--global-size-size-200, 16px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0);
+  flex: 1 0 0;
+
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--transparent-dark-2, rgba(14, 15, 17, 0.02));
+  background: var(--action-background-neutral-light_normal, rgba(14, 15, 17, 0.04));
+  box-shadow: 0 -2px 4px 0 var(--transparent-dark-2, rgba(14, 15, 17, 0.02)) inset;
+
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.primaryBtn {
+  display: flex;
+  padding: 10px var(--global-size-size-200, 16px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0);
+  flex: 1 0 0;
+
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: var(--action-background-brand-normal, #1B4DFF);
+
+  /* Button/primay/fill */
+  box-shadow: 0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset, 0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset, 0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+
+  color: var(--action-foreground-base-inverted_white, #FFF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
 
 .groupTitle {
   color: var(--foreground-neutral-primary, #0A0C11);

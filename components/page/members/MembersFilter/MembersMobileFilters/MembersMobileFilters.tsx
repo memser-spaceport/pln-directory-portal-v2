@@ -1,45 +1,135 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import s from './MembersMobileFilters.module.scss';
 import { clsx } from 'clsx';
-import { VIEW_TYPE_OPTIONS } from '@/utils/constants';
-import { useSearchParams } from 'next/navigation';
+import { VIEW_TYPE_OPTIONS, SORT_OPTIONS } from '@/utils/constants';
+import { useQueryParams } from '@/hooks/useQueryParams';
+import { MobileDrawer } from '@/components/ui/MobileDrawer';
+import MembersFilter from '@/components/page/members/members-filter';
 
-export const MembersMobileFilters = () => {
-  const searchParams = useSearchParams();
+interface MembersMobileFiltersProps {
+  filterValues?: any;
+  userInfo?: any;
+  isUserLoggedIn?: boolean;
+  searchParams?: any;
+}
 
-  const view = decodeURIComponent(searchParams.get('viewType') ?? '') || VIEW_TYPE_OPTIONS.GRID;
+export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, searchParams: propsSearchParams }: MembersMobileFiltersProps) => {
+  const { getParam, setParam } = useQueryParams();
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const sortContainerRef = useRef<HTMLDivElement>(null);
+
+  const view = getParam('viewType') || VIEW_TYPE_OPTIONS.GRID;
+  const currentSort = getParam('sort') || SORT_OPTIONS.ASCENDING;
+
+  // Close sort dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortContainerRef.current && !sortContainerRef.current.contains(event.target as Node)) {
+        setIsSortDropdownOpen(false);
+      }
+    };
+
+    if (isSortDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSortDropdownOpen]);
+
+  // Handler functions
+  const handleViewChange = (newView: string) => {
+    setParam('viewType', newView);
+  };
+
+  const handleSortChange = (sortOption: string) => {
+    setParam('sort', sortOption);
+    setIsSortDropdownOpen(false);
+  };
+
+  const handleFilterClick = () => {
+    setIsFilterDrawerOpen(true);
+  };
+
+  const handleCloseFilterDrawer = () => {
+    setIsFilterDrawerOpen(false);
+  };
+
+  const getSortLabel = (sortValue: string) => {
+    switch (sortValue) {
+      case SORT_OPTIONS.ASCENDING:
+        return 'A-Z';
+      case SORT_OPTIONS.DESCENDING:
+        return 'Z-A';
+      default:
+        return 'Sort';
+    }
+  };
 
   return (
-    <div className={s.root}>
-      <div className={s.header}>
-        <button className={s.filtersButton}>
-          <PlusIcon /> Filters
-        </button>
-        <div className={s.rightSection}>
-          <button className={s.filtersButton}>
-            Sort <ChevronDown />
+    <>
+      <div className={s.root}>
+        <div className={s.header}>
+          <button className={s.filtersButton} onClick={handleFilterClick}>
+            <PlusIcon /> Filters
           </button>
-          <div className={s.divider} />
-          <div className={s.toggle}>
-            <button
-              className={clsx(s.toggleButton, {
-                [s.active]: view === VIEW_TYPE_OPTIONS.GRID,
-              })}
-            >
-              <GridIcon />
-            </button>
-            <button
-              className={clsx(s.toggleButton, {
-                [s.active]: view === VIEW_TYPE_OPTIONS.LIST,
-              })}
-            >
-              <ListIcon />
-            </button>
+          <div className={s.rightSection}>
+            <div className={s.sortContainer} ref={sortContainerRef}>
+              <button className={s.filtersButton} onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}>
+                {getSortLabel(currentSort)} <ChevronDown />
+              </button>
+              {isSortDropdownOpen && (
+                <div className={s.sortDropdown}>
+                  <button
+                    className={clsx(s.sortOption, {
+                      [s.active]: currentSort === SORT_OPTIONS.ASCENDING,
+                    })}
+                    onClick={() => handleSortChange(SORT_OPTIONS.ASCENDING)}
+                  >
+                    A-Z (Ascending)
+                  </button>
+                  <button
+                    className={clsx(s.sortOption, {
+                      [s.active]: currentSort === SORT_OPTIONS.DESCENDING,
+                    })}
+                    onClick={() => handleSortChange(SORT_OPTIONS.DESCENDING)}
+                  >
+                    Z-A (Descending)
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className={s.divider} />
+            <div className={s.toggle}>
+              <button
+                className={clsx(s.toggleButton, {
+                  [s.active]: view === VIEW_TYPE_OPTIONS.GRID,
+                })}
+                onClick={() => handleViewChange(VIEW_TYPE_OPTIONS.GRID)}
+              >
+                <GridIcon />
+              </button>
+              <button
+                className={clsx(s.toggleButton, {
+                  [s.active]: view === VIEW_TYPE_OPTIONS.LIST,
+                })}
+                onClick={() => handleViewChange(VIEW_TYPE_OPTIONS.LIST)}
+              >
+                <ListIcon />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Mobile Filter Drawer */}
+      <MobileDrawer isOpen={isFilterDrawerOpen} onClose={handleCloseFilterDrawer} title="Filters">
+        <MembersFilter filterValues={filterValues} userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} searchParams={propsSearchParams} onClose={handleCloseFilterDrawer} />
+      </MobileDrawer>
+    </>
   );
 };
 

@@ -1,0 +1,66 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-inline: 12px;
+  margin-bottom: 12px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filtersButton {
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--background-base-white, #FFF);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: var(--Text-text-info-darker, #475569);
+
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.rightSection {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(27, 56, 96, 0.12);
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.toggleButton {
+  display: flex;
+  padding: var(--spacing-4xs, 4px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0);
+  background: var(--background-base-white, #FFF);
+
+  &.active {
+    color: #1B4DFF;
+    background: linear-gradient(0deg, rgba(27, 77, 255, 0.04) 0%, rgba(27, 77, 255, 0.04) 100%), #FFF;
+  }
+}

@@ -1,5 +1,5 @@
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import styles from './page.module.css';
+import styles from './page.module.scss';
 import { IMember, IMembersSearchParams } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getMembersListOptions, getMembersOptionsFromQuery } from '@/utils/member.utils';

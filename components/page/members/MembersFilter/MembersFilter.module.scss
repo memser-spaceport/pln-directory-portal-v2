@@ -34,7 +34,11 @@
   justify-content: center;
   align-items: flex-start;
   gap: var(--spacing-xs, 10px);
-  border-top: 1px solid #cbd5e1;;
+  border-top: 1px solid #cbd5e1;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
 }
 
 .secondaryBtn {

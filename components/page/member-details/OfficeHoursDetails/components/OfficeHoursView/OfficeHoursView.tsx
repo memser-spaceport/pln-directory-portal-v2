@@ -126,52 +126,56 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
       return (
         <>
           {member.name} is available for a short 1:1 call to connect or help — no introduction needed.
-          <div>
-            <div className={s.keywordsLabel}>Topics of Interest:</div>
-            <div className={s.badgesWrapper}>
-              {member?.ohInterest?.length ? (
-                member?.ohInterest?.map((item) => (
-                  <div key={item} className={s.badge}>
-                    {item}
-                  </div>
-                ))
-              ) : (
-                <button
-                  type="button"
-                  className={s.addKeywordsBadge}
-                  onClick={() => {
-                    onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
-                    onEdit();
-                  }}
-                >
-                  <AddIcon /> Add keywords
-                </button>
-              )}
+          {(!!member?.ohInterest?.length || isEditable) && (
+            <div>
+              <div className={s.keywordsLabel}>Topics of Interest:</div>
+              <div className={s.badgesWrapper}>
+                {member?.ohInterest?.length ? (
+                  member?.ohInterest?.map((item) => (
+                    <div key={item} className={s.badge}>
+                      {item}
+                    </div>
+                  ))
+                ) : (
+                  <button
+                    type="button"
+                    className={s.addKeywordsBadge}
+                    onClick={() => {
+                      onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                      onEdit();
+                    }}
+                  >
+                    <AddIcon /> Add keywords
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-          <div>
-            <div className={s.keywordsLabel}>I Can Help With:</div>
-            <div className={s.badgesWrapper}>
-              {member?.ohHelpWith?.length ? (
-                member?.ohHelpWith?.map((item) => (
-                  <div key={item} className={s.badge}>
-                    {item}
-                  </div>
-                ))
-              ) : (
-                <button
-                  type="button"
-                  className={s.addKeywordsBadge}
-                  onClick={() => {
-                    onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
-                    onEdit();
-                  }}
-                >
-                  <AddIcon /> Add keywords
-                </button>
-              )}
+          )}
+          {(!!member?.ohHelpWith?.length || isEditable) && (
+            <div>
+              <div className={s.keywordsLabel}>I Can Help With:</div>
+              <div className={s.badgesWrapper}>
+                {member?.ohHelpWith?.length ? (
+                  member?.ohHelpWith?.map((item) => (
+                    <div key={item} className={s.badge}>
+                      {item}
+                    </div>
+                  ))
+                ) : (
+                  <button
+                    type="button"
+                    className={s.addKeywordsBadge}
+                    onClick={() => {
+                      onEditOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
+                      onEdit();
+                    }}
+                  >
+                    <AddIcon /> Add keywords
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </>
       );
     }

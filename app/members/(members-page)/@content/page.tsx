@@ -40,7 +40,17 @@ const getPageData = async (searchParams: Record<string, string>) => {
 
   try {
     const { isLoggedIn, authToken } = getCookiesFromHeaders();
-    const query = qs.stringify({ ...searchParams, roles: searchParams.roles?.split('|'), topics: searchParams.topics?.split('|') });
+    console.log(searchParams);
+    const query = qs.stringify({
+      ...searchParams,
+      roles: searchParams.roles?.split('|'),
+      topics: searchParams.topics?.split('|'),
+      sort: searchParams.sort
+        ?.split(',')
+        .map((s) => s.toLowerCase())
+        .join(':'),
+    });
+
     const memberList = await getMemberListForQuery(query, 1, INITIAL_ITEMS_PER_PAGE, authToken);
 
     if (memberList?.isError) {

@@ -4,20 +4,24 @@ import { IMemberListOptions } from '@/types/members.types';
 import { getHeader } from '@/utils/common.utils';
 import { handleHostAndSpeaker } from '@/utils/member.utils';
 
-export const getMemberListForQuery = async (options: IMemberListOptions, currentPage: number, limit: number, authToken?: string) => {
+export const getMemberListForQuery = async (query: string, currentPage: number, limit: number, authToken?: string) => {
   // handleHostAndSpeaker(options);
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}${options ? '&' + new URLSearchParams(options as any) : ''}`, {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members-search?page=${currentPage}&limit=${limit}&${query}`, {
     // cache: 'force-cache',
     method: 'GET',
     next: { tags: ['member-list'] },
     headers: getHeader(authToken ?? ''),
   });
 
+  // http://localhost:3000/v1/members-search?hasOfficeHours=true&topics=ai&topics=product&roles=Engineer&search=test&includePlnFriend=true&sort=name%3Aasc&page=1&limit=10&roles=Investor%20Optimization%20Producer
+
   if (!response.ok) {
     return { isError: true, error: { status: response.status, statusText: response.statusText } };
   }
 
   const result = await response.json();
+
+  // console.log(result);
 
   const formattedMembers: any = result?.members?.map((member: any) => {
     const teams =
@@ -45,7 +49,7 @@ export const getMemberListForQuery = async (options: IMemberListOptions, current
     };
   });
   return {
-    total: result?.count,
+    total: result?.total,
     items: formattedMembers,
   };
 };

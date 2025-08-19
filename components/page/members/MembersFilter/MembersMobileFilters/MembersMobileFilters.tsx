@@ -26,11 +26,11 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
   const appliedTopics = getParam('topics')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
   const appliedRoles = getParam('roles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
   const appliedSearchRoles = getParam('searchRoles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
-  const officeHoursOnly = getParam('officeHoursOnly') === 'true';
+  const hasOfficeHours = getParam('hasOfficeHours') === 'true';
   const includeFriends = getParam('includeFriends') === 'true';
 
   // Calculate filter count
-  const filterCount = [appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, officeHoursOnly, includeFriends].filter(Boolean).length;
+  const filterCount = [appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, hasOfficeHours, includeFriends].filter(Boolean).length;
 
   // Handler functions
   const handleViewChange = (newView: string) => {
@@ -66,7 +66,7 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
   };
 
   const handleRemoveOfficeHours = () => {
-    setParam('officeHoursOnly', null);
+    setParam('hasOfficeHours', null);
   };
 
   const handleRemoveFriends = () => {
@@ -144,7 +144,7 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
         </div>
 
         {/* Applied Filter Badges */}
-        {(appliedTopics.length > 0 || appliedRoles.length > 0 || appliedSearchRoles.length > 0 || officeHoursOnly || includeFriends) && (
+        {(appliedTopics.length > 0 || appliedRoles.length > 0 || appliedSearchRoles.length > 0 || hasOfficeHours || includeFriends) && (
           <div className={s.filterBadges}>
             {appliedTopics.map((topic) => (
               <div key={`topic-${topic}`} className={s.filterBadge}>
@@ -170,7 +170,7 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
                 </button>
               </div>
             ))}
-            {officeHoursOnly && (
+            {hasOfficeHours && (
               <div className={s.filterBadge}>
                 <span className={s.badgeLabel}>Office Hours Only</span>
                 <button className={s.badgeRemove} onClick={handleRemoveOfficeHours} aria-label="Remove office hours filter">

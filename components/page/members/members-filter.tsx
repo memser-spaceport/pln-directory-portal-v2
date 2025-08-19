@@ -13,6 +13,7 @@ import { useFilterStore } from '@/services/members/store';
 import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
 
 import s from './MembersFilter/MembersFilter.module.scss';
+import { useGetTopics } from '@/services/members/hooks/useGetTopics';
 
 /**
  * Counts the number of applied filters in the members filter component
@@ -26,7 +27,7 @@ const getMembersFilterCount = (params: URLSearchParams): number => {
   // Update this array when adding new filter components
   const filterParams = [
     'includeFriends', // FiltersPanelToggle - Include Friends of Protocol Labs
-    'officeHoursOnly', // FiltersPanelToggle - Only Show Members with Office Hours
+    'hasOfficeHours', // FiltersPanelToggle - Only Show Members with Office Hours
     'topics', // FilterMultiSelect - Add topic
     'roles', // FilterMultiSelect - Add roles
     'searchRoles', // RolesSearchFilter - Search Roles
@@ -94,8 +95,8 @@ const MembersFilter = (props: IMembersFilter) => {
           )}
 
           <FilterSection title="Office Hours" titleIcon={<CalendarIcon />} description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise.">
-            <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="officeHoursOnly" />
-            <FilterMultiSelect label="Add topic" placeholder="E.g. AI, Staking..." paramKey="topics" backLabel="Filters" />
+            <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="hasOfficeHours" />
+            <FilterMultiSelect label="Add topic" placeholder="E.g. AI, Staking..." paramKey="topics" backLabel="Filters" useDataHook={useGetTopics} />
           </FilterSection>
 
           <div className="team-filter__bl" />

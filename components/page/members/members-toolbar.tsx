@@ -14,7 +14,7 @@ import Image from 'next/image';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 
 interface IMembersToolbar {
-  searchParams: IMembersSearchParams;
+  searchParams: Record<string, string>;
   totalTeams: number;
   userInfo: IUserInfo | undefined;
 }

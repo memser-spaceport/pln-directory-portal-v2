@@ -216,7 +216,7 @@ export interface IMembersSearchParams {
   includeFriends: string;
   viewType?: string;
   openToWork: string;
-  officeHoursOnly: string;
+  hasOfficeHours: string;
   memberRoles: string;
   isRecent: string;
   includeUnVerified: string;

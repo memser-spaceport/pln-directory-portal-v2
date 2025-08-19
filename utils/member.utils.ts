@@ -40,7 +40,7 @@ export const getFormattedFilters = (searchParams: IMembersSearchParams, rawFilte
   formattedFilters.isIncludeFriends = searchParams['includeFriends'] === 'true' || false;
   formattedFilters.isRecent = searchParams['isRecent'] === 'true' || false;
   formattedFilters.isOpenToWork = searchParams['openToWork'] === 'true' || false;
-  formattedFilters.isOfficeHoursOnly = searchParams['officeHoursOnly'] === 'true' || false;
+  formattedFilters.isOfficeHoursOnly = searchParams['hasOfficeHours'] === 'true' || false;
 
   return formattedFilters;
 };
@@ -190,7 +190,7 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
     // region,
     // country,
     // metroArea,
-    officeHoursOnly,
+    hasOfficeHours,
     includeFriends,
     // openToWork,
     memberRoles,
@@ -206,7 +206,7 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
   const sortField = sortFromQuery.field.toLowerCase();
 
   return {
-    ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),
+    ...(hasOfficeHours ? { hasOfficeHours: true } : {}),
     // ...(skills ? { 'skills.title__with': stringifyQueryValues(skills) } : {}),
     // ...(region
     //   ? {
@@ -215,7 +215,7 @@ export function getMembersOptionsFromQuery(queryParams: IMembersSearchParams): I
     //   : {}),
     // ...(country ? { 'location.country__with': stringifyQueryValues(country) } : {}),
     // ...(metroArea ? { 'location.city__with': stringifyQueryValues(metroArea) } : {}),
-    ...(includeFriends ? { isVerified: 'all' } : { plnFriend: false, isVerified: 'true' }),
+    ...(includeFriends ? { includePlnFriend: true } : {}),
     // ...(openToWork ? { openToWork: true } : {}),
     // ...(isRecent ? { isRecent: true } : {}),
     // ...(isHost ? { isHost: true } : {}),

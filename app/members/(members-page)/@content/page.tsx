@@ -40,7 +40,6 @@ const getPageData = async (searchParams: Record<string, string>) => {
 
   try {
     const { isLoggedIn, authToken } = getCookiesFromHeaders();
-    console.log(searchParams);
     const query = qs.stringify({
       ...searchParams,
       roles: searchParams.roles?.split('|'),

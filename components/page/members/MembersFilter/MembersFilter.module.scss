@@ -1,4 +1,5 @@
 @use 'styles/media';
+@use 'styles/mixins.scss';
 @import "components/form/FormSwitch/FormSwitch.module";
 
 .root {
@@ -127,4 +128,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-height: calc(100dvh - 141px);
+  overflow: auto;
+
+  @include mixins.hide-scrollbar;
 }

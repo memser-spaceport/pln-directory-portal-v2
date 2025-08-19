@@ -187,7 +187,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                   },
                   '> div': {
                     gap: '2px',
-                    padding: '2px',
+                    padding: '2px 4px',
                   },
                 }),
                 input: (baseStyles) => ({
@@ -237,6 +237,10 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                 indicatorsContainer: (base) => ({
                   display: 'none', // Hide all indicators
                 }),
+                // menuList: (baseStyles) => ({
+                //   ...baseStyles,
+                //   background: 'red',
+                // }),
               }}
               classNames={{
                 placeholder: () =>
@@ -244,6 +248,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     [s.hidePlaceholder]: val.length > 0,
                   }),
                 control: () => s.control,
+                menuList: () => s.menu,
               }}
               components={{
                 Option: (props) => {

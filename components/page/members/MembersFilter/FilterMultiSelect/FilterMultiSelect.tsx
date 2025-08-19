@@ -18,9 +18,10 @@ interface Props {
   paramKey: string;
   useDataHook?: (input: string) => { data?: any[] };
   backLabel?: string;
+  placement?: 'top' | 'bottom' | 'auto';
 }
 
-export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = useGetRoles, backLabel = 'Back' }: Props) {
+export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = useGetRoles, backLabel = 'Back', placement = 'auto' }: Props) {
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [open, toggleOpen] = useToggle(false);
@@ -130,7 +131,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
           <div className={s.Content}>
             <div className={s.inputLabel}>{label}</div>
             <Select
-              menuPlacement="auto"
+              menuPlacement={options.length > 6 ? placement : 'bottom'}
               isMulti
               onInputChange={(value, actionMeta) => {
                 if (actionMeta.action !== 'input-blur' && actionMeta.action !== 'menu-close' && actionMeta.action !== 'set-value') {
@@ -214,6 +215,11 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                   ...baseStyles,
                   outline: 'none',
                   zIndex: 3,
+                  padding: '8px',
+                  borderRadius: 'var(--corner-radius-xl, 12px)',
+                  border: '1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12))',
+                  background: 'var(--background-base-white, #FFF)',
+                  boxShadow: '0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)), 0 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06))',
                 }),
                 multiValueRemove: (base) => ({
                   ...base,
@@ -229,8 +235,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                   display: 'none',
                 }),
                 indicatorsContainer: (base) => ({
-                  ...base,
-                  display: 'none',
+                  display: 'none', // Hide all indicators
                 }),
               }}
               classNames={{
@@ -241,6 +246,33 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                 control: () => s.control,
               }}
               components={{
+                Option: (props) => {
+                  const isSelected = val.some((selected: any) => selected.value === props.data.value);
+                  const count = props.data.count || 0;
+
+                  return (
+                    <div
+                      {...props.innerProps}
+                      className={clsx(mobileStyles.desktopOption, {
+                        [mobileStyles.active]: isSelected,
+                        [mobileStyles.focused]: props.isFocused,
+                      })}
+                    >
+                      <div className={mobileStyles.optionContent}>
+                        <div className={mobileStyles.optionLabel}>{props.data.label}</div>
+                        {props.data.description && <div className={mobileStyles.optionDesc}>{props.data.description}</div>}
+                      </div>
+                      <div className={mobileStyles.optionRight}>
+                        {count > 0 && <span className={mobileStyles.countBadge}>{count}</span>}
+                        {isSelected && (
+                          <div className={mobileStyles.checkmark}>
+                            <CheckmarkIcon />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                },
                 MultiValue: (props) => {
                   const handleRemoveClick = (e: React.MouseEvent) => {
                     e.preventDefault();
@@ -374,5 +406,20 @@ const SearchIcon = () => (
 const CheckmarkIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M13.5 4.5L6 12L2.5 8.5" stroke="#1B4DFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const PlusIcon = () => (
+  <svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M8.5 1.82812C7.08154 1.82813 5.69493 2.24875 4.51552 3.0368C3.33611 3.82486 2.41688 4.94495 1.87405 6.25544C1.33123 7.56593 1.18921 9.00796 1.46593 10.3992C1.74266 11.7904 2.42572 13.0683 3.42872 14.0713C4.43173 15.0743 5.70963 15.7573 7.10084 16.0341C8.49205 16.3108 9.93407 16.1688 11.2446 15.6259C12.555 15.0831 13.6751 14.1639 14.4632 12.9845C15.2513 11.8051 15.6719 10.4185 15.6719 9C15.6698 7.09855 14.9135 5.27558 13.569 3.93105C12.2244 2.58652 10.4015 1.83023 8.5 1.82812ZM8.5 14.5781C7.39675 14.5781 6.31828 14.251 5.40096 13.638C4.48364 13.0251 3.76868 12.1539 3.34649 11.1347C2.92429 10.1154 2.81383 8.99381 3.02906 7.91176C3.24429 6.82971 3.77556 5.83578 4.55567 5.05567C5.33579 4.27555 6.32971 3.74429 7.41176 3.52906C8.49381 3.31382 9.61539 3.42429 10.6347 3.84648C11.6539 4.26868 12.5251 4.98364 13.138 5.90096C13.751 6.81828 14.0781 7.89675 14.0781 9C14.0765 10.4789 13.4883 11.8968 12.4426 12.9426C11.3968 13.9883 9.97893 14.5765 8.5 14.5781ZM11.9531 9C11.9531 9.21134 11.8692 9.41403 11.7197 9.56348C11.5703 9.71292 11.3676 9.79688 11.1563 9.79688H9.29688V11.6562C9.29688 11.8676 9.21292 12.0703 9.06348 12.2197C8.91403 12.3692 8.71135 12.4531 8.5 12.4531C8.28866 12.4531 8.08597 12.3692 7.93653 12.2197C7.78708 12.0703 7.70313 11.8676 7.70313 11.6562V9.79688H5.84375C5.63241 9.79688 5.42972 9.71292 5.28028 9.56348C5.13083 9.41403 5.04688 9.21134 5.04688 9C5.04688 8.78866 5.13083 8.58597 5.28028 8.43652C5.42972 8.28708 5.63241 8.20312 5.84375 8.20312H7.70313V6.34375C7.70313 6.13241 7.78708 5.92972 7.93653 5.78027C8.08597 5.63083 8.28866 5.54688 8.5 5.54688C8.71135 5.54688 8.91403 5.63083 9.06348 5.78027C9.21292 5.92972 9.29688 6.13241 9.29688 6.34375V8.20312H11.1563C11.3676 8.20312 11.5703 8.28708 11.7197 8.43652C11.8692 8.58597 11.9531 8.78866 11.9531 9Z"
+      fill="#455468"
+    />
+  </svg>
+);
+
+const ChevronDownIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 6L8 10L12 6" stroke="#64748B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );

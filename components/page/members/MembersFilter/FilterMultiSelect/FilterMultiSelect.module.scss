@@ -33,21 +33,31 @@
 }
 
 .tag {
-  display: flex !important;
-  align-items: center !important;
-  gap: 4px !important;
-  padding: 4px 8px !important;
   background: #f1f5f9 !important;
-  border: 1px solid rgba(27, 56, 96, 0.12) !important;
-  border-radius: 6px !important;
-  font-size: 14px !important;
-  color: #455468 !important;
   margin: 0 2px 2px 0 !important;
   transition: all 0.2s ease !important;
   max-width: 200px !important;
   min-height: 28px !important;
   position: relative !important;
   z-index: 1 !important;
+
+  display: flex;
+  padding: var(--spacing-4xs, 4px) var(--spacing-3xs, 6px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-sm, 6px);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #FFF) !important;
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
 
   &:hover {
     border-color: #5E718D !important;
@@ -344,11 +354,139 @@
 }
 
 .checkmark {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+// Desktop option styles
+.desktopOption {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+  background: white !important;
+
+  &:hover, &.focused {
+    background: #f8fafc !important;
+  }
+
+  &.active {
+    background: #f1f5f9 !important;
+    border-left: 3px solid #1B4DFF !important;
+  }
+}
+
+.optionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.optionLabel {
+  color: #455468 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 20px !important;
+  letter-spacing: -0.2px !important;
+}
+
+.optionDesc {
+  color: #64748B !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 18px !important;
+  letter-spacing: -0.2px !important;
+}
+
+.optionRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.countBadge {
+  background: #e2e8f0 !important;
+  color: #475569 !important;
+  border-radius: 12px !important;
+  padding: 2px 8px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 16px !important;
+  min-width: 20px !important;
+  text-align: center !important;
+}
+
+.customControl {
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid #C5CED9 !important;
+  border-radius: 8px !important;
+  background: white !important;
+  min-height: 40px !important;
+  position: relative !important;
+  transition: all 0.2s ease !important;
+
+  &:hover {
+    border-color: #5E718D !important;
+  }
+
+  &:focus-within {
+    //border-color: #1B4DFF !important;
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.1) !important;
+
+    border-radius: 10px;
+    border: 2px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.inputPrefix {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 2px 0 4px !important;
+  color: #64748B !important;
+  flex-shrink: 0 !important;
+
+  svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+.controlInner {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 32px !important;
+  padding: 2px 2px !important;
+  gap: 2px !important;
+
+  > div {
+    padding: 0 2px !important;
+  }
+}
+
+.valueContainerWrapper {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-height: 38px !important;
+}
+
+.valueContainer {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  padding: 8px 12px !important;
+  gap: 4px !important;
 }

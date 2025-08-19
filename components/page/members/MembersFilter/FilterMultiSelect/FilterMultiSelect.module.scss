@@ -1,0 +1,492 @@
+.rolesSearchInput {
+  margin-bottom: 16px;
+}
+
+.inputContainer {
+  border: 1px solid rgba(203, 213, 225, 0.50);
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  background: white;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.inputContainer:hover {
+  border-color: #5E718D;
+  box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+}
+
+.inputContainer:focus-within {
+  border-color: #5E718D;
+  box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  width: 100%;
+}
+
+.tag {
+  background: #f1f5f9 !important;
+  margin: 0 2px 2px 0 !important;
+  transition: all 0.2s ease !important;
+  max-width: 200px !important;
+  min-height: 28px !important;
+  position: relative !important;
+  z-index: 1 !important;
+
+  display: flex;
+  padding: var(--spacing-4xs, 4px) var(--spacing-3xs, 6px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-sm, 6px);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #FFF) !important;
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  &:hover {
+    border-color: #5E718D !important;
+    background: #e2e8f0 !important;
+  }
+
+  span {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-weight: 400 !important;
+    line-height: 1.2 !important;
+    color: #455468 !important;
+  }
+}
+
+.tagRemove {
+  background: none !important;
+  border: none !important;
+  color: #64748B !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  padding: 2px !important;
+  width: 18px !important;
+  height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 3px !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+
+  &:hover {
+    color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+  }
+
+  &:focus {
+    outline: 2px solid #1B4DFF !important;
+    outline-offset: 1px !important;
+  }
+
+  &:active {
+    transform: scale(0.95) !important;
+  }
+
+  svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
+.searchInput {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  padding: 4px;
+  font-size: 14px;
+  background: transparent;
+}
+
+.searchInput::placeholder {
+  color: #AFBACA;
+}
+
+.loading {
+  padding: 12px;
+  text-align: center;
+  color: #64748B;
+  font-size: 14px;
+}
+
+.rolesResults {
+  margin-top: 16px;
+}
+
+.resultsHeader {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.resultsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.roleCheckbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.roleCheckbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  accent-color: #156ff7;
+}
+
+.checkboxContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.roleName {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.roleCount {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.noResults {
+  padding: 12px;
+  text-align: center;
+  color: #64748B;
+  font-size: 14px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+// Mobile fullscreen styles for FilterMultiSelect
+.notFound {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  span {
+    color: var(--Neutral-Slate-600);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 14px; /* 116.667% */
+    letter-spacing: 0.12px;
+  }
+}
+
+.mobileRoot {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 12;
+}
+
+.mobileHeader {
+  display: flex;
+  padding: var(--spacing-lg, 20px) var(--spacing-md, 16px) var(--spacing-sm, 12px) var(--spacing-md, 16px);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2xs, 8px);
+  align-self: stretch;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.backWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  color: #0F172A;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.3px;
+}
+
+.mobileSearchWrapper {
+  display: flex;
+  height: 80px;
+  padding: 20px 16px;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  align-self: stretch;
+  border-bottom: 1px solid var(--Border-border-light, #E2E8F0);
+  background: #FFF;
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  right: 26px;
+  top: 30px;
+}
+
+.mobileSearchInput {
+  border-radius: 8px;
+  border: 1px solid #C5CED9;
+  background: #FFF;
+  display: flex;
+  height: 40px;
+  padding: 8px 48px 8px 12px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  flex: 1 0 0;
+
+  outline: none;
+}
+
+.mobileOptions {
+  display: flex;
+  height: 736px;
+  padding: var(--spacing-lg, 20px) var(--spacing-md, 16px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-xs, 10px);
+  flex-shrink: 0;
+  align-self: stretch;
+  overflow: auto;
+  max-height: calc(100dvh - 142px);
+}
+
+.mobileOption {
+  display: flex;
+  padding: 8px 16px 8px 12px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  align-self: stretch;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 171.429% */
+
+  &:hover {
+    background: var(--Neutral-Slate-50);
+  }
+
+  &.active {
+    border-radius: var(--corner-radius-md, 8px);
+    background: var(--action-background-neutral-light_focus, rgba(14, 15, 17, 0.06));
+  }
+}
+
+.optionLabel {
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.optionDesc {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.optionCount {
+  display: flex;
+  padding: var(--spacing-zero, 0) var(--spacing-4xs, 4px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-zero, 0);
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+}
+
+.checkmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+// Desktop option styles
+.desktopOption {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+  background: white !important;
+
+  &:hover, &.focused {
+    background: #f8fafc !important;
+  }
+
+  &.active {
+    background: #f1f5f9 !important;
+    border-left: 3px solid #1B4DFF !important;
+  }
+}
+
+.optionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.optionLabel {
+  color: #455468 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 20px !important;
+  letter-spacing: -0.2px !important;
+}
+
+.optionDesc {
+  color: #64748B !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 18px !important;
+  letter-spacing: -0.2px !important;
+}
+
+.optionRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.countBadge {
+  background: #e2e8f0 !important;
+  color: #475569 !important;
+  border-radius: 12px !important;
+  padding: 2px 8px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 16px !important;
+  min-width: 20px !important;
+  text-align: center !important;
+}
+
+.customControl {
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid #C5CED9 !important;
+  border-radius: 8px !important;
+  background: white !important;
+  min-height: 40px !important;
+  position: relative !important;
+  transition: all 0.2s ease !important;
+
+  &:hover {
+    border-color: #5E718D !important;
+  }
+
+  &:focus-within {
+    //border-color: #1B4DFF !important;
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.1) !important;
+
+    border-radius: 10px;
+    border: 2px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.inputPrefix {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 2px 0 4px !important;
+  color: #64748B !important;
+  flex-shrink: 0 !important;
+
+  svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+.controlInner {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 32px !important;
+  padding: 2px 2px !important;
+  gap: 2px !important;
+
+  > div {
+    padding: 0 2px !important;
+  }
+}
+
+.valueContainerWrapper {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-height: 38px !important;
+}
+
+.valueContainer {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  padding: 8px 12px !important;
+  gap: 4px !important;
+}

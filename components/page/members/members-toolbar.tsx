@@ -163,7 +163,6 @@ const MembersToolbar = (props: IMembersToolbar) => {
               </div>
             )}
           </div>
-          <ViewType callback={onViewtypeClickHandler} view={view} />
         </div>
       </div>
 
@@ -188,7 +187,11 @@ const MembersToolbar = (props: IMembersToolbar) => {
           }
 
           .toolbar__right__web__sort-by-text {
-            color: #000;
+            color: #0f172a;
+            font-size: 15px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 24px; /* 160% */
           }
 
           .toolbar__left__filterbtn {

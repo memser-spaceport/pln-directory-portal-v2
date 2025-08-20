@@ -218,6 +218,12 @@
   flex-direction: column;
   cursor: text;
   width: 100%;
+  position: relative;
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 .inputLabel {
@@ -280,4 +286,11 @@
 
 .menu {
   @include mixins.hide-scrollbar;
+}
+
+.plusIcon {
+  position: absolute;
+  left: 8px;
+  top: 38px;
+  z-index: 1;
 }

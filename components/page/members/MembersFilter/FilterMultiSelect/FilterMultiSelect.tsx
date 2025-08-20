@@ -19,9 +19,10 @@ interface Props {
   useDataHook?: (input: string) => { data?: any[] };
   backLabel?: string;
   placement?: 'top' | 'bottom' | 'auto';
+  isDisabled?: boolean;
 }
 
-export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = useGetRoles, backLabel = 'Back', placement = 'auto' }: Props) {
+export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = useGetRoles, backLabel = 'Back', placement = 'auto', isDisabled }: Props) {
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [open, toggleOpen] = useToggle(false);
@@ -128,8 +129,17 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
 
       <FormProvider {...methods}>
         <form onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}>
-          <div className={s.Content}>
+          <div
+            className={clsx(s.Content, {
+              [s.disabled]: isDisabled,
+            })}
+          >
             <div className={s.inputLabel}>{label}</div>
+            {!val.length && (
+              <div className={s.plusIcon}>
+                <PlusIcon />
+              </div>
+            )}
             <Select
               menuPlacement={options.length > 6 ? placement : 'bottom'}
               isMulti
@@ -149,7 +159,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
               onChange={(selectedOptions) => {
                 setValue(paramKey, selectedOptions ? [...selectedOptions] : [], { shouldValidate: true, shouldDirty: true });
               }}
-              isDisabled={open}
+              isDisabled={open || isDisabled}
               onMenuOpen={() => {
                 if (!isMobile || isRemoving) {
                   return;
@@ -189,6 +199,10 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     gap: '2px',
                     padding: '2px 4px',
                   },
+                  '> div:last-child': {
+                    margin: 0,
+                  },
+                  paddingLeft: val.length > 0 ? 0 : 24,
                 }),
                 input: (baseStyles) => ({
                   ...baseStyles,

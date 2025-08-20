@@ -7,6 +7,7 @@ import { clsx } from 'clsx';
 import { VIEW_TYPE_OPTIONS, SORT_OPTIONS, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { useQueryParams } from '@/hooks/useQueryParams';
 import MembersFilter from '@/components/page/members/members-filter';
+import { useSwipeable } from 'react-swipeable';
 
 interface MembersMobileFiltersProps {
   filterValues?: any;
@@ -84,6 +85,10 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
     }
   };
 
+  const swipeHandlers = useSwipeable({
+    onSwipedDown: () => setIsFilterDrawerOpen(false),
+  });
+
   return (
     <>
       <div className={s.root}>
@@ -121,25 +126,6 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
                 </Menu.Positioner>
               </Menu.Portal>
             </Menu.Root>
-            <div className={s.divider} />
-            <div className={s.toggle}>
-              <button
-                className={clsx(s.toggleButton, {
-                  [s.active]: view === VIEW_TYPE_OPTIONS.GRID,
-                })}
-                onClick={() => handleViewChange(VIEW_TYPE_OPTIONS.GRID)}
-              >
-                <GridIcon />
-              </button>
-              <button
-                className={clsx(s.toggleButton, {
-                  [s.active]: view === VIEW_TYPE_OPTIONS.LIST,
-                })}
-                onClick={() => handleViewChange(VIEW_TYPE_OPTIONS.LIST)}
-              >
-                <ListIcon />
-              </button>
-            </div>
           </div>
         </div>
 
@@ -194,8 +180,8 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
         <Dialog.Portal>
           <Dialog.Backdrop className={s.dialogBackdrop} />
           <Dialog.Popup className={s.dialogPopup}>
-            <div className={s.dialogHandle} />
-            <div className={s.dialogHeader}>
+            <div className={s.dialogHandle} {...swipeHandlers} />
+            <div className={s.dialogHeader} {...swipeHandlers}>
               <Dialog.Title className={s.dialogTitle}>Filters</Dialog.Title>
               <Dialog.Close className={s.dialogClose}>
                 <CloseIcon />

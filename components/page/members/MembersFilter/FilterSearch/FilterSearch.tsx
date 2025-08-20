@@ -11,10 +11,11 @@ interface Props {
   debounceMs?: number;
 }
 
-export function FilterSearch({ label, placeholder, debounceMs = 300 }: Props) {
+export function FilterSearch({ label, placeholder, debounceMs = 700 }: Props) {
   const { params, setParam } = useFilterStore();
   const [inputValue, setInputValue] = useState('');
   const [debouncedValue, setDebouncedValue] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Debounce the input value to avoid too many API calls
   useDebounce(
@@ -31,21 +32,30 @@ export function FilterSearch({ label, placeholder, debounceMs = 300 }: Props) {
     if (paramValue !== null) {
       setInputValue(paramValue);
       setDebouncedValue(paramValue);
-    } else {
-      // Clear the input when the parameter is removed (e.g., by "Clear all" button)
+    } else if (isInitialized) {
+      // Only clear the input if we've been initialized and the parameter is removed
       setInputValue('');
       setDebouncedValue('');
     }
-  }, [params.get('search')]);
 
-  // Update URL parameters when debounced value changes
+    if (!isInitialized) {
+      setIsInitialized(true);
+    }
+  }, [params.get('search'), isInitialized]);
+
+  // Update URL parameters when debounced value changes (but not during initialization)
   useEffect(() => {
-    if (debouncedValue.trim() === '') {
+    if (!isInitialized) return;
+
+    const trimmedValue = debouncedValue.trim();
+
+    // Always update the parameter to match the current debounced value
+    if (trimmedValue === '') {
       setParam('search', undefined);
     } else {
-      setParam('search', debouncedValue.trim());
+      setParam('search', trimmedValue);
     }
-  }, [debouncedValue, setParam]);
+  }, [debouncedValue, setParam, isInitialized]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);

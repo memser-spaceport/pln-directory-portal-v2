@@ -29,9 +29,10 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
   const appliedSearchRoles = getParam('searchRoles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
   const hasOfficeHours = getParam('hasOfficeHours') === 'true';
   const includeFriends = getParam('includeFriends') === 'true';
+  const search = getParam('search') !== '';
 
   // Calculate filter count
-  const filterCount = [appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, hasOfficeHours, includeFriends].filter(Boolean).length;
+  const filterCount = [appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, hasOfficeHours, includeFriends, search].filter(Boolean).length;
 
   // Handler functions
   const handleViewChange = (newView: string) => {
@@ -101,7 +102,7 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
             {/* Sort Menu using base-ui */}
             <Menu.Root modal={false}>
               <Menu.Trigger className={s.filtersButton}>
-                {getSortLabel(currentSort)} <ChevronDown />
+                Sort <ChevronDown />
               </Menu.Trigger>
               <Menu.Portal>
                 <Menu.Positioner className={s.menuPositioner} align="end" sideOffset={8}>

@@ -158,6 +158,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
               value={val}
               onChange={(selectedOptions) => {
                 setValue(paramKey, selectedOptions ? [...selectedOptions] : [], { shouldValidate: true, shouldDirty: true });
+                setInputValue('');
               }}
               isDisabled={open || isDisabled}
               onMenuOpen={() => {

@@ -153,6 +153,9 @@ const Dropdown: React.FC<DropdownProps> = ({
             border-radius: 8px;
             border: 1px solid lightgrey;
             cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .select__search:focus-visible,
           .select__search:focus {

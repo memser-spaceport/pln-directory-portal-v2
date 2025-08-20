@@ -43,7 +43,7 @@ const getPageData = async (searchParams: Record<string, string>) => {
     const query = qs.stringify({
       ...searchParams,
       roles: searchParams.roles?.split('|'),
-      topics: searchParams.topics?.split('|'),
+      topics: searchParams.hasOfficeHours ? searchParams.topics?.split('|') : '',
       sort: searchParams.sort
         ?.split(',')
         .map((s) => s.toLowerCase())

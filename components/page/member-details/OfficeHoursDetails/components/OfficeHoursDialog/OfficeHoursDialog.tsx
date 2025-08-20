@@ -124,9 +124,11 @@ export const OfficeHoursDialog = ({ isOpen, onClose, onContinue, userInfo }: Pro
                 </label>
               </motion.div>
 
-              <motion.button className={s.continueButton} onClick={handleContinue} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }}>
-                Continue to Schedule Meeting
-              </motion.button>
+              <div className={s.footer}>
+                <motion.button className={s.continueButton} onClick={handleContinue} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }}>
+                  Continue to Schedule Meeting
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         </motion.div>

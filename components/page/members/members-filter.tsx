@@ -14,6 +14,7 @@ import { FilterSection } from '@/components/page/members/MembersFilter/FilterSec
 
 import s from './MembersFilter/MembersFilter.module.scss';
 import { useGetTopics } from '@/services/members/hooks/useGetTopics';
+import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
 
 /**
  * Counts the number of applied filters in the members filter component
@@ -26,6 +27,7 @@ const getMembersFilterCount = (params: URLSearchParams): number => {
   // List of filter parameters used in members filter
   // Update this array when adding new filter components
   const filterParams = [
+    'search', // Search for a member
     'includeFriends', // FiltersPanelToggle - Include Friends of Protocol Labs
     'hasOfficeHours', // FiltersPanelToggle - Only Show Members with Office Hours
     'topics', // FilterMultiSelect - Add topic
@@ -90,19 +92,27 @@ const MembersFilter = (props: IMembersFilter) => {
         <div className={s.body}>
           {isAdmin && (
             <FilterSection>
+              <FilterSearch label="Search for a member" placeholder="E.g. John Smith" />
               <FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />
             </FilterSection>
           )}
 
           <FilterSection title="Office Hours" titleIcon={<CalendarIcon />} description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise.">
             <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="hasOfficeHours" />
-            <FilterMultiSelect label="Add topics" placeholder="E.g. AI, Staking..." paramKey="topics" backLabel="Filters" useDataHook={useGetTopics} />
+            <FilterMultiSelect
+              label="Search topics"
+              placeholder="E.g. AI, Staking..."
+              paramKey="topics"
+              backLabel="Filters"
+              useDataHook={useGetTopics}
+              isDisabled={params.get('hasOfficeHours') !== 'true'}
+            />
           </FilterSection>
 
           <div className="team-filter__bl" />
 
           <FilterSection title="Roles">
-            <FilterMultiSelect label="Add roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" placement="top" />
+            <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" placement="top" />
           </FilterSection>
         </div>
 

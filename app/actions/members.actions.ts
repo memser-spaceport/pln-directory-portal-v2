@@ -27,11 +27,13 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
       })) || [];
     const mainTeam = teams.find((team: any) => team.mainTeam);
     const teamLead = teams.some((team: any) => team.teamLead);
+
     return {
       id: member.uid,
       name: member.name,
       profile: member.image?.url || null,
       officeHours: member.officeHours || null,
+      ohStatus: member.ohStatus,
       skills: member.skills || [],
       teams,
       location: member?.location,

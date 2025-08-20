@@ -14,6 +14,7 @@ import { FilterSection } from '@/components/page/members/MembersFilter/FilterSec
 
 import s from './MembersFilter/MembersFilter.module.scss';
 import { useGetTopics } from '@/services/members/hooks/useGetTopics';
+import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
 
 /**
  * Counts the number of applied filters in the members filter component
@@ -26,7 +27,7 @@ const getMembersFilterCount = (params: URLSearchParams): number => {
   // List of filter parameters used in members filter
   // Update this array when adding new filter components
   const filterParams = [
-    'q', // Search for a member
+    'search', // Search for a member
     'includeFriends', // FiltersPanelToggle - Include Friends of Protocol Labs
     'hasOfficeHours', // FiltersPanelToggle - Only Show Members with Office Hours
     'topics', // FilterMultiSelect - Add topic
@@ -91,6 +92,7 @@ const MembersFilter = (props: IMembersFilter) => {
         <div className={s.body}>
           {isAdmin && (
             <FilterSection>
+              <FilterSearch label="Search for a member" placeholder="E.g. John Smith" />
               <FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />
             </FilterSection>
           )}

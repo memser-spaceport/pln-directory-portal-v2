@@ -9,7 +9,16 @@ export const BackButton = ({ to, className }: { to: string; className?: string }
   const router = useRouter();
   return (
     <div className={clsx(s.subheader, className)}>
-      <button className={s.backBtn} onClick={() => router.push(to)}>
+      <button
+        className={s.backBtn}
+        onClick={() => {
+          if (window.history.length > 1) {
+            router.back();
+          } else {
+            router.push(to); // fallback route
+          }
+        }}
+      >
         <BackIcon /> Back
       </button>
     </div>

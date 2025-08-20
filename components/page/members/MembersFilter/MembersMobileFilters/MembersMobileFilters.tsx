@@ -29,7 +29,7 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
   const appliedSearchRoles = getParam('searchRoles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
   const hasOfficeHours = getParam('hasOfficeHours') === 'true';
   const includeFriends = getParam('includeFriends') === 'true';
-  const search = getParam('search') !== '';
+  const search = !!getParam('search');
 
   // Calculate filter count
   const filterCount = [appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, hasOfficeHours, includeFriends, search].filter(Boolean).length;

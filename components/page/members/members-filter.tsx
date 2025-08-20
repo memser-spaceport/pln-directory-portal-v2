@@ -93,7 +93,7 @@ const MembersFilter = (props: IMembersFilter) => {
           {isAdmin && (
             <FilterSection>
               <FilterSearch label="Search for a member" placeholder="E.g. John Smith" />
-              <FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />
+              {/*<FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />*/}
             </FilterSection>
           )}
 

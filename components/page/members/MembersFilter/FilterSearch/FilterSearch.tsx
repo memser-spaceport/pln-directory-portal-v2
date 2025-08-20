@@ -25,12 +25,16 @@ export function FilterSearch({ label, placeholder, debounceMs = 300 }: Props) {
     [inputValue],
   );
 
-  // Get initial value from URL parameters
+  // Get initial value from URL parameters and handle clear all
   useEffect(() => {
     const paramValue = params.get('search');
     if (paramValue !== null) {
       setInputValue(paramValue);
       setDebouncedValue(paramValue);
+    } else {
+      // Clear the input when the parameter is removed (e.g., by "Clear all" button)
+      setInputValue('');
+      setDebouncedValue('');
     }
   }, [params.get('search')]);
 

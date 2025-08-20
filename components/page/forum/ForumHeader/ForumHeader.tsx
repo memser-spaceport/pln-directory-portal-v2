@@ -38,7 +38,7 @@ export const ForumHeader = () => {
   const [menuPortalTarget, setMenuPortalTarget] = useState<HTMLElement | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[sortOptions.length - 1];
+  const value = sortOptions.find((option) => option.value === searchParams.get('categoryTopicSort')) || sortOptions[1];
 
   const analytics = useForumAnalytics();
 

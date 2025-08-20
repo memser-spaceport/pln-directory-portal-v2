@@ -3,7 +3,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
 async function fetcher(input: string) {
-  const res = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/members/autocomplete/topics?q=${input}`, {}, false);
+  const res = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/members/autocomplete/topics?q=${input}&limit=50`, {}, false);
 
   if (!res?.ok) {
     throw new Error('Failed to fetch topics');
@@ -22,7 +22,7 @@ export function useGetTopics(input: string) {
   return useQuery({
     queryKey: [MembersQueryKeys.GET_TOPICS, input],
     queryFn: () => fetcher(input),
-    enabled: !!input,
+    // enabled: !!input,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 }

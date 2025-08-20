@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Input } from '@base-ui-components/react/input';
+import { createPortal } from 'react-dom';
 import { useGetRoles } from '@/services/members/hooks/useGetRoles';
 import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
@@ -106,26 +107,54 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
     }
   }, [val, paramKey, setParam]);
 
+  // Handle body scroll locking for iOS Safari when mobile view is open
+  useEffect(() => {
+    if (open && isMobile) {
+      // Lock body scroll
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+
+      return () => {
+        // Restore body scroll
+        document.body.style.overflow = originalStyle;
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+      };
+    }
+  }, [open, isMobile]);
+
+  // Mobile fullscreen view component
+  const renderMobileFullscreen = () => {
+    if (!open || typeof window === 'undefined') return null;
+
+    return createPortal(
+      <div className={mobileStyles.mobileRoot}>
+        <div className={mobileStyles.mobileHeader}>
+          <button className={mobileStyles.backWrapper} onClick={toggleOpen}>
+            <ArrowBackIcon /> {backLabel}
+          </button>
+          <button onClick={toggleOpen}>
+            <CloseIcon />
+          </button>
+        </div>
+        <div className={mobileStyles.mobileSearchWrapper}>
+          <Input autoFocus className={mobileStyles.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <SearchIcon />
+        </div>
+        <div className={mobileStyles.mobileOptions}>{renderMobileOptions()}</div>
+      </div>,
+      document.body
+    );
+  };
+
   return (
     <>
-      {/* Mobile Fullscreen View */}
-      {open && (
-        <div className={mobileStyles.mobileRoot}>
-          <div className={mobileStyles.mobileHeader}>
-            <button className={mobileStyles.backWrapper} onClick={toggleOpen}>
-              <ArrowBackIcon /> {backLabel}
-            </button>
-            <button onClick={toggleOpen}>
-              <CloseIcon />
-            </button>
-          </div>
-          <div className={mobileStyles.mobileSearchWrapper}>
-            <Input autoFocus className={mobileStyles.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            <SearchIcon />
-          </div>
-          <div className={mobileStyles.mobileOptions}>{renderMobileOptions()}</div>
-        </div>
-      )}
+      {/* Mobile Fullscreen View in Portal */}
+      {renderMobileFullscreen()}
 
       <FormProvider {...methods}>
         <form onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}>

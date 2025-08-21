@@ -143,6 +143,22 @@
   img {
     max-width: 100%;
   }
+
+  a {
+    color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--action-foreground-brand-hover, #0060FF);
+      text-decoration: underline;
+    }
+
+    &:visited {
+      color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+    }
+  }
 }
 
 .sub {

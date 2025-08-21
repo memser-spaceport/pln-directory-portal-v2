@@ -214,9 +214,31 @@
 
 .mobileRoot {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Use dynamic viewport height for better iOS Safari support */
   background: #fff;
-  z-index: 12;
+  z-index: 9999; /* High z-index to ensure it's above everything */
+  overflow: hidden;
+
+  /* iOS Safari specific fixes */
+  -webkit-overflow-scrolling: touch;
+
+  /* Prevent body scroll when modal is open */
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    z-index: -1;
+  }
 }
 
 .mobileHeader {

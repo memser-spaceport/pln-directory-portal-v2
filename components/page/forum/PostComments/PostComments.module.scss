@@ -145,18 +145,21 @@
   }
 
   a {
-    color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
-    text-decoration: underline;
-    cursor: pointer;
-    transition: color 0.2s ease;
+    color: var(--action-foreground-brand-inverted_normal, #1B4DFF) !important;
+    text-decoration: underline !important;
+    cursor: pointer !important;
+    transition: color 0.2s ease !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 1 !important;
 
     &:hover {
-      color: var(--action-foreground-brand-hover, #0060FF);
-      text-decoration: underline;
+      color: var(--action-foreground-brand-hover, #0060FF) !important;
+      text-decoration: underline !important;
     }
 
     &:visited {
-      color: var(--action-foreground-brand-inverted_normal, #1B4DFF);
+      color: var(--action-foreground-brand-inverted_normal, #1B4DFF) !important;
     }
   }
 }

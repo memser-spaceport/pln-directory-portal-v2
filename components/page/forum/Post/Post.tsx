@@ -117,8 +117,18 @@ export const Post = () => {
     <div className={s.container}>
       <BackButton to={`/forum?cid=${fromCategory}`} />
       <div className={s.root}>
-        <Link href={`/forum?cid=${fromCategory}`} className={s.back}>
-          <ChevronLeftIcon /> Back to forum
+        <Link
+          href={`/forum?cid=${fromCategory}`}
+          className={s.back}
+          aria-label="Back to previous page"
+          onClick={(e) => {
+            e.preventDefault();
+            router.push(`/forum?cid=${fromCategory}`);
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            <ChevronLeftIcon /> Back to forum
+          </span>
         </Link>
 
         <div className={s.content}>

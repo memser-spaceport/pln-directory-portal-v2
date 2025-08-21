@@ -39,7 +39,7 @@ export const Posts = () => {
       author: item.user.displayname,
       memberUid: item.user.memberUid,
       position: item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : '',
-      time: formatDistanceToNow(new Date(item.lastposttime), { addSuffix: true }),
+      time: formatDistanceToNow(new Date(item.timestamp), { addSuffix: true }),
       meta: {
         views: item.viewcount,
         likes: item.votes,

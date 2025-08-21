@@ -33,7 +33,8 @@ const MemberGridView = (props: IMemberGridView) => {
   const isBorder = isTeamLead || isOpenToWork;
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profileUrl = member?.profile ?? defaultAvatarImage;
-  const isAvailableToConnect = member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null);
+  // todo - enable for next release
+  const isAvailableToConnect = false; // member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null);
 
   return (
     <>

@@ -5,7 +5,7 @@ import { Dialog } from '@base-ui-components/react/dialog';
 import s from './MembersMobileFilters.module.scss';
 import { clsx } from 'clsx';
 import { VIEW_TYPE_OPTIONS, SORT_OPTIONS, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { useQueryParams } from '@/hooks/useQueryParams';
+import { useFilterStore } from '@/services/members/store';
 import MembersFilter from '@/components/page/members/members-filter';
 import { useSwipeable } from 'react-swipeable';
 
@@ -17,19 +17,19 @@ interface MembersMobileFiltersProps {
 }
 
 export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, searchParams: propsSearchParams }: MembersMobileFiltersProps) => {
-  const { getParam, setParam } = useQueryParams();
+  const { params, setParam } = useFilterStore();
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
-  const view = getParam('viewType') || VIEW_TYPE_OPTIONS.GRID;
-  const currentSort = getParam('sort') || SORT_OPTIONS.ASCENDING;
+  const view = params.get('viewType') || VIEW_TYPE_OPTIONS.GRID;
+  const currentSort = params.get('sort') || SORT_OPTIONS.ASCENDING;
 
   // Get applied filters for count and badges
-  const appliedTopics = getParam('topics')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
-  const appliedRoles = getParam('roles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
-  const appliedSearchRoles = getParam('searchRoles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
-  const hasOfficeHours = getParam('hasOfficeHours') === 'true';
-  const includeFriends = getParam('includeFriends') === 'true';
-  const search = !!getParam('search');
+  const appliedTopics = params.get('topics')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
+  const appliedRoles = params.get('roles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
+  const appliedSearchRoles = params.get('searchRoles')?.split(URL_QUERY_VALUE_SEPARATOR) || [];
+  const hasOfficeHours = params.get('hasOfficeHours') === 'true';
+  const includeFriends = params.get('includeFriends') === 'true';
+  const search = !!params.get('q');
 
   // Calculate filter count
   const filterCount = [appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, hasOfficeHours, includeFriends, search].filter(Boolean).length;
@@ -54,25 +54,29 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
   // Badge removal handlers
   const handleRemoveTopicBadge = (topic: string) => {
     const newTopics = appliedTopics.filter((t) => t !== topic);
-    setParam('topics', newTopics.length > 0 ? newTopics.join(URL_QUERY_VALUE_SEPARATOR) : null);
+    setParam('topics', newTopics.length > 0 ? newTopics.join(URL_QUERY_VALUE_SEPARATOR) : undefined);
   };
 
   const handleRemoveRoleBadge = (role: string) => {
     const newRoles = appliedRoles.filter((r) => r !== role);
-    setParam('roles', newRoles.length > 0 ? newRoles.join(URL_QUERY_VALUE_SEPARATOR) : null);
+    setParam('roles', newRoles.length > 0 ? newRoles.join(URL_QUERY_VALUE_SEPARATOR) : undefined);
   };
 
   const handleRemoveSearchRoleBadge = (role: string) => {
     const newSearchRoles = appliedSearchRoles.filter((r) => r !== role);
-    setParam('searchRoles', newSearchRoles.length > 0 ? newSearchRoles.join(URL_QUERY_VALUE_SEPARATOR) : null);
+    setParam('searchRoles', newSearchRoles.length > 0 ? newSearchRoles.join(URL_QUERY_VALUE_SEPARATOR) : undefined);
   };
 
   const handleRemoveOfficeHours = () => {
-    setParam('hasOfficeHours', null);
+    setParam('hasOfficeHours', undefined);
   };
 
   const handleRemoveFriends = () => {
-    setParam('includeFriends', null);
+    setParam('includeFriends', undefined);
+  };
+
+  const handleRemoveSearch = () => {
+    setParam('q', undefined);
   };
 
   const getSortLabel = (sortValue: string) => {
@@ -131,7 +135,7 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
         </div>
 
         {/* Applied Filter Badges */}
-        {(appliedTopics.length > 0 || appliedRoles.length > 0 || appliedSearchRoles.length > 0 || hasOfficeHours || includeFriends) && (
+        {(appliedTopics.length > 0 || appliedRoles.length > 0 || appliedSearchRoles.length > 0 || hasOfficeHours || includeFriends || search) && (
           <div className={s.filterBadges}>
             {appliedTopics.map((topic) => (
               <div key={`topic-${topic}`} className={s.filterBadge}>
@@ -169,6 +173,14 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
               <div className={s.filterBadge}>
                 <span className={s.badgeLabel}>Include Friends</span>
                 <button className={s.badgeRemove} onClick={handleRemoveFriends} aria-label="Remove include friends filter">
+                  <CloseIcon />
+                </button>
+              </div>
+            )}
+            {search && (
+              <div className={s.filterBadge}>
+                <span className={s.badgeLabel}>Search Query</span>
+                <button className={s.badgeRemove} onClick={handleRemoveSearch} aria-label="Remove search query filter">
                   <CloseIcon />
                 </button>
               </div>

@@ -141,13 +141,17 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
             <CloseIcon />
           </button>
         </div>
-        <div className={mobileStyles.mobileSearchWrapper}>
-          <Input autoFocus className={mobileStyles.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          <SearchIcon />
+
+        <div className={s.inputContainer}>
+          <div className={s.inputLabel}>{label}</div>
+          <div className={mobileStyles.mobileSearchWrapper}>
+            <Input autoFocus className={mobileStyles.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <SearchIcon />
+          </div>
         </div>
         <div className={mobileStyles.mobileOptions}>{renderMobileOptions()}</div>
       </div>,
-      document.body
+      document.body,
     );
   };
 

@@ -149,6 +149,28 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
             dangerouslySetInnerHTML={{
               __html: decodeHtml(item.content),
             }}
+            onClick={(e) => {
+              // Handle clicks on links within the HTML content
+              const target = e.target as HTMLElement;
+              const link = target.closest('a');
+
+              if (link && link.href) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Check if it's an external link
+                const url = new URL(link.href);
+                const isExternal = url.origin !== window.location.origin;
+
+                if (isExternal) {
+                  // Open external links in new tab
+                  window.open(link.href, '_blank', 'noopener,noreferrer');
+                } else {
+                  // Navigate to internal links using Next.js router
+                  router.push(link.href);
+                }
+              }
+            }}
           />
         )}
         <div className={s.sub}>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo } from 'react';
+import parse from 'html-react-parser';
 
 import s from './Post.module.scss';
 import Link from 'next/link';
@@ -13,7 +14,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from '@/components/page/forum/PostComments';
 import PostPageLoader from '@/components/page/forum/Post/PostPageLoader';
 import { LikesButton } from '@/components/page/forum/LikesButton';
-import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { useCommentNotificationEmailLinkEventCapture, useCommentNotificationEmailReplyEventCapture, useDigestEmailLinkEventCapture } from '@/components/page/forum/hooks';
@@ -173,12 +173,7 @@ export const Post = () => {
           </div>
         </div>
 
-        <div
-          className={s.postContent}
-          dangerouslySetInnerHTML={{
-            __html: decodeHtml(post.desc),
-          }}
-        />
+        <div className={s.postContent}>{parse(post.desc)}</div>
 
         <div className={s.divider} />
         <CommentInput

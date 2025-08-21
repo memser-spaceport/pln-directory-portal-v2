@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Avatar } from '@base-ui-components/react/avatar';
 import { decode } from 'he';
+import parse from 'html-react-parser';
 
 import s from './Posts.module.scss';
 import Link from 'next/link';
@@ -28,6 +29,8 @@ export const Posts = () => {
 
   const posts = useMemo(() => {
     if (!data) return [];
+
+    console.log(data);
 
     return data.map((item) => ({
       tid: item.tid,
@@ -79,9 +82,7 @@ export const Posts = () => {
               }}
             >
               <div className={s.title}>{decode(post.title)}</div>
-              <div className={s.desc}>
-                <span dangerouslySetInnerHTML={{ __html: content ?? '' }} />
-              </div>
+              <div className={s.desc}>{parse(content)}</div>
               <div className={s.footer}>
                 <Link href={`/members/${post.memberUid}`} onClick={(e) => e.stopPropagation()}>
                   <Avatar.Root className={s.Avatar}>

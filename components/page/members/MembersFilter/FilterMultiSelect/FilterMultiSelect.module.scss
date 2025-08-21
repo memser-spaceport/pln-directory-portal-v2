@@ -269,8 +269,8 @@
 
 .mobileSearchWrapper {
   display: flex;
-  height: 80px;
-  padding: 20px 16px;
+  //height: 80px;
+  padding: 0 0 20px;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
@@ -282,8 +282,8 @@
 
 .searchIcon {
   position: absolute;
-  right: 26px;
-  top: 30px;
+  right: 11px;
+  top: 11px;
 }
 
 .mobileSearchInput {

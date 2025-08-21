@@ -32,7 +32,7 @@ export const MembersMobileFilters = ({ filterValues, userInfo, isUserLoggedIn, s
   const search = !!params.get('q');
 
   // Calculate filter count
-  const filterCount = [appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, hasOfficeHours, includeFriends, search].filter(Boolean).length;
+  const filterCount = [hasOfficeHours && appliedTopics.length > 0, appliedRoles.length > 0, appliedSearchRoles.length > 0, hasOfficeHours, includeFriends, search].filter(Boolean).length;
 
   // Handler functions
   const handleViewChange = (newView: string) => {

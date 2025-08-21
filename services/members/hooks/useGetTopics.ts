@@ -36,7 +36,7 @@ export function useGetTopics(input: string) {
   return useQuery({
     queryKey: [MembersQueryKeys.GET_TOPICS, input, hasOfficeHours],
     queryFn: () => fetcher(input, hasOfficeHours),
-    // enabled: !!input,
+    enabled: !!input,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 }

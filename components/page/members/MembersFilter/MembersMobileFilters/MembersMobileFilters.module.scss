@@ -105,10 +105,10 @@
 
 .filterBadges {
   padding: 8px 0;
-  display: flex;
   flex-wrap: wrap;
   gap: 8px;
   border-top: 1px solid #f1f5f9;
+  display: none;
 }
 
 .filterBadge {

@@ -26,7 +26,7 @@ const getMembersFilterCount = (params: URLSearchParams): number => {
 
   // List of filter parameters used in members filter
   // Update this array when adding new filter components
-  const filterParams = [
+  let filterParams = [
     'search', // Search for a member
     'includeFriends', // FiltersPanelToggle - Include Friends of Protocol Labs
     'hasOfficeHours', // FiltersPanelToggle - Only Show Members with Office Hours
@@ -34,6 +34,10 @@ const getMembersFilterCount = (params: URLSearchParams): number => {
     'roles', // FilterMultiSelect - Add roles
     'searchRoles', // RolesSearchFilter - Search Roles
   ];
+
+  if (!params.get('hasOfficeHours')) {
+    filterParams = filterParams.filter((param) => param !== 'topics');
+  }
 
   filterParams.forEach((param) => {
     const value = params.get(param);
@@ -112,7 +116,7 @@ const MembersFilter = (props: IMembersFilter) => {
           <div className="team-filter__bl" />
 
           <FilterSection title="Roles">
-            <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" placement="top" />
+            <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" />
           </FilterSection>
         </div>
 

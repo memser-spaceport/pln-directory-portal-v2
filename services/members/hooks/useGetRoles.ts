@@ -36,7 +36,7 @@ export function useGetRoles(input: string) {
   return useQuery({
     queryKey: [MembersQueryKeys.GET_ROLES, input, hasOfficeHours],
     queryFn: () => fetcher(input, hasOfficeHours),
-    // enabled: !!input,
+    enabled: !!input,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 }

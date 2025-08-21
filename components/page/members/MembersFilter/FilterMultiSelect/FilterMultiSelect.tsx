@@ -133,14 +133,11 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
 
     return createPortal(
       <div className={mobileStyles.mobileRoot}>
-        <div className={mobileStyles.mobileHeader}>
-          <button className={mobileStyles.backWrapper} onClick={toggleOpen}>
+        <button className={mobileStyles.mobileHeader} type="button" aria-label="Close">
+          <div className={mobileStyles.backWrapper} onClick={toggleOpen}>
             <ArrowBackIcon /> {backLabel}
-          </button>
-          <button onClick={toggleOpen}>
-            <CloseIcon />
-          </button>
-        </div>
+          </div>
+        </button>
 
         <div className={s.inputContainer}>
           <div className={s.inputLabel}>{label}</div>

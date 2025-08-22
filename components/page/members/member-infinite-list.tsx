@@ -12,6 +12,7 @@ import { useInfiniteMembersList } from '@/services/members/hooks/useInfiniteMemb
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ListLoader } from '@/components/core/loaders/ListLoader';
 import { MembersMobileFilters } from '@/components/page/members/MembersFilter/MembersMobileFilters';
+import EmptyResult from '@/components/core/empty-result';
 
 const MemberInfiniteList = (props: any) => {
   const members = props?.members ?? [];
@@ -47,6 +48,7 @@ const MemberInfiniteList = (props: any) => {
           <h1 className="members-list__titlesec__title">Members</h1> <div className="members-list__title__count">({totalItems})</div>
         </div>
         <MembersMobileFilters userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} searchParams={searchParams} />
+        {members?.length === 0 && <EmptyResult />}
         <InfiniteScroll scrollableTarget="body" loader={null} hasMore={hasNextPage} dataLength={data.length} next={fetchNextPage} style={{ overflow: 'unset' }}>
           <div className={`${VIEW_TYPE_OPTIONS.GRID === viewType ? 'members-list__grid' : 'members-list__list'}`}>
             {data?.map((member) => (

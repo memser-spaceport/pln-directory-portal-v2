@@ -1,20 +1,20 @@
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import styles from './page.module.css';
-import { IMember, IMembersSearchParams } from '@/types/members.types';
+import styles from './page.module.scss';
+import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getMembersListOptions, getMembersOptionsFromQuery } from '@/utils/member.utils';
 import Error from '@/components/core/error';
 import MembersToolbar from '@/components/page/members/members-toolbar';
 import EmptyResult from '@/components/core/empty-result';
 import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import MemberInfiniteList from '@/components/page/members/member-infinite-list';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
+import qs from 'qs';
 
-async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
+async function Page({ searchParams }: { searchParams: Record<string, string> }) {
   const { userInfo } = getCookiesFromHeaders();
   const parsedUserDetails: IUserInfo = userInfo;
 
-  const { members, isError, totalMembers = 0, isLoggedIn } = await getPageData(searchParams as IMembersSearchParams);
+  const { members, isError, totalMembers = 0, isLoggedIn } = await getPageData(searchParams);
 
   if (isError || !members) {
     return <Error />;
@@ -26,24 +26,30 @@ async function Page({ searchParams }: { searchParams: IMembersSearchParams }) {
         <MembersToolbar searchParams={searchParams} totalTeams={totalMembers} userInfo={parsedUserDetails} />
       </div>
       <div className={styles.members__right__membersList} style={{ flex: 1 }}>
-        {members?.length > 0 && <MemberInfiniteList isUserLoggedIn={isLoggedIn} members={members} totalItems={totalMembers} userInfo={parsedUserDetails} searchParams={searchParams} />}
-        {members?.length === 0 && <EmptyResult />}
+        <MemberInfiniteList isUserLoggedIn={isLoggedIn} members={members} totalItems={totalMembers} userInfo={parsedUserDetails} searchParams={searchParams} />
       </div>
     </div>
   );
 }
 
-const getPageData = async (searchParams: IMembersSearchParams) => {
+const getPageData = async (searchParams: Record<string, string>) => {
   let members: IMember[] = [];
   let isError = false;
   let totalMembers = 0;
 
   try {
     const { isLoggedIn, authToken } = getCookiesFromHeaders();
-    const filtersFromQueryParams = getMembersOptionsFromQuery(searchParams as IMembersSearchParams);
-    const memberFilterQuery = getMembersListOptions(filtersFromQueryParams);
+    const query = qs.stringify({
+      ...searchParams,
+      roles: searchParams.roles?.split('|'),
+      topics: searchParams.hasOfficeHours ? searchParams.topics?.split('|') : '',
+      sort: searchParams.sort
+        ?.split(',')
+        .map((s) => s.toLowerCase())
+        .join(':'),
+    });
 
-    const memberList = await getMemberListForQuery(memberFilterQuery, 1, INITIAL_ITEMS_PER_PAGE, authToken);
+    const memberList = await getMemberListForQuery(query, 1, INITIAL_ITEMS_PER_PAGE, authToken);
 
     if (memberList?.isError) {
       return { isError: true, error: memberList?.error };

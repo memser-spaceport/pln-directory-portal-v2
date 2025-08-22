@@ -4,7 +4,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS } from '@/utils/constants';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import LoginBtn from './login-btn';
 import { ApplicationSearch } from '@/components/core/application-search';
 import { AccountMenu } from '@/components/core/navbar/components/AccountMenu/AccountMenu';
@@ -25,7 +25,7 @@ interface INavbar {
   authToken: string;
 }
 
-export default function Navbar(props: Readonly<INavbar>) {
+function Navbar(props: Readonly<INavbar>) {
   const pathName = usePathname();
   const userInfo = props?.userInfo;
   const isLoggedIn = props?.isLoggedIn;
@@ -48,21 +48,22 @@ export default function Navbar(props: Readonly<INavbar>) {
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
-  useEffect(() => {
-    function getAllNotifications(status: boolean) {
-      if (isLoggedIn && status) {
-        queryClient.invalidateQueries({
-          queryKey: [NotificationsQueryKeys.GET_ALL_NOTIFICATIONS],
-        });
-      }
-    }
-
-    document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
-
-    return function () {
-      document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
-    };
-  }, [isLoggedIn, queryClient]);
+  // useEffect(() => {
+  //   function getAllNotifications(status: boolean) {
+  //     console.log('trigger 1');
+  //     if (isLoggedIn && status) {
+  //       queryClient.invalidateQueries({
+  //         queryKey: [NotificationsQueryKeys.GET_ALL_NOTIFICATIONS],
+  //       });
+  //     }
+  //   }
+  //
+  //   document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
+  //
+  //   return function () {
+  //     document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
+  //   };
+  // }, [isLoggedIn, queryClient]);
 
   return (
     <NavigationMenu.Root className={s.Root}>
@@ -130,6 +131,8 @@ export default function Navbar(props: Readonly<INavbar>) {
     </NavigationMenu.Root>
   );
 }
+
+export default memo(Navbar);
 
 function Link(props: NavigationMenu.Link.Props) {
   return (

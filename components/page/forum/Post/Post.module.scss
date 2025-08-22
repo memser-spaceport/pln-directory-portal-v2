@@ -33,16 +33,20 @@
 }
 
 .back {
-  display: flex;
-  align-items: center;
   gap: 12px;
   color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 20px;
+  font-size: 16px;
   font-style: normal;
   font-weight: 500;
   line-height: 27px; /* 135% */
   letter-spacing: -0.4px;
   padding-block: 8px;
+
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* prevents weird tap behavior */
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 
   @include media.tablet-landscape {
     display: none;
@@ -230,6 +234,27 @@
       text-decoration: underline;
       color: #0f5bcb;
     }
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 34px; /* 141.667% */
+    letter-spacing: -0.4px;
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 27px; /* 135% */
+    letter-spacing: -0.3px;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px; /* 150% */
+    letter-spacing: -0.3px;
   }
 }
 

@@ -4,12 +4,12 @@ import { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import { Avatar } from '@base-ui-components/react/avatar';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { formatDistanceToNow } from 'date-fns';
+import parse from 'html-react-parser';
 
 import s from './PostComments.module.scss';
 import { CommentsInputDesktop } from '@/components/page/forum/CommentsInputDesktop';
 import { clsx } from 'clsx';
 import { LikesButton } from '@/components/page/forum/LikesButton';
-import { decodeHtml } from '@/utils/decode';
 import { ItemMenu } from '@/components/page/forum/ItemMenu/ItemMenu';
 import { useMedia } from 'react-use';
 import { IUserInfo } from '@/types/shared.types';
@@ -144,12 +144,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
             timestamp={item.timestamp}
           />
         ) : (
-          <div
-            className={s.postContent}
-            dangerouslySetInnerHTML={{
-              __html: decodeHtml(item.content),
-            }}
-          />
+          <div className={s.postContent}>{parse(item.content)}</div>
         )}
         <div className={s.sub}>
           <LikesButton tid={item.tid} pid={item.pid} likes={item.votes} isLiked={item.upvoted} timestamp={item.timestamp} />

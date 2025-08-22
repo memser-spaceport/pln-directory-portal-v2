@@ -33,8 +33,10 @@ export const Feed = () => {
 
   return (
     <div className={s.root}>
-      <ForumHeader />
-      <CategoriesTabs onValueChange={onValueChange} value={cid} />
+      <div className={s.stickyHeader}>
+        <ForumHeader />
+        <CategoriesTabs onValueChange={onValueChange} value={cid} />
+      </div>
       <Posts />
       <button
         className={clsx(s.triggerButton, {

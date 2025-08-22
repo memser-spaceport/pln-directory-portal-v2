@@ -58,7 +58,7 @@
 }
 
 .content {
-  padding: 24px;
+  padding: 24px 24px 0;
   text-align: center;
   
   @include media.tablet-landscape {
@@ -231,4 +231,12 @@
   &:active {
     background: #1d4ed8;
   }
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  padding: 24px;
+  background: #fff;
+  border-top: 1px solid #cbd5e1;
 }

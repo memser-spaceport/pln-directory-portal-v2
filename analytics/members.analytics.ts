@@ -519,6 +519,10 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAIL_BROKEN_OFFICEHOURS_LINK_BOOK_ATTEMPT_CLICKED, params);
   }
 
+  function onMembersFiltersChange(filters: URLSearchParams) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_FILTERS_CHANGE, filters);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -593,5 +597,6 @@ export const useMemberAnalytics = () => {
     onSubmitUpdatedOfficeHours,
     onFixBrokenOfficeHoursLinkClicked,
     onBrokenOfficeHoursLinkBookAttemptClicked,
+    onMembersFiltersChange,
   };
 };

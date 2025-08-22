@@ -1,153 +1,70 @@
 'use client';
 
-import { Tooltip } from '@/components/core/tooltip/tooltip';
 import FilterCount from '@/components/ui/filter-count';
-import TagLoader from '@/components/ui/tag-loader';
-import Toggle from '@/components/ui/toogle';
-import useUpdateQueryParams from '@/hooks/useUpdateQueryParams';
-import { IMemberFilterSelectedItem, IMemberFilterSelectedItems } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsUserInfo, getFilterCount, getQuery, triggerLoader } from '@/utils/common.utils';
-import { EVENTS, PAGE_ROUTES, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import dynamic from 'next/dynamic';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
+import { ADMIN_ROLE, EVENTS } from '@/utils/constants';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { BaseSyntheticEvent, useEffect } from 'react';
-import { RolesFilter } from './roles-filter';
+import React from 'react';
+import { FilterMultiSelect } from './MembersFilter/FilterMultiSelect/FilterMultiSelect';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { FiltersSearch } from '@/components/page/members/FiltersSearch';
+import { FiltersPanelToggle } from '@/components/core/FiltersPanelToggle';
+import { useFilterStore } from '@/services/members/store';
+import { FilterSection } from '@/components/page/members/MembersFilter/FilterSection';
 
-const TagContainer = dynamic(() => import('@/components/ui/tag-container'), {
-  loading: () => <TagLoader />,
-});
+import s from './MembersFilter/MembersFilter.module.scss';
+import { useGetTopics } from '@/services/members/hooks/useGetTopics';
+import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
+
+/**
+ * Counts the number of applied filters in the members filter component
+ * @param params - URLSearchParams from useFilterStore
+ * @returns number of active filters
+ */
+const getMembersFilterCount = (params: URLSearchParams): number => {
+  let count = 0;
+
+  // List of filter parameters used in members filter
+  // Update this array when adding new filter components
+  let filterParams = [
+    'search', // Search for a member
+    'includeFriends', // FiltersPanelToggle - Include Friends of Protocol Labs
+    'hasOfficeHours', // FiltersPanelToggle - Only Show Members with Office Hours
+    'topics', // FilterMultiSelect - Add topic
+    'roles', // FilterMultiSelect - Add roles
+    'searchRoles', // RolesSearchFilter - Search Roles
+  ];
+
+  if (!params.get('hasOfficeHours')) {
+    filterParams = filterParams.filter((param) => param !== 'topics');
+  }
+
+  filterParams.forEach((param) => {
+    const value = params.get(param);
+    // Check if parameter exists and has a meaningful value
+    // Exclude 'false' values as they represent disabled toggles
+    if (value && value.trim() !== '' && value !== 'false') {
+      count += 1;
+    }
+  });
+
+  return count;
+};
 
 export interface IMembersFilter {
   filterValues: any | undefined;
   userInfo: IUserInfo;
   isUserLoggedIn: boolean | undefined;
   searchParams: any;
-}
-
-export interface ITeamFilterItem {
-  value: string;
-  selected: boolean;
-  disabled: boolean;
+  onClose?: () => void;
 }
 
 const MembersFilter = (props: IMembersFilter) => {
-  const filterValues = props?.filterValues;
   const userInfo = props?.userInfo;
-  const isUserLoggedIn = props?.isUserLoggedIn;
-  const searchParams = props?.searchParams;
-
-  const selectedItems: any = {
-    skills: filterValues?.skills?.filter((item: IMemberFilterSelectedItem) => item?.selected).map((item: IMemberFilterSelectedItem) => item.value),
-    region: filterValues?.region?.filter((item: IMemberFilterSelectedItem) => item?.selected).map((item: IMemberFilterSelectedItem) => item.value),
-    country: filterValues?.country?.filter((item: IMemberFilterSelectedItem) => item?.selected).map((item: IMemberFilterSelectedItem) => item.value),
-    metroArea: filterValues?.metroArea?.filter((item: IMemberFilterSelectedItem) => item?.selected).map((item: IMemberFilterSelectedItem) => item.value),
-  };
-
-  const router = useRouter();
-  const pathname = usePathname();
-  const { updateQueryParams } = useUpdateQueryParams();
+  const isAdmin = userInfo?.roles?.includes(ADMIN_ROLE);
   const analytics = useMemberAnalytics();
-
-  const query = getQuery(searchParams);
-  const apliedFiltersCount = getFilterCount(query);
-
-  const isIncludeFriends = searchParams['includeFriends'] === 'true' || false;
-  const isRecent = searchParams['isRecent'] === 'true' || false;
-  const isOpenToWork = searchParams['openToWork'] === 'true' || false;
-  const isOfficeHoursOnly = searchParams['officeHoursOnly'] === 'true' || false;
-  const includeUnVerified = searchParams['includeUnVerified'] === 'true' || false;
-  const isHost = searchParams['isHost'] === 'true' || false;
-  const isSpeaker = searchParams['isSpeaker'] === 'true' || false;
-  const isSponsor = searchParams['isSponsor'] === 'true' || false;
-  const isHostAndSpeakerAndSponsor = searchParams['isHostAndSpeakerAndSponsor'] === 'true' || false;
-
-  const onToggleClicked = async (param: string, id: string, event: BaseSyntheticEvent) => {
-    const currentParams = new URLSearchParams(searchParams);
-    const isIncluded = currentParams.get(param) === 'true' || false;
-    triggerLoader(true);
-
-    if (!isIncluded) {
-      analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, true, getAnalyticsUserInfo(userInfo));
-      currentParams.set(param, 'true');
-      if (param === 'isHost') {
-        currentParams.delete('isSpeaker');
-        currentParams.delete('isSponsor');
-        currentParams.delete('isHostAndSpeakerAndSponsor');
-      } else if (param === 'isSpeaker') {
-        currentParams.delete('isHost');
-        currentParams.delete('isSponsor');
-        currentParams.delete('isHostAndSpeakerAndSponsor');
-      } else if (param === 'isSponsor') {
-        currentParams.delete('isHost');
-        currentParams.delete('isSpeaker');
-        currentParams.delete('isHostAndSpeakerAndSponsor');
-      } else if (param === 'isHostAndSpeakerAndSponsor') {
-        currentParams.delete('isHost');
-        currentParams.delete('isSpeaker');
-        currentParams.delete('isSponsor');
-      }
-    } else {
-      analytics.onFilterToggleClicked(PAGE_ROUTES.MEMBERS, param, false, getAnalyticsUserInfo(userInfo));
-      currentParams.delete(param);
-    }
-    router.push(`${window.location.pathname}?${currentParams.toString()}`);
-  };
-
-  const onTagClickHandler = async (key: string, value: string, isSelected: boolean) => {
-    try {
-      triggerLoader(true);
-      if (selectedItems[key]?.includes(value)) {
-        const currentTags = selectedItems[key]?.filter((v: string) => v !== value);
-        updateQueryParams(key, currentTags.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
-        return;
-      }
-      const currentTags = [...selectedItems[key], value];
-      updateQueryParams(key, currentTags.join(URL_QUERY_VALUE_SEPARATOR), searchParams);
-      analytics.onTagSelected(PAGE_ROUTES.TEAMS, key, getAnalyticsUserInfo(userInfo), value);
-      return;
-    } catch (error) {}
-  };
-
-  const onClearAllClicked = () => {
-    if (apliedFiltersCount > 0) {
-      triggerLoader(true);
-      const current = new URLSearchParams(Object.entries(searchParams));
-      const pathname = window?.location?.pathname;
-      analytics.onClearAllClicked(PAGE_ROUTES.TEAMS, selectedItems, getAnalyticsUserInfo(userInfo));
-
-      const clearQuery = [
-        'skills',
-        'region',
-        'country',
-        'metroArea',
-        'includeFriends',
-        'includeUnVerified',
-        'openToWork',
-        'officeHoursOnly',
-        'memberRoles',
-        'isRecent',
-        'isHost',
-        'isSpeaker',
-        'isSponsor',
-        'isHostAndSpeakerAndSponsor',
-        'searchBy',
-      ];
-      clearQuery.forEach((query) => {
-        if (current.has(query)) {
-          triggerLoader(true);
-          current.delete(query);
-        }
-      });
-      const search = current.toString();
-      const query = search ? `?${search}` : '';
-      router.push(`${pathname}/${query}`);
-      router.refresh();
-    }
-  };
+  const { params, clearParams } = useFilterStore();
+  const apliedFiltersCount = getMembersFilterCount(params);
 
   const onCloseClickHandler = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_MEMBERS_FILTER, { detail: false }));
@@ -159,20 +76,16 @@ const MembersFilter = (props: IMembersFilter) => {
     document.dispatchEvent(new CustomEvent(EVENTS.SHOW_MEMBERS_FILTER, { detail: false }));
   };
 
-  useEffect(() => {
-    triggerLoader(false);
-  }, [pathname, searchParams]);
-
   return (
     <>
-      <div className="team-filter">
-        <div className="team-filter__header">
+      <div className={s.root}>
+        <div className={s.header}>
           <h2 className="team-filter__header__title">
             Filters
             {apliedFiltersCount > 0 && <FilterCount count={apliedFiltersCount} />}
           </h2>
-          <button className="team-fitlter__header__clear-all-btn" onClick={onClearAllClicked}>
-            Clear filters
+          <button className="team-fitlter__header__clear-all-btn" onClick={clearParams}>
+            Clear all
           </button>
           <button className="team-filter__header__closebtn" onClick={onCloseClickHandler}>
             <Image alt="close" src="/icons/close.svg" height={16} width={16} />
@@ -180,159 +93,40 @@ const MembersFilter = (props: IMembersFilter) => {
         </div>
 
         {/* Body */}
-        <div className="team-filter__body">
-          <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
-          <div className="team-filter__body__toggle-section">
-            <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Only Show Members with Office Hours</h3>
-              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle
-                  height="16px"
-                  width="28px"
-                  callback={(e: BaseSyntheticEvent) => onToggleClicked('officeHoursOnly', 'member-office-hours-only', e)}
-                  isChecked={isOfficeHoursOnly}
-                  id="member-office-hours-only"
-                />
-              </div>
-            </div>
-            <div className="team-filter__body__toggle-section__toggle-option">
-              <div className="team-filter__body__toggle-section__toggle-option__title-container">
-                <h3 className="team-filter__body__toggle-section__toogle-option__title">Open to Collaborate</h3>
-                <Tooltip
-                  asChild
-                  trigger={<img style={{ marginTop: '4px' }} width={16} height={16} loading="lazy" alt="info" src="/icons/note.svg" />}
-                  content={
-                    <div className="team-filter__body__toggle-section__toggle-option__title-container__collaborate-note">
-                      <span>
-                        Members with this icon
-                        <img
-                          loading="lazy"
-                          alt="open to work"
-                          className="team-filter__body__toggle-section__toggle-option__title-container__collaborate-note__icon"
-                          height={20}
-                          width={20}
-                          src="/icons/badge/open-to-work.svg"
-                        />
-                        are open to collaborate on shared ideas & projects with other members.
-                      </span>
-                    </div>
-                  }
-                />
-              </div>
-              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('openToWork', 'member-open-to-work', e)} isChecked={isOpenToWork} id="member-open-to-work" />
-              </div>
-            </div>
-            {/* Include filter */}
-            <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Include Friends of Protocol Labs</h3>
-              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle
-                  height="16px"
-                  width="28px"
-                  callback={(e: BaseSyntheticEvent) => onToggleClicked('includeFriends', 'member-include-friends', e)}
-                  isChecked={isIncludeFriends}
-                  id="member-include-friends"
-                />
-              </div>
-            </div>
-            {/* Recently Added filter */}
-            <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">New Members</h3>
-              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('isRecent', 'member-is-recent', e)} isChecked={isRecent} id="member-is-recent" />
-              </div>
-            </div>
-            {/* Unverified Members filter */}
-            {/* <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Include Unverified Members</h3>
-              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle
-                  height="16px"
-                  width="28px"
-                  callback={(e: BaseSyntheticEvent) => onToggleClicked('includeUnVerified', 'member-is-unverified', e)}
-                  isChecked={includeUnVerified}
-                  id="member-is-unverified"
-                />
-              </div>
-            </div> */}
-          </div>
+        <div className={s.body}>
+          {isAdmin && (
+            <FilterSection>
+              <FilterSearch label="Search for a member" placeholder="E.g. John Smith" />
+              {/*<FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />*/}
+            </FilterSection>
+          )}
 
-          {/* Border line */}
-          <div className="team-filter__bl"></div>
-          <div className="team-filter__body__event ">
-            {/* <div className="team-filter__bod"> */}
-            <p className="team-filter__body__ttl">Contributions</p>
-            <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Host</h3>
-              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('isHost', 'member-is-host', e)} isChecked={isHost} id="member-is-host" />
-              </div>
-            </div>
+          <FilterSection title="Office Hours" titleIcon={<CalendarIcon />} description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise.">
+            <FiltersPanelToggle label="Only Show Members with Office Hours" paramKey="hasOfficeHours" />
+            <FilterMultiSelect
+              label="Search topics"
+              placeholder="E.g. AI, Staking..."
+              paramKey="topics"
+              backLabel="Filters"
+              useDataHook={useGetTopics}
+              isDisabled={params.get('hasOfficeHours') !== 'true'}
+            />
+          </FilterSection>
 
-            <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Speaker</h3>
-              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('isSpeaker', 'member-is-speaker', e)} isChecked={isSpeaker} id="member-is-speaker" />
-              </div>
-            </div>
+          <div className="team-filter__bl" />
 
-            <div className="team-filter__body__toggle-section__toggle-option">
-              <h3 className="team-filter__body__toggle-section__toogle-option__title">Sponsor</h3>
-              <div className="team-filter__body__toggle-section__toggle-option__body__topic__select__toggle">
-                <Toggle height="16px" width="28px" callback={(e: BaseSyntheticEvent) => onToggleClicked('isSponsor', 'member-is-sponsor', e)} isChecked={isSponsor} id="member-is-sponsor" />
-              </div>
-            </div>
-          </div>
-          {/* </div> */}
-
-          {/* Border line */}
-          <div className="team-filter__bl"></div>
-          <RolesFilter memberRoles={filterValues?.memberRoles} searchParams={searchParams} userInfo={userInfo} />
-          <div className="team-filter__bl"></div>
-          <TagContainer page={PAGE_ROUTES.MEMBERS} label="Skills" name="skills" items={filterValues?.skills ?? []} onTagClickHandler={onTagClickHandler} initialCount={10} userInfo={userInfo} />
-          <div className="team-filter__bl"></div>
-          <TagContainer
-            page={PAGE_ROUTES.MEMBERS}
-            label="Region"
-            isUserLoggedIn={isUserLoggedIn}
-            name="region"
-            items={filterValues?.region ?? []}
-            onTagClickHandler={onTagClickHandler}
-            initialCount={10}
-            userInfo={userInfo}
-          />
-          <div className="team-filter__bl"></div>
-          <TagContainer
-            page={PAGE_ROUTES.MEMBERS}
-            label="Country"
-            isUserLoggedIn={isUserLoggedIn}
-            name="country"
-            items={filterValues?.country ?? []}
-            onTagClickHandler={onTagClickHandler}
-            initialCount={10}
-            userInfo={userInfo}
-          />
-          <div className="team-filter__bl"></div>
-          <TagContainer
-            page={PAGE_ROUTES.MEMBERS}
-            label="Metro Area"
-            isUserLoggedIn={isUserLoggedIn}
-            name="metroArea"
-            items={filterValues?.metroArea ?? []}
-            onTagClickHandler={onTagClickHandler}
-            initialCount={10}
-            userInfo={userInfo}
-          />
+          <FilterSection title="Roles">
+            <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" backLabel="Filters" />
+          </FilterSection>
         </div>
 
-        <div className="team-filter__footer">
-          <button className="team-filter__footer__clrall" onClick={onClearAllClicked}>
+        <div className={s.footer}>
+          <button className={s.secondaryBtn} onClick={clearParams}>
             Clear filters
           </button>
 
-          <button className="team-filter__footer__aply" onClick={onShowClickHandler}>
-            View
+          <button className={s.primaryBtn} onClick={props.onClose}>
+            Apply filters
           </button>
         </div>
       </div>
@@ -373,17 +167,17 @@ const MembersFilter = (props: IMembersFilter) => {
           .team-filter__body {
             height: calc(100dvh - 130px);
             overflow: auto;
-            padding: 0px 34px 10px 34px;
+            padding: 20px 34px 10px 34px;
             flex-direction: column;
             display: flex;
             gap: 20px;
-            padding-bottom: 50px;
           }
 
           .team-filter__body__toggle-section {
             display: flex;
-            gap: 16px;
+            gap: 8px;
             flex-direction: column;
+            margin-block: 20px;
           }
 
           .team-filter__body__toggle-section__toggle-option__title-container {
@@ -440,8 +234,8 @@ const MembersFilter = (props: IMembersFilter) => {
           }
 
           .team-filter__footer {
-            position: absolute;
-            box-shadow: 0px -2px 6px 0px #0f172a29;
+            //position: absolute;
+            //box-shadow: 0px -2px 6px 0px #0f172a29;
             height: 60px;
             bottom: 0px;
             padding: 10px 24px;
@@ -450,6 +244,8 @@ const MembersFilter = (props: IMembersFilter) => {
             align-items: center;
             gap: 10px;
             background-color: white;
+
+            border-top: 1px solid #cbd5e1;
           }
 
           .team-filter__footer__clrall {
@@ -511,3 +307,12 @@ const MembersFilter = (props: IMembersFilter) => {
 };
 
 export default MembersFilter;
+
+const CalendarIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M16.25 2.1875H14.6875V1.875C14.6875 1.62636 14.5887 1.3879 14.4129 1.21209C14.2371 1.03627 13.9986 0.9375 13.75 0.9375C13.5014 0.9375 13.2629 1.03627 13.0871 1.21209C12.9113 1.3879 12.8125 1.62636 12.8125 1.875V2.1875H7.1875V1.875C7.1875 1.62636 7.08873 1.3879 6.91291 1.21209C6.7371 1.03627 6.49864 0.9375 6.25 0.9375C6.00136 0.9375 5.7629 1.03627 5.58709 1.21209C5.41127 1.3879 5.3125 1.62636 5.3125 1.875V2.1875H3.75C3.3356 2.1875 2.93817 2.35212 2.64515 2.64515C2.35212 2.93817 2.1875 3.3356 2.1875 3.75V16.25C2.1875 16.6644 2.35212 17.0618 2.64515 17.3549C2.93817 17.6479 3.3356 17.8125 3.75 17.8125H16.25C16.6644 17.8125 17.0618 17.6479 17.3549 17.3549C17.6479 17.0618 17.8125 16.6644 17.8125 16.25V3.75C17.8125 3.3356 17.6479 2.93817 17.3549 2.64515C17.0618 2.35212 16.6644 2.1875 16.25 2.1875ZM5.3125 4.0625C5.3125 4.31114 5.41127 4.5496 5.58709 4.72541C5.7629 4.90123 6.00136 5 6.25 5C6.49864 5 6.7371 4.90123 6.91291 4.72541C7.08873 4.5496 7.1875 4.31114 7.1875 4.0625H12.8125C12.8125 4.31114 12.9113 4.5496 13.0871 4.72541C13.2629 4.90123 13.5014 5 13.75 5C13.9986 5 14.2371 4.90123 14.4129 4.72541C14.5887 4.5496 14.6875 4.31114 14.6875 4.0625H15.9375V5.9375H4.0625V4.0625H5.3125ZM4.0625 15.9375V7.8125H15.9375V15.9375H4.0625Z"
+      fill="#1B4DFF"
+    />
+  </svg>
+);

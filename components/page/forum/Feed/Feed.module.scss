@@ -11,6 +11,13 @@
   //align-self: stretch;
 }
 
+.stickyHeader {
+  position: sticky;
+  top: var(--app-header-height);
+  z-index: 1;
+  background: #f1f5f9;
+}
+
 .triggerButton {
   display: inline-flex;
   padding: 8px var(--global-size-size-125, 10px);

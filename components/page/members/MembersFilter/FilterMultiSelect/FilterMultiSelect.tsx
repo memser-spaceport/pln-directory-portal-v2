@@ -256,6 +256,10 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                   '> div:last-child': {
                     margin: 0,
                   },
+                  input: {
+                    textAlign: 'left',
+                    width: 'fit-content !important',
+                  },
                   paddingLeft: val.length > 0 ? 0 : 24,
                 }),
                 input: (baseStyles) => ({
@@ -263,6 +267,8 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                   height: '28px',
                   fontSize: '14px',
                   padding: 0,
+                  textAlign: 'left',
+                  width: 'fit-content !important',
                 }),
                 placeholder: (base) => ({
                   ...base,
@@ -360,7 +366,6 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     // Reset removing state after a delay
                     setTimeout(() => {
                       setIsRemoving(false);
-
                     }, 300);
                   };
 

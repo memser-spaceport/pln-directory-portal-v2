@@ -360,6 +360,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     // Reset removing state after a delay
                     setTimeout(() => {
                       setIsRemoving(false);
+
                     }, 300);
                   };
 

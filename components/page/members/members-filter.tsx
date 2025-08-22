@@ -116,7 +116,7 @@ const MembersFilter = (props: IMembersFilter) => {
           <div className="team-filter__bl" />
 
           <FilterSection title="Roles">
-            <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" />
+            <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" backLabel="Filters" />
           </FilterSection>
         </div>
 

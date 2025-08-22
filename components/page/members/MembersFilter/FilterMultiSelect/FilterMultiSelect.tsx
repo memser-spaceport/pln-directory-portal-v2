@@ -347,22 +347,28 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                   );
                 },
                 MultiValue: (props) => {
-                  const handleRemoveClick = (e: React.MouseEvent) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.nativeEvent.stopImmediatePropagation();
+                  let touchStartTime = 0;
 
+                  const executeRemove = () => {
                     // Set removing state to prevent mobile menu from opening
                     setIsRemoving(true);
 
                     // Execute the remove action
                     // @ts-ignore
-                    props.removeProps.onClick?.(e);
+                    props.removeProps.onClick?.();
 
-                    // Reset removing state after a short delay
+                    // Reset removing state after a delay
                     setTimeout(() => {
                       setIsRemoving(false);
-                    }, 200);
+
+                    }, 300);
+                  };
+
+                  const handleRemoveClick = (e: React.MouseEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.nativeEvent.stopImmediatePropagation();
+                    executeRemove();
                   };
 
                   const handleMouseDown = (e: React.MouseEvent) => {
@@ -375,7 +381,12 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     e.preventDefault();
                     e.stopPropagation();
                     e.nativeEvent.stopImmediatePropagation();
+
+                    touchStartTime = Date.now();
                     setIsRemoving(true);
+
+                    // Execute remove immediately on touch start for iOS Safari
+                    executeRemove();
                   };
 
                   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -383,14 +394,12 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     e.stopPropagation();
                     e.nativeEvent.stopImmediatePropagation();
 
-                    // Execute the remove action immediately on touch end
-                    // @ts-ignore
-                    props.removeProps.onClick?.(e);
-
-                    // Reset removing state after touch end
-                    setTimeout(() => {
-                      setIsRemoving(false);
-                    }, 200);
+                    // Prevent any additional actions
+                    const touchDuration = Date.now() - touchStartTime;
+                    if (touchDuration < 50) {
+                      // Very quick touch, ensure remove action happened
+                      executeRemove();
+                    }
                   };
 
                   return (

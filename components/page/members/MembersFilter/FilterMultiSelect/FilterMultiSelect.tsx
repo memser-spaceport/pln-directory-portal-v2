@@ -140,10 +140,28 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
         </button>
 
         <div className={s.inputContainer}>
-          <div className={s.inputLabel}>{label}</div>
+          <div className={mobileStyles.headerRow}>
+            <div className={s.inputLabel}>{label}</div>
+            <button
+              type="button"
+              className={mobileStyles.clearAllButton}
+              onClick={() => {
+                reset();
+                setSearchTerm('');
+              }}
+            >
+              Clear all
+            </button>
+          </div>
           <div className={mobileStyles.mobileSearchWrapper}>
             <Input autoFocus className={mobileStyles.mobileSearchInput} placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            <SearchIcon />
+            {searchTerm ? (
+              <button type="button" className={mobileStyles.clearSearchButton} onClick={() => setSearchTerm('')} aria-label="Clear search">
+                <CloseIcon />
+              </button>
+            ) : (
+              <SearchIcon />
+            )}
           </div>
         </div>
         <div className={mobileStyles.mobileOptions}>{renderMobileOptions()}</div>
@@ -164,7 +182,9 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
               [s.disabled]: isDisabled,
             })}
           >
-            <div className={s.inputLabel}>{label}</div>
+            <div className={mobileStyles.headerRow}>
+              <div className={s.inputLabel}>{label}</div>
+            </div>
             {!val.length && (
               <div className={s.plusIcon}>
                 <PlusIcon />

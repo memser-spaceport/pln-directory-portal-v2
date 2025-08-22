@@ -241,6 +241,62 @@
   }
 }
 
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.clearAllButton {
+  background: none;
+  border: none;
+  color: #1B4DFF;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.clearSearchButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  position: absolute;
+  right: 2px;
+  top: 20px;
+  transform: translateY(-50%);
+
+  &:hover {
+    background: rgba(71, 85, 105, 0.1);
+  }
+
+  &:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+}
+
+.clearIcon {
+  width: 20px;
+  height: 20px;
+}
+
 .mobileHeader {
   display: flex;
   align-items: center;
@@ -285,8 +341,10 @@
 
 .searchIcon {
   position: absolute;
-  right: 11px;
-  top: 11px;
+  right: 12px;
+  top: 20px;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .mobileSearchInput {

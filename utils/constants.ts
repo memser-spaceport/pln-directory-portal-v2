@@ -428,6 +428,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_DELETE_CLICKED: 'inline-profile-editor-contribution-details-delete-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contribution-details-save-clicked',
+
+  MEMBERS_FILTERS_CHANGE: 'members-filters-change',
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {

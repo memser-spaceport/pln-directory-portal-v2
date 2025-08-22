@@ -27,7 +27,6 @@ async function Page({ searchParams }: { searchParams: Record<string, string> }) 
       </div>
       <div className={styles.members__right__membersList} style={{ flex: 1 }}>
         <MemberInfiniteList isUserLoggedIn={isLoggedIn} members={members} totalItems={totalMembers} userInfo={parsedUserDetails} searchParams={searchParams} />
-        {members?.length === 0 && <EmptyResult />}
       </div>
     </div>
   );

@@ -212,10 +212,13 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
               }}
               isDisabled={open || isDisabled}
               onMenuOpen={() => {
-                if (!isMobile || isRemoving) {
-                  return;
-                }
-                toggleOpen();
+                // Add a small delay to check if we're in a removing state
+                setTimeout(() => {
+                  if (!isMobile || isRemoving) {
+                    return;
+                  }
+                  toggleOpen();
+                }, 10);
               }}
               styles={{
                 container: (base) => ({
@@ -359,7 +362,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     // Reset removing state after a short delay
                     setTimeout(() => {
                       setIsRemoving(false);
-                    }, 100);
+                    }, 200);
                   };
 
                   const handleMouseDown = (e: React.MouseEvent) => {
@@ -380,31 +383,19 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     e.stopPropagation();
                     e.nativeEvent.stopImmediatePropagation();
 
+                    // Execute the remove action immediately on touch end
+                    // @ts-ignore
+                    props.removeProps.onClick?.(e);
+
                     // Reset removing state after touch end
                     setTimeout(() => {
                       setIsRemoving(false);
-                    }, 100);
+                    }, 200);
                   };
 
                   return (
-                    <div
-                      className={mobileStyles.tag}
-                      onMouseDown={(e) => {
-                        // Only stop propagation if clicking on the tag itself, not the remove button
-                        if (e.target === e.currentTarget) {
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                        }
-                      }}
-                      onTouchStart={(e) => {
-                        // Only stop propagation if touching the tag itself, not the remove button
-                        if (e.target === e.currentTarget) {
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                        }
-                      }}
-                    >
-                      <span>{props.data.label}</span>
+                    <div className={mobileStyles.tag}>
+                      <span className={mobileStyles.tagLabel}>{props.data.label}</span>
                       <button
                         className={mobileStyles.tagRemove}
                         onClick={handleRemoveClick}

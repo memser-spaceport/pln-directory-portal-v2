@@ -132,6 +132,9 @@ export const ForumHeader = () => {
               display: 'none',
             }),
           }}
+          classNames={{
+            control: () => s.control,
+          }}
         />
       </div>
     </div>

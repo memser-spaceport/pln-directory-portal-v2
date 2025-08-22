@@ -218,6 +218,12 @@
   flex-direction: column;
   cursor: text;
   width: 100%;
+  position: relative;
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 .inputLabel {
@@ -228,8 +234,6 @@
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
-
-  margin-bottom: 8px;
 }
 
 .placeholder {
@@ -276,4 +280,19 @@
       box-shadow: none;
     }
   }
+}
+
+.menu {
+  @include mixins.hide-scrollbar;
+}
+
+.plusIcon {
+  position: absolute;
+  left: 8px;
+  top: 34px;
+  z-index: 1;
+}
+
+.inputContainer {
+  padding: 16px 16px 0;
 }

@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .members {
   height: inherit;
   display: flex;
@@ -17,12 +19,19 @@
 
 .members__right__toolbar {
   height: 72px;
-  /*position: sticky;*/
+  position: sticky;
   z-index: 4;
-  /*top: 80px;*/
+  top: var(--app-header-height);
   padding: 16px;
   border-bottom: 1px solid #e2e8f0;
   background: #fff;
+  display: none;
+
+  @include media.tablet-landscape {
+    display: block;
+    position: unset;
+    top: unset;
+  }
 }
 
 .members__left__filterweb {

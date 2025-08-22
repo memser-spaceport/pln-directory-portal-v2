@@ -428,6 +428,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_DELETE_CLICKED: 'inline-profile-editor-contribution-details-delete-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contribution-details-save-clicked',
+
+  MEMBERS_FILTERS_CHANGE: 'members-filters-change',
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
@@ -615,6 +617,21 @@ export const EVENT_TYPE = {
 export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.2.2 - Enhanced Member Directory Filters',
+    tag: 'Improvements',
+    date: '20, Aug 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Filter Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Filter</span> - New dedicated filter section to find members offering office hours with option to show only members with office hours available.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Role-Based Filtering</span> - Enhanced roles filter allowing users to search and filter members by specific roles like Co-Founder, Founder, and other positions.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Topic Search Integration</span> - Improved search functionality that integrates topic-based filtering with member expertise areas.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filter Organization</span> - Reorganized filter layout for better usability with clear sections and improved visual hierarchy.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.2.1 - Office Hours Experience Improvements',
     tag: 'Improvements',

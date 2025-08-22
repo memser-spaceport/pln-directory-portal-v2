@@ -138,6 +138,14 @@
     background: rgba(239, 68, 68, 0.2) !important;
   }
 
+  /* iOS Safari specific - ensure button is immediately responsive */
+  @media (pointer: coarse) {
+    &:hover {
+      background: rgba(239, 68, 68, 0.1) !important;
+      color: #ef4444 !important;
+    }
+  }
+
   &:hover {
     color: #ef4444 !important;
     background: rgba(239, 68, 68, 0.1) !important;

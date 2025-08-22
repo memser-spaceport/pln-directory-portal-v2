@@ -80,19 +80,17 @@
   border: none;
   color: #64748B;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 8px;
   border-radius: 4px;
   transition: all 0.2s ease;
   flex-shrink: 0;
 
   &:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    filter: brightness(0.8);
   }
 
   &:focus {
-    outline: 2px solid #1B4DFF;
-    outline-offset: 1px;
+    outline: none;
   }
 
   &:active {

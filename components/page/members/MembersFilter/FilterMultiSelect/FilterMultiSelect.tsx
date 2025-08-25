@@ -12,6 +12,7 @@ import mobileStyles from './FilterMultiSelect.module.scss';
 import Select from 'react-select';
 import clsx from 'clsx';
 import { useMedia, useToggle } from 'react-use';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   label: string;
@@ -30,6 +31,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
   const [isRemoving, setIsRemoving] = useState(false);
   const isMobile = useMedia('(max-width: 960px)', false);
   const { params, setParam } = useFilterStore();
+  const { onMembersTopicsFilterSearched, onMembersRolesFilterSearched, onMembersTopicsFilterSelected, onMembersRolesFilterSelected } = useMemberAnalytics();
 
   // Get initial values from URL parameters
   const getInitialValues = () => {
@@ -195,6 +197,12 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
               isMulti
               onInputChange={(value, actionMeta) => {
                 if (actionMeta.action !== 'input-blur' && actionMeta.action !== 'menu-close' && actionMeta.action !== 'set-value') {
+                  if (paramKey === 'topics') {
+                    onMembersTopicsFilterSearched({ page: 'Members', searchText: value });
+                  } else if (paramKey === 'roles') {
+                    onMembersRolesFilterSearched({ page: 'Members', searchText: value });
+                  }
+
                   setInputValue(value);
                 }
               }}
@@ -207,7 +215,16 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
               blurInputOnSelect={false}
               value={val}
               onChange={(selectedOptions) => {
-                setValue(paramKey, selectedOptions ? [...selectedOptions] : [], { shouldValidate: true, shouldDirty: true });
+                const newOptions = selectedOptions ? [...selectedOptions] : [];
+
+                setValue(paramKey, newOptions, { shouldValidate: true, shouldDirty: true });
+
+                if (paramKey === 'topics') {
+                  onMembersTopicsFilterSelected({ page: 'Members', topics: newOptions });
+                } else if (paramKey === 'roles') {
+                  onMembersRolesFilterSelected({ page: 'Members', roles: newOptions });
+                }
+
                 setInputValue('');
               }}
               isDisabled={open || isDisabled}
@@ -285,16 +302,19 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
                     background: 'rgba(27, 56, 96, 0.12)',
                   },
                 }),
-                menu: (baseStyles) => ({
-                  ...baseStyles,
-                  outline: 'none',
-                  zIndex: 3,
-                  padding: '8px',
-                  borderRadius: 'var(--corner-radius-xl, 12px)',
-                  border: '1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12))',
-                  background: 'var(--background-base-white, #FFF)',
-                  boxShadow: '0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)), 0 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06))',
-                }),
+                menu: (baseStyles, state) => {
+                  return {
+                    ...baseStyles,
+                    display: inputValue ? 'block' : 'none',
+                    outline: 'none',
+                    zIndex: 3,
+                    padding: '8px',
+                    borderRadius: 'var(--corner-radius-xl, 12px)',
+                    border: '1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12))',
+                    background: 'var(--background-base-white, #FFF)',
+                    boxShadow: '0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)), 0 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06))',
+                  };
+                },
                 multiValueRemove: (base) => ({
                   ...base,
                   display: 'none', // Hide default remove button since we use custom one

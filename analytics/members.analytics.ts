@@ -523,6 +523,26 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_FILTERS_CHANGE, filters);
   }
 
+  function onMembersOHFilterToggled(params: { page: string; option: string; value: string }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_OH_FILTER_TOGGLED, params);
+  }
+
+  function onMembersTopicsFilterSearched(params: { page: string; searchText: string }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_TOPICS_FILTER_SEARCHED, params);
+  }
+
+  function onMembersTopicsFilterSelected(params: { page: string; topics: string[] }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_TOPICS_FILTER_SELECTED, params);
+  }
+
+  function onMembersRolesFilterSearched(params: { page: string; searchText: string }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_ROLES_FILTER_SEARCHED, params);
+  }
+
+  function onMembersRolesFilterSelected(params: { page: string; roles: string[] }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_ROLES_FILTER_SELECTED, params);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -598,5 +618,10 @@ export const useMemberAnalytics = () => {
     onFixBrokenOfficeHoursLinkClicked,
     onBrokenOfficeHoursLinkBookAttemptClicked,
     onMembersFiltersChange,
+    onMembersOHFilterToggled,
+    onMembersTopicsFilterSearched,
+    onMembersTopicsFilterSelected,
+    onMembersRolesFilterSearched,
+    onMembersRolesFilterSelected,
   };
 };

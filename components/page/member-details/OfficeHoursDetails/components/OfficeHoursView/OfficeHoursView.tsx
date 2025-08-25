@@ -36,6 +36,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   const hasOfficeHours = !!member.officeHours;
   const hasInterestedIn = !!member.ohInterest?.length;
   const hasCanHelpWith = !!member.ohHelpWith?.length;
+  const showPastBookings = !!member?.scheduleMeetingCount && member.scheduleMeetingCount > 5;
   const showAlert = !isOfficeHoursValid && isOwner;
   const showWarning = !showAlert && showIncomplete;
   const showAddButton = !hasOfficeHours && !showAlert && isEditable;
@@ -127,9 +128,9 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
         <>
           {member.name} is available for a short 1:1 call to connect or help — no introduction needed.
           {(!!member?.ohInterest?.length || isEditable) && (
-            <div>
-              <div className={s.keywordsLabel}>Topics of Interest:</div>
-              <div className={s.badgesWrapper}>
+            <div className={s.keywordsWrapper}>
+              <span className={s.keywordsLabel}>Topics of Interest:</span>
+              <span className={s.badgesWrapper}>
                 {member?.ohInterest?.length ? (
                   member?.ohInterest?.map((item) => (
                     <div key={item} className={s.badge}>
@@ -148,13 +149,13 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
                     <AddIcon /> Add keywords
                   </button>
                 )}
-              </div>
+              </span>
             </div>
           )}
           {(!!member?.ohHelpWith?.length || isEditable) && (
-            <div>
-              <div className={s.keywordsLabel}>I Can Help With:</div>
-              <div className={s.badgesWrapper}>
+            <div className={s.keywordsWrapper}>
+              <span className={s.keywordsLabel}>I Can Help With:</span>
+              <span className={s.badgesWrapper}>
                 {member?.ohHelpWith?.length ? (
                   member?.ohHelpWith?.map((item) => (
                     <div key={item} className={s.badge}>
@@ -173,7 +174,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
                     <AddIcon /> Add keywords
                   </button>
                 )}
-              </div>
+              </span>
             </div>
           )}
         </>
@@ -214,7 +215,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
         })}
       >
         <div className={s.header}>
-          <h2 className={s.title}>Office Hours</h2>
+          <h2 className={s.title}>Office Hours {isOwner && hasOfficeHours && <span className={s.titleHintLabel}>&#8226; Available to connect</span>}</h2>
           {isLoggedIn && isEditable && !showAlertUpdateButton && !showAddButton && (
             <EditButton
               onClick={() => {
@@ -227,17 +228,16 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
 
         <div className={s.content}>
           <div className={s.officeHoursSection}>
-            <div className={s.calendarIconWrapper}>
-              <CalendarIcon />
-            </div>
             <div className={s.col}>
-              <h3 className={s.subTitle}>Office Hours</h3>
               <div className={s.description}>{getDesc()}</div>
             </div>
             {hasOfficeHours && !showAlert && !isOwner && (
-              <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
-                Schedule Meeting
-              </button>
+              <div className={s.primaryButtonWrapper}>
+                <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
+                  Schedule Meeting
+                </button>
+                {showPastBookings && <span className={s.subtext}>12 past bookings</span>}
+              </div>
             )}
             {showAddButton && (
               <button

@@ -26,6 +26,19 @@
   letter-spacing: 0;
   text-align: left;
   color: #64748b;
+
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.titleHintLabel {
+  color: var(--foreground-brand-primary, #1B4DFF);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; /* 140% */
+  letter-spacing: -0.2px;
 }
 
 .content {}
@@ -39,14 +52,21 @@
   background: var(--Neutral-Slate-50, #F8FAFC);
 
   display: grid;
-  grid-template-columns: 28px 1fr;
+  grid-template-columns: 1fr;
   grid-template-areas:
-    'icon col'
-    'button button';
+    'col'
+    'button';
 
   @include media.tablet-landscape {
     display: flex;
   }
+}
+
+.keywordsWrapper {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .emptyState {
@@ -133,6 +153,20 @@
   letter-spacing: 0.14px;
 }
 
+.primaryButtonWrapper {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  grid-area: button;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    width: fit-content;
+  }
+}
+
 .primaryButton {
   display: flex;
   padding: 8px var(--global-size-size-125, 10px);
@@ -178,6 +212,16 @@
     line-height: 20px; /* 142.857% */
     letter-spacing: -0.2px;
   }
+}
+
+.subtext {
+  color: var(--foreground-neutral-tertiary, #8897AE);
+  text-align: center;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
 }
 
 .calendarIconWrapper {
@@ -236,19 +280,18 @@
 
 
 .keywordsLabel {
-  color: var(--Neutral-Slate-900, #0F172A);
-  font-size: 14px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
   font-style: normal;
   font-weight: 500;
-  line-height: 20px; /* 142.857% */
+  line-height: 16px; /* 133.333% */
   letter-spacing: -0.2px;
 }
 
 .badgesWrapper {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 4px;
+  gap: 10px;
 }
 
 .badge {
@@ -258,9 +301,9 @@
   align-items: center;
   gap: var(--spacing-5xs, 2px);
   border-radius: var(--corner-radius-Full-round, 9999px);
-  background: var(--transparent-brand-4, rgba(27, 77, 255, 0.04));
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 
-  color: var(--foreground-brand-secondary_inverted, #4174FF);
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 12px;
   font-style: normal;
   font-weight: 500;

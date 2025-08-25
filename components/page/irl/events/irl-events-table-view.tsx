@@ -246,7 +246,9 @@ const IrlEventsTableView = ({
 
         .root__irl__table-col__contentDesc {
           display: flex;
-          align-items: center;
+          flex-direction: column;
+          align-items: flex-start;
+          margin-left: 10px;
         }
 
         .root__irl__table-col__contentName {

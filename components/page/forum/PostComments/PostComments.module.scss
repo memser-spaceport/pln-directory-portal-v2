@@ -164,6 +164,22 @@
   }
 }
 
+.autoLink {
+  color: var(--action-foreground-brand-inverted_normal, #1B4DFF) !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: color 0.2s ease !important;
+
+  &:hover {
+    color: var(--action-foreground-brand-hover, #0060FF) !important;
+    text-decoration: underline !important;
+  }
+
+  &:visited {
+    color: var(--action-foreground-brand-inverted_normal, #1B4DFF) !important;
+  }
+}
+
 .sub {
   display: flex;
   align-items: center;

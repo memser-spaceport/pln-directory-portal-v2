@@ -30,8 +30,6 @@ export const Posts = () => {
   const posts = useMemo(() => {
     if (!data) return [];
 
-    console.log(data);
-
     return data.map((item) => ({
       tid: item.tid,
       cid: item.cid,

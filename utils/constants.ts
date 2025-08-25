@@ -430,6 +430,11 @@ export const MEMBER_ANALYTICS_EVENTS = {
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contribution-details-save-clicked',
 
   MEMBERS_FILTERS_CHANGE: 'members-filters-change',
+  MEMBERS_OH_FILTER_TOGGLED: 'member-office-hours-filter-toggled',
+  MEMBERS_TOPICS_FILTER_SEARCHED: 'member-topics-filter-searched',
+  MEMBERS_TOPICS_FILTER_SELECTED: 'member-topics-filter-selected',
+  MEMBERS_ROLES_FILTER_SEARCHED: 'member-roles-filter-searched',
+  MEMBERS_ROLES_FILTER_SELECTED: 'member-roles-filter-selected',
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {

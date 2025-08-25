@@ -27,7 +27,7 @@ const NewPostPage = async () => {
 
   return (
     <div className={s.root}>
-      <BackButton to="/forum?cid=0" />
+      <BackButton forceTo to="/forum?cid=0" />
       <CreatePost userInfo={userInfo} />
     </div>
   );

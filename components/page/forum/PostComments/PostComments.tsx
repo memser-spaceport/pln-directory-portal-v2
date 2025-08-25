@@ -5,6 +5,7 @@ import { Avatar } from '@base-ui-components/react/avatar';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { formatDistanceToNow } from 'date-fns';
 import parse from 'html-react-parser';
+import Linkify from 'react-linkify';
 
 import s from './PostComments.module.scss';
 import { CommentsInputDesktop } from '@/components/page/forum/CommentsInputDesktop';
@@ -144,7 +145,29 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
             timestamp={item.timestamp}
           />
         ) : (
-          <div className={s.postContent}>{parse(item.content)}</div>
+          <div className={s.postContent}>
+            <Linkify
+              componentDecorator={(decoratedHref, decoratedText, key) => {
+                // Check if it's an email address
+                const isEmail = decoratedHref.startsWith('mailto:') || decoratedText.includes('@');
+
+                return (
+                  <a
+                    href={isEmail ? `mailto:${decoratedText}` : decoratedHref}
+                    key={key}
+                    target={isEmail ? '_self' : '_blank'}
+                    rel={isEmail ? undefined : 'noopener noreferrer'}
+                    className={s.autoLink}
+                    title={isEmail ? `Send email to ${decoratedText}` : `Open ${decoratedHref}`}
+                  >
+                    {decoratedText}
+                  </a>
+                );
+              }}
+            >
+              {parse(item.content)}
+            </Linkify>
+          </div>
         )}
         <div className={s.sub}>
           <LikesButton tid={item.tid} pid={item.pid} likes={item.votes} isLiked={item.upvoted} timestamp={item.timestamp} />

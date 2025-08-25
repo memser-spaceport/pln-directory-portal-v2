@@ -5,14 +5,14 @@ import s from './BackButton.module.scss';
 import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 
-export const BackButton = ({ to, className }: { to: string; className?: string }) => {
+export const BackButton = ({ to, className, forceTo = false }: { to: string; className?: string; forceTo?: boolean }) => {
   const router = useRouter();
   return (
     <div className={clsx(s.subheader, className)}>
       <button
         className={s.backBtn}
         onClick={() => {
-          if (window.history.length > 1) {
+          if (window.history.length > 1 && !forceTo) {
             router.back();
           } else {
             router.push(to); // fallback route

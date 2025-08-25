@@ -63,7 +63,7 @@ const EditPostPage = async ({ params, searchParams }: PageProps) => {
 
   return (
     <div className={s.root}>
-      <BackButton to={`/forum/topics/${params.categoryId}/${params.topicId}${searchParams.from ? `?from=${searchParams.from}` : ''}`} />
+      <BackButton forceTo to={`/forum/topics/${params.categoryId}/${params.topicId}${searchParams.from ? `?from=${searchParams.from}` : ''}`} />
       <CreatePost
         pid={data.mainPid}
         isEdit

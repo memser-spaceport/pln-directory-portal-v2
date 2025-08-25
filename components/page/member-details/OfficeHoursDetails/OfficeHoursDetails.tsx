@@ -58,6 +58,10 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     return null;
   }
 
+  if (!isAdmin && (member.accessLevel === 'L0' || member.accessLevel === 'L1')) {
+    return null;
+  }
+
   return (
     <div
       className={clsx(s.root, {

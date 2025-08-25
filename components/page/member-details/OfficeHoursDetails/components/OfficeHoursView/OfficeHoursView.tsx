@@ -128,9 +128,9 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
         <>
           {member.name} is available for a short 1:1 call to connect or help — no introduction needed.
           {(!!member?.ohInterest?.length || isEditable) && (
-            <div>
-              <div className={s.keywordsLabel}>Topics of Interest:</div>
-              <div className={s.badgesWrapper}>
+            <div className={s.keywordsWrapper}>
+              <span className={s.keywordsLabel}>Topics of Interest:</span>
+              <span className={s.badgesWrapper}>
                 {member?.ohInterest?.length ? (
                   member?.ohInterest?.map((item) => (
                     <div key={item} className={s.badge}>
@@ -149,13 +149,13 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
                     <AddIcon /> Add keywords
                   </button>
                 )}
-              </div>
+              </span>
             </div>
           )}
           {(!!member?.ohHelpWith?.length || isEditable) && (
-            <div>
-              <div className={s.keywordsLabel}>I Can Help With:</div>
-              <div className={s.badgesWrapper}>
+            <div className={s.keywordsWrapper}>
+              <span className={s.keywordsLabel}>I Can Help With:</span>
+              <span className={s.badgesWrapper}>
                 {member?.ohHelpWith?.length ? (
                   member?.ohHelpWith?.map((item) => (
                     <div key={item} className={s.badge}>
@@ -174,7 +174,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
                     <AddIcon /> Add keywords
                   </button>
                 )}
-              </div>
+              </span>
             </div>
           )}
         </>
@@ -228,11 +228,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
 
         <div className={s.content}>
           <div className={s.officeHoursSection}>
-            <div className={s.calendarIconWrapper}>
-              <CalendarIcon />
-            </div>
             <div className={s.col}>
-              <h3 className={s.subTitle}>Office Hours</h3>
               <div className={s.description}>{getDesc()}</div>
             </div>
             {hasOfficeHours && !showAlert && !isOwner && (

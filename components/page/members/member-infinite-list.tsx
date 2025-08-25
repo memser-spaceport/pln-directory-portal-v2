@@ -125,7 +125,7 @@ const MemberInfiniteList = (props: any) => {
           margin: 0 16px;
         }
 
-        @media (min-width: 1024px) {
+        @media (min-width: 960px) {
           .members-list__list__members {
             padding: 0 0;
           }

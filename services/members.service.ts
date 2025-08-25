@@ -131,6 +131,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     telegramHandle: result.telegramHandler || null,
     twitter: result.twitterHandler || null,
     officeHours: result.officeHours || null,
+    scheduleMeetingCount: result.scheduleMeetingCount || 0,
     location: result?.location,
     skills: result.skills || [],
     teamLead,

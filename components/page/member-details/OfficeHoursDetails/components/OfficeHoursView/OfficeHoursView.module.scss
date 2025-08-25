@@ -26,6 +26,19 @@
   letter-spacing: 0;
   text-align: left;
   color: #64748b;
+
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.titleHintLabel {
+  color: var(--foreground-brand-primary, #1B4DFF);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; /* 140% */
+  letter-spacing: -0.2px;
 }
 
 .content {}

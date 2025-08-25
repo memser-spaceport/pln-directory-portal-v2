@@ -215,7 +215,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
         })}
       >
         <div className={s.header}>
-          <h2 className={s.title}>Office Hours</h2>
+          <h2 className={s.title}>Office Hours {isOwner && hasOfficeHours && <span className={s.titleHintLabel}>&#8226; Available to connect</span>}</h2>
           {isLoggedIn && isEditable && !showAlertUpdateButton && !showAddButton && (
             <EditButton
               onClick={() => {

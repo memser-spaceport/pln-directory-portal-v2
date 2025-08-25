@@ -16,8 +16,53 @@ import { useGetMemberNotificationSettings } from '@/services/notifications/hooks
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useUpdateMemberNotificationSettings } from '@/services/notifications/hooks/useUpdateMemberNotificationSettings';
 import { useEditPost } from '@/services/forum/hooks/useEditPost';
-import { useScrollDirection } from '@/components/core/MobileBottomNav/MobileBottomNav';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
+
+// Custom hook to detect when scrolling down and stops
+const useScrollDownAndStop = (delay: number = 150) => {
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const lastScrollY = useRef(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Only run on client side
+    if (typeof document === 'undefined') return;
+
+    const handleScroll = () => {
+      const currentScrollY = document.body.scrollTop;
+      const isGoingDown = currentScrollY > lastScrollY.current;
+
+      // Clear existing timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      if (isGoingDown) {
+        // Scrolling down - set state and timeout
+        setIsScrollingDown(true);
+        scrollTimeoutRef.current = setTimeout(() => {
+          setIsScrollingDown(false);
+        }, delay);
+      } else {
+        // Scrolling up - immediately show
+        setIsScrollingDown(false);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    document.body.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      document.body.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [delay]);
+
+  return isScrollingDown;
+};
 
 interface Props {
   tid: number;
@@ -41,7 +86,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
   const { userInfo } = getCookiesFromClient();
   const { data: notificationSettings } = useGetMemberNotificationSettings(userInfo?.uid, 'POST_COMMENT', tid);
   const { mutateAsync: updateNotificationSettings } = useUpdateMemberNotificationSettings();
-  const scrollDirection = useScrollDirection();
+  const isScrollingDown = useScrollDownAndStop();
 
   const methods = useForm({
     defaultValues: {
@@ -158,7 +203,7 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
     <FormProvider {...methods}>
       <form
         className={clsx('input-form', s.root, {
-          [s.hidden]: scrollDirection === 'down' && !replyToName && !focused,
+          [s.hidden]: isScrollingDown && !replyToName && !focused,
         })}
         noValidate
         onSubmit={handleSubmit(onSubmit)}

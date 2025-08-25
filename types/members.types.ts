@@ -130,6 +130,7 @@ export interface IMember {
   discordHandle?: string | null;
   telegramHandle?: string | null;
   twitter?: string | null;
+  accessLevel: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'Rejected';
   officeHours: string | null;
   ohInterest?: string[] | null;
   ohHelpWith?: string[] | null;

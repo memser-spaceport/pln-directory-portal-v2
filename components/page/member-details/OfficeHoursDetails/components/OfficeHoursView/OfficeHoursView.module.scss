@@ -133,6 +133,14 @@
   letter-spacing: 0.14px;
 }
 
+.primaryButtonWrapper {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
 .primaryButton {
   display: flex;
   padding: 8px var(--global-size-size-125, 10px);
@@ -178,6 +186,16 @@
     line-height: 20px; /* 142.857% */
     letter-spacing: -0.2px;
   }
+}
+
+.subtext {
+  color: var(--foreground-neutral-tertiary, #8897AE);
+  text-align: center;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
 }
 
 .calendarIconWrapper {

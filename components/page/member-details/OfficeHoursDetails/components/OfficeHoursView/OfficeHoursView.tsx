@@ -36,6 +36,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   const hasOfficeHours = !!member.officeHours;
   const hasInterestedIn = !!member.ohInterest?.length;
   const hasCanHelpWith = !!member.ohHelpWith?.length;
+  const showPastBookings = !!member?.scheduleMeetingCount && member.scheduleMeetingCount > 5;
   const showAlert = !isOfficeHoursValid && isOwner;
   const showWarning = !showAlert && showIncomplete;
   const showAddButton = !hasOfficeHours && !showAlert && isEditable;
@@ -235,9 +236,12 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
               <div className={s.description}>{getDesc()}</div>
             </div>
             {hasOfficeHours && !showAlert && !isOwner && (
-              <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
-                Schedule Meeting
-              </button>
+              <div className={s.primaryButtonWrapper}>
+                <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
+                  Schedule Meeting
+                </button>
+                {showPastBookings && <span className={s.subtext}>12 past bookings</span>}
+              </div>
             )}
             {showAddButton && (
               <button

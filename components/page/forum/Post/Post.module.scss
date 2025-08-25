@@ -235,6 +235,20 @@
       color: #0f5bcb;
     }
   }
+}
+
+.autoLink {
+  color: #156ff7 !important;
+  text-decoration: none !important;
+
+  &:hover {
+    text-decoration: underline !important;
+    color: #0f5bcb !important;
+  }
+
+  &:visited {
+    color: #156ff7 !important;
+  }
 
   h1 {
     font-size: 22px;

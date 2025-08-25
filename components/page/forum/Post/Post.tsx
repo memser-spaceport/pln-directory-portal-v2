@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import parse from 'html-react-parser';
+import Linkify from 'react-linkify';
 
 import s from './Post.module.scss';
 import Link from 'next/link';
@@ -107,7 +108,7 @@ export const Post = () => {
   if (!post) {
     return (
       <div className={s.container}>
-        <BackButton to={`/forum?cid=${fromCategory}`} />
+        <BackButton forceTo to={`/forum?cid=${fromCategory}`} />
         <PostPageLoader />
       </div>
     );
@@ -115,7 +116,7 @@ export const Post = () => {
 
   return (
     <div className={s.container}>
-      <BackButton to={`/forum?cid=${fromCategory}`} />
+      <BackButton forceTo to={`/forum?cid=${fromCategory}`} />
       <div className={s.root}>
         <Link
           href={`/forum?cid=${fromCategory}`}
@@ -173,7 +174,29 @@ export const Post = () => {
           </div>
         </div>
 
-        <div className={s.postContent}>{parse(post.desc)}</div>
+        <div className={s.postContent}>
+          <Linkify
+            componentDecorator={(decoratedHref, decoratedText, key) => {
+              // Check if it's an email address
+              const isEmail = decoratedHref.startsWith('mailto:') || decoratedText.includes('@');
+
+              return (
+                <a
+                  href={isEmail ? `mailto:${decoratedText}` : decoratedHref}
+                  key={key}
+                  target={isEmail ? '_self' : '_blank'}
+                  rel={isEmail ? undefined : 'noopener noreferrer'}
+                  className={s.autoLink}
+                  title={isEmail ? `Send email to ${decoratedText}` : `Open ${decoratedHref}`}
+                >
+                  {decoratedText}
+                </a>
+              );
+            }}
+          >
+            {parse(post.desc)}
+          </Linkify>
+        </div>
 
         <div className={s.divider} />
         <CommentInput

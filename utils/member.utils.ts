@@ -70,6 +70,7 @@ export const parseMemberDetails = (members: IMemberResponse[], teamId: string, i
       name: parsedMember.name,
       profile: parsedMember.image?.url || null,
       officeHours: parsedMember.officeHours || null,
+      ohStatus: parsedMember.ohStatus,
       skills: parsedMember.skills || [],
       teamLead,
       // projectContributions: parsedMember.projectContributions ?? null,

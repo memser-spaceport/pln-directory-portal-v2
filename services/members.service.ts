@@ -24,7 +24,7 @@ export const getMembers = async (options: IMemberListOptions, teamId: string, cu
   handleHostAndSpeaker(options);
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}&${new URLSearchParams(options as any)}`, {
     method: 'GET',
-    cache: 'force-cache',
+    // cache: 'force-cache',
     next: { tags: ['member-list'] },
     headers: getHeader(''),
   });
@@ -33,6 +33,7 @@ export const getMembers = async (options: IMemberListOptions, teamId: string, cu
     return { error: { status: response?.status, statusText: response?.statusText } };
   }
   const result = await response?.json();
+
   const formattedData: any = parseMemberDetails(result.members, teamId, isLoggedIn);
   return { data: { formattedData, status: response?.status } };
 };

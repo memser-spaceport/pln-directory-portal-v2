@@ -1,7 +1,11 @@
 import React from 'react';
 import s from './OhBadge.module.scss';
 
-export const OhBadge = ({ label = 'Available to connect', variant = 'primary' }: { label?: string; variant?: 'primary' | 'secondary' }) => {
+export const OhBadge = ({ label = 'Available to connect', variant = 'primary' }: { label?: string; variant?: 'primary' | 'secondary' | 'tertiary' }) => {
+  if (variant === 'tertiary') {
+    return <div className={s.tertiary}>{label}</div>;
+  }
+
   if (variant === 'secondary') {
     return <div className={s.secondary}>{label}</div>;
   }

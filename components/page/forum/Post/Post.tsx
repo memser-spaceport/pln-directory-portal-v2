@@ -25,6 +25,7 @@ import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { LoggedOutView } from '@/components/page/forum/LoggedOutView';
 import forumStyles from '@/app/forum/page.module.scss';
 import { ADMIN_ROLE } from '@/utils/constants';
+import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 
 export const Post = () => {
   const router = useRouter();
@@ -44,7 +45,7 @@ export const Post = () => {
   // Get the category to navigate back to from the 'from' query parameter
   // If not provided, fallback to the current post's category
   const fromCategory = searchParams.get('from') || categoryId;
-
+  const isAvailableToConnect = false;
   const post = useMemo(() => {
     if (!data || !userInfo) {
       return null;
@@ -170,6 +171,7 @@ export const Post = () => {
               </Link>
               <div className={s.position}>· {post.position}</div>
             </div>
+            {isAvailableToConnect && <OhBadge variant="tertiary" />}
             <div className={s.time}>{post.time}</div>
           </div>
         </div>

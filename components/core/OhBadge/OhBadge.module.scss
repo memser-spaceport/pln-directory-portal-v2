@@ -9,7 +9,7 @@
   top: -8px;
 
   display: flex;
-  height: 16px;
+  min-height: 16px;
   padding: var(--spacing-zero, 0) var(--spacing-4xs, 4px) 0 var(--spacing-4xs, 4px);
   justify-content: center;
   align-items: center;
@@ -31,5 +31,14 @@
   font-style: normal;
   font-weight: 400;
   line-height: 14px; /* 140% */
+  letter-spacing: -0.2px;
+}
+
+.tertiary {
+  color: var(--action-foreground-brand-normal, #1B4DFF);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
   letter-spacing: -0.2px;
 }

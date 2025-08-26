@@ -30,7 +30,7 @@ const Modal = (props: IModal) => {
           .modal {
             border: none;
             margin: auto;
-            border-radius: 12px;
+            border-radius: 24px;
           }
 
           .modal__cn {

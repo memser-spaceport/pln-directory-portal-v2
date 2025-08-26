@@ -33,6 +33,7 @@ export interface IMemberResponse {
   telegramHandler: string;
   twitterHandler: string;
   officeHours: string;
+  ohStatus: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
   teamLead: boolean;
   teams: ITeamResponse;
   mainTeam: IMemberTeam;

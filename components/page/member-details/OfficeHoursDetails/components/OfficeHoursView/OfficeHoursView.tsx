@@ -236,7 +236,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
                 <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
                   Schedule Meeting
                 </button>
-                {showPastBookings && <span className={s.subtext}>12 past bookings</span>}
+                {showPastBookings && <span className={s.subtext}>{member.scheduleMeetingCount} past bookings</span>}
               </div>
             )}
             {showAddButton && (

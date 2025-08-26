@@ -1,11 +1,7 @@
 import { IPastEvents, IUpcomingEvents } from '@/types/irl.types';
 import { getHeader } from '@/utils/common.utils';
 import { customFetch } from '@/utils/fetch-wrapper';
-import { 
-  transformMembers, 
-  sortEvents,
-  parseDateString
-} from '@/utils/irl.utils';
+import { transformMembers, sortEvents, parseDateString } from '@/utils/irl.utils';
 import { isError } from 'util';
 
 export const getAllLocations = async () => {
@@ -23,31 +19,27 @@ export const getAllLocations = async () => {
   const result = await response.json();
   result.sort((a: { priority: number | null }, b: { priority: number | null }) => {
     if (a.priority === null && b.priority === null) return 0;
-    if (a.priority === null) return 1; 
-    if (b.priority === null) return -1; 
+    if (a.priority === null) return 1;
+    if (b.priority === null) return -1;
     return a.priority - b.priority;
   });
-  
 
-  const filteredResult = result.filter(
-    (item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[]; }) =>
-      item.pastEvents.length > 0 || item.upcomingEvents.length > 0
-  );
+  const filteredResult = result.filter((item: { pastEvents: IPastEvents[]; upcomingEvents: IUpcomingEvents[] }) => item.pastEvents.length > 0 || item.upcomingEvents.length > 0);
 
   filteredResult.forEach((location: any) => {
     if (location.events && location.events.length > 0) {
       location.events = sortEvents(location.events, 'all');
     }
-    
+
     if (location.pastEvents && location.pastEvents.length > 0) {
       location.pastEvents = sortEvents(location.pastEvents, 'past');
     }
-    
+
     if (location.upcomingEvents && location.upcomingEvents.length > 0) {
       location.upcomingEvents = sortEvents(location.upcomingEvents, 'upcoming');
     }
   });
-  
+
   return filteredResult;
 };
 
@@ -96,7 +88,7 @@ export const deleteEventGuestByLocation = async (location: string, payload: any)
       },
       body: JSON.stringify(payload),
     },
-    true
+    true,
   );
 
   if (!response?.ok) {
@@ -117,7 +109,7 @@ export const createEventGuest = async (locationId: string, payload: any, type: s
         'Content-Type': 'application/json',
       },
     },
-    true
+    true,
   );
 
   if (!response?.ok) {
@@ -137,7 +129,7 @@ export const markMyPresence = async (locationId: string, payload: any, type: str
         'Content-Type': 'application/json',
       },
     },
-    true
+    true,
   );
 
   if (!response?.ok) {
@@ -145,7 +137,6 @@ export const markMyPresence = async (locationId: string, payload: any, type: str
   }
   return { data: response };
 };
-
 
 export const editEventGuest = async (locationId: string, guestUid: string, payload: any, eventType: string) => {
   const response = await customFetch(
@@ -158,7 +149,7 @@ export const editEventGuest = async (locationId: string, guestUid: string, paylo
         'Content-Type': 'application/json',
       },
     },
-    true
+    true,
   );
 
   if (!response?.ok) {
@@ -168,7 +159,7 @@ export const editEventGuest = async (locationId: string, guestUid: string, paylo
   return { data: response };
 };
 
-export const getGuestEvents = async (locationId: string, authToken: string,) => {
+export const getGuestEvents = async (locationId: string, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/me/events`, {
     cache: 'force-cache',
     next: { tags: ['irl-guest-events'] },
@@ -222,44 +213,45 @@ export const getGuestDetail = async (guestId: string, locationId: string, authTo
   return await response.json();
 };
 
-
 export const getFollowersByLocation = async (locationId: string, authToken: string) => {
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&pagination=false&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url,member.name,member.teamMemberRoles.team,member.teamMemberRoles.role,member.teamMemberRoles.mainTeam`, {
-    cache: 'no-store',
-    method: 'GET',
-    headers: getHeader(''),
-  });
+  const response = await fetch(
+    `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&pagination=false&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url,member.name,member.ohStatus,member.scheduleMeetingCount,member.officeHours,member.teamMemberRoles.team,member.teamMemberRoles.role,member.teamMemberRoles.mainTeam`,
+    {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(''),
+    },
+  );
 
-  
   if (!response.ok) {
     return {
       isError: true,
     };
   }
-  
+
   const result = await response.json();
 
-
   const formattedData = result?.map((follower: any) => {
-    const teams = follower?.member?.teamMemberRoles?.map((teamMemberRole: any) => ({
-      id: teamMemberRole.team?.uid || '',
-      name: teamMemberRole.team?.name || '',
-      role: teamMemberRole.role || 'Contributor',
-      teamLead: !!teamMemberRole.teamLead,
-      mainTeam: !!teamMemberRole.mainTeam,
-      logo: teamMemberRole?.team?.logo?.url || '',
-    })) || [];
-  
+    const teams =
+      follower?.member?.teamMemberRoles?.map((teamMemberRole: any) => ({
+        id: teamMemberRole.team?.uid || '',
+        name: teamMemberRole.team?.name || '',
+        role: teamMemberRole.role || 'Contributor',
+        teamLead: !!teamMemberRole.teamLead,
+        mainTeam: !!teamMemberRole.mainTeam,
+        logo: teamMemberRole?.team?.logo?.url || '',
+      })) || [];
+
     const teamAndRoles = teams.map((team: any) => ({
       teamTitle: team.name,
       role: team.role,
       teamUid: team.id,
     }));
-  
+
     const teamLead = teams.some((team: any) => team.teamLead);
     // const roles = Array.from(new Set(teams.map((team: any) => team.role)));
     const roles = teams.filter((team: any) => team.mainTeam).map((team: any) => team.role);
-  
+
     return {
       uid: follower?.uid,
       name: follower?.member?.name,
@@ -271,15 +263,17 @@ export const getFollowersByLocation = async (locationId: string, authToken: stri
       logo: follower?.member?.image?.url,
       teamLead: teamLead,
       roles: Array.isArray(roles) ? roles : [],
+      teams,
+      member: follower?.member,
     };
   });
-  
+
   return {
     data: formattedData,
-  }
-}
+  };
+};
 
-export const deleteEventLocation = async (locationId: string, eventId: string, authToken: string) => {  
+export const deleteEventLocation = async (locationId: string, eventId: string, authToken: string) => {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations/${locationId}/events/${eventId}`, {
     cache: 'no-store',
     method: 'DELETE',
@@ -293,4 +287,4 @@ export const deleteEventLocation = async (locationId: string, eventId: string, a
   }
 
   return await response.json();
-}
+};

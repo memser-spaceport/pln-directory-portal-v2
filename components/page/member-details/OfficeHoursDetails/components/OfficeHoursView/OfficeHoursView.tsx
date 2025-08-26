@@ -36,7 +36,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   const hasOfficeHours = !!member.officeHours;
   const hasInterestedIn = !!member.ohInterest?.length;
   const hasCanHelpWith = !!member.ohHelpWith?.length;
-  const showPastBookings = !!member?.scheduleMeetingCount && member.scheduleMeetingCount > 5;
+  const showPastBookings = !!member?.scheduleMeetingCount && member.scheduleMeetingCount >= 5;
   const showAlert = !isOfficeHoursValid && isOwner;
   const showWarning = !showAlert && showIncomplete;
   const showAddButton = !hasOfficeHours && !showAlert && isEditable;

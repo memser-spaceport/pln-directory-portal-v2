@@ -4,7 +4,6 @@ import { RedirectType, redirect } from 'next/navigation';
 import styles from './page.module.scss';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getMember, getMemberUidByAirtableId } from '@/services/members.service';
-import { getAllTeams } from '@/services/teams.service';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { BioDetails } from '@/components/page/member-details/BioDetails';
@@ -19,10 +18,16 @@ import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
+import { BookWithOther } from '@/components/page/member-details/BookWithOther';
+import { getMemberListForQuery } from '@/app/actions/members.actions';
+import qs from 'qs';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
-  const { member, teams, redirectMemberId, isError, isLoggedIn, userInfo } = await getpageData(memberId);
+  const { member, redirectMemberId, isError, isLoggedIn, userInfo, availableToConnectCount } = await getpageData(memberId);
+  const isAvailableToConnect = member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null);
+
+  console.log(member.officeHours, member.ohStatus);
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
@@ -34,32 +39,45 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
   return (
     <div className={styles?.memberDetail}>
-      <BackButton to={`/members`} />
-      <div className={styles?.memberDetail__container}>
-        <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+      <div className={styles.container}>
+        <div>
+          <BackButton to={`/members`} />
+          <div className={styles?.memberDetail__container}>
+            <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
 
-        <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
-        {member.eventGuests.length > 0 && (
-          <div className={styles?.memberDetail__irlContribution}>
-            <IrlMemberContribution member={member} userInfo={userInfo} />
+            {member.eventGuests.length > 0 && (
+              <div className={styles?.memberDetail__irlContribution}>
+                <IrlMemberContribution member={member} userInfo={userInfo} />
+              </div>
+            )}
+
+            <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          </div>
+        </div>
+        {!isAvailableToConnect && (
+          <div className={styles.desktopOnly}>
+            <div style={{ visibility: 'hidden' }}>
+              <BackButton to={`/members`} />
+            </div>
+            <BookWithOther count={availableToConnectCount} member={member} />
           </div>
         )}
-
-        <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
       </div>
+
       <SubscribeToRecommendationsWidget userInfo={userInfo} />
       <UpcomingEventsWidget userInfo={userInfo} />
     </div>
@@ -69,12 +87,11 @@ const MemberDetails = async ({ params }: { params: any }) => {
 export default MemberDetails;
 
 const getpageData = async (memberId: string) => {
-  const { userInfo, isLoggedIn } = getCookiesFromHeaders();
+  const { userInfo, isLoggedIn, authToken } = getCookiesFromHeaders();
   const isAdmin = userInfo && userInfo.roles?.includes(ADMIN_ROLE);
   const isOwner = userInfo && userInfo.uid === memberId;
   const parsedUserInfo = userInfo;
   let member: any;
-  let teams: any[];
   let isError: boolean = false;
   try {
     if (AIRTABLE_REGEX.test(memberId)) {
@@ -87,21 +104,15 @@ const getpageData = async (memberId: string) => {
       return { redirectMemberId, teams: [], member: {}, isLoggedIn };
     }
 
-    const [memberResponse, memberTeamsResponse] = await Promise.all([
+    const query = qs.stringify({
+      hasOfficeHours: true,
+    });
+
+    const [memberResponse, memberListResponse] = await Promise.all([
       getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, parsedUserInfo, !isAdmin && !isOwner, true),
-      getAllTeams(
-        '',
-        {
-          'teamMemberRoles.member.uid': memberId,
-          select: 'uid,name,logo.url,industryTags.title,teamMemberRoles.role,teamMemberRoles.mainTeam',
-          pagination: false,
-        },
-        0,
-        0,
-      ),
+      getMemberListForQuery(query, 1, 1, authToken),
     ]);
     member = memberResponse?.data?.formattedData;
-    teams = memberTeamsResponse?.data?.formattedData;
 
     const officeHoursFlag = !!member['officeHours'];
 
@@ -113,7 +124,7 @@ const getpageData = async (memberId: string) => {
       isError = true;
       return { isError, isLoggedIn };
     }
-    return { member, teams, isLoggedIn, userInfo, officeHoursFlag };
+    return { member, isLoggedIn, userInfo, officeHoursFlag, availableToConnectCount: memberListResponse.total };
   } catch (error) {
     isError = true;
     return { isError, isLoggedIn };

@@ -15,6 +15,28 @@
   }
 }
 
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @include media.tablet-landscape {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    justify-content: center;
+    padding-bottom: 40px;
+  }
+}
+
+.desktopOnly {
+  display: none !important;
+
+  @include media.tablet-landscape {
+    display: block !important;
+  }
+}
+
 .memberDetail__breadcrumb {
   height: 48px;
   width: 100%;

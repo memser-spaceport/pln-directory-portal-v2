@@ -12,13 +12,19 @@ interface Props {
   onClose: () => void;
   onContinue: () => void;
   userInfo: IUserInfo;
+  view?: 'info' | 'actionable';
 }
 
-export const OfficeHoursDialog = ({ isOpen, onClose, onContinue, userInfo }: Props) => {
+export const OfficeHoursDialog = ({ isOpen, onClose, onContinue, userInfo, view }: Props) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const { mutateAsync: updatePreferences } = useUpdateMemberPreferences();
 
   const handleContinue = async () => {
+    if (view === 'info') {
+      onClose();
+      return;
+    }
+
     if (dontShowAgain && userInfo?.uid) {
       try {
         await updatePreferences({
@@ -117,16 +123,18 @@ export const OfficeHoursDialog = ({ isOpen, onClose, onContinue, userInfo }: Pro
                 </motion.div>
               </div>
 
-              <motion.div className={s.checkboxWrapper} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 0.3 }}>
-                <label className={s.checkboxLabel}>
-                  <input type="checkbox" checked={dontShowAgain} onChange={(e) => setDontShowAgain(e.target.checked)} className={s.checkbox} />
-                  <span className={s.checkboxText}>Don&apos;t show this again</span>
-                </label>
-              </motion.div>
+              {view === 'actionable' && (
+                <motion.div className={s.checkboxWrapper} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 0.3 }}>
+                  <label className={s.checkboxLabel}>
+                    <input type="checkbox" checked={dontShowAgain} onChange={(e) => setDontShowAgain(e.target.checked)} className={s.checkbox} />
+                    <span className={s.checkboxText}>Don&apos;t show this again</span>
+                  </label>
+                </motion.div>
+              )}
 
               <div className={s.footer}>
                 <motion.button className={s.continueButton} onClick={handleContinue} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }}>
-                  Continue to Schedule Meeting
+                  {view === 'actionable' ? 'Continue to Schedule Meeting' : 'Close'}
                 </motion.button>
               </div>
             </div>

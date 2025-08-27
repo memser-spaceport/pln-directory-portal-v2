@@ -30,7 +30,7 @@ interface Props {
 }
 
 export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, showIncomplete, onEdit, isOfficeHoursValid }: Props) => {
-  const [showDialog, setShowDialog] = useState(false);
+  const [showDialog, setShowDialog] = useState<{ view: 'info' | 'actionable' } | null>(null);
   const [showInvalidLinkDialog, setShowInvalidLinkDialog] = useState(false);
   const isOwner = userInfo?.uid === member.id;
   const hasOfficeHours = !!member.officeHours;
@@ -60,7 +60,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
     }
 
     if (shouldShowDialog) {
-      setShowDialog(true);
+      setShowDialog({ view: 'actionable' });
     } else {
       openOfficeHoursLink();
     }
@@ -114,19 +114,32 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
   };
 
   const handleDialogContinue = () => {
-    setShowDialog(false);
+    setShowDialog(null);
     openOfficeHoursLink();
   };
 
   function getDesc() {
     if (!hasOfficeHours) {
-      return 'OH are short 15min 1:1 calls to connect about topics of interest or help others with your expertise. Share your calendar. You will also access other members OH';
+      return (
+        <div>
+          <span>OH are short 15min 1:1 calls to connect about topics of interest or help others with your expertise. Share your calendar. You will also access other members OH.</span>
+          <button type="button" className={s.linkBtn} onClick={() => setShowDialog({ view: 'info' })}>
+            Learn more <LinkIcon />
+          </button>
+        </div>
+      );
     }
 
     if (hasOfficeHours) {
       return (
         <>
-          {member.name} is available for a short 1:1 call to connect or help — no introduction needed.
+          <div>
+            <span>{member.name} is available for a short 1:1 call to connect or help — no introduction needed.</span>
+            <button type="button" className={s.linkBtn} onClick={() => setShowDialog({ view: 'info' })}>
+              Learn more <LinkIcon />
+            </button>
+          </div>
+
           {(!!member?.ohInterest?.length || isEditable) && (
             <div className={s.keywordsWrapper}>
               <span className={s.keywordsLabel}>Topics of Interest:</span>
@@ -264,7 +277,7 @@ export const OfficeHoursView = ({ member, isLoggedIn, userInfo, isEditable, show
           </div>
         </div>
 
-        <OfficeHoursDialog isOpen={showDialog} onClose={() => setShowDialog(false)} onContinue={handleDialogContinue} userInfo={userInfo} />
+        <OfficeHoursDialog isOpen={showDialog !== null} view={showDialog?.view} onClose={() => setShowDialog(null)} onContinue={handleDialogContinue} userInfo={userInfo} />
         <InvalidOfficeHoursLinkDialog
           isOpen={showInvalidLinkDialog}
           onClose={() => setShowInvalidLinkDialog(false)}
@@ -323,6 +336,15 @@ const AddIcon = () => (
     <path
       d="M8 1.25C6.66498 1.25 5.35994 1.64588 4.2499 2.38758C3.13987 3.12928 2.27471 4.18349 1.76382 5.41689C1.25292 6.65029 1.11925 8.00749 1.3797 9.31686C1.64015 10.6262 2.28303 11.829 3.22703 12.773C4.17104 13.717 5.37377 14.3598 6.68314 14.6203C7.99251 14.8808 9.34971 14.7471 10.5831 14.2362C11.8165 13.7253 12.8707 12.8601 13.6124 11.7501C14.3541 10.6401 14.75 9.33502 14.75 8C14.748 6.2104 14.0362 4.49466 12.7708 3.22922C11.5053 1.96378 9.7896 1.25199 8 1.25ZM8 13.25C6.96165 13.25 5.94662 12.9421 5.08326 12.3652C4.2199 11.7883 3.547 10.9684 3.14964 10.0091C2.75228 9.04978 2.64831 7.99418 2.85088 6.97578C3.05345 5.95738 3.55347 5.02191 4.28769 4.28769C5.02192 3.55346 5.95738 3.05345 6.97578 2.85088C7.99418 2.6483 9.04978 2.75227 10.0091 3.14963C10.9684 3.54699 11.7883 4.2199 12.3652 5.08326C12.9421 5.94661 13.25 6.96165 13.25 8C13.2485 9.39193 12.6949 10.7264 11.7107 11.7107C10.7264 12.6949 9.39193 13.2485 8 13.25ZM11.25 8C11.25 8.19891 11.171 8.38968 11.0303 8.53033C10.8897 8.67098 10.6989 8.75 10.5 8.75H8.75V10.5C8.75 10.6989 8.67098 10.8897 8.53033 11.0303C8.38968 11.171 8.19892 11.25 8 11.25C7.80109 11.25 7.61032 11.171 7.46967 11.0303C7.32902 10.8897 7.25 10.6989 7.25 10.5V8.75H5.5C5.30109 8.75 5.11032 8.67098 4.96967 8.53033C4.82902 8.38968 4.75 8.19891 4.75 8C4.75 7.80109 4.82902 7.61032 4.96967 7.46967C5.11032 7.32902 5.30109 7.25 5.5 7.25H7.25V5.5C7.25 5.30109 7.32902 5.11032 7.46967 4.96967C7.61032 4.82902 7.80109 4.75 8 4.75C8.19892 4.75 8.38968 4.82902 8.53033 4.96967C8.67098 5.11032 8.75 5.30109 8.75 5.5V7.25H10.5C10.6989 7.25 10.8897 7.32902 11.0303 7.46967C11.171 7.61032 11.25 7.80109 11.25 8Z"
       fill="#D97706"
+    />
+  </svg>
+);
+
+const LinkIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M11.1565 3.5V9.1875C11.1565 9.36155 11.0873 9.52847 10.9643 9.65154C10.8412 9.77461 10.6743 9.84375 10.5002 9.84375C10.3262 9.84375 10.1593 9.77461 10.0362 9.65154C9.91311 9.52847 9.84397 9.36155 9.84397 9.1875V5.08594L3.96452 10.9643C3.84123 11.0876 3.67402 11.1568 3.49967 11.1568C3.32532 11.1568 3.15811 11.0876 3.03483 10.9643C2.91155 10.841 2.84229 10.6738 2.84229 10.4995C2.84229 10.3251 2.91155 10.1579 3.03483 10.0346L8.91428 4.15625H4.81272C4.63867 4.15625 4.47175 4.08711 4.34868 3.96404C4.22561 3.84097 4.15647 3.67405 4.15647 3.5C4.15647 3.32595 4.22561 3.15903 4.34868 3.03596C4.47175 2.91289 4.63867 2.84375 4.81272 2.84375H10.5002C10.6743 2.84375 10.8412 2.91289 10.9643 3.03596C11.0873 3.15903 11.1565 3.32595 11.1565 3.5Z"
+      fill="#455468"
     />
   </svg>
 );

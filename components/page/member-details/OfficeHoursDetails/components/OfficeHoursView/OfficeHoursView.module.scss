@@ -351,3 +351,16 @@
     filter: brightness(1.1);
   }
 }
+
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline: 4px;
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}

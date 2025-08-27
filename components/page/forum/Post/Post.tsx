@@ -45,13 +45,10 @@ export const Post = () => {
   // Get the category to navigate back to from the 'from' query parameter
   // If not provided, fallback to the current post's category
   const fromCategory = searchParams.get('from') || categoryId;
-  const isAvailableToConnect = false;
   const post = useMemo(() => {
     if (!data || !userInfo) {
       return null;
     }
-
-    console.log(data);
 
     return {
       pid: data.mainPid,
@@ -72,6 +69,7 @@ export const Post = () => {
         comments: data.postcount - 1,
       },
       isEditable: data.posts[0]?.user?.memberUid === userInfo?.uid || userInfo?.roles?.includes(ADMIN_ROLE),
+      isAvailableToConnect: data.posts[0]?.user?.officeHours && (data.posts[0]?.user?.ohStatus === 'OK' || data.posts[0]?.user?.ohStatus === 'NOT_FOUND' || data.posts[0]?.user?.ohStatus === null),
     };
   }, [data, userInfo]);
 
@@ -173,7 +171,7 @@ export const Post = () => {
               </Link>
               <div className={s.position}>· {post.position}</div>
             </div>
-            {isAvailableToConnect && <OhBadge variant="tertiary" />}
+            {post.isAvailableToConnect && <OhBadge variant="tertiary" />}
             <div className={s.time}>{post.time}</div>
           </div>
         </div>

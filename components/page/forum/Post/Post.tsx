@@ -50,6 +50,8 @@ export const Post = () => {
       return null;
     }
 
+    console.log(data);
+
     return {
       pid: data.mainPid,
       category: data.category.name,

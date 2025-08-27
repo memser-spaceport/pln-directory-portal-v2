@@ -6,9 +6,9 @@
   flex-direction: column;
   padding-bottom: 110px;
   background-color: #f1f5f9;
-  max-width: 900px;
   width: 100%;
   margin: 0 auto;
+  padding-inline: 12px;
 
   @include media.tablet-landscape {
     padding-bottom: 40px;
@@ -112,7 +112,7 @@
   }
 
   .memberDetail__container {
-    width: 900px;
+    max-width: 900px;
   }
 
   .memberDetail__container__header {

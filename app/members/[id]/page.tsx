@@ -21,13 +21,13 @@ import React from 'react';
 import { BookWithOther } from '@/components/page/member-details/BookWithOther';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
+import { getAccessLevel } from '@/utils/auth.utils';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
   const { member, redirectMemberId, isError, isLoggedIn, userInfo, availableToConnectCount } = await getpageData(memberId);
   const isAvailableToConnect = member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null);
-
-  console.log(member.officeHours, member.ohStatus);
+  const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
   if (redirectMemberId) {
     redirect(`${PAGE_ROUTES.MEMBERS}/${redirectMemberId}`, RedirectType.replace);
@@ -68,7 +68,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
             <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </div>
         </div>
-        {!isAvailableToConnect && (
+        {!isAvailableToConnect && isLoggedIn && accessLevel === 'advanced' && (
           <div className={styles.desktopOnly}>
             <div style={{ visibility: 'hidden' }}>
               <BackButton to={`/members`} />

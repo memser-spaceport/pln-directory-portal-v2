@@ -22,6 +22,7 @@ import { BookWithOther } from '@/components/page/member-details/BookWithOther';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
 import { getAccessLevel } from '@/utils/auth.utils';
+import clsx from 'clsx';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -42,7 +43,11 @@ const MemberDetails = async ({ params }: { params: any }) => {
       <div className={styles.container}>
         <div>
           <BackButton to={`/members`} />
-          <div className={styles?.memberDetail__container}>
+          <div
+            className={clsx(styles?.memberDetail__container, {
+              [styles.centered]: isAvailableToConnect,
+            })}
+          >
             <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

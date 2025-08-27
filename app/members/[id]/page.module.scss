@@ -2,8 +2,8 @@
 
 .memberDetail {
   display: flex;
-  align-items: flex-start;
   flex-direction: column;
+  align-items: center;
   padding-bottom: 110px;
   background-color: #f1f5f9;
   width: 100%;
@@ -37,17 +37,6 @@
   }
 }
 
-.memberDetail__breadcrumb {
-  height: 48px;
-  width: 100%;
-  position: sticky;
-  z-index: 3;
-  top: var(--app-header-height);
-  display: flex;
-  align-items: center;
-  background-color: #fff;
-}
-
 .memberDetail__container {
   display: flex;
   flex-direction: column;
@@ -55,41 +44,13 @@
 
   @include media.tablet-landscape {
     gap: 16px;
+    max-width: 900px;
+    width: 100%;
+
+    &.centered {
+      width: 900px;
+    }
   }
-}
-
-.memberDetail__container__contact {
-  box-shadow: 0px 4px 4px 0px #0f172a0a;
-  background: #fff;
-}
-
-.memberDetail__container__header {
-  min-height: 20px;
-  box-shadow: 0px 4px 4px 0px #0f172a0a;
-  background: #fff;
-}
-
-.memberDetail__container__header__loggedOut {
-  border-radius: 0px 0px 8px 8px;
-}
-
-.memberDetail__container__teams {
-  min-height: 20px;
-  padding: 20px;
-  box-shadow: 0px 4px 4px 0px #0f172a0a;
-  background: #fff;
-}
-
-.memberDetail__container__repositories {
-  box-shadow: 0px 4px 4px 0px #0f172a0a;
-  background: #fff;
-}
-
-.memberDetail__projectContribution {
-  min-height: 20px;
-  padding: 16px;
-  box-shadow: 0px 4px 4px 0px #0f172a0a;
-  background: #fff;
 }
 
 .memberDetail__irlContribution{
@@ -97,46 +58,8 @@
   background: #fff;
   min-height: 20px;
   padding: 20px;
-}
 
-.memberDetail__container__default {
-  box-shadow: 0px 4px 4px 0px #0f172a0a;
-  background: #fff;
-  min-height: 20px;
-  padding: 20px;
-}
-
-@media (min-width: 1024px) {
-  .memberDetail {
-    align-items: center;
-  }
-
-  .memberDetail__container {
-    max-width: 900px;
-    width: 100%;
-  }
-
-  .memberDetail__container__header {
-    border-radius: 8px;
-  }
-
-  .memberDetail__container__contact {
-    border-radius: 8px;
-  }
-
-  .memberDetail__container__teams {
-    border-radius: 8px;
-  }
-
-  .memberDetail__projectContribution {
-    border-radius: 8px;
-  }
-
-  .memberDetail__container__repositories, .memberDetail__irlContribution {
-    border-radius: 8px;
-  }
-
-  .memberDetail__container__default {
+  @include media.tablet-landscape {
     border-radius: 8px;
   }
 }

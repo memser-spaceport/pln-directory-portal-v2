@@ -26,7 +26,17 @@
     gap: 24px;
     justify-content: center;
     padding-bottom: 40px;
+    width: 100%;
+    max-width: 1216px;
+
+    &.singleColumn {
+      max-width: 900px;
+    }
   }
+}
+
+.content {
+  width: 100%;
 }
 
 .desktopOnly {

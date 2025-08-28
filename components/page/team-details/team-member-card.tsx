@@ -5,6 +5,7 @@ import { IMember } from '@/types/members.types';
 import { Tag } from '@/components/ui/tag';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
+import { isMemberAvailableToConnect } from '@/utils/member.utils';
 
 interface ITeamMemberCard {
   team: ITeam | undefined;
@@ -23,7 +24,7 @@ const TeamDetailsMembersCard = (props: ITeamMemberCard) => {
   const callback = props?.onCardClick;
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const logo = member?.profile || defaultAvatarImage;
-  const isAvailableToConnect = member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null);
+  const isAvailableToConnect = isMemberAvailableToConnect(member);
 
   return (
     <>

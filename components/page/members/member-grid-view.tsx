@@ -1,7 +1,7 @@
 'use client';
 
 import { IMember } from '@/types/members.types';
-import { parseMemberLocation } from '@/utils/member.utils';
+import { isMemberAvailableToConnect, parseMemberLocation } from '@/utils/member.utils';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -30,7 +30,7 @@ const MemberGridView = (props: IMemberGridView) => {
   const isBorder = isTeamLead;
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profileUrl = member?.profile ?? defaultAvatarImage;
-  const isAvailableToConnect = member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null);
+  const isAvailableToConnect = isMemberAvailableToConnect(member);
   const isFrequentlyBooked = !!member?.scheduleMeetingCount && member.scheduleMeetingCount >= 5;
   const searchParams = useSearchParams();
   const hasOfficeHoursFiltered = searchParams.get('hasOfficeHours') === 'true';

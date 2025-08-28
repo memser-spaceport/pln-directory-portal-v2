@@ -23,11 +23,12 @@ import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
 import { getAccessLevel } from '@/utils/auth.utils';
 import clsx from 'clsx';
+import { isMemberAvailableToConnect } from '@/utils/member.utils';
 
 const MemberDetails = async ({ params }: { params: any }) => {
   const memberId = params?.id;
   const { member, redirectMemberId, isError, isLoggedIn, userInfo, availableToConnectCount } = await getpageData(memberId);
-  const isAvailableToConnect = member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null);
+  const isAvailableToConnect = isMemberAvailableToConnect(member);
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
   if (redirectMemberId) {

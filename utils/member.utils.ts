@@ -770,3 +770,7 @@ export function updateMemberInfoCookie(url: string) {
     console.error('Failed to update userInfo cookie:', error);
   }
 }
+
+export function isMemberAvailableToConnect(member: any) {
+  return !!member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null || member?.ohStatus === 'BROKEN');
+}

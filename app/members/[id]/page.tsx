@@ -41,8 +41,12 @@ const MemberDetails = async ({ params }: { params: any }) => {
 
   return (
     <div className={styles?.memberDetail}>
-      <div className={styles.container}>
-        <div>
+      <div
+        className={clsx(styles.container, {
+          [styles.singleColumn]: isAvailableToConnect,
+        })}
+      >
+        <div className={styles.content}>
           <BackButton to={`/members`} />
           <div
             className={clsx(styles?.memberDetail__container, {

@@ -623,6 +623,19 @@ export const OH_GUIDELINE_URL = 'https://protosphere.plnetwork.io/posts/Office-H
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.2.3 - Available to Connect Badge',
+    tag: 'Improvements',
+    date: '29, Aug 2025',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Status Indicators</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Available to Connect Badge</span> - New visual indicator showing member availability status across member cards, team details, and event attendee lists for easier connection identification.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Status Display</span> - Enhanced member cards with office hours availability badges showing booking counts and connection status for improved networking discovery.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.2.2 - Enhanced Member Directory Filters',
     tag: 'Improvements',
     date: '20, Aug 2025',

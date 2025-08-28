@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
+import { isMemberAvailableToConnect } from '@/utils/member.utils';
 
 interface IAllFollowers {
   onClose: () => void;
@@ -77,7 +78,7 @@ const AllFollowers = (props: IAllFollowers) => {
               const { member } = follower;
               const defaultAvatar = getDefaultAvatar(follower.name);
               const mainTeam = follower.teams?.find((team: any) => team.mainTeam) || follower.teams[0];
-              const isAvailableToConnect = member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null);
+              const isAvailableToConnect = isMemberAvailableToConnect(member);
 
               return (
                 <div key={'follower' + follower?.uid} className={`follower__wrpr ${index !== filteredFollowers.length - 1 ? 'borderb' : ''}`}>

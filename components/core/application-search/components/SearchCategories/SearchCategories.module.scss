@@ -1,0 +1,50 @@
+@use "styles/media";
+
+.root {
+  display: flex;
+  gap: 8px;
+}
+
+.categoryBadge {
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  background: var(--transparent-dark-2, rgba(14, 15, 17, 0.02));
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+
+  &.active {
+    display: flex;
+    padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-5xs, 2px);
+
+    border-radius: var(--corner-radius-Full-round, 9999px);
+    background: var(--background-brand-default, #1B4DFF);
+
+    color: var(--foreground-light-primary_inverted, #FFF);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px; /* 133.333% */
+    letter-spacing: -0.2px;
+  }
+
+  &:hover {
+    border-color: var(--background-brand-default, #1B4DFFAA);
+  }
+}

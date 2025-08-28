@@ -22,7 +22,7 @@ export const ChatSubheader = ({ isEmpty, isShowHistory, onToggleHistory, lastQue
                 fill="#0F172A"
               />
             </svg>
-            <span className={s.title}>History</span>
+            <span className={s.title}>Your AI Search History</span>
           </div>
           <button onClick={onToggleHistory} className={s.button}>
             Close

@@ -20,6 +20,7 @@ import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
 import { useRouter } from 'next/navigation';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
+import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
 
 interface Props {
   userInfo: IUserInfo;
@@ -36,6 +37,7 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
   const [showFullSearch, setShowFullSearch] = useState(false);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
   const router = useRouter();
+  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forum' | 'events' | null>(null);
 
   const handleFullSearchClose = useCallback(() => {
     setInitialAiPrompt('');
@@ -129,6 +131,7 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
     if (!searchTerm) {
       return (
         <>
+          <TryToSearch onSelect={handleChange} />
           {isLoggedIn && <RecentSearch onSelect={handleChange} />}
           {isLoggedIn && <AiConversationHistory onClick={handleFullSearchClose} isLoggedIn={isLoggedIn} />}
         </>
@@ -140,16 +143,29 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
     }
 
     if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length)) {
-      return <NothingFound onClick={handleTryAiSearch} />;
+      return <NothingFound onClick={handleTryAiSearch} searchTerm={searchTerm} />;
     }
 
     return (
       <div style={{ padding: '8px 16px' }}>
-        <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
-        {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={handleFullSearchClose} />}
-        {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={handleFullSearchClose} />}
-        {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={handleFullSearchClose} />}
-        {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {/*<TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />*/}
+        <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+        {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && <SearchResultsSection title="Top" items={data.top} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {!!data.members?.length && (activeCategory === 'members' || activeCategory === null) && (
+          <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
+        {!!data.teams?.length && (activeCategory === 'teams' || activeCategory === null) && (
+          <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
+        {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && (
+          <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
+        {!!data.forum?.length && (activeCategory === 'forum' || activeCategory === null) && (
+          <SearchResultsSection title="Forum" items={data.forum} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
+        {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && (
+          <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={handleFullSearchClose} />
+        )}
       </div>
     );
   }
@@ -163,7 +179,7 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
               <Image height={20} width={20} alt="close" loading="lazy" src="/icons/close.svg" />
             </button>
             <div className={s.wrapper}>
-              <FullSearchPanel initialSearchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={handleFullSearchClose} />
+              <FullSearchPanel initialSearchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={handleFullSearchClose} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
               <AiChatPanel initialPrompt={initialAiPrompt} isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
             </div>
           </div>

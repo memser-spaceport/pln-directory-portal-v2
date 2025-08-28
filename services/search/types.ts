@@ -15,4 +15,5 @@ export type SearchResult = {
   teams?: FoundItem[];
   projects?: FoundItem[];
   top?: FoundItem[];
+  forum?: FoundItem[];
 };

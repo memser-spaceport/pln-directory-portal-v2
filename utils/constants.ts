@@ -435,6 +435,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBERS_TOPICS_FILTER_SELECTED: 'member-topics-filter-selected',
   MEMBERS_ROLES_FILTER_SEARCHED: 'member-roles-filter-searched',
   MEMBERS_ROLES_FILTER_SELECTED: 'member-roles-filter-selected',
+
+  MEMBER_DETAILS_ON_CLICK_BOOK_WITH_OTHER: 'member-detail-members-open-to-connect-button-clicked',
 };
 
 export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {

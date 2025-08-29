@@ -17,6 +17,7 @@ import { AiChatPanel } from '@/components/core/application-search/components/AiC
 import { IUserInfo } from '@/types/shared.types';
 import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
+import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
 
 interface Props {
   userInfo: IUserInfo;
@@ -28,9 +29,11 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'regular' | 'ai'>('regular');
   const [searchTerm, setSearchTerm] = useState('');
-  const [isFocused, setFocused] = useState(true);
+  const [, setFocused] = useState(true);
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
+  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forum' | 'events' | null>(null);
+  const isFocused = false;
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -77,7 +80,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
       }
 
       if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length)) {
-        return <NothingFound onClick={handleTryAiSearch} />;
+        return <NothingFound onClick={handleTryAiSearch} searchTerm={searchTerm} />;
       }
 
       return (
@@ -90,7 +93,17 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
         </>
       );
     } else {
-      return <FullSearchResults searchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={handleClose} />;
+      return (
+        <FullSearchResults
+          searchTerm={searchTerm}
+          onTryAiSearch={handleTryAiSearch}
+          onClose={handleClose}
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+          mode={mode}
+          onToggleMode={setMode}
+        />
+      );
     }
   }
 
@@ -103,7 +116,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
         <div className={s.wrapper}>
           <div className={s.top}>
             <div className={s.header}>
-              <SearchModeToggle active={mode} onChange={setMode} />
+              {/*<SearchModeToggle active={mode} onChange={setMode} />*/}
               <span className={s.title}>Search</span>
               <button className={s.closeButton} onClick={handleClose}>
                 <Image src="/icons/close-gray.svg" alt="Close" width={20} height={20} style={{ pointerEvents: 'none' }} />
@@ -129,7 +142,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
         <div className={s.wrapper}>
           <div className={s.top}>
             <div className={s.header}>
-              <SearchModeToggle active={mode} onChange={setMode} />
+              {/*<SearchModeToggle active={mode} onChange={setMode} />*/}
               <span className={s.title}>AI Search</span>
               <button
                 className={s.closeButton}
@@ -137,13 +150,16 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
                   setOpen(false);
                   setFocused(true);
                   setSearchTerm('');
+                  setMode('regular');
                 }}
               >
                 <Image src="/icons/close-gray.svg" alt="Close" width={20} height={20} style={{ pointerEvents: 'none' }} />
               </button>
             </div>
-
             <div className={s.divider} />
+            <div className={s.filtersWrapper}>
+              <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} mode={mode} onToggleMode={setMode} />
+            </div>
           </div>
           <AiChatPanel className={s.mobileContent} initialPrompt={initialAiPrompt} mobileView isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
         </div>

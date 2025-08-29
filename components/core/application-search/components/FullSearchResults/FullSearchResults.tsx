@@ -15,9 +15,11 @@ interface Props {
   onClose: () => void;
   activeCategory: keyof SearchResult | null;
   setActiveCategory: (category: keyof SearchResult | null) => void;
+  mode?: 'regular' | 'ai';
+  onToggleMode?: (mode: 'regular' | 'ai') => void;
 }
 
-export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCategory, setActiveCategory }: Props) => {
+export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCategory, setActiveCategory, mode, onToggleMode }: Props) => {
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
 
   const totalFound = (data?.teams?.length ?? 0) + (data?.events?.length ?? 0) + (data?.members?.length ?? 0) + (data?.projects?.length ?? 0);
@@ -66,9 +68,7 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCa
   return (
     <div className={s.root}>
       <div className={s.totalFoundLabel}>Total results ({totalFound})</div>
-      <div className={s.divider}>
-        <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-      </div>
+      <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} mode={mode} onToggleMode={onToggleMode} />
       {isLoading ? (
         <ContentLoader />
       ) : (

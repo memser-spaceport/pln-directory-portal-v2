@@ -1,8 +1,22 @@
 @use "styles/media";
+@use "styles/mixins";
 
 .root {
   display: flex;
-  gap: 8px;
+
+  padding: 4px 16px 10px 0;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  align-self: stretch;
+
+  background: #FFF;
+  box-shadow: 0 1px 4px 0 #E2E8F0;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  @include mixins.hide-scrollbar;
 }
 
 .categoryBadge {
@@ -22,6 +36,8 @@
   font-weight: 500;
   line-height: 16px; /* 133.333% */
   letter-spacing: -0.2px;
+
+  white-space: nowrap;
 
   cursor: pointer;
   transition: border-color 0.2s ease;
@@ -47,4 +63,50 @@
   &:hover {
     border-color: var(--background-brand-default, #1B4DFFAA);
   }
+}
+
+.aiBadge {
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  background: var(--transparent-dark-2, rgba(14, 15, 17, 0.02));
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+
+  min-width: 50px;
+
+  &.active  {
+    border-width: 0;
+    border-color: transparent;
+    border-radius: var(--corner-radius-Full-round, 9999px);
+    background: var(--Gradients-2-Color-17, linear-gradient(285deg, #45D8FF 0%, #005BEA 82.52%));
+    height: 22px;
+
+    color: var(--foreground-light-primary_inverted, #FFF);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px; /* 133.333% */
+    letter-spacing: -0.2px;
+  }
+}
+
+.divider {
+  width: 1px;
+  min-width: 1px;
+  height: 20px;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }

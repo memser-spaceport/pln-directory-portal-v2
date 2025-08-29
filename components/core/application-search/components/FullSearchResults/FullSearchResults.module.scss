@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .root {
   display: flex;
   flex-direction: column;
@@ -6,6 +8,7 @@
 }
 
 .totalFoundLabel {
+  display: none;
   color: var(--Neutral-Slate-500, #64748B);
   text-align: right;
   font-feature-settings: 'liga' off, 'clig' off;
@@ -13,6 +16,10 @@
   font-style: normal;
   font-weight: 500;
   line-height: 16px; /* 133.333% */
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
 }
 
 .divider {

@@ -52,7 +52,7 @@ $padding-inline: 16px;
 }
 
 .header {
-  padding: 16px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -76,7 +76,7 @@ $padding-inline: 16px;
 }
 
 .content {
-  padding: 16px;
+  padding: 8px 16px 16px 16px;
   //background-color: red;
   flex: 1;
 }
@@ -84,4 +84,8 @@ $padding-inline: 16px;
 .mobileContent {
   padding-inline: 16px;
   padding-bottom: 16px;
+}
+
+.filtersWrapper {
+  padding: 10px 16px;
 }

@@ -543,6 +543,10 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_ROLES_FILTER_SELECTED, params);
   }
 
+  function onClickBookWithOther(params: any) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_BOOK_WITH_OTHER, params);
+  }
+
   return {
     onOfficeHourClicked,
     onProjectContributionEditClicked,
@@ -623,5 +627,6 @@ export const useMemberAnalytics = () => {
     onMembersTopicsFilterSelected,
     onMembersRolesFilterSearched,
     onMembersRolesFilterSelected,
+    onClickBookWithOther,
   };
 };

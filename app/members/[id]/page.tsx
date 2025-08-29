@@ -43,7 +43,7 @@ const MemberDetails = async ({ params }: { params: any }) => {
     <div className={styles?.memberDetail}>
       <div
         className={clsx(styles.container, {
-          [styles.singleColumn]: isAvailableToConnect,
+          [styles.singleColumn]: isAvailableToConnect || !isLoggedIn,
         })}
       >
         <div className={styles.content}>

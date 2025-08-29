@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import Link from 'next/link';
 import { ADMIN_ROLE } from '@/utils/constants';
+import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 
 interface Props {
   tid: number;
@@ -81,6 +82,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
   const searchParams = useSearchParams();
   const isMobile = useMedia('(max-width: 960px)', false);
   const analytics = useForumAnalytics();
+  const isAvailableToConnect = item.user?.officeHours && (item.user?.ohStatus === 'OK' || item.user?.ohStatus === 'NOT_FOUND' || item.user?.ohStatus === null);
 
   const scrollIntoView = useCallback(() => {
     if (ref.current) {
@@ -120,6 +122,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
               <div className={s.position}>· {item.user.teamRole && item.user.teamName ? `${item.user.teamRole} @${item.user.teamName}` : ''}</div>
               <div className={s.time}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
             </div>
+            {isAvailableToConnect && <OhBadge variant="tertiary" />}
             <div className={clsx(s.time, s.mob)}>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</div>
           </div>
           {(userInfo.uid === item.user.memberUid || userInfo.roles?.includes(ADMIN_ROLE)) && (

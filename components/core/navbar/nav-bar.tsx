@@ -2,9 +2,8 @@
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
-import { EVENTS } from '@/utils/constants';
 import { usePathname } from 'next/navigation';
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useState } from 'react';
 import LoginBtn from './login-btn';
 import { ApplicationSearch } from '@/components/core/application-search';
 import { AccountMenu } from '@/components/core/navbar/components/AccountMenu/AccountMenu';
@@ -12,8 +11,6 @@ import { NotificationsMenu } from '@/components/core/navbar/components/Notificat
 import { useGetAppNotifications } from '@/services/notifications/hooks/useGetAppNotifications';
 import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfileStatus';
 import { Signup } from './components/Signup';
-import { NotificationsQueryKeys } from '@/services/notifications/constants';
-import { useQueryClient } from '@tanstack/react-query';
 import { NavigationMenu } from '@base-ui-components/react';
 import NextLink from 'next/link';
 
@@ -32,38 +29,50 @@ function Navbar(props: Readonly<INavbar>) {
   const analytics = useCommonAnalytics();
   const authToken = props?.authToken;
   const [showNotifications, setShowNotifications] = useState(false);
-  const queryClient = useQueryClient();
+
+  const closeNavigationMenu = () => {
+    setTimeout(() => {
+      const escapeEvent = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        code: 'Escape',
+        keyCode: 27,
+        which: 27,
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(escapeEvent);
+
+      setTimeout(() => {
+        const stillOpen = document.querySelectorAll('[data-state="open"]');
+        if (stillOpen.length > 0) {
+          const clickEvent = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+            clientX: 0,
+            clientY: 0,
+          });
+          document.body.dispatchEvent(clickEvent);
+        }
+      }, 100);
+    }, 50);
+  };
 
   const onNavItemClickHandler = (url: string, name: string) => {
     if (pathName !== url) {
       analytics.onNavItemClicked(name, getAnalyticsUserInfo(userInfo));
     }
+    closeNavigationMenu();
   };
 
   const onNavbarApplogoClicked = () => {
     analytics.onAppLogoClicked();
+    closeNavigationMenu();
   };
 
   const { data: notifications } = useGetAppNotifications(userInfo.uid, authToken);
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
-
-  // useEffect(() => {
-  //   function getAllNotifications(status: boolean) {
-  //     console.log('trigger 1');
-  //     if (isLoggedIn && status) {
-  //       queryClient.invalidateQueries({
-  //         queryKey: [NotificationsQueryKeys.GET_ALL_NOTIFICATIONS],
-  //       });
-  //     }
-  //   }
-  //
-  //   document.addEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
-  //
-  //   return function () {
-  //     document.removeEventListener(EVENTS.GET_NOTIFICATIONS, (e: any) => getAllNotifications(e?.detail?.status));
-  //   };
-  // }, [isLoggedIn, queryClient]);
 
   return (
     <NavigationMenu.Root className={s.Root}>
@@ -138,7 +147,7 @@ function Link(props: NavigationMenu.Link.Props) {
   return (
     <NavigationMenu.Link
       render={() => (
-        <NextLink href={props.href ?? ''} className={(props.className as string) ?? ''}>
+        <NextLink href={props.href ?? ''} className={(props.className as string) ?? ''} onClick={props.onClick}>
           {props.children}
         </NextLink>
       )}

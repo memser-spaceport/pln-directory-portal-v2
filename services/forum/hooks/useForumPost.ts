@@ -63,7 +63,20 @@ export type TopicResponse = {
     uid: number;
     upvoted: boolean;
     upvotes: number;
-    user: { uid: 1; username: 'welcome'; userslug: 'welcome'; reputation: 0; postcount: 13; displayname: string; teamName: string | null; teamRole: string | null; picture: string; memberUid: string };
+    user: {
+      uid: 1;
+      username: 'welcome';
+      userslug: 'welcome';
+      reputation: 0;
+      postcount: 13;
+      displayname: string;
+      teamName: string | null;
+      teamRole: string | null;
+      picture: string;
+      memberUid: string;
+      officeHours: string | null;
+      ohStatus: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
+    };
     votes: 0;
     parent: {
       content: string;

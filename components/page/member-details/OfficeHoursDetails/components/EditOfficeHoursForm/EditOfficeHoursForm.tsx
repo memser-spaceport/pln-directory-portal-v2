@@ -220,7 +220,7 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
             />
           </div>
           <div className={s.row}>
-            <FormTagsInput selectLabel="I am iterested in:" name="officeHoursInterestedIn" warning={false} placeholder="Add keywords (e.g. Web3, AI, Neurotech, etc.)" />
+            <FormTagsInput selectLabel="I am interested in:" name="officeHoursInterestedIn" warning={false} placeholder="Add keywords (e.g. Web3, AI, Neurotech, etc.)" />
           </div>
           <div className={s.row}>
             <FormTagsInput selectLabel="I can help with:" name="officeHoursCanHelpWith" warning={false} placeholder="Add keywords (e.g. Early-stage Startups, Product Design, etc.)" />

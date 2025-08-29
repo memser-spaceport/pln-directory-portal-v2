@@ -33,6 +33,7 @@ export interface IMemberResponse {
   telegramHandler: string;
   twitterHandler: string;
   officeHours: string;
+  ohStatus: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
   teamLead: boolean;
   teams: ITeamResponse;
   mainTeam: IMemberTeam;
@@ -135,6 +136,7 @@ export interface IMember {
   ohInterest?: string[] | null;
   ohHelpWith?: string[] | null;
   ohStatus?: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
+  scheduleMeetingCount: number | undefined | null;
   teamLead: boolean;
   teams: ITeam[];
   mainTeam: IMemberTeam | null;

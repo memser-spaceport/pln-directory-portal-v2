@@ -98,12 +98,20 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
               borderColor: '#5E718D !important',
               boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
             },
+            '> div': {
+              gap: '2px',
+              padding: '2px 4px',
+            },
           }),
           input: (baseStyles) => ({
             ...baseStyles,
             height: '32px',
             fontSize: '14px',
             padding: 0,
+            display: 'flex !important',
+            '&:after': {
+              display: 'none !important',
+            },
           }),
           placeholder: (base) => ({
             ...base,

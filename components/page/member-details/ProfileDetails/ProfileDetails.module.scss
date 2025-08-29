@@ -64,3 +64,67 @@
     }
   }
 }
+
+.teamLink {
+  color: #1b4dff !important;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.moreTeamsButton {
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-3xs, 6px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-brand-4, rgba(27, 77, 255, 0.04));
+
+  color: var(--foreground-brand-secondary_inverted, #4174FF);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.role {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.locationName {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}
+
+.desktopOnly {
+  display: none !important;
+
+  @include media.tablet-landscape {
+    display: block !important;
+  }
+}

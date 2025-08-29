@@ -70,11 +70,12 @@ const AllMembers = (props: IAllMembers) => {
         {`
           .all-members {
             padding: 24px;
-            width: 350px;
+            width: clamp(300px, 90vw, 600px);
             display: flex;
             flex-direction: column;
             gap: 16px;
-            height: 60vh;
+            max-height: 95dvh;
+            min-height: 80dvh;
             overflow: auto;
             border-radius: 24px;
             background: #fff;
@@ -203,12 +204,6 @@ const AllMembers = (props: IAllMembers) => {
             display: flex;
             justify-content: center;
             letter-spacing: 0.12px;
-          }
-
-          @media (min-width: 1024px) {
-            .all-members {
-              width: 600px;
-            }
           }
         `}
       </style>

@@ -123,14 +123,17 @@ const AllFollowers = (props: IAllFollowers) => {
       </Modal>
       <style jsx>{`
         .cm {
-          width: 320px;
+          //max-width: 368px;
           display: flex;
           flex-direction: column;
           gap: 18px;
-          height: 60vh;
+          max-height: 95dvh;
+          min-height: 80dvh;
           overflow: auto;
           border-radius: 12px;
           background: #fff;
+
+          width: clamp(300px, 90vw, 600px);
         }
 
         .cm__hdr {
@@ -333,13 +336,14 @@ const AllFollowers = (props: IAllFollowers) => {
           font-size: 14px;
         }
 
-        @media (min-width: 1024px) {
-          .cm {
-            width: 512px;
-          }
+        @media (min-width: 960px) {
+          //.cm {
+          //  max-width: 600px;
+          //  width: 100%;
+          //}
 
           .follower__info__name {
-            width: 350px;
+            //width: 350px;
           }
         }
       `}</style>

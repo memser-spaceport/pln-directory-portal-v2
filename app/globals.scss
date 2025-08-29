@@ -123,10 +123,11 @@ button {
 }
 
 ::backdrop {
-  background: black;
   display: flex;
   align-items: center;
-  opacity: 0.6;
+  -webkit-backdrop-filter: blur(15px);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  backdrop-filter: blur(15px);
 }
 
 ::placeholder {

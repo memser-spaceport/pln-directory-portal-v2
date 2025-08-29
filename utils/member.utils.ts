@@ -70,6 +70,7 @@ export const parseMemberDetails = (members: IMemberResponse[], teamId: string, i
       name: parsedMember.name,
       profile: parsedMember.image?.url || null,
       officeHours: parsedMember.officeHours || null,
+      ohStatus: parsedMember.ohStatus,
       skills: parsedMember.skills || [],
       teamLead,
       // projectContributions: parsedMember.projectContributions ?? null,
@@ -768,4 +769,8 @@ export function updateMemberInfoCookie(url: string) {
   } catch (error) {
     console.error('Failed to update userInfo cookie:', error);
   }
+}
+
+export function isMemberAvailableToConnect(member: any) {
+  return !!member?.officeHours && (member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null || member?.ohStatus === 'BROKEN');
 }

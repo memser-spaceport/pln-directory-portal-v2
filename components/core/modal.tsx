@@ -30,7 +30,7 @@ const Modal = (props: IModal) => {
           .modal {
             border: none;
             margin: auto;
-            border-radius: 12px;
+            border-radius: 24px;
           }
 
           .modal__cn {
@@ -50,10 +50,21 @@ const Modal = (props: IModal) => {
             border: none;
             top: 12px;
             right: 12px;
-            background: transparent;
             user-select: none;
             outline: none;
             z-index: 1;
+
+            display: flex;
+            padding: 6px;
+            justify-content: center;
+            align-items: center;
+            gap: 0;
+
+            border-radius: 50%;
+            background: rgba(14, 15, 17, 0.04);
+
+            /* Button/regular/light */
+            box-shadow: 0 -2px 4px 0 rgba(14, 15, 17, 0.02) inset;
           }
         `}
       </style>

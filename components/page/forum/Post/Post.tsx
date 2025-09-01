@@ -27,6 +27,29 @@ import forumStyles from '@/app/forum/page.module.scss';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 
+// Function to process markdown images and prepare content for Linkify
+const processPostContent = (content: string) => {
+  // Regex to match markdown images: ![alt text](url)
+  const markdownImageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  const imageUrls: string[] = [];
+
+  // Extract image URLs to exclude from Linkify
+  let match;
+  while ((match = markdownImageRegex.exec(content)) !== null) {
+    imageUrls.push(match[2]); // Store the URL part
+  }
+
+  // Convert markdown images to HTML img tags
+  const processedContent = content.replace(markdownImageRegex, (match, altText, imageUrl) => {
+    return `<img src="${imageUrl}" alt="${altText}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0;" />`;
+  });
+
+  return {
+    processedContent,
+    imageUrls
+  };
+};
+
 export const Post = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -49,8 +72,6 @@ export const Post = () => {
     if (!data || !userInfo) {
       return null;
     }
-
-    console.log(data);
 
     return {
       pid: data.mainPid,
@@ -179,27 +200,44 @@ export const Post = () => {
         </div>
 
         <div className={s.postContent}>
-          <Linkify
-            componentDecorator={(decoratedHref, decoratedText, key) => {
-              // Check if it's an email address
-              const isEmail = decoratedHref.startsWith('mailto:') || decoratedText.includes('@');
+          {(() => {
+            // Process the post content to handle markdown images
+            const { processedContent, imageUrls } = processPostContent(post.desc);
 
-              return (
-                <a
-                  href={isEmail ? `mailto:${decoratedText}` : decoratedHref}
-                  key={key}
-                  target={isEmail ? '_self' : '_blank'}
-                  rel={isEmail ? undefined : 'noopener noreferrer'}
-                  className={s.autoLink}
-                  title={isEmail ? `Send email to ${decoratedText}` : `Open ${decoratedHref}`}
-                >
-                  {decoratedText}
-                </a>
-              );
-            }}
-          >
-            {parse(post.desc)}
-          </Linkify>
+            return (
+              <Linkify
+                componentDecorator={(decoratedHref, decoratedText, key) => {
+                  // Check if it's an email address
+                  const isEmail = decoratedHref.startsWith('mailto:') || decoratedText.includes('@');
+
+                  // Check if this URL is an image URL that should be excluded from linking
+                  const isImageUrl = imageUrls.some(imageUrl =>
+                    decoratedHref.includes(imageUrl) || decoratedText.includes(imageUrl)
+                  );
+
+                  // If it's an image URL, return the text without making it a link
+                  if (isImageUrl) {
+                    return <span key={key}>{decoratedText}</span>;
+                  }
+
+                  return (
+                    <a
+                      href={isEmail ? `mailto:${decoratedText}` : decoratedHref}
+                      key={key}
+                      target={isEmail ? '_self' : '_blank'}
+                      rel={isEmail ? undefined : 'noopener noreferrer'}
+                      className={s.autoLink}
+                      title={isEmail ? `Send email to ${decoratedText}` : `Open ${decoratedHref}`}
+                    >
+                      {decoratedText}
+                    </a>
+                  );
+                }}
+              >
+                {parse(processedContent)}
+              </Linkify>
+            );
+          })()}
         </div>
 
         <div className={s.divider} />

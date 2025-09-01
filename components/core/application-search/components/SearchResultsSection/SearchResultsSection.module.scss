@@ -72,16 +72,27 @@ $padding-inline: 16px;
   }
 
   .type {
-    display: none;
+    position: relative;
     margin-left: auto;
-    padding: 4px;
-    border-radius: 4px;
-    background: var(--Neutral-Slate-100, #F1F5F9);
+
+    > div {
+      position: relative !important;
+      left: unset !important;
+      transform: unset !important;
+      top: unset !important;
+    }
   }
 
   .matches {
     list-style: none;
-    margin-bottom: 8px;
+
+    > li:first-of-type {
+      margin-top: 4px;
+    }
+
+    > li:last-of-type {
+      margin-bottom: 8px;
+    }
   }
 
   .matchRow {

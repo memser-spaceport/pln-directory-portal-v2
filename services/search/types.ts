@@ -7,6 +7,8 @@ export type FoundItem = {
     field: string;
     content: string;
   }[];
+  availableToConnect?: boolean;
+  scheduleMeetingCount?: number;
 };
 
 export type ForumFoundItem = {

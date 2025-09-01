@@ -6,6 +6,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 16px;
+  height: 100%;
 }
 
 .label {
@@ -101,4 +102,10 @@
     border: 0.5px solid var(--Border-border-dark, #CBD5E1);
     background: var(--Primary-Blue600, #156FF7);
   }
+}
+
+.centered {
+  @include mixins.centralize;
+  height: 100%;
+  flex: 1;
 }

@@ -50,6 +50,7 @@ $padding-inline: 16px;
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
+    margin-bottom: 4px;
   }
 
   .avatar {
@@ -62,7 +63,12 @@ $padding-inline: 16px;
   }
 
   .name {
-    @include mixins.ellipse-text;
+    //@include mixins.ellipse-text;
+
+    em {
+      font-style: normal;
+      color: rgba(21, 111, 247, 0.75);
+    }
   }
 
   .type {
@@ -75,6 +81,7 @@ $padding-inline: 16px;
 
   .matches {
     list-style: none;
+    margin-bottom: 8px;
   }
 
   .matchRow {
@@ -88,22 +95,6 @@ $padding-inline: 16px;
       height: 26px;
     }
 
-    .text {
-      @include mixins.ellipse-text;
-      overflow: hidden;
-      color: #64748B;
-      text-overflow: ellipsis;
-      font-size: 12px;
-      font-style: normal;
-      font-weight: 400;
-      line-height: 16px; /* 133.333% */
-
-      em {
-        font-style: normal;
-        color: rgba(21, 111, 247, 0.75);
-      }
-    }
-
     .matchType {
       display: none;
       color: #CAD4E0;
@@ -115,6 +106,22 @@ $padding-inline: 16px;
       text-transform: capitalize;
     }
   }
+
+  .text {
+    //@include mixins.ellipse-text;
+    //overflow: hidden;
+    color: #64748B;
+    //text-overflow: ellipsis;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px; /* 133.333% */
+
+    em {
+      font-style: normal;
+      color: rgba(21, 111, 247, 0.75);
+    }
+  }
 }
 
 .divider {
@@ -123,4 +130,15 @@ $padding-inline: 16px;
   //margin-inline: -$padding-inline;
   margin-block: 8px;
   background: #E2E8F0;
+}
+
+.postDetails {
+  color: var(--foreground-neutral-tertiary, #8897AE);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.2px;
+  padding-left: 34px;
+  margin-top: 4px;
 }

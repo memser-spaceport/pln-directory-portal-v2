@@ -4,20 +4,34 @@ import React, { useState } from 'react';
 import s from './CollapsableSection.module.scss';
 import Image from 'next/image';
 
-export const CollapsibleSection = ({ title, children, disabled, initialOpen = false }: { title: string; children: React.ReactNode; disabled?: boolean; initialOpen: boolean }) => {
+export const CollapsibleSection = ({
+  title,
+  children,
+  disabled,
+  initialOpen = false,
+  forceOpen,
+}: {
+  title: string;
+  children: React.ReactNode;
+  disabled?: boolean;
+  initialOpen: boolean;
+  forceOpen?: boolean;
+}) => {
   const [isOpen, setIsOpen] = useState(initialOpen);
 
   return (
     <div className={s.root}>
-      <button onClick={() => setIsOpen((prev) => !prev)} className={s.button} disabled={disabled}>
+      <button onClick={() => !forceOpen && setIsOpen((prev) => !prev)} className={s.button} disabled={disabled}>
         {title}
-        <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <Image src="/icons/down-arrow-grey.svg" alt="Toggle" width={14} height={14} style={{ pointerEvents: 'none' }} />
-        </motion.span>
+        {!forceOpen && (
+          <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+            <Image src="/icons/down-arrow-grey.svg" alt="Toggle" width={14} height={14} style={{ pointerEvents: 'none' }} />
+          </motion.span>
+        )}
       </button>
 
       <AnimatePresence initial={false}>
-        {isOpen && (
+        {(isOpen || forceOpen) && (
           <motion.div
             initial="collapsed"
             animate="open"

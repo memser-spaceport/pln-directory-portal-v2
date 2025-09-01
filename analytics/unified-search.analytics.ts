@@ -1,7 +1,7 @@
 import { UNIFIED_SEARCH_ANALYTICS_EVENTS } from '@/utils/constants';
 import { getUserInfo } from '@/utils/third-party.helper';
 import { usePostHog } from 'posthog-js/react';
-import { FoundItem } from '@/services/search/types';
+import { ForumFoundItem, FoundItem } from '@/services/search/types';
 
 export const useUnifiedSearchAnalytics = () => {
   const postHogProps = usePostHog();
@@ -29,7 +29,7 @@ export const useUnifiedSearchAnalytics = () => {
     captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.FULL_SEARCH, { searchValue });
   }
 
-  function onSearchResultClick(searchResult: FoundItem) {
+  function onSearchResultClick(searchResult: FoundItem | ForumFoundItem) {
     captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.SEARCH_RESULT_CLICK, { searchResult });
   }
 

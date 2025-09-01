@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 
 import s from './SearchResultsSection.module.scss';
-import { FoundItem } from '@/services/search/types';
+import { ForumFoundItem, FoundItem } from '@/services/search/types';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 // import { HighlightedText } from '@/components/core/application-search/components/HighlightedText';
 import { useRouter } from 'next/navigation';
@@ -10,7 +10,7 @@ import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics'
 
 interface Props {
   title?: string;
-  items: FoundItem[];
+  items: FoundItem[] | ForumFoundItem[];
   query: string;
   onSelect?: () => void;
 }
@@ -20,6 +20,7 @@ const SECTION_TYPE_ICONS = {
   members: '/icons/members.svg',
   projects: '/icons/projects.svg',
   events: '/icons/irl-event-default-logo.svg',
+  forumThreads: '/icons/chat.svg',
 };
 
 export const SearchResultsSection = ({ title, items, query, onSelect }: Props) => {
@@ -44,6 +45,13 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
                 className={s.foundItem}
                 onClick={() => {
                   analytics.onSearchResultClick(item);
+
+                  if (item.index === 'forumThreads') {
+                    router.push(`/forum/${item.uid}`);
+                    onSelect?.();
+                    return;
+                  }
+
                   router.push(`/${item.index}/${item.uid}`);
                   onSelect?.();
                 }}

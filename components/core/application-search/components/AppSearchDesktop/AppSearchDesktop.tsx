@@ -37,7 +37,7 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
   const [showFullSearch, setShowFullSearch] = useState(false);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
   const router = useRouter();
-  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forum' | 'events' | null>(null);
+  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null>(null);
 
   const handleFullSearchClose = useCallback(() => {
     setInitialAiPrompt('');
@@ -160,8 +160,8 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
         {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && (
           <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={handleFullSearchClose} />
         )}
-        {!!data.forum?.length && (activeCategory === 'forum' || activeCategory === null) && (
-          <SearchResultsSection title="Forum" items={data.forum} query={searchTerm} onSelect={handleFullSearchClose} />
+        {!!data.forumThreads?.length && (activeCategory === 'forumThreads' || activeCategory === null) && (
+          <SearchResultsSection title="Forum" items={data.forumThreads} query={searchTerm} onSelect={handleFullSearchClose} />
         )}
         {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && (
           <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={handleFullSearchClose} />

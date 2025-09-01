@@ -44,7 +44,7 @@ export const SearchCategories = ({ data, activeCategory, setActiveCategory, mode
         targetElement.scrollIntoView({
           behavior: 'smooth',
           block: 'nearest',
-          inline: 'center'
+          inline: 'center',
         });
       }
     }
@@ -93,7 +93,7 @@ export const SearchCategories = ({ data, activeCategory, setActiveCategory, mode
       {renderCategoryBadge('members', 'Members')}
       {renderCategoryBadge('teams', 'Teams')}
       {renderCategoryBadge('projects', 'Projects')}
-      {renderCategoryBadge('forum', 'Forum')}
+      {renderCategoryBadge('forumThreads', 'Forum')}
       {renderCategoryBadge('events', 'Events')}
     </div>
   );

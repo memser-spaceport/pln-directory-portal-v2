@@ -87,7 +87,9 @@ export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose, act
           {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && (
             <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={onClose} />
           )}
-          {!!data.forum?.length && (activeCategory === 'forum' || activeCategory === null) && <SearchResultsSection title="Forum" items={data.forum} query={searchTerm} onSelect={onClose} />}
+          {!!data.forumThreads?.length && (activeCategory === 'forumThreads' || activeCategory === null) && (
+            <SearchResultsSection title="Forum" items={data.forumThreads} query={searchTerm} onSelect={onClose} />
+          )}
           {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={onClose} />}
           {/*{!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={onClose} />}*/}
           {/*{!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={onClose} />}*/}

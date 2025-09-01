@@ -32,7 +32,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
   const [, setFocused] = useState(true);
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
-  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forum' | 'events' | null>(null);
+  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null>(null);
   const isFocused = false;
 
   const handleClose = useCallback(() => {

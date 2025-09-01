@@ -7,6 +7,7 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 // import { HighlightedText } from '@/components/core/application-search/components/HighlightedText';
 import { useRouter } from 'next/navigation';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
+import { formatDistanceToNow } from 'date-fns';
 
 interface Props {
   title?: string;
@@ -39,19 +40,97 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
           {items.map((item) => {
             const defaultAvatar = item.image || getDefaultAvatar(item?.name);
 
+            if (item.index === 'forumThreads') {
+              const matchedName = item.matches.find((match) => match.field === 'name');
+
+              const commentsMatches = item.matches.filter((match) => match.field === 'replies.content');
+
+              return (
+                <li
+                  key={item.uid}
+                  className={s.foundItem}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    analytics.onSearchResultClick(item);
+                    router.push(`/forum/${item.uid}`);
+                    onSelect?.();
+                  }}
+                >
+                  <div className={s.header}>
+                    <div className={s.avatar}>
+                      <Image src={defaultAvatar} alt={item.name} width={24} height={24} />
+                    </div>
+                    {matchedName ? (
+                      <div className={s.name} dangerouslySetInnerHTML={{ __html: matchedName.content }} />
+                    ) : (
+                      <div className={s.name}>
+                        {item.name}
+                        {/*<HighlightedText text={item.name} query={query} />*/}
+                      </div>
+                    )}
+                  </div>
+                  <ul className={s.matches}>
+                    {item.matches
+                      .filter((match) => match.field !== 'name' && match.field !== 'topicUrl' && match.field !== 'topicSlug' && match.field !== 'topicTitle' && match.field !== 'replies.content')
+                      .map((match) => {
+                        return (
+                          <li key={match.field} className={s.matchRow}>
+                            <div className={s.arrow}>
+                              <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
+                            </div>
+                            <p className={s.text} dangerouslySetInnerHTML={{ __html: match.content }} />
+                            <div className={s.matchType}>{getFieldLabel(match.field)}</div>
+                          </li>
+                        );
+                      })}
+                    <li className={s.postDetails}>
+                      Posted by {item.source.rootPost.author.name} &bull; {formatDistanceToNow(new Date(item.source.rootPost.timestamp), { addSuffix: true })}
+                    </li>
+                  </ul>
+
+                  {commentsMatches.map((match) => {
+                    // todo - get real comment match
+                    const sanMatch = match.content.replace(/<[^>]+>/g, '');
+
+                    const comm = item.source.replies.find((reply) => reply.content.includes(sanMatch));
+                    const _defaultAvatar = comm?.author.image || getDefaultAvatar(comm?.author.name);
+
+                    if (!comm) {
+                      return;
+                    }
+
+                    return (
+                      <div
+                        key={match.field}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          analytics.onSearchResultClick(item);
+                          router.push(`/forum/${item.uid}`);
+                          onSelect?.();
+                        }}
+                      >
+                        <div className={s.header}>
+                          <div className={s.avatar}>
+                            <Image src={_defaultAvatar} alt={comm.author.name} width={24} height={24} />
+                          </div>
+                          <div className={s.text} dangerouslySetInnerHTML={{ __html: match.content }} />
+                        </div>
+                        <div className={s.postDetails}>
+                          Commented by {comm.author.name} &bull; {formatDistanceToNow(new Date(comm.timestamp), { addSuffix: true })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </li>
+              );
+            }
+
             return (
               <li
                 key={item.uid}
                 className={s.foundItem}
                 onClick={() => {
                   analytics.onSearchResultClick(item);
-
-                  if (item.index === 'forumThreads') {
-                    router.push(`/forum/${item.uid}`);
-                    onSelect?.();
-                    return;
-                  }
-
                   router.push(`/${item.index}/${item.uid}`);
                   onSelect?.();
                 }}

@@ -57,7 +57,7 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCa
       .map((item) => {
         const values = data[item.key as keyof SearchResult];
         return {
-          label: item.key === 'top' ? 'Top Results' : item.key,
+          label: getLabel(item.key),
           disabled: !values?.length,
           values,
           key: item.key,
@@ -106,3 +106,15 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCa
     </div>
   );
 };
+
+function getLabel(key: string) {
+  if (key === 'top') {
+    return 'Top Results';
+  }
+
+  if (key === 'forumThreads') {
+    return 'Forum';
+  }
+
+  return key;
+}

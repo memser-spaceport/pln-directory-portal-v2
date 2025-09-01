@@ -88,7 +88,7 @@ export const ChatHistory = ({ onSelect, isLoggedIn }: Props) => {
   return (
     <>
       <div className={s.root}>
-        {!history.length && (
+        {!history?.length && (
           <div className={s.centered}>
             <NothingFound />
           </div>

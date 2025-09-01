@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 import s from './SearchCategories.module.scss';
 import { SearchResult } from '@/services/search/types';
@@ -13,9 +13,49 @@ interface Props {
 }
 
 export const SearchCategories = ({ data, activeCategory, setActiveCategory, mode, onToggleMode }: Props) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const badgeRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const aiBadgeRef = useRef<HTMLDivElement>(null);
+
+  // Scroll selected badge into view when activeCategory or mode changes
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    let targetElement: HTMLDivElement | null = null;
+
+    // Determine which element should be scrolled into view
+    if (mode === 'ai' && aiBadgeRef.current) {
+      targetElement = aiBadgeRef.current;
+    } else if (activeCategory && badgeRefs.current[activeCategory]) {
+      targetElement = badgeRefs.current[activeCategory];
+    }
+
+    if (targetElement) {
+      const containerElement = containerRef.current;
+
+      // Check if badge is outside the visible area
+      const badgeRect = targetElement.getBoundingClientRect();
+      const containerRect = containerElement.getBoundingClientRect();
+
+      const isOutsideLeft = badgeRect.left < containerRect.left;
+      const isOutsideRight = badgeRect.right > containerRect.right;
+
+      if (isOutsideLeft || isOutsideRight) {
+        targetElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center'
+        });
+      }
+    }
+  }, [activeCategory, mode]);
+
   function renderCategoryBadge(category: keyof SearchResult, label: string) {
     return (
       <div
+        ref={(el) => {
+          badgeRefs.current[category] = el;
+        }}
         className={clsx(s.categoryBadge, {
           [s.active]: activeCategory === category,
         })}
@@ -31,10 +71,11 @@ export const SearchCategories = ({ data, activeCategory, setActiveCategory, mode
   }
 
   return (
-    <div className={s.root}>
+    <div className={s.root} ref={containerRef}>
       {!!mode && (
         <>
           <div
+            ref={aiBadgeRef}
             className={clsx(s.categoryBadge, s.aiBadge, {
               [s.active]: mode === 'ai',
             })}

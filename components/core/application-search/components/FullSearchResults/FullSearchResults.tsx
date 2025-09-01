@@ -8,6 +8,7 @@ import { SearchResultsSection } from '@/components/core/application-search/compo
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 import { SearchResult } from '@/services/search/types';
 import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
+import { NothingFound } from '@/components/core/application-search/components/NothingFound';
 
 interface Props {
   searchTerm: string;
@@ -65,37 +66,43 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCa
       .filter(Boolean);
   }, [data]);
 
+  function renderContent() {
+    if (isLoading) {
+      return <ContentLoader />;
+    }
+
+    if (!totalFound && searchTerm) {
+      return <NothingFound onClick={onTryAiSearch} searchTerm={searchTerm} />;
+    }
+
+    return sortedData.map((item) => {
+      if (!item.values?.length) {
+        return null;
+      }
+
+      if (activeCategory && item.key !== activeCategory) {
+        return null;
+      }
+
+      return (
+        <CollapsibleSection
+          key={item.label}
+          title={`${item.label} (${item.values?.length ?? 0})`}
+          disabled={!item.values?.length}
+          initialOpen={(item.label === 'Top Results' && !!item.values?.length) || activeCategory === item.key}
+          forceOpen={activeCategory === item.key}
+        >
+          <SearchResultsSection items={item.values ?? []} query={searchTerm} onSelect={onClose} />
+        </CollapsibleSection>
+      );
+    });
+  }
+
   return (
     <div className={s.root}>
       <div className={s.totalFoundLabel}>Total results ({totalFound})</div>
       <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} mode={mode} onToggleMode={onToggleMode} />
-      {isLoading ? (
-        <ContentLoader />
-      ) : (
-        <>
-          {sortedData.map((item) => {
-            if (!item.values?.length) {
-              return null;
-            }
-
-            if (activeCategory && item.key !== activeCategory) {
-              return null;
-            }
-
-            return (
-              <CollapsibleSection
-                key={item.label}
-                title={`${item.label} (${item.values?.length ?? 0})`}
-                disabled={!item.values?.length}
-                initialOpen={(item.label === 'Top Results' && !!item.values?.length) || activeCategory === item.key}
-                forceOpen={activeCategory === item.key}
-              >
-                <SearchResultsSection items={item.values ?? []} query={searchTerm} onSelect={onClose} />
-              </CollapsibleSection>
-            );
-          })}
-        </>
-      )}
+      {renderContent()}
     </div>
   );
 };

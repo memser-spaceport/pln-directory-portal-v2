@@ -53,7 +53,7 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
                   onClick={(e) => {
                     e.stopPropagation();
                     analytics.onSearchResultClick(item);
-                    router.push(`/forum/${item.uid}`);
+                    router.push(`/forum/topics/${item.source.cid}/${item.source.tid}`);
                     onSelect?.();
                   }}
                 >
@@ -62,7 +62,7 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
                       <Image src={defaultAvatar} alt={item.name} width={24} height={24} />
                     </div>
                     {matchedName ? (
-                      <div className={s.name} dangerouslySetInnerHTML={{ __html: matchedName.content }} />
+                      <div className={s.name}>{parse(matchedName.content)}</div>
                     ) : (
                       <div className={s.name}>
                         {item.name}
@@ -111,7 +111,7 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
                           <div className={s.avatar}>
                             <Image src={_defaultAvatar} alt={comm.author.name} width={24} height={24} />
                           </div>
-                          <div className={s.text} dangerouslySetInnerHTML={{ __html: match.content }} />
+                          <div className={s.text}>{parse(match.content)}</div>
                         </div>
                         <div className={s.postDetails}>
                           Commented by {comm.author.name} &bull; {formatDistanceToNow(new Date(comm.timestamp), { addSuffix: true })}

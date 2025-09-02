@@ -46,7 +46,7 @@ const processPostContent = (content: string) => {
 
   return {
     processedContent,
-    imageUrls
+    imageUrls,
   };
 };
 
@@ -107,6 +107,45 @@ export const Post = () => {
       setReplyToPid(Number(replyTo));
     }
   }, [post, searchParams]);
+
+  // Scroll to specific comment based on pid query parameter
+  useEffect(() => {
+    if (!data?.posts) {
+      return;
+    }
+
+    const pidParam = searchParams.get('pid');
+
+    if (pidParam) {
+      const targetPid = Number(pidParam);
+
+      // Small delay to ensure the DOM is fully rendered
+      const scrollTimeout = setTimeout(() => {
+        // Try to find the comment element by pid
+        const commentElement = document.querySelector(`[data-pid="${targetPid}"]`);
+
+        if (commentElement) {
+          commentElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest',
+          });
+
+          // Add a highlight effect to the comment
+          commentElement.classList.add('highlighted-comment');
+
+          // Remove highlight after animation
+          setTimeout(() => {
+            commentElement.classList.remove('highlighted-comment');
+          }, 3000);
+        } else {
+          console.warn(`Comment with pid ${targetPid} not found`);
+        }
+      }, 500);
+
+      return () => clearTimeout(scrollTimeout);
+    }
+  }, [data?.posts, searchParams]);
 
   useDigestEmailLinkEventCapture();
   useCommentNotificationEmailLinkEventCapture();
@@ -211,9 +250,7 @@ export const Post = () => {
                   const isEmail = decoratedHref.startsWith('mailto:') || decoratedText.includes('@');
 
                   // Check if this URL is an image URL that should be excluded from linking
-                  const isImageUrl = imageUrls.some(imageUrl =>
-                    decoratedHref.includes(imageUrl) || decoratedText.includes(imageUrl)
-                  );
+                  const isImageUrl = imageUrls.some((imageUrl) => decoratedHref.includes(imageUrl) || decoratedText.includes(imageUrl));
 
                   // If it's an image URL, return the text without making it a link
                   if (isImageUrl) {

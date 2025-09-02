@@ -127,6 +127,8 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
               );
             }
 
+            const matchedName = item.matches.find((match) => match.field === 'name');
+
             return (
               <li
                 key={item.uid}
@@ -141,10 +143,14 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
                   <div className={s.avatar}>
                     <Image src={defaultAvatar} alt={item.name} width={24} height={24} />
                   </div>
-                  <div className={s.name}>
-                    {item.name}
-                    {/*<HighlightedText text={item.name} query={query} />*/}
-                  </div>
+                  {matchedName ? (
+                    <div className={s.name}>{parse(matchedName.content)}</div>
+                  ) : (
+                    <div className={s.name}>
+                      {item.name}
+                      {/*<HighlightedText text={item.name} query={query} />*/}
+                    </div>
+                  )}
                   {!!item.availableToConnect && (
                     <div className={s.type}>
                       <OhBadge variant="primary" />

@@ -21,7 +21,7 @@ const MemberGridView = (props: IMemberGridView) => {
   const isUserLoggedIn = props?.isUserLoggedIn;
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams
-    .filter((team) => team.id !== mainTeam?.id)
+    .filter((team) => !team.mainTeam)
     .map((team) => team.name)
     .sort();
   const role = member.mainTeam?.role || 'Contributor';
@@ -66,23 +66,27 @@ const MemberGridView = (props: IMemberGridView) => {
           <div className={s.content}>
             <h3 className={s.primaryText}>{member?.name}</h3>
             <div className={s.positionDetails}>
-              <p className={s.secondaryText}>{member?.teams?.length > 0 ? mainTeam?.name : '-'}</p>
-              {member?.teams?.length > 2 && (
-                <Tooltip
-                  asChild
-                  trigger={
-                    <button onClick={(e) => e.preventDefault()} className="member-grid__details__member-details__team-name-container__tems-count">
-                      +{(member?.teams?.length - 1).toString()}
-                    </button>
-                  }
-                  content={otherTeams?.map((team, index) => (
-                    <div key={`${team} + ${index}`}>
-                      {team}
-                      {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
-                    </div>
-                  ))}
-                />
-              )}
+              <p className={s.secondaryText}>
+                {member?.teams?.length > 0 ? mainTeam?.name : '-'}{' '}
+                <span>
+                  {member?.teams?.length > 2 && (
+                    <Tooltip
+                      asChild
+                      trigger={
+                        <button onClick={(e) => e.preventDefault()} className="member-grid__details__member-details__team-name-container__tems-count">
+                          +{(member?.teams?.length - 1).toString()}
+                        </button>
+                      }
+                      content={otherTeams?.map((team, index) => (
+                        <div key={`${team} + ${index}`} style={{ fontSize: '12px' }}>
+                          {team}
+                          {index === member?.teams?.slice(1, member?.teams?.length).length - 1 ? '' : ','}
+                        </div>
+                      ))}
+                    />
+                  )}
+                </span>
+              </p>
               <p className={s.secondaryText}>{role}</p>
             </div>
             {isUserLoggedIn && (
@@ -118,10 +122,10 @@ const MemberGridView = (props: IMemberGridView) => {
             font-size: 10px;
             font-weight: 500;
             line-height: 12px;
-            padding: 2px;
+            padding: 2px 4px;
             background: #f1f5f9;
             border-radius: 100%;
-            display: flex;
+            display: inline-flex;
             color: #475569;
             min-height: 16px;
             min-width: 16px;

@@ -5,8 +5,6 @@ const ChatInput = React.forwardRef<
   HTMLTextAreaElement,
   React.ComponentProps<'textarea'> & { onSubmit?: () => void; isAnswerLoading?: boolean; isLoadingObject?: boolean; onStopStreaming?: () => void; isLimitReached?: boolean; onTextSubmit?: () => void }
 >(({ className, onSubmit, isAnswerLoading, isLoadingObject, onStopStreaming, isLimitReached, onTextSubmit, onChange, ...props }, ref) => {
-
-
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     adjustHeight();
     if (onChange) {
@@ -24,7 +22,6 @@ const ChatInput = React.forwardRef<
   return (
     <>
       <div className={`chat__box ${className || ''}`}>
-        <div className="chat__box__search-icon">🧠</div>
         <textarea {...props} ref={ref} onChange={handleInput} className="chat__box__search-input" />
         {!isMobileDevice() && (
           <div className="chat__box__search-instruction">
@@ -108,7 +105,7 @@ const ChatInput = React.forwardRef<
           border: none;
           outline: none;
           border-radius: 8px;
-          padding: 10px 6px 6px 48px;
+          padding: 10px 6px 6px 6px;
           margin: 0px 48px 0px 0px;
           resize: none;
           font-family: inherit;
@@ -203,14 +200,14 @@ const ChatInput = React.forwardRef<
           height: 12px;
         }
 
-          @keyframes scaleDown {
-            0% {
-              transform: scale(1);
-            }
-            100% {
-              transform: scale(0.83); /* 10/12 = 0.83 */
-            }
+        @keyframes scaleDown {
+          0% {
+            transform: scale(1);
           }
+          100% {
+            transform: scale(0.83); /* 10/12 = 0.83 */
+          }
+        }
 
         .zindex-1 {
           z-index: 1;
@@ -223,7 +220,7 @@ const ChatInput = React.forwardRef<
         @media (min-width: 768px) {
           .chat__box__search-input {
             font-size: 14px;
-            padding: 24px 30px 5px 48px;
+            padding: 24px 30px 5px 16px;
             margin: 0px 58px 0px 0px;
             min-height: 64px;
           }
@@ -242,7 +239,6 @@ const ChatInput = React.forwardRef<
     </>
   );
 });
-
 
 ChatInput.displayName = 'ChatInput';
 

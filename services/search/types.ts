@@ -19,6 +19,8 @@ export type ForumFoundItem = {
   matches: {
     field: string;
     content: string;
+    pid?: number;
+    uidAuthor?: number;
   }[];
   name: string;
   replyCount: number;
@@ -59,6 +61,7 @@ export type ForumFoundItem = {
     topicTitle: string;
     topicUrl: string;
     uid: string;
+    cid: string;
   };
   topicSlug: string;
   topicTitle: string;

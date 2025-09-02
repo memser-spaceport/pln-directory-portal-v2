@@ -106,7 +106,7 @@ const CommentItem = ({ item, isReply, onReply, userInfo }: { item: NestedComment
 
   return (
     <>
-      <div className={s.itemRoot} key={item.pid} ref={ref}>
+      <div className={s.itemRoot} key={item.pid} ref={ref} data-pid={item.pid}>
         <div className={s.footer}>
           <Link href={`/members/${item.user.memberUid}`} onClick={(e) => e.stopPropagation()}>
             <Avatar.Root className={s.Avatar}>

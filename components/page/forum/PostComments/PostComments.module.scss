@@ -3,6 +3,31 @@
 
 .root {
   width: 100%;
+
+  // Global styles for highlighted comments (applied via JavaScript)
+  :global(.highlighted-comment) {
+    background: linear-gradient(90deg, rgba(27, 77, 255, 0.1) 0%, rgba(27, 77, 255, 0.05) 100%);
+    border-left: 3px solid #1B4DFF !important;
+    border-radius: 8px;
+    padding: 12px !important;
+    //margin: 8px 0 !important;
+    animation: highlightPulse 3s ease-in-out;
+    transition: all 0.3s ease;
+  }
+
+  @keyframes highlightPulse {
+    0% {
+      background: rgba(27, 77, 255, 0.2);
+      transform: scale(1.02);
+    }
+    50% {
+      background: rgba(27, 77, 255, 0.1);
+    }
+    100% {
+      background: rgba(27, 77, 255, 0.05);
+      transform: scale(1);
+    }
+  }
 }
 
 .title {

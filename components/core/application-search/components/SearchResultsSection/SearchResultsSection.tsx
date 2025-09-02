@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 import { formatDistanceToNow } from 'date-fns';
 import parse from 'html-react-parser';
+import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 
 interface Props {
   title?: string;
@@ -141,9 +142,11 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
                     {item.name}
                     {/*<HighlightedText text={item.name} query={query} />*/}
                   </div>
-                  <div className={s.type}>
-                    <Image src={SECTION_TYPE_ICONS[item.index]} alt={item.name} width={14} height={14} />
-                  </div>
+                  {!!item.availableToConnect && (
+                    <div className={s.type}>
+                      <OhBadge variant="primary" />
+                    </div>
+                  )}
                 </div>
                 <ul className={s.matches}>
                   {item.matches

@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { TryAiSearch } from '@/components/core/application-search/components/TryAiSearch';
 import { CollapsibleSection } from '@/components/core/application-search/components/CollapsableSection';
 
 import s from './FullSearchResults.module.scss';
@@ -23,7 +22,7 @@ interface Props {
 export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCategory, setActiveCategory, mode, onToggleMode }: Props) => {
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
 
-  const totalFound = (data?.teams?.length ?? 0) + (data?.events?.length ?? 0) + (data?.members?.length ?? 0) + (data?.projects?.length ?? 0);
+  const totalFound = (data?.teams?.length ?? 0) + (data?.events?.length ?? 0) + (data?.members?.length ?? 0) + (data?.projects?.length ?? 0) + (data?.forumThreads?.length ?? 0);
 
   const sortedData = useMemo(() => {
     if (!data) {

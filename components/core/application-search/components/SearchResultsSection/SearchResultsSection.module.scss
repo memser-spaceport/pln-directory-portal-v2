@@ -64,6 +64,7 @@ $padding-inline: 16px;
 
   .name {
     //@include mixins.ellipse-text;
+    @include mixins.clampLines(2);
 
     em {
       font-style: normal;
@@ -109,6 +110,7 @@ $padding-inline: 16px;
 
   .text {
     //@include mixins.ellipse-text;
+    @include mixins.clampLines(2);
     //overflow: hidden;
     color: #64748B;
     //text-overflow: ellipsis;

@@ -71,7 +71,7 @@
   border-radius: 50%;
 
   @include media.tablet-landscape {
-    height: 80px;
+    height: 80px !important;
     width: 80px;
     min-width: 80px;
     min-height: 80px;

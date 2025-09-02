@@ -79,7 +79,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
         return <ContentLoader />;
       }
 
-      if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length)) {
+      if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length && !data.forumThreads?.length)) {
         return <NothingFound onClick={handleTryAiSearch} searchTerm={searchTerm} />;
       }
 

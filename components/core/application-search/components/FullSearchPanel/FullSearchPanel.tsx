@@ -6,7 +6,6 @@ import { ContentLoader } from '@/components/core/application-search/components/C
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { FullSearchResults } from '@/components/core/application-search/components/FullSearchResults';
-import { useApplicationSearch } from '@/services/search/hooks/useApplicationSearch';
 
 import s from './FullSearchPanel.module.scss';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
@@ -73,7 +72,7 @@ export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose, act
         return <ContentLoader />;
       }
 
-      if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length)) {
+      if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length && !data.forumThreads?.length)) {
         return <NothingFound onClick={handleTryAiSearch} searchTerm={searchTerm} />;
       }
 

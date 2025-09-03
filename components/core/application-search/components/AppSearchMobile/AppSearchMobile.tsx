@@ -1,23 +1,14 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 
 import s from './AppSearchMobile.module.scss';
-import { SearchModeToggle } from '@/components/core/application-search/components/SearchModeToggle';
 import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
-import { useApplicationSearch } from '@/services/search/hooks/useApplicationSearch';
-import { TryAiSearch } from '@/components/core/application-search/components/TryAiSearch';
-import { TryToSearch } from '@/components/core/application-search/components/TryToSearch';
-import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
-import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
-import { NothingFound } from '@/components/core/application-search/components/NothingFound';
-import { clsx } from 'clsx';
-import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { FullSearchResults } from '@/components/core/application-search/components/FullSearchResults';
 import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
 import { IUserInfo } from '@/types/shared.types';
-import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Props {
   userInfo: IUserInfo;
@@ -26,38 +17,34 @@ interface Props {
 }
 
 export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const open = searchParams.get('searchState') === 'open';
+
   const [mode, setMode] = useState<'regular' | 'ai'>('regular');
   const [searchTerm, setSearchTerm] = useState('');
-  const [, setFocused] = useState(true);
-  const { data, isLoading } = useFullApplicationSearch(searchTerm);
+  const { data } = useFullApplicationSearch(searchTerm);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
   const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null>(null);
-  const isFocused = false;
 
   const handleClose = useCallback(() => {
-    setOpen(false);
-    setFocused(true);
+    // Preserve existing filter parameters when removing searchState
+    const currentParams = new URLSearchParams(searchParams.toString());
+    currentParams.delete('searchState');
+    const newUrl = currentParams.toString() ? `${window.location.pathname}?${currentParams.toString()}` : window.location.pathname;
+    router.replace(newUrl, { scroll: false });
+
     setSearchTerm('');
     setInitialAiPrompt('');
-  }, []);
+    setMode('regular');
+  }, [router, searchParams]);
 
   const handleChange = useCallback((val: string) => {
-    setFocused(true);
     setSearchTerm(val);
-  }, []);
-
-  const handleFlush = useCallback(() => {
-    setFocused(false);
-  }, []);
-
-  const handleClick = useCallback(() => {
-    setFocused(true);
   }, []);
 
   const handleTryAiSearch = useCallback(
     (val?: string) => {
-      setFocused(false);
       setMode('ai');
       setInitialAiPrompt(val ?? searchTerm);
     },
@@ -65,51 +52,30 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
   );
 
   function renderContent() {
-    if (isFocused) {
-      if (!searchTerm) {
-        return (
-          <>
-            {isLoggedIn && <RecentSearch onSelect={handleChange} />}
-            {isLoggedIn && <AiConversationHistory onClick={handleClose} isLoggedIn={isLoggedIn} />}
-          </>
-        );
-      }
-
-      if (isLoading) {
-        return <ContentLoader />;
-      }
-
-      if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length && !data.forumThreads?.length)) {
-        return <NothingFound onClick={handleTryAiSearch} searchTerm={searchTerm} />;
-      }
-
-      return (
-        <>
-          <TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />
-          {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={handleClose} />}
-          {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={handleClose} />}
-          {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={handleClose} />}
-          {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={handleClose} />}
-        </>
-      );
-    } else {
-      return (
-        <FullSearchResults
-          searchTerm={searchTerm}
-          onTryAiSearch={handleTryAiSearch}
-          onClose={handleClose}
-          activeCategory={activeCategory}
-          setActiveCategory={setActiveCategory}
-          mode={mode}
-          onToggleMode={setMode}
-        />
-      );
-    }
+    return (
+      <FullSearchResults
+        searchTerm={searchTerm}
+        onTryAiSearch={handleTryAiSearch}
+        // onClose={handleClose}
+        activeCategory={activeCategory}
+        setActiveCategory={setActiveCategory}
+        mode={mode}
+        onToggleMode={setMode}
+      />
+    );
   }
 
   return (
     <div className={s.root}>
-      <button className={s.toggleButton} onClick={() => setOpen(true)}>
+      <button
+        className={s.toggleButton}
+        onClick={() => {
+          // Preserve existing filter parameters when adding searchState
+          const currentParams = new URLSearchParams(searchParams.toString());
+          currentParams.set('searchState', 'open');
+          router.replace(`${window.location.pathname}?${currentParams.toString()}`, { scroll: false });
+        }}
+      >
         <SearchIcon />
       </button>
       {open && mode === 'regular' && (
@@ -124,14 +90,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
             </div>
             <div className={s.divider} />
             <div className={s.inputSection}>
-              <DebouncedInput
-                onChange={handleChange}
-                placeholder="Search"
-                value={searchTerm}
-                flushIcon={<Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />}
-                onImplictFlush={handleFlush}
-                onClick={handleClick}
-              />
+              <DebouncedInput onChange={handleChange} placeholder="Search" value={searchTerm} flushIcon={<Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />} />
             </div>
             <div className={s.divider} />
           </div>
@@ -144,15 +103,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
             <div className={s.header}>
               {/*<SearchModeToggle active={mode} onChange={setMode} />*/}
               <span className={s.title}>AI Search</span>
-              <button
-                className={s.closeButton}
-                onClick={() => {
-                  setOpen(false);
-                  setFocused(true);
-                  setSearchTerm('');
-                  setMode('regular');
-                }}
-              >
+              <button className={s.closeButton} onClick={handleClose}>
                 <Image src="/icons/close-gray.svg" alt="Close" width={20} height={20} style={{ pointerEvents: 'none' }} />
               </button>
             </div>

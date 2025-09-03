@@ -66,7 +66,7 @@ const MemberGridView = (props: IMemberGridView) => {
           <div className={s.content}>
             <h3 className={s.primaryText}>{member?.name}</h3>
             <div className={s.positionDetails}>
-              <p className={s.secondaryText}>
+              <div className={s.secondaryText}>
                 {member?.teams?.length > 0 ? mainTeam?.name : '-'}{' '}
                 <span>
                   {member?.teams?.length > 2 && (
@@ -86,7 +86,7 @@ const MemberGridView = (props: IMemberGridView) => {
                     />
                   )}
                 </span>
-              </p>
+              </div>
               <p className={s.secondaryText}>{role}</p>
             </div>
             {isUserLoggedIn && (

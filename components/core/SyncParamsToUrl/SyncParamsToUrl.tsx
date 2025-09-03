@@ -19,6 +19,10 @@ export function SyncParamsToUrl() {
     const currentParams = new URLSearchParams(searchParams.toString());
     const newParams = new URLSearchParams(params.toString());
 
+    // Remove searchState from both for comparison (it's managed by AppSearchMobile)
+    currentParams.delete('searchState');
+    newParams.delete('searchState');
+
     // Compare if params are actually different
     const areParamsDifferent = currentParams.toString() !== newParams.toString();
 

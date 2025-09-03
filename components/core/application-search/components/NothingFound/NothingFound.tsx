@@ -14,7 +14,7 @@ export const NothingFound = ({ onClick, searchTerm }: Props) => {
       <button className={s.root} onClick={() => onClick()} id="application-search-nothing-found">
         <div className={s.content}>
           <div className={s.title}>No results found for &#34;{searchTerm}&#34;</div>
-          <div className={s.subtitle}>Try AI Search for more results</div>
+          <div className={s.subtitle}>Try using different keywords or use AI Search.</div>
         </div>
         <Image src="/icons/ai-search.svg" alt="Search" width={24} height={24} />
       </button>

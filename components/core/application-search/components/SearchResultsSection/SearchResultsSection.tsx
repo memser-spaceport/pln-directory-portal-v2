@@ -67,7 +67,7 @@ export const SearchResultsSection = ({ title, items, query, onSelect }: Props) =
                         <div className={s.name}>{parse(matchedName.content)}</div>
                       ) : (
                         <div className={s.name}>
-                          {item.name}
+                          {parse(item.name)}
                           {/*<HighlightedText text={item.name} query={query} />*/}
                         </div>
                       )}

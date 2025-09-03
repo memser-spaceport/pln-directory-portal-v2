@@ -57,10 +57,10 @@ export const SearchCategories = ({ data, activeCategory, setActiveCategory, mode
           badgeRefs.current[category] = el;
         }}
         className={clsx(s.categoryBadge, {
-          [s.active]: activeCategory === category,
+          [s.active]: activeCategory === category && mode !== 'ai',
         })}
         onClick={() => {
-          setActiveCategory(category === activeCategory ? null : category);
+          setActiveCategory(category);
 
           onToggleMode?.('regular');
         }}
@@ -81,7 +81,7 @@ export const SearchCategories = ({ data, activeCategory, setActiveCategory, mode
             })}
             onClick={() => {
               onToggleMode?.(mode === 'ai' ? 'regular' : 'ai');
-              setActiveCategory(null);
+              // setActiveCategory(null);
             }}
           >
             {mode === 'ai' ? <SearchIcon /> : <SearchIconColor />} AI

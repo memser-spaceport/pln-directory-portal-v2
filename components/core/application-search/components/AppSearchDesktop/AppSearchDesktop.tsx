@@ -146,22 +146,14 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
       <div style={{ padding: '8px 16px' }}>
         {/*<TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />*/}
         <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-        {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && <SearchResultsSection title="Top" items={data.top} query={searchTerm} onSelect={handleFullSearchClose} />}
-        {!!data.members?.length && (activeCategory === 'members' || activeCategory === null) && (
-          <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={handleFullSearchClose} />
-        )}
-        {!!data.teams?.length && (activeCategory === 'teams' || activeCategory === null) && (
-          <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={handleFullSearchClose} />
-        )}
-        {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && (
-          <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={handleFullSearchClose} />
-        )}
+        {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && <SearchResultsSection groupItems items={data.top} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {!!data.members?.length && (activeCategory === 'members' || activeCategory === null) && <SearchResultsSection items={data.members} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {!!data.teams?.length && (activeCategory === 'teams' || activeCategory === null) && <SearchResultsSection items={data.teams} query={searchTerm} onSelect={handleFullSearchClose} />}
+        {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && <SearchResultsSection items={data.projects} query={searchTerm} onSelect={handleFullSearchClose} />}
         {!!data.forumThreads?.length && (activeCategory === 'forumThreads' || activeCategory === null) && (
-          <SearchResultsSection title="Forum" items={data.forumThreads} query={searchTerm} onSelect={handleFullSearchClose} />
+          <SearchResultsSection items={data.forumThreads} query={searchTerm} onSelect={handleFullSearchClose} />
         )}
-        {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && (
-          <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={handleFullSearchClose} />
-        )}
+        {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && <SearchResultsSection items={data.events} query={searchTerm} onSelect={handleFullSearchClose} />}
       </div>
     );
   }

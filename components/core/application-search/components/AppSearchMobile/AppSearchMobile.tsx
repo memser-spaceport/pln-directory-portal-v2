@@ -25,7 +25,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
   const { data } = useFullApplicationSearch(searchTerm);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
-  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null>(null);
+  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null>('top');
 
   const handleClose = useCallback(() => {
     // Preserve existing filter parameters when removing searchState

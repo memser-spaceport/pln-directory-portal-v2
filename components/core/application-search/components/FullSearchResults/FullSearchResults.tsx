@@ -103,7 +103,9 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCa
   return (
     <div className={s.root}>
       <div className={s.totalFoundLabel}>Total results ({totalFound})</div>
-      <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} mode={mode} onToggleMode={onToggleMode} />
+      <div className={s.sticky}>
+        <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} mode={mode} onToggleMode={onToggleMode} />
+      </div>
       {renderContent()}
     </div>
   );

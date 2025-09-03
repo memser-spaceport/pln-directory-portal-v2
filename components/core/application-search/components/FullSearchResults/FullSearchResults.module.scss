@@ -34,3 +34,11 @@
   background: #FFF;
   box-shadow: 0 1px 4px 0 #E2E8F0;
 }
+
+.sticky {
+  position: sticky;
+  top: 130px;
+  background: var(--Neutral-White);
+  padding-top: 8px;
+  z-index: 1;
+}

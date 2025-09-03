@@ -1,6 +1,7 @@
 import React from 'react';
 
 import s from './ChatSubheader.module.scss';
+import clsx from 'clsx';
 
 interface Props {
   onToggleHistory: () => void;
@@ -38,7 +39,7 @@ export const ChatSubheader = ({ isEmpty, isShowHistory, onToggleHistory, lastQue
           {/*  <span className={s.title}>Explore Teams, Members, Projects & Gatherings happening around the network</span>*/}
           {/*</div>*/}
           {isLoggedIn && (
-            <button onClick={onToggleHistory} className={s.button}>
+            <button onClick={onToggleHistory} className={clsx(s.button, s.alignRight)}>
               Your AI Search History{' '}
               <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path

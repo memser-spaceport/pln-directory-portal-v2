@@ -17,7 +17,7 @@ import { OneClickVerification } from '@/components/page/member-details/OneClickV
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
 import { BackButton } from '@/components/ui/BackButton';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BookWithOther } from '@/components/page/member-details/BookWithOther';
 import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
@@ -55,6 +55,17 @@ const MemberDetails = ({ params }: { params: any }) => {
   });
   const isAvailableToConnect = isMemberAvailableToConnect(member);
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
+
+  // Scroll to top when member data is loaded or member ID changes
+  useEffect(() => {
+    if (member && !isLoading) {
+      document.body.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant',
+      });
+    }
+  }, [member, memberId, isLoading]);
 
   if (isError) {
     return <Error />;

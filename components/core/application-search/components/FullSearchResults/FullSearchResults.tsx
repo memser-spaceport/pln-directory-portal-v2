@@ -88,10 +88,13 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCa
           key={item.label}
           title={`${item.label} (${item.values?.length ?? 0})`}
           disabled={!item.values?.length}
-          initialOpen={(item.label === 'Top Results' && !!item.values?.length) || activeCategory === item.key}
-          forceOpen={activeCategory === item.key}
+          // initialOpen={(item.label === 'Top Results' && !!item.values?.length) || activeCategory === item.key}
+          initialOpen
+          // forceOpen={activeCategory === item.key}
+          forceOpen
+          hideControl
         >
-          <SearchResultsSection items={item.values ?? []} query={searchTerm} onSelect={onClose} />
+          <SearchResultsSection groupItems={item.key === 'top'} items={item.values ?? []} query={searchTerm} onSelect={onClose} />
         </CollapsibleSection>
       );
     });

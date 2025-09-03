@@ -18,6 +18,19 @@ $padding-inline: 16px;
     line-height: 16px;
   }
 
+  .groupTitle {
+    color: #64748B;
+    font-feature-settings: 'liga' off, 'clig' off;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
   .list {
     display: flex;
     flex-direction: column;

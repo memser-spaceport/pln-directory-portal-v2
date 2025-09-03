@@ -80,7 +80,7 @@ export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose, act
         <>
           {/*<TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />*/}
           <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-          {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && <SearchResultsSection title="Top" items={data.top} query={searchTerm} onSelect={onClose} />}
+          {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && <SearchResultsSection groupItems title="Top" items={data.top} query={searchTerm} onSelect={onClose} />}
           {!!data.members?.length && (activeCategory === 'members' || activeCategory === null) && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={onClose} />}
           {!!data.teams?.length && (activeCategory === 'teams' || activeCategory === null) && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={onClose} />}
           {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && (

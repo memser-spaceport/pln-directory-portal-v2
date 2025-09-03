@@ -10,25 +10,29 @@ export const CollapsibleSection = ({
   disabled,
   initialOpen = false,
   forceOpen,
+  hideControl,
 }: {
-  title: string;
+  title?: string;
   children: React.ReactNode;
   disabled?: boolean;
   initialOpen: boolean;
   forceOpen?: boolean;
+  hideControl?: boolean;
 }) => {
   const [isOpen, setIsOpen] = useState(initialOpen);
 
   return (
     <div className={s.root}>
-      <button onClick={() => !forceOpen && setIsOpen((prev) => !prev)} className={s.button} disabled={disabled}>
-        {title}
-        {!forceOpen && (
-          <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-            <Image src="/icons/down-arrow-grey.svg" alt="Toggle" width={14} height={14} style={{ pointerEvents: 'none' }} />
-          </motion.span>
-        )}
-      </button>
+      {!hideControl && (
+        <button onClick={() => !forceOpen && setIsOpen((prev) => !prev)} className={s.button} disabled={disabled}>
+          {title}
+          {!forceOpen && (
+            <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <Image src="/icons/down-arrow-grey.svg" alt="Toggle" width={14} height={14} style={{ pointerEvents: 'none' }} />
+            </motion.span>
+          )}
+        </button>
+      )}
 
       <AnimatePresence initial={false}>
         {(isOpen || forceOpen) && (

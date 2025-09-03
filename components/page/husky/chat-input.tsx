@@ -241,6 +241,10 @@ const ChatInput = React.forwardRef<
             width: 14px;
             height: 14px;
           }
+
+          .huskyinput__action {
+            right: 12px;
+          }
         }
       `}</style>
     </>

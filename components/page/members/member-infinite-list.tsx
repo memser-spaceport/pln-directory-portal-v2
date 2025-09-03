@@ -24,9 +24,6 @@ const MemberInfiniteList = (props: any) => {
   const viewType = searchParams['viewType'] || VIEW_TYPE_OPTIONS.GRID;
 
   const onMemberOnClickHandler = (e: any, member: IMember) => {
-    if (!e.ctrlKey) {
-      triggerLoader(true);
-    }
     analytics.onMemberCardClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member), viewType);
   };
 

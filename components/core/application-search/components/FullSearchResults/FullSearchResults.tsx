@@ -12,7 +12,7 @@ import { NothingFound } from '@/components/core/application-search/components/No
 interface Props {
   searchTerm: string;
   onTryAiSearch: () => void;
-  onClose: () => void;
+  onClose?: () => void;
   activeCategory: keyof SearchResult | null;
   setActiveCategory: (category: keyof SearchResult | null) => void;
   mode?: 'regular' | 'ai';

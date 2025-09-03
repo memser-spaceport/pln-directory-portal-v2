@@ -5,8 +5,6 @@ import Image from 'next/image';
 import s from './AppSearchDesktop.module.scss';
 import { useQueryClient } from '@tanstack/react-query';
 import { SearchQueryKeys } from '@/services/search/constants';
-import { useApplicationSearch } from '@/services/search/hooks/useApplicationSearch';
-import { TryAiSearch } from '@/components/core/application-search/components/TryAiSearch';
 import { TryToSearch } from '@/components/core/application-search/components/TryToSearch';
 import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
 import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
@@ -18,7 +16,6 @@ import clsx from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
 import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
-import { useRouter } from 'next/navigation';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
 
@@ -36,8 +33,7 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
   const queryClient = useQueryClient();
   const [showFullSearch, setShowFullSearch] = useState(false);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
-  const router = useRouter();
-  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null>(null);
+  const [activeCategory, setActiveCategory] = React.useState<'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null>('top');
 
   const handleFullSearchClose = useCallback(() => {
     setInitialAiPrompt('');

@@ -90,7 +90,7 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
             </div>
             <div className={s.divider} />
             <div className={s.inputSection}>
-              <DebouncedInput onChange={handleChange} placeholder="Search" value={searchTerm} flushIcon={<Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />} />
+              <DebouncedInput onChange={handleChange} placeholder="Search" value={searchTerm} />
             </div>
             <div className={s.divider} />
           </div>

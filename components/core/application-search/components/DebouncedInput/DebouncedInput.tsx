@@ -3,6 +3,7 @@ import React, { FC, KeyboardEventHandler, ReactNode, useCallback, useEffect, use
 
 import s from './DebouncedInput.module.scss';
 import Image from 'next/image';
+import clsx from 'clsx';
 
 interface Props {
   value: string;
@@ -85,7 +86,9 @@ export const DebouncedInput: FC<Props> = ({ value, onChange, onBlur, disabled, p
       {localValue && (
         <button
           id="application-search-clear"
-          className={s.clearButton}
+          className={clsx(s.clearButton, {
+            [s.singleView]: !flushIcon,
+          })}
           onClick={() => {
             debouncedChange.cancel();
             setLocalValue('');

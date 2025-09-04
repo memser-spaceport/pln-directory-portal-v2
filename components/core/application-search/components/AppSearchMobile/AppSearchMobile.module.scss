@@ -21,6 +21,9 @@ $padding-inline: 16px;
   justify-content: center;
   align-items: center;
   gap: var(--spacing-zero, 0);
+
+  -webkit-tap-highlight-color: transparent; /* iOS */
+  outline: none;
 }
 
 .wrapper {
@@ -84,6 +87,8 @@ $padding-inline: 16px;
 .closeButton {
   margin-left: auto;
   padding: 8px;
+  -webkit-tap-highlight-color: transparent; /* iOS */
+  outline: none;
 }
 
 .inputSection {

@@ -41,4 +41,8 @@
   background: var(--Neutral-White);
   padding-top: 8px;
   z-index: 1;
+
+  @include media.tablet-landscape {
+    top: 40px;
+  }
 }

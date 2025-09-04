@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .root {
   display: flex;
   align-items: center;
@@ -6,6 +8,7 @@
   padding-block: 10px;
 
   border-bottom: 1px solid #E2E8F0;
+  border-top: 1px solid #E2E8F0;
 }
 
 .title {
@@ -33,6 +36,8 @@
   gap: 4px;
 
   &.alignRight {
-    margin-left: auto;
+    @include media.tablet-landscape {
+      margin-left: auto;
+    }
   }
 }

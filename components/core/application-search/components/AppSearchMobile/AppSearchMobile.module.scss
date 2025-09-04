@@ -31,14 +31,29 @@ $padding-inline: 16px;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden; // Prevent scrolling on the wrapper
+
+  // Handle mobile keyboard appearance
+  @supports (-webkit-touch-callout: none) {
+    // iOS Safari specific
+    height: 100vh;
+    height: 100dvh; // Use dynamic viewport height if supported
+  }
 }
 
 .top {
   position: sticky;
   top: 0;
   background-color: #fff;
-  z-index: 1;
+  z-index: 2;
+  flex-shrink: 0; // Prevent shrinking when keyboard appears
+
+  // Ensure it stays at the top even when keyboard opens
+  @supports (-webkit-touch-callout: none) {
+    // iOS Safari specific
+    position: -webkit-sticky;
+    position: sticky;
+  }
 }
 
 .divider {
@@ -77,15 +92,37 @@ $padding-inline: 16px;
 
 .content {
   padding: 0 16px 16px 16px;
-  //background-color: red;
   flex: 1;
+  overflow-y: auto; // Allow scrolling only in content area
+  overflow-x: hidden;
+
+  // Ensure proper scrolling behavior on mobile
+  -webkit-overflow-scrolling: touch;
+
+  // Handle mobile keyboard appearance
+  @supports (-webkit-touch-callout: none) {
+    // iOS Safari specific - ensure content area can scroll
+    min-height: 0; // Allow flex item to shrink below content size
+  }
 }
 
 .mobileContent {
   padding-inline: 16px;
   padding-bottom: 16px;
+  flex: 1;
+  overflow-y: auto; // Allow scrolling in AI chat content
+  overflow-x: hidden;
+
+  // Ensure proper scrolling behavior on mobile
+  -webkit-overflow-scrolling: touch;
+
+  // Handle mobile keyboard appearance
+  @supports (-webkit-touch-callout: none) {
+    // iOS Safari specific
+    min-height: 0; // Allow flex item to shrink below content size
+  }
 }
 
 .filtersWrapper {
-  padding: 10px 16px;
+  padding: 10px 16px 6px;
 }

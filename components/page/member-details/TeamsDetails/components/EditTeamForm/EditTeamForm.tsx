@@ -249,7 +249,7 @@ function formatPayload(memberInfo: any, formData: TEditTeamForm, isNew?: boolean
     plnStartDate: memberInfo.plnStartDate,
     city: memberInfo?.location?.city || '',
     region: memberInfo?.location?.region || '',
-    country: memberInfo?.location.country || '',
+    country: memberInfo?.location?.country || '',
     teamOrProjectURL: memberInfo.teamOrProjectURL,
     linkedinHandler: memberInfo.linkedinHandler,
     discordHandler: memberInfo.discordHandler,

@@ -30,6 +30,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import MemberPageLoader from './loading';
 import Head from 'next/head';
+import { MembersQueryKeys } from '@/services/members/constants';
 
 const MemberDetails = ({ params }: { params: any }) => {
   const memberId = params?.id;
@@ -42,7 +43,7 @@ const MemberDetails = ({ params }: { params: any }) => {
     isError,
     isLoading,
   } = useQuery({
-    queryKey: ['member', memberId],
+    queryKey: [MembersQueryKeys.GET_MEMBER, memberId, isLoggedIn, userInfo.uid],
     queryFn: () => getMember(memberId, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, userInfo, !isAdmin && !isOwner, true),
     enabled: !!memberId,
     select: (data) => data?.data?.formattedData,

@@ -10,7 +10,7 @@ interface Props {
 
 export const NothingFound = ({ onClick, searchTerm }: Props) => {
   return (
-    <div style={{ padding: '8px 16px' }}>
+    <div>
       <button className={s.root} onClick={() => onClick()} id="application-search-nothing-found">
         <div className={s.content}>
           <div className={s.title}>No results found for &#34;{searchTerm}&#34;</div>

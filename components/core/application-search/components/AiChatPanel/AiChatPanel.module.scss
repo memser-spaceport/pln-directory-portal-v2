@@ -16,12 +16,16 @@
   flex-direction: column;
   gap: 8px;
   padding: 4px;
+  position: sticky;
+  bottom: 0;
 }
 
 .messagesWrapper {
   flex: 1;
   overflow: auto;
-  padding-block: 12px;
+  //padding-block: 12px;
+  display: flex;
+  flex-direction: column;
 
   @include mixins.hide-scrollbar;
 }

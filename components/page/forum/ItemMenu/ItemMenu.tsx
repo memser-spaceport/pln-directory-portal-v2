@@ -1,12 +1,20 @@
 'use client';
 
+import clsx from 'clsx';
 import React, { useEffect } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 
 import { usePathname, useRouter } from 'next/navigation';
 import s from './ItemMenu.module.scss';
 
-export const ItemMenu = ({ onEdit }: { onEdit?: () => void }) => {
+interface ItemMenuProps {
+  onEdit?: () => void;
+  classes?: {
+    trigger?: string;
+  };
+}
+
+export const ItemMenu = ({ onEdit, classes }: ItemMenuProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -16,16 +24,16 @@ export const ItemMenu = ({ onEdit }: { onEdit?: () => void }) => {
 
   return (
     <Menu.Root modal={false}>
-      <Menu.Trigger className={s.Button}>
-        <div className={s.ButtonIcon}>
+      <Menu.Trigger className={clsx(s.button, classes?.trigger)}>
+        <div className={s.buttonIcon}>
           <MenuIcon />
         </div>
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner className={s.Positioner} align="end">
-          <Menu.Popup className={s.Popup}>
+        <Menu.Positioner className={s.positioner} align="end">
+          <Menu.Popup className={s.popup}>
             <Menu.Item
-              className={s.Item}
+              className={s.item}
               onClick={() => {
                 if (onEdit) {
                   onEdit();

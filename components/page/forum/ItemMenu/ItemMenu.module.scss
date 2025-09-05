@@ -1,6 +1,6 @@
 @use 'styles/mixins';
 
-.Button {
+.button {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -12,13 +12,18 @@
   position: relative;
 }
 
-.Positioner {
+.buttonIcon {
+  display: flex;
+  align-items: center;
+}
+
+.positioner {
   outline: 0;
   z-index: 6;
   min-width: 140px;
 }
 
-.Popup {
+.popup {
   border-radius: 8px;
   background: #FFF;
   box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.16), 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
@@ -27,9 +32,8 @@
   padding-block: 8px;
   padding-inline: 12px;
   transform-origin: top right;
-  transition:
-          transform 150ms,
-          opacity 150ms;
+  transition: transform 150ms,
+  opacity 150ms;
 
   &[data-starting-style],
   &[data-ending-style] {
@@ -38,47 +42,7 @@
   }
 }
 
-.Arrow {
-  display: flex;
-
-  &[data-side='top'] {
-    bottom: -8px;
-    rotate: 180deg;
-  }
-
-  &[data-side='bottom'] {
-    top: -8px;
-    rotate: 0deg;
-  }
-
-  &[data-side='left'] {
-    right: -13px;
-    rotate: 90deg;
-  }
-
-  &[data-side='right'] {
-    left: -13px;
-    rotate: -90deg;
-  }
-}
-
-.ArrowFill {
-  fill: canvas;
-}
-
-.ArrowOuterStroke {
-  @media (prefers-color-scheme: light) {
-    fill: var(--color-gray-200);
-  }
-}
-
-.ArrowInnerStroke {
-  @media (prefers-color-scheme: dark) {
-    fill: var(--color-gray-300);
-  }
-}
-
-.Item {
+.item {
   gap: 8px;
   outline: 0;
   cursor: default;
@@ -129,22 +93,4 @@
     opacity: 0.5;
     pointer-events: none;
   }
-}
-
-.SeparatorWrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #CAD3DF;
-  font-feature-settings: 'liga' off, 'clig' off;
-  font-size: 10px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 14px; /* 140% */
-}
-
-.Separator {
-  height: 1px;
-  background-color: #E2E8F0;
-  flex: 1;
 }

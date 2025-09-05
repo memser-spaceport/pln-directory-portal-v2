@@ -6,23 +6,27 @@ import { ContentLoader } from '@/components/core/application-search/components/C
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { FullSearchResults } from '@/components/core/application-search/components/FullSearchResults';
-import { useApplicationSearch } from '@/services/search/hooks/useApplicationSearch';
 
 import s from './FullSearchPanel.module.scss';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
+import { SearchResult } from '@/services/search/types';
+import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
 
 interface Props {
   initialSearchTerm: string;
   onTryAiSearch: (query: string) => void;
   onClose: () => void;
+  activeCategory: keyof SearchResult | null;
+  setActiveCategory: (category: keyof SearchResult | null) => void;
 }
 
-export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose }: Props) => {
+export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose, activeCategory, setActiveCategory }: Props) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [isFocused, setFocused] = useState(!initialSearchTerm);
+  const [, setFocused] = useState(!initialSearchTerm);
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
   const analyticsRef = useRef<boolean>(false);
+  const isFocused = false;
 
   const analytics = useUnifiedSearchAnalytics();
 
@@ -68,21 +72,32 @@ export const FullSearchPanel = ({ initialSearchTerm, onTryAiSearch, onClose }: P
         return <ContentLoader />;
       }
 
-      if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length)) {
-        return <NothingFound onClick={handleTryAiSearch} />;
+      if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length && !data.forumThreads?.length)) {
+        return <NothingFound onClick={handleTryAiSearch} searchTerm={searchTerm} />;
       }
 
       return (
         <>
           {/*<TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />*/}
-          {!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={onClose} />}
-          {!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={onClose} />}
-          {!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={onClose} />}
-          {!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={onClose} />}
+          <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+          {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && <SearchResultsSection groupItems title="Top" items={data.top} query={searchTerm} onSelect={onClose} />}
+          {!!data.members?.length && (activeCategory === 'members' || activeCategory === null) && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={onClose} />}
+          {!!data.teams?.length && (activeCategory === 'teams' || activeCategory === null) && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={onClose} />}
+          {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && (
+            <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={onClose} />
+          )}
+          {!!data.forumThreads?.length && (activeCategory === 'forumThreads' || activeCategory === null) && (
+            <SearchResultsSection title="Forum" items={data.forumThreads} query={searchTerm} onSelect={onClose} />
+          )}
+          {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={onClose} />}
+          {/*{!!data.teams?.length && <SearchResultsSection title="Teams" items={data.teams} query={searchTerm} onSelect={onClose} />}*/}
+          {/*{!!data.members?.length && <SearchResultsSection title="Members" items={data.members} query={searchTerm} onSelect={onClose} />}*/}
+          {/*{!!data.projects?.length && <SearchResultsSection title="Projects" items={data.projects} query={searchTerm} onSelect={onClose} />}*/}
+          {/*{!!data.events?.length && <SearchResultsSection title="Events" items={data.events} query={searchTerm} onSelect={onClose} />}*/}
         </>
       );
     } else {
-      return <FullSearchResults searchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={onClose} />;
+      return <FullSearchResults searchTerm={searchTerm} onTryAiSearch={handleTryAiSearch} onClose={onClose} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />;
     }
   }
 

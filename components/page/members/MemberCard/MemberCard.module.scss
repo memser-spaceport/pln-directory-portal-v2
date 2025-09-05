@@ -71,7 +71,7 @@
   border-radius: 50%;
 
   @include media.tablet-landscape {
-    height: 80px;
+    height: 80px !important;
     width: 80px;
     min-width: 80px;
     min-height: 80px;
@@ -175,6 +175,10 @@
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
   max-width: 144px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 
   > p {
     @include mixins.ellipse-text;
@@ -203,10 +207,18 @@
 }
 
 .tertiaryText {
+  @include mixins.ellipse-text;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
   line-height: 16px; /* 133.333% */
   letter-spacing: -0.2px;
+
+  @include mixins.ellipse-text;
+  max-width: 144px;
+
+  @include media.tablet-landscape {
+    max-width: 220px;
+  }
 }

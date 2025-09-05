@@ -42,6 +42,8 @@
 
 button {
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* iOS */
+  outline: none;
 }
 
 .layout {

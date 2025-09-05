@@ -1,15 +1,13 @@
 'use client';
 
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { Tag } from '@/components/ui/tag';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { ADMIN_ROLE, PAGE_ROUTES } from '@/utils/constants';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
+import { ADMIN_ROLE } from '@/utils/constants';
 import { parseMemberLocation } from '@/utils/member.utils';
-import { useRouter } from 'next/navigation';
-import { Fragment, useEffect } from 'react';
+import { Fragment } from 'react';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/useRecommendationLinkAnalyticsReport';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
@@ -36,17 +34,15 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const skills = member?.skills;
   const userInfo = props?.userInfo;
   const { onEdit } = props;
-  const router = useRouter();
 
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams
-    .filter((team) => team.id !== mainTeam?.id)
+    ?.filter((team) => team.id !== mainTeam?.id)
     .map((team) => team.name)
     .sort();
 
   const isOwner = userInfo?.uid === member.id;
   const isAdmin = userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE);
-  const editUrl = isAdmin && !isOwner ? `${PAGE_ROUTES.SETTINGS}/members?id=${member?.id}` : `${PAGE_ROUTES.SETTINGS}/profile`;
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
@@ -65,10 +61,6 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
     onEdit();
   };
 
-  useEffect(() => {
-    triggerLoader(false);
-  }, [router]);
-
   return (
     <>
       <div className={clsx('header')}>
@@ -82,7 +74,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
               <CustomTooltip trigger={<h1 className="header__details__specifics__name">{name}</h1>} content={name} />
             </div>
             <div className="header__details__roleandlocation">
-              {member?.teams[0]?.name && (
+              {member?.teams?.[0]?.name && (
                 <>
                   <div className="header__details__roleandlocation__teams">
                     <CustomTooltip
@@ -137,19 +129,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
             </div>
           </div>
 
-          <div className="header__details__notification">
-            {/* <button className="header__details__notice__button">
-              <img loading="lazy" src="/icons/notification.svg" alt="notification icon" />
-            </button> */}
-            {isLoggedIn && (isAdmin || isOwner) && (
-              <EditButton onClick={onEditProfileClick} incomplete={showIncomplete} />
-              // <Link legacyBehavior passHref href={editUrl}>
-              //   <a href={editUrl} className="header__detials__edit-and-notification__edit" onClick={onEditProfileClick}>
-              //     <EditIcon /> Edit
-              //   </a>
-              // </Link>
-            )}
-          </div>
+          <div className="header__details__notification">{isLoggedIn && (isAdmin || isOwner) && <EditButton onClick={onEditProfileClick} incomplete={showIncomplete} />}</div>
         </div>
 
         <div className="header__tags">

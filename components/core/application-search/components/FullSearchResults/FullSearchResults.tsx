@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { TryAiSearch } from '@/components/core/application-search/components/TryAiSearch';
 import { CollapsibleSection } from '@/components/core/application-search/components/CollapsableSection';
 
 import s from './FullSearchResults.module.scss';
@@ -7,17 +6,23 @@ import { ContentLoader } from '@/components/core/application-search/components/C
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 import { SearchResult } from '@/services/search/types';
+import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
+import { NothingFound } from '@/components/core/application-search/components/NothingFound';
 
 interface Props {
   searchTerm: string;
   onTryAiSearch: () => void;
-  onClose: () => void;
+  onClose?: () => void;
+  activeCategory: keyof SearchResult | null;
+  setActiveCategory: (category: keyof SearchResult | null) => void;
+  mode?: 'regular' | 'ai';
+  onToggleMode?: (mode: 'regular' | 'ai') => void;
 }
 
-export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose }: Props) => {
+export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose, activeCategory, setActiveCategory, mode, onToggleMode }: Props) => {
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
 
-  const totalFound = (data?.teams?.length ?? 0) + (data?.events?.length ?? 0) + (data?.members?.length ?? 0) + (data?.projects?.length ?? 0);
+  const totalFound = (data?.teams?.length ?? 0) + (data?.events?.length ?? 0) + (data?.members?.length ?? 0) + (data?.projects?.length ?? 0) + (data?.forumThreads?.length ?? 0);
 
   const sortedData = useMemo(() => {
     if (!data) {
@@ -51,33 +56,69 @@ export const FullSearchResults = ({ searchTerm, onTryAiSearch, onClose }: Props)
       .map((item) => {
         const values = data[item.key as keyof SearchResult];
         return {
-          label: item.key === 'top' ? 'Top Results' : item.key,
+          label: getLabel(item.key),
           disabled: !values?.length,
           values,
+          key: item.key,
         };
       })
       .filter(Boolean);
   }, [data]);
 
+  function renderContent() {
+    if (isLoading) {
+      return <ContentLoader />;
+    }
+
+    if (!totalFound && searchTerm) {
+      return <NothingFound onClick={onTryAiSearch} searchTerm={searchTerm} />;
+    }
+
+    return sortedData.map((item) => {
+      if (!item.values?.length) {
+        return null;
+      }
+
+      if (activeCategory && item.key !== activeCategory) {
+        return null;
+      }
+
+      return (
+        <CollapsibleSection
+          key={item.label}
+          title={`${item.label} (${item.values?.length ?? 0})`}
+          disabled={!item.values?.length}
+          // initialOpen={(item.label === 'Top Results' && !!item.values?.length) || activeCategory === item.key}
+          initialOpen
+          // forceOpen={activeCategory === item.key}
+          forceOpen
+          hideControl
+        >
+          <SearchResultsSection groupItems={item.key === 'top'} items={item.values ?? []} query={searchTerm} onSelect={onClose} />
+        </CollapsibleSection>
+      );
+    });
+  }
+
   return (
     <div className={s.root}>
       <div className={s.totalFoundLabel}>Total results ({totalFound})</div>
-      {isLoading ? (
-        <ContentLoader />
-      ) : (
-        <>
-          {sortedData.map((item) => (
-            <CollapsibleSection
-              key={item.label}
-              title={`${item.label} (${item.values?.length ?? 0})`}
-              disabled={!item.values?.length}
-              initialOpen={item.label === 'Top Results' && !!item.values?.length}
-            >
-              <SearchResultsSection items={item.values ?? []} query={searchTerm} onSelect={onClose} />
-            </CollapsibleSection>
-          ))}
-        </>
-      )}
+      <div className={s.sticky}>
+        <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} mode={mode} onToggleMode={onToggleMode} />
+      </div>
+      {renderContent()}
     </div>
   );
 };
+
+function getLabel(key: string) {
+  if (key === 'top') {
+    return 'Top Results';
+  }
+
+  if (key === 'forumThreads') {
+    return 'Forum';
+  }
+
+  return key;
+}

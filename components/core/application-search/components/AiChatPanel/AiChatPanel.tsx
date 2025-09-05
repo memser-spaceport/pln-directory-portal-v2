@@ -281,6 +281,7 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
       return;
     }
 
+    setShowHistory(false);
     onHuskyInput(trimmedValue);
 
     textareaRef.current!.value = '';
@@ -385,6 +386,21 @@ export const AiChatPanel = ({ isLoggedIn = false, id, from, userInfo, isOwnThrea
               setShowHistory(false);
             }}
           />
+          <form className={s.chatInputWrapper}>
+            {limitReached && <HuskyLimitStrip mode="chat" count={DAILY_CHAT_LIMIT - getChatCount()} type={limitReached} from="husky-chat" />}
+            <ChatInput
+              ref={textareaRef}
+              placeholder="Go ahead, ask anything!"
+              rows={isMobileDevice() ? 1 : 2}
+              autoFocus
+              onKeyDown={handleKeyDown}
+              onTextSubmit={submitForm}
+              onStopStreaming={onStopStreaming}
+              isAnswerLoading={isAnswerLoading}
+              isLoadingObject={chatIsLoading}
+              isLimitReached={limitReached === 'warn' || limitReached === 'finalRequest'}
+            />
+          </form>
         </div>
       ) : (
         <>

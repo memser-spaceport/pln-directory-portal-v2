@@ -7,6 +7,66 @@ export type FoundItem = {
     field: string;
     content: string;
   }[];
+  availableToConnect?: boolean;
+  scheduleMeetingCount?: number;
+};
+
+export type ForumFoundItem = {
+  image: string;
+  index: 'forumThreads';
+  kind: 'forum_thread';
+  lastReplyAt: string;
+  matches: {
+    field: string;
+    content: string;
+    pid?: number;
+    uidAuthor?: number;
+  }[];
+  name: string;
+  replyCount: number;
+  source: {
+    image: string | null;
+    lastReplyAt: string;
+    name: string;
+    name_suggest: {
+      input: string[];
+    };
+    replies: {
+      author: { name: 'Nataliia'; username: 'nataliia'; slug: 'nataliia-0'; image: null };
+      image: string | null;
+      name: string;
+      slug: string;
+      username: string;
+      content: string;
+      pid: number;
+      timestamp: string;
+      uidAuthor: number;
+      url: string;
+    }[];
+    replyCount: number;
+    rootPost: {
+      author: { name: 'Nataliia'; username: 'nataliia'; slug: 'nataliia-0'; image: null };
+      image: string;
+      name: string;
+      slug: string;
+      username: string;
+      content: string;
+      pid: number;
+      timestamp: string;
+      uidAuthor: number;
+      url: string;
+    };
+    tid: number;
+    topicSlug: string;
+    topicTitle: string;
+    topicUrl: string;
+    uid: string;
+    cid: string;
+  };
+  topicSlug: string;
+  topicTitle: string;
+  topicUrl: string;
+  uid: string;
 };
 
 export type SearchResult = {
@@ -15,4 +75,5 @@ export type SearchResult = {
   teams?: FoundItem[];
   projects?: FoundItem[];
   top?: FoundItem[];
+  forumThreads?: ForumFoundItem[];
 };

@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .root {
   display: flex;
   flex-direction: column;
@@ -6,6 +8,7 @@
 }
 
 .totalFoundLabel {
+  display: none;
   color: var(--Neutral-Slate-500, #64748B);
   text-align: right;
   font-feature-settings: 'liga' off, 'clig' off;
@@ -13,4 +16,33 @@
   font-style: normal;
   font-weight: 500;
   line-height: 16px; /* 133.333% */
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.divider {
+  display: flex;
+  padding: 4px 16px 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+  align-self: stretch;
+
+  background: #FFF;
+  box-shadow: 0 1px 4px 0 #E2E8F0;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  background: var(--Neutral-White);
+  padding-top: 8px;
+  z-index: 1;
+
+  @include media.tablet-landscape {
+    top: 40px;
+  }
 }

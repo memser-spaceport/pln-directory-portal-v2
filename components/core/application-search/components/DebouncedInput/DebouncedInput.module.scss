@@ -47,5 +47,9 @@
     position: absolute;
     right: 40px;
     padding: 4px;
+
+    &.singleView {
+      right: 12px;
+    }
   }
 }

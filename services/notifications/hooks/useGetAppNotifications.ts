@@ -15,5 +15,6 @@ export function useGetAppNotifications(userId: string | undefined, authToken: st
     enabled: Boolean(userId && authToken),
     staleTime: 15000,
     refetchInterval: 1000 * 60,
+    refetchIntervalInBackground: false,
   });
 }

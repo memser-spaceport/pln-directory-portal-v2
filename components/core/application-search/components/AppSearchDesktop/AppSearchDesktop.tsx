@@ -139,7 +139,12 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
     }
 
     if (!data || (!data.events?.length && !data.teams?.length && !data.members?.length && !data.projects?.length && !data.forumThreads?.length)) {
-      return <NothingFound onClick={handleTryAiSearch} searchTerm={searchTerm} />;
+      return (
+        <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+          <NothingFound onClick={handleTryAiSearch} searchTerm={searchTerm} />
+        </div>
+      );
     }
 
     return (

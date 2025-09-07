@@ -10,7 +10,7 @@ import { EditFormControls } from '@/components/page/member-details/components/Ed
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 

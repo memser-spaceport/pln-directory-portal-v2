@@ -12,7 +12,7 @@ import Cookies from 'js-cookie';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { updateMember } from '@/services/members.service';
 import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } from '@/schema/member-forms';
 import { validateLocation } from '@/services/location.service';

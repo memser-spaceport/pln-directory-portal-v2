@@ -9,7 +9,7 @@ import TeamProjectsInfo from './team-projects-info';
 import TeamSocialInfo from './team-social-info';
 import { createParticipantRequest, validatePariticipantsEmail } from '@/services/participants-request.service';
 import { ENROLLMENT_TYPE, EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import Cookies from 'js-cookie';
 import { teamRegisterDefault, transformRawInputsToFormObj } from '@/utils/team.utils';
 import RegisterActions from '@/components/core/register/register-actions';

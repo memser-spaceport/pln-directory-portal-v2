@@ -1,6 +1,6 @@
 import React, { FormEvent, use, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { IIrlAttendeeFormErrors, IIrlEvent, IIrlGathering, IIrlGuest, IIrlLocation, IIrlParticipationEvent } from '@/types/irl.types';
 import { IUserInfo } from '@/types/shared.types';
 import { ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS, EVENTS, EVENTS_SUBMIT_FORM_TYPES, IAM_GOING_POPUP_MODES, IRL_ATTENDEE_FORM_ERRORS, TOAST_MESSAGES } from '@/utils/constants';

@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { Tooltip } from '../tooltip/tooltip';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { createLogoutChannel } from '../login/broadcast-channel';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';

@@ -6,7 +6,7 @@ import * as yup from 'yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { usePostComment } from '@/services/forum/hooks/usePostComment';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { FormEditor } from '@/components/form/FormEditor';
 import { FormField } from '@/components/form/FormField';
 import { clsx } from 'clsx';

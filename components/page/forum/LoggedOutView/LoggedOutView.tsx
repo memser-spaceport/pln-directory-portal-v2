@@ -5,7 +5,7 @@ import s from './LoggedOutView.module.scss';
 import { Avatar } from '@base-ui-components/react/avatar';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 
 const items = new Array(5).fill(0).map((_, i) => (

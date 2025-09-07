@@ -2,11 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { customFetch } from '@/utils/fetch-wrapper';
 // import { getAnalyticsTeamInfo } from '@/utils/common.utils';
-import { toast } from 'react-toastify';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { ITeam } from '@/types/teams.types';
 import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 import { TeamsQueryKeys } from '@/services/teams/constants';
+import { toast } from '@/components/core/ToastContainer';
 
 type CloseAskMutationParams = {
   teamId: string;

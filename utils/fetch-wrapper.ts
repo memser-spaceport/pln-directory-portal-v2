@@ -2,7 +2,7 @@ import { renewAccessToken } from '@/services/auth.service';
 import { decodeToken } from './auth.utils';
 import Cookies from 'js-cookie';
 import { getParsedValue } from './common.utils';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from './constants';
 import { clearAllAuthCookies } from './third-party.helper';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';

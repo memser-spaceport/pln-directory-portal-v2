@@ -13,7 +13,7 @@ import ChatInput from '@/components/page/husky/chat-input';
 import { generateUUID, getUniqueId, isMobileDevice } from '@/utils/common.utils';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { IUserInfo } from '@/types/shared.types';
 import { createHuskyThread, createThreadTitle } from '@/services/husky.service';
 import { ChatHistory } from '@/components/core/application-search/components/AiChatPanel/components/ChatHistory';

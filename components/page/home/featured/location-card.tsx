@@ -7,7 +7,7 @@ import { triggerLoader } from '@/utils/common.utils';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import Modal from '@/components/core/modal';
 import Image from 'next/image';
 

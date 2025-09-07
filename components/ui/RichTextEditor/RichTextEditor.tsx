@@ -9,7 +9,7 @@ import 'quill-image-uploader/dist/quill.imageUploader.min.css';
 
 import s from './RichTextEditor.module.scss';
 import { saveRegistrationImage } from '@/services/registration.service';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 interface Props {
   value: string;

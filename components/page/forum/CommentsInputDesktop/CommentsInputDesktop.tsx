@@ -7,7 +7,7 @@ import { Checkbox } from '@base-ui-components/react/checkbox';
 import { usePostComment } from '@/services/forum/hooks/usePostComment';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { extractTextWithImages, replaceImagesWithMarkdown } from '@/utils/decode';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';

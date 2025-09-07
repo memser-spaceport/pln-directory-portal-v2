@@ -2,7 +2,7 @@ import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 type HuskyLimitStrip = {
   type: 'warn' | 'info' | 'close' | 'finalRequest';

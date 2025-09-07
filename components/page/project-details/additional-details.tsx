@@ -8,7 +8,7 @@ import { PROJECT_README_DEFAULT } from '@/utils/constants';
 import 'md-editor-rt/lib/style.css';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 const MdEditor = dynamic(() => import('md-editor-rt').then((mod) => mod.MdEditor));
 const MdPreview = dynamic(() => import('md-editor-rt').then((mod) => mod.MdPreview));

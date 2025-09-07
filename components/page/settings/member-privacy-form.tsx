@@ -4,7 +4,7 @@ import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import SettingsAction from './actions';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';

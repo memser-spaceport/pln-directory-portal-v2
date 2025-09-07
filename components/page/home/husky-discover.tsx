@@ -7,7 +7,7 @@ import {  } from '@/services/husky.service';
 import { useRouter, useSearchParams } from 'next/navigation';
 import cookies from 'js-cookie'
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { getHuskyResponseBySlug, incrementHuskyViewCount } from '@/services/discovery.service';
 
 let huskyRecorded = false;

@@ -68,9 +68,8 @@ export const SearchResultsSection = ({ title, items, query, onSelect, groupItems
 
   // Function to render a single item
   const renderItem = (item: FoundItem | ForumFoundItem) => {
-    const defaultAvatar = item.image || getDefaultAvatar(item?.name);
-
     if (item.index === 'forumThreads') {
+      const defaultAvatar = item?.source?.rootPost?.author?.image || getDefaultAvatar(item?.name);
       const matchedName = item.matches.find((match) => match.field === 'name');
 
       const commentsMatches = item.matches.filter((match) => match.field === 'replies.content');
@@ -155,6 +154,7 @@ export const SearchResultsSection = ({ title, items, query, onSelect, groupItems
       );
     }
 
+    const defaultAvatar = item.image || getDefaultAvatar(item?.name);
     const matchedName = item.matches.find((match) => match.field === 'name');
 
     return (

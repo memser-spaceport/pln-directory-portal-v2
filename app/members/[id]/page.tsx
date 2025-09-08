@@ -16,6 +16,7 @@ import { UpcomingEventsWidget } from '@/components/page/member-info/components/U
 import { OneClickVerification } from '@/components/page/member-details/OneClickVerification';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { OfficeHoursDetails } from '@/components/page/member-details/OfficeHoursDetails';
+import { InvestorProfileDetails } from '@/components/page/member-details/InvestorProfileDetails';
 import { BackButton } from '@/components/ui/BackButton';
 import React, { useEffect } from 'react';
 import { BookWithOther } from '@/components/page/member-details/BookWithOther';
@@ -101,6 +102,8 @@ const MemberDetails = ({ params }: { params: any }) => {
               <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
               <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+
+              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 
               <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
 

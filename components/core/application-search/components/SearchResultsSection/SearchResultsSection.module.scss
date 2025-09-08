@@ -178,4 +178,7 @@ $padding-inline: 16px;
   letter-spacing: -0.2px;
   padding-left: 32px;
   margin-top: 4px;
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
 }

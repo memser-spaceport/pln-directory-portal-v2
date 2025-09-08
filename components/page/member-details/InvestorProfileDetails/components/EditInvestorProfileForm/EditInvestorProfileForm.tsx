@@ -15,6 +15,7 @@ import * as yup from 'yup';
 import s from './EditInvestorProfileForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
+import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 
 interface Props {
   onClose: () => void;
@@ -24,25 +25,37 @@ interface Props {
 
 // Mock check size options
 const checkSizeOptions = [
-  { label: '$1K - $5K', value: '$1K - $5K' },
-  { label: '$5K - $10K', value: '$5K - $10K' },
-  { label: '$10K - $25K', value: '$10K - $25K' },
-  { label: '$25K - $50K', value: '$25K - $50K' },
-  { label: '$50K - $100K', value: '$50K - $100K' },
-  { label: '$100K - $250K', value: '$100K - $250K' },
-  { label: '$250K - $500K', value: '$250K - $500K' },
-  { label: '$500K - $1M', value: '$500K - $1M' },
-  { label: '$1M+', value: '$1M+' },
+  { label: '0 - 100.000', value: '0 - 100.000' },
+  { label: '100.000 - 500.000', value: '100.000 - 500.000' },
+  { label: '500.000 - 1.000.000', value: '500.000 - 1.000.000' },
+  { label: '1.000.000 - 2.000.000', value: '1.000.000 - 2.000.000' },
+  { label: '2.000.000 - 5.000.000', value: '2.000.000 - 5.000.000' },
 ];
+
+const schema = yup.object().shape({
+  typicalCheckSize: yup.object().test({
+    test: function (value) {
+      if (!value) {
+        return this.createError({ message: 'Required', type: 'required' });
+      }
+
+      return true;
+    },
+  }),
+  investmentFocusAreas: yup.object().test({
+    test: function (value) {
+      if (!value) {
+        return this.createError({ message: 'Required', type: 'required' });
+      }
+
+      return true;
+    },
+  }),
+  displayAsInvestor: yup.boolean().defined(),
+});
 
 export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
-
-  const schema = yup.object().shape({
-    typicalCheckSize: yup.string().defined().nullable(),
-    investmentFocusAreas: yup.array().of(yup.string().defined()).defined().nullable(),
-    displayAsInvestor: yup.boolean().defined(),
-  });
 
   const methods = useForm<TEditInvestorProfileForm>({
     defaultValues: {
@@ -60,10 +73,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const onSubmit = async (formData: TEditInvestorProfileForm) => {
     // Mock mutation - replace with actual API call
     console.log('Submitting investor profile data:', formData);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     // Mock success response
     toast.success('Investor profile updated successfully!');
     router.refresh();
@@ -85,26 +98,14 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Profile" />
         <div className={s.body}>
           <div className={s.row}>
-            <FormSelect
-              name="typicalCheckSize"
-              label="Typical Check Size"
-              placeholder="Select typical check size"
-              options={checkSizeOptions}
-            />
+            <FormSelect name="typicalCheckSize" label="Typical Check Size" placeholder="Select typical check size" options={checkSizeOptions} />
           </div>
           <div className={s.row}>
-            <FormTagsInput 
-              selectLabel="Investment Focus Areas:" 
-              name="investmentFocusAreas" 
-              warning={false} 
-              placeholder="Add focus areas (e.g. Web3, AI, Fintech, etc.)" 
-            />
+            <FormMultiSelect label="Add Investment Focus Area" name="investmentFocusAreas" placeholder="Select focus area" options={[]} />
           </div>
           <div className={s.row}>
-            <FormSwitch
-              name="displayAsInvestor"
-              label="Display my profile as an Investor (for Demo Days & fundraising)"
-            />
+            <FormSwitch name="displayAsInvestor" label="Display my profile as an Investor (for Demo Days & fundraising)" />
+            <p className={s.switchDesc}>When enabled, your profile will be shown as an Investor during Demo Days and in the network directory.</p>
           </div>
         </div>
         <EditOfficeHoursMobileControls />

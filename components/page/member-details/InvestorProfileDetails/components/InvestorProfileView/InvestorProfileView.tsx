@@ -24,10 +24,6 @@ export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, 
   // Mock data - replace with actual member properties when available
   const typicalCheckSize = (member as any)?.typicalCheckSize || '';
   const investmentFocusAreas = (member as any)?.investmentFocusAreas || [];
-  const displayAsInvestor = (member as any)?.displayAsInvestor || false;
-
-  const hasInvestorProfile = !!typicalCheckSize || !!investmentFocusAreas?.length || displayAsInvestor;
-  const showUpdateButton = isEditable && hasInvestorProfile;
 
   return (
     <>
@@ -47,7 +43,7 @@ export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, 
       >
         <div className={s.header}>
           <h3 className={s.title}>Investor Profile</h3>
-          {showUpdateButton && <EditButton onClick={onEdit} />}
+          {isEditable && <EditButton onClick={onEdit} />}
         </div>
 
         <div className={s.content}>

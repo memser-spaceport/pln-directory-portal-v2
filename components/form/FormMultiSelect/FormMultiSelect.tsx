@@ -105,7 +105,7 @@ export const FormMultiSelect = ({ name, placeholder, label, description, options
           }),
           input: (baseStyles) => ({
             ...baseStyles,
-            height: '32px',
+            height: '42px',
             fontSize: '14px',
             padding: 0,
             display: 'flex !important',

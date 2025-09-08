@@ -73,6 +73,8 @@ export const SearchResultsSection = ({ title, items, query, onSelect, groupItems
       const matchedName = item.matches.find((match) => match.field === 'name');
 
       const commentsMatches = item.matches.filter((match) => match.field === 'replies.content');
+      const rootPostAuthorMatches = item.matches.filter((match) => match.field === 'rootPost.author.name');
+      // const repliesAuthorMatches = item.matches.filter((match) => match.field === 'replies.author.name');
 
       return (
         <li
@@ -101,7 +103,16 @@ export const SearchResultsSection = ({ title, items, query, onSelect, groupItems
             </div>
             <ul className={s.matches}>
               {item.matches
-                .filter((match) => match.field !== 'name' && match.field !== 'topicUrl' && match.field !== 'topicSlug' && match.field !== 'topicTitle' && match.field !== 'replies.content')
+                .filter(
+                  (match) =>
+                    match.field !== 'name' &&
+                    match.field !== 'topicUrl' &&
+                    match.field !== 'topicSlug' &&
+                    match.field !== 'topicTitle' &&
+                    match.field !== 'replies.content' &&
+                    match.field !== 'rootPost.author.name' &&
+                    match.field !== 'replies.author.name',
+                )
                 .map((match) => {
                   return (
                     <li key={match.field} className={s.matchRow}>
@@ -114,7 +125,9 @@ export const SearchResultsSection = ({ title, items, query, onSelect, groupItems
                   );
                 })}
               <li className={s.postDetails}>
-                Posted by {item.source.rootPost.author.name} &bull; {formatDistanceToNow(new Date(item.source.rootPost.timestamp), { addSuffix: true })}
+                Posted by{' '}
+                {rootPostAuthorMatches?.length ? <span className={s.text}>{parse(rootPostAuthorMatches[0].content)}</span> : <span className={s.text}>{item.source.rootPost.author.name}</span>} &bull;{' '}
+                {formatDistanceToNow(new Date(item.source.rootPost.timestamp), { addSuffix: true })}
               </li>
             </ul>
           </div>

@@ -14,7 +14,7 @@ interface Props {
   isColorfulBadges?: boolean;
   menuPlacement?: MenuPlacement;
   selectLabel: string;
-  warning: boolean;
+  warning?: boolean;
   placeholder?: string;
 }
 

@@ -8,14 +8,12 @@ import { EditOfficeHoursFormControls } from '@/components/page/member-details/Of
 import { EditOfficeHoursMobileControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursMobileControls';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormTagsInput } from '@/components/form/FormTagsInput';
-import { FormSwitch } from '@/components/form/FormSwitch';
 import { ADMIN_ROLE } from '@/utils/constants';
 import * as yup from 'yup';
 
 import s from './EditInvestorProfileForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
-import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 
 interface Props {
   onClose: () => void;
@@ -99,7 +97,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
             <FormSelect name="typicalCheckSize" label="Typical Check Size" placeholder="Select typical check size" options={checkSizeOptions} />
           </div>
           <div className={s.row}>
-            <FormMultiSelect label="Add Investment Focus Area" name="investmentFocusAreas" placeholder="Select focus area" options={[]} />
+            <FormTagsInput selectLabel="Add Investment Focus Area" name="investmentFocusAreas" placeholder="Enter focus area" />
           </div>
         </div>
         <EditOfficeHoursMobileControls />

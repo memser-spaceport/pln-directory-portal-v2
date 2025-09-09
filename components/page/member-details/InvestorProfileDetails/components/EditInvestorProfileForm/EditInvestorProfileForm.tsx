@@ -51,7 +51,6 @@ const schema = yup.object().shape({
       return true;
     },
   }),
-  displayAsInvestor: yup.boolean().defined(),
 });
 
 export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
@@ -61,7 +60,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     defaultValues: {
       typicalCheckSize: (member as any)?.typicalCheckSize || '',
       investmentFocusAreas: (member as any)?.investmentFocusAreas || [],
-      displayAsInvestor: (member as any)?.displayAsInvestor || false,
     },
     resolver: yupResolver(schema),
     mode: 'all',
@@ -102,10 +100,6 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
           </div>
           <div className={s.row}>
             <FormMultiSelect label="Add Investment Focus Area" name="investmentFocusAreas" placeholder="Select focus area" options={[]} />
-          </div>
-          <div className={s.row}>
-            <FormSwitch name="displayAsInvestor" label="Display my profile as an Investor (for Demo Days & fundraising)" />
-            <p className={s.switchDesc}>When enabled, your profile will be shown as an Investor during Demo Days and in the network directory.</p>
           </div>
         </div>
         <EditOfficeHoursMobileControls />

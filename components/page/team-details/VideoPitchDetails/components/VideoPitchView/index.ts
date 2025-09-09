@@ -1,0 +1,1 @@
+export { VideoPitchView } from './VideoPitchView';

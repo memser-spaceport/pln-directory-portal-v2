@@ -22,6 +22,7 @@ import TeamIrlContributions from '@/components/page/team-details/team-irl-contri
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 import { PitchDeckDetails } from '@/components/page/team-details/PitchDeckDetails';
+import { VideoPitchDetails } from '@/components/page/team-details/VideoPitchDetails';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -60,6 +61,8 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           </div>
 
           <PitchDeckDetails team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+
+          <VideoPitchDetails team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} />
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>

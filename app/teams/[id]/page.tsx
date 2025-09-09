@@ -21,6 +21,7 @@ import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
+import { PitchDeckDetails } from '@/components/page/team-details/PitchDeckDetails';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -57,18 +58,8 @@ async function Page({ params }: { params: ITeamDetailParams }) {
           <div className={styles?.teamDetail__Container__details}>
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
-          {/* Asks */}
-          {/*{!hasEditAsksAccess && team?.asks.length > 0 && (*/}
-          {/*  <div className={styles.teamDetail__Container__asks}>*/}
-          {/*    <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />*/}
-          {/*  </div>*/}
-          {/*)}*/}
 
-          {/*{hasEditAsksAccess && (*/}
-          {/*  <div className={styles.teamDetail__Container__asks}>*/}
-          {/*    <AsksSection team={team} canEdit={hasEditAsksAccess ?? false} />*/}
-          {/*  </div>*/}
-          {/*)}*/}
+          <PitchDeckDetails team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} />
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>

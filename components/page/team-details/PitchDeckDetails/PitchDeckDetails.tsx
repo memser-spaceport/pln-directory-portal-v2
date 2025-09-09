@@ -9,24 +9,24 @@ import { EditInvestorProfileForm } from '@/components/page/member-details/Invest
 import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
-import s from './InvestorProfileDetails.module.scss';
+import s from './PitchDeckDetails.module.scss';
+import { PitchDeckView } from '@/components/page/team-details/PitchDeckDetails/components/PitchDeckView';
+import { EditPitchDeckForm } from '@/components/page/team-details/PitchDeckDetails/components/EditPitchDeckForm';
+import { ITeam } from '@/types/teams.types';
 
 interface Props {
-  member: IMember;
+  team: ITeam;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
 }
 
-export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) => {
+export const PitchDeckDetails = ({ isLoggedIn, userInfo, team }: Props) => {
   const [editView, setEditView] = useState(false);
   const isAdmin = !!(userInfo?.roles && userInfo?.roles?.length > 0 && userInfo?.roles.includes(ADMIN_ROLE));
-  const isOwner = userInfo?.uid === member.id;
-  const isEditable = isOwner || isAdmin;
+  const isEditable = userInfo?.leadingTeams?.includes(team?.id) || isAdmin;
 
-  // Mock data - replace with actual member properties when available
-  const hasInvestorProfile = !!(member as any)?.typicalCheckSize || !!(member as any)?.investmentFocusAreas?.length || !!(member as any)?.displayAsInvestor;
-  const showWarningUseCaseA = !hasInvestorProfile;
-  const showIncomplete = !editView && isOwner && showWarningUseCaseA;
+  const showWarningUseCaseA = true;
+  const showIncomplete = true;
 
   useMobileNavVisibility(editView);
 
@@ -34,11 +34,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
     return null;
   }
 
-  if (!isEditable && !hasInvestorProfile) {
-    return null;
-  }
-
-  if (!isAdmin && member.accessLevel !== 'L5' && member.accessLevel !== 'L6') {
+  if (!isEditable) {
     return null;
   }
 
@@ -50,9 +46,9 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
       })}
     >
       {editView ? (
-        <EditInvestorProfileForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
+        <EditPitchDeckForm onClose={() => setEditView(false)} team={team} userInfo={userInfo} />
       ) : (
-        <InvestorProfileView member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} isEditable={isEditable} showIncomplete={showIncomplete} onEdit={() => setEditView(true)} />
+        <PitchDeckView team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} isEditable={isEditable} showIncomplete={showIncomplete} onEdit={() => setEditView(true)} />
       )}
     </div>
   );

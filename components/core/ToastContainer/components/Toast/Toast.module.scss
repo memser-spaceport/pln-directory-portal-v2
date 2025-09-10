@@ -1,0 +1,120 @@
+@use 'styles/media';
+
+.root {
+  @extend .body;
+
+  justify-content: space-between;
+
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  letter-spacing: -0.2px;
+
+  height: 32px;
+  font-size: 14px;
+  border-radius: 8px;
+  padding-inline: 8px;
+
+  @include media.tablet-landscape {
+    height: 52px;
+    font-size: 16px;
+    border-radius: 12px;
+    padding-inline: 16px;
+
+    border: 1px solid;
+
+    .close {
+      width: 36px;
+      height: 36px;
+    }
+  }
+}
+
+.border {
+  border: 1px solid;
+}
+
+.body {
+  gap: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+
+  @include media.tablet-landscape {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.close {
+  cursor: pointer;
+}
+
+@mixin theme($fontColor, $borderColor, $closeIconColor, $backgroundColor) {
+  color: $fontColor;
+
+  @include media.tablet-landscape {
+    border-color: $borderColor;
+  }
+
+  &.border {
+    border-color: $borderColor;
+  }
+
+  &:not(.border) {
+    background-color: $backgroundColor;
+  }
+
+  & .close {
+    color: $closeIconColor;
+  }
+}
+
+.default {
+  @include theme(
+                  var(--foreground-neutral-primary, #0A0C11),
+                  var(--border-neutral-muted, rgba(27, 56, 96, 0.24)),
+                  #455468,
+                  var(--background-neutral-soft-surface, #F9FAFB)
+  );
+}
+
+.error {
+  @include theme(
+                  var(--foreground-error-primary, #D21A0E),
+                  var(--border-error-subtle, rgba(233, 34, 21, 0.16)),
+                  #FF3838,
+                  #FFF0F0
+  );
+}
+
+.info {
+  @include theme(
+                  var(--foreground-brand-primary, #1B4DFF),
+                  var(--border-brand-subtle, #AEBFFF),
+                  #1B4DFF,
+                  var(--background-brand-soft-surface, #F2F5FF)
+  );
+}
+
+.success {
+  @include theme(
+                  var(--foreground-success-primary, #0A9952),
+                  var(--border-success-subtle, rgba(4, 135, 70, 0.32)),
+                  #0A9952,
+                  #E6F4ED
+  );
+}
+
+.warning {
+  @include theme(
+                  var(--foreground-warning-primary, #B45309),
+                  var(--border-warning-subtle, #FDE68A),
+                  #D97706,
+                  #FEF5E6
+  );
+}

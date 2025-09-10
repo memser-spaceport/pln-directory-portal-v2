@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { ITEMS_PER_PAGE, TOAST_MESSAGES } from '@/utils/constants';
 import { getProjectSelectOptions, getProjectsFiltersFromQuery } from '@/utils/projects.utils';

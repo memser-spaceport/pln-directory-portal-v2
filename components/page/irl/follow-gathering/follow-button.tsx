@@ -5,7 +5,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import Modal from '@/components/core/modal';
 import { EVENTS, FOLLOW_ENTITY_TYPES } from '@/utils/constants';
 

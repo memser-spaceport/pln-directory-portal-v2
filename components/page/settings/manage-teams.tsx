@@ -12,7 +12,7 @@ import { compareObjsIfSame, getAnalyticsUserInfo, triggerLoader } from '@/utils/
 import SearchableSingleSelect from '@/components/form/searchable-single-select';
 import { updateTeam } from '@/services/teams.service';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { projectDetailsSchema, socialSchema, basicInfoSchema } from '@/schema/team-forms';
 import Modal from '@/components/core/modal';
 import SettingsAction from './actions';

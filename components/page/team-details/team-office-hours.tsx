@@ -6,7 +6,7 @@ import { getAnalyticsTeamInfo, getAnalyticsUserInfo } from '@/utils/common.utils
 import { TEAM_OFFICE_HOURS_MSG, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 const TeamOfficeHours = (props: any) => {

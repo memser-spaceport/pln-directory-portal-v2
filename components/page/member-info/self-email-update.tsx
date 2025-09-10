@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import Cookies from 'js-cookie';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 import { decodeToken } from '@/utils/auth.utils';

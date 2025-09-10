@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { ForumQueryKeys } from '@/services/forum/constants';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 export interface EditPostMutationParams {

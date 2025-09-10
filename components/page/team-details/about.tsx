@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { updateTeam } from '@/services/teams.service';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 interface IAbout {
   about: string;

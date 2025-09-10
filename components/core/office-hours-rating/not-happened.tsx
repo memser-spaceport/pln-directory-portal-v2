@@ -6,7 +6,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, NOT_SCHEDULED_OPTIONS, TOAST_MESSAGES } from '@/utils/constants';
 import { FormEvent, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 interface INotHappened {
   onClose: (isUpdateRequired: boolean) => void;

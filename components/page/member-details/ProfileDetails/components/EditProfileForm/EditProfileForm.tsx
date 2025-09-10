@@ -23,7 +23,7 @@ import s from './EditProfileForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 
 interface Props {

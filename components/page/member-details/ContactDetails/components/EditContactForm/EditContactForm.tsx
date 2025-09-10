@@ -16,7 +16,7 @@ import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { decodeToken } from '@/utils/auth.utils';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';

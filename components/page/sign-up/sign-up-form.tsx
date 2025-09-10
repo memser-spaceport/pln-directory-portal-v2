@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { isSkipRecaptcha, triggerLoader } from '@/utils/common.utils';
 import { getRecaptchaToken } from '@/services/google-recaptcha.service';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import { signUpFormAction } from '@/app/actions/sign-up.actions';
 import { useRouter } from 'next/navigation';

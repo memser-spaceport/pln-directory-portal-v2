@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { Menu as MenuIcon, Edit as EditIcon } from '@/components/icons';
+import { MenuIcon, EditIcon } from '@/components/icons';
 
 import s from './ItemMenu.module.scss';
 

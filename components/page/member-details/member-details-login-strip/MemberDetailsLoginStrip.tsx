@@ -3,7 +3,7 @@ import { IMember } from '@/types/members.types';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { clsx } from 'clsx';
 

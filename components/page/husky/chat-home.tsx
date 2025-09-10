@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import TextArea from './chat-input';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { getChatCount } from '@/utils/husky.utlils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 

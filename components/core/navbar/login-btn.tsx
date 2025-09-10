@@ -4,7 +4,7 @@ import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 import s from './LoginButton.module.scss';
 

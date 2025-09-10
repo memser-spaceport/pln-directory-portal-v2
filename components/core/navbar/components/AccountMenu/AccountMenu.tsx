@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { createLogoutChannel } from '@/components/core/login/broadcast-channel';
 import { usePostHog } from 'posthog-js/react';

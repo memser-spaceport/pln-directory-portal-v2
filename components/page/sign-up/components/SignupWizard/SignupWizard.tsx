@@ -15,7 +15,7 @@ import { Field } from '@base-ui-components/react/field';
 import { Checkbox } from '@base-ui-components/react/checkbox';
 import Script from 'next/script';
 import { getRecaptchaToken } from '@/services/google-recaptcha.service';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { isSkipRecaptcha } from '@/utils/common.utils';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import Cookies from 'js-cookie';

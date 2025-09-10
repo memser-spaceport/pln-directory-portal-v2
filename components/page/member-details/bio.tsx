@@ -5,7 +5,7 @@ import { getAnalyticsMemberInfo, getAnalyticsUserInfo, triggerLoader } from '@/u
 import { useState } from 'react';
 import clip from 'text-clipper';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { updateMember, updateMemberBio } from '@/services/members.service';
 import { ADMIN_ROLE } from '@/utils/constants';
 import Image from 'next/image';

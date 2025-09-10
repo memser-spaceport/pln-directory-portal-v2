@@ -17,7 +17,7 @@ import { useCreateFollowUp } from '@/services/members/hooks/useCreateFollowUp';
 import Cookies from 'js-cookie';
 import { getFollowUps } from '@/services/office-hours.service';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 interface Props {
   member: IMember;

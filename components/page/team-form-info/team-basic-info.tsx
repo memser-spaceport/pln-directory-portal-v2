@@ -7,6 +7,7 @@ import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
 import { TagsInput } from '@/components/form/TagsInput';
+import { CurrencyInput } from '@/components/form/CurrencyInput';
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -202,23 +203,18 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
         {(isAdmin || isInvestor) && (
           <>
             <div className="teaminfo__form__item">
-              <TextField
+              <CurrencyInput
                 defaultValue={initialValues?.investorProfile?.typicalCheckSize}
-                isMandatory={false}
-                id="register-team-typicalCheckSize"
                 label="Typical Check Size (Only if the Team is an Investment Fund)"
                 name="typicalCheckSize"
-                type="text"
                 placeholder="Enter a single amount (e.g., $250k)"
               />
             </div>
             <div className="teaminfo__form__item">
               <TagsInput
                 defaultValue={initialValues?.investorProfile?.investmentFocus}
-                // id="register-team-investmentFocus"
                 selectLabel="Add Investment Focus (Only if the Team is an Investment Fund)"
                 name="investmentFocus"
-                // type="text"
                 placeholder="Add Keywords. E.g. AI, Staking, Governance, etc."
               />
             </div>

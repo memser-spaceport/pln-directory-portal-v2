@@ -225,7 +225,7 @@ function TeamRegisterForm({ onSuccess, userInfo }: ITeamRegisterForm) {
         <form className="trf" onSubmit={onFormSubmit} ref={formRef} noValidate>
           <div ref={formContainerRef} className="trf__form">
             <div className={currentStep !== TEAM_FORM_STEPS[0] ? 'hidden' : 'form'}>
-              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent} />
+              <TeamBasicInfo errors={basicErrors} initialValues={initialValues.basicInfo} longDesc={content} setLongDesc={setContent} userInfo={userInfo} />
             </div>
             <div className={currentStep !== TEAM_FORM_STEPS[1] ? 'hidden' : 'form'}>
               <TeamProjectsInfo

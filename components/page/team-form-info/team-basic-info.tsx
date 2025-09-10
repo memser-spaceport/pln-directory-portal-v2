@@ -4,6 +4,8 @@ import TextField from '@/components/form/text-field';
 import { useEffect, useRef, useState } from 'react';
 import Toggle from '@/components/ui/toogle';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
+import { IUserInfo } from '@/types/shared.types';
+import { ADMIN_ROLE } from '@/utils/constants';
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -11,6 +13,7 @@ interface ITeamBasicInfo {
   isEdit?: boolean;
   longDesc: string;
   setLongDesc: (content: string) => void;
+  userInfo: IUserInfo;
 }
 
 function TeamBasicInfo(props: ITeamBasicInfo) {
@@ -22,6 +25,8 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const formImage = profileImage ? profileImage : savedImage ? savedImage : '';
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
+  const isAdmin = props.userInfo?.roles?.includes(ADMIN_ROLE);
+  const isInvestor = props.userInfo.accessLevel === 'L5' || props.userInfo.accessLevel === 'L6';
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -192,6 +197,33 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
             <span className="info__text">If your team offers group office hours or open meetings that are open to the public, please share the link so PLN members can join and learn more.</span>
           </p>
         </div>
+
+        {(isAdmin || isInvestor) && (
+          <>
+            <div className="teaminfo__form__item">
+              <TextField
+                defaultValue={initialValues?.investorProfile?.typicalCheckSize}
+                isMandatory={false}
+                id="register-team-officeHours"
+                label="Typical Check Size (Only if the Team is an Investment Fund)"
+                name="typicalCheckSize"
+                type="text"
+                placeholder="Enter a single amount (e.g., $250k)"
+              />
+            </div>
+            <div className="teaminfo__form__item">
+              <TextField
+                defaultValue={initialValues?.investorProfile?.investmentFocus}
+                isMandatory={false}
+                id="register-team-officeHours"
+                label="Add Investment Focus (Only if the Team is an Investment Fund)"
+                name="investmentFocus"
+                type="text"
+                placeholder="Add Keywords. E.g. AI, Staking, Governance, etc."
+              />
+            </div>
+          </>
+        )}
       </div>
       <style jsx>
         {`

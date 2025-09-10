@@ -49,7 +49,15 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
       {editView ? (
         <EditInvestorProfileForm onClose={() => setEditView(false)} member={member} userInfo={userInfo} />
       ) : (
-        <InvestorProfileView member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} isEditable={isEditable} showIncomplete={showIncomplete} onEdit={() => setEditView(true)} />
+        <InvestorProfileView
+          investmentFocusAreas={member?.investorProfile?.investmentFocus}
+          typicalCheckSize={member?.investorProfile?.typicalCheckSize}
+          isLoggedIn={isLoggedIn}
+          userInfo={userInfo}
+          isEditable={isEditable}
+          showIncomplete={showIncomplete}
+          onEdit={() => setEditView(true)}
+        />
       )}
     </div>
   );

@@ -2,25 +2,22 @@
 
 import React from 'react';
 import { clsx } from 'clsx';
-import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
 
 import s from './InvestorProfileView.module.scss';
 
 interface Props {
-  member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo;
   isEditable: boolean;
   showIncomplete: boolean;
-  onEdit: () => void;
+  onEdit?: () => void;
+  typicalCheckSize: string | undefined;
+  investmentFocusAreas: string[] | undefined;
 }
 
-export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, showIncomplete, onEdit }: Props) => {
-  const typicalCheckSize = member.investorProfile?.typicalCheckSize || '';
-  const investmentFocusAreas = member.investorProfile?.investmentFocus || [];
-
+export const InvestorProfileView = ({ typicalCheckSize, investmentFocusAreas, isLoggedIn, isEditable, showIncomplete, onEdit }: Props) => {
   return (
     <>
       {showIncomplete && (
@@ -39,7 +36,7 @@ export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, 
       >
         <div className={s.header}>
           <h3 className={s.title}>Investor Profile</h3>
-          {isEditable && <EditButton onClick={onEdit} />}
+          {isEditable && onEdit && <EditButton onClick={onEdit} />}
         </div>
 
         <div className={s.content}>
@@ -56,7 +53,7 @@ export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, 
                         type="button"
                         className={s.addKeywordsBadge}
                         onClick={() => {
-                          onEdit();
+                          onEdit?.();
                         }}
                       >
                         <AddIcon /> Add
@@ -80,7 +77,7 @@ export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, 
                         type="button"
                         className={s.addKeywordsBadge}
                         onClick={() => {
-                          onEdit();
+                          onEdit?.();
                         }}
                       >
                         <AddIcon /> Add

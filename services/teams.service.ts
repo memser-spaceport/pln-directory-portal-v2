@@ -127,6 +127,7 @@ export const getTeam = async (id: string, options: string | string[][] | Record<
     teamFocusAreas: result?.teamFocusAreas,
     eventGuests: result?.eventGuests,
     asks: result?.asks ?? [],
+    investorProfile: result?.investorProfile,
   };
   return { data: { formatedData } };
 };

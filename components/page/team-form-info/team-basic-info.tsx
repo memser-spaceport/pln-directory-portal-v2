@@ -27,7 +27,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const [isPlnFriend, setIsPlnFriend] = useState<boolean>(initialValues?.plnFriend ?? false);
   const isAdmin = props.userInfo?.roles?.includes(ADMIN_ROLE);
-  const isInvestor = props.userInfo.accessLevel === 'L5' || props.userInfo.accessLevel === 'L6';
+  const isInvestor = props.userInfo?.accessLevel === 'L5' || props.userInfo?.accessLevel === 'L6';
 
   const onImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

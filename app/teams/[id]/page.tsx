@@ -21,8 +21,9 @@ import TeamOfficeHours from '@/components/page/team-details/team-office-hours';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
-import { PitchDeckDetails } from '@/components/page/team-details/PitchDeckDetails';
-import { VideoPitchDetails } from '@/components/page/team-details/VideoPitchDetails';
+import { InvestorProfileView } from '@/components/page/member-details/InvestorProfileDetails/components/InvestorProfileView';
+import { clsx } from 'clsx';
+import s from '@/components/page/member-details/InvestorProfileDetails/InvestorProfileDetails.module.scss';
 
 async function Page({ params }: { params: ITeamDetailParams }) {
   const teamId: string = params?.id;
@@ -60,9 +61,18 @@ async function Page({ params }: { params: ITeamDetailParams }) {
             <TeamDetails team={team} userInfo={userInfo} />
           </div>
 
-          <PitchDeckDetails team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-
-          <VideoPitchDetails team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+          {team.investorProfile && (
+            <div className={clsx(s.root)}>
+              <InvestorProfileView
+                investmentFocusAreas={team?.investorProfile?.investmentFocus}
+                typicalCheckSize={team?.investorProfile?.typicalCheckSize}
+                isLoggedIn={isLoggedIn}
+                userInfo={userInfo}
+                isEditable={false}
+                showIncomplete={false}
+              />
+            </div>
+          )}
 
           {/* contact */}
           <div className={styles?.teamDetail__container__contact}>

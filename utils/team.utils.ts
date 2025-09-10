@@ -150,6 +150,22 @@ export function transformRawInputsToFormObj(obj: any) {
       result['longDescription'] = obj[key];
     } else if (key.startsWith('name')) {
       result['name'] = obj[key].trim();
+    } else if (key.startsWith('investmentFocus')) {
+      if (result.investorProfile) {
+        result.investorProfile.investmentFocus = obj[key] ? JSON.parse(obj[key]) : [];
+      } else {
+        result.investorProfile = {
+          investmentFocus: obj[key] ? JSON.parse(obj[key]) : [],
+        };
+      }
+    } else if (key.startsWith('typicalCheckSize')) {
+      if (result.investorProfile) {
+        result.investorProfile.typicalCheckSize = obj[key];
+      } else {
+        result.investorProfile = {
+          typicalCheckSize: obj[key],
+        };
+      }
     } else {
       result[key] = obj[key];
     }

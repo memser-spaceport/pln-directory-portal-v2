@@ -1,0 +1,231 @@
+@use 'styles/mixins.scss';
+
+.root {
+  border-radius: 8px;
+  background: #FFF;
+  width: 100%;
+
+  &.disabled {
+    pointer-events: none;
+
+    .addButton {
+      opacity: 0.5;
+    }
+  }
+}
+
+.header {
+  padding: 0 0 16px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--Text-Dark, #0F172A);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+
+  svg {
+    color: #1B4DFF;
+  }
+
+  &.warning {
+    svg {
+      color: #FF820E;
+    }
+  }
+}
+
+.hint {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
+}
+
+.selectedList {
+  border-top: 1px solid #E5E5E5;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+}
+
+.input {
+  padding: 2px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(203, 213, 225, 0.50);
+  border-radius: 8px;
+  gap: 12px;
+  min-height: 50px;
+  //background: rgba(14, 15, 17, 0.02);
+
+  &:hover {
+    border: 1px solid #5E718D;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12) !important;
+  }
+
+  &:focus-visible, &:focus {
+    border-color: #5E718D !important;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12) !important;
+  }
+}
+
+.inputContent {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+}
+
+.textInput {
+  border: none;
+  outline: none;
+  //width: 100%;
+  height: 32px;
+  flex: 1;
+  background: transparent;
+
+  @include mixins.placeholder {
+    border-radius: var(--corner-radius-sm, 6px);
+    //border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    background: var(--background-base-white, #FFF);
+    //box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+    display: flex;
+    padding: var(--spacing-4xs, 6px) var(--spacing-3xs, 6px);
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-5xs, 2px);
+    color: #AFBACA;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+  }
+
+  &.hidePlaceholder {
+    &::placeholder {
+      color: transparent;
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+    }
+  }
+
+  &:focus::placeholder {
+    color: transparent;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.addButton {
+  color: #156FF7;
+  font-feature-settings: 'liga' off, 'clig' off;
+
+  /* Body 2/Medium */
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.badge {
+  @include mixins.ellipse-text;
+  display: flex;
+  padding: 4px 6px;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  border-radius: 6px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1;
+  margin: 0;
+  width: fit-content;
+  min-height: 33px;
+  color: #455468;
+  font-style: normal;
+  letter-spacing: -0.2px;
+
+  span {
+    padding: 3px 3px 3px 6px;
+  }
+
+
+  svg {
+    stroke: #64748B;
+  }
+
+  > button {
+    @include mixins.centralize;
+    padding: 2px 4px;
+    height: 17px;
+  }
+
+  &.disabled {
+    button {
+      pointer-events: none;
+      display: none;
+    }
+  }
+}
+
+.Content {
+  display: flex;
+  flex-direction: column;
+  cursor: text;
+  width: 100%;
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.inputLabel {
+  color: #475569;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+  margin-bottom: 0.25rem;
+
+  &.required:after {
+    content: '*';
+    color: red;
+    margin-left: 0.25rem;
+  }
+}

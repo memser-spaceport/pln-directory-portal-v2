@@ -6,6 +6,7 @@ import Toggle from '@/components/ui/toogle';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 import { IUserInfo } from '@/types/shared.types';
 import { ADMIN_ROLE } from '@/utils/constants';
+import { TagsInput } from '@/components/form/TagsInput';
 
 interface ITeamBasicInfo {
   errors: string[];
@@ -204,7 +205,7 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
               <TextField
                 defaultValue={initialValues?.investorProfile?.typicalCheckSize}
                 isMandatory={false}
-                id="register-team-officeHours"
+                id="register-team-typicalCheckSize"
                 label="Typical Check Size (Only if the Team is an Investment Fund)"
                 name="typicalCheckSize"
                 type="text"
@@ -212,13 +213,12 @@ function TeamBasicInfo(props: ITeamBasicInfo) {
               />
             </div>
             <div className="teaminfo__form__item">
-              <TextField
+              <TagsInput
                 defaultValue={initialValues?.investorProfile?.investmentFocus}
-                isMandatory={false}
-                id="register-team-officeHours"
-                label="Add Investment Focus (Only if the Team is an Investment Fund)"
+                // id="register-team-investmentFocus"
+                selectLabel="Add Investment Focus (Only if the Team is an Investment Fund)"
                 name="investmentFocus"
-                type="text"
+                // type="text"
                 placeholder="Add Keywords. E.g. AI, Staking, Governance, etc."
               />
             </div>

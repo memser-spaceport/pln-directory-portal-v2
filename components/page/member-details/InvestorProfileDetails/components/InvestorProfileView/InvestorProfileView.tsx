@@ -7,7 +7,6 @@ import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
 
 import s from './InvestorProfileView.module.scss';
-import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 interface Props {
   member: IMember;
@@ -19,8 +18,6 @@ interface Props {
 }
 
 export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, showIncomplete, onEdit }: Props) => {
-  const isOwner = userInfo?.uid === member.id;
-
   const typicalCheckSize = member.investorProfile?.typicalCheckSize || '';
   const investmentFocusAreas = member.investorProfile?.investmentFocus || [];
 

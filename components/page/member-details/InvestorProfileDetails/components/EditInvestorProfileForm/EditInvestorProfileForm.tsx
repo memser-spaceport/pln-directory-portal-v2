@@ -13,7 +13,7 @@ import s from './EditInvestorProfileForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
 import { useUpdateInvestorProfile } from '@/services/members/hooks/useUpdateInvestorProfile';
-import { FormField } from '@/components/form/FormField';
+import { FormCurrencyField } from '@/components/form/FormCurrencyField';
 
 interface Props {
   onClose: () => void;
@@ -76,7 +76,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Profile" />
         <div className={s.body}>
           <div className={s.row}>
-            <FormField name="typicalCheckSize" label="Typical Check Size" placeholder="Select typical check size" />
+            <FormCurrencyField name="typicalCheckSize" label="Typical Check Size" placeholder="Enter typical check size" currency="USD" />
           </div>
           <div className={s.row}>
             <FormTagsInput selectLabel="Add Investment Focus Area" name="investmentFocusAreas" placeholder="Enter focus area" />

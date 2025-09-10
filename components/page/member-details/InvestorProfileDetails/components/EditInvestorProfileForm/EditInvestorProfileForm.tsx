@@ -6,14 +6,14 @@ import { IUserInfo } from '@/types/shared.types';
 import { TEditInvestorProfileForm } from '@/components/page/member-details/InvestorProfileDetails/types';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import { EditOfficeHoursMobileControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursMobileControls';
-import { FormSelect } from '@/components/form/FormSelect';
 import { FormTagsInput } from '@/components/form/FormTagsInput';
-import { ADMIN_ROLE } from '@/utils/constants';
 import * as yup from 'yup';
 
 import s from './EditInvestorProfileForm.module.scss';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
+import { useUpdateInvestorProfile } from '@/services/members/hooks/useUpdateInvestorProfile';
+import { FormField } from '@/components/form/FormField';
 
 interface Props {
   onClose: () => void;
@@ -21,63 +21,45 @@ interface Props {
   userInfo: IUserInfo;
 }
 
-// Mock check size options
-const checkSizeOptions = [
-  { label: '0 - 100.000', value: '0 - 100.000' },
-  { label: '100.000 - 500.000', value: '100.000 - 500.000' },
-  { label: '500.000 - 1.000.000', value: '500.000 - 1.000.000' },
-  { label: '1.000.000 - 2.000.000', value: '1.000.000 - 2.000.000' },
-  { label: '2.000.000 - 5.000.000', value: '2.000.000 - 5.000.000' },
-];
-
 const schema = yup.object().shape({
-  typicalCheckSize: yup.object().test({
-    test: function (value) {
-      if (!value) {
-        return this.createError({ message: 'Required', type: 'required' });
-      }
-
-      return true;
-    },
-  }),
-  investmentFocusAreas: yup.object().test({
-    test: function (value) {
-      if (!value) {
-        return this.createError({ message: 'Required', type: 'required' });
-      }
-
-      return true;
-    },
-  }),
+  typicalCheckSize: yup.string().required('Required'),
+  investmentFocusAreas: yup.array().of(yup.string().required()).min(1, 'Required').defined(),
 });
 
 export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) => {
   const router = useRouter();
+  const updateInvestorProfileMutation = useUpdateInvestorProfile();
 
   const methods = useForm<TEditInvestorProfileForm>({
     defaultValues: {
-      typicalCheckSize: (member as any)?.typicalCheckSize || '',
-      investmentFocusAreas: (member as any)?.investmentFocusAreas || [],
+      typicalCheckSize: member.investorProfile?.typicalCheckSize || '',
+      investmentFocusAreas: member.investorProfile?.investmentFocus || [],
     },
     resolver: yupResolver(schema),
     mode: 'all',
   });
 
-  const isAdmin = !!(userInfo && userInfo.roles?.includes(ADMIN_ROLE));
   const { handleSubmit, reset } = methods;
 
   const onSubmit = async (formData: TEditInvestorProfileForm) => {
-    // Mock mutation - replace with actual API call
-    console.log('Submitting investor profile data:', formData);
+    try {
+      const payload = {
+        investorProfile: {
+          investmentFocus: formData.investmentFocusAreas,
+          typicalCheckSize: formData.typicalCheckSize,
+        },
+      };
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      await updateInvestorProfileMutation.mutateAsync({ memberUid: member.id, payload });
 
-    // Mock success response
-    toast.success('Investor profile updated successfully!');
-    router.refresh();
-    reset();
-    onClose();
+      toast.success('Investor profile updated successfully!');
+      router.refresh();
+      reset();
+      onClose();
+    } catch (error) {
+      console.error('Error updating investor profile:', error);
+      toast.error('Failed to update investor profile. Please try again.');
+    }
   };
 
   return (
@@ -94,7 +76,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
         <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Profile" />
         <div className={s.body}>
           <div className={s.row}>
-            <FormSelect name="typicalCheckSize" label="Typical Check Size" placeholder="Select typical check size" options={checkSizeOptions} />
+            <FormField name="typicalCheckSize" label="Typical Check Size" placeholder="Select typical check size" />
           </div>
           <div className={s.row}>
             <FormTagsInput selectLabel="Add Investment Focus Area" name="investmentFocusAreas" placeholder="Enter focus area" />

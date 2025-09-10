@@ -152,6 +152,7 @@ export const getMember = async (id: string, query: any, isLoggedIn?: boolean, us
     ohInterest: result.ohInterest,
     ohHelpWith: result.ohHelpWith,
     ohStatus: result.ohStatus,
+    investorProfile: result.investorProfile,
   };
 
   if (isLoggedIn) {
@@ -446,6 +447,32 @@ export const updateMemberBio = async (uid: string, payload: any, authToken: stri
     return {
       isError: true,
       errorData,
+      errorMessage: result.statusText,
+      status: result.status,
+    };
+  }
+
+  const output = await result.json();
+
+  return {
+    data: output,
+  };
+};
+
+export const updateInvestorProfile = async (memberUid: string, payload: any, authToken: string) => {
+  const result = await fetch(`${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}/investor-profile`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!result.ok) {
+    return {
+      isError: true,
       errorMessage: result.statusText,
       status: result.status,
     };

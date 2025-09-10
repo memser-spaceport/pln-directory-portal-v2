@@ -24,7 +24,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
   const isEditable = isOwner || isAdmin;
 
   // Mock data - replace with actual member properties when available
-  const hasInvestorProfile = !!(member as any)?.typicalCheckSize || !!(member as any)?.investmentFocusAreas?.length || !!(member as any)?.displayAsInvestor;
+  const hasInvestorProfile = !!member.investorProfile;
   const showWarningUseCaseA = !hasInvestorProfile;
   const showIncomplete = !editView && isOwner && showWarningUseCaseA;
 
@@ -34,11 +34,8 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
     return null;
   }
 
+  // user view, we hide section if no investor profile
   if (!isEditable && !hasInvestorProfile) {
-    return null;
-  }
-
-  if (!isAdmin && member.accessLevel !== 'L5' && member.accessLevel !== 'L6') {
     return null;
   }
 

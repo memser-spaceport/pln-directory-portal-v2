@@ -157,6 +157,10 @@ export interface IMember {
   eventGuests?: [];
   visibleHandles?: string[];
   linkedinProfile: ILinkedinProfile;
+  investorProfile?: {
+    typicalCheckSize: string;
+    investmentFocus: string[];
+  };
 }
 
 export interface ILoggedoutMember {}

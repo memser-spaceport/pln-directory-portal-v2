@@ -86,7 +86,7 @@ const MemberDetails = ({ params }: { params: any }) => {
       return null;
     }
 
-    switch (userInfo.accessLevel) {
+    switch (member.accessLevel) {
       case 'L5': {
         return (
           <>
@@ -94,6 +94,7 @@ const MemberDetails = ({ params }: { params: any }) => {
             <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>
         );
       }
@@ -102,7 +103,7 @@ const MemberDetails = ({ params }: { params: any }) => {
           <>
             <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {member.accessLevel === 'L6' && <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
             <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

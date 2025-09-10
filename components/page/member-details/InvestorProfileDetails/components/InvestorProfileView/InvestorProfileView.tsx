@@ -21,9 +21,8 @@ interface Props {
 export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, showIncomplete, onEdit }: Props) => {
   const isOwner = userInfo?.uid === member.id;
 
-  // Mock data - replace with actual member properties when available
-  const typicalCheckSize = (member as any)?.typicalCheckSize || '';
-  const investmentFocusAreas = (member as any)?.investmentFocusAreas || [];
+  const typicalCheckSize = member.investorProfile?.typicalCheckSize || '';
+  const investmentFocusAreas = member.investorProfile?.investmentFocus || [];
 
   return (
     <>
@@ -54,11 +53,7 @@ export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, 
                   <span className={s.keywordsLabel}>Check Size:</span>
                   <span className={s.badgesWrapper}>
                     {typicalCheckSize ? (
-                      member?.ohInterest?.map((item) => (
-                        <div key={item} className={s.badge}>
-                          {typicalCheckSize}
-                        </div>
-                      ))
+                      <div className={s.badge}>{typicalCheckSize}</div>
                     ) : (
                       <button
                         type="button"
@@ -95,26 +90,6 @@ export const InvestorProfileView = ({ member, isLoggedIn, userInfo, isEditable, 
                       </button>
                     )}
                   </span>
-                </div>
-              )}
-
-              {typicalCheckSize && (
-                <div className={s.field}>
-                  <div className={s.fieldLabel}>Typical Check Size</div>
-                  <div className={s.fieldValue}>{typicalCheckSize}</div>
-                </div>
-              )}
-
-              {investmentFocusAreas?.length > 0 && (
-                <div className={s.field}>
-                  <div className={s.fieldLabel}>Investment Focus Areas</div>
-                  <div className={s.tags}>
-                    {investmentFocusAreas.map((area: string, index: number) => (
-                      <span key={index} className={s.tag}>
-                        {area}
-                      </span>
-                    ))}
-                  </div>
                 </div>
               )}
             </div>

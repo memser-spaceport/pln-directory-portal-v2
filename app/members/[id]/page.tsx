@@ -81,6 +81,46 @@ const MemberDetails = ({ params }: { params: any }) => {
     return null;
   }
 
+  function renderPageContent() {
+    if (!member) {
+      return null;
+    }
+
+    switch (userInfo.accessLevel) {
+      case 'L5': {
+        return (
+          <>
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+          </>
+        );
+      }
+      default: {
+        return (
+          <>
+            <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {member.eventGuests.length > 0 && (
+              <div className={styles?.memberDetail__irlContribution}>
+                <IrlMemberContribution member={member} userInfo={userInfo} />
+              </div>
+            )}
+            <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          </>
+        );
+      }
+    }
+  }
+
   return (
     <>
       <Head>
@@ -99,31 +139,7 @@ const MemberDetails = ({ params }: { params: any }) => {
                 [styles.centered]: isAvailableToConnect,
               })}
             >
-              <OneClickVerification userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-
-              <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-
-              {member.eventGuests.length > 0 && (
-                <div className={styles?.memberDetail__irlContribution}>
-                  <IrlMemberContribution member={member} userInfo={userInfo} />
-                </div>
-              )}
-
-              <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+              {renderPageContent()}
             </div>
           </div>
           {!isAvailableToConnect && isLoggedIn && accessLevel === 'advanced' && (

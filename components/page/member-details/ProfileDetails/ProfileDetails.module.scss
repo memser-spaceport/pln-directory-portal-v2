@@ -128,3 +128,21 @@
     display: block !important;
   }
 }
+
+.investorTag {
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+
+  color: var(--foreground-brand-secondary_inverted, #4174FF);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+}

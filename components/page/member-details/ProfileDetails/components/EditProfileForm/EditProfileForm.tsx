@@ -123,12 +123,16 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.row}>
             <ProfileLocationInput />
           </div>
-          <div className={s.row}>
-            <ProfileSkillsInput />
-          </div>
-          <div className={s.row}>
-            <ProfileCollaborateInput />
-          </div>
+          {member.accessLevel !== 'L5' && (
+            <>
+              <div className={s.row}>
+                <ProfileSkillsInput />
+              </div>
+              <div className={s.row}>
+                <ProfileCollaborateInput />
+              </div>
+            </>
+          )}
         </div>
         <EditFormMobileControls />
       </form>

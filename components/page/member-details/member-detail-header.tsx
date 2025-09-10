@@ -34,6 +34,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const skills = member?.skills;
   const userInfo = props?.userInfo;
   const { onEdit } = props;
+  const hasInvestorProfile = !!member.investorProfile;
 
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams
@@ -133,6 +134,8 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
         </div>
 
         <div className="header__tags">
+          {hasInvestorProfile && <div className={s.investorTag}>Investor</div>}
+
           {isOpenToWork && (
             <div className="header__tags__funds">
               <span className="header__tags__funds__text">Open to Collaborate</span>

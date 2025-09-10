@@ -208,6 +208,10 @@ export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
       longDescription: selectedTeam.longDescription ?? '',
       officeHours: selectedTeam.officeHours ?? '',
       plnFriend: selectedTeam.plnFriend ?? false,
+      investorProfile: {
+        investmentFocus: selectedTeam.investorProfile?.investmentFocus ?? [],
+        typicalCheckSize: selectedTeam.investorProfile?.typicalCheckSize ?? '',
+      },
     },
     projectsInfo: {
       technologies: selectedTeam.technologies ?? [],

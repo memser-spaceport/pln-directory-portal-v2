@@ -24,7 +24,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
   const isEditable = isOwner || isAdmin;
 
   // Mock data - replace with actual member properties when available
-  const hasInvestorProfile = !!member.investorProfile?.investmentFocus.length || !!member.investorProfile?.typicalCheckSize;
+  const hasInvestorProfile = member?.investorProfile?.secRulesAccepted && (!!member.investorProfile?.investmentFocus.length || !!member.investorProfile?.typicalCheckSize);
   const showWarningUseCaseA = !hasInvestorProfile;
   const showIncomplete = !editView && isOwner && showWarningUseCaseA;
 

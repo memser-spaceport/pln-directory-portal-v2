@@ -131,7 +131,7 @@ const MembersFilter = (props: IMembersFilter) => {
               maxParamName="maxTypicalCheckSize"
               allowedRange={{
                 min: 0,
-                max: 50000000,
+                max: 5000000,
               }}
             />
 

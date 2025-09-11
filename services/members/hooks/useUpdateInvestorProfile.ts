@@ -6,7 +6,8 @@ import { MembersQueryKeys } from '@/services/members/constants';
 interface InvestorProfilePayload {
   investorProfile: {
     investmentFocus: string[];
-    typicalCheckSize: string;
+    typicalCheckSize: number;
+    secRulesAccepted: boolean;
   };
 }
 

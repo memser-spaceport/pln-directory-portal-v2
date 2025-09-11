@@ -119,7 +119,7 @@ const MembersFilter = (props: IMembersFilter) => {
           </FilterSection>
 
           <FilterSection title="Investors">
-            <FiltersPanelToggle label="Show all Investors" paramKey="showInvestors" />
+            <FiltersPanelToggle label="Show all Investors" paramKey="isInvestor" />
             {/*<FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />*/}
             <FilterTagInput selectLabel="Investment Focus" paramKey="investmentFocus" />
           </FilterSection>

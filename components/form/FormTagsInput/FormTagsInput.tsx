@@ -16,9 +16,10 @@ interface Props {
   selectLabel: string;
   warning?: boolean;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, placeholder = 'Add keyword' }: Props) => {
+export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, placeholder = 'Add keyword', disabled }: Props) => {
   const [inputText, setInputText] = useState('');
   const { setValue, getValues } = useFormContext();
   const values = getValues();
@@ -27,7 +28,11 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
   return (
     <div className={s.Content}>
       <div className={s.inputLabel}>{selectLabel}</div>
-      <div className={s.input}>
+      <div
+        className={clsx(s.input, {
+          [s.disabled]: disabled,
+        })}
+      >
         <div className={s.inputContent}>
           {val?.map((item: string) => {
             return (
@@ -46,6 +51,7 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
             );
           })}
           <Field.Control
+            disabled={disabled}
             placeholder={val?.length > 0 ? '' : placeholder}
             className={clsx(s.textInput, {
               [s.hidePlaceholder]: val?.length > 0,

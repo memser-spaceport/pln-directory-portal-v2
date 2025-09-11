@@ -57,6 +57,10 @@
       color: var(--action-border-error-focus);
     }
   }
+
+  &.disabled {
+    opacity: 0.5;
+  }
 }
 
 .inputContent {

@@ -132,6 +132,7 @@ export const FormCurrencyField = ({ name, placeholder, label, description, disab
       <div
         className={clsx(s.input, {
           [s.error]: !!errors[name],
+          [s.disabled]: disabled,
         })}
       >
         <div className={s.inputContent}>

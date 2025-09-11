@@ -6,6 +6,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/page/member-details/components/EditButton';
 
 import s from './InvestorProfileView.module.scss';
+import { formatUSD } from '@/utils/formatUSD';
 
 interface Props {
   isLoggedIn: boolean;
@@ -47,7 +48,7 @@ export const InvestorProfileView = ({ typicalCheckSize, investmentFocusAreas, is
                   <span className={s.keywordsLabel}>Check Size:</span>
                   <span className={s.badgesWrapper}>
                     {typicalCheckSize ? (
-                      <div className={s.badge}>{typicalCheckSize}</div>
+                      <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>
                     ) : (
                       <button
                         type="button"

@@ -30,6 +30,8 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
 
   useMobileNavVisibility(editView);
 
+  console.log(member);
+
   if (!isLoggedIn) {
     return null;
   }

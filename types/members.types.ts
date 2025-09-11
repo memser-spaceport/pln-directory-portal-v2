@@ -160,6 +160,7 @@ export interface IMember {
   investorProfile?: {
     typicalCheckSize: string;
     investmentFocus: string[];
+    secRulesAccepted: boolean;
   };
 }
 

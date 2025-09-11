@@ -93,9 +93,9 @@ const MemberDetails = ({ params }: { params: any }) => {
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <InvestorProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <BioDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>
         );
       }

@@ -110,7 +110,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
         const res = await editPost(payload);
 
         if (res.status.code === 'ok') {
-          toast.success('Post updated successfully');
+          toast.success('Your post has been updated');
           reset(data);
           setTimeout(() => {
             router.push(`/forum/topics/${params.categoryId}/${params.topicId}${fromCategory ? `?from=${fromCategory}` : ''}`);

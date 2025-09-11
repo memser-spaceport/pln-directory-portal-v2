@@ -2,8 +2,6 @@
 
 import clsx from 'clsx';
 import Select from 'react-select';
-import isEmpty from 'lodash/isEmpty';
-import isEqual from 'lodash/isEqual';
 import { createPortal } from 'react-dom';
 import { useMedia, useToggle } from 'react-use';
 import React, { useState, useEffect } from 'react';
@@ -36,8 +34,6 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
   const { params, setParam } = useFilterStore();
   const { onMembersTopicsFilterSearched, onMembersRolesFilterSearched, onMembersTopicsFilterSelected, onMembersRolesFilterSelected } = useMemberAnalytics();
 
-  const [options, setOptions] = useState<any[]>([]);
-
   // Get initial values from URL parameters
   const getInitialValues = () => {
     const paramValue = params.get(paramKey);
@@ -56,26 +52,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
   const { watch, setValue, reset } = methods;
   const val = watch(paramKey);
 
-  const { data: opts = [] } = useDataHook(isMobile && open ? searchTerm : inputValue);
-
-  /**
-   * useDataHook always returns a new array (new reference) even if the data hasn’t changed.
-   * Between requests the options are temporarily reset to an empty array.
-   * Together, these behaviors caused unnecessary re-renders and flickering.
-   */
-  useEffect(() => {
-    if (isEmpty(inputValue)) {
-      if (!isEmpty(options)) {
-        setOptions([]);
-      }
-
-      return;
-    }
-
-    if (!isEmpty(opts) && !isEqual(opts, options)) {
-      setOptions(opts);
-    }
-  }, [opts, inputValue, options]);
+  const { data: options = [] } = useDataHook(isMobile && open ? searchTerm : inputValue);
 
   // Mobile options rendering function
   function renderMobileOptions() {

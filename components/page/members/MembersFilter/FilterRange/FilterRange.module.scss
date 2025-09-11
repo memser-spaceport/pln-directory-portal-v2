@@ -1,3 +1,5 @@
+@use 'styles/mixins';
+
 .container {
   display: flex;
   flex-direction: column;
@@ -210,12 +212,16 @@
 }
 
 .Thumb {
+  @include mixins.centralize;
   width: 1rem;
   height: 1rem;
   border-radius: 100%;
-  background-color: var(--action-background-brand-focus, #4A72FF);
+  border: 3px solid var(--action-background-brand-focus, #4A72FF);
+  background-color: #fff;
   outline: 1px solid var(--color-gray-300);
   user-select: none;
+  z-index: 1;
+  box-shadow: 0 4px 6px -1px var(--transparent-dark-12, rgba(14, 15, 17, 0.12)), 0 2px 4px -1px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 
   &:has(:focus-visible) {
     outline: 2px solid var(--color-blue);

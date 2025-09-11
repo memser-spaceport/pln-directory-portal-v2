@@ -2,7 +2,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { IUserInfo } from '@/types/shared.types';
-import { TEditInvestorProfileForm } from '@/components/page/member-details/InvestorProfileDetails/types';
+import { TEditInvestorProfileForm, TEditInvestorProfileFormTeam } from '@/components/page/member-details/InvestorProfileDetails/types';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import { EditOfficeHoursMobileControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursMobileControls';
 import * as yup from 'yup';
@@ -19,31 +19,15 @@ interface Props {
 }
 
 const schema = yup.object().shape({
-  typicalCheckSize: yup.object().test({
-    test: function (value) {
-      if (!value) {
-        return this.createError({ message: 'Required', type: 'required' });
-      }
-
-      return true;
-    },
-  }),
-  investmentFocusAreas: yup.object().test({
-    test: function (value) {
-      if (!value) {
-        return this.createError({ message: 'Required', type: 'required' });
-      }
-
-      return true;
-    },
-  }),
+  typicalCheckSize: yup.string().required('Required'),
+  investmentFocusAreas: yup.array().of(yup.string().required()).min(1, 'Required').defined(),
   displayAsInvestor: yup.boolean().defined(),
 });
 
 export const EditVideoPitchForm = ({ onClose, team, userInfo }: Props) => {
   const router = useRouter();
 
-  const methods = useForm<TEditInvestorProfileForm>({
+  const methods = useForm<TEditInvestorProfileFormTeam>({
     defaultValues: {},
     resolver: yupResolver(schema),
     mode: 'all',
@@ -51,7 +35,7 @@ export const EditVideoPitchForm = ({ onClose, team, userInfo }: Props) => {
 
   const { handleSubmit, reset } = methods;
 
-  const onSubmit = async (formData: TEditInvestorProfileForm) => {
+  const onSubmit = async (formData: TEditInvestorProfileFormTeam) => {
     // Mock mutation - replace with actual API call
     console.log('Submitting investor profile data:', formData);
 

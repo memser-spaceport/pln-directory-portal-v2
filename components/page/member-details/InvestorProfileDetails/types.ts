@@ -3,3 +3,9 @@ export interface TEditInvestorProfileForm {
   investmentFocusAreas: string[];
   secRulesAccepted: boolean;
 }
+
+export interface TEditInvestorProfileFormTeam {
+  typicalCheckSize: string;
+  investmentFocusAreas: string[];
+  displayAsInvestor: boolean;
+}

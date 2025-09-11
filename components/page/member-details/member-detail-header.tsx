@@ -34,7 +34,7 @@ const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const skills = member?.skills;
   const userInfo = props?.userInfo;
   const { onEdit } = props;
-  const hasInvestorProfile = !!member.investorProfile;
+  const hasInvestorProfile = !!member?.investorProfile?.secRulesAccepted;
 
   const mainTeam = member?.mainTeam;
   const otherTeams = member.teams

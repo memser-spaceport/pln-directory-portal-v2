@@ -15,6 +15,7 @@ import { FilterSection } from '@/components/page/members/MembersFilter/FilterSec
 import s from './MembersFilter/MembersFilter.module.scss';
 import { useGetTopics } from '@/services/members/hooks/useGetTopics';
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
+import { FilterTagInput } from '@/components/form/FilterTagInput';
 
 /**
  * Counts the number of applied filters in the members filter component
@@ -120,7 +121,7 @@ const MembersFilter = (props: IMembersFilter) => {
           <FilterSection title="Investors">
             <FiltersPanelToggle label="Show all Investors" paramKey="showInvestors" />
             {/*<FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />*/}
-            <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" backLabel="Filters" />
+            <FilterTagInput selectLabel="Investment Focus" paramKey="investmentFocus" />
           </FilterSection>
         </div>
 

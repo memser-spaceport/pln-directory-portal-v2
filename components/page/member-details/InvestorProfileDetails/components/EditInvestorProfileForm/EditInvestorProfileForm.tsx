@@ -33,9 +33,28 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   const router = useRouter();
   const updateInvestorProfileMutation = useUpdateInvestorProfile();
 
+  // Helper function to format number to currency string for initial display
+  const formatNumberToCurrency = (value: string | number | undefined): string => {
+    if (!value) return '';
+
+    // Convert to number if it's a string
+    const numericValue = typeof value === 'string' ? parseFloat(value) : value;
+
+    // Return empty string if not a valid number
+    if (isNaN(numericValue)) return '';
+
+    // Format as currency
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(numericValue);
+  };
+
   const methods = useForm<TEditInvestorProfileForm>({
     defaultValues: {
-      typicalCheckSize: member.investorProfile?.typicalCheckSize || '',
+      typicalCheckSize: formatNumberToCurrency(member.investorProfile?.typicalCheckSize) || '',
       investmentFocusAreas: member.investorProfile?.investmentFocus || [],
       secRulesAccepted: member.investorProfile?.secRulesAccepted ?? false,
     },
@@ -52,18 +71,31 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
 
+  // Helper function to parse currency string to number
+  const parseCurrencyToNumber = (currencyString: string): number => {
+    // Remove all non-numeric characters except decimal point
+    const numericString = currencyString.replace(/[^\d.]/g, '');
+
+    // Convert to number
+    const numericValue = parseFloat(numericString);
+
+    // Return 0 if parsing failed
+    return isNaN(numericValue) ? 0 : numericValue;
+  };
+
   const onSubmit = async (formData: TEditInvestorProfileForm) => {
     if (!isValid) {
       return;
     }
 
-    console.log(formData.typicalCheckSize, parseInt(formData.typicalCheckSize));
+    // Parse the currency string to get numeric value
+    const typicalCheckSizeNumber = parseCurrencyToNumber(formData.typicalCheckSize);
 
     try {
       const payload = {
         investorProfile: {
           investmentFocus: formData.investmentFocusAreas,
-          typicalCheckSize: parseInt(formData.typicalCheckSize),
+          typicalCheckSize: typicalCheckSizeNumber,
           secRulesAccepted: formData.secRulesAccepted,
         },
       };

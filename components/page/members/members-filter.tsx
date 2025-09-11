@@ -16,6 +16,8 @@ import s from './MembersFilter/MembersFilter.module.scss';
 import { useGetTopics } from '@/services/members/hooks/useGetTopics';
 import { FilterSearch } from '@/components/page/members/MembersFilter/FilterSearch';
 import { FilterTagInput } from '@/components/form/FilterTagInput';
+import { FilterRange } from '@/components/page/members/MembersFilter/FilterRange';
+import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
 
 /**
  * Counts the number of applied filters in the members filter component
@@ -120,7 +122,21 @@ const MembersFilter = (props: IMembersFilter) => {
 
           <FilterSection title="Investors">
             <FiltersPanelToggle label="Show all Investors" paramKey="isInvestor" />
-            {/*<FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />*/}
+
+            <FilterDivider />
+
+            <FilterRange
+              label="Typical Check Size, USD"
+              minParamName="minTypicalCheckSize"
+              maxParamName="maxTypicalCheckSize"
+              allowedRange={{
+                min: 0,
+                max: 50000000,
+              }}
+            />
+
+            <FilterDivider />
+
             <FilterTagInput selectLabel="Investment Focus" paramKey="investmentFocus" />
           </FilterSection>
         </div>

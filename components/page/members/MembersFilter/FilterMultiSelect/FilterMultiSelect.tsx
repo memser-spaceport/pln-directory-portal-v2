@@ -36,7 +36,7 @@ export function FilterMultiSelect({ label, placeholder, paramKey, useDataHook = 
   const { params, setParam } = useFilterStore();
   const { onMembersTopicsFilterSearched, onMembersRolesFilterSearched, onMembersTopicsFilterSelected, onMembersRolesFilterSelected } = useMemberAnalytics();
 
-  const [options, setOptions] = useState<unknown[]>([]);
+  const [options, setOptions] = useState<any[]>([]);
 
   // Get initial values from URL parameters
   const getInitialValues = () => {

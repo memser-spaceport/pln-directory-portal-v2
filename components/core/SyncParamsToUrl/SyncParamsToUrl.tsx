@@ -6,7 +6,7 @@ import { useFilterStore } from '@/services/members/store';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 // Whitelist of parameters that should be tracked and synced
-const TRACKED_PARAMS = ['topics', 'roles', 'hasOfficeHours', 'sort', 'search', 'showInvestors', 'investmentFocus', 'minTypicalCheckSize', 'maxTypicalCheckSize'] as const;
+const TRACKED_PARAMS = ['topics', 'roles', 'hasOfficeHours', 'sort', 'search', 'isInvestor', 'investmentFocus', 'minTypicalCheckSize', 'maxTypicalCheckSize'] as const;
 
 // Helper function to filter URLSearchParams to only include tracked parameters
 const filterTrackedParams = (params: URLSearchParams): URLSearchParams => {

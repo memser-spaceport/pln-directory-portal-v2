@@ -1,6 +1,8 @@
 @use "styles/mixins";
 @use 'styles/media';
 
+// TODO move styles to proper files for ResultItem and ForumResultItem
+
 $padding-inline: 16px;
 
 .root {

@@ -113,9 +113,13 @@ const MembersFilter = (props: IMembersFilter) => {
             />
           </FilterSection>
 
-          <div className="team-filter__bl" />
-
           <FilterSection title="Roles">
+            <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" backLabel="Filters" />
+          </FilterSection>
+
+          <FilterSection title="Investors">
+            <FiltersPanelToggle label="Show all Investors" paramKey="showInvestors" />
+            {/*<FiltersPanelToggle label="Include Friends of Protocol Labs" paramKey="includeFriends" />*/}
             <FilterMultiSelect label="Search roles" placeholder="E.g. Founder, VP Marketing..." paramKey="roles" backLabel="Filters" />
           </FilterSection>
         </div>

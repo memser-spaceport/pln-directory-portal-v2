@@ -251,7 +251,7 @@ $text-color: #475569;
 
   display: flex;
   padding: var(--spacing-sm, 12px) var(--spacing-md, 16px);
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-3xs, 8px);
   border-radius: 8px;
 
@@ -361,20 +361,4 @@ $text-color: #475569;
     padding: 0;
     gap: 12px;
   }
-}
-
-.CategorySeparator {
-  margin: 8px 0 4px 0;
-  padding: 0;
-  border: none;
-  background: none;
-}
-
-.CategoryLabel {
-  color: var(--foreground-neutral-tertiary, #8897AE);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 16px; /* 133.333% */
-  letter-spacing: -0.2px;
 }

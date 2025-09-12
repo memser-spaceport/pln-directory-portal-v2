@@ -9,6 +9,7 @@ import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import s from './EditProfileForm.module.scss';
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
+import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 
 interface EditProfileFormData {
   image: File | null;
@@ -36,15 +37,36 @@ const fundingStageOptions = [
 ];
 
 export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
+  const { data: profileData } = useGetFundraisingProfile();
+
+  // Helper function to format funding stage for form
+  const formatFundingStageForForm = (stage: string) => {
+    const option = fundingStageOptions.find(opt => opt.value === stage);
+    return option || null;
+  };
+
   const methods = useForm<EditProfileFormData>({
     defaultValues: {
       image: null,
-      teamName: 'Randamu', // Replace with actual data
-      shortDescription: 'Randamu increases fairness in our world by harnessing entropy.',
-      tags: ['VR/AR', 'Frontier Tech', 'Service Providers', 'Enterprise Solutions'],
-      fundingStage: { value: 'seed', label: 'Seed' },
+      teamName: profileData?.name || '',
+      shortDescription: profileData?.shortDescription || '',
+      tags: profileData?.tags || [],
+      fundingStage: profileData?.fundingStage ? formatFundingStageForForm(profileData.fundingStage) : null,
     },
   });
+
+  // Reset form when profile data changes
+  React.useEffect(() => {
+    if (profileData) {
+      methods.reset({
+        image: null,
+        teamName: profileData.name || '',
+        shortDescription: profileData.shortDescription || '',
+        tags: profileData.tags || [],
+        fundingStage: profileData.fundingStage ? formatFundingStageForForm(profileData.fundingStage) : null,
+      });
+    }
+  }, [profileData, methods]);
 
   const { handleSubmit, reset } = methods;
 
@@ -79,11 +101,22 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         <EditFormControls onClose={onClose} title="Edit Profile Details" />
         <div className={s.body}>
           <div className={s.row}>
-            <ProfileImageInput member={{ profile: '', name: 'Randamu' }} />
-            <FormField name="name" label="Name" isRequired placeholder="Text" />
+            <ProfileImageInput
+              member={{
+                profile: profileData?.image || '',
+                name: profileData?.name || 'Team Name'
+              }}
+            />
+            <FormField name="teamName" label="Team Name" isRequired placeholder="Enter team name" />
           </div>
           <div className={s.row}>
-            <FormField name="shortDescription" label="Short Description" isRequired placeholder="Text" />
+            <FormTextArea
+              name="shortDescription"
+              label="Short Description"
+              isRequired
+              placeholder="Describe your team and what you do..."
+              rows={3}
+            />
           </div>
 
           <div className={s.row}>

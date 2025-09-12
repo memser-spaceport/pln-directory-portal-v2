@@ -87,15 +87,6 @@ export function FilterRange({
     [setParam, minParamName, maxParamName, allowedRange.min, allowedRange.max],
   );
 
-  const handleClear = useCallback(() => {
-    setSliderValues([allowedRange.min, allowedRange.max]);
-    setParam(minParamName, undefined);
-    setParam(maxParamName, undefined);
-  }, [setParam, minParamName, maxParamName, allowedRange.min, allowedRange.max]);
-
-  // Check if there are any active filter values
-  const hasValue = currentMinParam !== '' || currentMaxParam !== '';
-
   // Generate the display text for current selection
   const getDisplayText = useCallback(() => {
     const minVal = currentMinParam !== '' ? parseFloat(currentMinParam) : allowedRange.min;

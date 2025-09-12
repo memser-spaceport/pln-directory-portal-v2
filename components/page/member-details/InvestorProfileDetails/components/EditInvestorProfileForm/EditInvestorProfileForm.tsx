@@ -150,7 +150,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
             <FormCurrencyField name="typicalCheckSize" label="Typical Check Size" placeholder="Enter typical check size" currency="USD" disabled={!secRulesAccepted} />
           </div>
           <div className={s.row}>
-            <FormTagsInput selectLabel="Add Investment Focus Area" name="investmentFocusAreas" placeholder="Enter focus area" disabled={!secRulesAccepted} />
+            <FormTagsInput selectLabel="Add Investment Focus" name="investmentFocusAreas" placeholder="Enter focus area" disabled={!secRulesAccepted} />
           </div>
         </div>
         <EditOfficeHoursMobileControls />

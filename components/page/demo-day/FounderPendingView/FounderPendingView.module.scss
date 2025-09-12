@@ -585,22 +585,17 @@
   border: 1px solid rgba(14, 15, 17, 0.12);
   border-radius: 8px;
   box-shadow:
-    0px 1px 5px 0px rgba(27, 77, 255, 0.16),
-    0px 1px 3px 0px rgba(14, 15, 17, 0.12),
-    0px 1px 2px 0px rgba(14, 15, 17, 0.06),
-    0px 1px 3px 0px inset rgba(255, 255, 255, 0.32),
-    0px 4px 6px 0px inset rgba(255, 255, 255, 0.06);
+    0 1px 5px 0 rgba(27, 77, 255, 0.16),
+    0 1px 3px 0 rgba(14, 15, 17, 0.12),
+    0 1px 2px 0 rgba(14, 15, 17, 0.06),
+    0 1px 3px 0 inset rgba(255, 255, 255, 0.32),
+    0 4px 6px 0 inset rgba(255, 255, 255, 0.06);
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
     background: #1a47e6;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
   }
 
   span {
@@ -616,4 +611,534 @@
     width: 100%;
     max-width: 320px;
   }
+}
+
+// Drawer Styles
+.drawerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(14, 15, 17, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.drawerContainer {
+  background: white;
+  width: 720px;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+
+  @include media.mobile-only {
+    width: 100vw;
+  }
+}
+
+.drawerHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  box-shadow: 0 1px 4px 0 #e2e8f0;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.breadcrumbs {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.backButton {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #455468;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(69, 84, 104, 0.1);
+  }
+}
+
+.drawerContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow-y: auto;
+  padding: 20px;
+  width: 720px;
+  flex-shrink: 0;
+}
+
+.drawerProfileHeader {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.drawerProfileImage {
+  width: 74px;
+  height: 74px;
+  background: #afbaca;
+  border-radius: 8px;
+  border: 0.755px solid #d7dfe9;
+  flex-shrink: 0;
+  background-image: url('/images/demo-day/profile-placeholder.svg');
+  background-size: cover;
+  background-position: center;
+}
+
+.drawerMemberDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.drawerMemberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.drawerTitleContainer {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.drawerMemberName {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: #0a0c11;
+  margin: 0;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.externalLinkIcon {
+  width: 18px;
+  height: 18px;
+  color: #455468;
+  flex-shrink: 0;
+}
+
+.drawerEditButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #455468;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  padding: 4px 8px;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 -1px 4px 0 inset rgba(27, 77, 255, 0.08);
+
+  &:hover {
+    background: rgba(69, 84, 104, 0.1);
+  }
+}
+
+.drawerMemberDescription {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: #64748b;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.drawerTagList {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.drawerStageTag {
+  background: rgba(14, 15, 17, 0.16);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.drawerTagDivider {
+  width: 0.5px;
+  height: 20px;
+  background: rgba(14, 15, 17, 1);
+  opacity: 0.2;
+}
+
+.drawerTag {
+  background: rgba(14, 15, 17, 0.06);
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.teamMembersSection {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: hidden;
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  margin: 0;
+}
+
+.memberRow {
+  background: #f8fafc;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.memberAvatar {
+  width: 40px;
+  height: 40px;
+  background: #d7dfe9;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-image: url('/images/demo-day/profile-placeholder.svg');
+  background-size: cover;
+  background-position: center;
+}
+
+.memberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 187px;
+  flex-shrink: 0;
+}
+
+.memberNameRole {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  color: #455468;
+}
+
+.memberName {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  margin: 0;
+  width: 187px;
+}
+
+.memberRole {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  margin: 0;
+  min-width: max-content;
+}
+
+.memberStatus {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: -0.2px;
+  color: #1b4dff;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.memberBadges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1;
+}
+
+.memberBadge {
+  background: rgba(14, 15, 17, 0.06);
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.memberArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #455468;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(69, 84, 104, 0.1);
+  }
+}
+
+.warningSection {
+  background: #f2f5ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.warningContent {
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.warningText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.12px;
+  color: #d97706;
+  margin: 0;
+  flex: 1;
+}
+
+.demoMaterialsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 0 20px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.materialsContainer {
+  background: #f8fafc;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 16px;
+  border-radius: 12px;
+  width: 100%;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    flex-direction: column;
+  }
+}
+
+.materialUpload {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 178px;
+  align-items: flex-start;
+  justify-content: center;
+  border-radius: 8px;
+  width: 316px;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.uploadArea {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px dashed rgba(27, 56, 96, 0.24);
+  width: 100%;
+  flex: 1;
+}
+
+.uploadIcon {
+  background: #f2f5ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.uploadText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  letter-spacing: -0.2px;
+  width: 100%;
+
+  h4 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    color: #455468;
+    margin: 0;
+    width: 100%;
+  }
+
+  p {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    color: #8897ae;
+    margin: 0;
+    width: 100%;
+  }
+}
+
+.browseButton {
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #455468;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+.drawerFooter {
+  display: flex;
+  gap: 16px;
+  height: 72px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 20px;
+  width: 100%;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
 }

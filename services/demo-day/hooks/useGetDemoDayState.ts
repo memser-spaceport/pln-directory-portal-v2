@@ -13,7 +13,7 @@ type DemoDayState = {
 async function fetcher() {
   return {
     uid: '123456789',
-    access: 'none',
+    access: 'investor',
     date: new Date().toISOString(),
     title: 'PL Demo Day',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',

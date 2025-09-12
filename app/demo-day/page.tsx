@@ -5,6 +5,8 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
 import { FounderActiveView } from '@/components/page/demo-day/FounderActiveView';
+import { InvestorPendingView } from '@/components/page/demo-day/InvestorPendingView';
+import { InvestorActiveView } from '@/components/page/demo-day/InvestorActiveView';
 
 const FOUNDER_VIEWS: Record<string, ReactNode> = {
   pending: <FounderPendingView />,
@@ -14,8 +16,8 @@ const FOUNDER_VIEWS: Record<string, ReactNode> = {
 };
 
 const INVESTOR_VIEWS: Record<string, ReactNode> = {
-  pending: <FounderPendingView />,
-  active: <FounderActiveView />,
+  pending: <InvestorPendingView />,
+  active: <InvestorActiveView />,
   // completed: <FounderCompletedView />,
   // archived: <FounderArchivedView />,
 };

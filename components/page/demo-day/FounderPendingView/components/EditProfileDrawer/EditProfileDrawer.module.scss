@@ -1,5 +1,71 @@
 @use 'styles/media';
 
+.root {
+  min-height: 20px;
+  background: var(--Neutral-White);
+  border-radius: 8px;
+  padding: 16px;
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    padding: 0;
+  }
+
+  &.editView {
+    padding: 0;
+    border-radius: 8px;
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+
+    @include media.tablet-landscape {
+      padding: 16px;
+
+      position: relative;
+      inset: unset;
+      z-index: unset;
+      background: linear-gradient(0deg, rgba(21, 111, 247, 0.20) 0%, rgba(21, 111, 247, 0.20) 100%), #FFF;
+      box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+    }
+  }
+
+  &.missingData {
+    border-radius: 8px;
+    border: 1px solid #FDE68A;
+  }
+
+  .missingDataHeader {
+    border-radius: 0;
+    background: #EEBD6C;
+    display: flex;
+    padding: 8px 16px;
+    justify-content: center;
+    align-items: center;
+    align-self: stretch;
+    gap: 8px;
+
+    color: #0F172A;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0.12px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+
+    @include media.tablet-landscape {
+      border-radius: 8px 8px 0 0;
+    }
+  }
+}
+
+
 // Drawer Styles
 .drawerOverlay {
   position: fixed;
@@ -38,8 +104,12 @@
   justify-content: center;
   padding: 8px 20px;
   box-shadow: 0px 1px 4px 0px #e2e8f0;
+  background: #fff;
   flex-shrink: 0;
   width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .breadcrumbs {
@@ -80,7 +150,6 @@
   gap: 16px;
   align-items: flex-start;
   justify-content: flex-start;
-  overflow-y: auto;
   padding: 20px;
   width: 720px;
   flex-shrink: 0;
@@ -143,13 +212,17 @@
   margin: 0;
   flex: 1;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .externalLinkIcon {
   width: 18px;
   height: 18px;
-  color: #455468;
+  color: #1B4DFF;
   flex-shrink: 0;
+  display: inline-flex;
 }
 
 .drawerEditButton {
@@ -234,11 +307,11 @@
   background: white;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 8px;
   align-items: flex-start;
   justify-content: flex-start;
   overflow: hidden;
-  padding: 20px;
+  //padding: 20px;
   border-radius: 8px;
   width: 100%;
   flex-shrink: 0;
@@ -399,7 +472,7 @@
   gap: 8px;
   align-items: flex-start;
   justify-content: flex-start;
-  padding: 0 20px;
+  padding: 0;
   width: 100%;
   flex-shrink: 0;
 }
@@ -458,8 +531,8 @@
   justify-content: center;
   padding: 16px;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  //width: 40px;
+  //height: 40px;
   flex-shrink: 0;
 }
 
@@ -474,7 +547,6 @@
   width: 100%;
 
   h4 {
-    font-family: 'Inter', sans-serif;
     font-weight: 500;
     font-size: 14px;
     line-height: 20px;
@@ -484,7 +556,6 @@
   }
 
   p {
-    font-family: 'Inter', sans-serif;
     font-weight: 400;
     font-size: 12px;
     line-height: 16px;

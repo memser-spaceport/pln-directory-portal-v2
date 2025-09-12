@@ -1,6 +1,7 @@
-import React from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import parse from 'html-react-parser';
+import React, { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { SearchResultsItemProps } from '@/components/core/application-search/components/SearchResultsSection/components/SearchResultsItem';
@@ -26,48 +27,48 @@ export function ResultItem(props: Props) {
   const defaultAvatar = item.image || getDefaultAvatar(item?.name);
   const matchedName = item.matches.find((match) => match.field === 'name');
 
+  const onClick = useCallback(() => {
+    analytics.onSearchResultClick(item);
+    onSelect?.();
+  }, [item, analytics, onSelect]);
+
   return (
-    <li
-      className={s.foundItem}
-      onClick={() => {
-        analytics.onSearchResultClick(item);
-        router.push(`/${item.index}/${item.uid}`);
-        onSelect?.();
-      }}
-    >
-      <div className={s.header}>
-        <div className={s.avatar}>
-          <Image src={defaultAvatar} alt={item.name} width={24} height={24} />
+    <Link href={`/${item.index}/${item.uid}`} onClick={onClick}>
+      <li className={s.foundItem}>
+        <div className={s.header}>
+          <div className={s.avatar}>
+            <Image src={defaultAvatar} alt={item.name} width={24} height={24} />
+          </div>
+          {matchedName ? (
+            <div className={s.name}>{parse(matchedName.content)}</div>
+          ) : (
+            <div className={s.name}>
+              {item.name}
+              {/*<HighlightedText text={item.name} query={query} />*/}
+            </div>
+          )}
+          {!!item.availableToConnect && (
+            <div className={s.type}>
+              <OhBadge variant="primary" />
+            </div>
+          )}
         </div>
-        {matchedName ? (
-          <div className={s.name}>{parse(matchedName.content)}</div>
-        ) : (
-          <div className={s.name}>
-            {item.name}
-            {/*<HighlightedText text={item.name} query={query} />*/}
-          </div>
-        )}
-        {!!item.availableToConnect && (
-          <div className={s.type}>
-            <OhBadge variant="primary" />
-          </div>
-        )}
-      </div>
-      <ul className={s.matches}>
-        {item.matches
-          .filter((match) => match.field !== 'name')
-          .map((match) => {
-            return (
-              <li key={match.field} className={s.matchRow}>
-                <div className={s.arrow}>
-                  <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
-                </div>
-                <p className={s.text} dangerouslySetInnerHTML={{ __html: match.content }} />
-                <div className={s.matchType}>{getFieldLabel(match.field)}</div>
-              </li>
-            );
-          })}
-      </ul>
-    </li>
+        <ul className={s.matches}>
+          {item.matches
+            .filter((match) => match.field !== 'name')
+            .map((match) => {
+              return (
+                <li key={match.field} className={s.matchRow}>
+                  <div className={s.arrow}>
+                    <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
+                  </div>
+                  <p className={s.text} dangerouslySetInnerHTML={{ __html: match.content }} />
+                  <div className={s.matchType}>{getFieldLabel(match.field)}</div>
+                </li>
+              );
+            })}
+        </ul>
+      </li>
+    </Link>
   );
 }

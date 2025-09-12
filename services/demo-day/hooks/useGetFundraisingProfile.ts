@@ -8,6 +8,8 @@ async function fetcher() {
     shortDescription: 'Randamu increases fairness in our world by harnessing entropy.',
     tags: ['VR/AR', 'Frontier Tech', 'Service Providers', 'Enterprise Solutions'],
     fundingStage: 'seed',
+    pitchDeckUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', // Sample PDF
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', // Sample video
   };
 }
 

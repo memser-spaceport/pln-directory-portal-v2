@@ -54,7 +54,10 @@ export const ProfileSection = () => {
           />
 
           {/* Content */}
-          <ProfileContent />
+          <ProfileContent
+            pitchDeckUrl={data?.pitchDeckUrl}
+            videoUrl={data?.videoUrl}
+          />
 
           {/* Divider */}
           <div className={s.profileDivider} />

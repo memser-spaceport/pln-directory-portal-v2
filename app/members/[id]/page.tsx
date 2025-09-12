@@ -54,7 +54,7 @@ const MemberDetails = ({ params }: { params: any }) => {
     enabled: !!userInfo?.token,
     select: (data) => data?.total,
   });
-  const isAvailableToConnect = isMemberAvailableToConnect(member);
+  const isAvailableToConnect = isMemberAvailableToConnect(member) && !isOwner;
   const accessLevel = getAccessLevel(userInfo, isLoggedIn);
 
   // Scroll to top when member data is loaded or member ID changes

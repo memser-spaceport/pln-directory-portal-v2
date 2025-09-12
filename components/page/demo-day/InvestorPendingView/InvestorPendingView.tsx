@@ -1,5 +1,10 @@
 import React from 'react';
 import s from './InvestorPendingView.module.scss';
+import { useRouter } from 'next/navigation';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
+import { IUserInfo } from '@/types/shared.types';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -16,9 +21,16 @@ const PrimaryButton = ({ children, onClick, className }: ButtonProps) => {
 };
 
 export const InvestorPendingView = () => {
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const router = useRouter();
+  const { data } = useGetDemoDayState();
+
   const handleFillProfile = () => {
-    // TODO: Navigate to investor profile form
-    console.log('Navigate to investor profile form');
+    if (!userInfo) {
+      return;
+    }
+
+    router.push(`/members/${userInfo.uid}`);
   };
 
   return (
@@ -50,17 +62,12 @@ export const InvestorPendingView = () => {
         {/* Headline section */}
         <div className={s.headline}>
           <h1 className={s.title}>PL Demo Day</h1>
-          <p className={s.description}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore et dolore magna aliqua.
-          </p>
+          <p className={s.description}>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
         </div>
 
         {/* Call to action section */}
         <div className={s.ctaSection}>
-          <p className={s.ctaText}>
-            Complete your investor profile to join Demo Day
-          </p>
+          <p className={s.ctaText}>Complete your investor profile to join Demo Day</p>
           <PrimaryButton onClick={handleFillProfile} className={s.ctaButton}>
             Fill in Your Investor Profile
           </PrimaryButton>

@@ -13,7 +13,7 @@ import Image from 'next/image';
 
 const LocationCard = (props: any) => {
   const location = props?.location;
-  const logo = props?.icon || '/icons/team-default-profile.svg';
+  const logo = props?.icon || '/images/irl/defaultCity.svg';
   const flag = props?.flag;
   const userInfo = props?.userInfo;
   const uid = props.uid;
@@ -163,9 +163,7 @@ const LocationCard = (props: any) => {
           <div className="LocationCard__content__top">
             <div className="LocationCard__content__heading">Discover gatherings happening in</div>
             <div className="LocationCard__content__ttl">
-              <div>
-                <img src={flag} alt="flag" style={{ width: '20px', height: '20px' }} />
-              </div>
+                <img src={flag || '/images/irl/defaultFlag.svg'} alt="flag" style={{ width: '20px', height: '20px' }} />
               <div className="LocationCard__content__name">{location}</div>
             </div>
           </div>

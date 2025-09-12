@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useFilterStore } from '@/services/members/store';
-import { useDebounce } from 'react-use';
 import styles from './FilterRange.module.scss';
 import { Slider } from '@base-ui-components/react';
 
@@ -15,8 +14,6 @@ interface Props {
     max: number;
   };
   formatValue?: (value: number) => string;
-  parseValue?: (value: string) => number;
-  debounceMs?: number;
 }
 
 export function FilterRange({
@@ -24,38 +21,23 @@ export function FilterRange({
   minParamName,
   maxParamName,
   allowedRange,
-  formatValue = (value) => value.toString(),
-  parseValue = (value) => parseFloat(value.replace(/[^\d.]/g, '')) || 0,
-  debounceMs = 100,
+  formatValue = (value) => {
+    if (value >= 1000000) {
+      const millions = value / 1000000;
+      return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`;
+    } else if (value >= 1000) {
+      const thousands = value / 1000;
+      return thousands % 1 === 0 ? `${thousands}K` : `${thousands.toFixed(1)}K`;
+    }
+    return value.toString();
+  },
 }: Props) {
   const { params, setParam } = useFilterStore();
 
-  const [minValue, setMinValue] = useState('');
-  const [maxValue, setMaxValue] = useState('');
-  const [debouncedMinValue, setDebouncedMinValue] = useState('');
-  const [debouncedMaxValue, setDebouncedMaxValue] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Slider state - numeric values for the slider
   const [sliderValues, setSliderValues] = useState<number[]>([allowedRange.min, allowedRange.max]);
-  const [isSliderUpdating, setIsSliderUpdating] = useState(false);
-
-  // Debounce the input values
-  useDebounce(
-    () => {
-      setDebouncedMinValue(minValue);
-    },
-    debounceMs,
-    [minValue],
-  );
-
-  useDebounce(
-    () => {
-      setDebouncedMaxValue(maxValue);
-    },
-    debounceMs,
-    [maxValue],
-  );
 
   // Track the current parameter values to detect changes
   const currentMinParam = params.get(minParamName) || '';
@@ -68,24 +50,12 @@ export function FilterRange({
 
     if (currentMinParam !== '') {
       const numericMin = parseFloat(currentMinParam);
-      const formattedMin = formatValue(numericMin);
-      setMinValue(formattedMin);
-      setDebouncedMinValue(formattedMin);
       newSliderMin = numericMin;
-    } else if (isInitialized) {
-      setMinValue('');
-      setDebouncedMinValue('');
     }
 
     if (currentMaxParam !== '') {
       const numericMax = parseFloat(currentMaxParam);
-      const formattedMax = formatValue(numericMax);
-      setMaxValue(formattedMax);
-      setDebouncedMaxValue(formattedMax);
       newSliderMax = numericMax;
-    } else if (isInitialized) {
-      setMaxValue('');
-      setDebouncedMaxValue('');
     }
 
     // Update slider values
@@ -94,127 +64,60 @@ export function FilterRange({
     if (!isInitialized) {
       setIsInitialized(true);
     }
-  }, [currentMinParam, currentMaxParam, isInitialized]);
-
-  // Update URL parameters when debounced values change
-  useEffect(() => {
-    if (!isInitialized) return;
-
-    const trimmedMinValue = debouncedMinValue.trim();
-    const trimmedMaxValue = debouncedMaxValue.trim();
-
-    // Update min parameter
-    if (trimmedMinValue === '') {
-      setParam(minParamName, undefined);
-    } else {
-      const numericMin = parseValue(trimmedMinValue);
-      if (!isNaN(numericMin) && numericMin >= allowedRange.min && numericMin <= allowedRange.max) {
-        setParam(minParamName, numericMin.toString());
-      }
-    }
-
-    // Update max parameter
-    if (trimmedMaxValue === '') {
-      setParam(maxParamName, undefined);
-    } else {
-      const numericMax = parseValue(trimmedMaxValue);
-      if (!isNaN(numericMax) && numericMax >= allowedRange.min && numericMax <= allowedRange.max) {
-        setParam(maxParamName, numericMax.toString());
-      }
-    }
-  }, [debouncedMinValue, debouncedMaxValue, setParam, isInitialized, minParamName, maxParamName, allowedRange.min, allowedRange.max]);
-
-  const handleMinChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (isSliderUpdating) return; // Prevent circular updates
-
-      const newValue = e.target.value;
-      setMinValue(newValue);
-
-      // Update slider position immediately if valid number
-      const numericValue = parseValue(newValue);
-      if (!isNaN(numericValue) && numericValue >= allowedRange.min && numericValue <= allowedRange.max) {
-        setSliderValues([numericValue, sliderValues[1]]);
-      }
-    },
-    [parseValue, allowedRange.min, allowedRange.max, sliderValues, isSliderUpdating],
-  );
-
-  const handleMaxChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (isSliderUpdating) return; // Prevent circular updates
-
-      const newValue = e.target.value;
-      setMaxValue(newValue);
-
-      // Update slider position immediately if valid number
-      const numericValue = parseValue(newValue);
-      if (!isNaN(numericValue) && numericValue >= allowedRange.min && numericValue <= allowedRange.max) {
-        setSliderValues([sliderValues[0], numericValue]);
-      }
-    },
-    [parseValue, allowedRange.min, allowedRange.max, sliderValues, isSliderUpdating],
-  );
+  }, [currentMinParam, currentMaxParam, isInitialized, allowedRange.min, allowedRange.max]);
 
   const handleSliderChange = useCallback(
     (values: number[]) => {
       const [newMin, newMax] = values;
-      setIsSliderUpdating(true);
       setSliderValues(values);
 
-      // Update input values with formatted values
-      const formattedMin = newMin === allowedRange.min ? '' : formatValue(newMin);
-      const formattedMax = newMax === allowedRange.max ? '' : formatValue(newMax);
+      // Update URL parameters directly
+      if (newMin === allowedRange.min) {
+        setParam(minParamName, undefined);
+      } else {
+        setParam(minParamName, newMin.toString());
+      }
 
-      setMinValue(formattedMin);
-      setMaxValue(formattedMax);
-      setDebouncedMinValue(formattedMin);
-      setDebouncedMaxValue(formattedMax);
-
-      // Reset flag after state updates
-      setTimeout(() => setIsSliderUpdating(false), 0);
+      if (newMax === allowedRange.max) {
+        setParam(maxParamName, undefined);
+      } else {
+        setParam(maxParamName, newMax.toString());
+      }
     },
-    [formatValue, allowedRange.min, allowedRange.max],
+    [setParam, minParamName, maxParamName, allowedRange.min, allowedRange.max],
   );
 
   const handleClear = useCallback(() => {
-    setMinValue('');
-    setMaxValue('');
-    setDebouncedMinValue('');
-    setDebouncedMaxValue('');
     setSliderValues([allowedRange.min, allowedRange.max]);
     setParam(minParamName, undefined);
     setParam(maxParamName, undefined);
   }, [setParam, minParamName, maxParamName, allowedRange.min, allowedRange.max]);
 
-  const hasValue = minValue.trim().length > 0 || maxValue.trim().length > 0;
+  // Check if there are any active filter values
+  const hasValue = currentMinParam !== '' || currentMaxParam !== '';
+
+  // Generate the display text for current selection
+  const getDisplayText = useCallback(() => {
+    const minVal = currentMinParam !== '' ? parseFloat(currentMinParam) : allowedRange.min;
+    const maxVal = currentMaxParam !== '' ? parseFloat(currentMaxParam) : allowedRange.max;
+
+    const minDisplay = formatValue(minVal);
+    const maxDisplay = formatValue(maxVal);
+
+    if (minVal === allowedRange.min && maxVal === allowedRange.max) {
+      return `${formatValue(allowedRange.min)} - ${formatValue(allowedRange.max)}+`;
+    }
+
+    return `${minDisplay} - ${maxDisplay}${maxVal === allowedRange.max ? '+' : ''}`;
+  }, [currentMinParam, currentMaxParam, allowedRange.min, allowedRange.max, formatValue]);
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.inputLabel}>{label}</div>
-        {hasValue && (
-          <button type="button" onClick={handleClear} className={styles.clearButton}>
-            Clear all
-          </button>
-        )}
+      <div className={styles.rangeDisplay}>
+        <span className={styles.rangeText}>{getDisplayText()}</span>
       </div>
 
-      <div className={styles.rangeContainer}>
-        <div className={styles.inputWrapper}>
-          <div className={styles.inputContainer}>
-            <input type="text" value={minValue} onChange={handleMinChange} placeholder={allowedRange.min.toLocaleString()} className={styles.input} />
-          </div>
-        </div>
-
-        <div className={styles.inputWrapper}>
-          <div className={styles.inputContainer}>
-            <input type="text" value={maxValue} onChange={handleMaxChange} placeholder={allowedRange.max.toLocaleString()} className={styles.input} />
-          </div>
-        </div>
-      </div>
-
-      <Slider.Root className={styles.sliderContainer} value={sliderValues} onValueChange={handleSliderChange} min={allowedRange.min} max={allowedRange.max}>
+      <Slider.Root className={styles.sliderContainer} step={25000} value={sliderValues} onValueChange={handleSliderChange} min={allowedRange.min} max={allowedRange.max}>
         <Slider.Control className={styles.Control}>
           <Slider.Track className={styles.Track}>
             <Slider.Thumb className={styles.Thumb}>

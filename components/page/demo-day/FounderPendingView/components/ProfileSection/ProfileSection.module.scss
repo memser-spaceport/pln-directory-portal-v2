@@ -1,0 +1,222 @@
+@use 'styles/media';
+
+.profileSection {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.profileCard {
+  background: white;
+  border: 1px solid #e8edff;
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  @include media.mobile-only {
+    padding: 20px 16px;
+    gap: 20px;
+    border-radius: 12px;
+  }
+}
+
+.profileHeader {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.profileImage {
+  width: 80px;
+  height: 80px;
+  background: #f8fafc;
+  border: 1px solid #e8edff;
+  border-radius: 12px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+
+  @include media.mobile-only {
+    width: 60px;
+    height: 60px;
+    align-self: center;
+  }
+}
+
+.memberDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.memberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memberNameContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.memberName {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  color: #0a0c11;
+  margin: 0;
+
+  @include media.mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+    text-align: center;
+  }
+}
+
+.memberDescription {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #64748b;
+  margin: 0;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+  }
+}
+
+.tagList {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  @include media.mobile-only {
+    justify-content: center;
+  }
+}
+
+.stageTag {
+  background: rgba(14, 15, 17, 0.16);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.tagDivider {
+  width: 1px;
+  height: 16px;
+  background: rgba(14, 15, 17, 0.2);
+}
+
+.tag {
+  background: rgba(14, 15, 17, 0.06);
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+
+.profileContent {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.pitchDeck,
+.video {
+  background: #f8fafc;
+  border: 1px solid #e8edff;
+  border-radius: 8px;
+  height: 235px;
+  min-height: 235px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  flex: 1;
+
+  @include media.mobile-only {
+    width: 100%;
+    height: 200px;
+    min-height: 200px;
+  }
+}
+
+.profileDivider {
+  width: 100%;
+  height: 1px;
+  background: #d7dfe9;
+}
+
+.actionArea {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  width: 100%;
+
+  @include media.mobile-only {
+    justify-content: center;
+  }
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #1b4dff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #1a47e6;
+  }
+
+  @include media.mobile-only {
+    width: 100%;
+    max-width: 320px;
+  }
+}

@@ -1,0 +1,51 @@
+@use 'styles/media';
+
+.alert {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 32px;
+  background: #f2f5ff;
+  border: 1px solid #e8edff;
+  border-radius: 12px;
+  padding: 16px 20px;
+
+  @include media.mobile-only {
+    margin: 0 auto 24px;
+    padding: 12px 16px;
+  }
+}
+
+.alertContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.alertIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #0a0c11;
+  margin-top: 2px;
+}
+
+.alertText {
+  flex: 1;
+  min-width: 0;
+
+  p {
+    margin: 0;
+    color: #455468;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    @include media.mobile-only {
+      font-size: 13px;
+      line-height: 18px;
+    }
+  }
+}

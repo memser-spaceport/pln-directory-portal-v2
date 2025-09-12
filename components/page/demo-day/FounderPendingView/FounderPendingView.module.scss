@@ -110,6 +110,11 @@
   font-weight: 400;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+  display: none;
+
+  @include media.tablet-landscape {
+    display: block;
+  }
 }
 
 .timeValue,

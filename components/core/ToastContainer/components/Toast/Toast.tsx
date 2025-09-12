@@ -31,10 +31,10 @@ export function Toast(props: PropsWithChildren<ToastContentProps<Data>>) {
       })}
     >
       <div className={s.body}>
-        <Icon className={s.icon} />
+        <Icon className={clsx(s.icon, s.statusIcon)} />
         {children}
       </div>
-      <CloseIcon onClick={closeToast} className={s.close} />
+      <CloseIcon onClick={closeToast} className={clsx(s.icon, s.close)} />
     </div>
   );
 }

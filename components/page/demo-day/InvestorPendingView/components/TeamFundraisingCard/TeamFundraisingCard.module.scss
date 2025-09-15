@@ -1,4 +1,5 @@
 @use 'styles/media';
+@use 'styles/mixins';
 
 .teamCard {
   border-radius: 8px;
@@ -31,6 +32,7 @@
 }
 
 .profileImage {
+  @include mixins.centralize;
   width: 74px;
   height: 74px;
   border-radius: 8px;

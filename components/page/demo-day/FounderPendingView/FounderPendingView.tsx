@@ -4,9 +4,9 @@ import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
 import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
-import { VideoPreview } from './components/VideoPreview';
 import { Alert } from './components/Alert';
 import { ProfileSection } from './components/ProfileSection';
+import { TeamFundraisingCard } from '@/components/page/demo-day/InvestorPendingView/components/TeamFundraisingCard';
 
 export const FounderPendingView = () => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
@@ -68,11 +68,10 @@ export const FounderPendingView = () => {
             <h1 className={s.title}>{data?.title || 'PL Demo Day'}</h1>
             <p className={s.description}>{data?.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}</p>
           </div>
-
-          {/* Video preview section */}
-          <VideoPreview />
         </div>
       </div>
+
+      <TeamFundraisingCard />
 
       <Alert />
 

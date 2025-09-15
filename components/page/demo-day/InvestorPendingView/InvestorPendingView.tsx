@@ -112,12 +112,7 @@ export const InvestorPendingView = () => {
       </div>
 
       {/* Team Fundraising Card section */}
-      <TeamFundraisingCard
-        title={data?.title || 'PL Demo Day'}
-        description={data?.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
-        onPitchDeckClick={handlePitchDeckClick}
-        onVideoClick={handleVideoClick}
-      />
+      <TeamFundraisingCard onPitchDeckClick={handlePitchDeckClick} onVideoClick={handleVideoClick} />
     </div>
   );
 };

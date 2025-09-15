@@ -3,7 +3,7 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import { EVENTS, JOIN_NETWORK_MENUS, TOAST_MESSAGES } from '@/utils/constants';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useRouter } from 'next/navigation';
 
 export default function JoinNetwork() {

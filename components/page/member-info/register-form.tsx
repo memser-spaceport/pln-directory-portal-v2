@@ -10,7 +10,7 @@ import { createParticipantRequest } from '@/services/participants-request.servic
 import { saveRegistrationImage } from '@/services/registration.service';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { formInputsToMemberObj, getMemberInfoFormValues, memberRegistrationDefaults, validateBasicForms, validateContributionErrors, validateTeamsAndSkills } from '@/utils/member.utils';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import Cookies from 'js-cookie';
 import RegisterActions from '@/components/core/register/register-actions';
 import RegisterSuccess from '@/components/core/register/register-success';

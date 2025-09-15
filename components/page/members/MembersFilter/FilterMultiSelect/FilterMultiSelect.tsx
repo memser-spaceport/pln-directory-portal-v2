@@ -1,17 +1,18 @@
 'use client';
 
+import clsx from 'clsx';
+import Select from 'react-select';
+import { createPortal } from 'react-dom';
+import { useMedia, useToggle } from 'react-use';
 import React, { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+
 import { Input } from '@base-ui-components/react/input';
-import { createPortal } from 'react-dom';
 import { useGetRoles } from '@/services/members/hooks/useGetRoles';
 import { useFilterStore } from '@/services/members/store';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import s from '@/components/page/recommendations/components/MatchesSelector/MatchesSelector.module.scss';
 import mobileStyles from './FilterMultiSelect.module.scss';
-import Select from 'react-select';
-import clsx from 'clsx';
-import { useMedia, useToggle } from 'react-use';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {

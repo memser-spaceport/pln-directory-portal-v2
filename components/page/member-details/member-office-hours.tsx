@@ -7,7 +7,7 @@ import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getParsedValue, triggerLo
 import { EVENTS, LEARN_MORE_URL, OFFICE_HOURS_MSG, TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 const MemberOfficeHours = (props: any) => {
   const member = props?.member;

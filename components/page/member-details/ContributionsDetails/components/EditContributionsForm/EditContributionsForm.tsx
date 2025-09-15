@@ -23,7 +23,7 @@ import { editContributionsSchema } from '@/components/page/member-details/Contri
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import Link from 'next/link';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 interface Props {
   onClose: () => void;

@@ -6,7 +6,7 @@ import { getChatQuestions } from '@/services/discovery.service';
 import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import { useState, useRef, useEffect, MouseEventHandler } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { triggerLoader } from '@/utils/common.utils';

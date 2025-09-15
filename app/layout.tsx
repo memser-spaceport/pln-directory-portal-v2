@@ -24,7 +24,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 // dynamic components:
 const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
 const AuthBox = dynamic(() => import('@/components/core/login/auth-box'), { ssr: false });
-const Toaster = dynamic(() => import('../components/core/toaster'), { ssr: false });
+const ToastContainer = dynamic(() => import('@/components/core/ToastContainer'), { ssr: false });
 const BroadCastChannel = dynamic(() => import('@/components/core/login/broadcast-channel'), { ssr: false });
 const MemberRegisterDialog = dynamic(() => import('@/components/core/register/member-register-dialog'), { ssr: false });
 const CookieChecker = dynamic(() => import('@/components/core/login/cookie-checker'), { ssr: false });
@@ -81,7 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MobileBottomNav />
             <Loader />
             <AuthBox />
-            <Toaster />
+            <ToastContainer />
             <BroadCastChannel />
             <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
             <MemberRegisterDialog />

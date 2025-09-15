@@ -9,7 +9,7 @@ import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor';
 import { useCreatePost } from '@/services/forum/hooks/useCreatePost';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { createPostSchema } from '@/components/page/forum/CreatePost/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { extractTextWithImages, replaceImagesWithMarkdown } from '@/utils/decode';
@@ -110,7 +110,7 @@ export const CreatePost = ({ isEdit, initialData, pid, userInfo }: { isEdit?: bo
         const res = await editPost(payload);
 
         if (res.status.code === 'ok') {
-          toast.success('Post updated successfully');
+          toast.success('Your post has been updated');
           reset(data);
           setTimeout(() => {
             router.push(`/forum/topics/${params.categoryId}/${params.topicId}${fromCategory ? `?from=${fromCategory}` : ''}`);

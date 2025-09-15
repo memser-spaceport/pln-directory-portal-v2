@@ -1,7 +1,7 @@
 import cookies from 'js-cookie';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';

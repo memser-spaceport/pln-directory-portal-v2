@@ -6,7 +6,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, OFFICE_HOURS_STEPS, TOAST_MESSAGES } from '@/utils/constants';
 import { SetStateAction, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 
 interface IUserConfirmation {
   onClose: (isUpdateRequired: boolean) => void;

@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 
 async function mutation({ uid }: { uid: string }) {

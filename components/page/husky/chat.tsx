@@ -17,7 +17,7 @@ import ChatInput from './chat-input';
 import { createHuskyThread, createThreadTitle, duplicateThread } from '@/services/husky.service';
 import { useSidebar } from './sidebar';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';

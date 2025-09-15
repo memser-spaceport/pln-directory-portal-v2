@@ -3,7 +3,7 @@ import TextArea from '@/components/form/text-area';
 import { createFeedBack } from '@/services/office-hours.service';
 import { EVENTS, FEEDBACK_RESPONSE_TYPES, RATINGS, TOAST_MESSAGES, TROUBLES_INFO } from '@/utils/constants';
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import TroubleSection from './trouble-section';
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { getAnalyticsNotificationInfo, getAnalyticsUserInfo } from '@/utils/common.utils';

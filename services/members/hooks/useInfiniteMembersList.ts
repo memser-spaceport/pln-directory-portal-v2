@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import cookies from 'js-cookie';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/core/ToastContainer';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 
 import { MembersListQueryParams } from '@/services/members/types';

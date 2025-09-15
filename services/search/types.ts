@@ -9,6 +9,16 @@ export type FoundItem = {
   }[];
   availableToConnect?: boolean;
   scheduleMeetingCount?: number;
+  source?: {
+    additionalInfo: null;
+    description: string;
+    eventUrl: string;
+    image: string;
+    location: string;
+    name: string;
+    shortDescription: string;
+    uid: string;
+  };
 };
 
 export type ForumFoundItem = {

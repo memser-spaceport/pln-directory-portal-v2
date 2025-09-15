@@ -40,7 +40,7 @@ export const BioInput = ({ generateBio, onAiContentGenerated }: Props) => {
       generateBioRef.current = true;
       prefillBio();
     }
-  }, [generateBio, mutateAsync, reset, setValue]);
+  }, [generateBio, mutateAsync, onAiContentGenerated, reset, setValue]);
 
   return (
     <div className={s.root}>

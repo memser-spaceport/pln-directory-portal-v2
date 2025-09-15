@@ -65,16 +65,16 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
     }
   }, [isOpen]);
 
-  // // Handle ESC key press and body scroll lock
+  // Handle ESC key press and body scroll lock
   // React.useEffect(() => {
-  //   const handleEscKey = (event: KeyboardEvent) => {
-  //     if (event.key === 'Escape' && isOpen) {
-  //       onClose();
-  //     }
-  //   };
-  //
+  // const handleEscKey = (event: KeyboardEvent) => {
+  //   if (event.key === 'Escape' && isOpen) {
+  //     onClose();
+  //   }
+  // };
+
   //   if (isOpen) {
-  //     document.addEventListener('keydown', handleEscKey);
+  //     // document.addEventListener('keydown', handleEscKey);
   //
   //     // Lock body scroll and preserve position
   //     const scrollY = window.scrollY;
@@ -85,7 +85,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
   //   }
   //
   //   return () => {
-  //     document.removeEventListener('keydown', handleEscKey);
+  //     // document.removeEventListener('keydown', handleEscKey);
   //
   //     // Restore body scroll and position
   //     if (isOpen) {
@@ -95,7 +95,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
   //       document.body.style.overflow = '';
   //
   //       // Restore scroll position
-  //       window.scrollTo(0, scrollPosition);
+  //       document.body.scrollTop = scrollPosition;
   //     }
   //   };
   // }, [isOpen, onClose, scrollPosition]);

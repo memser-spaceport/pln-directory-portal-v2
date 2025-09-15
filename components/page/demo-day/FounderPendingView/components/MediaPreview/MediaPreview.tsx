@@ -68,17 +68,17 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
   }, [isModalOpen]);
 
   // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isModalOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isModalOpen]);
+  // useEffect(() => {
+  //   if (isModalOpen) {
+  //     document.body.style.overflow = 'hidden';
+  //   } else {
+  //     document.body.style.overflow = 'unset';
+  //   }
+  //
+  //   return () => {
+  //     document.body.style.overflow = 'unset';
+  //   };
+  // }, [isModalOpen]);
 
   const openModal = () => {
     setIsModalOpen(true);

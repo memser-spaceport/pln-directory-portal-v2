@@ -1,17 +1,22 @@
 @use 'styles/media';
 
+.root {
+  margin: 0 auto;
+  max-width: 900px;
+  padding-bottom: 64px;
+}
+
 .eventHeader {
   position: relative;
-  width: calc(100% - 32px);
+  width: 100%;
   height: 100%;
-  min-height: 600px;
   background: white;
   border-radius: 24px;
   overflow: hidden;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  margin: 16px;
+  margin-block: 24px;
   z-index: 0;
 }
 
@@ -59,8 +64,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 41px;
-  padding: 100px 24px 48px;
+  gap: 24px;
+  padding: 48px 24px 48px;
   max-width: 1420px;
   width: 100%;
 
@@ -104,6 +109,11 @@
   font-weight: 400;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+  display: none;
+
+  @include media.tablet-landscape {
+    display: block;
+  }
 }
 
 .timeValue,
@@ -140,21 +150,17 @@
 }
 
 .title {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 96px;
-  line-height: 110px;
-  letter-spacing: -2.5px;
-  color: #0f172a;
+  color: var(--foreground-neutral-primary, #0A0C11);
+  text-align: center;
+  font-size: 40px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 48px; /* 120% */
+  letter-spacing: -1.5px;
   margin: 0;
 
-  @include media.tablet-landscape {
-    font-size: 72px;
-    line-height: 82px;
-  }
-
   @include media.mobile-only {
-    font-size: 48px;
+    font-size: 24px;
     line-height: 56px;
     letter-spacing: -1.5px;
   }
@@ -168,7 +174,7 @@
   font-weight: 400;
   line-height: 24px; /* 133.333% */
   letter-spacing: -0.4px;
-  max-width: 900px;
+  max-width: 640px;
 
   @include media.mobile-only {
     font-size: 16px;
@@ -197,7 +203,7 @@
   max-width: 900px;
 
   @include media.mobile-only {
-    font-size: 16px;
+    font-size: 14px;
     line-height: 22px;
     max-width: 100%;
   }

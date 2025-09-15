@@ -1,0 +1,307 @@
+@use 'styles/media';
+
+.teamCard {
+  border-radius: 8px;
+  background: #FFF;
+  box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  display: flex;
+  padding: 20px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  flex-shrink: 0;
+  z-index: 0;
+  position: relative;
+
+  @include media.mobile-only {
+    padding: 16px;
+    gap: 20px;
+  }
+}
+
+.header {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  width: 100%;
+
+  @include media.mobile-only {
+    gap: 16px;
+  }
+}
+
+.profileImage {
+  width: 74px;
+  height: 74px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 0.755px solid #d7dfe9;
+
+  @include media.mobile-only {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+.profileImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.memberDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.memberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.memberName {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 34px; /* 141.667% */
+  letter-spacing: -0.4px;
+
+  @include media.mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+  }
+}
+
+.memberDescription {
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 133.333% */
+  letter-spacing: -0.4px;
+
+  @include media.mobile-only {
+    font-size: 16px;
+    line-height: 22px;
+  }
+}
+
+.content {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.mediaCard {
+  position: relative;
+  width: 418px;
+  min-height: 240px;
+  background: white;
+  border: 1px solid #e8edff;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+
+  &:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    transform: translateY(-2px);
+  }
+
+  @include media.mobile-only {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+.backgroundAccents {
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accentsImage {
+  width: 100%;
+  height: 100%;
+  background-image: url('/images/demo-day/accents.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.backgroundVector {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, calc(-50% + 0.458px));
+  width: 1130px;
+  height: 702.083px;
+}
+
+.vectorImage {
+  width: 100%;
+  height: 100%;
+  background-image: url('/images/demo-day/vector.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.cardContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 2;
+
+  @include media.mobile-only {
+    padding: 20px;
+    gap: 10px;
+  }
+}
+
+.logo {
+  height: 20px;
+  width: 119px;
+  color: #0a0c11;
+  flex-shrink: 0;
+}
+
+.textContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+
+  @include media.mobile-only {
+    gap: 12px;
+  }
+}
+
+.paragraph {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cardTitle {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 27px; /* 135% */
+  letter-spacing: -0.3px;
+
+  @include media.mobile-only {
+    font-size: 18px;
+    line-height: 24px;
+  }
+}
+
+.subtitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: #0a0c11;
+  margin: 0;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+.cardDescription {
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.videoTitle {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  text-align: center;
+  font-size: 40px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 48px; /* 120% */
+  letter-spacing: -1.5px;
+
+  @include media.mobile-only {
+    font-size: 28px;
+    line-height: 36px;
+    letter-spacing: -1px;
+  }
+}
+
+.expandIcon {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  color: #64748b;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  .mediaCard:hover & {
+    opacity: 1;
+  }
+}
+
+.playButton {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, calc(-50% + 0.5px));
+  width: 48px;
+  height: 48px;
+  background: white;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  border-radius: 50%;
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.08), 0px -2px 8px 0px inset rgba(14, 15, 17, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0a0c11;
+  z-index: 3;
+  transition: all 0.2s ease;
+
+  .mediaCard:hover & {
+    transform: translate(-50%, calc(-50% + 0.5px)) scale(1.05);
+    box-shadow: 0px 2px 4px 0px rgba(14, 15, 17, 0.12), 0px -2px 8px 0px inset rgba(14, 15, 17, 0.02);
+  }
+
+  @include media.mobile-only {
+    width: 40px;
+    height: 40px;
+  }
+}

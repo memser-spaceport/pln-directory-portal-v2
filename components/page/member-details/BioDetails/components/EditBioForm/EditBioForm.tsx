@@ -68,7 +68,6 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
   const modifyDisclaimerIfNeeded = (currentBio: string): string => {
     // Check if this bio contains the original AI disclaimer (indicating it's AI-generated)
     const originalDisclaimer = '<p><em>Bio is AI generated &amp; may not be accurate.</em></p>';
-    const newDisclaimer = '<p><em>Bio is AI generated.</em></p>';
     const hasOriginalDisclaimer = currentBio.includes(originalDisclaimer);
 
     // Case 1: New AI content was just generated in this session
@@ -78,14 +77,14 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
       }
 
       if (hasOriginalDisclaimer) {
-        return currentBio.replace(originalDisclaimer, newDisclaimer);
+        return currentBio.replace(originalDisclaimer, '');
       }
     }
     
     // Case 2: Editing existing AI-generated bio (no new generation in this session)
     else if (hasOriginalDisclaimer) {
       if (currentBio !== initialBioRef.current) {
-        return currentBio.replace(originalDisclaimer, newDisclaimer);
+        return currentBio.replace(originalDisclaimer, '');
       }
     }
     

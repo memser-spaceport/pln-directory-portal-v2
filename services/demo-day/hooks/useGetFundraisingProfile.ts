@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
-type FundraisingProfile = {
+export type FundraisingProfile = {
   uid: string;
   teamUid: string;
   team: {
@@ -17,7 +17,7 @@ type FundraisingProfile = {
       uid: string;
       title: string;
     };
-    logo: string | null;
+    logo: { uid: string; url: string } | null;
   };
   onePagerUploadUid: string | null;
   onePagerUpload: string | null;

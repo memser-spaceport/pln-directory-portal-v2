@@ -65,7 +65,7 @@ export const ProfileSection = () => {
       </div>
 
       {/* Edit Profile Drawer */}
-      <EditProfileDrawer isOpen={isDrawerOpen} onClose={handleCloseDrawer} scrollPosition={scrollPositionRef.current} />
+      <EditProfileDrawer isOpen={isDrawerOpen} onClose={handleCloseDrawer} scrollPosition={scrollPositionRef.current} data={data} />
     </>
   );
 };

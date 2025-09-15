@@ -41,17 +41,17 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
   // Helper function to format funding stage for form
   const formatFundingStageForForm = (stage: string) => {
-    const option = fundingStageOptions.find(opt => opt.value === stage);
+    const option = fundingStageOptions.find((opt) => opt.value === stage);
     return option || null;
   };
 
   const methods = useForm<EditProfileFormData>({
     defaultValues: {
       image: null,
-      teamName: profileData?.name || '',
-      shortDescription: profileData?.shortDescription || '',
-      tags: profileData?.tags || [],
-      fundingStage: profileData?.fundingStage ? formatFundingStageForForm(profileData.fundingStage) : null,
+      teamName: profileData?.team.name || '',
+      shortDescription: profileData?.team.shortDescription || '',
+      tags: profileData?.team.industryTags.map((tag) => tag.title) || [],
+      fundingStage: profileData?.team.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
     },
   });
 
@@ -60,10 +60,10 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     if (profileData) {
       methods.reset({
         image: null,
-        teamName: profileData.name || '',
-        shortDescription: profileData.shortDescription || '',
-        tags: profileData.tags || [],
-        fundingStage: profileData.fundingStage ? formatFundingStageForForm(profileData.fundingStage) : null,
+        teamName: profileData.team.name || '',
+        shortDescription: profileData.team.shortDescription || '',
+        tags: profileData.team.industryTags.map((tag) => tag.title) || [],
+        fundingStage: profileData.team.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
       });
     }
   }, [profileData, methods]);
@@ -103,20 +103,14 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.row}>
             <ProfileImageInput
               member={{
-                profile: profileData?.image || '',
-                name: profileData?.name || 'Team Name'
+                profile: profileData?.team.logo?.url || '',
+                name: profileData?.team.name || 'Team Name',
               }}
             />
             <FormField name="teamName" label="Team Name" isRequired placeholder="Enter team name" />
           </div>
           <div className={s.row}>
-            <FormTextArea
-              name="shortDescription"
-              label="Short Description"
-              isRequired
-              placeholder="Describe your team and what you do..."
-              rows={3}
-            />
+            <FormTextArea name="shortDescription" label="Short Description" isRequired placeholder="Describe your team and what you do..." rows={3} />
           </div>
 
           <div className={s.row}>

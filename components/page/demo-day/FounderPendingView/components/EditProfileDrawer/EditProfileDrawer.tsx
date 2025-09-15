@@ -12,8 +12,10 @@ import {
   WarningIcon as DemoWarningIcon,
   FolderIcon as DemoFolderIcon,
   ExternalLinkIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
 } from '@/components/page/demo-day/icons/DemoDayIcons';
+import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
+import Link from 'next/link';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -83,9 +85,10 @@ interface EditProfileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   scrollPosition: number;
+  data?: FundraisingProfile;
 }
 
-export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, onClose, scrollPosition }) => {
+export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, onClose, scrollPosition, data }) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const [editView, setEditView] = useState(false);
 
@@ -182,12 +185,12 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                       <div className={s.drawerMemberInfo}>
                         <div className={s.drawerTitleContainer}>
                           <h2 className={s.drawerMemberName}>
-                            Randamu
-                            <div className={s.externalLinkIcon}>
+                            {data?.team.name}
+                            <Link className={s.externalLinkIcon} href={`/teams/${data?.team.uid}`} target="_blank">
                               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                                 <path d="M13.5 4.5L4.5 13.5M13.5 4.5H8.25M13.5 4.5V9.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                               </svg>
-                            </div>
+                            </Link>
                           </h2>
 
                           <button className={s.drawerEditButton} onClick={handleEditClick}>
@@ -195,16 +198,16 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                             <span>Edit</span>
                           </button>
                         </div>
-                        <p className={s.drawerMemberDescription}>Randamu increases fairness in our world by harnessing entropy.</p>
+                        <p className={s.drawerMemberDescription}>{data?.team.shortDescription}</p>
                       </div>
                       <div className={s.drawerTagList}>
-                        <div className={s.drawerStageTag}>Stage: Seed</div>
+                        <div className={s.drawerStageTag}>Stage: {data?.team?.fundingStage.title}</div>
                         <div className={s.drawerTagDivider} />
-                        <div className={s.drawerTag}>VR/AR</div>
-                        <div className={s.drawerTag}>Frontier Tech</div>
-                        <div className={s.drawerTag}>Service Providers</div>
-                        <div className={s.drawerTag}>Enterprise Solutions</div>
-                        <div className={s.drawerTag}>Enterprise Solutions</div>
+                        {data?.team.industryTags.map((tag) => (
+                          <div className={s.drawerTag} key={tag.uid}>
+                            {tag.title}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

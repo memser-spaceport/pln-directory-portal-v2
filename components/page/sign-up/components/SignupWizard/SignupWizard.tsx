@@ -1,11 +1,15 @@
 'use client';
 
 import React from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { clsx } from 'clsx';
 import Image from 'next/image';
+import Cookies from 'js-cookie';
+import Script from 'next/script';
+import { useRouter } from 'next/navigation';
+import { FormProvider, useForm } from 'react-hook-form';
+
 import Illustration from '@/components/page/onboarding/components/Illustartion/Illustration';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { clsx } from 'clsx';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { SignupForm } from '@/components/page/sign-up/components/SignupWizard/types';
 import { signupSchema } from '@/components/page/sign-up/components/SignupWizard/helpers';
@@ -13,17 +17,17 @@ import { FormField } from '@/components/form/FormField';
 import { ProfileImageInput } from '@/components/page/sign-up/components/ProfileImageInput';
 import { Field } from '@base-ui-components/react/field';
 import { Checkbox } from '@base-ui-components/react/checkbox';
-import Script from 'next/script';
 import { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from '@/components/core/ToastContainer';
 import { isSkipRecaptcha } from '@/utils/common.utils';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
-import Cookies from 'js-cookie';
 import SearchWithSuggestions from '@/components/form/suggestions';
-import s from './SignupWizard.module.scss';
 import { useSignup } from '@/services/signup/hooks/useSignup';
 import { GROUP_TYPES } from '@/utils/constants';
-import { useRouter } from 'next/navigation';
+
+import { TERMS_OF_SERVICE_AND_PRIVACY_URL } from './constants';
+
+import s from './SignupWizard.module.scss';
 
 interface Props {
   onClose?: () => void;
@@ -201,7 +205,7 @@ export const SignupWizard = ({ onClose }: Props) => {
                     </Checkbox.Root>
                     <div className={s.primary}>
                       I agree to Protocol Labs{' '}
-                      <a href="https://protocol.ai/legal/" target="_blank">
+                      <a href={TERMS_OF_SERVICE_AND_PRIVACY_URL} target="_blank">
                         Terms of Service and Privacy Policy
                       </a>
                     </div>

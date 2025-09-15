@@ -6,14 +6,6 @@ import { clsx } from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
 import { getParsedValue } from '@/utils/common.utils';
 import Cookies from 'js-cookie';
-import {
-  BackIcon as DemoBackIcon,
-  EditIcon as DemoEditIcon,
-  WarningIcon as DemoWarningIcon,
-  FolderIcon as DemoFolderIcon,
-  ExternalLinkIcon,
-  ArrowRightIcon,
-} from '@/components/page/demo-day/icons/DemoDayIcons';
 import { FundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import Link from 'next/link';
 

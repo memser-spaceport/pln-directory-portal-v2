@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { FormTextArea } from '@/components/form/FormTextArea';
@@ -10,10 +10,11 @@ import { IUserInfo } from '@/types/shared.types';
 import s from './EditProfileForm.module.scss';
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
+import { useUpdateFundraisingProfile } from '@/services/demo-day/hooks/useUpdateFundraisingProfile';
 
 interface EditProfileFormData {
   image: File | null;
-  teamName: string;
+  name: string;
   shortDescription: string;
   tags: string[];
   fundingStage: { value: string; label: string } | null;
@@ -38,6 +39,7 @@ const fundingStageOptions = [
 
 export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const { data: profileData } = useGetFundraisingProfile();
+  const updateProfileMutation = useUpdateFundraisingProfile();
 
   // Helper function to format funding stage for form
   const formatFundingStageForForm = (stage: string) => {
@@ -48,10 +50,10 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const methods = useForm<EditProfileFormData>({
     defaultValues: {
       image: null,
-      teamName: profileData?.team.name || '',
-      shortDescription: profileData?.team.shortDescription || '',
-      tags: profileData?.team.industryTags.map((tag) => tag.title) || [],
-      fundingStage: profileData?.team.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
+      name: profileData?.team?.name || '',
+      shortDescription: profileData?.team?.shortDescription || '',
+      tags: profileData?.team?.industryTags?.map((tag) => tag.title) || [],
+      fundingStage: profileData?.team?.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
     },
   });
 
@@ -60,10 +62,10 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
     if (profileData) {
       methods.reset({
         image: null,
-        teamName: profileData.team.name || '',
-        shortDescription: profileData.team.shortDescription || '',
-        tags: profileData.team.industryTags.map((tag) => tag.title) || [],
-        fundingStage: profileData.team.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
+        name: profileData.team?.name || '',
+        shortDescription: profileData.team?.shortDescription || '',
+        tags: profileData.team?.industryTags?.map((tag) => tag.title) || [],
+        fundingStage: profileData.team?.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
       });
     }
   }, [profileData, methods]);
@@ -71,20 +73,24 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const { handleSubmit, reset } = methods;
 
   const onSubmit = async (formData: EditProfileFormData) => {
-    console.log('Form submitted:', formData);
-    // TODO: Implement actual form submission logic
-    // - Upload image if changed
-    // - Update profile data via API
-    // - Handle success/error states
+    try {
+      const updateData = {
+        name: formData.name,
+        shortDescription: formData.shortDescription,
+        industryTags: formData.tags,
+        fundingStage: formData.fundingStage?.value || '',
+        logo: '',
+      };
 
-    // For now, just close the form (this will return to view mode)
-    reset();
-    onClose();
-  };
+      await updateProfileMutation.mutateAsync(updateData);
 
-  const handleCancel = () => {
-    reset();
-    onClose();
+      reset();
+      onClose();
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      // TODO: Show error message to user
+      // You might want to add a toast notification or error state here
+    }
   };
 
   return (
@@ -103,11 +109,11 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           <div className={s.row}>
             <ProfileImageInput
               member={{
-                profile: profileData?.team.logo?.url || '',
-                name: profileData?.team.name || 'Team Name',
+                profile: profileData?.team?.logo?.url || '',
+                name: profileData?.team?.name || 'Team Name',
               }}
             />
-            <FormField name="teamName" label="Team Name" isRequired placeholder="Enter team name" />
+            <FormField name="name" label="Team Name" isRequired placeholder="Enter team name" />
           </div>
           <div className={s.row}>
             <FormField name="shortDescription" label="Short Description" isRequired placeholder="Describe your team and what you do..." />

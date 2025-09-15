@@ -32,8 +32,10 @@ export function ResultItem(props: Props) {
     onSelect?.();
   }, [item, analytics, onSelect]);
 
+  const link = item.index === 'events' ? item.source?.eventUrl || '' : `/${item.index}/${item.uid}`;
+
   return (
-    <Link href={`/${item.index}/${item.uid}`} onClick={onClick}>
+    <Link href={link} onClick={onClick} target={link.startsWith('http') ? '_blank' : '_self'}>
       <li className={s.foundItem}>
         <div className={s.header}>
           <div className={s.avatar}>

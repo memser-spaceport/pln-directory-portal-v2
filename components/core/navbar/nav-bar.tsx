@@ -15,6 +15,7 @@ import { NavigationMenu } from '@base-ui-components/react';
 import NextLink from 'next/link';
 
 import s from './NavBar.module.scss';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 interface INavbar {
   userInfo: IUserInfo;
@@ -74,6 +75,8 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
+  const { data: demoDayState } = useGetDemoDayState(userInfo?.uid);
+
   return (
     <NavigationMenu.Root className={s.Root}>
       <NavigationMenu.List className={s.List}>
@@ -113,11 +116,14 @@ function Navbar(props: Readonly<INavbar>) {
             <ForumIcon /> Forum
           </Link>
         </NavigationMenu.Item>
-        <NavigationMenu.Item>
-          <Link className={s.Trigger} href="/demo-day" onClick={() => onNavItemClickHandler('/demo-day', 'Demo Day')}>
-            <DemoDayIcon /> Demo Day
-          </Link>
-        </NavigationMenu.Item>
+        {demoDayState && demoDayState.access !== 'NONE' && (
+          <NavigationMenu.Item>
+            <Link className={s.Trigger} href="/demo-day" onClick={() => onNavItemClickHandler('/demo-day', 'Demo Day')}>
+              <DemoDayIcon /> Demo Day
+            </Link>
+          </NavigationMenu.Item>
+        )}
+
         <div className={s.right}>
           <NotificationsMenu isMobileView notifications={notifications} open={showNotifications} onClose={() => setShowNotifications(false)} userInfo={userInfo} />
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />

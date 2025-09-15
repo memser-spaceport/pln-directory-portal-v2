@@ -1,10 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
+import { IUserInfo } from '@/types/shared.types';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
 
 type DemoDayState = {
   uid: string;
-  access: 'none' | 'investor' | 'founder';
+  access: 'NONE' | 'INVESTOR' | 'FOUNDER';
   date: string;
   title: string;
   description: string;
@@ -28,6 +31,8 @@ async function fetcher(memberUid?: string) {
 
   const data: DemoDayState = await response.json();
 
+  console.log(data);
+
   return data;
 
   // return {
@@ -40,9 +45,13 @@ async function fetcher(memberUid?: string) {
   // };
 }
 
-export function useGetDemoDayState(memberUid?: string) {
+export function useGetDemoDayState() {
+  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
+  const authToken = getParsedValue(Cookies.get('authToken'));
+
   return useQuery({
-    queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE, memberUid],
-    queryFn: () => fetcher(memberUid),
+    queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE, userInfo?.uid],
+    queryFn: () => fetcher(userInfo.uid),
+    enabled: Boolean(userInfo && authToken),
   });
 }

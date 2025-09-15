@@ -7,6 +7,9 @@ import { ReactNode, useEffect } from 'react';
 import { FounderActiveView } from '@/components/page/demo-day/FounderActiveView';
 import { InvestorPendingView } from '@/components/page/demo-day/InvestorPendingView';
 import { InvestorActiveView } from '@/components/page/demo-day/InvestorActiveView';
+import { IUserInfo } from '@/types/shared.types';
+import { getParsedValue } from '@/utils/common.utils';
+import Cookies from 'js-cookie';
 
 const FOUNDER_VIEWS: Record<string, ReactNode> = {
   pending: <FounderPendingView />,
@@ -38,20 +41,20 @@ function DemoDayPage() {
   // based on status + access => differnet views
 
   useEffect(() => {
-    if (data?.access === 'none') {
+    if (data?.access === 'NONE') {
       router.replace('/members');
     }
   }, [data?.access, router]);
 
-  if (data?.access === 'none' || !data) {
+  if (data?.access === 'NONE' || !data) {
     return null;
   }
 
   switch (data?.access) {
-    case 'founder': {
+    case 'FOUNDER': {
       return FOUNDER_VIEWS[data?.status];
     }
-    case 'investor': {
+    case 'INVESTOR': {
       return INVESTOR_VIEWS[data.status];
     }
     default: {

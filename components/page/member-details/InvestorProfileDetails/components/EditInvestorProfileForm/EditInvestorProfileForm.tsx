@@ -138,11 +138,16 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                   <CheckIcon className={s.Icon} />
                 </Checkbox.Indicator>
               </Checkbox.Root>
-              <div className={s.primary}>
-                I&apos;m an accredited investor under{' '}
-                <Link target="_blank" href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3" className={s.link}>
-                  SEC rules <ExternalLinkIcon />
-                </Link>
+              <div className={s.col}>
+                <div className={s.primary}>
+                  I&apos;m an accredited investor under{' '}
+                  <Link target="_blank" href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3" className={s.link}>
+                    SEC rules <ExternalLinkIcon />
+                  </Link>
+                </div>
+                <p className={s.desc}>
+                  This certification is required to access investor features and participate in demo days. You must confirm accredited investor status to save your investor profile.
+                </p>
               </div>
             </label>
           </div>

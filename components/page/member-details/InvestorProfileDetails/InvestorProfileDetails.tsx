@@ -52,6 +52,7 @@ export const InvestorProfileDetails = ({ isLoggedIn, userInfo, member }: Props) 
         <InvestorProfileView
           investmentFocusAreas={member?.investorProfile?.investmentFocus}
           typicalCheckSize={member?.investorProfile?.typicalCheckSize}
+          secRulesAccepted={member?.investorProfile?.secRulesAccepted}
           isLoggedIn={isLoggedIn}
           userInfo={userInfo}
           isEditable={isEditable}

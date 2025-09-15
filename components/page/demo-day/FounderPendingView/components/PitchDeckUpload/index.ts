@@ -1,0 +1,1 @@
+export { PitchDeckUpload } from './PitchDeckUpload';

@@ -54,7 +54,7 @@ export const ProfileSection = () => {
           />
 
           {/* Content */}
-          <ProfileContent pitchDeckUrl={data?.onePagerUpload} videoUrl={data?.videoUpload} />
+          <ProfileContent pitchDeckUrl={data?.onePagerUpload?.url} videoUrl={data?.videoUpload?.url} />
 
           {/* Divider */}
           <div className={s.profileDivider} />

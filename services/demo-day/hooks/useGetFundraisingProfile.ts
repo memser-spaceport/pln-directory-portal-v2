@@ -2,6 +2,27 @@ import { useQuery } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
+type UploadInfo = {
+  bucket: null;
+  checksum: string;
+  cid: null;
+  createdAt: string;
+  filename: string;
+  key: string;
+  kind: string;
+  meta: null;
+  mimetype: string;
+  scopeType: string;
+  scopeUid: string | null;
+  size: number;
+  status: string;
+  storage: string;
+  uid: string;
+  updatedAt: string;
+  uploaderUid: string | null;
+  url: string;
+};
+
 export type FundraisingProfile = {
   uid: string;
   teamUid: string;
@@ -20,9 +41,9 @@ export type FundraisingProfile = {
     logo: { uid: string; url: string } | null;
   };
   onePagerUploadUid: string | null;
-  onePagerUpload: string | null;
+  onePagerUpload: UploadInfo | null;
   videoUploadUid: string | null;
-  videoUpload: string | null;
+  videoUpload: UploadInfo | null;
 };
 
 async function fetcher() {

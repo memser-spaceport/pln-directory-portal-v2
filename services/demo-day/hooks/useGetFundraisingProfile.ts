@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 
-type UploadInfo = {
+export type UploadInfo = {
   bucket: null;
   checksum: string;
   cid: null;

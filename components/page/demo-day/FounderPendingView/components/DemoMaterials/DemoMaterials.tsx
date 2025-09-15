@@ -2,10 +2,11 @@ import React from 'react';
 import { PitchDeckUpload } from '../PitchDeckUpload';
 import { PitchVideoUpload } from '../PitchVideoUpload';
 import s from './DemoMaterials.module.scss';
+import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 
 interface DemoMaterialsProps {
-  existingPitchDeck?: string | null;
-  existingVideo?: string | null;
+  existingPitchDeck?: UploadInfo | null;
+  existingVideo?: UploadInfo | null;
 }
 
 export const DemoMaterials = ({ existingPitchDeck, existingVideo }: DemoMaterialsProps) => {

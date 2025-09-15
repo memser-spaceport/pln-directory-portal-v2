@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ImageIcon, VideoIcon } from '@/components/page/demo-day/icons/DemoDayIcons';
+import { ImageIcon } from '@/components/page/demo-day/icons/DemoDayIcons';
 import s from './MediaPreview.module.scss';
+import { formatWalletAddress } from '@privy-io/js-sdk-core';
+import { formatFileSize } from '@/utils/file.utils';
 
 interface MediaPreviewProps {
   url: string;
@@ -8,7 +10,7 @@ interface MediaPreviewProps {
   title: string;
   metadata?: {
     fileName?: string;
-    fileSize?: string;
+    fileSize?: string | number;
     uploadDate?: string;
   };
   showMetadata?: boolean;
@@ -149,27 +151,9 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true }
 
         {showMetadata && metadata && (
           <div className={s.metadataDetails}>
-            {metadata.fileName && (
-              <span className={s.metadataItem}>
-                <span className={s.value}>{metadata.fileName}</span>
-              </span>
-            )}
-            {metadata.fileSize && (
-              <>
-                &bull;
-                <span className={s.metadataItem}>
-                  <span className={s.value}>{metadata.fileSize}</span>
-                </span>
-              </>
-            )}
-            {metadata.uploadDate && (
-              <>
-                &bull;
-                <span className={s.metadataItem}>
-                  <span className={s.value}>Uploaded {metadata.uploadDate}</span>
-                </span>
-              </>
-            )}
+            {metadata.fileName && <span className={s.metadataItem}>{formatWalletAddress(metadata.fileName)}</span>}
+            {metadata.fileSize && <span className={s.metadataItem}>&bull; {formatFileSize(+metadata.fileSize)}</span>}
+            {metadata.uploadDate && <span className={s.metadataItem}>&bull; Uploaded {metadata.uploadDate}</span>}
           </div>
         )}
       </div>

@@ -202,7 +202,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
               </div>
 
               {/* Demo Day Materials - Always Visible */}
-              <DemoMaterials existingPitchDeck={data?.onePagerUpload?.url} existingVideo={data?.videoUpload?.url} />
+              <DemoMaterials existingPitchDeck={data?.onePagerUpload} existingVideo={data?.videoUpload} />
             </div>
 
             {/* Footer - Always Visible */}

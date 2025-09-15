@@ -2,7 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useUploadOnePager } from '@/services/demo-day/hooks/useUploadOnePager';
 import { MediaPreview } from '../MediaPreview';
+import { formatFileSize } from '@/utils/file.utils';
 import s from './PitchDeckUpload.module.scss';
+import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 
 const FolderIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -45,26 +47,28 @@ const FolderIcon = () => (
 
 const PDFIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#DC2626"/>
-    <polyline points="14,2 14,8 20,8" fill="#B91C1C"/>
-    <text x="12" y="16" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">PDF</text>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#DC2626" />
+    <polyline points="14,2 14,8 20,8" fill="#B91C1C" />
+    <text x="12" y="16" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">
+      PDF
+    </text>
   </svg>
 );
 
 const SpinnerIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={s.spinner}>
-    <path d="M8 1.5a6.5 6.5 0 1 0 6.5 6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M8 1.5a6.5 6.5 0 1 0 6.5 6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
 
 const DotIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+    <circle cx="8" cy="8" r="1.5" fill="currentColor" />
   </svg>
 );
 
 interface PitchDeckUploadProps {
-  existingFile?: string | null;
+  existingFile?: UploadInfo | null;
 }
 
 interface UploadState {
@@ -86,67 +90,70 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
 
   const uploadMutation = useUploadOnePager();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (!file) return;
 
-    // Validate file type
-    if (file.type !== 'application/pdf') {
-      setUploadState(prev => ({
-        ...prev,
-        error: 'Only PDF files are allowed',
-      }));
-      return;
-    }
+      // Validate file type
+      if (file.type !== 'application/pdf') {
+        setUploadState((prev) => ({
+          ...prev,
+          error: 'Only PDF files are allowed',
+        }));
+        return;
+      }
 
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadState(prev => ({
-        ...prev,
-        error: 'File size must be less than 5MB',
-      }));
-      return;
-    }
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setUploadState((prev) => ({
+          ...prev,
+          error: 'File size must be less than 5MB',
+        }));
+        return;
+      }
 
-    setUploadState({
-      file,
-      progress: 0,
-      isUploading: true,
-      isComplete: false,
-      error: null,
-    });
-
-    // Simulate progress for better UX (since fetch doesn't support real progress)
-    const progressInterval = setInterval(() => {
-      setUploadState(prev => {
-        if (prev.progress < 90) {
-          return { ...prev, progress: prev.progress + 10 };
-        }
-        return prev;
+      setUploadState({
+        file,
+        progress: 0,
+        isUploading: true,
+        isComplete: false,
+        error: null,
       });
-    }, 200);
 
-    // Start upload
-    uploadMutation.mutate(file, {
-      onSuccess: () => {
-        clearInterval(progressInterval);
-        setUploadState(prev => ({
-          ...prev,
-          isUploading: false,
-          isComplete: true,
-          progress: 100,
-        }));
-      },
-      onError: (error) => {
-        clearInterval(progressInterval);
-        setUploadState(prev => ({
-          ...prev,
-          isUploading: false,
-          error: error instanceof Error ? error.message : 'Upload failed',
-        }));
-      },
-    });
-  }, [uploadMutation]);
+      // Simulate progress for better UX (since fetch doesn't support real progress)
+      const progressInterval = setInterval(() => {
+        setUploadState((prev) => {
+          if (prev.progress < 90) {
+            return { ...prev, progress: prev.progress + 10 };
+          }
+          return prev;
+        });
+      }, 200);
+
+      // Start upload
+      uploadMutation.mutate(file, {
+        onSuccess: () => {
+          clearInterval(progressInterval);
+          setUploadState((prev) => ({
+            ...prev,
+            isUploading: false,
+            isComplete: true,
+            progress: 100,
+          }));
+        },
+        onError: (error) => {
+          clearInterval(progressInterval);
+          setUploadState((prev) => ({
+            ...prev,
+            isUploading: false,
+            error: error instanceof Error ? error.message : 'Upload failed',
+          }));
+        },
+      });
+    },
+    [uploadMutation],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -157,13 +164,7 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
     disabled: uploadState.isUploading,
   });
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
+
 
   const renderUploadArea = () => {
     // Show uploading state
@@ -174,13 +175,9 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
             <PDFIcon />
           </div>
           <div className={s.fileInfo}>
-            <div className={s.fileName}>
-              {uploadState.file?.name || 'Uploading...'}
-            </div>
+            <div className={s.fileName}>{uploadState.file?.name || 'Uploading...'}</div>
             <div className={s.fileDetails}>
-              <span className={s.fileSize}>
-                {uploadState.file ? formatFileSize(uploadState.file.size) : ''}
-              </span>
+              <span className={s.fileSize}>{uploadState.file ? formatFileSize(uploadState.file.size) : ''}</span>
               <DotIcon />
               <div className={s.uploadStatus}>
                 <SpinnerIcon />
@@ -190,16 +187,11 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
           </div>
           <div className={s.progressBar}>
             <div className={s.progressTrack}>
-              <div
-                className={s.progressFill}
-                style={{ width: `${uploadState.progress}%` }}
-              />
+              <div className={s.progressFill} style={{ width: `${uploadState.progress}%` }} />
             </div>
             <span className={s.progressText}>{uploadState.progress}%</span>
           </div>
-          {uploadState.error && (
-            <div className={s.errorMessage}>{uploadState.error}</div>
-          )}
+          {uploadState.error && <div className={s.errorMessage}>{uploadState.error}</div>}
         </div>
       );
     }
@@ -212,13 +204,15 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
           <button
             type="button"
             className={s.retryButton}
-            onClick={() => setUploadState({
-              file: null,
-              progress: 0,
-              isUploading: false,
-              isComplete: false,
-              error: null,
-            })}
+            onClick={() =>
+              setUploadState({
+                file: null,
+                progress: 0,
+                isUploading: false,
+                isComplete: false,
+                error: null,
+              })
+            }
           >
             Try Again
           </button>
@@ -227,10 +221,7 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
     }
 
     return (
-      <div
-        {...getRootProps()}
-        className={`${s.uploadArea} ${isDragActive ? s.dragActive : ''}`}
-      >
+      <div {...getRootProps()} className={`${s.uploadArea} ${isDragActive ? s.dragActive : ''}`}>
         <input {...getInputProps()} />
         <div className={s.uploadIcon}>
           <FolderIcon />
@@ -248,9 +239,9 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
 
   // Show MediaPreview if file is uploaded successfully or existing file exists
   if ((uploadState.isComplete && uploadState.file) || existingFile) {
-    const fileUrl = existingFile || (uploadState.file ? URL.createObjectURL(uploadState.file) : '');
-    const fileName = uploadState.file?.name || 'Pitch Deck.pdf';
-    const fileSize = uploadState.file ? formatFileSize(uploadState.file.size) : undefined;
+    const fileUrl = existingFile?.url || (uploadState.file ? URL.createObjectURL(uploadState.file) : '');
+    const fileName = existingFile?.filename || uploadState.file?.name || 'Pitch Deck.pdf';
+    const fileSize = existingFile?.size || (uploadState.file ? formatFileSize(uploadState.file?.size) : undefined);
 
     return (
       <div className={s.materialUpload}>
@@ -268,9 +259,5 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
     );
   }
 
-  return (
-    <div className={s.materialUpload}>
-      {renderUploadArea()}
-    </div>
-  );
+  return <div className={s.materialUpload}>{renderUploadArea()}</div>;
 };

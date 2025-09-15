@@ -2,7 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useUploadVideo } from '@/services/demo-day/hooks/useUploadVideo';
 import { MediaPreview } from '../MediaPreview';
+import { formatFileSize } from '@/utils/file.utils';
 import s from './PitchVideoUpload.module.scss';
+import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 
 const FolderIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -45,25 +47,25 @@ const FolderIcon = () => (
 
 const VideoIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="2" y="3" width="20" height="14" rx="2" fill="#7C3AED"/>
-    <polygon points="10,8 16,12 10,16" fill="white"/>
+    <rect x="2" y="3" width="20" height="14" rx="2" fill="#7C3AED" />
+    <polygon points="10,8 16,12 10,16" fill="white" />
   </svg>
 );
 
 const SpinnerIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={s.spinner}>
-    <path d="M8 1.5a6.5 6.5 0 1 0 6.5 6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M8 1.5a6.5 6.5 0 1 0 6.5 6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
 
 const DotIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+    <circle cx="8" cy="8" r="1.5" fill="currentColor" />
   </svg>
 );
 
 interface PitchVideoUploadProps {
-  existingFile?: string | null;
+  existingFile?: UploadInfo | null;
 }
 
 interface UploadState {
@@ -85,68 +87,71 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
 
   const uploadMutation = useUploadVideo();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (!file) return;
 
-    // Validate file type
-    const allowedTypes = ['video/mp4', 'video/mov', 'video/quicktime', 'video/webm'];
-    if (!allowedTypes.includes(file.type)) {
-      setUploadState(prev => ({
-        ...prev,
-        error: 'Only MP4, MOV, and WebM video files are allowed',
-      }));
-      return;
-    }
+      // Validate file type
+      const allowedTypes = ['video/mp4', 'video/mov', 'video/quicktime', 'video/webm'];
+      if (!allowedTypes.includes(file.type)) {
+        setUploadState((prev) => ({
+          ...prev,
+          error: 'Only MP4, MOV, and WebM video files are allowed',
+        }));
+        return;
+      }
 
-    // Validate file size (500MB limit)
-    if (file.size > 500 * 1024 * 1024) {
-      setUploadState(prev => ({
-        ...prev,
-        error: 'File size must be less than 500MB',
-      }));
-      return;
-    }
+      // Validate file size (500MB limit)
+      if (file.size > 500 * 1024 * 1024) {
+        setUploadState((prev) => ({
+          ...prev,
+          error: 'File size must be less than 500MB',
+        }));
+        return;
+      }
 
-    setUploadState({
-      file,
-      progress: 0,
-      isUploading: true,
-      isComplete: false,
-      error: null,
-    });
-
-    // Simulate progress for better UX (since fetch doesn't support real progress)
-    const progressInterval = setInterval(() => {
-      setUploadState(prev => {
-        if (prev.progress < 90) {
-          return { ...prev, progress: prev.progress + 5 }; // Slower progress for larger files
-        }
-        return prev;
+      setUploadState({
+        file,
+        progress: 0,
+        isUploading: true,
+        isComplete: false,
+        error: null,
       });
-    }, 500); // Slower interval for video uploads
 
-    // Start upload
-    uploadMutation.mutate(file, {
-      onSuccess: () => {
-        clearInterval(progressInterval);
-        setUploadState(prev => ({
-          ...prev,
-          isUploading: false,
-          isComplete: true,
-          progress: 100,
-        }));
-      },
-      onError: (error) => {
-        clearInterval(progressInterval);
-        setUploadState(prev => ({
-          ...prev,
-          isUploading: false,
-          error: error instanceof Error ? error.message : 'Upload failed',
-        }));
-      },
-    });
-  }, [uploadMutation]);
+      // Simulate progress for better UX (since fetch doesn't support real progress)
+      const progressInterval = setInterval(() => {
+        setUploadState((prev) => {
+          if (prev.progress < 90) {
+            return { ...prev, progress: prev.progress + 5 }; // Slower progress for larger files
+          }
+          return prev;
+        });
+      }, 500); // Slower interval for video uploads
+
+      // Start upload
+      uploadMutation.mutate(file, {
+        onSuccess: () => {
+          clearInterval(progressInterval);
+          setUploadState((prev) => ({
+            ...prev,
+            isUploading: false,
+            isComplete: true,
+            progress: 100,
+          }));
+        },
+        onError: (error) => {
+          clearInterval(progressInterval);
+          setUploadState((prev) => ({
+            ...prev,
+            isUploading: false,
+            error: error instanceof Error ? error.message : 'Upload failed',
+          }));
+        },
+      });
+    },
+    [uploadMutation],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -160,13 +165,7 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
     disabled: uploadState.isUploading,
   });
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
+
 
   const renderUploadArea = () => {
     // Show uploading state
@@ -177,13 +176,9 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
             <VideoIcon />
           </div>
           <div className={s.fileInfo}>
-            <div className={s.fileName}>
-              {uploadState.file?.name || 'Uploading...'}
-            </div>
+            <div className={s.fileName}>{uploadState.file?.name || 'Uploading...'}</div>
             <div className={s.fileDetails}>
-              <span className={s.fileSize}>
-                {uploadState.file ? formatFileSize(uploadState.file.size) : ''}
-              </span>
+              <span className={s.fileSize}>{uploadState.file ? formatFileSize(uploadState.file.size) : ''}</span>
               <DotIcon />
               <div className={s.uploadStatus}>
                 <SpinnerIcon />
@@ -193,16 +188,11 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
           </div>
           <div className={s.progressBar}>
             <div className={s.progressTrack}>
-              <div
-                className={s.progressFill}
-                style={{ width: `${uploadState.progress}%` }}
-              />
+              <div className={s.progressFill} style={{ width: `${uploadState.progress}%` }} />
             </div>
             <span className={s.progressText}>{uploadState.progress}%</span>
           </div>
-          {uploadState.error && (
-            <div className={s.errorMessage}>{uploadState.error}</div>
-          )}
+          {uploadState.error && <div className={s.errorMessage}>{uploadState.error}</div>}
         </div>
       );
     }
@@ -215,13 +205,15 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
           <button
             type="button"
             className={s.retryButton}
-            onClick={() => setUploadState({
-              file: null,
-              progress: 0,
-              isUploading: false,
-              isComplete: false,
-              error: null,
-            })}
+            onClick={() =>
+              setUploadState({
+                file: null,
+                progress: 0,
+                isUploading: false,
+                isComplete: false,
+                error: null,
+              })
+            }
           >
             Try Again
           </button>
@@ -230,10 +222,7 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
     }
 
     return (
-      <div
-        {...getRootProps()}
-        className={`${s.uploadArea} ${isDragActive ? s.dragActive : ''}`}
-      >
+      <div {...getRootProps()} className={`${s.uploadArea} ${isDragActive ? s.dragActive : ''}`}>
         <input {...getInputProps()} />
         <div className={s.uploadIcon}>
           <FolderIcon />
@@ -251,9 +240,9 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
 
   // Show MediaPreview if file is uploaded successfully or existing file exists
   if ((uploadState.isComplete && uploadState.file) || existingFile) {
-    const fileUrl = existingFile || (uploadState.file ? URL.createObjectURL(uploadState.file) : '');
-    const fileName = uploadState.file?.name || 'Pitch Video';
-    const fileSize = uploadState.file ? formatFileSize(uploadState.file.size) : undefined;
+    const fileUrl = existingFile?.url || (uploadState.file ? URL.createObjectURL(uploadState.file) : '');
+    const fileName = existingFile?.filename || uploadState.file?.name || 'Pitch Video';
+    const fileSize = existingFile?.size || (uploadState.file ? formatFileSize(uploadState.file.size) : undefined);
 
     return (
       <div className={s.materialUpload}>
@@ -271,9 +260,5 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
     );
   }
 
-  return (
-    <div className={s.materialUpload}>
-      {renderUploadArea()}
-    </div>
-  );
+  return <div className={s.materialUpload}>{renderUploadArea()}</div>;
 };

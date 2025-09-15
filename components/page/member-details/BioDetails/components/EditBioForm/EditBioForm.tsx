@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -35,6 +35,9 @@ const bioSchema = yup.object().shape({
 
 export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) => {
   const router = useRouter();
+  const originalAiContentRef = useRef<string | null>(null);
+  const initialBioRef = useRef<string>(member.bio || '');
+  
   const methods = useForm<FormData>({
     defaultValues: {
       bio: member.bio || '',
@@ -42,10 +45,51 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
     resolver: yupResolver(bioSchema),
   });
 
-  const { handleSubmit, reset } = methods;
+  const { handleSubmit, reset, watch } = methods;
   const { mutateAsync } = useUpdateMemberParams();
   const { data: memberData } = useMember(member.id);
   const { onSaveProfileDetailsClicked } = useMemberAnalytics();
+
+  const handleAiContentGenerated = (originalContent: string) => {
+    // Store the original content as-is for now
+    // We'll capture the RichTextEditor's processed version after it renders
+    originalAiContentRef.current = originalContent;
+    
+    // Use a small delay to capture the processed content after RichTextEditor normalizes it
+    setTimeout(() => {
+      const currentBio = watch('bio');
+      if (currentBio) {
+        // Now store the RichTextEditor's processed version
+        originalAiContentRef.current = currentBio;
+      }
+    }, 100);
+  };
+
+  const modifyDisclaimerIfNeeded = (currentBio: string): string => {
+    // Check if this bio contains the original AI disclaimer (indicating it's AI-generated)
+    const originalDisclaimer = '<p><em>Bio is AI generated &amp; may not be accurate.</em></p>';
+    const hasOriginalDisclaimer = currentBio.includes(originalDisclaimer);
+
+    // Case 1: New AI content was just generated in this session
+    if (originalAiContentRef.current) {
+      if (currentBio === originalAiContentRef.current) {
+        return currentBio;
+      }
+
+      if (hasOriginalDisclaimer) {
+        return currentBio.replace(originalDisclaimer, '');
+      }
+    }
+    
+    // Case 2: Editing existing AI-generated bio (no new generation in this session)
+    else if (hasOriginalDisclaimer) {
+      if (currentBio !== initialBioRef.current) {
+        return currentBio.replace(originalDisclaimer, '');
+      }
+    }
+    
+    return currentBio;
+  };
 
   const onSubmit = async (formData: FormData) => {
     onSaveProfileDetailsClicked();
@@ -55,7 +99,7 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
     }
 
     const payload = {
-      bio: formData.bio,
+      bio: modifyDisclaimerIfNeeded(formData.bio),
     };
 
     const res = await mutateAsync({
@@ -87,7 +131,7 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
 
         <div className={s.body}>
           <div className={s.row}>
-            <BioInput generateBio={generateBio} />
+            <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} />
           </div>
         </div>
 

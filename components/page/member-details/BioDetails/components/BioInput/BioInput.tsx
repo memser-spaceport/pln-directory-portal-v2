@@ -12,9 +12,10 @@ const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor/Rich
 
 interface Props {
   generateBio?: boolean;
+  onAiContentGenerated?: (originalContent: string) => void;
 }
 
-export const BioInput = ({ generateBio }: Props) => {
+export const BioInput = ({ generateBio, onAiContentGenerated }: Props) => {
   const { watch, setValue } = useFormContext();
   const { bio } = watch();
   const generateBioRef = useRef(false);
@@ -32,13 +33,14 @@ export const BioInput = ({ generateBio }: Props) => {
       }
 
       setValue('bio', res.bio, { shouldValidate: true, shouldDirty: true });
+      onAiContentGenerated?.(res.bio);
     }
 
     if (generateBio && !generateBioRef.current) {
       generateBioRef.current = true;
       prefillBio();
     }
-  }, [generateBio, mutateAsync, reset, setValue]);
+  }, [generateBio, mutateAsync, onAiContentGenerated, reset, setValue]);
 
   return (
     <div className={s.root}>
@@ -58,6 +60,7 @@ export const BioInput = ({ generateBio }: Props) => {
             }
 
             setValue('bio', res.bio, { shouldValidate: true, shouldDirty: true });
+            onAiContentGenerated?.(res.bio);
           }}
         >
           {isPending ? (

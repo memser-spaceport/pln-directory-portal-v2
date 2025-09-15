@@ -65,40 +65,40 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
     }
   }, [isOpen]);
 
-  // Handle ESC key press and body scroll lock
-  React.useEffect(() => {
-    const handleEscKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscKey);
-
-      // Lock body scroll and preserve position
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscKey);
-
-      // Restore body scroll and position
-      if (isOpen) {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.overflow = '';
-
-        // Restore scroll position
-        window.scrollTo(0, scrollPosition);
-      }
-    };
-  }, [isOpen, onClose, scrollPosition]);
+  // // Handle ESC key press and body scroll lock
+  // React.useEffect(() => {
+  //   const handleEscKey = (event: KeyboardEvent) => {
+  //     if (event.key === 'Escape' && isOpen) {
+  //       onClose();
+  //     }
+  //   };
+  //
+  //   if (isOpen) {
+  //     document.addEventListener('keydown', handleEscKey);
+  //
+  //     // Lock body scroll and preserve position
+  //     const scrollY = window.scrollY;
+  //     document.body.style.position = 'fixed';
+  //     document.body.style.top = `-${scrollY}px`;
+  //     document.body.style.width = '100%';
+  //     document.body.style.overflow = 'hidden';
+  //   }
+  //
+  //   return () => {
+  //     document.removeEventListener('keydown', handleEscKey);
+  //
+  //     // Restore body scroll and position
+  //     if (isOpen) {
+  //       document.body.style.position = '';
+  //       document.body.style.top = '';
+  //       document.body.style.width = '';
+  //       document.body.style.overflow = '';
+  //
+  //       // Restore scroll position
+  //       window.scrollTo(0, scrollPosition);
+  //     }
+  //   };
+  // }, [isOpen, onClose, scrollPosition]);
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {

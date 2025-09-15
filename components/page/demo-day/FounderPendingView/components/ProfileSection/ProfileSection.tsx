@@ -16,7 +16,7 @@ export const ProfileSection = () => {
 
   const handleEditProfile = () => {
     // Store current scroll position before opening drawer
-    scrollPositionRef.current = window.scrollY;
+    scrollPositionRef.current = document.body.scrollTop;
     setIsDrawerOpen(true);
   };
 

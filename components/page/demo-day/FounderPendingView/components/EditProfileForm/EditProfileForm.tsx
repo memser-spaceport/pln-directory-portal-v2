@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
-import { FormTextArea } from '@/components/form/FormTextArea';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormTagsInput } from '@/components/form/FormTagsInput';
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
@@ -11,6 +10,10 @@ import s from './EditProfileForm.module.scss';
 import { EditFormControls } from '@/components/page/member-details/components/EditFormControls';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useUpdateFundraisingProfile } from '@/services/demo-day/hooks/useUpdateFundraisingProfile';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { saveRegistrationImage } from '@/services/registration.service';
+import { toast } from 'react-toastify';
 
 interface EditProfileFormData {
   image: File | null;
@@ -37,6 +40,20 @@ const fundingStageOptions = [
   { value: 'ipo', label: 'IPO' },
 ];
 
+const schema = yup.object().shape({
+  image: yup.mixed<File>().nullable().defined(),
+  name: yup.string().required('Name is required'),
+  shortDescription: yup.string().required('Short description is required'),
+  tags: yup.array().of(yup.string().defined()).min(1, 'At least one tag is required').defined().required('Tags are required'),
+  fundingStage: yup
+    .object()
+    .shape({
+      value: yup.string().required('Funding stage is required'),
+      label: yup.string().required('Funding stage is required'),
+    })
+    .nullable(),
+});
+
 export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const { data: profileData } = useGetFundraisingProfile();
   const updateProfileMutation = useUpdateFundraisingProfile();
@@ -55,6 +72,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       tags: profileData?.team?.industryTags?.map((tag) => tag.title) || [],
       fundingStage: profileData?.team?.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
     },
+    resolver: yupResolver(schema),
   });
 
   // Reset form when profile data changes
@@ -74,12 +92,19 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
   const onSubmit = async (formData: EditProfileFormData) => {
     try {
+      let imageUrl = '';
+
+      if (formData.image) {
+        const imgResponse = await saveRegistrationImage(formData.image);
+        imageUrl = imgResponse?.image.url;
+      }
+
       const updateData = {
         name: formData.name,
         shortDescription: formData.shortDescription,
         industryTags: formData.tags,
         fundingStage: formData.fundingStage?.value || '',
-        logo: '',
+        logo: imageUrl,
       };
 
       await updateProfileMutation.mutateAsync(updateData);
@@ -88,8 +113,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       onClose();
     } catch (error) {
       console.error('Failed to update profile:', error);
-      // TODO: Show error message to user
-      // You might want to add a toast notification or error state here
+      toast.error('Failed to update profile');
     }
   };
 
@@ -113,10 +137,10 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
                 name: profileData?.team?.name || 'Team Name',
               }}
             />
-            <FormField name="name" label="Team Name" isRequired placeholder="Enter team name" />
+            <FormField name="name" label="Team Name" placeholder="Enter team name" />
           </div>
           <div className={s.row}>
-            <FormField name="shortDescription" label="Short Description" isRequired placeholder="Describe your team and what you do..." />
+            <FormField name="shortDescription" label="Short Description" placeholder="Describe your team and what you do..." />
           </div>
 
           <div className={s.row}>
@@ -124,7 +148,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           </div>
 
           <div className={s.row}>
-            <FormSelect name="fundingStage" label="Funding Stage" placeholder="Select your current funding stage" options={fundingStageOptions} isRequired />
+            <FormSelect name="fundingStage" label="Funding Stage" placeholder="Select your current funding stage" options={fundingStageOptions} />
           </div>
         </div>
       </form>

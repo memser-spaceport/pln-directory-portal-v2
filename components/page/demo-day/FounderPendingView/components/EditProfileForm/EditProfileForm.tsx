@@ -110,7 +110,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
             <FormField name="teamName" label="Team Name" isRequired placeholder="Enter team name" />
           </div>
           <div className={s.row}>
-            <FormTextArea name="shortDescription" label="Short Description" isRequired placeholder="Describe your team and what you do..." rows={3} />
+            <FormField name="shortDescription" label="Short Description" isRequired placeholder="Describe your team and what you do..." />
           </div>
 
           <div className={s.row}>

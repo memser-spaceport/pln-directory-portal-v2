@@ -46,7 +46,7 @@ export const ProfileSection = () => {
         <div className={s.profileCard}>
           {/* Header */}
           <ProfileHeader
-            image={data?.team?.logo || '/images/demo-day/profile-placeholder.svg'}
+            image={data?.team?.logo?.url || '/images/demo-day/profile-placeholder.svg'}
             name={data?.team?.name || 'Team Name'}
             description={data?.team?.shortDescription || '-'}
             fundingStage={data?.team.fundingStage.title || '-'}

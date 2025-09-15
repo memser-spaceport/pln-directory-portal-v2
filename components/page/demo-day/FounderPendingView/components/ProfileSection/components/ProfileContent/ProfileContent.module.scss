@@ -45,6 +45,13 @@
   justify-content: center;
   gap: 8px;
   color: #6b7280;
+  flex-grow: 1;
+  width: 100%;
+  height: 176px;
+
+  border-radius: 8px;
+  border: 1px solid var(--border-brand-xsubtle, #E8EDFF);
+  background: var(--background-neutral-soft-surface, #F9FAFB);
 }
 
 .placeholderText {

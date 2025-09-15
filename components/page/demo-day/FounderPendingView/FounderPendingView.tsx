@@ -1,15 +1,11 @@
 import React from 'react';
 import s from './FounderPendingView.module.scss';
-import { getParsedValue } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
-import { IUserInfo } from '@/types/shared.types';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { Alert } from './components/Alert';
 import { ProfileSection } from './components/ProfileSection';
 import { TeamFundraisingCard } from '@/components/page/demo-day/InvestorPendingView/components/TeamFundraisingCard';
 
 export const FounderPendingView = () => {
-  const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const { data } = useGetDemoDayState();
 
   // Format the date from the API data

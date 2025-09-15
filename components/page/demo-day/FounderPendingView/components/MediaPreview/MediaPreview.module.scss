@@ -10,7 +10,7 @@
 .mediaCard {
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 176px;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
@@ -20,8 +20,7 @@
   &:hover {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 
-    .expandButton,
-    .deleteButton {
+    .expandButton {
       opacity: 1;
     }
   }
@@ -64,35 +63,12 @@
 }
 
 .deleteButton {
-  position: absolute;
-  top: 12px;
-  right: 52px;
-  width: 32px;
-  height: 32px;
-  background: rgba(220, 38, 38, 0.9);
-  border: none;
-  border-radius: 6px;
-  color: white;
   display: flex;
-  align-items: center;
+  padding: var(--spacing-4xs, 4px);
   justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: all 0.2s ease;
-  z-index: 2;
-
-  &:hover {
-    background: rgba(185, 28, 28, 0.9);
-    transform: scale(1.05);
-  }
-
-  @include media.mobile-only {
-    opacity: 1;
-    width: 28px;
-    height: 28px;
-    top: 8px;
-    right: 44px;
-  }
+  align-items: center;
+  gap: var(--spacing-zero, 0);
+  margin-left: auto;
 }
 
 // Video Preview
@@ -246,6 +222,7 @@
   justify-content: flex-start;
   align-items: center;
   gap: 3px;
+  width: 100%;
 }
 
 .metadataItem {

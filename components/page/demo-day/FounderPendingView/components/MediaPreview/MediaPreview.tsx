@@ -6,6 +6,8 @@ import { ConfirmDialog } from '../ConfirmDialog';
 import s from './MediaPreview.module.scss';
 import { formatWalletAddress } from '@privy-io/js-sdk-core';
 import { formatFileSize } from '@/utils/file.utils';
+import { DemoDayQueryKeys } from '@/services/demo-day/constants';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface MediaPreviewProps {
   url: string;
@@ -33,18 +35,6 @@ const CloseIcon = () => (
   </svg>
 );
 
-const ChevronLeftIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const ChevronRightIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
 const DeleteIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
@@ -60,6 +50,8 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
 
   const deleteOnePagerMutation = useDeleteOnePager();
   const deleteVideoMutation = useDeleteVideo();
+
+  const queryClient = useQueryClient();
 
   // Keyboard navigation
   useEffect(() => {
@@ -105,6 +97,7 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
       deleteOnePagerMutation.mutate(undefined, {
         onSuccess: () => {
           setShowDeleteDialog(false);
+          queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
           onDelete?.();
         },
         onError: () => {
@@ -115,6 +108,7 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
       deleteVideoMutation.mutate(undefined, {
         onSuccess: () => {
           setShowDeleteDialog(false);
+          queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
           onDelete?.();
         },
         onError: () => {
@@ -236,8 +230,8 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={showDeleteDialog}
-        title={`Delete ${title}?`}
-        message={`Are you sure you want to delete this ${type === 'document' ? 'pitch deck' : 'video'}? This action cannot be undone.`}
+        title={`Delete This File?`}
+        message={`You’ll be unlisted from Demo Day until you upload a new one.`}
         confirmText="Delete"
         cancelText="Cancel"
         onConfirm={handleDeleteConfirm}

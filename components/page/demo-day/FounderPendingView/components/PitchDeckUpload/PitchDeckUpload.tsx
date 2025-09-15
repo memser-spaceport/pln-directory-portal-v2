@@ -5,6 +5,8 @@ import { MediaPreview } from '../MediaPreview';
 import { formatFileSize } from '@/utils/file.utils';
 import s from './PitchDeckUpload.module.scss';
 import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
+import { useQueryClient } from '@tanstack/react-query';
+import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 
 const FolderIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -90,6 +92,8 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
 
   const uploadMutation = useUploadOnePager();
 
+  const queryClient = useQueryClient();
+
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
@@ -135,6 +139,7 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
       uploadMutation.mutate(file, {
         onSuccess: () => {
           clearInterval(progressInterval);
+          queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
@@ -144,6 +149,7 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
         },
         onError: (error) => {
           clearInterval(progressInterval);
+          queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE] });
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
@@ -152,7 +158,7 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
         },
       });
     },
-    [uploadMutation],
+    [queryClient, uploadMutation],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -235,11 +241,10 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
     );
   };
 
-  // Show MediaPreview if file is uploaded successfully or existing file exists
-  if ((uploadState.isComplete && uploadState.file) || existingFile) {
-    const fileUrl = existingFile?.url || (uploadState.file ? URL.createObjectURL(uploadState.file) : '');
-    const fileName = existingFile?.filename || uploadState.file?.name || 'Pitch Deck.pdf';
-    const fileSize = existingFile?.size || (uploadState.file ? formatFileSize(uploadState.file.size) : undefined);
+  if (existingFile) {
+    const fileUrl = existingFile?.url ?? '';
+    const fileName = existingFile?.filename ?? '';
+    const fileSize = existingFile?.size ?? 0;
 
     const handleDelete = () => {
       // Reset upload state to show upload area again

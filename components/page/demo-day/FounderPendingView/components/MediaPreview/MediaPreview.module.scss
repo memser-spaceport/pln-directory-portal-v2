@@ -24,10 +24,6 @@
       opacity: 1;
     }
   }
-
-  @include media.mobile-only {
-    height: 160px;
-  }
 }
 
 .expandButton {

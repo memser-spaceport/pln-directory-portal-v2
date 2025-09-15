@@ -164,8 +164,6 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
     disabled: uploadState.isUploading,
   });
 
-
-
   const renderUploadArea = () => {
     // Show uploading state
     if (uploadState.isUploading) {
@@ -241,7 +239,18 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
   if ((uploadState.isComplete && uploadState.file) || existingFile) {
     const fileUrl = existingFile?.url || (uploadState.file ? URL.createObjectURL(uploadState.file) : '');
     const fileName = existingFile?.filename || uploadState.file?.name || 'Pitch Deck.pdf';
-    const fileSize = existingFile?.size || (uploadState.file ? formatFileSize(uploadState.file?.size) : undefined);
+    const fileSize = existingFile?.size || (uploadState.file ? formatFileSize(uploadState.file.size) : undefined);
+
+    const handleDelete = () => {
+      // Reset upload state to show upload area again
+      setUploadState({
+        file: null,
+        progress: 0,
+        isUploading: false,
+        isComplete: false,
+        error: null,
+      });
+    };
 
     return (
       <div className={s.materialUpload}>
@@ -254,6 +263,8 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
             fileSize,
             uploadDate: uploadState.isComplete ? 'Just now' : undefined,
           }}
+          onDelete={handleDelete}
+          showDeleteButton={true}
         />
       </div>
     );

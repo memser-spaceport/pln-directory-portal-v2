@@ -165,8 +165,6 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
     disabled: uploadState.isUploading,
   });
 
-
-
   const renderUploadArea = () => {
     // Show uploading state
     if (uploadState.isUploading) {
@@ -244,6 +242,17 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
     const fileName = existingFile?.filename || uploadState.file?.name || 'Pitch Video';
     const fileSize = existingFile?.size || (uploadState.file ? formatFileSize(uploadState.file.size) : undefined);
 
+    const handleDelete = () => {
+      // Reset upload state to show upload area again
+      setUploadState({
+        file: null,
+        progress: 0,
+        isUploading: false,
+        isComplete: false,
+        error: null,
+      });
+    };
+
     return (
       <div className={s.materialUpload}>
         <MediaPreview
@@ -255,6 +264,8 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
             fileSize,
             uploadDate: uploadState.isComplete ? 'Just now' : undefined,
           }}
+          onDelete={handleDelete}
+          showDeleteButton={true}
         />
       </div>
     );

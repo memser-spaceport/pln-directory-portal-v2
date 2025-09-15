@@ -36,38 +36,24 @@ export const ProfileContent = ({ pitchDeckUrl, videoUrl }: ProfileContentProps) 
   return (
     <div className={s.profileContent}>
       {/* Pitch Deck Card */}
-      <div className={s.mediaCard}>
-        {pitchDeckUrl ? (
-          <MediaPreview
-            url={pitchDeckUrl}
-            type="document"
-            title="Pitch Deck"
-            showMetadata={false}
-          />
-        ) : (
-          <div className={s.placeholder}>
-            <ImageIcon />
-            <span className={s.placeholderText}>Pitch Deck</span>
-          </div>
-        )}
-      </div>
+      {pitchDeckUrl ? (
+        <MediaPreview url={pitchDeckUrl} type="document" title="Pitch Deck" showMetadata={false} />
+      ) : (
+        <div className={s.placeholder}>
+          <ImageIcon />
+          <span className={s.placeholderText}>Pitch Deck</span>
+        </div>
+      )}
 
       {/* Video Card */}
-      <div className={s.mediaCard}>
-        {videoUrl ? (
-          <MediaPreview
-            url={videoUrl}
-            type="video"
-            title="Pitch Video"
-            showMetadata={false}
-          />
-        ) : (
-          <div className={s.placeholder}>
-            <VideoIcon />
-            <span className={s.placeholderText}>Pitch Video</span>
-          </div>
-        )}
-      </div>
+      {videoUrl ? (
+        <MediaPreview url={videoUrl} type="video" title="Pitch Video" showMetadata={false} />
+      ) : (
+        <div className={s.placeholder}>
+          <VideoIcon />
+          <span className={s.placeholderText}>Pitch Video</span>
+        </div>
+      )}
     </div>
   );
 };

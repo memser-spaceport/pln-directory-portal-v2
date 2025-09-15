@@ -18,11 +18,10 @@
   border: 1px solid #e2e8f0;
 
   &:hover {
-    transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border-color: #3b82f6;
 
-    .expandButton {
+    .expandButton,
+    .deleteButton {
       opacity: 1;
     }
   }
@@ -61,6 +60,38 @@
     height: 28px;
     top: 8px;
     right: 8px;
+  }
+}
+
+.deleteButton {
+  position: absolute;
+  top: 12px;
+  right: 52px;
+  width: 32px;
+  height: 32px;
+  background: rgba(220, 38, 38, 0.9);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 2;
+
+  &:hover {
+    background: rgba(185, 28, 28, 0.9);
+    transform: scale(1.05);
+  }
+
+  @include media.mobile-only {
+    opacity: 1;
+    width: 28px;
+    height: 28px;
+    top: 8px;
+    right: 44px;
   }
 }
 

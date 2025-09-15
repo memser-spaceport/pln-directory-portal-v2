@@ -123,6 +123,7 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  width: 100%;
 
   @include media.mobile-only {
     padding: 16px;

@@ -27,10 +27,15 @@
   padding: 16px;
   justify-content: flex-end;
   align-items: flex-start;
+  flex-direction: column;
   gap: 16px;
   align-self: stretch;
   border-radius: 12px;
   background: var(--Neutral-Slate-50, #F8FAFC);
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
 }
 
 .materialUpload {

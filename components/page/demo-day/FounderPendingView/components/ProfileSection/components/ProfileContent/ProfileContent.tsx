@@ -3,8 +3,8 @@ import { ImageIcon, VideoIcon } from '@/components/page/demo-day/icons/DemoDayIc
 import s from './ProfileContent.module.scss';
 
 interface ProfileContentProps {
-  pitchDeckUrl?: string;
-  videoUrl?: string;
+  pitchDeckUrl?: string | null;
+  videoUrl?: string | null;
 }
 
 const ExpandIcon = () => (

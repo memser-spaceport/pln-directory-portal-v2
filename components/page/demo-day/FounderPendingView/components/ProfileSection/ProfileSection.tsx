@@ -46,18 +46,15 @@ export const ProfileSection = () => {
         <div className={s.profileCard}>
           {/* Header */}
           <ProfileHeader
-            image={data?.image}
-            name={data?.name || 'Team Name'}
-            description={data?.shortDescription || 'Team description will appear here.'}
-            fundingStage={data?.fundingStage}
-            tags={data?.tags || []}
+            image={data?.team?.logo || '/images/demo-day/profile-placeholder.svg'}
+            name={data?.team?.name || 'Team Name'}
+            description={data?.team?.shortDescription || '-'}
+            fundingStage={data?.team.fundingStage.title || '-'}
+            tags={data?.team.industryTags.map((tag) => tag.title) || []}
           />
 
           {/* Content */}
-          <ProfileContent
-            pitchDeckUrl={data?.pitchDeckUrl}
-            videoUrl={data?.videoUrl}
-          />
+          <ProfileContent pitchDeckUrl={data?.onePagerUpload} videoUrl={data?.videoUpload} />
 
           {/* Divider */}
           <div className={s.profileDivider} />

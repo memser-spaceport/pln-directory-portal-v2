@@ -26,12 +26,10 @@ async function fetcher(memberUid?: string) {
   );
 
   if (!response?.ok) {
-    throw new Error('Failed to fetch notifications settings');
+    throw new Error('Failed to fetch demo day status');
   }
 
   const data: DemoDayState = await response.json();
-
-  console.log(data);
 
   return data;
 

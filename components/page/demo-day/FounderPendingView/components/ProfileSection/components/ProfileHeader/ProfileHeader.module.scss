@@ -62,13 +62,12 @@
 }
 
 .memberName {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0A0C11);
   font-size: 24px;
-  line-height: 32px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 34px; /* 141.667% */
   letter-spacing: -0.4px;
-  color: #1b3860;
-  margin: 0;
 
   @include media.mobile-only {
     font-size: 20px;
@@ -78,13 +77,12 @@
 }
 
 .memberDescription {
-  font-family: 'Inter', sans-serif;
+  color: var(--Neutral-Slate-600, #475569);
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 14px;
+  font-style: normal;
   font-weight: 400;
-  font-size: 16px;
-  line-height: 24px;
-  letter-spacing: -0.2px;
-  color: #455468;
-  margin: 0;
+  line-height: 20px; /* 142.857% */
 
   @include media.mobile-only {
     font-size: 14px;
@@ -105,23 +103,20 @@
 
 .stageTag {
   display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: center;
   align-items: center;
-  padding: 4px 12px;
-  background: #e8f4fd;
-  border: 1px solid #3b82f6;
-  border-radius: 16px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 16px;
-  color: #1b4dff;
-  white-space: nowrap;
+  gap: var(--spacing-5xs, 2px);
 
-  @include media.mobile-only {
-    padding: 3px 10px;
-    font-size: 11px;
-    line-height: 14px;
-  }
+  border-radius: var(--corner-radius-xsm, 4px);
+  background: var(--transparent-dark-16, rgba(14, 15, 17, 0.16));
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
 }
 
 .tagDivider {
@@ -133,21 +128,18 @@
 
 .tag {
   display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: center;
   align-items: center;
-  padding: 4px 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
-  color: #455468;
-  white-space: nowrap;
+  gap: var(--spacing-5xs, 2px);
 
-  @include media.mobile-only {
-    padding: 3px 10px;
-    font-size: 11px;
-    line-height: 14px;
-  }
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
 }

@@ -35,8 +35,6 @@ const WarningIcon = () => (
   </svg>
 );
 
-
-
 interface EditProfileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -204,10 +202,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
               </div>
 
               {/* Demo Day Materials - Always Visible */}
-              <DemoMaterials
-                existingPitchDeck={data?.onePagerUpload}
-                existingVideo={data?.videoUpload}
-              />
+              <DemoMaterials existingPitchDeck={data?.onePagerUpload?.url} existingVideo={data?.videoUpload?.url} />
             </div>
 
             {/* Footer - Always Visible */}

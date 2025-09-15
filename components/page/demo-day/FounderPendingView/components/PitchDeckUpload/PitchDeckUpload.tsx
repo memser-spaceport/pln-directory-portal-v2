@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useUploadOnePager } from '@/services/demo-day/hooks/useUploadOnePager';
+import { MediaPreview } from '../MediaPreview';
 import s from './PitchDeckUpload.module.scss';
 
 const FolderIcon = () => (
@@ -165,7 +166,8 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
   };
 
   const renderUploadArea = () => {
-    if (uploadState.file || existingFile) {
+    // Show uploading state
+    if (uploadState.isUploading) {
       return (
         <div className={s.filePreview}>
           <div className={s.fileIcon}>
@@ -173,34 +175,28 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
           </div>
           <div className={s.fileInfo}>
             <div className={s.fileName}>
-              {uploadState.file?.name || 'Existing file.pdf'}
+              {uploadState.file?.name || 'Uploading...'}
             </div>
             <div className={s.fileDetails}>
               <span className={s.fileSize}>
                 {uploadState.file ? formatFileSize(uploadState.file.size) : ''}
               </span>
-              {uploadState.isUploading && (
-                <>
-                  <DotIcon />
-                  <div className={s.uploadStatus}>
-                    <SpinnerIcon />
-                    <span>Uploading</span>
-                  </div>
-                </>
-              )}
+              <DotIcon />
+              <div className={s.uploadStatus}>
+                <SpinnerIcon />
+                <span>Uploading</span>
+              </div>
             </div>
           </div>
-          {uploadState.isUploading && (
-            <div className={s.progressBar}>
-              <div className={s.progressTrack}>
-                <div 
-                  className={s.progressFill} 
-                  style={{ width: `${uploadState.progress}%` }}
-                />
-              </div>
-              <span className={s.progressText}>{uploadState.progress}%</span>
+          <div className={s.progressBar}>
+            <div className={s.progressTrack}>
+              <div
+                className={s.progressFill}
+                style={{ width: `${uploadState.progress}%` }}
+              />
             </div>
-          )}
+            <span className={s.progressText}>{uploadState.progress}%</span>
+          </div>
           {uploadState.error && (
             <div className={s.errorMessage}>{uploadState.error}</div>
           )}
@@ -208,9 +204,31 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
       );
     }
 
+    // Show error state
+    if (uploadState.error) {
+      return (
+        <div className={s.errorContainer}>
+          <div className={s.errorMessage}>{uploadState.error}</div>
+          <button
+            type="button"
+            className={s.retryButton}
+            onClick={() => setUploadState({
+              file: null,
+              progress: 0,
+              isUploading: false,
+              isComplete: false,
+              error: null,
+            })}
+          >
+            Try Again
+          </button>
+        </div>
+      );
+    }
+
     return (
-      <div 
-        {...getRootProps()} 
+      <div
+        {...getRootProps()}
         className={`${s.uploadArea} ${isDragActive ? s.dragActive : ''}`}
       >
         <input {...getInputProps()} />
@@ -227,6 +245,28 @@ export const PitchDeckUpload = ({ existingFile }: PitchDeckUploadProps) => {
       </div>
     );
   };
+
+  // Show MediaPreview if file is uploaded successfully or existing file exists
+  if ((uploadState.isComplete && uploadState.file) || existingFile) {
+    const fileUrl = existingFile || (uploadState.file ? URL.createObjectURL(uploadState.file) : '');
+    const fileName = uploadState.file?.name || 'Pitch Deck.pdf';
+    const fileSize = uploadState.file ? formatFileSize(uploadState.file.size) : undefined;
+
+    return (
+      <div className={s.materialUpload}>
+        <MediaPreview
+          url={fileUrl}
+          type="document"
+          title="Pitch Deck"
+          metadata={{
+            fileName,
+            fileSize,
+            uploadDate: uploadState.isComplete ? 'Just now' : undefined,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={s.materialUpload}>

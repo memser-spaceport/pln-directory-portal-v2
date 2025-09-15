@@ -14,27 +14,23 @@
 }
 
 .sectionTitle {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 18px;
-  line-height: 24px;
-  color: #0f172a;
-  margin: 0;
-
-  @include media.mobile-only {
-    font-size: 16px;
-    line-height: 22px;
-  }
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
 }
 
 .materialsContainer {
   display: flex;
-  flex-direction: column;
+  padding: 16px;
+  justify-content: flex-end;
+  align-items: flex-start;
   gap: 16px;
-
-  @include media.mobile-only {
-    gap: 12px;
-  }
+  align-self: stretch;
+  border-radius: 12px;
+  background: var(--Neutral-Slate-50, #F8FAFC);
 }
 
 .materialUpload {

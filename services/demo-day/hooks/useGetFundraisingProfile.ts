@@ -21,6 +21,7 @@ export type UploadInfo = {
   updatedAt: string;
   uploaderUid: string | null;
   url: string;
+  freshUrl: string;
 };
 
 export type FundraisingProfile = {
@@ -71,6 +72,36 @@ async function fetcher() {
   }
 
   const data: FundraisingProfile = await response.json();
+
+  const videoResponse = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/uploads/${data.videoUploadUid}`,
+    {
+      method: 'GET',
+    },
+    true,
+  );
+
+  if (videoResponse?.ok) {
+    data.videoUpload = await videoResponse.json();
+    if (data.videoUpload?.freshUrl) {
+      data.videoUpload.url = data.videoUpload?.freshUrl;
+    }
+  }
+
+  const slideResponse = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/uploads/${data.onePagerUploadUid}`,
+    {
+      method: 'GET',
+    },
+    true,
+  );
+
+  if (slideResponse?.ok) {
+    data.onePagerUpload = await slideResponse.json();
+    if (data.onePagerUpload?.freshUrl) {
+      data.onePagerUpload.url = data.onePagerUpload.freshUrl;
+    }
+  }
 
   return data;
 

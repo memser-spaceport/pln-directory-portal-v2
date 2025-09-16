@@ -4,6 +4,7 @@
   display: flex;
   gap: 16px;
   align-items: center;
+  width: 100%;
 
   @include media.mobile-only {
     gap: 12px;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ImageIcon } from '@/components/page/demo-day/icons/DemoDayIcons';
 import { useDeleteOnePager } from '@/services/demo-day/hooks/useDeleteOnePager';
 import { useDeleteVideo } from '@/services/demo-day/hooks/useDeleteVideo';
@@ -49,11 +50,44 @@ const DeleteIcon = () => (
 export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, onDelete, showDeleteButton = true }: MediaPreviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
   const deleteOnePagerMutation = useDeleteOnePager();
   const deleteVideoMutation = useDeleteVideo();
 
   const queryClient = useQueryClient();
+
+  // Create portal container
+  useEffect(() => {
+    // Only create portal container on client side
+    if (typeof window === 'undefined') return;
+
+    const container = document.createElement('div');
+    container.id = `media-preview-modal-portal-${Date.now()}`;
+    container.style.position = 'relative';
+    container.style.zIndex = '10000';
+    document.body.appendChild(container);
+    setPortalContainer(container);
+
+    return () => {
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
+    };
+  }, []);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -68,19 +102,6 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isModalOpen]);
-
-  // Prevent body scroll when modal is open
-  // useEffect(() => {
-  //   if (isModalOpen) {
-  //     document.body.style.overflow = 'hidden';
-  //   } else {
-  //     document.body.style.overflow = 'unset';
-  //   }
-  //
-  //   return () => {
-  //     document.body.style.overflow = 'unset';
-  //   };
-  // }, [isModalOpen]);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -180,6 +201,26 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
     }
   };
 
+  const renderModal = () => {
+    // Only render modal if it's open, portal container exists, and we're on client side
+    if (!isModalOpen || !portalContainer || typeof window === 'undefined') return null;
+
+    return createPortal(
+      <div className={s.modal} onClick={closeModal}>
+        <div className={s.modalContent} onClick={(e) => e.stopPropagation()}>
+          {/* Close Button */}
+          <button className={s.closeButton} onClick={closeModal}>
+            <CloseIcon />
+          </button>
+
+          {/* Media Content */}
+          <div className={s.mediaContainer}>{renderModalContent()}</div>
+        </div>
+      </div>,
+      portalContainer
+    );
+  };
+
   return (
     <>
       <div className={s.mediaPreview}>
@@ -215,20 +256,8 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
         )}
       </div>
 
-      {/* Fullscreen Modal */}
-      {isModalOpen && (
-        <div className={s.modal} onClick={closeModal}>
-          <div className={s.modalContent} onClick={(e) => e.stopPropagation()}>
-            {/* Close Button */}
-            <button className={s.closeButton} onClick={closeModal}>
-              <CloseIcon />
-            </button>
-
-            {/* Media Content */}
-            <div className={s.mediaContainer}>{renderModalContent()}</div>
-          </div>
-        </div>
-      )}
+      {/* Fullscreen Modal Portal */}
+      {renderModal()}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

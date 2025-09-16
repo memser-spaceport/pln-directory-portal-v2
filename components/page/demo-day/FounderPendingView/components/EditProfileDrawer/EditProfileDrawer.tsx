@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EditProfileForm } from '../EditProfileForm';
 import { DemoMaterials } from '../DemoMaterials';
+import { SuccessAlert } from '../SuccessAlert';
 import s from './EditProfileDrawer.module.scss';
 import { clsx } from 'clsx';
 import { IUserInfo } from '@/types/shared.types';
@@ -45,9 +46,17 @@ interface EditProfileDrawerProps {
 export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, onClose, scrollPosition, data }) => {
   const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
   const [editView, setEditView] = useState(false);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const successAlertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const previousDataRef = useRef<FundraisingProfile | undefined>(data);
 
   const handleEditClick = () => {
     setEditView(true);
+    // Hide success alert when entering edit mode
+    setShowSuccessAlert(false);
+    if (successAlertTimeoutRef.current) {
+      clearTimeout(successAlertTimeoutRef.current);
+    }
   };
 
   const handleBackToView = () => {
@@ -58,12 +67,63 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
     setEditView(false);
   };
 
-  // Reset edit mode when drawer closes
+  // Reset edit mode and hide alert when drawer closes
   React.useEffect(() => {
     if (!isOpen) {
       setEditView(false);
+      setShowSuccessAlert(false);
+      if (successAlertTimeoutRef.current) {
+        clearTimeout(successAlertTimeoutRef.current);
+      }
     }
   }, [isOpen]);
+
+  // Check if both files are uploaded and show success alert
+  useEffect(() => {
+    const previousData = previousDataRef.current;
+    const currentData = data;
+
+    // Only show alert if drawer is open and not in edit view
+    if (!isOpen || editView) {
+      // Update reference even when not showing alert
+      previousDataRef.current = currentData;
+      return;
+    }
+
+    // Only check for completion if we have previous data to compare against
+    if (previousData) {
+      // Check if we just completed both uploads
+      const hadBothFilesBefore = previousData.onePagerUpload && previousData.videoUpload;
+      const hasBothFilesNow = currentData?.onePagerUpload && currentData?.videoUpload;
+
+      // Show success alert if we didn't have both files before but do now
+      if (!hadBothFilesBefore && hasBothFilesNow) {
+        setShowSuccessAlert(true);
+
+        // Clear any existing timeout
+        if (successAlertTimeoutRef.current) {
+          clearTimeout(successAlertTimeoutRef.current);
+        }
+
+        // Hide alert after 10 seconds
+        successAlertTimeoutRef.current = setTimeout(() => {
+          setShowSuccessAlert(false);
+        }, 10000);
+      }
+    }
+
+    // Update previous data reference
+    previousDataRef.current = currentData;
+  }, [data, isOpen, editView]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (successAlertTimeoutRef.current) {
+        clearTimeout(successAlertTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Handle ESC key press and body scroll lock
   // React.useEffect(() => {
@@ -106,6 +166,13 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
     }
   };
 
+  const handleCloseSuccessAlert = () => {
+    setShowSuccessAlert(false);
+    if (successAlertTimeoutRef.current) {
+      clearTimeout(successAlertTimeoutRef.current);
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -128,6 +195,9 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({ isOpen, on
                   [s.editView]: editView,
                 })}
               >
+                {/* Success Alert */}
+                <SuccessAlert isVisible={showSuccessAlert} onClose={handleCloseSuccessAlert} message="Thanks for the submission! You are all set." />
+
                 {/* Conditional Top Section */}
                 {editView ? (
                   <EditProfileForm onClose={handleFormClose} userInfo={userInfo} />

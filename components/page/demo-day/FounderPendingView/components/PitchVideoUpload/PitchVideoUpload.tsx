@@ -7,6 +7,7 @@ import s from './PitchVideoUpload.module.scss';
 import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useQueryClient } from '@tanstack/react-query';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
+import { formatWalletAddress } from '@privy-io/js-sdk-core';
 
 const FolderIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -180,7 +181,7 @@ export const PitchVideoUpload = ({ existingFile }: PitchVideoUploadProps) => {
             <VideoIcon />
           </div>
           <div className={s.fileInfo}>
-            <div className={s.fileName}>{uploadState.file?.name || 'Uploading...'}</div>
+            <div className={s.fileName}>{formatWalletAddress(uploadState.file?.name) || 'Uploading...'}</div>
             <div className={s.fileDetails}>
               <span className={s.fileSize}>{uploadState.file ? formatFileSize(uploadState.file.size) : ''}</span>
               <DotIcon />

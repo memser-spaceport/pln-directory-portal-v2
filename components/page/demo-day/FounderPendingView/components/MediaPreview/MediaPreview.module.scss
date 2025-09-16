@@ -312,8 +312,23 @@
   height: 90vh;
   border: none;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  border-radius: 8px;
+
+  // Ensure the PdfViewer fills the modal container
+  > div {
+    width: 100%;
+    height: 100%;
+  }
 
   &::-webkit-scrollbar {
     display: none;
+  }
+
+  @include media.mobile-only {
+    width: 95vw;
+    height: 85vh;
   }
 }

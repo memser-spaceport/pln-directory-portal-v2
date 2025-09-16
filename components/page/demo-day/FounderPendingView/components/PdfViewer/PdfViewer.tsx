@@ -38,15 +38,31 @@ export default function PdfViewer({ fileUrl, isPreview = false }: PdfViewerProps
             width={undefined}
             height={undefined}
             scale={1}
-            renderTextLayer={false}
-            renderAnnotationLayer={false}
+            renderTextLayer={!isPreview}
+            renderAnnotationLayer={!isPreview}
           />
         </Document>
       </div>
       {numPages && numPages > 1 && !isPreview && (
-        <p className={s.pageInfo}>
-          Page {pageNumber} of {numPages}
-        </p>
+        <div className={s.navigationContainer}>
+          <button
+            className={s.navButton}
+            onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+            disabled={pageNumber <= 1}
+          >
+            Previous
+          </button>
+          <p className={s.pageInfo}>
+            Page {pageNumber} of {numPages}
+          </p>
+          <button
+            className={s.navButton}
+            onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))}
+            disabled={pageNumber >= numPages}
+          >
+            Next
+          </button>
+        </div>
       )}
     </div>
   );

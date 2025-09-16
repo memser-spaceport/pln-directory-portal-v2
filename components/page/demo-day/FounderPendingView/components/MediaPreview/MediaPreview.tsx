@@ -6,7 +6,6 @@ import { ConfirmDialog } from '../ConfirmDialog';
 import s from './MediaPreview.module.scss';
 import { formatWalletAddress } from '@privy-io/js-sdk-core';
 import { formatFileSize } from '@/utils/file.utils';
-import { createPdfProxyUrl } from '@/utils/pdf-proxy.utils';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
@@ -171,8 +170,11 @@ export const MediaPreview = ({ url, type, title, metadata, showMetadata = true, 
     if (type === 'video') {
       return <video src={url} className={s.modalMedia} controls autoPlay />;
     } else if (isPDF(url)) {
-      const proxyUrl = createPdfProxyUrl(url);
-      return <iframe src={`${proxyUrl}#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH`} className={`${s.modalMedia} ${s.pdfModal}`} title="PDF Viewer" scrolling="no" />;
+      return (
+        <div className={`${s.modalMedia} ${s.pdfModal}`}>
+          <PdfViewer fileUrl={url} isPreview={false} />
+        </div>
+      );
     } else {
       return <img src={url} alt="Media" className={s.modalMedia} />;
     }

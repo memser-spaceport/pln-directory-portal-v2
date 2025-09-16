@@ -97,14 +97,6 @@ export const AccountMenu = ({ userInfo, authToken, isLoggedIn, profileFilledPerc
                 Support
                 <Menu.Separator className={s.Separator} />
               </div>
-              <Link target="_blank" href={process.env.GET_SUPPORT_URL ?? ''}>
-                <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Get Support', getAnalyticsUserInfo(userInfo))}>
-                  <HelpIcon /> Get Support{' '}
-                  <span className={s.itemSub}>
-                    <LinkIcon />
-                  </span>
-                </Menu.Item>
-              </Link>
               <Link href="/changelog">
                 <Menu.Item className={s.Item} onClick={() => analytics.onNavGetHelpItemClicked('Changelog', getAnalyticsUserInfo(userInfo))}>
                   <ChangeLogIcon /> Changelog

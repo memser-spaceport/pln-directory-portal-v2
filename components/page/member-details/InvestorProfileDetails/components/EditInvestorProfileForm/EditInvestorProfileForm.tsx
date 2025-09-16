@@ -24,8 +24,18 @@ interface Props {
 }
 
 const schema = yup.object().shape({
-  typicalCheckSize: yup.string().required('Required'),
-  investmentFocusAreas: yup.array().of(yup.string().required()).min(1, 'Required').defined(),
+  typicalCheckSize: yup.string().when('secRulesAccepted', {
+    is: true,
+    then: () => yup.string().required('Required'),
+  }),
+  investmentFocusAreas: yup
+    .array()
+    .of(yup.string().required())
+    .when('secRulesAccepted', {
+      is: true,
+      then: () => yup.array().of(yup.string().required()).min(1, 'Required'),
+    })
+    .defined(),
   secRulesAccepted: yup.boolean().required('Required'),
 });
 
@@ -58,6 +68,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
       investmentFocusAreas: member.investorProfile?.investmentFocus || [],
       secRulesAccepted: member.investorProfile?.secRulesAccepted ?? false,
     },
+    // @ts-ignore
     resolver: yupResolver(schema),
     mode: 'all',
   });
@@ -67,6 +78,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     reset,
     setValue,
     watch,
+    trigger,
     formState: { errors, isValid },
   } = methods;
   const secRulesAccepted = watch('secRulesAccepted');
@@ -89,7 +101,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
     }
 
     // Parse the currency string to get numeric value
-    const typicalCheckSizeNumber = parseCurrencyToNumber(formData.typicalCheckSize);
+    const typicalCheckSizeNumber = parseCurrencyToNumber(formData.typicalCheckSize ?? '');
 
     try {
       const payload = {
@@ -115,6 +127,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
   return (
     <FormProvider {...methods}>
       <form
+        // @ts-ignore
         onSubmit={handleSubmit(onSubmit)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
@@ -132,6 +145,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo }: Props) =>
                 checked={secRulesAccepted}
                 onCheckedChange={(v: boolean) => {
                   setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
+                  trigger();
                 }}
               >
                 <Checkbox.Indicator className={s.Indicator}>

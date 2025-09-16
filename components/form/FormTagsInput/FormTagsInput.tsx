@@ -21,7 +21,11 @@ interface Props {
 
 export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, placeholder = 'Add keyword', disabled }: Props) => {
   const [inputText, setInputText] = useState('');
-  const { setValue, getValues } = useFormContext();
+  const {
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useFormContext();
   const values = getValues();
   const val = values[name as keyof TRecommendationsSettingsForm] as string[];
 
@@ -31,6 +35,7 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
       <div
         className={clsx(s.input, {
           [s.disabled]: disabled,
+          [s.error]: errors[name],
         })}
       >
         <div className={s.inputContent}>
@@ -39,6 +44,7 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
               <Badge
                 key={item}
                 label={item}
+                disabled={disabled}
                 isColorful={isColorfulBadges}
                 onDelete={() => {
                   setValue(
@@ -113,6 +119,9 @@ export const FormTagsInput = ({ selectLabel, name, isColorfulBadges = true, plac
         >
           <PlusIcon />
         </button>
+      </div>
+      <div className={s.sub}>
+        <div>{errors[name] && <div className={s.errorMsg}>{(errors?.[name]?.message as string) ?? ''}</div>}</div>
       </div>
     </div>
   );

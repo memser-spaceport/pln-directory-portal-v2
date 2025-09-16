@@ -1,5 +1,5 @@
 export interface TEditInvestorProfileForm {
-  typicalCheckSize: string;
+  typicalCheckSize?: string;
   investmentFocusAreas: string[];
   secRulesAccepted: boolean;
 }

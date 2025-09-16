@@ -44,36 +44,11 @@ export const InvestorProfileView = ({ typicalCheckSize, investmentFocusAreas, se
         <div className={s.content}>
           <div className={s.section}>
             <div className={s.col}>
-              {(secRulesAccepted || isEditable) && (
-                <div className={s.keywordsWrapper}>
-                  <span className={s.keywordsLabel}>Status:</span>
-                  <span className={s.badgesWrapper}>
-                    {secRulesAccepted ? (
-                      <div className={s.badge}>
-                        <CheckIcon /> Self-attested accredited investor (SEC rules)
-                      </div>
-                    ) : isEditable ? (
-                      <button
-                        type="button"
-                        className={s.addKeywordsBadge}
-                        onClick={() => {
-                          onEdit?.();
-                        }}
-                      >
-                        <AddIcon /> Add
-                      </button>
-                    ) : (
-                      '-'
-                    )}
-                  </span>
-                </div>
-              )}
-
               {(typicalCheckSize || isEditable) && (
                 <div className={s.keywordsWrapper}>
                   <span className={s.keywordsLabel}>Check Size:</span>
                   <span className={s.badgesWrapper}>
-                    {typicalCheckSize ? (
+                    {typicalCheckSize && secRulesAccepted ? (
                       <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>
                     ) : (
                       <button
@@ -93,7 +68,7 @@ export const InvestorProfileView = ({ typicalCheckSize, investmentFocusAreas, se
                 <div className={s.keywordsWrapper}>
                   <span className={s.keywordsLabel}>Investment Focus Area:</span>
                   <span className={s.badgesWrapper}>
-                    {investmentFocusAreas?.length ? (
+                    {investmentFocusAreas?.length && secRulesAccepted ? (
                       investmentFocusAreas?.map((item: string) => (
                         <div key={item} className={s.badge}>
                           {item}

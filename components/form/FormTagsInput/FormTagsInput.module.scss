@@ -88,6 +88,10 @@
   &.disabled {
     opacity: 0.5;
   }
+
+  &.error {
+    border-color: #dc2626 !important;
+  }
 }
 
 .inputContent {
@@ -305,3 +309,13 @@
     margin-left: 0.25rem;
   }
 }
+
+.errorMsg {
+   font-size: 10px;
+   color: var(--action-border-error-focus);
+   font-feature-settings: 'liga' off, 'clig' off;
+   font-style: normal;
+   font-weight: 500;
+   line-height: 20px; /* 200% */
+   margin-top: 0.25rem;
+ }

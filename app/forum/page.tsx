@@ -21,7 +21,7 @@ const ForumPage = async ({ searchParams }: { searchParams: Record<string, string
     );
   }
 
-  if (userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1') {
+  if (userInfo.accessLevel === 'L0' || userInfo.accessLevel === 'L1' || userInfo.accessLevel === 'L5') {
     return (
       <div className={s.root}>
         <LoggedOutView accessLevel={userInfo.accessLevel} />

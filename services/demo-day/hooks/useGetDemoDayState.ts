@@ -11,7 +11,7 @@ type DemoDayState = {
   date: string;
   title: string;
   description: string;
-  status: 'pending' | 'active' | 'completed' | 'archived';
+  status: 'upcoming' | 'active' | 'completed' | 'archived';
 };
 
 async function fetcher(memberUid?: string) {
@@ -32,15 +32,6 @@ async function fetcher(memberUid?: string) {
   const data: DemoDayState = await response.json();
 
   return data;
-
-  // return {
-  //   uid: '123456789',
-  //   access: 'founder',
-  //   date: new Date().toISOString(),
-  //   title: 'PL Demo Day',
-  //   description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-  //   status: 'pending',
-  // };
 }
 
 export function useGetDemoDayState() {

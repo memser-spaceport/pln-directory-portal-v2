@@ -9,7 +9,7 @@ import { InvestorPendingView } from '@/components/page/demo-day/InvestorPendingV
 import { InvestorActiveView } from '@/components/page/demo-day/InvestorActiveView';
 
 const FOUNDER_VIEWS: Record<string, ReactNode> = {
-  pending: <FounderPendingView />,
+  upcoming: <FounderPendingView />,
   active: <FounderActiveView />,
   // completed: <FounderCompletedView />,
   // archived: <FounderArchivedView />,

@@ -38,10 +38,10 @@ function DemoDayPage() {
 
   switch (data?.access) {
     case 'FOUNDER': {
-      return FOUNDER_VIEWS[data?.status];
+      return FOUNDER_VIEWS[data?.status.toLowerCase()];
     }
     case 'INVESTOR': {
-      return INVESTOR_VIEWS[data.status];
+      return INVESTOR_VIEWS[data.status.toLowerCase()];
     }
     default: {
       return null;

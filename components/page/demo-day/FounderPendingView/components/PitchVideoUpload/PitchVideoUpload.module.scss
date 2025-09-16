@@ -124,7 +124,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  height: 188px;
+  min-height: 188px;
 
   @include media.mobile-only {
     padding: 16px;

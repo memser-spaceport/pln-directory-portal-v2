@@ -35,6 +35,13 @@
 
   @include media.tablet-landscape {
     flex-direction: row;
+    align-items: stretch; // Ensure both items have equal height
+  }
+
+  // Ensure both upload components have equal width
+  > * {
+    flex: 1;
+    min-width: 0; // Allow flex items to shrink below their content size
   }
 }
 

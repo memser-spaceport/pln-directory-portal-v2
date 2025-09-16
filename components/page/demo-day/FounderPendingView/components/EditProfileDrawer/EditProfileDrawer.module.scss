@@ -206,18 +206,16 @@
 }
 
 .drawerMemberName {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0A0C11);
   font-size: 24px;
-  line-height: 34px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 34px; /* 141.667% */
   letter-spacing: -0.4px;
-  color: #0a0c11;
-  margin: 0;
-  flex: 1;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
+  display: flex;
   gap: 4px;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .externalLinkIcon {

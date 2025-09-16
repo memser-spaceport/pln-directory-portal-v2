@@ -122,8 +122,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   width: 100%;
+  height: 188px;
 
   @include media.mobile-only {
     padding: 16px;
@@ -211,10 +213,8 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  max-width: 200px;
 
   @include media.mobile-only {
-    max-width: 160px;
     gap: 6px;
   }
 }

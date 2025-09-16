@@ -16,7 +16,7 @@ const FOUNDER_VIEWS: Record<string, ReactNode> = {
 };
 
 const INVESTOR_VIEWS: Record<string, ReactNode> = {
-  pending: <InvestorPendingView />,
+  upcoming: <InvestorPendingView />,
   active: <InvestorActiveView />,
   // completed: <FounderCompletedView />,
   // archived: <FounderArchivedView />,

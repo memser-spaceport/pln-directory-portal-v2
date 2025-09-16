@@ -4,6 +4,7 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import { Alert } from './components/Alert';
 import { ProfileSection } from './components/ProfileSection';
 import { TeamFundraisingCard } from '@/components/page/demo-day/InvestorPendingView/components/TeamFundraisingCard';
+import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 
 export const FounderPendingView = () => {
   const { data } = useGetDemoDayState();
@@ -35,15 +36,6 @@ export const FounderPendingView = () => {
   return (
     <div className={s.root}>
       <div className={s.eventHeader}>
-        {/* Background decorative elements */}
-        <div className={s.backgroundAccents}>
-          <div className={s.accentsImage} />
-        </div>
-        <div className={s.backgroundVector}>
-          <div className={s.vectorImage} />
-        </div>
-
-        {/* Main content */}
         <div className={s.content}>
           {/* Date and time section */}
           <div className={s.dateSection}>
@@ -64,10 +56,17 @@ export const FounderPendingView = () => {
             <h1 className={s.title}>{data?.title || 'PL Demo Day'}</h1>
             <p className={s.description}>{data?.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}</p>
           </div>
+
+          <ProfileContent
+            pitchDeckUrl={
+              'https://pl-events-service.s3.us-west-1.amazonaws.com/uploads/none/none/slide/9e581647b9e8e4363fa8fe5c84385bc2718b2859.pdf?AWSAccessKeyId=AKIAQGFDYLGEJQNXPQHT&Expires=1758016807&Signature=5itRtZQIty%2FtSZT61YY4b5tBNsA%3D'
+            }
+            videoUrl={
+              'https://pl-events-service.s3.us-west-1.amazonaws.com/uploads/none/none/video/aa123a09916a91b56e6c13aeae6340abe1350434.mp4?AWSAccessKeyId=AKIAQGFDYLGEJQNXPQHT&Expires=1758017055&Signature=A2QvHhfuCU3CawaH%2BhJIazdxcEM%3D'
+            }
+          />
         </div>
       </div>
-
-      <TeamFundraisingCard />
 
       <Alert />
 

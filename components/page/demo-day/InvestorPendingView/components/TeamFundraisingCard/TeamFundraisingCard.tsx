@@ -34,21 +34,6 @@ interface TeamFundraisingCardProps {
 export const TeamFundraisingCard = ({ onPitchDeckClick, onVideoClick }: TeamFundraisingCardProps) => {
   return (
     <div className={s.teamCard}>
-      {/* Header Section */}
-      <div className={s.header}>
-        <div className={s.profileImage}>
-          <AppLogo />
-          {/*<img src="/images/demo-day/profile-placeholder.svg" alt="Profile" className={s.profileImg} />*/}
-        </div>
-        <div className={s.memberDetails}>
-          <div className={s.memberInfo}>
-            <h2 className={s.memberName}>PL Demo Day</h2>
-            <p className={s.memberDescription}>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Content Section */}
       <div className={s.content}>
         {/* Pitch Deck Card */}
         <div className={s.mediaCard} onClick={onPitchDeckClick}>

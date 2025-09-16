@@ -44,6 +44,15 @@ export type FundraisingProfile = {
   onePagerUpload: UploadInfo | null;
   videoUploadUid: string | null;
   videoUpload: UploadInfo | null;
+  founders?: {
+    email: string;
+    image: { uid: string; url: string } | null;
+    name: string;
+    officeHours: null;
+    role: string;
+    skills: { uid: string; title: string }[];
+    uid: string;
+  }[];
 };
 
 async function fetcher() {

@@ -1,4 +1,5 @@
 @use 'styles/media';
+@use 'styles/mixins';
 
 .root {
   min-height: 20px;
@@ -176,6 +177,13 @@
   background-image: url('/images/demo-day/profile-placeholder.svg');
   background-size: cover;
   background-position: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
 }
 
 .drawerMemberDetails {
@@ -348,6 +356,13 @@
   background-image: url('/images/demo-day/profile-placeholder.svg');
   background-size: cover;
   background-position: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
 }
 
 .memberInfo {
@@ -400,6 +415,7 @@
 }
 
 .memberBadges {
+  @include mixins.ellipse-text;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -408,15 +424,22 @@
 }
 
 .memberBadge {
-  background: rgba(14, 15, 17, 0.06);
-  border-radius: 9999px;
-  padding: 2px 8px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
+  @include mixins.ellipse-text;
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
-  line-height: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
-  color: #455468;
+  display: flex;
+  padding: var(--spacing-5xs, 2px) var(--spacing-2xs, 8px);
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  max-width: 100px;
+  display: inline-block;
 }
 
 .memberArrow {

@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormTagsInput } from '@/components/form/FormTagsInput';
 import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -14,12 +13,14 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { toast } from 'react-toastify';
+import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions';
+import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 
 interface EditProfileFormData {
   image: File | null;
   name: string;
   shortDescription: string;
-  tags: string[];
+  tags: { value: string; label: string }[];
   fundingStage: { value: string; label: string } | null;
 }
 
@@ -29,22 +30,24 @@ interface Props {
   userInfo?: IUserInfo;
 }
 
-// Mock funding stage options - replace with real data
-const fundingStageOptions = [
-  { value: 'pre-seed', label: 'Pre-Seed' },
-  { value: 'seed', label: 'Seed' },
-  { value: 'series-a', label: 'Series A' },
-  { value: 'series-b', label: 'Series B' },
-  { value: 'series-c', label: 'Series C' },
-  { value: 'growth', label: 'Growth' },
-  { value: 'ipo', label: 'IPO' },
-];
-
 const schema = yup.object().shape({
   image: yup.mixed<File>().nullable().defined(),
   name: yup.string().required('Name is required'),
   shortDescription: yup.string().required('Short description is required'),
-  tags: yup.array().of(yup.string().defined()).min(1, 'At least one tag is required').defined().required('Tags are required'),
+  tags: yup
+    .array()
+    .of(
+      yup
+        .object()
+        .shape({
+          value: yup.string().required('Funding stage is required'),
+          label: yup.string().required('Funding stage is required'),
+        })
+        .defined(),
+    )
+    .min(1, 'At least one tag is required')
+    .defined()
+    .required('Tags are required'),
   fundingStage: yup
     .object()
     .shape({
@@ -57,10 +60,33 @@ const schema = yup.object().shape({
 export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
   const { data: profileData } = useGetFundraisingProfile();
   const updateProfileMutation = useUpdateFundraisingProfile();
+  const { data } = useTeamsFormOptions();
+
+  const options = useMemo(() => {
+    if (!data) {
+      return {
+        industryTagsOptions: [],
+        fundingStageOptions: [],
+      };
+    }
+
+    return {
+      industryTagsOptions: data.industryTags.map((val: { id: any; name: any }) => ({
+        value: val.id,
+        label: val.name,
+      })),
+      fundingStageOptions: data.fundingStage
+        .filter((val: { id: any; name: any }) => val.name !== 'Not Applicable')
+        .map((val: { id: any; name: any }) => ({
+          value: val.id,
+          label: val.name,
+        })),
+    };
+  }, [data]);
 
   // Helper function to format funding stage for form
   const formatFundingStageForForm = (stage: string) => {
-    const option = fundingStageOptions.find((opt) => opt.value === stage);
+    const option = options?.fundingStageOptions?.find((opt: { value: string }) => opt.value === stage);
     return option || null;
   };
 
@@ -69,7 +95,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
       image: null,
       name: profileData?.team?.name || '',
       shortDescription: profileData?.team?.shortDescription || '',
-      tags: profileData?.team?.industryTags?.map((tag) => tag.title) || [],
+      tags: profileData?.team?.industryTags?.map((tag) => ({ value: tag.uid, label: tag.title })) || [],
       fundingStage: profileData?.team?.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
     },
     resolver: yupResolver(schema),
@@ -82,7 +108,7 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
         image: null,
         name: profileData.team?.name || '',
         shortDescription: profileData.team?.shortDescription || '',
-        tags: profileData.team?.industryTags?.map((tag) => tag.title) || [],
+        tags: profileData.team?.industryTags?.map((tag) => ({ value: tag.uid, label: tag.title })) || [],
         fundingStage: profileData.team?.fundingStage ? formatFundingStageForForm(profileData.team.fundingStage.uid) : null,
       });
     }
@@ -92,19 +118,19 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
 
   const onSubmit = async (formData: EditProfileFormData) => {
     try {
-      let imageUrl = '';
+      let image = '';
 
       if (formData.image) {
         const imgResponse = await saveRegistrationImage(formData.image);
-        imageUrl = imgResponse?.image.url;
+        image = imgResponse?.image.uid;
       }
 
       const updateData = {
         name: formData.name,
         shortDescription: formData.shortDescription,
-        industryTags: formData.tags,
+        industryTags: formData.tags.map((t) => t.value),
         fundingStage: formData.fundingStage?.value || '',
-        logo: imageUrl,
+        logo: image || profileData?.team.logo?.uid,
       };
 
       await updateProfileMutation.mutateAsync(updateData);
@@ -144,11 +170,11 @@ export const EditProfileForm = ({ onClose, member, userInfo }: Props) => {
           </div>
 
           <div className={s.row}>
-            <FormTagsInput name="tags" selectLabel="Tags" placeholder="Add tags (e.g., AI, Blockchain, FinTech)" />
+            <FormMultiSelect name="tags" label="Tags" placeholder="Add tags (e.g., AI, Blockchain, FinTech)" options={options.industryTagsOptions} />
           </div>
 
           <div className={s.row}>
-            <FormSelect name="fundingStage" label="Funding Stage" placeholder="Select your current funding stage" options={fundingStageOptions} />
+            <FormSelect name="fundingStage" label="Funding Stage" placeholder="Select your current funding stage" options={options.fundingStageOptions} />
           </div>
         </div>
       </form>

@@ -111,6 +111,7 @@ export interface ITeam {
     updatedAt: string;
     teamUid: string;
     memberUid: null;
+    secRulesAccepted: boolean;
   };
 }
 

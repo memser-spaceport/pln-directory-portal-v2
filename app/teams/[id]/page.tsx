@@ -70,6 +70,7 @@ async function Page({ params }: { params: ITeamDetailParams }) {
                 userInfo={userInfo}
                 isEditable={false}
                 showIncomplete={false}
+                secRulesAccepted={team?.investorProfile?.secRulesAccepted}
               />
             </div>
           )}

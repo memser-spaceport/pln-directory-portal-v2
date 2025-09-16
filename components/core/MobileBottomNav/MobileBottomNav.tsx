@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { NavigationMenu } from '@base-ui-components/react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
+import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 
 const TeamsIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -92,6 +93,8 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
 
+  const { data: demoDayState } = useGetDemoDayState();
+
   return (
     <div
       className={clsx(styles.wrapper, {
@@ -101,14 +104,22 @@ export function MobileBottomNav() {
     >
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={styles.list}>
-          {navItems.map(({ href, label, icon: Icon }) => (
-            <NavigationMenu.Item key={href}>
-              <Link href={href} className={clsx(styles.item, pathname === href && styles.itemActive)}>
-                <Icon />
-                <span>{label}</span>
-              </Link>
-            </NavigationMenu.Item>
-          ))}
+          {navItems
+            .filter((item) => {
+              if (item.href === '/demo-day') {
+                return demoDayState && demoDayState.access !== 'NONE';
+              }
+
+              return true;
+            })
+            .map(({ href, label, icon: Icon }) => (
+              <NavigationMenu.Item key={href}>
+                <Link href={href} className={clsx(styles.item, pathname === href && styles.itemActive)}>
+                  <Icon />
+                  <span>{label}</span>
+                </Link>
+              </NavigationMenu.Item>
+            ))}
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

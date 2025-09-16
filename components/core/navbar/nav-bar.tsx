@@ -75,7 +75,7 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
-  const { data: demoDayState } = useGetDemoDayState(userInfo?.uid);
+  const { data: demoDayState } = useGetDemoDayState();
 
   return (
     <NavigationMenu.Root className={s.Root}>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import s from './FilterList.module.scss';
 
 const SearchIcon = () => (
@@ -83,6 +83,12 @@ export const FilterList: React.FC<FilterListProps> = ({
     setSearchTerm(e.target.value);
   };
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      handleClearSearch();
+    }
+  }, []);
+
   const handleClearSearch = () => {
     setSearchTerm('');
     setShowAll(false); // Reset to collapsed state when clearing search
@@ -121,6 +127,7 @@ export const FilterList: React.FC<FilterListProps> = ({
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
+            onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className={s.input}
           />

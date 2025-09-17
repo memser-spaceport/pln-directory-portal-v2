@@ -15,7 +15,7 @@ async function infiniteFetcher(searchParams: MembersListQueryParams['searchParam
   const query = qs.stringify({
     ...searchParams,
     roles: searchParams.roles?.split('|'),
-    topics: searchParams.hasOfficeHours ? searchParams.topics?.split('|') : '',
+    topics: searchParams.topics?.split('|') || '',
     sort: searchParams.sort
       ?.split(',')
       .map((s: string) => s.toLowerCase())

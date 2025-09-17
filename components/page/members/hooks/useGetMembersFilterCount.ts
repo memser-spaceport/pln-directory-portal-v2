@@ -19,10 +19,6 @@ export function useGetMembersFilterCount() {
       'searchRoles', // RolesSearchFilter - Search Roles
     ];
 
-    if (!params.get('hasOfficeHours')) {
-      filterParams = filterParams.filter((param) => param !== 'topics');
-    }
-
     filterParams.forEach((param) => {
       const value = params.get(param);
       // Check if the parameter exists and has a meaningful value
